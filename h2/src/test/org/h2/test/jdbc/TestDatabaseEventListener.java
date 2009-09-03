@@ -50,8 +50,10 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         Properties p = new Properties();
         p.setProperty("user", user);
         p.setProperty("password", password);
-        Connection conn = DriverManager.getConnection(url, p);
-        Statement stat = conn.createStatement();
+        Connection conn;
+        Statement stat;
+        conn = DriverManager.getConnection(url, p);
+        stat = conn.createStatement();
         // the old.id index head is at position 0
         stat.execute("create table old(id identity) as select 1");
         // the test.id index head is at position 1

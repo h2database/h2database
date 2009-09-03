@@ -1236,10 +1236,11 @@ public class Database implements DataHandler {
             if (flush) {
                 try {
                     pageStore.checkpoint();
-                    pageStore.trim();
+                    if (!readOnly) {
+                        pageStore.trim();
+                    }
                 } catch (Throwable e) {
-                    int test;
-                    // e.printStackTrace(System.out);
+                    // TODO don't ignore exceptions
                     traceSystem.getTrace(Trace.DATABASE).error("close", e);
                 }
             }

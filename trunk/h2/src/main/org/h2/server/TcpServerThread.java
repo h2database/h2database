@@ -153,6 +153,10 @@ public class TcpServerThread implements Runnable {
             try {
                 Command rollback = session.prepareLocal("ROLLBACK");
                 rollback.executeUpdate();
+            } catch (Exception e) {
+                server.traceError(e);
+            }
+            try {
                 session.close();
                 server.removeConnection(id);
             } catch (Exception e) {

@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>DatabaseMetaData.getPrimaryKeys: the wrong constraint name was reported
+<ul><li>When calling SHUTDOWN IMMEDIATELY in the server mode, the .trace.db file was not closed.
+</li><li>DatabaseMetaData.getPrimaryKeys: the wrong constraint name was reported
     if there was another constraint on the same table and columns.
 </li><li>AUTO_INCREMENT now works in the same way in ALTER TABLE ALTER COLUMN 
     as in CREATE TABLE (it does not create a primary key).

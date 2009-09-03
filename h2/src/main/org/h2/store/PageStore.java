@@ -30,7 +30,6 @@ import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.message.Trace;
-import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
@@ -78,13 +77,12 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO database head pos = id? head pos > root pos?
     // TODO a correctly closed database should not contain log pages
     // TODO shrinking: a way to load pages centrally
     // TODO shrinking: Page.moveTo(int pageId).
 
     // TODO utf-x: test if it's faster
-    // TODO value serialization: test (100% coverage)
+    // TODO after opening the database, delay writing until required
 
     // TODO scan index: support long keys, and use var long
     // TODO don't save the direct parent (only root); remove setPageId
@@ -201,7 +199,7 @@ public class PageStore implements CacheWriter {
     private TableData metaTable;
     private PageScanIndex metaIndex;
     private IntIntHashMap metaRootPageId = new IntIntHashMap();
-    private HashMap<Integer, PageIndex> metaObjects = New.hashMap();
+    private HashMap<Integer, Index> metaObjects = New.hashMap();
 
     /**
      * The map of reserved pages, to ensure index head pages
@@ -293,7 +291,7 @@ public class PageStore implements CacheWriter {
         increaseFileSize(MIN_PAGE_COUNT);
         openMetaIndex();
         logFirstTrunkPage = allocatePage();
-        log.openForWriting(logFirstTrunkPage);
+        log.openForWriting(logFirstTrunkPage, false);
         systemTableHeadPos = Index.EMPTY_HEAD;
         recoveryRunning = false;
         increaseFileSize(INCREMENT_PAGES);
@@ -318,7 +316,7 @@ public class PageStore implements CacheWriter {
             recoveryRunning = true;
             log.free();
             logFirstTrunkPage = allocatePage();
-            log.openForWriting(logFirstTrunkPage);
+            log.openForWriting(logFirstTrunkPage, false);
             recoveryRunning = false;
             checkpoint();
         }
@@ -364,18 +362,47 @@ public class PageStore implements CacheWriter {
      * Shrink the file so there are no empty pages at the end.
      */
     public void trim() throws SQLException {
-        int test;
-        int maxMove = 100000;
-        for (int x = pageCount - 1, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x--, j++) {
-            compact(x);
-        }
+        // find the last used page
+        int lastUsed = -1;
         for (int i = getFreeListId(pageCount); i >= 0; i--) {
-            int last = getFreeList(i).getLastUsed();
-            if (last != -1) {
-                pageCount = last + 1;
+            lastUsed = getFreeList(i).getLastUsed();
+            if (lastUsed != -1) {
                 break;
             }
         }
+        // open a new log at the very end
+        // (to be truncated later)
+        writeBack();
+        recoveryRunning = true;
+        try {
+            log.free();
+            logFirstTrunkPage = lastUsed + 1;
+            allocatePage(logFirstTrunkPage);
+            log.openForWriting(logFirstTrunkPage, true);
+        } finally {
+            recoveryRunning = false;
+        }
+        int maxMove = Integer.MAX_VALUE;
+        for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x--, j++) {
+            compact(x);
+        }
+        writeBack();
+        // truncate the log
+        recoveryRunning = true;
+        try {
+            log.free();
+            setLogFirstPage(0, 0);
+        } finally {
+            recoveryRunning = false;
+        }
+        writeBack();
+        for (int i = getFreeListId(pageCount); i >= 0; i--) {
+            lastUsed = getFreeList(i).getLastUsed();
+            if (lastUsed != -1) {
+                break;
+            }
+        }
+        pageCount = lastUsed + 1;
         trace.debug("pageCount:" + pageCount);
         file.setLength((long) pageCount << pageSizeShift);
     }
@@ -395,13 +422,17 @@ public class PageStore implements CacheWriter {
         if (f != null) {
             Message.throwInternalError("not free: " + f);
         }
-        Page p = getPage(full);
-        if (p != null) {
-            trace.debug("move " + p.getPos() + " to " + free);
-            long logSection = log.getLogSectionId(), logPos = log.getLogPos();
-            p.moveTo(systemSession, free);
-            if (log.getLogSectionId() == logSection || log.getLogPos() != logPos) {
-                commit(systemSession);
+        if (isUsed(full)) {
+            Page p = getPage(full);
+            if (p != null) {
+                trace.debug("move " + p.getPos() + " to " + free);
+                long logSection = log.getLogSectionId(), logPos = log.getLogPos();
+                p.moveTo(systemSession, free);
+                if (log.getLogSectionId() == logSection || log.getLogPos() != logPos) {
+                    commit(systemSession);
+                }
+            } else {
+                freePage(full);
             }
         }
     }
@@ -727,12 +758,12 @@ public class PageStore implements CacheWriter {
      * @param list the list where to add the allocated pages
      * @param pagesToAllocate the number of pages to allocate
      * @param exclude the exclude list
+     * @param after all allocated pages are higher than this page
      */
-    void allocatePages(IntArray list, int pagesToAllocate, BitField exclude) throws SQLException {
-        int first = 0;
+    void allocatePages(IntArray list, int pagesToAllocate, BitField exclude, int after) throws SQLException {
         for (int i = 0; i < pagesToAllocate; i++) {
-            int page = allocatePage(exclude, first);
-            first = page;
+            int page = allocatePage(exclude, after);
+            after = page;
             list.add(page);
         }
     }
@@ -1033,7 +1064,7 @@ public class PageStore implements CacheWriter {
                 removeMeta(logPos, row);
             }
         }
-        PageScanIndex index = (PageScanIndex) metaObjects.get(tableId);
+        Index index = metaObjects.get(tableId);
         if (index == null) {
             throw Message.throwInternalError("Table not found: " + tableId + " " + row + " " + add);
         }
@@ -1051,7 +1082,7 @@ public class PageStore implements CacheWriter {
      * @param tableId the object id of the table
      */
     void redoTruncate(int tableId) throws SQLException {
-        PageScanIndex index = (PageScanIndex) metaObjects.get(tableId);
+        Index index = metaObjects.get(tableId);
         Table table = index.getTable();
         table.truncate(systemSession);
     }
@@ -1134,7 +1165,7 @@ public class PageStore implements CacheWriter {
             table.setCompareMode(mode);
             meta = table.getScanIndex(session);
         } else {
-            PageScanIndex p = (PageScanIndex) metaObjects.get(parent);
+            Index p = metaObjects.get(parent);
             if (p == null) {
                 throw Message.throwInternalError("parent not found:" + parent);
             }
@@ -1156,7 +1187,7 @@ public class PageStore implements CacheWriter {
             }
             meta = table.addIndex(session, "I" + id, id, cols, indexType, id, null);
         }
-        metaObjects.put(id, (PageIndex) meta);
+        metaObjects.put(id, meta);
     }
 
     /**
@@ -1319,6 +1350,12 @@ public class PageStore implements CacheWriter {
         return this.logFirstDataPage;
     }
 
+    /**
+     * Get the root page of an index.
+     *
+     * @param index the index
+     * @return the root page
+     */
     public int getRootPageId(PageIndex index) {
         return metaRootPageId.get(index.getId());
     }

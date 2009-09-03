@@ -11,6 +11,9 @@ package org.h2.index;
  */
 public abstract class PageIndex extends BaseIndex {
 
+    /**
+     * The root page of this index.
+     */
     protected int rootPageId;
 
     public int getRootPageId() {

@@ -34,18 +34,21 @@ public class PageOutputStream extends OutputStream {
     private boolean needFlush;
     private boolean writing;
     private int pages;
+    private boolean atEnd;
 
     /**
      * Create a new page output stream.
      *
      * @param store the page store
      * @param trunkPage the first trunk page (already allocated)
+     * @param atEnd whether only pages at the end of the file should be used
      */
-    public PageOutputStream(PageStore store, int trunkPage, BitField exclude) {
+    public PageOutputStream(PageStore store, int trunkPage, BitField exclude, boolean atEnd) {
         this.trace = store.getTrace();
         this.store = store;
         this.trunkPageId = trunkPage;
         this.exclude = exclude;
+        this.atEnd = atEnd;
     }
 
     /**
@@ -68,7 +71,8 @@ public class PageOutputStream extends OutputStream {
             }
             // allocate the next trunk page as well
             pagesToAllocate++;
-            store.allocatePages(reservedPages, pagesToAllocate, exclude);
+            int firstPageToUse = atEnd ? trunkPageId : 0;
+            store.allocatePages(reservedPages, pagesToAllocate, exclude, firstPageToUse);
             reserved += totalCapacity;
             if (data == null) {
                 initNextData();

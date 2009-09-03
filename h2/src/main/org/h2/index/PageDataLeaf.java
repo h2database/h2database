@@ -306,7 +306,7 @@ public class PageDataLeaf extends PageData {
             return;
         }
         PageDataOverflow overflow = index.getPageOverflow(firstOverflowPageId);
-        overflow.setParent(getPos());
+        overflow.setParentPageId(getPos());
         index.getPageStore().updateRecord(overflow, true, null);
     }
 
@@ -316,6 +316,7 @@ public class PageDataLeaf extends PageData {
             throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + key);
         }
         if (entryCount == 1) {
+            freeChildren();
             return true;
         }
         removeRow(i);
@@ -396,27 +397,39 @@ public class PageDataLeaf extends PageData {
     }
 
     public String toString() {
-        return "page[" + getPos() + "] data leaf table:" + index.getId() + " entries:" + entryCount;
+        return "page[" + getPos() + "] data leaf table:" + index.getId() +
+            " entries:" + entryCount + " parent:" + parentPageId +
+            (firstOverflowPageId == 0 ? "" : " overflow:" + firstOverflowPageId);
     }
 
     public void moveTo(Session session, int newPos) throws SQLException {
-//        PageStore store = index.getPageStore();
-//        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPos, store.createData());
-//        readAllRows();
-//        p2.rows = rows;
-//        p2.entryCount = entryCount;
-//        p2.offsets = offsets;
-//        p2.onlyPosition = onlyPosition;
-//        p2.parentPageId = parentPageId;
-//        p2.start = start;
-//        store.updateRecord(p2, false, null);
-//        if (firstOverflowPageId != 0) {
-//        }
-//        if (parentPageId == ROOT) {
-//        } else {
-//            PageBtreeNode p = (PageBtreeNode) store.getPage(parentPageId);
-//            p.moveChild(getPos(), newPos);
-//        }
+        PageStore store = index.getPageStore();
+        PageDataLeaf p2 = new PageDataLeaf(index, newPos, store.createData());
+        readAllRows();
+        p2.keys = keys;
+        p2.overflowRowSize = overflowRowSize;
+        p2.firstOverflowPageId = firstOverflowPageId;
+        p2.rowRef = rowRef;
+        p2.rows = rows;
+        p2.entryCount = entryCount;
+        p2.offsets = offsets;
+        p2.parentPageId = parentPageId;
+        p2.start = start;
+        store.updateRecord(p2, false, null);
+        p2.remapChildren();
+        store.freePage(getPos(), true, data);
+        if (parentPageId == ROOT) {
+            index.setRootPageId(session, newPos);
+        } else {
+            PageDataNode p = (PageDataNode) store.getPage(parentPageId);
+            p.moveChild(getPos(), newPos);
+        }
+    }
+
+    void setOverflow(int overflow) throws SQLException {
+        written = false;
+        this.firstOverflowPageId = overflow;
+        index.getPageStore().updateRecord(this, true, data);
     }
 
 }

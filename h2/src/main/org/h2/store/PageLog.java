@@ -170,11 +170,12 @@ public class PageLog {
      * must be run first.
      *
      * @param firstTrunkPage the first trunk page
+     * @param atEnd whether only pages at the end of the file should be used
      */
-    void openForWriting(int firstTrunkPage) throws SQLException {
+    void openForWriting(int firstTrunkPage, boolean atEnd) throws SQLException {
         trace.debug("log openForWriting firstPage:" + firstTrunkPage);
         this.firstTrunkPage = firstTrunkPage;
-        pageOut = new PageOutputStream(store, firstTrunkPage, undoAll);
+        pageOut = new PageOutputStream(store, firstTrunkPage, undoAll, atEnd);
         pageOut.reserve(1);
         store.setLogFirstPage(firstTrunkPage, pageOut.getCurrentDataPageId());
         buffer = new ByteArrayOutputStream();
@@ -185,11 +186,8 @@ public class PageLog {
      * Free up all pages allocated by the log.
      */
     void free() throws SQLException {
-        while (this.firstTrunkPage != 0) {
-            if (store.getRecord(firstTrunkPage) != null) {
-                throw Message.throwInternalError("" + store.getRecord(firstTrunkPage));
-            }
-            PageStreamTrunk t = (PageStreamTrunk) store.getPage(this.firstTrunkPage);
+        while (firstTrunkPage != 0) {
+            PageStreamTrunk t = (PageStreamTrunk) store.getPage(firstTrunkPage);
             if (t == null) {
                 store.freePage(firstTrunkPage, false, null);
                 // EOF

@@ -7,6 +7,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -14,6 +15,7 @@ import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
 import org.h2.store.Page;
+import org.h2.store.PageStore;
 import org.h2.util.MemoryUtils;
 
 /**
@@ -326,12 +328,49 @@ public class PageDataNode extends PageData {
     }
 
     public String toString() {
-        return "page[" + getPos() + "] data node table:" + index.getId() + " entries:" + entryCount;
+        return "page[" + getPos() + "] data node table:" + index.getId() + " entries:" + entryCount + " " + Arrays.toString(childPageIds);
     }
 
     public void moveTo(Session session, int newPos) throws SQLException {
-        // TODO Auto-generated method stub
+        PageStore store = index.getPageStore();
+        PageDataNode p2 = new PageDataNode(index, newPos, store.createData());
+        p2.rowCountStored = rowCountStored;
+        p2.rowCount = rowCount;
+        p2.childPageIds = childPageIds;
+        p2.keys = keys;
+        p2.entryCount = entryCount;
+        p2.parentPageId = parentPageId;
+        store.updateRecord(p2, false, null);
+        if (parentPageId == ROOT) {
+            index.setRootPageId(session, newPos);
+        } else {
+            PageDataNode p = (PageDataNode) store.getPage(parentPageId);
+            p.moveChild(getPos(), newPos);
+        }
+        for (int i = 0; i < childPageIds.length; i++) {
+            PageData p = (PageData) store.getPage(childPageIds[i]);
+            p.setParentPageId(newPos);
+            store.updateRecord(p, true, p.data);
+        }
+        store.freePage(getPos(), true, data);
+    }
 
+    /**
+     * One of the children has moved to another page.
+     *
+     * @param oldPos the old position
+     * @param newPos the new position
+     */
+    void moveChild(int oldPos, int newPos) throws SQLException {
+        for (int i = 0; i < childPageIds.length; i++) {
+            if (childPageIds[i] == oldPos) {
+                written = false;
+                childPageIds[i] = newPos;
+                index.getPageStore().updateRecord(this, true, data);
+                return;
+            }
+        }
+        throw Message.throwInternalError();
     }
 
 }

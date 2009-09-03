@@ -504,7 +504,13 @@ public class PageBtreeNode extends PageBtree {
         store.freePage(getPos(), true, data);
     }
 
-    public void moveChild(int oldPos, int newPos) throws SQLException {
+    /**
+     * One of the children has moved to a new page.
+     *
+     * @param oldPos the old position
+     * @param newPos the new position
+     */
+    void moveChild(int oldPos, int newPos) throws SQLException {
         for (int i = 0; i < childPageIds.length; i++) {
             if (childPageIds[i] == oldPos) {
                 written = false;

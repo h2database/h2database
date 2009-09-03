@@ -352,7 +352,13 @@ public class PageBtreeIndex extends PageIndex {
         return true;
     }
 
-    public void setRootPageId(Session session, int newPos) throws SQLException {
+    /**
+     * The root page has changed.
+     *
+     * @param session the session
+     * @param newPos the new position
+     */
+    void setRootPageId(Session session, int newPos) throws SQLException {
         store.removeMeta(this, session);
         this.rootPageId = newPos;
         store.addMeta(this, session);

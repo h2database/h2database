@@ -197,21 +197,8 @@ public class PageStreamTrunk extends Page {
         store.updateRecord(this, true, data);
     }
 
-    public void moveTo(Session session, int newPos) throws SQLException {
-//        PageStreamTrunk p2 = new PageStreamTrunk(store, parent, newPos, nextTrunk, pageIds);
-//        store.updateRecord(p2, false, null);
-//        for (int i = 0; i < pageCount; i++) {
-//            int p = pageIds[i];
-//            PageStreamData d = (PageStreamData) store.getPage(p);
-//            if (d != null) {
-//                d.setTrunkPage(newPos);
-//            }
-//        }
-//        if (store.getLogFirstTrunkPage() == getPos()) {
-//            int dataPageId = store.getLogFirstDataPage();
-//            store.setLogFirstPage(newPos, dataPageId);
-//        }
-//        store.freePage(getPos(), true, data);
+    public void moveTo(Session session, int newPos) {
+        // not required
     }
 
 }

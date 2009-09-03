@@ -13,6 +13,7 @@ import org.h2.message.Message;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
 import org.h2.store.Page;
+import org.h2.store.PageStore;
 
 /**
  * Overflow data for a leaf page.
@@ -36,6 +37,8 @@ public class PageDataOverflow extends Page {
      * The start of the data in a overflow page that is not the last one.
      */
     static final int START_MORE = 13;
+
+    private static final int START_NEXT_OVERFLOW = 9;
 
     /**
      * The index.
@@ -177,13 +180,37 @@ public class PageDataOverflow extends Page {
         return index.getPageStore().getPageSize() >> 1;
     }
 
-    void setParent(int parent) {
+    void setParentPageId(int parent) {
         this.parentPage = parent;
     }
 
     public void moveTo(Session session, int newPos) throws SQLException {
-        // TODO Auto-generated method stub
+        PageStore store = index.getPageStore();
+        int start =  type == Page.TYPE_DATA_OVERFLOW ? START_MORE : START_LAST;
+        PageDataOverflow p2 = new PageDataOverflow(index, newPos, type, parentPage, nextPage, data, start, size);
+        store.updateRecord(p2, false, null);
+        if (nextPage != 0) {
+            PageDataOverflow p3 = (PageDataOverflow) store.getPage(nextPage);
+            p3.setParentPageId(newPos);
+        }
+        Page p = store.getPage(parentPage);
+        if (p == null) {
+            throw Message.throwInternalError();
+        }
+        if (p instanceof PageDataOverflow) {
+            PageDataOverflow p1 = (PageDataOverflow) p;
+            p1.setOverflow(newPos);
+        } else {
+            PageDataLeaf p1 = (PageDataLeaf) p;
+            p1.setOverflow(newPos);
+        }
+        store.freePage(getPos(), true, data);
+    }
 
+    private void setOverflow(int nextPage) throws SQLException {
+        this.nextPage = nextPage;
+        data.setInt(START_NEXT_OVERFLOW, nextPage);
+        index.getPageStore().updateRecord(this, true, data);
     }
 
 }

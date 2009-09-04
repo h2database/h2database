@@ -179,7 +179,7 @@ public class TestFileSystem extends TestBase {
             fs.createDirs(fsBase + "/testDir/test");
             assertTrue(fs.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith("jdbc:")) {
-                fs.deleteRecursive(fsBase + "/testDir");
+                fs.deleteRecursive(fsBase + "/testDir", false);
                 assertTrue(!fs.exists(fsBase + "/testDir"));
             }
         }

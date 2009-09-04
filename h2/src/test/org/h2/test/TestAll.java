@@ -345,10 +345,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-            System.setProperty(SysProperties.H2_PAGE_STORE, "true");
-            test.pageStore = true;
-            test.runTests();
-            TestPerformance.main("-init", "-db", "1");
+//            System.setProperty(SysProperties.H2_PAGE_STORE, "true");
+//            test.pageStore = true;
+//            test.runTests();
+//            TestPerformance.main("-init", "-db", "1");
             // Recover.execute("data", null);
 
             System.setProperty(SysProperties.H2_PAGE_STORE, "false");
@@ -621,7 +621,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     void beforeTest() throws SQLException {
         Driver.load();
         DeleteDbFiles.execute(TestBase.baseDir, null, true);
-        FileSystemDisk.getInstance().deleteRecursive("trace.db");
+        FileSystemDisk.getInstance().deleteRecursive("trace.db", false);
         if (networked) {
             String[] args = ssl ? new String[] { "-tcpSSL", "true", "-tcpPort", "9192" } : new String[] { "-tcpPort",
                     "9192" };
@@ -636,7 +636,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void afterTest() throws SQLException {
-        FileSystemDisk.getInstance().deleteRecursive("trace.db");
+        FileSystemDisk.getInstance().deleteRecursive("trace.db", false);
         if (networked && server != null) {
             server.stop();
         }

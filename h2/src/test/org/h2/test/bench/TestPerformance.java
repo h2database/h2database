@@ -77,7 +77,7 @@ public class TestPerformance {
             if ("-db".equals(arg)) {
                 dbId = Integer.parseInt(args[++i]);
             } else if ("-init".equals(arg)) {
-                FileSystem.getInstance("data").deleteRecursive("data");
+                FileSystem.getInstance("data").deleteRecursive("data", true);
             } else if ("-out".equals(arg)) {
                 out = args[++i];
             } else if ("-trace".equals(arg)) {

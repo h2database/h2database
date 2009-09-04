@@ -120,8 +120,8 @@ public abstract class TestBase {
             }
         } finally {
             try {
-                FileSystem.getInstance("memFS:").deleteRecursive("memFS:");
-                FileSystem.getInstance("memLZF:").deleteRecursive("memLZF:");
+                FileSystem.getInstance("memFS:").deleteRecursive("memFS:", false);
+                FileSystem.getInstance("memLZF:").deleteRecursive("memLZF:", false);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

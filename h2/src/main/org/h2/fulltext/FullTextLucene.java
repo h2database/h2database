@@ -299,7 +299,7 @@ public class FullTextLucene extends FullText {
         if (index != null) {
             removeIndexModifier(index, path);
         }
-        FileSystem.getInstance(path).deleteRecursive(path);
+        FileSystem.getInstance(path).deleteRecursive(path, false);
     }
 
     /**

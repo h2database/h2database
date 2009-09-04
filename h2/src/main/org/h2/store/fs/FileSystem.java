@@ -182,8 +182,9 @@ public abstract class FileSystem {
      * Delete a directory or file and all subdirectories and files.
      *
      * @param directory the directory
+     * @param tryOnly whether errors should  be ignored
      */
-    public abstract void deleteRecursive(String directory) throws SQLException;
+    public abstract void deleteRecursive(String directory, boolean tryOnly) throws SQLException;
 
     /**
      * Check if a file is read-only.

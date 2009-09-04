@@ -62,7 +62,7 @@ public class FileSystemZip extends FileSystem {
         throw Message.getUnsupportedException("write");
     }
 
-    public void deleteRecursive(String fileName) throws SQLException {
+    public void deleteRecursive(String fileName, boolean tryOnly) throws SQLException {
         throw Message.getUnsupportedException("write");
     }
 

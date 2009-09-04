@@ -71,10 +71,10 @@ public class FileSystemDebug extends FileSystem {
         FileSystem.getInstance(fileName).delete(fileName);
     }
 
-    public void deleteRecursive(String directory) throws SQLException {
+    public void deleteRecursive(String directory, boolean tryOnly) throws SQLException {
         directory = translateFileName(directory);
         debug("deleteRecursive", directory);
-        FileSystem.getInstance(directory).deleteRecursive(directory);
+        FileSystem.getInstance(directory).deleteRecursive(directory, tryOnly);
     }
 
     public boolean exists(String fileName) {

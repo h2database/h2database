@@ -101,13 +101,7 @@ public class DeleteDbFiles extends Tool {
 
     private void process(String fileName, boolean quiet) throws SQLException {
         if (FileUtils.isDirectory(fileName)) {
-            try {
-                FileSystem.getInstance(fileName).deleteRecursive(fileName);
-            } catch (SQLException e) {
-                if (!quiet) {
-                    throw e;
-                }
-            }
+            FileSystem.getInstance(fileName).deleteRecursive(fileName, quiet);
         } else if (quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
             FileUtils.tryDelete(fileName);
         } else {

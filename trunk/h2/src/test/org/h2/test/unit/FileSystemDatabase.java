@@ -264,7 +264,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public void deleteRecursive(String fileName) throws SQLException {
+    public void deleteRecursive(String fileName, boolean tryOnly) throws SQLException {
         throw Message.getUnsupportedException("db");
     }
 

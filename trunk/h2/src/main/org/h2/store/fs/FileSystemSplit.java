@@ -78,9 +78,9 @@ public class FileSystemSplit extends FileSystem {
         }
     }
 
-    public void deleteRecursive(String directory) throws SQLException {
+    public void deleteRecursive(String directory, boolean tryOnly) throws SQLException {
         directory = translateFileName(directory);
-        getFileSystem(directory).deleteRecursive(directory);
+        getFileSystem(directory).deleteRecursive(directory, tryOnly);
     }
 
     public boolean exists(String fileName) {

@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When calling SHUTDOWN IMMEDIATELY in the server mode, the .trace.db file was not closed.
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.118 (2009-09-04)</h2>
+<ul><li>SHOW COLUMNS only listed indexed columns.
+</li><li>When calling SHUTDOWN IMMEDIATELY in the server mode, the .trace.db file was not closed.
 </li><li>DatabaseMetaData.getPrimaryKeys: the wrong constraint name was reported
     if there was another constraint on the same table and columns.
 </li><li>AUTO_INCREMENT now works in the same way in ALTER TABLE ALTER COLUMN
@@ -26,7 +31,7 @@ Change Log
 </li><li>Native fulltext search: before searching, FT_INIT() had to be called.
     This is no longer required.
 </li><li>Better support GaeVFS (Google App Engine Virtual File System).
-</li><li>JaQu: the plan is to support natural (pure Java) conditions such as
+</li><li>JaQu: the plan is to support natural (pure Java / Scala) conditions such as
     (id == 1 && name.equals("Test")). A proof of concept decompiler is now included (it doesn't work yet).
 </li><li>Various bugfixes and improvements in the page store mechanism (still experimental).
 </li><li>PreparedStatement.setObject now converts a java.lang.Character to a string.

@@ -13,6 +13,40 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(68,
+'New version available: 1.1.118 (2009-09-04)', '2009-09-04 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Better optimizations for OR, IN(..), and IN(SELECT..) are available.
+</li><li>Better support GaeVFS (Google App Engine Virtual File System).
+</li><li>JaQu: the plan is to support pure Java / Scala conditions using de-compilation.
+</li><li>Various tools now use Java 5 var-args.
+</li><li>H2 Console: indexes in non-default schemas are now listed.
+</li><li>H2 Console: PierPaolo Ucchino has completed the Italian translation. Thanks a lot!
+</li><li>The stack trace of common exceptions is no longer logged.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>SHOW COLUMNS only listed indexed columns.
+</li><li>When calling SHUTDOWN IMMEDIATELY, a file was not closed.
+</li><li>DatabaseMetaData.getPrimaryKeys: the wrong constraint name was reported.
+</li><li>AUTO_INCREMENT now does not create a primary key for ALTER TABLE.
+</li><li>Native fulltext search: FT_INIT() now only needs to be called once.
+</li><li>Various bugfixes and improvements in the page store mechanism.
+</li><li>PreparedStatement.setObject now supports java.lang.Character.
+</li><li>MVCC / duplicate primary key after rollback.
+</li><li>MVCC / wrong exception is thrown.
+</li><li>Sequence.NEXTVAL and CURRVAL did not respect the schema search path.
+</li><li>The exception "Row not found when trying to delete" was thrown sometimes.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(67,
 'New version available: 1.1.117 (2009-08-09)', '2009-08-09 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -399,43 +433,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Each session threw an invisible exception when garbage collected.
 </li><li>Foreign key constraints that refer to a quoted column did not work.
 </li><li>Shell: line comments didn't work correctly.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(54,
-'New version available: 1.1.104 (beta; 2008-11-28)', '2008-11-28 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>ResultSet.getObject for a lob will return java.sql.Clob / Blob.
-</li><li>The interface CloseListener has a new method 'remove'.
-</li><li>Compatibility for MS SQL Server DATEDIFF(YYYY, .., ..)
-</li><li>The emergency reserve file has been removed.
-</li><li>The H2DatabaseProvider for ActiveObjects is now included.
-</li><li>The H2Platform for Oracle Toplink Essential has been improved.
-</li><li>Build: JAVA_HOME is now automatically detected on Mac OS X.
-</li><li>The cache memory usage calculation is more conservative.
-</li><li>Large databases on FAT file system are now supported.
-</li><li>The database now tries to detect if the web application is stopped.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Fulltext search: a memory leak has been fixed.
-</li><li>A query with group by that was used like a table could throw an exception.
-</li><li>JaQu: tables are now auto-created when running a query.
-</li><li>The optimizer had problems with function tables.
-</li><li>The function SUM could overflow when using large values.
-</li><li>The function AVG could overflow when using large values.
-</li><li>Testing for local connections was very slow on some systems.
-</li><li>Allocating space got slower and slower the larger the database.
-</li><li>ALTER TABLE ALTER COLUMN could throw the wrong exception.
-</li><li>Updatable result sets: the key columns can now be updated.
-</li><li>The Windows service to start H2 didn't work in version 1.1.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

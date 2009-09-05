@@ -41,6 +41,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
+</li><li>Issue 116: Maven: deploy / upload h2..-sources.jar and javadocs as well.
 </li><li>Procedural language / script language (Java, Javascript)
 </li><li>Fulltext search: support streaming CLOB data.
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
@@ -53,7 +54,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
 </li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
 </li><li>Use triggers for metadata tables; use for PostgreSQL catalog
-</li><li>Maven: deploy / upload h2..-sources.jar and javadocs as well.
 </li><li>Test very large databases and LOBs (up to 256 GB)
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
@@ -448,6 +448,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve database file locking (maybe use native file locking). The current approach seems to be problematic
     if the file system is on a remote share (see Google Group 'Lock file modification time is in the future').
 </li><li>Document internal features such as BELONGS_TO_TABLE, NULL_TO_DEFAULT, SEQUENCE.
+</li><li>Issue 107: Prefer using the ORDER BY index if LIMIT is used.
 </li></ul>
 
 <h2>Not Planned</h2>

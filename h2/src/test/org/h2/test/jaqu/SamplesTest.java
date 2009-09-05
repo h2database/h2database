@@ -51,7 +51,7 @@ public class SamplesTest extends TestBase {
         db.insertAll(Customer.getList());
         db.insertAll(Order.getList());
         db.insertAll(ComplexObject.getList());
-        // TODO support JavaBeans specification
+        // TODO support getters/setters
         // TODO support all relevant data types (byte[], ...)
         // TODO nested AND/OR, >, <, ...
         // TODO NOT

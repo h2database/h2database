@@ -15,6 +15,8 @@ Selects data from a table or multiple tables.
 LIMIT limits the number of rows returned by the query, OFFSET specified how many
 rows to skip. SAMPLE_SIZE limits the number of rows read for aggregate queries.
 If FOR UPDATE is specified, the tables are locked for writing.
+
+FOR UPDATE will lock the table for writing.
 ","
 SELECT * FROM TEST;
 SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
@@ -450,8 +452,10 @@ that name may exist in the target database.
 Usually, for update statements, the old rows are deleted first and then the new
 rows are inserted. It is possible to emit update statements (except on
 rollback), however in this case multi-row unique key updates may not always
-work. Linked tables to the same database share one connection. If a query is
-used instead of the original table name, the table is read only.
+work. Linked tables to the same database share one connection. 
+
+If a query is used instead of the original table name, the table is read only.
+Queries must be enclosed in parenthesis: (SELECT * FROM ORDERS).
 
 To use JNDI to get the connection, the driver class must be a
 javax.naming.Context (for example javax.naming.InitialContext), and the URL must
@@ -2064,7 +2068,7 @@ BOOL_OR(NAME LIKE 'W%')
 "
 
 "Functions (Aggregate)","COUNT","
-COUNT(*) | COUNT([DISTINCT] expression): int
+COUNT(*) | COUNT([DISTINCT] expression): long
 ","
 The count of all row, or of the non-null values. If no rows are selected, the
 result is 0. Aggregates are only allowed in select statements.

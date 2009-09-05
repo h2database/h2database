@@ -51,8 +51,20 @@ public class IndexType {
      * @return the index type
      */
     public static IndexType createNonUnique(boolean persistent) {
+        return createNonUnique(persistent, false);
+    }
+
+    /**
+     * Create a non-unique index.
+     *
+     * @param persistent if the index is persistent
+     * @param hash if a hash index should be used
+     * @return the index type
+     */
+    public static IndexType createNonUnique(boolean persistent, boolean hash) {
         IndexType type = new IndexType();
         type.persistent = persistent;
+        type.hash = hash;
         return type;
     }
 

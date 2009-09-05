@@ -431,7 +431,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
 
 "Commands (DDL)","CREATE INDEX","
-CREATE {[UNIQUE [HASH]] INDEX [IF NOT EXISTS] newIndexName
+CREATE {[UNIQUE] [HASH] INDEX [IF NOT EXISTS] newIndexName
 | PRIMARY KEY [HASH]} ON tableName(indexColumn [,...])
 ","
 Creates a new index.
@@ -452,7 +452,7 @@ that name may exist in the target database.
 Usually, for update statements, the old rows are deleted first and then the new
 rows are inserted. It is possible to emit update statements (except on
 rollback), however in this case multi-row unique key updates may not always
-work. Linked tables to the same database share one connection. 
+work. Linked tables to the same database share one connection.
 
 If a query is used instead of the original table name, the table is read only.
 Queries must be enclosed in parenthesis: (SELECT * FROM ORDERS).

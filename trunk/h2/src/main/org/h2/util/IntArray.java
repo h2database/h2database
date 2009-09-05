@@ -26,6 +26,13 @@ public class IntArray {
     }
 
     /**
+     * Create an int array with specified initial capacity.
+     */
+    public IntArray(int capacity) {
+        data = new int[capacity];
+    }
+
+    /**
      * Create an int array with the given values and size.
      */
     public IntArray(int[] data) {

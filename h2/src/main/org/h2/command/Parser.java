@@ -3492,9 +3492,9 @@ public class Parser {
             } else {
                 if (readIf("UNIQUE")) {
                     unique = true;
-                    if (readIf("HASH")) {
-                        hash = true;
-                    }
+                }
+                if (readIf("HASH")) {
+                    hash = true;
                 }
                 if (readIf("INDEX")) {
                     if (!isToken("ON")) {

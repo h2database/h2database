@@ -25,6 +25,7 @@ import org.h2.index.HashIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
+import org.h2.index.NonUniqueHashIndex;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.index.RowIndex;
@@ -193,7 +194,11 @@ public class TableData extends Table implements RecordReader {
             }
         } else {
             if (indexType.isHash()) {
-                index = new HashIndex(this, indexId, indexName, cols, indexType);
+                if (indexType.isUnique()) {
+                    index = new HashIndex(this, indexId, indexName, cols, indexType);
+                } else {
+                    index = new NonUniqueHashIndex(this, indexId, indexName, cols, indexType);
+                }
             } else {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }

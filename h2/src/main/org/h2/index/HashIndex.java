@@ -11,26 +11,23 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 
 /**
- * An index based on an in-memory hash map.
+ * An unique index based on an in-memory hash map.
  */
-public class HashIndex extends BaseIndex {
+public class HashIndex extends BaseHashIndex {
 
     private ValueHashMap<Integer> rows;
     private IntIntHashMap intMap;
     private TableData tableData;
-    private long rowCount;
 
     public HashIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
-        initBaseIndex(table, id, indexName, columns, indexType);
+        super(table, id, indexName, columns, indexType);
         this.tableData = table;
         reset();
     }
@@ -43,16 +40,8 @@ public class HashIndex extends BaseIndex {
         }
     }
 
-    public void close(Session session) {
-        // nothing to do
-    }
-
     public void truncate(Session session) {
         reset();
-    }
-
-    public void remove(Session session) {
-        // nothing to do
     }
 
     public void add(Session session, Row row) throws SQLException {
@@ -68,7 +57,6 @@ public class HashIndex extends BaseIndex {
             }
             rows.put(getKey(row), row.getPos());
         }
-        rowCount++;
     }
 
     public void remove(Session session, Row row) throws SQLException {
@@ -78,23 +66,6 @@ public class HashIndex extends BaseIndex {
         } else {
             rows.remove(getKey(row));
         }
-        rowCount--;
-    }
-
-    private Value getKey(SearchRow row) {
-        if (columns.length == 1) {
-            Column column = columns[0];
-            int index = column.getColumnId();
-            Value v = row.getValue(index);
-            return v;
-        }
-        Value[] list = new Value[columns.length];
-        for (int i = 0; i < columns.length; i++) {
-            Column column = columns[i];
-            int index = column.getColumnId();
-            list[i] = row.getValue(index);
-        }
-        return ValueArray.get(list);
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
@@ -122,39 +93,12 @@ public class HashIndex extends BaseIndex {
         return new HashCursor(result);
     }
 
-    public double getCost(Session session, int[] masks) {
-        for (Column column : columns) {
-            int index = column.getColumnId();
-            int mask = masks[index];
-            if ((mask & IndexCondition.EQUALITY) != IndexCondition.EQUALITY) {
-                return Long.MAX_VALUE;
-            }
-        }
-        return 2;
-    }
-
-    public void checkRename() {
-        // ok
-    }
-
-    public boolean needRebuild() {
-        return true;
-    }
-
-    public boolean canGetFirstOrLast() {
-        return false;
-    }
-
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException("HASH");
-    }
-
     public long getRowCount(Session session) {
-        return rowCount;
+        return getRowCountApproximation();
     }
 
     public long getRowCountApproximation() {
-        return rowCount;
+        return intMap != null ? intMap.size() : rows.size();
     }
 
 }

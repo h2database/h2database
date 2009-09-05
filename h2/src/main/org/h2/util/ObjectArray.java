@@ -43,7 +43,7 @@ public class ObjectArray<T> implements Iterable<T> {
      * @return the object
      */
     public static <T> ObjectArray<T> newInstance(int capacity) {
-        return new ObjectArray<T>(CAPACITY_INIT);
+        return new ObjectArray<T>(capacity);
     }
 
     /**

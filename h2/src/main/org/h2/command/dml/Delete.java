@@ -99,7 +99,7 @@ public class Delete extends Prepared {
             condition = condition.optimize(session);
             condition.createIndexConditions(session, tableFilter);
         }
-        PlanItem item = tableFilter.getBestPlanItem(session);
+        PlanItem item = tableFilter.getBestPlanItem(session, 1);
         tableFilter.setPlanItem(item);
         tableFilter.prepare();
     }

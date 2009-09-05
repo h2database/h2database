@@ -105,8 +105,9 @@ public class Plan {
     public double calculateCost(Session session) throws SQLException {
         double cost = 1;
         boolean invalidPlan = false;
+        int level = 1;
         for (TableFilter tableFilter : allFilters) {
-            PlanItem item = tableFilter.getBestPlanItem(session);
+            PlanItem item = tableFilter.getBestPlanItem(session, level++);
             planItems.put(tableFilter, item);
             cost += cost * item.cost;
             setEvaluatable(tableFilter, true);

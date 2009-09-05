@@ -125,9 +125,10 @@ public class TableFilter implements ColumnResolver {
      * Get the best plan item (index, cost) to use use for the current join order.
      *
      * @param session the session
+     * @param level 1 for the first table in a join, 2 for the second, and so on
      * @return the best plan item
      */
-    public PlanItem getBestPlanItem(Session session) throws SQLException {
+    public PlanItem getBestPlanItem(Session session, int level) throws SQLException {
         PlanItem item;
         if (indexConditions.size() == 0) {
             item = new PlanItem();
@@ -147,10 +148,14 @@ public class TableFilter implements ColumnResolver {
                 }
             }
             item = table.getBestPlanItem(session, masks);
+            // the more index conditions, the earlier the table
+            // to ensure joins without indexes are evaluated:
+            // x (x.a=10); y (x.b=y.b) - see issue 113
+            item.cost -= item.cost * indexConditions.size() / 100 / level;
         }
         if (join != null) {
             setEvaluatable(join);
-            item.setJoinPlan(join.getBestPlanItem(session));
+            item.setJoinPlan(join.getBestPlanItem(session, level));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getJoinPlan().cost;

@@ -1,4 +1,23 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(a int, b int) as select x, x from system_range(1, 100);
+> ok
+
+-- the table t1 should be processed first
+explain select * from test t2, test t1 where t1.a=1 and t1.b = t2.b;
+> PLAN
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T2.A, T2.B, T1.A, T1.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
+> rows: 1
+
+explain select * from test t1, test t2 where t1.a=1 and t1.b = t2.b;
+> PLAN
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.A, T1.B, T2.A, T2.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
+> rows: 1
+
+drop table test;
+> ok
+
 create table test(id int, constraint pk primary key(id), constraint x unique(id));
 > ok
 
@@ -2513,7 +2532,7 @@ select * from test2, test where test2.name = test.name;
 explain plan for select * from test, test2 where test2.name = test.name;
 > PLAN
 > ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.TEST2_TABLE_SCAN */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2_TABLE_SCAN */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
 > rows: 1
 
 select * from test, test2 where test2.name = test.name;
@@ -6212,7 +6231,7 @@ select * from t1 natural join t2;
 explain select * from t1 natural join t2;
 > PLAN
 > ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.T1 /* PUBLIC.T1_TABLE_SCAN */ INNER JOIN PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */ ON 1=1 WHERE (PUBLIC.T1.ID = PUBLIC.T2.ID) AND (PUBLIC.T1.NAME = PUBLIC.T2.NAME)
+> SELECT T1.ID, T1.NAME FROM PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */ INNER JOIN PUBLIC.T1 /* PUBLIC.T1_TABLE_SCAN */ ON 1=1 WHERE (PUBLIC.T1.ID = PUBLIC.T2.ID) AND (PUBLIC.T1.NAME = PUBLIC.T2.NAME)
 > rows: 1
 
 drop table t1;
@@ -6248,8 +6267,8 @@ select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE
 
 explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT C.CUSTOMERID, C.CUSTOMER_NAME, I.INVOICEID, I.INVOICE_TEXT, L.LINE_ID, L.LINE_TEXT FROM PUBLIC.CUSTOMER C /* PUBLIC.CUSTOMER_TABLE_SCAN */ INNER JOIN PUBLIC.INVOICE I /* PUBLIC.INVOICE_TABLE_SCAN */ ON 1=1 /* WHERE PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID */ INNER JOIN PUBLIC.INVOICE_LINE L /* PUBLIC.INVOICE_LINE_TABLE_SCAN */ ON 1=1 WHERE (PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID) AND ((PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID))
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT C.CUSTOMERID, C.CUSTOMER_NAME, I.INVOICEID, I.INVOICE_TEXT, L.LINE_ID, L.LINE_TEXT FROM PUBLIC.INVOICE I /* PUBLIC.INVOICE_TABLE_SCAN */ INNER JOIN PUBLIC.INVOICE_LINE L /* PUBLIC.INVOICE_LINE_TABLE_SCAN */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN PUBLIC.CUSTOMER C /* PUBLIC.CUSTOMER_TABLE_SCAN */ ON 1=1 WHERE (PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID) AND ((PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID))
 > rows: 1
 
 drop table customer;

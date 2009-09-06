@@ -114,7 +114,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
             if (trace.isDebugEnabled()) {
                 trace.debug("split " + splitPoint);
             }
-            int pivot = splitPoint == 0 ? row.getPos() : root.getKey(splitPoint - 1);
+            long pivot = splitPoint == 0 ? row.getPos() : root.getKey(splitPoint - 1);
             PageData page1 = root;
             PageData page2 = root.split(splitPoint);
             int rootPageId = root.getPos();

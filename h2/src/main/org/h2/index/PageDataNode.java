@@ -27,7 +27,7 @@ import org.h2.util.MemoryUtils;
  * </li><li>9-10: entry count
  * </li><li>11-14: row count of all children (-1 if not known)
  * </li><li>15-18: rightmost child page id
- * </li><li>19- entries: 4 bytes leaf page id, 4 bytes key
+ * </li><li>19- entries: 4 bytes leaf page id, varLong key
  * </li></ul>
  * The key is the largest key of the respective child, meaning
  * key[0] is the largest key of child[0].
@@ -35,8 +35,6 @@ import org.h2.util.MemoryUtils;
 public class PageDataNode extends PageData {
 
     private static final int ENTRY_START = 19;
-
-    private static final int ENTRY_LENGTH = 8;
 
     /**
      * The page ids of the children.
@@ -46,6 +44,11 @@ public class PageDataNode extends PageData {
     private int rowCountStored = UNKNOWN_ROWCOUNT;
 
     private int rowCount = UNKNOWN_ROWCOUNT;
+
+    /**
+     * The number of bytes used in the page
+     */
+    private int length = ENTRY_START;
 
     PageDataNode(PageScanIndex index, int pageId, Data data) {
         super(index, pageId, data);
@@ -79,17 +82,18 @@ public class PageDataNode extends PageData {
         rowCount = rowCountStored = data.readInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        keys = MemoryUtils.newInts(entryCount);
+        keys = MemoryUtils.newLongArray(entryCount);
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
-            keys[i] = data.readInt();
+            keys[i] = data.readVarLong();
         }
+        length = data.length();
         check();
     }
 
-    private void addChild(int x, int childPageId, int key) {
+    private void addChild(int x, int childPageId, long key) {
         written = false;
-        int[] newKeys = new int[entryCount + 1];
+        long[] newKeys = new long[entryCount + 1];
         int[] newChildPageIds = new int[entryCount + 2];
         if (childPageIds != null) {
             System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
@@ -106,9 +110,11 @@ public class PageDataNode extends PageData {
         keys = newKeys;
         childPageIds = newChildPageIds;
         entryCount++;
+        length += 4 + data.getVarLongLen(key);
     }
 
     int addRowTry(Row row) throws SQLException {
+        int keyOffsetPairLen = 4 + data.getVarLongLen(row.getPos());
         while (true) {
             int x = find(row.getPos());
             PageData page = index.getPage(childPageIds[x], getPos());
@@ -116,11 +122,10 @@ public class PageDataNode extends PageData {
             if (splitPoint == -1) {
                 break;
             }
-            int maxEntries = (index.getPageStore().getPageSize() - ENTRY_START) / ENTRY_LENGTH;
-            if (entryCount >= maxEntries) {
+            if (length + keyOffsetPairLen > index.getPageStore().getPageSize()) {
                 return entryCount / 2;
             }
-            int pivot = splitPoint == 0 ? row.getPos() : page.getKey(splitPoint - 1);
+            long pivot = splitPoint == 0 ? row.getPos() : page.getKey(splitPoint - 1);
             PageData page2 = page.split(splitPoint);
             index.getPageStore().updateRecord(page, true, page.data);
             index.getPageStore().updateRecord(page2, true, page2.data);
@@ -178,10 +183,11 @@ public class PageDataNode extends PageData {
      * @param pivot the pivot key
      * @param page2 the last child page
      */
-    void init(PageData page1, int pivot, PageData page2) {
+    void init(PageData page1, long pivot, PageData page2) {
         entryCount = 1;
         childPageIds = new int[] { page1.getPos(), page2.getPos() };
-        keys = new int[] { pivot };
+        keys = new long[] { pivot };
+        length += 4 + data.getVarLongLen(pivot);
         check();
     }
 
@@ -195,7 +201,7 @@ public class PageDataNode extends PageData {
      * @param key the last key of the current page
      * @return the next leaf page
      */
-    PageDataLeaf getNextPage(int key) throws SQLException {
+    PageDataLeaf getNextPage(long key) throws SQLException {
         int i = find(key) + 1;
         if (i > entryCount) {
             if (parentPageId == PageData.ROOT) {
@@ -304,7 +310,10 @@ public class PageDataNode extends PageData {
         data.writeInt(childPageIds[entryCount]);
         for (int i = 0; i < entryCount; i++) {
             data.writeInt(childPageIds[i]);
-            data.writeInt(keys[i]);
+            data.writeVarLong(keys[i]);
+        }
+        if (length != data.length()) {
+            Message.throwInternalError("expected pos: " + length + " got: " + data.length());
         }
         written = true;
     }
@@ -312,10 +321,12 @@ public class PageDataNode extends PageData {
     private void removeChild(int i) {
         written = false;
         entryCount--;
+        int removedKeyIndex = i < keys.length ? i : i - 1;
+        length -= 4 + data.getVarLongLen(keys[removedKeyIndex]);
         if (entryCount < 0) {
             Message.throwInternalError();
         }
-        int[] newKeys = MemoryUtils.newInts(entryCount);
+        long[] newKeys = MemoryUtils.newLongArray(entryCount);
         int[] newChildPageIds = new int[entryCount + 1];
         System.arraycopy(keys, 0, newKeys, 0, Math.min(entryCount, i));
         System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);
@@ -340,6 +351,7 @@ public class PageDataNode extends PageData {
         p2.keys = keys;
         p2.entryCount = entryCount;
         p2.parentPageId = parentPageId;
+        p2.length = length;
         store.updateRecord(p2, false, null);
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);

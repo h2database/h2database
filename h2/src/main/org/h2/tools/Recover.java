@@ -83,6 +83,10 @@ public class Recover extends Tool implements DataHandler {
     private HashMap<Integer, String> tableMap;
     private boolean remove;
 
+    private long pageDataEmpty;
+    private int pageDataRows;
+    private int pageDataHead;
+
     /**
      * Options are case sensitive. Supported options are:
      * <table>
@@ -722,6 +726,9 @@ public class Recover extends Tool implements DataHandler {
         PrintWriter writer = null;
         int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
         int emptyPages = 0;
+        pageDataEmpty = 0;
+        pageDataRows = 0;
+        pageDataHead = 0;
         try {
             writer = getWriter(fileName, ".sql");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
@@ -869,6 +876,7 @@ public class Recover extends Tool implements DataHandler {
                 // ignore
             }
             writer.println("-- page count: " + pageCount + " empty: " + emptyPages + " free: " + free);
+            writer.println("-- page data head: " + pageDataHead + " empty: " + pageDataEmpty + " rows: " + pageDataRows);
             for (int i = 0; i < pageTypeCount.length; i++) {
                 int count = pageTypeCount[i];
                 if (count > 0) {
@@ -1160,20 +1168,23 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, Data s, boolean last, long pageId, int entryCount) throws SQLException {
-        int[] keys = new int[entryCount];
+        long[] keys = new long[entryCount];
         int[] offsets = new int[entryCount];
         long next = 0;
         if (!last) {
             next = s.readInt();
         }
-        int empty = Integer.MAX_VALUE;
+        int empty = pageSize;
         for (int i = 0; i < entryCount; i++) {
-            keys[i] = s.readInt();
+            keys[i] = s.readVarLong();
             int off = s.readShortInt();
             empty = Math.min(off, empty);
             offsets[i] = off;
         }
+        pageDataRows += pageSize - empty;
         empty = empty - s.length();
+        pageDataHead += s.length();
+        pageDataEmpty += empty;
         writer.println("--   empty: " + empty);
         if (!last) {
             DataPage s2 = DataPage.create(this, pageSize);
@@ -1204,7 +1215,7 @@ public class Recover extends Tool implements DataHandler {
             }
         }
         for (int i = 0; i < entryCount; i++) {
-            int key = keys[i];
+            long key = keys[i];
             int off = offsets[i];
             writer.println("-- [" + i + "] storage: " + storageId + " key: " + key + " off: " + off);
             s.setPos(off);

@@ -859,6 +859,12 @@ public class Data extends DataPage {
         }
     }
 
+    /**
+     * The number of bytes required for a variable size int.
+     *
+     * @param x the value
+     * @return the len
+     */
     private int getVarIntLen(int x) {
         if ((x & (-1 << 7)) == 0) {
             return 1;
@@ -872,6 +878,11 @@ public class Data extends DataPage {
         return 5;
     }
 
+    /**
+     * Write a variable size int.
+     *
+     * @param x the value
+     */
     private void writeVarInt(int x) {
         while ((x & ~0x7f) != 0) {
             data[pos++] = (byte) (0x80 | (x & 0x7f));
@@ -880,7 +891,12 @@ public class Data extends DataPage {
         data[pos++] = (byte) x;
     }
 
-    private int readVarInt() {
+    /**
+     * Read a variable size int.
+     *
+     * @return the value
+     */
+    public int readVarInt() {
         int b = data[pos++];
         if (b >= 0) {
             return b;
@@ -903,7 +919,13 @@ public class Data extends DataPage {
         return x | ((b & 0x7f) << 21) | (data[pos++] << 28);
     }
 
-    private int getVarLongLen(long x) {
+    /**
+     * The number of bytes required for a variable size long.
+     *
+     * @param x the value
+     * @return the len
+     */
+    public int getVarLongLen(long x) {
         int i = 1;
         while (true) {
             x >>>= 7;
@@ -914,7 +936,12 @@ public class Data extends DataPage {
         }
     }
 
-    private void writeVarLong(long x) {
+    /**
+     * Write a variable size long.
+     *
+     * @param x the value
+     */
+    public void writeVarLong(long x) {
         while ((x & ~0x7f) != 0) {
             data[pos++] = (byte) ((x & 0x7f) | 0x80);
             x >>>= 7;
@@ -922,7 +949,12 @@ public class Data extends DataPage {
         data[pos++] = (byte) x;
     }
 
-    private long readVarLong() {
+    /**
+     * Read a variable size long.
+     *
+     * @return the value
+     */
+    public long readVarLong() {
         long x = data[pos++];
         if (x >= 0) {
             return x;

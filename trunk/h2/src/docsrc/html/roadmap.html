@@ -449,6 +449,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     if the file system is on a remote share (see Google Group 'Lock file modification time is in the future').
 </li><li>Document internal features such as BELONGS_TO_TABLE, NULL_TO_DEFAULT, SEQUENCE.
 </li><li>Issue 107: Prefer using the ORDER BY index if LIMIT is used.
+</li><li>Support reading sequences using DatabaseMetaData.getTables(null, null, null, new String[]{"SEQUENCE"}).
+    See PostgreSQL.
 </li></ul>
 
 <h2>Not Planned</h2>

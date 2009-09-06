@@ -141,7 +141,7 @@ public class TableView extends Table {
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks);
-        IntArray masksArray = new IntArray(masks == null ? MemoryUtils.EMPTY_INTS : masks);
+        IntArray masksArray = new IntArray(masks == null ? MemoryUtils.EMPTY_INT_ARRAY : masks);
         ViewIndex i2 = indexCache.get(masksArray);
         if (i2 == null || i2.getSession() != session) {
             i2 = new ViewIndex(this, index, session, masks);

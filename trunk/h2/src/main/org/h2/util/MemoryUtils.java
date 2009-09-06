@@ -21,7 +21,12 @@ public class MemoryUtils {
     /**
      * An 0-size int array.
      */
-    public static final int[] EMPTY_INTS = new int[0];
+    public static final int[] EMPTY_INT_ARRAY = new int[0];
+
+    /**
+     * An 0-size long array.
+     */
+    public static final long[] EMPTY_LONG_ARRAY = new long[0];
 
     private static long lastGC;
     private static final int GC_DELAY = 50;
@@ -113,16 +118,29 @@ public class MemoryUtils {
     }
 
     /**
-     * Create an array of ints with the given size.
+     * Create an int array with the given size.
      *
      * @param len the number of bytes requested
      * @return the int array
      */
-    public static int[] newInts(int len) {
+    public static int[] newIntArray(int len) {
         if (len == 0) {
-            return EMPTY_INTS;
+            return EMPTY_INT_ARRAY;
         }
         return new int[len];
+    }
+
+    /**
+     * Create a long array with the given size.
+     *
+     * @param len the number of bytes requested
+     * @return the int array
+     */
+    public static long[] newLongArray(int len) {
+        if (len == 0) {
+            return EMPTY_LONG_ARRAY;
+        }
+        return new long[len];
     }
 
 }

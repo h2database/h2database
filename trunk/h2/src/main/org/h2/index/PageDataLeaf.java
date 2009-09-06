@@ -26,13 +26,12 @@ import org.h2.store.PageStore;
  * </li><li>5-8: table id
  * </li><li>9-10: entry count
  * </li><li>with overflow: 11-14: the first overflow page id
- * </li><li>11- or 15-: list of key / offset pairs (4 bytes key, 2 bytes offset)
+ * </li><li>11- or 15-: list of key / offset pairs (varLong key, 2 bytes offset)
  * </li><li>data
  * </li></ul>
  */
 public class PageDataLeaf extends PageData {
 
-    private static final int KEY_OFFSET_PAIR_LENGTH = 6;
     private static final int KEY_OFFSET_PAIR_START = 11;
 
     /**
@@ -96,13 +95,13 @@ public class PageDataLeaf extends PageData {
         }
         entryCount = data.readShortInt();
         offsets = new int[entryCount];
-        keys = new int[entryCount];
+        keys = new long[entryCount];
         rows = new Row[entryCount];
         if (type == Page.TYPE_DATA_LEAF) {
             firstOverflowPageId = data.readInt();
         }
         for (int i = 0; i < entryCount; i++) {
-            keys[i] = data.readInt();
+            keys[i] = data.readVarInt();
             offsets[i] = data.readShortInt();
         }
         start = data.length();
@@ -112,7 +111,8 @@ public class PageDataLeaf extends PageData {
         int rowLength = row.getByteCount(data);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-        if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
+        int keyOffsetPairLen = 2 + data.getVarLongLen(row.getPos());
+        if (entryCount > 0 && last - rowLength < start + keyOffsetPairLen) {
             // split at the insertion point to better fill pages
             // split in half would be:
             // if (entryCount > 1) {
@@ -122,7 +122,7 @@ public class PageDataLeaf extends PageData {
         }
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];
-        int[] newKeys = new int[entryCount + 1];
+        long[] newKeys = new long[entryCount + 1];
         Row[] newRows = new Row[entryCount + 1];
         int x;
         if (entryCount == 0) {
@@ -148,7 +148,7 @@ public class PageDataLeaf extends PageData {
         last = x == 0 ? pageSize : offsets[x - 1];
         offset = last - rowLength;
         entryCount++;
-        start += KEY_OFFSET_PAIR_LENGTH;
+        start += keyOffsetPairLen;
         newOffsets[x] = offset;
         newKeys[x] = row.getPos();
         newRows[x] = row;
@@ -205,8 +205,9 @@ public class PageDataLeaf extends PageData {
         if (entryCount < 0) {
             Message.throwInternalError();
         }
+        int keyOffsetPairLen = 2 + data.getVarLongLen(keys[i]);
         int[] newOffsets = new int[entryCount];
-        int[] newKeys = new int[entryCount];
+        long[] newKeys = new long[entryCount];
         Row[] newRows = new Row[entryCount];
         System.arraycopy(offsets, 0, newOffsets, 0, i);
         System.arraycopy(keys, 0, newKeys, 0, i);
@@ -218,7 +219,7 @@ public class PageDataLeaf extends PageData {
         }
         System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
         System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
-        start -= KEY_OFFSET_PAIR_LENGTH;
+        start -= keyOffsetPairLen;
         offsets = newOffsets;
         keys = newKeys;
         rows = newRows;
@@ -256,7 +257,7 @@ public class PageDataLeaf extends PageData {
             }
             data.setPos(offsets[at]);
             r = index.readRow(data);
-            r.setPos(keys[at]);
+            r.setPos((int) keys[at]);
             if (firstOverflowPageId != 0) {
                 rowRef = new SoftReference<Row>(r);
             } else {
@@ -386,7 +387,7 @@ public class PageDataLeaf extends PageData {
             data.writeInt(firstOverflowPageId);
         }
         for (int i = 0; i < entryCount; i++) {
-            data.writeInt(keys[i]);
+            data.writeVarLong(keys[i]);
             data.writeShortInt(offsets[i]);
         }
         for (int i = 0; i < entryCount; i++) {

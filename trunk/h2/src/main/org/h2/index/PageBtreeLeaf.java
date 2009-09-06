@@ -24,7 +24,7 @@ import org.h2.store.PageStore;
  * </li><li>4-4: page type
  * </li><li>5-8: index id
  * </li><li>9-10: entry count
- * </li><li>11-: list of key / offset pairs (4 bytes key, 2 bytes offset)
+ * </li><li>11-: list offsets (2 bytes each)
  * </li><li>data
  * </li></ul>
  */

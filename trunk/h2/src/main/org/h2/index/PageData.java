@@ -50,7 +50,7 @@ abstract class PageData extends Page {
     /**
      * The row keys.
      */
-    protected int[] keys;
+    protected long[] keys;
 
     /**
      * Whether the data page is up-to-date.
@@ -83,11 +83,11 @@ abstract class PageData extends Page {
      * @param key the key (may not exist)
      * @return the matching or next index
      */
-    int find(int key) {
+    int find(long key) {
         int l = 0, r = entryCount;
         while (l < r) {
             int i = (l + r) >>> 1;
-            int k = keys[i];
+            long k = keys[i];
             if (k == key) {
                 return i;
             } else if (k > key) {
@@ -122,7 +122,7 @@ abstract class PageData extends Page {
      * @param index the index
      * @return the key
      */
-    int getKey(int index) {
+    long getKey(int index) {
         return keys[index];
     }
 

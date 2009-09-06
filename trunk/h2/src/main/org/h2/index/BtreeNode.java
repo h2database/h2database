@@ -36,7 +36,7 @@ public class BtreeNode extends BtreePage {
     BtreeNode(BtreeIndex index, DataPage s) throws SQLException {
         super(index);
         int len = s.readInt();
-        int[] array = MemoryUtils.newInts(len);
+        int[] array = MemoryUtils.newIntArray(len);
         for (int i = 0; i < array.length; i++) {
             array[i] = s.readInt();
         }

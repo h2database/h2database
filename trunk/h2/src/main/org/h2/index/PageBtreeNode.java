@@ -28,14 +28,14 @@ import org.h2.util.MemoryUtils;
  * <li>9-10: entry count</li>
  * <li>11-14: row count of all children (-1 if not known)</li>
  * <li>15-18: rightmost child page id</li>
- * <li>19- entries: 4 bytes leaf page id, 4 bytes offset to data</li>
+ * <li>19- entries: 4 bytes leaf page id, 2 bytes offset to data</li>
  * </ul>
  * The row is the largest row of the respective child, meaning
  * row[0] is the largest row of child[0].
  */
 public class PageBtreeNode extends PageBtree {
 
-    private static final int CHILD_OFFSET_PAIR_LENGTH = 8;
+    private static final int CHILD_OFFSET_PAIR_LENGTH = 6;
     private static final int CHILD_OFFSET_PAIR_START = 19;
 
     /**
@@ -85,10 +85,10 @@ public class PageBtreeNode extends PageBtree {
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
         rows = PageStore.newSearchRows(entryCount);
-        offsets = MemoryUtils.newInts(entryCount);
+        offsets = MemoryUtils.newIntArray(entryCount);
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
-            offsets[i] = data.readInt();
+            offsets[i] = data.readShortInt();
         }
         check();
         start = data.length();
@@ -243,7 +243,7 @@ public class PageBtreeNode extends PageBtree {
         entryCount = 0;
         childPageIds = new int[] { page1.getPos() };
         rows = new SearchRow[0];
-        offsets = MemoryUtils.EMPTY_INTS;
+        offsets = MemoryUtils.EMPTY_INT_ARRAY;
         addChild(0, page2.getPos(), pivot);
         rowCount = page1.getRowCount() + page2.getRowCount();
         check();
@@ -370,7 +370,7 @@ public class PageBtreeNode extends PageBtree {
         data.writeInt(childPageIds[entryCount]);
         for (int i = 0; i < entryCount; i++) {
             data.writeInt(childPageIds[i]);
-            data.writeInt(offsets[i]);
+            data.writeShortInt(offsets[i]);
         }
         for (int i = 0; i < entryCount; i++) {
             index.writeRow(data, offsets[i], rows[i], onlyPosition);
@@ -395,7 +395,7 @@ public class PageBtreeNode extends PageBtree {
             Message.throwInternalError();
         }
         SearchRow[] newRows = PageStore.newSearchRows(entryCount);
-        int[] newOffsets = MemoryUtils.newInts(entryCount);
+        int[] newOffsets = MemoryUtils.newIntArray(entryCount);
         int[] newChildPageIds = new int[entryCount + 1];
         System.arraycopy(offsets, 0, newOffsets, 0, Math.min(entryCount, i));
         System.arraycopy(rows, 0, newRows, 0, Math.min(entryCount, i));

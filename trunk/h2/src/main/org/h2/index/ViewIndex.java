@@ -99,7 +99,7 @@ public class ViewIndex extends BaseIndex {
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {
-        IntArray masksArray = new IntArray(masks == null ? MemoryUtils.EMPTY_INTS : masks);
+        IntArray masksArray = new IntArray(masks == null ? MemoryUtils.EMPTY_INT_ARRAY : masks);
         CostElement cachedCost = costCache.get(masksArray);
         if (cachedCost != null) {
             long time = System.currentTimeMillis();

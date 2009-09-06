@@ -77,27 +77,23 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO a correctly closed database should not contain log pages
-    // TODO shrinking: a way to load pages centrally
-    // TODO shrinking: Page.moveTo(int pageId).
+    // TODO implement checksum; 0 for empty pages
+    // TODO in log, don't store empty space
 
     // TODO utf-x: test if it's faster
     // TODO after opening the database, delay writing until required
-
-    // TODO scan index: support long keys, and use var long
-    // TODO don't save the direct parent (only root); remove setPageId
-    // TODO implement checksum; 0 for empty pages
-    // TODO remove parent, use tableId if required
+    // TODO maybe remove parent pointer
     // TODO replace CRC32
     // TODO optimization: try to avoid allocating a byte array per page
     // TODO optimization: check if calling Data.getValueLen slows things down
-    // TODO PageBtreeNode: 4 bytes offset - others use only 2
     // TODO undo pages: don't store the middle zeroes
     // TODO undo pages compression: try http://en.wikipedia.org/wiki/LZJB
     // TODO order pages so that searching for a key only seeks forward
     // TODO completely re-use keys of deleted rows; maybe
     // remember last page with deleted keys (in the root page?),
     // and chain such pages
+    // TODO delete: only log the key
+    // TODO update: only log the key and changed values
 
     // TODO detect circles in linked lists
     // (input stream, free list, extend pages...)
@@ -107,7 +103,6 @@ public class PageStore implements CacheWriter {
     // TODO recover tool: don't re-do uncommitted operations
     // TODO no need to log old page if it was always empty
     // TODO don't store default values (store a special value)
-    // TODO maybe split at the last insertion point
     // TODO split files (1 GB max size)
     // TODO add a setting (that can be changed at runtime) to call fsync
     // and delay on each commit
@@ -115,11 +110,8 @@ public class PageStore implements CacheWriter {
     // TODO test running out of disk space (using a special file system)
     // TODO check for file size (exception if not exact size expected)
     // TODO implement missing code for STORE_BTREE_ROWCOUNT (maybe enable)
-    // TODO delete: only log the key
-    // TODO update: only log the key and changed values
     // TODO store dates differently in Data; test moving db to another timezone
-    // TODO online backup using bsdiff
-    // TODO trying to insert duplicate key can split a page: not in recovery
+    // TODO online backup using bsdif
 
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount

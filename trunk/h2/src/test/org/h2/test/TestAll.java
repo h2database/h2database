@@ -135,6 +135,8 @@ import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.test.utils.OutputCatcher;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Recover;
+import org.h2.tools.RunScript;
 import org.h2.tools.Server;
 import org.h2.util.MemoryUtils;
 import org.h2.util.StringUtils;
@@ -293,6 +295,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
+        int testRecoverToolProcessLog;
 /*
 
 System.setProperty("h2.optimizeInList", "true");
@@ -345,16 +348,19 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-//            System.setProperty(SysProperties.H2_PAGE_STORE, "true");
-//            test.pageStore = true;
-//            test.runTests();
-//            TestPerformance.main("-init", "-db", "1");
-            // Recover.execute("data", null);
-
-            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
-            test.pageStore = false;
+            System.setProperty(SysProperties.H2_PAGE_STORE, "true");
+            test.pageStore = true;
             test.runTests();
             TestPerformance.main("-init", "-db", "1");
+            Recover.execute("data", null);
+RunScript.execute("jdbc:h2:data/test2", "sa1", "sa1", "data/test.h2.sql", null, false);
+Recover.execute("data", null);
+
+
+//            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
+//            test.pageStore = false;
+//            test.runTests();
+//            TestPerformance.main("-init", "-db", "1");
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
     }

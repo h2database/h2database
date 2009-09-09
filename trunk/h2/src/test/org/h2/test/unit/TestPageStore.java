@@ -32,11 +32,31 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testCreatePkLater();
         testTruncate();
         testLargeIndex();
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testCreatePkLater() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("pageStore");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int not null) as select 100");
+        stat.execute("create primary key on test(id)");
+        conn.close();
+        conn = getConnection("pageStore");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from test where id = 100");
+        assertTrue(rs.next());
+        conn.close();
     }
 
     private void testTruncate() throws SQLException {

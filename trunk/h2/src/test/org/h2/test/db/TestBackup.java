@@ -61,6 +61,7 @@ public class TestBackup extends TestBase {
 
     private void testBackup() throws SQLException {
         deleteDb("backup");
+        deleteDb("restored");
         Connection conn1, conn2, conn3;
         Statement stat1, stat2, stat3;
         conn1 = getConnection("backup");

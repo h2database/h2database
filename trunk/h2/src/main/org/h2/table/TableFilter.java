@@ -338,14 +338,7 @@ public class TableFilter implements ColumnResolver {
      */
     public Row get() throws SQLException {
         if (current == null && currentSearchRow != null) {
-            if (table.getClustered()) {
-                current = table.getTemplateRow();
-                for (int i = 0; i < currentSearchRow.getColumnCount(); i++) {
-                    current.setValue(i, currentSearchRow.getValue(i));
-                }
-            } else {
-                current = cursor.get();
-            }
+            current = cursor.get();
         }
         return current;
     }

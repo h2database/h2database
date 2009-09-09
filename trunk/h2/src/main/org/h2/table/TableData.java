@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -27,6 +28,7 @@ import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.index.NonUniqueHashIndex;
 import org.h2.index.PageBtreeIndex;
+import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.index.RowIndex;
 import org.h2.index.ScanIndex;
@@ -34,7 +36,7 @@ import org.h2.index.TreeIndex;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
-import org.h2.schema.Schema;
+import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.store.DataPage;
 import org.h2.store.PageStore;
@@ -55,7 +57,6 @@ import org.h2.value.Value;
  * indexes. There is at least one index, the scan index.
  */
 public class TableData extends Table implements RecordReader {
-    private final boolean clustered;
     private RowIndex scanIndex;
     private long rowCount;
     private Session lockExclusive;
@@ -65,23 +66,21 @@ public class TableData extends Table implements RecordReader {
     private final ObjectArray<Index> indexes = ObjectArray.newInstance();
     private long lastModificationId;
     private boolean containsLargeObject;
+    private PageScanIndex mainIndex;
 
-    public TableData(Schema schema, String tableName, int id, ObjectArray<Column> columns,
-            boolean temporary, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session) throws SQLException {
-        super(schema, id, tableName, persistIndexes, persistData);
-        Column[] cols = new Column[columns.size()];
-        columns.toArray(cols);
+    public TableData(CreateTableData data) throws SQLException {
+        super(data.schema, data.id, data.tableName, data.persistIndexes, data.persistData);
+        Column[] cols = new Column[data.columns.size()];
+        data.columns.toArray(cols);
         setColumns(cols);
-        setTemporary(temporary);
-        this.clustered = clustered;
-        if (!clustered) {
-            if (database.isPageStoreEnabled() && persistData && database.isPersistent()) {
-                scanIndex = new PageScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData), headPos, session);
-            } else {
-                scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData));
-            }
-            indexes.add(scanIndex);
+        setTemporary(data.temporary);
+        if (database.isPageStoreEnabled() && data.persistData && database.isPersistent()) {
+            mainIndex = new PageScanIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData), data.headPos, data.session);
+            scanIndex = mainIndex;
+        } else {
+            scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData));
         }
+        indexes.add(scanIndex);
         for (Column col : cols) {
             if (DataType.isLargeObject(col.getType())) {
                 containsLargeObject = true;
@@ -188,7 +187,20 @@ public class TableData extends Table implements RecordReader {
         Index index;
         if (isPersistIndexes() && indexType.isPersistent()) {
             if (database.isPageStoreEnabled()) {
-                index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos, session);
+                int mainIndexColumn;
+                if (database.isStarting() && database.getPageStore().getRootPageId(indexId) != 0) {
+                    mainIndexColumn = -1;
+                } else if (!database.isStarting() && mainIndex.getRowCount(session) != 0) {
+                    mainIndexColumn = -1;
+                } else {
+                    mainIndexColumn = getMainIndexColumn(indexType, cols);
+                }
+                if (mainIndexColumn != -1) {
+                    mainIndex.setMainIndexColumn(mainIndexColumn);
+                    index = new PageDelegateIndex(this, indexId, indexName, indexType, mainIndex, headPos, session);
+                } else {
+                    index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos, session);
+                }
             } else {
                 index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
             }
@@ -270,6 +282,30 @@ public class TableData extends Table implements RecordReader {
         indexes.add(index);
         setModified();
         return index;
+    }
+
+    private int getMainIndexColumn(IndexType indexType, IndexColumn[] cols) {
+        if (mainIndex.getMainIndexColumn() != -1) {
+            return -1;
+        }
+        if (!indexType.isPrimaryKey() || cols.length != 1) {
+            return -1;
+        }
+        IndexColumn first = cols[0];
+        if (first.sortType != SortOrder.ASCENDING) {
+            return -1;
+        }
+        switch(first.column.getType()) {
+        case Value.BYTE:
+        case Value.SHORT:
+        case Value.INT:
+            int todoPosIsInt;
+//            case Value.LONG:
+            break;
+        default:
+            return -1;
+        }
+        return first.column.getColumnId();
     }
 
     public boolean canGetRowCount() {
@@ -625,8 +661,17 @@ public class TableData extends Table implements RecordReader {
         for (int i = 0; i < len; i++) {
             data[i] = s.readValue();
         }
-        Row row = new Row(data, memoryPerRow);
-        return row;
+        return createRow(data);
+    }
+
+    /**
+     * Create a row from the values.
+     *
+     * @param data the value list
+     * @return the row
+     */
+    public Row createRow(Value[] data) {
+        return new Row(data, memoryPerRow);
     }
 
     /**
@@ -704,10 +749,6 @@ public class TableData extends Table implements RecordReader {
 
     public long getMaxDataModificationId() {
         return lastModificationId;
-    }
-
-    boolean getClustered() {
-        return clustered;
     }
 
     public boolean getContainsLargeObject() {

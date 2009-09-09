@@ -610,4 +610,4 @@ lrem lstore monitorexit lmul monitorenter fadd interpreting ishl istore dcmpg
 daload dstore saload anewarray tableswitch lushr ladd lshr lreturn acmpne
 locals multianewarray icmpne fneg faload ifeq decompiler zeroes forgot
 modern slight boost characteristics significantly gae vfs centrally ten
-approach risky getters
+approach risky getters suxxess gmb delegate delegating delegates

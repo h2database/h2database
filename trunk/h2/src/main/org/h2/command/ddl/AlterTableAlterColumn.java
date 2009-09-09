@@ -244,7 +244,16 @@ public class AlterTableAlterColumn extends SchemaCommand {
         // still need a new id because using 0 would mean: the new table tries
         // to use the rows of the table 0 (the meta table)
         int id = db.allocateObjectId(true, true);
-        TableData newTable = getSchema().createTable(tempName, id, newColumns, table.isTemporary(), table.isPersistIndexes(), table.isPersistData(), false, Index.EMPTY_HEAD, session);
+        CreateTableData data = new CreateTableData();
+        data.tableName = tempName;
+        data.id = id;
+        data.columns = newColumns;
+        data.temporary = table.isTemporary();
+        data.persistData = table.isPersistData();
+        data.persistIndexes = table.isPersistIndexes();
+        data.headPos = Index.EMPTY_HEAD;
+        data.session = session;
+        TableData newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());
         StringBuilder buff = new StringBuilder();
         buff.append(newTable.getCreateSQL());

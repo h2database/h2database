@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.zip.CRC32;
+import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -24,6 +25,7 @@ import org.h2.index.PageBtreeNode;
 import org.h2.index.PageDataLeaf;
 import org.h2.index.PageDataNode;
 import org.h2.index.PageDataOverflow;
+import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.log.InDoubtTransaction;
@@ -77,8 +79,13 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
+    // TODO can not use delegating index when starting if it was created later
+
+    // TODO re-use deleted keys; specially if the primary key is removed
+    // TODO table row: number of columns should be varInt not int
     // TODO implement checksum; 0 for empty pages
-    // TODO in log, don't store empty space
+    // TODO in log, don't store empty space between page head and page data
+    // TODO long primary keys don't use delegating index yet (setPos(): int)
 
     // TODO utf-x: test if it's faster
     // TODO after opening the database, delay writing until required
@@ -111,7 +118,7 @@ public class PageStore implements CacheWriter {
     // TODO check for file size (exception if not exact size expected)
     // TODO implement missing code for STORE_BTREE_ROWCOUNT (maybe enable)
     // TODO store dates differently in Data; test moving db to another timezone
-    // TODO online backup using bsdif
+    // TODO online backup using bsdiff
 
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount
@@ -452,7 +459,7 @@ public class PageStore implements CacheWriter {
             p = PageFreeList.read(this, data, pageId);
             break;
         case Page.TYPE_DATA_LEAF: {
-            int indexId = data.readInt();
+            int indexId = data.readVarInt();
             PageScanIndex index = (PageScanIndex) metaObjects.get(indexId);
             if (index == null) {
                 Message.throwInternalError("index not found " + indexId);
@@ -479,7 +486,7 @@ public class PageStore implements CacheWriter {
             break;
         }
         case Page.TYPE_BTREE_LEAF: {
-            int indexId = data.readInt();
+            int indexId = data.readVarInt();
             PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
             if (index == null) {
                 Message.throwInternalError("index not found " + indexId);
@@ -784,7 +791,7 @@ public class PageStore implements CacheWriter {
                 increaseFileSize(INCREMENT_PAGES);
             }
             if (trace.isDebugEnabled()) {
-                trace.debug("allocatePage " + pos);
+                // trace.debug("allocatePage " + pos);
             }
             return pos;
         }
@@ -807,7 +814,7 @@ public class PageStore implements CacheWriter {
      */
     public void freePage(int pageId, boolean logUndo, Data old) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("freePage " + pageId);
+            // trace.debug("freePage " + pageId);
         }
         synchronized (database) {
             cache.remove(pageId);
@@ -900,6 +907,9 @@ public class PageStore implements CacheWriter {
      * @param data the data
      */
     public void writePage(int pageId, Data data) throws SQLException {
+        if (pageId <= 0) {
+            Message.throwInternalError("write to page " + pageId);
+        }
         synchronized (database) {
             file.seek((long) pageId << pageSizeShift);
             file.write(data.getBytes(), 0, pageSize);
@@ -1080,7 +1090,8 @@ public class PageStore implements CacheWriter {
     }
 
     private void openMetaIndex() throws SQLException {
-        ObjectArray<Column> cols = ObjectArray.newInstance();
+        CreateTableData data = new CreateTableData();
+        ObjectArray<Column> cols = data.columns;
         cols.add(new Column("ID", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("PARENT", Value.INT));
@@ -1088,8 +1099,15 @@ public class PageStore implements CacheWriter {
         cols.add(new Column("OPTIONS", Value.STRING));
         cols.add(new Column("COLUMNS", Value.STRING));
         metaSchema = new Schema(database, 0, "", null, true);
-        metaTable = new TableData(metaSchema, "PAGE_INDEX",
-                META_TABLE_ID, cols, false, true, true, false, 0, systemSession);
+        data.schema = metaSchema;
+        data.tableName = "PAGE_INDEX";
+        data.id = META_TABLE_ID;
+        data.temporary = false;
+        data.persistData = true;
+        data.persistIndexes = true;
+        data.headPos = 0;
+        data.session = systemSession;
+        metaTable = new TableData(data);
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
                 systemSession);
         metaObjects.clear();
@@ -1115,6 +1133,8 @@ public class PageStore implements CacheWriter {
             } else {
                 index.getSchema().remove(index);
             }
+        } else if (index instanceof PageDelegateIndex) {
+            index.getSchema().remove(index);
         }
         index.remove(systemSession);
         if (reservedPages != null && reservedPages.containsKey(headPos)) {
@@ -1134,25 +1154,31 @@ public class PageStore implements CacheWriter {
         String options = row.getValue(4).getString();
         String columnList = row.getValue(5).getString();
         String[] columns = StringUtils.arraySplit(columnList, ',', false);
-        IndexType indexType = IndexType.createNonUnique(true);
+        String[] ops = StringUtils.arraySplit(options, ',', false);
         Index meta;
         if (trace.isDebugEnabled()) {
             trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
         }
-        if (redo) {
+        if (redo && rootPageId != 0) {
             writePage(rootPageId, createData());
             allocatePage(rootPageId);
         }
         metaRootPageId.put(id, rootPageId);
         if (type == META_TYPE_SCAN_INDEX) {
-            ObjectArray<Column> columnArray = ObjectArray.newInstance();
+            CreateTableData data = new CreateTableData();
             for (int i = 0; i < columns.length; i++) {
                 Column col = new Column("C" + i, Value.INT);
-                columnArray.add(col);
+                data.columns.add(col);
             }
-            String[] ops = StringUtils.arraySplit(options, ',', true);
-            boolean temp = ops.length == 3 && ops[2].equals("temp");
-            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, temp, true, true, false, 0, session);
+            data.schema = metaSchema;
+            data.tableName = "T" + id;
+            data.id = id;
+            data.temporary = ops[2].equals("temp");
+            data.persistData = true;
+            data.persistIndexes = true;
+            data.headPos = 0;
+            data.session = session;
+            TableData table = new TableData(data);
             CompareMode mode = CompareMode.getInstance(ops[0], Integer.parseInt(ops[1]));
             table.setCompareMode(mode);
             meta = table.getScanIndex(session);
@@ -1176,6 +1202,16 @@ public class PageStore implements CacheWriter {
                 Column column = tableCols[Integer.parseInt(c)];
                 ic.column = column;
                 cols[i] = ic;
+            }
+            IndexType indexType;
+            if (ops[3].equals("d")) {
+                indexType = IndexType.createPrimaryKey(true, false);
+                Column[] tableColumns = table.getColumns();
+                for (int i = 0; i < cols.length; i++) {
+                    tableColumns[cols[i].column.getColumnId()].setNullable(false);
+                }
+            } else {
+                indexType = IndexType.createNonUnique(true);
             }
             meta = table.addIndex(session, "I" + id, id, cols, indexType, id, null);
         }
@@ -1214,9 +1250,13 @@ public class PageStore implements CacheWriter {
         String columnList = buff.toString();
         Table table = index.getTable();
         CompareMode mode = table.getCompareMode();
-        String options = mode.getName()+ "," + mode.getStrength();
+        String options = mode.getName()+ "," + mode.getStrength() + ",";
         if (table.isTemporary()) {
-            options += ",temp";
+            options += "temp";
+        }
+        options += ",";
+        if (index instanceof PageDelegateIndex) {
+            options += "d";
         }
         Row row = metaTable.getTemplateRow();
         row.setValue(0, ValueInt.get(index.getId()));
@@ -1345,11 +1385,11 @@ public class PageStore implements CacheWriter {
     /**
      * Get the root page of an index.
      *
-     * @param index the index
+     * @param indexId the index id
      * @return the root page
      */
-    public int getRootPageId(PageIndex index) {
-        return metaRootPageId.get(index.getId());
+    public int getRootPageId(int indexId) {
+        return metaRootPageId.get(indexId);
     }
 
     // TODO implement checksum

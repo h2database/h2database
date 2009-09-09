@@ -112,9 +112,11 @@ abstract class PageData extends Page {
      * Get a cursor.
      *
      * @param session the session
+     * @param min the smallest key
+     * @param max the largest key
      * @return the cursor
      */
-    abstract Cursor find(Session session) throws SQLException;
+    abstract Cursor find(Session session, long min, long max) throws SQLException;
 
     /**
      * Get the key at this position.
@@ -151,7 +153,7 @@ abstract class PageData extends Page {
      *
      * @return the last key
      */
-    abstract int getLastKey() throws SQLException;
+    abstract long getLastKey() throws SQLException;
 
     /**
      * Get the first child leaf page of a page.
@@ -194,7 +196,7 @@ abstract class PageData extends Page {
      * @param key the key
      * @return the row
      */
-    abstract Row getRow(int key) throws SQLException;
+    abstract Row getRow(long key) throws SQLException;
 
     /**
      * Get the estimated memory size.

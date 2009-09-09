@@ -9,7 +9,7 @@ package org.h2.schema;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
-
+import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -21,7 +21,6 @@ import org.h2.engine.User;
 import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.message.Trace;
-import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.table.TableLink;
@@ -483,21 +482,14 @@ public class Schema extends DbObjectBase {
     /**
      * Add a table to the schema.
      *
-     * @param tableName the table name
-     * @param id the object id
-     * @param columns the column list
-     * @param temporary whether this is a temporary table
-     * @param persistIndexes whether indexes of the table should be persistent
-     * @param persistData whether data of the table should be persistent
-     * @param clustered whether a clustered table should be created
-     * @param headPos the position (page number) of the head
-     * @param session the session
+     * @param data the create table information
      * @return the created {@link TableData} object
      */
-    public TableData createTable(String tableName, int id, ObjectArray<Column> columns, boolean temporary, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session)
+    public TableData createTable(CreateTableData data)
             throws SQLException {
         synchronized (database) {
-            return new TableData(this, tableName, id, columns, temporary, persistIndexes, persistData, clustered, headPos, session);
+            data.schema = this;
+            return new TableData(data);
         }
     }
 

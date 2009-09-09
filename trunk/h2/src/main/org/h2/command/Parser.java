@@ -31,6 +31,7 @@ import org.h2.command.ddl.CreateRole;
 import org.h2.command.ddl.CreateSchema;
 import org.h2.command.ddl.CreateSequence;
 import org.h2.command.ddl.CreateTable;
+import org.h2.command.ddl.CreateTableData;
 import org.h2.command.ddl.CreateTrigger;
 import org.h2.command.ddl.CreateUser;
 import org.h2.command.ddl.CreateUserDataType;
@@ -3783,15 +3784,22 @@ public class Parser {
         for (String c : cols) {
             columns.add(new Column(c, Value.STRING));
         }
-        int id = database.allocateObjectId(true, true);
-        recursiveTable = schema.createTable(tempViewName, id, columns, true, false, true, false, Index.EMPTY_HEAD, session);
+        CreateTableData data = new CreateTableData();
+        data.id = database.allocateObjectId(true, true);
+        data.tableName = tempViewName;
+        data.temporary = true;
+        data.persistData = true;
+        data.persistIndexes = false;
+        data.headPos = Index.EMPTY_HEAD;
+        data.session = session;
+        recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
         String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));
         read("AS");
         Query withQuery = parseSelect();
         withQuery.prepare();
         session.removeLocalTempTable(recursiveTable);
-        id = database.allocateObjectId(true, true);
+        int id = database.allocateObjectId(true, true);
         TableView view = new TableView(schema, id, tempViewName, querySQL, null, cols, session, true);
         view.setTemporary(true);
         // view.setOnCommitDrop(true);
@@ -4719,9 +4727,6 @@ public class Parser {
         } else if (!persistIndexes && readIf("NOT")) {
             read("PERSISTENT");
             command.setPersistData(false);
-        }
-        if (readIf("CLUSTERED")) {
-            command.setClustered(true);
         }
         return command;
     }

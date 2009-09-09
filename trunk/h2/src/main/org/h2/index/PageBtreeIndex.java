@@ -56,7 +56,7 @@ public class PageBtreeIndex extends PageIndex {
             root.parentPageId = PageBtree.ROOT;
             store.updateRecord(root, true, root.data);
         } else {
-            rootPageId = store.getRootPageId(this);
+            rootPageId = store.getRootPageId(id);
             PageBtree root = getPage(rootPageId);
             rowCount = root.getRowCount();
             if (rowCount == 0 && store.isRecoveryRunning()) {
@@ -297,12 +297,12 @@ public class PageBtreeIndex extends PageIndex {
      */
     SearchRow readRow(Data data, int offset, boolean onlyPosition) throws SQLException {
         data.setPos(offset);
-        int pos = data.readInt();
+        long pos = data.readVarLong();
         if (onlyPosition) {
-            return tableData.getRow(null, pos);
+            return tableData.getRow(null, (int) pos);
         }
         SearchRow row = table.getTemplateSimpleRow(columns.length == 1);
-        row.setPos(pos);
+        row.setPos((int) pos);
         for (Column col : columns) {
             int idx = col.getColumnId();
             row.setValue(idx, data.readValue());
@@ -320,7 +320,7 @@ public class PageBtreeIndex extends PageIndex {
      */
     void writeRow(Data data, int offset, SearchRow row, boolean onlyPosition) throws SQLException {
         data.setPos(offset);
-        data.writeInt(row.getPos());
+        data.writeVarLong(row.getPos());
         if (!onlyPosition) {
             for (Column col : columns) {
                 int idx = col.getColumnId();

@@ -28,7 +28,7 @@ import org.h2.util.MemoryUtils;
  * <li>9-10: entry count</li>
  * <li>11-14: row count of all children (-1 if not known)</li>
  * <li>15-18: rightmost child page id</li>
- * <li>19- entries: 4 bytes leaf page id, 2 bytes offset to data</li>
+ * <li>19- entries: leaf page id: int, offset: short</li>
  * </ul>
  * The row is the largest row of the respective child, meaning
  * row[0] is the largest row of child[0].

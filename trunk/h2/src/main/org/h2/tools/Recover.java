@@ -810,10 +810,11 @@ public class Recover extends Tool implements DataHandler {
                 // type 1
                 case Page.TYPE_DATA_LEAF: {
                     pageTypeCount[type]++;
-                    setStorage(s.readInt());
+                    setStorage(s.readVarInt());
+                    int columnCount = s.readVarInt();
                     int entries = s.readShortInt();
-                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries);
-                    dumpPageDataLeaf(store, pageSize, writer, s, last, page, entries);
+                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries + " columns: " + columnCount);
+                    dumpPageDataLeaf(store, pageSize, writer, s, last, page, columnCount, entries);
                     break;
                 }
                 // type 2
@@ -832,7 +833,7 @@ public class Recover extends Tool implements DataHandler {
                 // type 4
                 case Page.TYPE_BTREE_LEAF: {
                     pageTypeCount[type]++;
-                    setStorage(s.readInt());
+                    setStorage(s.readVarInt());
                     int entries = s.readShortInt();
                     writer.println("-- page " + page + ": b-tree leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries);
                     if (trace) {
@@ -1167,7 +1168,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, Data s, boolean last, long pageId, int entryCount) throws SQLException {
+    private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, Data s, boolean last, long pageId, int columnCount, int entryCount) throws SQLException {
         long[] keys = new long[entryCount];
         int[] offsets = new int[entryCount];
         long next = 0;
@@ -1194,10 +1195,12 @@ public class Recover extends Tool implements DataHandler {
                 store.readFully(s2.getBytes(), 0, pageSize);
                 s2.setPos(4);
                 int type = s2.readByte();
+                int indexId = s2.readInt();
                 if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
                     int size = s2.readShortInt();
                     writer.println("-- chain: " + next + " type: " + type + " size: " + size);
-                    s.write(s2.getBytes(), 7, size);
+                    s.checkCapacity(size);
+                    s.write(s2.getBytes(), s2.length(), size);
                     break;
                 } else if (type == Page.TYPE_DATA_OVERFLOW) {
                     next = s2.readInt();
@@ -1205,9 +1208,10 @@ public class Recover extends Tool implements DataHandler {
                         writeDataError(writer, "next:0", s2.getBytes(), 1);
                         break;
                     }
-                    int size = pageSize - 9;
+                    int size = pageSize - s2.length();
                     writer.println("-- chain: " + next + " type: " + type + " size: " + size + " next: " + next);
-                    s.write(s2.getBytes(), 9, size);
+                    s.checkCapacity(size);
+                    s.write(s2.getBytes(), s2.length(), size);
                 } else {
                     writeDataError(writer, "type: " + type, s2.getBytes(), 1);
                     break;
@@ -1219,7 +1223,7 @@ public class Recover extends Tool implements DataHandler {
             int off = offsets[i];
             writer.println("-- [" + i + "] storage: " + storageId + " key: " + key + " off: " + off);
             s.setPos(off);
-            Value[] data = createRecord(writer, s);
+            Value[] data = createRecord(writer, s, columnCount);
             if (data != null) {
                 createTemporaryTable(writer);
                 writeRow(writer, s, data);
@@ -1259,14 +1263,18 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private Value[] createRecord(PrintWriter writer, DataPage s) {
-        recordLength = s.readInt();
-        if (recordLength <= 0) {
-            writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
+        return createRecord(writer, s, s.readInt());
+    }
+
+    private Value[] createRecord(PrintWriter writer, DataPage s, int columnCount) {
+        recordLength = columnCount;
+        if (columnCount <= 0) {
+            writeDataError(writer, "columnCount<0", s.getBytes(), blockCount);
             return null;
         }
         Value[] data;
         try {
-            data = new Value[recordLength];
+            data = new Value[columnCount];
         } catch (OutOfMemoryError e) {
             writeDataError(writer, "out of memory", s.getBytes(), blockCount);
             return null;

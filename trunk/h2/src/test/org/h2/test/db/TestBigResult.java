@@ -126,8 +126,12 @@ public class TestBigResult extends TestBase {
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE TABLE TEST(" + "ID INT PRIMARY KEY, " + "Name VARCHAR(255), " + "FirstName VARCHAR(255), "
-                + "Points INT," + "LicenseID INT)");
+        stat.execute("CREATE TABLE TEST(" +
+                "ID INT PRIMARY KEY, " +
+                "Name VARCHAR(255), " +
+                "FirstName VARCHAR(255), " +
+                "Points INT," +
+                "LicenseID INT)");
         int len = getSize(10, 5000);
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?, ?, ?)");
         for (int i = 0; i < len; i++) {

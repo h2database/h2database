@@ -7,6 +7,7 @@
 package org.h2.result;
 
 import java.sql.SQLException;
+import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.index.BtreeIndex;
@@ -40,11 +41,16 @@ public class ResultTempTable implements ResultExternal {
         Schema schema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         Column column = new Column(COLUMN_NAME, Value.ARRAY);
         column.setNullable(false);
-        ObjectArray<Column> columns = ObjectArray.newInstance();
-        columns.add(column);
-        int tableId = session.getDatabase().allocateObjectId(true, true);
-        String tableName = "TEMP_RESULT_SET_" + tableId;
-        table = schema.createTable(tableName, tableId, columns, true, false, true, false, Index.EMPTY_HEAD, session);
+        CreateTableData data = new CreateTableData();
+        data.columns.add(column);
+        data.id = session.getDatabase().allocateObjectId(true, true);
+        data.tableName = "TEMP_RESULT_SET_" + data.id;
+        data.temporary = true;
+        data.persistIndexes = false;
+        data.persistData = true;
+        data.headPos = Index.EMPTY_HEAD;
+        data.session = session;
+        table = schema.createTable(data);
         session.addLocalTempTable(table);
         int indexId = session.getDatabase().allocateObjectId(true, false);
         IndexColumn indexColumn = new IndexColumn();
@@ -54,9 +60,9 @@ public class ResultTempTable implements ResultExternal {
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = new IndexColumn[]{indexColumn};
         if (session.getDatabase().isPageStoreEnabled()) {
-            index = new PageBtreeIndex(table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD, session);
+            index = new PageBtreeIndex(table, indexId, data.tableName, indexCols, indexType, Index.EMPTY_HEAD, session);
         } else {
-            index = new BtreeIndex(session, table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
+            index = new BtreeIndex(session, table, indexId, data.tableName, indexCols, indexType, Index.EMPTY_HEAD);
         }
         index.setTemporary(true);
         session.addLocalTempTableIndex(index);

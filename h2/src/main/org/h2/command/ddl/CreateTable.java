@@ -7,7 +7,6 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
@@ -30,23 +29,20 @@ import org.h2.value.DataType;
  */
 public class CreateTable extends SchemaCommand {
 
-    private String tableName;
+    private CreateTableData data = new CreateTableData();
     private ObjectArray<Prepared> constraintCommands = ObjectArray.newInstance();
-    private ObjectArray<Column> columns = ObjectArray.newInstance();
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
-    private boolean persistIndexes = true;
-    private boolean persistData = true;
-    private boolean temporary;
     private boolean globalTemporary;
     private boolean onCommitDrop;
     private boolean onCommitTruncate;
     private Query asQuery;
     private String comment;
-    private boolean clustered;
 
     public CreateTable(Session session, Schema schema) {
         super(session, schema);
+        data.persistIndexes = true;
+        data.persistData = true;
     }
 
     public void setQuery(Query query) {
@@ -54,11 +50,11 @@ public class CreateTable extends SchemaCommand {
     }
 
     public void setTemporary(boolean temporary) {
-        this.temporary = temporary;
+        data.temporary = temporary;
     }
 
     public void setTableName(String tableName) {
-        this.tableName = tableName;
+        data.tableName = tableName;
     }
 
     /**
@@ -67,10 +63,7 @@ public class CreateTable extends SchemaCommand {
      * @param column the column to add
      */
     public void addColumn(Column column) {
-        if (columns == null) {
-            columns = ObjectArray.newInstance();
-        }
-        columns.add(column);
+        data.columns.add(column);
     }
 
     /**
@@ -104,24 +97,24 @@ public class CreateTable extends SchemaCommand {
         session.commit(true);
         Database db = session.getDatabase();
         if (!db.isPersistent()) {
-            persistIndexes = false;
+            data.persistIndexes = false;
         }
-        if (getSchema().findTableOrView(session, tableName) != null) {
+        if (getSchema().findTableOrView(session, data.tableName) != null) {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, tableName);
+            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.tableName);
         }
         if (asQuery != null) {
             asQuery.prepare();
-            if (columns.size() == 0) {
+            if (data.columns.size() == 0) {
                 generateColumnsFromQuery();
-            } else if (columns.size() != asQuery.getColumnCount()) {
+            } else if (data.columns.size() != asQuery.getColumnCount()) {
                 throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
         if (pkColumns != null) {
-            for (Column c : columns) {
+            for (Column c : data.columns) {
                 for (IndexColumn idxCol : pkColumns) {
                     if (c.getName().equals(idxCol.columnName)) {
                         c.setNullable(false);
@@ -130,21 +123,23 @@ public class CreateTable extends SchemaCommand {
             }
         }
         ObjectArray<Sequence> sequences = ObjectArray.newInstance();
-        for (Column c : columns) {
+        for (Column c : data.columns) {
             if (c.isAutoIncrement()) {
                 int objId = getObjectId(true, true);
-                c.convertAutoIncrementToSequence(session, getSchema(), objId, temporary);
+                c.convertAutoIncrementToSequence(session, getSchema(), objId, data.temporary);
             }
             Sequence seq = c.getSequence();
             if (seq != null) {
                 sequences.add(seq);
             }
         }
-        int id = getObjectId(true, true);
-        TableData table = getSchema().createTable(tableName, id, columns, temporary, persistIndexes, persistData, clustered, headPos, session);
+        data.id = getObjectId(true, true);
+        data.headPos = headPos;
+        data.session = session;
+        TableData table = getSchema().createTable(data);
         table.setComment(comment);
         table.setGlobalTemporary(globalTemporary);
-        if (temporary && !globalTemporary) {
+        if (data.temporary && !globalTemporary) {
             if (onCommitDrop) {
                 table.setOnCommitDrop(true);
             }
@@ -156,7 +151,7 @@ public class CreateTable extends SchemaCommand {
             db.addSchemaObject(session, table);
         }
         try {
-            for (Column c : columns) {
+            for (Column c : data.columns) {
                 c.prepareExpression(session);
             }
             for (Sequence sequence : sequences) {
@@ -234,7 +229,7 @@ public class CreateTable extends SchemaCommand {
     }
 
     public void setPersistIndexes(boolean persistIndexes) {
-        this.persistIndexes = persistIndexes;
+        data.persistIndexes = persistIndexes;
     }
 
     public void setGlobalTemporary(boolean globalTemporary) {
@@ -259,12 +254,8 @@ public class CreateTable extends SchemaCommand {
         this.comment = comment;
     }
 
-    public void setClustered(boolean clustered) {
-        this.clustered = clustered;
-    }
-
     public void setPersistData(boolean persistData) {
-        this.persistData = persistData;
+        data.persistData = persistData;
     }
 
 }

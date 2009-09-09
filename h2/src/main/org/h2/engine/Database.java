@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -626,7 +627,8 @@ public class Database implements DataHandler {
         roles.put(Constants.PUBLIC_ROLE_NAME, publicRole);
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
-        ObjectArray<Column> cols = ObjectArray.newInstance();
+        CreateTableData data = new CreateTableData();
+        ObjectArray<Column> cols = data.columns;
         Column columnId = new Column("ID", Value.INT);
         columnId.setNullable(false);
         cols.add(columnId);
@@ -637,7 +639,14 @@ public class Database implements DataHandler {
         if (pageStore != null) {
             headPos = pageStore.getSystemTableHeadPos();
         }
-        meta = mainSchema.createTable("SYS", 0, cols, false, persistent, persistent, false, headPos, systemSession);
+        data.tableName = "SYS";
+        data.id = 0;
+        data.temporary = false;
+        data.persistData = persistent;
+        data.persistIndexes = persistent;
+        data.headPos = headPos;
+        data.session = systemSession;
+        meta = mainSchema.createTable(data);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);

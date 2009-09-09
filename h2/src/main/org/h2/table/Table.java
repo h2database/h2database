@@ -869,10 +869,6 @@ public abstract class Table extends SchemaObjectBase {
         this.onCommitTruncate = onCommitTruncate;
     }
 
-    boolean getClustered() {
-        return false;
-    }
-
     /**
      * If the index is still required by a constraint, transfer the ownership to
      * it. Otherwise, the index is removed.

@@ -27,6 +27,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueNull;
 
 /**
  * The scan index allows to access a row by key. It can be used to iterate over
@@ -37,11 +38,12 @@ public class PageScanIndex extends PageIndex implements RowIndex {
 
     private PageStore store;
     private TableData tableData;
-    private int lastKey;
+    private long lastKey;
     private long rowCount;
     private HashSet<Row> delta;
     private int rowCountDiff;
     private HashMap<Integer, Integer> sessionRowCount;
+    private int mainIndexColumn = -1;
 
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
@@ -63,11 +65,10 @@ public class PageScanIndex extends PageIndex implements RowIndex {
             // it should not for new tables, otherwise redo of other operations
             // must ensure this page is not used for other things
             store.addMeta(this, session);
-            PageDataLeaf root = new PageDataLeaf(this, rootPageId, store.createData());
-            root.parentPageId = PageData.ROOT;
+            PageDataLeaf root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
             store.updateRecord(root, true, root.data);
         } else {
-            rootPageId = store.getRootPageId(this);
+            rootPageId = store.getRootPageId(id);
             PageData root = getPage(rootPageId, 0);
             lastKey = root.getLastKey();
             rowCount = root.getRowCount();
@@ -85,10 +86,14 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        if (row.getPos() == 0) {
-            row.setPos(++lastKey);
+        if (mainIndexColumn != -1) {
+            row.setPos(row.getValue(mainIndexColumn).getInt());
         } else {
-            lastKey = Math.max(lastKey, row.getPos() + 1);
+            if (row.getPos() == 0) {
+                row.setPos((int) ++lastKey);
+            } else {
+                lastKey = Math.max(lastKey, row.getPos() + 1);
+            }
         }
         if (trace.isDebugEnabled()) {
             trace.debug("add table:" + table.getId() + " " + row);
@@ -166,9 +171,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     PageData getPage(int id, int parent) throws SQLException {
         PageData p = (PageData) store.getPage(id);
         if (p == null) {
-            Data data = store.createData();
-            PageDataLeaf empty = new PageDataLeaf(this, id, data);
-            empty.parentPageId = parent;
+            PageDataLeaf empty = PageDataLeaf.create(this, id, parent);
             return empty;
         }
         if (p.index.rootPageId != rootPageId) {
@@ -186,13 +189,42 @@ public class PageScanIndex extends PageIndex implements RowIndex {
         return false;
     }
 
+    /**
+     * Get the key from the row
+     *
+     * @param row the row
+     * @param ifEmpty the value to use if the row is empty
+     * @return the key
+     */
+    long getLong(SearchRow row, long ifEmpty) throws SQLException {
+        if (row == null) {
+            return ifEmpty;
+        }
+        Value v = row.getValue(mainIndexColumn);
+        if (v == null || v == ValueNull.INSTANCE) {
+            return ifEmpty;
+        }
+        return v.getLong();
+    }
+
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+        long min = getLong(first, Long.MIN_VALUE);
+        long max = getLong(last, Long.MAX_VALUE);
         PageData root = getPage(rootPageId, 0);
-        return root.find(session);
+        return root.find(session, min, max);
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException("PAGE");
+        Cursor cursor;
+        PageData root = getPage(rootPageId, 0);
+        if (first) {
+            cursor = root.find(session, Long.MIN_VALUE, Long.MAX_VALUE);
+        } else  {
+            long lastKey = root.getLastKey();
+            cursor = root.find(session, lastKey, lastKey);
+        }
+        cursor.next();
+        return cursor;
     }
 
     public double getCost(Session session, int[] masks) {
@@ -273,8 +305,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     private void removeAllRows() throws SQLException {
         PageData root = getPage(rootPageId, 0);
         root.freeChildren();
-        root = new PageDataLeaf(this, rootPageId, store.createData());
-        root.parentPageId = PageData.ROOT;
+        root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
         store.removeRecord(rootPageId);
         store.updateRecord(root, true, null);
         rowCount = 0;
@@ -298,10 +329,15 @@ public class PageScanIndex extends PageIndex implements RowIndex {
      * Read a row from the data page at the given position.
      *
      * @param data the data page
+     * @param columnCount the number of columns
      * @return the row
      */
-    Row readRow(Data data) throws SQLException {
-        return tableData.readRow(data);
+    Row readRow(Data data, int columnCount) throws SQLException {
+        Value[] values = new Value[columnCount];
+        for (int i = 0; i < columnCount; i++) {
+            values[i] = data.readValue();
+        }
+        return tableData.createRow(values);
     }
 
     public long getRowCountApproximation() {
@@ -324,8 +360,9 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     }
 
     public int getColumnIndex(Column col) {
-        // the scan index cannot use any columns
-        // TODO it can if there is an INT primary key
+        if (col.getColumnId() == mainIndexColumn) {
+            return 0;
+        }
         return -1;
     }
 
@@ -384,6 +421,14 @@ public class PageScanIndex extends PageIndex implements RowIndex {
         this.rootPageId = newPos;
         store.addMeta(this, session);
         store.addIndex(this);
+    }
+
+    public void setMainIndexColumn(int mainIndexColumn) {
+        this.mainIndexColumn = mainIndexColumn;
+    }
+
+    public int getMainIndexColumn() {
+        return mainIndexColumn;
     }
 
 }

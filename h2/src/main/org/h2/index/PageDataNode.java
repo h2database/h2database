@@ -146,9 +146,10 @@ public class PageDataNode extends PageData {
         }
     }
 
-    Cursor find(Session session) throws SQLException {
-        int child = childPageIds[0];
-        return index.getPage(child, getPos()).find(session);
+    Cursor find(Session session, long min, long max) throws SQLException {
+        int x = find(min);
+        int child = childPageIds[x];
+        return index.getPage(child, getPos()).find(session, min, max);
     }
 
     PageData split(int splitPoint) throws SQLException {
@@ -191,7 +192,7 @@ public class PageDataNode extends PageData {
         check();
     }
 
-    int getLastKey() throws SQLException {
+    long getLastKey() throws SQLException {
         return index.getPage(childPageIds[entryCount], getPos()).getLastKey();
     }
 
@@ -250,7 +251,7 @@ public class PageDataNode extends PageData {
         }
     }
 
-    Row getRow(int key) throws SQLException {
+    Row getRow(long key) throws SQLException {
         int at = find(key);
         PageData page = index.getPage(childPageIds[at], getPos());
         return page.getRow(key);

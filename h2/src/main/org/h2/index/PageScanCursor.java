@@ -21,14 +21,16 @@ class PageScanCursor implements Cursor {
 
     private PageDataLeaf current;
     private int idx;
+    private final long max;
     private Row row;
     private final boolean multiVersion;
     private final Session session;
     private Iterator<Row> delta;
 
-    PageScanCursor(Session session, PageDataLeaf current, int idx, boolean multiVersion) {
+    PageScanCursor(Session session, PageDataLeaf current, int idx, long max, boolean multiVersion) {
         this.current = current;
         this.idx = idx;
+        this.max = max;
         this.multiVersion = multiVersion;
         this.session = session;
         if (multiVersion) {
@@ -50,7 +52,8 @@ class PageScanCursor implements Cursor {
 
     public boolean next() throws SQLException {
         if (!multiVersion) {
-            return nextRow();
+            nextRow();
+            return checkMax();
         }
         while (true) {
             if (delta != null) {
@@ -71,21 +74,34 @@ class PageScanCursor implements Cursor {
             }
             break;
         }
-        return row != null;
+        return checkMax();
     }
 
-    private boolean nextRow() throws SQLException {
+    private boolean checkMax() throws SQLException {
+        if (row != null) {
+            if (max != Long.MAX_VALUE) {
+                long x = current.index.getLong(row, Long.MAX_VALUE);
+                if (x > max) {
+                    row = null;
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void nextRow() throws SQLException {
         if (idx >= current.getEntryCount()) {
             current = current.getNextPage();
             idx = 0;
             if (current == null) {
                 row = null;
-                return false;
+                return;
             }
         }
         row = current.getRowAt(idx);
         idx++;
-        return true;
     }
 
     public boolean previous() {

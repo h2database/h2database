@@ -20,22 +20,36 @@ import org.h2.store.PageStore;
 /**
  * A b-tree leaf page that contains index data.
  * Format:
- * <ul><li>0-3: parent page id (0 for root)
- * </li><li>4-4: page type
- * </li><li>5-8: index id
- * </li><li>9-10: entry count
- * </li><li>11-: list offsets (2 bytes each)
- * </li><li>data
+ * <ul><li>parent page id (0 for root): int
+ * </li><li>page type: byte
+ * </li><li>index id: varInt
+ * </li><li>entry count: short
+ * </li><li>list of offsets: shortInt
+ * </li><li>data (pos: varLong, value,...)
  * </li></ul>
  */
 public class PageBtreeLeaf extends PageBtree {
 
     private static final int OFFSET_LENGTH = 2;
-    private static final int OFFSET_START = 11;
 
     PageBtreeLeaf(PageBtreeIndex index, int pageId, Data data) {
         super(index, pageId, data);
-        start = OFFSET_START;
+    }
+
+    /**
+     * Create a new page.
+     *
+     * @param index the index
+     * @param pageId the page id
+     * @param parentPageId the parent
+     * @return the page
+     */
+    static PageBtreeLeaf create(PageBtreeIndex index, int pageId, int parentPageId) {
+        PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, index.getPageStore().createData());
+        p.parentPageId = parentPageId;
+        p.writeHead();
+        p.start = p.data.length();
+        return p;
     }
 
     /**
@@ -57,7 +71,7 @@ public class PageBtreeLeaf extends PageBtree {
         this.parentPageId = data.readInt();
         int type = data.readByte();
         onlyPosition = (type & Page.FLAG_LAST) == 0;
-        int indexId = data.readInt();
+        int indexId = data.readVarInt();
         if (indexId != index.getId()) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
                     "page:" + getPos() + " expected index:" + index.getId() +
@@ -78,11 +92,16 @@ public class PageBtreeLeaf extends PageBtree {
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + OFFSET_LENGTH) {
             if (entryCount > 1) {
-                // split at the insertion point to better fill pages
+                int x = find(row, false, true, true);
+                if (entryCount < 5) {
+                    // required, otherwise the index doesn't work correctly
+                    return entryCount / 2;
+                }
+                // split near the insertion point to better fill pages
                 // split in half would be:
                 // return entryCount / 2;
-                int x = find(row, false, true, true);
-                return x < 2 ? 2 : x >= entryCount - 3 ? entryCount - 3 : x;
+                int third = entryCount / 3;
+                return x < third ? third : x >= 2 * third ? 2 * third : x;
             }
             onlyPosition = true;
             // change the offsets (now storing only positions)
@@ -213,16 +232,20 @@ public class PageBtreeLeaf extends PageBtree {
         index.getPageStore().writePage(getPos(), data);
     }
 
+    private void writeHead() {
+        data.writeInt(parentPageId);
+        data.writeByte((byte) (Page.TYPE_BTREE_LEAF | (onlyPosition ? 0 : Page.FLAG_LAST)));
+        data.writeVarInt(index.getId());
+        data.writeShortInt(entryCount);
+    }
+
     private void write() throws SQLException {
         if (written) {
             return;
         }
         readAllRows();
         data.reset();
-        data.writeInt(parentPageId);
-        data.writeByte((byte) (Page.TYPE_BTREE_LEAF | (onlyPosition ? 0 : Page.FLAG_LAST)));
-        data.writeInt(index.getId());
-        data.writeShortInt(entryCount);
+        writeHead();
         for (int i = 0; i < entryCount; i++) {
             data.writeShortInt(offsets[i]);
         }

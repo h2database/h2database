@@ -883,7 +883,7 @@ public class Data extends DataPage {
      *
      * @param x the value
      */
-    private void writeVarInt(int x) {
+    public void writeVarInt(int x) {
         while ((x & ~0x7f) != 0) {
             data[pos++] = (byte) (0x80 | (x & 0x7f));
             x >>>= 7;

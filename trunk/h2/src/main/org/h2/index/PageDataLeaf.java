@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.lang.ref.SoftReference;
 import java.sql.SQLException;
+import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -118,7 +119,7 @@ public class PageDataLeaf extends PageData {
             firstOverflowPageId = data.readInt();
         }
         for (int i = 0; i < entryCount; i++) {
-            keys[i] = data.readVarInt();
+            keys[i] = data.readVarLong();
             offsets[i] = data.readShortInt();
         }
         start = data.length();
@@ -445,7 +446,8 @@ public class PageDataLeaf extends PageData {
     public String toString() {
         return "page[" + getPos() + "] data leaf table:" + index.getId() +
             " entries:" + entryCount + " parent:" + parentPageId +
-            (firstOverflowPageId == 0 ? "" : " overflow:" + firstOverflowPageId);
+            (firstOverflowPageId == 0 ? "" : " overflow:" + firstOverflowPageId) +
+           " keys:" + Arrays.toString(keys) + " offsets:" + Arrays.toString(offsets);
     }
 
     public void moveTo(Session session, int newPos) throws SQLException {

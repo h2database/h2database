@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.util.New;
+import org.h2.util.SoftHashMap;
 
 /**
  * The global settings of a full text search.
@@ -26,8 +27,7 @@ class FullTextSettings {
     private HashSet<String> ignoreList = New.hashSet();
     private HashMap<String, Integer> words = New.hashMap();
     private HashMap<Integer, IndexInfo> indexes = New.hashMap();
-    private PreparedStatement prepSelectMapByWordId;
-    private PreparedStatement prepSelectRowById;
+    private SoftHashMap<String, PreparedStatement> cache = new SoftHashMap<String, PreparedStatement>();
 
     private FullTextSettings() {
         // don't allow construction
@@ -104,20 +104,16 @@ class FullTextSettings {
         return path;
     }
 
-    PreparedStatement getPrepSelectMapByWordId() {
-        return prepSelectMapByWordId;
-    }
-
-    void setPrepSelectMapByWordId(PreparedStatement prepSelectMapByWordId) {
-        this.prepSelectMapByWordId = prepSelectMapByWordId;
-    }
-
-    PreparedStatement getPrepSelectRowById() {
-        return prepSelectRowById;
-    }
-
-    void setPrepSelectRowById(PreparedStatement prepSelectRowById) {
-        this.prepSelectRowById = prepSelectRowById;
+    synchronized PreparedStatement prepare(Connection conn, String sql) throws SQLException {
+        PreparedStatement prep = cache.get(sql);
+        if (prep != null && prep.getConnection().isClosed()) {
+            prep = null;
+        }
+        if (prep == null) {
+            prep = conn.prepareStatement(sql);
+            cache.put(sql, prep);
+        }
+        return prep;
     }
 
     /**

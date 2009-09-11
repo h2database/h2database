@@ -80,7 +80,11 @@ public class ClassUtils {
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+            try {
+                return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+            } catch (Exception e2) {
+                throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+            }
         } catch (NoClassDefFoundError e) {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
         }

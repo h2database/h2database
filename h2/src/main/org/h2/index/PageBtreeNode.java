@@ -66,8 +66,8 @@ public class PageBtreeNode extends PageBtree {
      * Create a new b-tree node page.
      *
      * @param index the index
-     * @param data the data
      * @param pageId the page id
+     * @param parentPageId the parent page id
      * @return the page
      */
     public static PageBtreeNode create(PageBtreeIndex index, int pageId, int parentPageId) {

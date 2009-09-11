@@ -79,25 +79,24 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
+    // TODO delete: only log the key
+    // TODO update: only log the key and changed values
     // TODO fix page format of data overflow and so on
     // TODO implement checksum; 0 for empty pages
-    // TODO in log, don't store empty space between page head and page data
+    // TODO undo log: fully compress empty pages
+    // TODO undo log: don't store empty space between head and data
+    // TODO undo log: lzf compression
     // TODO long primary keys don't use delegating index yet (setPos(): int)
+    // TODO replace CRC32
+    // TODO maybe remove parent pointer
+    // TODO index creation: use less space (ordered, split at insertion point)
+    // TODO test running out of disk space (using a special file system)
 
     // TODO utf-x: test if it's faster
     // TODO after opening the database, delay writing until required
-    // TODO maybe remove parent pointer
-    // TODO replace CRC32
     // TODO optimization: try to avoid allocating a byte array per page
     // TODO optimization: check if calling Data.getValueLen slows things down
-    // TODO undo pages: don't store the middle zeroes
-    // TODO undo pages compression: try http://en.wikipedia.org/wiki/LZJB
     // TODO order pages so that searching for a key only seeks forward
-    // TODO completely re-use keys of deleted rows; maybe
-    // remember last page with deleted keys (in the root page?),
-    // and chain such pages
-    // TODO delete: only log the key
-    // TODO update: only log the key and changed values
 
     // TODO detect circles in linked lists
     // (input stream, free list, extend pages...)
@@ -105,16 +104,12 @@ public class PageStore implements CacheWriter {
     // synchronized correctly (on the index?)
     // TODO remove trace or use isDebugEnabled
     // TODO recover tool: don't re-do uncommitted operations
-    // TODO no need to log old page if it was always empty
     // TODO don't store default values (store a special value)
     // TODO split files (1 GB max size)
     // TODO add a setting (that can be changed at runtime) to call fsync
     // and delay on each commit
-    // TODO PageData and PageBtree addRowTry: try to simplify
-    // TODO test running out of disk space (using a special file system)
     // TODO check for file size (exception if not exact size expected)
     // TODO implement missing code for STORE_BTREE_ROWCOUNT (maybe enable)
-    // TODO store dates differently in Data; test moving db to another timezone
     // TODO online backup using bsdiff
 
     // TODO when removing DiskFile:
@@ -1045,6 +1040,20 @@ public class PageStore implements CacheWriter {
             }
             reservedPages.put(rootPageId, logPos);
         }
+    }
+
+    /**
+     * Redo a delete in a table.
+     *
+     * @param logPos the redo log position
+     * @param tableId the object id of the table
+     * @param key the key of the row to delete
+     */
+    void redoDelete(int logPos, int tableId, long key) throws SQLException {
+        Index index = metaObjects.get(tableId);
+        PageScanIndex scan = (PageScanIndex) index;
+        Row row = scan.getRow(key);
+        redo(logPos, tableId, row, false);
     }
 
     /**

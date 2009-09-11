@@ -62,6 +62,7 @@ import org.h2.util.Tool;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLong;
 
 /**
  * Helps recovering a corrupted database.
@@ -820,8 +821,9 @@ public class Recover extends Tool implements DataHandler {
                 // type 2
                 case Page.TYPE_DATA_NODE: {
                     pageTypeCount[type]++;
-                    int entries = s.readShortInt();
+                    setStorage(s.readVarInt());
                     int rowCount = s.readInt();
+                    int entries = s.readShortInt();
                     writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " entries: " + entries + " rowCount: " + rowCount);
                     break;
                 }
@@ -835,7 +837,7 @@ public class Recover extends Tool implements DataHandler {
                     pageTypeCount[type]++;
                     setStorage(s.readVarInt());
                     int entries = s.readShortInt();
-                    writer.println("-- page " + page + ": b-tree leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries);
+                    writer.println("-- page " + page + ": b-tree leaf " + (last ? "(last)" : "") + " index: " + storageId + " entries: " + entries);
                     if (trace) {
                         dumpPageBtreeLeaf(writer, s, entries, !last);
                     }
@@ -844,7 +846,8 @@ public class Recover extends Tool implements DataHandler {
                 // type 5
                 case Page.TYPE_BTREE_NODE:
                     pageTypeCount[type]++;
-                    writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : ""));
+                    setStorage(s.readVarInt());
+                    writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : "") +  " index: " + storageId);
                     if (trace) {
                         dumpPageBtreeNode(writer, s, !last);
                     }
@@ -1078,15 +1081,15 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageBtreeNode(PrintWriter writer, Data s, boolean positionOnly) {
-        int entryCount = s.readShortInt();
         int rowCount = s.readInt();
+        int entryCount = s.readShortInt();
         int[] children = new int[entryCount + 1];
         int[] offsets = new int[entryCount];
         children[entryCount] = s.readInt();
         int empty = Integer.MAX_VALUE;
         for (int i = 0; i < entryCount; i++) {
             children[i] = s.readInt();
-            int off = s.readInt();
+            int off = s.readShortInt();
             empty = Math.min(off, empty);
             offsets[i] = off;
         }
@@ -1095,10 +1098,10 @@ public class Recover extends Tool implements DataHandler {
         for (int i = 0; i < entryCount; i++) {
             int off = offsets[i];
             s.setPos(off);
-            int pos = s.readInt();
+            long key = s.readVarLong();
             Value data;
             if (positionOnly) {
-                data = ValueInt.get(pos);
+                data = ValueLong.get(key);
             } else {
                 try {
                     data = s.readValue();
@@ -1107,7 +1110,7 @@ public class Recover extends Tool implements DataHandler {
                     continue;
                 }
             }
-            writer.println("-- [" + i + "] child: " + children[i] + " pos: " + pos + " data: " + data);
+            writer.println("-- [" + i + "] child: " + children[i] + " key: " + key + " data: " + data);
         }
         writer.println("-- [" + entryCount + "] child: " + children[entryCount] + " rowCount: " + rowCount);
     }
@@ -1186,7 +1189,9 @@ public class Recover extends Tool implements DataHandler {
         empty = empty - s.length();
         pageDataHead += s.length();
         pageDataEmpty += empty;
-        writer.println("--   empty: " + empty);
+        if (trace) {
+            writer.println("--   empty: " + empty);
+        }
         if (!last) {
             DataPage s2 = DataPage.create(this, pageSize);
             s.setPos(pageSize);
@@ -1221,7 +1226,9 @@ public class Recover extends Tool implements DataHandler {
         for (int i = 0; i < entryCount; i++) {
             long key = keys[i];
             int off = offsets[i];
-            writer.println("-- [" + i + "] storage: " + storageId + " key: " + key + " off: " + off);
+            if (trace) {
+                writer.println("-- [" + i + "] storage: " + storageId + " key: " + key + " off: " + off);
+            }
             s.setPos(off);
             Value[] data = createRecord(writer, s, columnCount);
             if (data != null) {

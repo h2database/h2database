@@ -18,11 +18,11 @@ import org.h2.store.PageStore;
 /**
  * Overflow data for a leaf page.
  * Format:
- * <ul><li>0-3: parent page id (0 for root)
- * </li><li>4-4: page type
- * </li><li>5-8: index id
- * </li><li>if there is more data: 9-12: next overflow page id
- * </li><li>otherwise: 9-10: remaining size
+ * <ul><li>0-3: parent page id (0 for root): int
+ * </li><li>4-4: page type: byte
+ * </li><li>5-8: table id: int
+ * </li><li>9-12: if more data: next overflow page id: int
+ * </li><li>9-10: else remaining size: short
  * </li><li>data
  * </li></ul>
  */

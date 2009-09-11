@@ -54,11 +54,21 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        return mainIndex.find(session, first, last);
+        long min = mainIndex.getLong(first, Long.MIN_VALUE);
+        long max = mainIndex.getLong(last, Long.MAX_VALUE);
+        return mainIndex.find(session, min, max, false);
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        return mainIndex.findFirstOrLast(session, first);
+        Cursor cursor;
+        if (first) {
+            cursor = mainIndex.find(session, Long.MIN_VALUE, Long.MAX_VALUE, false);
+        } else  {
+            long x = mainIndex.getLastKey();
+            cursor = mainIndex.find(session, x, x, false);
+        }
+        cursor.next();
+        return cursor;
     }
 
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
@@ -82,6 +92,7 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     public void remove(Session session) throws SQLException {
+        mainIndex.setMainIndexColumn(-1);
         session.getDatabase().getPageStore().removeMeta(this, session);
     }
 

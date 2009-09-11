@@ -114,9 +114,10 @@ abstract class PageData extends Page {
      * @param session the session
      * @param min the smallest key
      * @param max the largest key
+     * @param multiVersion if the delta should be used
      * @return the cursor
      */
-    abstract Cursor find(Session session, long min, long max) throws SQLException;
+    abstract Cursor find(Session session, long min, long max, boolean multiVersion) throws SQLException;
 
     /**
      * Get the key at this position.

@@ -258,9 +258,9 @@ public class PageDataLeaf extends PageData {
         rows = newRows;
     }
 
-    Cursor find(Session session, long min, long max) {
+    Cursor find(Session session, long min, long max, boolean multiVersion) {
         int x = find(min);
-        return new PageScanCursor(session, this, x, max, index.isMultiVersion);
+        return new PageScanCursor(session, this, x, max, multiVersion);
     }
 
     /**
@@ -447,7 +447,7 @@ public class PageDataLeaf extends PageData {
         return "page[" + getPos() + "] data leaf table:" + index.getId() +
             " entries:" + entryCount + " parent:" + parentPageId +
             (firstOverflowPageId == 0 ? "" : " overflow:" + firstOverflowPageId) +
-           " keys:" + Arrays.toString(keys) + " offsets:" + Arrays.toString(offsets);
+            " keys:" + Arrays.toString(keys) + " offsets:" + Arrays.toString(offsets);
     }
 
     public void moveTo(Session session, int newPos) throws SQLException {

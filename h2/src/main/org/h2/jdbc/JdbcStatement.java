@@ -232,14 +232,9 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return the connection
      */
-    public Connection getConnection() throws SQLException {
-        try {
-            debugCodeCall("getConnection");
-            checkClosed();
-            return conn;
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
+    public Connection getConnection() {
+        debugCodeCall("getConnection");
+        return conn;
     }
 
     /**

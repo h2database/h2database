@@ -51,6 +51,8 @@ public class FullText {
 
     private static final String TRIGGER_PREFIX = "FT_";
     private static final String SCHEMA = "FT";
+    private static final String SELECT_MAP_BY_WORD_ID = "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?";
+    private static final String SELECT_ROW_BY_ID = "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?";
 
     /**
      * A column name of the result set returned by the searchData method.
@@ -517,7 +519,7 @@ public class FullText {
         HashSet<Integer> rIds = null, lastRowIds = null;
         HashMap<String, Integer> allWords = setting.getWordList();
 
-        PreparedStatement prepSelectMapByWordId = setting.getPrepSelectMapByWordId();
+        PreparedStatement prepSelectMapByWordId = setting.prepare(conn, SELECT_MAP_BY_WORD_ID);
         for (String word : words) {
             lastRowIds = rIds;
             rIds = New.hashSet();
@@ -537,7 +539,7 @@ public class FullText {
         if (rIds == null || rIds.size() == 0) {
             return result;
         }
-        PreparedStatement prepSelectRowById = setting.getPrepSelectRowById();
+        PreparedStatement prepSelectRowById = setting.prepare(conn, SELECT_ROW_BY_ID);
         int rowCount = 0;
         for (int rowId : rIds) {
             prepSelectRowById.setInt(1, rowId);
@@ -787,13 +789,6 @@ public class FullText {
                     "DELETE FROM " + SCHEMA + ".MAP WHERE ROWID=? AND WORDID=?");
             prepSelectRow = conn.prepareStatement(
                     "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?");
-
-            PreparedStatement prepSelectMapByWordId = conn.prepareStatement(
-                    "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?");
-            PreparedStatement prepSelectRowById = conn.prepareStatement(
-                    "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?");
-            setting.setPrepSelectMapByWordId(prepSelectMapByWordId);
-            setting.setPrepSelectRowById(prepSelectRowById);
         }
 
         /**

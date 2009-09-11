@@ -251,21 +251,37 @@ public class PageLog {
                             undoAll.set(pageId);
                         }
                     }
-                } else if (x == ADD || x == REMOVE) {
+                } else if (x == ADD) {
                     int sessionId = in.readInt();
                     int tableId = in.readInt();
                     Row row = readRow(in, data);
-                    if (stage == RECOVERY_STAGE_UNDO && x == ADD) {
+                    if (stage == RECOVERY_STAGE_UNDO) {
                         store.allocateIfIndexRoot(pos, tableId, row);
                     } else if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log redo " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
+                                trace.debug("log redo + table:" + tableId + " " + row);
                             }
-                            store.redo(pos, tableId, row, x == ADD);
+                            store.redo(pos, tableId, row, true);
                         } else {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log ignore s:" + sessionId + " " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
+                                trace.debug("log ignore s:" + sessionId + " + table:" + tableId + " " + row);
+                            }
+                        }
+                    }
+                } else if (x == REMOVE) {
+                    int sessionId = in.readInt();
+                    int tableId = in.readInt();
+                    long key = in.readLong();
+                    if (stage == RECOVERY_STAGE_REDO) {
+                        if (isSessionCommitted(sessionId, logId, pos)) {
+                            if (trace.isDebugEnabled()) {
+                                trace.debug("log redo - table:" + tableId + " key:" + key);
+                            }
+                            store.redoDelete(pos, tableId, key);
+                        } else {
+                            if (trace.isDebugEnabled()) {
+                                trace.debug("log ignore s:" + sessionId + " - table:" + tableId + " key:" + key);
                             }
                         }
                     }
@@ -523,9 +539,13 @@ public class PageLog {
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
             out.writeInt(tableId);
-            out.writeInt(row.getPos());
-            out.writeInt(data.length());
-            out.write(data.getBytes(), 0, data.length());
+            if (add) {
+                out.writeInt(row.getPos());
+                out.writeInt(data.length());
+                out.write(data.getBytes(), 0, data.length());
+            } else {
+                out.writeLong(row.getPos());
+            }
             flushOut();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);

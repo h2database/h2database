@@ -356,6 +356,16 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     }
 
     public Row getRow(Session session, int key) throws SQLException {
+        return getRow(key);
+    }
+
+    /**
+     * Get the row with the given key.
+     *
+     * @param key the key
+     * @return the row
+     */
+    public Row getRow(long key) throws SQLException {
         PageData root = getPage(rootPageId, 0);
         return root.getRow(key);
     }

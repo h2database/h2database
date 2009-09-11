@@ -23,7 +23,6 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
@@ -49,6 +48,7 @@ public class TestLob extends TestBase {
         if (config.memory) {
             return;
         }
+        testLobUpdateMany();
         testLobDeleteTemp();
         testLobDelete();
         testLobVariable();
@@ -71,6 +71,17 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
+    }
+
+    private void testLobUpdateMany() throws SQLException {
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table post(id int primary key, text clob) as select x, space(96) from system_range(1, 329)");
+        PreparedStatement prep = conn.prepareStatement("update post set text = ?");
+        prep.setCharacterStream(1, new StringReader(new String(new char[1025])), -1);
+        prep.executeUpdate();
+        conn.close();
     }
 
     private void testLobDeleteTemp() throws SQLException {

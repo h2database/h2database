@@ -838,4 +838,20 @@ public class ValueLob extends Value {
         return 128;
     }
 
+    /**
+     * Create an independent copy of this temporary value.
+     * The file will not be deleted automatically.
+     *
+     * @return the value
+     */
+    public ValueLob copyToTemp() throws SQLException {
+        ValueLob lob;
+        if (type == CLOB) {
+            lob = ValueLob.createClob(getReader(), precision, handler);
+        } else {
+            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+        }
+        return lob;
+    }
+
 }

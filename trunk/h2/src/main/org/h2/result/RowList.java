@@ -70,7 +70,12 @@ public class RowList {
                     if (lobs == null) {
                         lobs = ObjectArray.newInstance();
                     }
+                    // need to create a copy, otherwise,
+                    // if stored multiple times, it may be renamed
+                    // and then not found
+                    lob = lob.copyToTemp();
                     lobs.add(lob);
+                    v = lob;
                 }
             }
             buff.checkCapacity(buff.getValueLen(v));

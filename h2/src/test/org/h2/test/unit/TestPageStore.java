@@ -32,12 +32,32 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testDropPk();
         testCreatePkLater();
         testTruncate();
         testLargeIndex();
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testDropPk() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("pageStore");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key)");
+        stat.execute("insert into test values(" + Integer.MIN_VALUE+ "), (" + Integer.MAX_VALUE + ")");
+        stat.execute("alter table test drop primary key");
+        conn.close();
+        conn = getConnection("pageStore");
+        stat = conn.createStatement();
+        stat.execute("insert into test values(" + Integer.MIN_VALUE+ "), (" + Integer.MAX_VALUE + ")");
+        conn.close();
     }
 
     private void testCreatePkLater() throws SQLException {

@@ -96,8 +96,7 @@ public class PageBtreeIndex extends PageIndex {
             page1.setPageId(id);
             page1.setParentPageId(rootPageId);
             page2.setParentPageId(rootPageId);
-            PageBtreeNode newRoot = new PageBtreeNode(this, rootPageId, store.createData());
-            newRoot.parentPageId = PageBtree.ROOT;
+            PageBtreeNode newRoot = PageBtreeNode.create(this, rootPageId, PageBtree.ROOT);
             newRoot.init(page1, pivot, page2);
             store.updateRecord(page1, true, page1.data);
             store.updateRecord(page2, true, page2.data);

@@ -44,6 +44,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     private int rowCountDiff;
     private HashMap<Integer, Integer> sessionRowCount;
     private int mainIndexColumn = -1;
+    private SQLException fastDuplicateKeyException;
 
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
@@ -61,9 +62,6 @@ public class PageScanIndex extends PageIndex implements RowIndex {
         if (headPos == Index.EMPTY_HEAD) {
             // new table
             rootPageId = store.allocatePage();
-            // TODO currently the head position is stored in the log
-            // it should not for new tables, otherwise redo of other operations
-            // must ensure this page is not used for other things
             store.addMeta(this, session);
             PageDataLeaf root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
             store.updateRecord(root, true, root.data);
@@ -77,22 +75,26 @@ public class PageScanIndex extends PageIndex implements RowIndex {
                 // TODO check if really required
                 store.updateRecord(root, false, null);
             }
-            // TODO re-use keys after many rows are deleted
         }
         if (trace.isDebugEnabled()) {
             trace.debug("opened " + getName() + " rows:" + rowCount);
         }
         table.setRowCount(rowCount);
+        fastDuplicateKeyException = super.getDuplicateKeyException();
+    }
+
+    public SQLException getDuplicateKeyException() {
+        return fastDuplicateKeyException;
     }
 
     public void add(Session session, Row row) throws SQLException {
+        boolean retry = false;
         if (mainIndexColumn != -1) {
             row.setPos(row.getValue(mainIndexColumn).getInt());
         } else {
             if (row.getPos() == 0) {
                 row.setPos((int) ++lastKey);
-            } else {
-                lastKey = Math.max(lastKey, row.getPos() + 1);
+                retry = true;
             }
         }
         if (trace.isDebugEnabled()) {
@@ -110,6 +112,36 @@ public class PageScanIndex extends PageIndex implements RowIndex {
                 }
             }
         }
+        // when using auto-generated values, it's possible that multiple
+        // tries are required (specially if there was originally a primary key)
+        long add = 0;
+        while (true) {
+            try {
+                addTry(session, row);
+                break;
+            } catch (SQLException e) {
+                if (e != fastDuplicateKeyException) {
+                    throw e;
+                }
+                if (!retry) {
+                    throw super.getDuplicateKeyException();
+                }
+                if (add == 0) {
+                    // in the first re-try add a small random number,
+                    // to avoid collisions after a re-start
+                    // TODO use long
+                    row.setPos((int) (row.getPos() + Math.random() * 10000));
+                } else {
+                    // TODO use long
+                    row.setPos((int) (row.getPos() + add));
+                }
+                add++;
+            }
+        }
+        lastKey = Math.max(lastKey, row.getPos() + 1);
+    }
+
+    private void addTry(Session session, Row row) throws SQLException {
         while (true) {
             PageData root = getPage(rootPageId, 0);
             int splitPoint = root.addRowTry(row);
@@ -127,8 +159,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
             page1.setPageId(id);
             page1.setParentPageId(rootPageId);
             page2.setParentPageId(rootPageId);
-            PageDataNode newRoot = new PageDataNode(this, rootPageId, store.createData());
-            newRoot.parentPageId = PageData.ROOT;
+            PageDataNode newRoot = PageDataNode.create(this, rootPageId, PageData.ROOT);
             newRoot.init(page1, pivot, page2);
             store.updateRecord(page1, true, page1.data);
             store.updateRecord(page2, true, page2.data);
@@ -208,23 +239,32 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        long min = getLong(first, Long.MIN_VALUE);
-        long max = getLong(last, Long.MAX_VALUE);
+        // ignore first and last
         PageData root = getPage(rootPageId, 0);
-        return root.find(session, min, max);
+        return root.find(session, Long.MIN_VALUE, Long.MAX_VALUE, isMultiVersion);
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        Cursor cursor;
+    /**
+     * Search for a specific row or a set of rows.
+     *
+     * @param session the session
+     * @param first the key of the first row
+     * @param last the key of the last row
+     * @param multiVersion if mvcc should be used
+     * @return the cursor
+     */
+    Cursor find(Session session, long first, long last, boolean multiVersion) throws SQLException {
         PageData root = getPage(rootPageId, 0);
-        if (first) {
-            cursor = root.find(session, Long.MIN_VALUE, Long.MAX_VALUE);
-        } else  {
-            long lastKey = root.getLastKey();
-            cursor = root.find(session, lastKey, lastKey);
-        }
-        cursor.next();
-        return cursor;
+        return root.find(session, first, last, multiVersion);
+    }
+
+    public Cursor findFirstOrLast(Session session, boolean first) {
+        throw Message.throwInternalError();
+    }
+
+    long getLastKey() throws SQLException {
+        PageData root = getPage(rootPageId, 0);
+        return root.getLastKey();
     }
 
     public double getCost(Session session, int[] masks) {
@@ -256,7 +296,6 @@ public class PageScanIndex extends PageIndex implements RowIndex {
             root.remove(key);
             invalidateRowCount();
             rowCount--;
-            // TODO re-use keys
         }
         if (database.isMultiVersion()) {
             // if storage is null, the delete flag is not yet set

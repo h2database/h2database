@@ -24,8 +24,8 @@ import org.h2.store.PageStore;
  * </li><li>page type: byte
  * </li><li>index id: varInt
  * </li><li>entry count: short
- * </li><li>list of offsets: shortInt
- * </li><li>data (pos: varLong, value,...)
+ * </li><li>list of offsets: short
+ * </li><li>data (key: varLong, value,...)
  * </li></ul>
  */
 public class PageBtreeLeaf extends PageBtree {
@@ -34,6 +34,20 @@ public class PageBtreeLeaf extends PageBtree {
 
     PageBtreeLeaf(PageBtreeIndex index, int pageId, Data data) {
         super(index, pageId, data);
+    }
+
+    /**
+     * Read a b-tree leaf page.
+     *
+     * @param index the index
+     * @param data the data
+     * @param pageId the page id
+     * @return the page
+     */
+    public static Page read(PageBtreeIndex index, Data data, int pageId) throws SQLException {
+        PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, data);
+        p.read();
+        return p;
     }
 
     /**
@@ -49,20 +63,6 @@ public class PageBtreeLeaf extends PageBtree {
         p.parentPageId = parentPageId;
         p.writeHead();
         p.start = p.data.length();
-        return p;
-    }
-
-    /**
-     * Read a b-tree leaf page.
-     *
-     * @param index the index
-     * @param data the data
-     * @param pageId the page id
-     * @return the page
-     */
-    public static Page read(PageBtreeIndex index, Data data, int pageId) throws SQLException {
-        PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, data);
-        p.read();
         return p;
     }
 

@@ -79,10 +79,7 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO can not use delegating index when starting if it was created later
-
-    // TODO re-use deleted keys; specially if the primary key is removed
-    // TODO table row: number of columns should be varInt not int
+    // TODO fix page format of data overflow and so on
     // TODO implement checksum; 0 for empty pages
     // TODO in log, don't store empty space between page head and page data
     // TODO long primary keys don't use delegating index yet (setPos(): int)
@@ -468,7 +465,7 @@ public class PageStore implements CacheWriter {
             break;
         }
         case Page.TYPE_DATA_NODE: {
-            int indexId = data.readInt();
+            int indexId = data.readVarInt();
             PageScanIndex index = (PageScanIndex) metaObjects.get(indexId);
             if (index == null) {
                 Message.throwInternalError("index not found " + indexId);
@@ -495,7 +492,7 @@ public class PageStore implements CacheWriter {
             break;
         }
         case Page.TYPE_BTREE_NODE: {
-            int indexId = data.readInt();
+            int indexId = data.readVarInt();
             PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
             if (index == null) {
                 Message.throwInternalError("index not found " + indexId);

@@ -187,11 +187,10 @@ public class LogSystem {
                 if (!containsInDoubtTransactions() && checkpoint) {
                     checkpoint();
                 }
-            } catch (SQLException e) {
-                closeException = e;
-            } catch (Throwable e) {
-                // for example out of memory exception
+            } catch (Exception e) {
                 closeException = Message.convert(e);
+            } catch (Throwable e) {
+                closeException = Message.convertThrowable(e);
             }
             for (int i = 0; i < activeLogs.size(); i++) {
                 LogFile l = activeLogs.get(i);

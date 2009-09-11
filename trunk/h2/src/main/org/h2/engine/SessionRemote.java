@@ -314,8 +314,10 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                     className = StringUtils.trim(className, true, true, "'");
                     try {
                         eventListener = (DatabaseEventListener) ClassUtils.loadUserClass(className).newInstance();
-                    } catch (Throwable e) {
+                    } catch (Exception e) {
                         throw Message.convert(e);
+                    } catch (Throwable e) {
+                        throw Message.convertThrowable(e);
                     }
                 }
             }

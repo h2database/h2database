@@ -184,7 +184,12 @@ public class TcpServerThread implements Runnable {
 
     private void sendError(Throwable e) {
         try {
-            SQLException s = Message.convert(e);
+            SQLException s;
+            if (e instanceof Exception) {
+                s = Message.convert((Exception) e);
+            } else {
+                s = Message.convertThrowable(e);
+            }
             StringWriter writer = new StringWriter();
             e.printStackTrace(new PrintWriter(writer));
             String trace = writer.toString();

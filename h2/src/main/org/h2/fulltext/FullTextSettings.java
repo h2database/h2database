@@ -104,6 +104,13 @@ class FullTextSettings {
         return path;
     }
 
+    /**
+     * Prepare a statement. The statement is cached in a soft reference cache.
+     *
+     * @param conn the connection
+     * @param sql the statement
+     * @return the prepared statement
+     */
     synchronized PreparedStatement prepare(Connection conn, String sql) throws SQLException {
         PreparedStatement prep = cache.get(sql);
         if (prep != null && prep.getConnection().isClosed()) {

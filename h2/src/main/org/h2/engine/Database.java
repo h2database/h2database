@@ -60,6 +60,7 @@ import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
+import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
@@ -218,6 +219,7 @@ public class Database implements DataHandler {
 
     private void openDatabase(int traceLevelFile, int traceLevelSystemOut, boolean closeAtVmShutdown) throws SQLException {
         try {
+            MemoryUtils.allocateReserveMemory();
             open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
                 try {
@@ -234,6 +236,10 @@ public class Database implements DataHandler {
                 }
             }
         } catch (Throwable e) {
+            if (e instanceof OutOfMemoryError) {
+                MemoryUtils.freeReserveMemory();
+                e.fillInStackTrace();
+            }
             if (traceSystem != null) {
                 if (e instanceof SQLException) {
                     SQLException e2 = (SQLException) e;
@@ -245,7 +251,10 @@ public class Database implements DataHandler {
                 traceSystem.close();
             }
             closeOpenFilesAndUnlock(false);
-            throw Message.convert(e);
+            if (e instanceof Error) {
+                throw (Error) e;
+            }
+            throw Message.convert((Exception) e);
         }
     }
 
@@ -1157,19 +1166,23 @@ public class Database implements DataHandler {
         }
         try {
             if (systemSession != null) {
-                for (Table table : getAllTablesAndViews()) {
-                    table.close(systemSession);
-                }
-                for (SchemaObject obj : getAllSchemaObjects(DbObject.SEQUENCE)) {
-                    Sequence sequence = (Sequence) obj;
-                    sequence.close();
+                if (powerOffCount != -1) {
+                    for (Table table : getAllTablesAndViews()) {
+                        table.close(systemSession);
+                    }
+                    for (SchemaObject obj : getAllSchemaObjects(DbObject.SEQUENCE)) {
+                        Sequence sequence = (Sequence) obj;
+                        sequence.close();
+                    }
                 }
                 for (SchemaObject obj : getAllSchemaObjects(DbObject.TRIGGER)) {
                     TriggerObject trigger = (TriggerObject) obj;
                     trigger.close();
                 }
-                meta.close(systemSession);
-                systemSession.commit(true);
+                if (powerOffCount != -1) {
+                    meta.close(systemSession);
+                    systemSession.commit(true);
+                }
                 indexSummaryValid = true;
             }
         } catch (SQLException e) {

@@ -206,9 +206,6 @@ public abstract class Command implements CommandInterface {
                     database.checkPowerOff();
                     try {
                         return update();
-                    } catch (OutOfMemoryError e) {
-                        MemoryUtils.freeReserveMemory();
-                        throw Message.convert(e);
                     } catch (SQLException e) {
                         if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
                             long now = System.currentTimeMillis();
@@ -227,8 +224,10 @@ public abstract class Command implements CommandInterface {
                             continue;
                         }
                         throw e;
-                    } catch (Throwable e) {
+                    } catch (Exception e) {
                         throw Message.convert(e);
+                    } catch (Throwable e) {
+                        throw Message.convertThrowable(e);
                     }
                 }
             } catch (SQLException e) {

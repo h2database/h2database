@@ -405,8 +405,10 @@ public class TcpServer implements Service {
         String db = getManagementDbName(port);
         try {
             org.h2.Driver.load();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw Message.convert(e);
+        } catch (Throwable e) {
+            throw Message.convertThrowable(e);
         }
         for (int i = 0; i < 2; i++) {
             Connection conn = null;

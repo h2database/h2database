@@ -90,9 +90,15 @@ public class MemoryUtils {
 
     /**
      * Free up the reserve memory.
+     *
+     * @return if memory could be freed up.
      */
-    public static void freeReserveMemory() {
+    public static boolean freeReserveMemory() {
+        if (reserveMemory == null) {
+            return false;
+        }
         reserveMemory = null;
+        return true;
     }
 
     /**

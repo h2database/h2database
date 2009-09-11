@@ -140,7 +140,10 @@ public class TableData extends Table implements RecordReader {
                 trace.error("Could not undo operation", e);
                 throw e2;
             }
-            throw Message.convert(e);
+            if (e instanceof Exception) {
+                throw Message.convert((Exception) e);
+            }
+            throw Message.convertThrowable(e);
         }
     }
 
@@ -380,7 +383,10 @@ public class TableData extends Table implements RecordReader {
                 trace.error("Could not undo operation", e);
                 throw e2;
             }
-            throw Message.convert(e);
+            if (e instanceof Exception) {
+                throw Message.convert((Exception) e);
+            }
+            throw Message.convertThrowable(e);
         }
     }
 

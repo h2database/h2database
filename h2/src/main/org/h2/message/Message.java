@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
+import org.h2.util.MemoryUtils;
 import org.h2.util.Resources;
 import org.h2.util.StringUtils;
 
@@ -239,7 +240,7 @@ public class Message {
      * @param sql the SQL statement or null if it is not known
      * @return the SQL exception object
      */
-    public static SQLException convert(Throwable e, String sql) {
+    public static SQLException convert(Exception e, String sql) {
         SQLException e2 = convert(e);
         if (e2 instanceof JdbcSQLException) {
             ((JdbcSQLException) e2).setSQL(sql);
@@ -248,19 +249,27 @@ public class Message {
     }
 
     /**
+     * Convert a stack overflow error.
+     *
+     * @param e the root cause
+     * @return the SQL exception object
+     */
+    public static SQLException convert(StackOverflowError e) {
+        return getSQLException(ErrorCode.GENERAL_ERROR_1, e);
+    }
+
+    /**
      * Convert an exception to a SQL exception using the default mapping.
      *
      * @param e the root cause
      * @return the SQL exception object
      */
-    public static SQLException convert(Throwable e) {
+    public static SQLException convert(Exception e) {
         if (e instanceof InternalException) {
             e = ((InternalException) e).getOriginalCause();
         }
         if (e instanceof SQLException) {
             return (SQLException) e;
-        } else if (e instanceof OutOfMemoryError) {
-            return getSQLException(ErrorCode.OUT_OF_MEMORY, e);
         } else if (e instanceof InvocationTargetException) {
             InvocationTargetException te = (InvocationTargetException) e;
             Throwable t = te.getTargetException();
@@ -270,6 +279,29 @@ public class Message {
             return getSQLException(ErrorCode.EXCEPTION_IN_FUNCTION, e);
         } else if (e instanceof IOException) {
             return getSQLException(ErrorCode.IO_EXCEPTION_1, e, e.toString());
+        }
+        return getSQLException(ErrorCode.GENERAL_ERROR_1, e, e.toString());
+    }
+
+    /**
+     * Convert a throwable to an SQL exception using the default mapping. For
+     * out of memory errors, this will first try to free up some memory, and if
+     * not possible it will re-throw the error. All errors except the following
+     * are re-thrown: StackOverflowError, LinkageError.
+     *
+     * @param e the root cause
+     * @return the SQL exception object
+     */
+    public static SQLException convertThrowable(Throwable e) {
+        if (e instanceof OutOfMemoryError) {
+            if (MemoryUtils.freeReserveMemory()) {
+                return getSQLException(ErrorCode.OUT_OF_MEMORY, e);
+            }
+            throw (OutOfMemoryError) e;
+        } else if (e instanceof StackOverflowError || e instanceof LinkageError) {
+            return getSQLException(ErrorCode.GENERAL_ERROR_1, e, e.toString());
+        } else if (e instanceof Error) {
+            throw (Error) e;
         }
         return getSQLException(ErrorCode.GENERAL_ERROR_1, e, e.toString());
     }

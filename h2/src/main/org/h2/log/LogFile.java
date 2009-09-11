@@ -386,7 +386,7 @@ public class LogFile {
             // this is not necessarily at the end of the log file
             // set the log system to read only so the current log file stays when closing
             logSystem.setReadOnly(true);
-            throw Message.convert(e);
+            throw Message.convertThrowable(e);
         } catch (Throwable e) {
             database.getTrace(Trace.LOG).error("Error reading log file (non-fatal)", e);
             // on power loss, sometime there is garbage at the end of the file

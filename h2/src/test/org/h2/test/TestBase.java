@@ -118,6 +118,9 @@ public abstract class TestBase {
             if (config.stopOnError) {
                 throw new Error("ERROR");
             }
+            if (e instanceof OutOfMemoryError) {
+                throw (OutOfMemoryError) e;
+            }
         } finally {
             try {
                 FileSystem.getInstance("memFS:").deleteRecursive("memFS:", false);

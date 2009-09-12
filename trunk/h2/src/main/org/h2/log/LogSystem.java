@@ -301,8 +301,11 @@ public class LogSystem {
                 // this can happen if the system crashes just
                 // after creating a new file (before writing the header)
                 // rename it, so that it doesn't get in the way the next time
-                FileUtils.delete(s + ".corrupt");
-                FileUtils.rename(s, s + ".corrupt");
+                if (FileUtils.tryDelete(s + ".corrupt")) {
+                    FileUtils.rename(s, s + ".corrupt");
+                } else {
+                    FileUtils.setLength(s, 0);
+                }
             }
             if (l != null) {
                 if (l.getPos() == LOG_WRITTEN) {

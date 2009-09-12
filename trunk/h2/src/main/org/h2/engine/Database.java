@@ -187,9 +187,6 @@ public class Database implements DataHandler {
             accessModeLog = "r";
         }
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
-        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
-            writeDelay = SysProperties.MIN_WRITE_DELAY;
-        }
         this.databaseURL = ci.getURL();
         this.eventListener = ci.getDatabaseEventListenerObject();
         ci.removeDatabaseEventListenerObject();
@@ -357,12 +354,15 @@ public class Database implements DataHandler {
             }
             String pos = log == null ? null : log.getWritePos();
             lock.setProperty("logPos", pos);
-            lock.setProperty("changePending", pending ? "true" : null);
+            if (pending) {
+                lock.setProperty("changePending", "true-" + Math.random());
+            } else {
+                lock.setProperty("changePending", null);
+            }
             // ensure that the writer thread will
             // not reset the flag before we are done
             reconnectCheckNext = System.currentTimeMillis() + 2 * SysProperties.RECONNECT_CHECK_DELAY;
             old = lock.save();
-
             if (pending) {
                 getTrace().debug("wait before writing again");
                 Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
@@ -1845,16 +1845,13 @@ public class Database implements DataHandler {
     public void deleteLogFileLater(String fileName) throws SQLException {
         if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
             // need to truncate the file, because another process could keep it open
-            try {
-                FileSystem.getInstance(fileName).openFileObject(fileName, "rw").setFileLength(0);
-            } catch (IOException e) {
-                throw Message.convertIOException(e, "could not truncate " + fileName);
-            }
-        }
-        if (writer != null) {
-            writer.deleteLogFileLater(fileName);
+            FileUtils.setLength(fileName, 0);
         } else {
-            FileUtils.delete(fileName);
+            if (writer != null) {
+                writer.deleteLogFileLater(fileName);
+            } else {
+                FileUtils.delete(fileName);
+            }
         }
     }
 
@@ -2341,9 +2338,9 @@ public class Database implements DataHandler {
         if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly || !reconnectChangePending || closing) {
             return;
         }
-        synchronized (this) {
-            long now = System.currentTimeMillis();
-            if (now > reconnectCheckNext + SysProperties.RECONNECT_CHECK_DELAY) {
+        long now = System.currentTimeMillis();
+        if (now > reconnectCheckNext + SysProperties.RECONNECT_CHECK_DELAY) {
+            synchronized (this) {
                 getTrace().debug("checkpoint");
                 flushIndexes(0);
                 checkpoint();

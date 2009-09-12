@@ -14,6 +14,8 @@ import java.io.RandomAccessFile;
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
+import org.h2.message.Message;
+import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 
 /**
@@ -107,9 +109,10 @@ public class FileUtils {
      * Try to delete a file.
      *
      * @param fileName the file name
+     * @return true if it worked
      */
-    public static void tryDelete(String fileName) {
-        FileSystem.getInstance(fileName).tryDelete(fileName);
+    public static boolean tryDelete(String fileName) {
+        return FileSystem.getInstance(fileName).tryDelete(fileName);
     }
 
     /**
@@ -271,13 +274,29 @@ public class FileUtils {
     }
 
     /**
-     * Get the last modified date of a file
+     * Get the last modified date of a file.
      *
      * @param fileName the file name
      * @return the last modified date
      */
     public static long getLastModified(String fileName) {
         return FileSystem.getInstance(fileName).getLastModified(fileName);
+    }
+
+    /**
+     * Set the file length.
+     *
+     * @param fileName the file name
+     * @param length the new length
+     */
+    public static void setLength(String fileName, long length) throws SQLException {
+        try {
+            FileObject f = FileSystem.getInstance(fileName).openFileObject(fileName, "rw");
+            f.setFileLength(length);
+            f.close();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, fileName + " length: " + length);
+        }
     }
 
 }

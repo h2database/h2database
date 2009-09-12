@@ -124,8 +124,10 @@ public class WriterThread implements Runnable {
                 flushIndexesIfRequired(database);
             }
 
+            int wait = writeDelay;
             try {
                 if (database.isFileLockSerialized()) {
+                    wait = SysProperties.MIN_WRITE_DELAY;
                     database.checkpointIfRequired();
                 } else {
                     LogSystem log = database.getLog();
@@ -143,7 +145,6 @@ public class WriterThread implements Runnable {
 
             // TODO log writer: could also flush the dirty cache when there is
             // low activity
-            int wait = writeDelay;
             if (wait < SysProperties.MIN_WRITE_DELAY) {
                 // wait 0 mean wait forever, which is not what we want
                 wait = SysProperties.MIN_WRITE_DELAY;

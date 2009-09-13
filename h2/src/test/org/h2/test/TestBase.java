@@ -41,6 +41,11 @@ public abstract class TestBase {
     private static final String BASE_TEST_DIR = "data";
 
     /**
+     * The last time something was printed.
+     */
+    private static long lastPrint;
+
+    /**
      * The test configuration.
      */
     public TestAll config;
@@ -303,6 +308,7 @@ public abstract class TestBase {
      */
     public void trace(String s) {
         if (config.traceTest) {
+            lastPrint = 0;
             println(s);
         }
     }
@@ -365,6 +371,7 @@ public abstract class TestBase {
      * @throws AssertionError always throws an AssertionError
      */
     protected void fail(String string) {
+        lastPrint = 0;
         println(string);
         throw new AssertionError(string);
     }
@@ -404,8 +411,12 @@ public abstract class TestBase {
      * @param s the message
      */
     public void println(String s) {
-        long time = System.currentTimeMillis() - start;
-        printlnWithTime(time, getClass().getName() + " " + s);
+        long now = System.currentTimeMillis();
+        if (now > lastPrint + 1000) {
+            lastPrint = now;
+            long time = now - start;
+            printlnWithTime(time, getClass().getName() + " " + s);
+        }
     }
 
     /**

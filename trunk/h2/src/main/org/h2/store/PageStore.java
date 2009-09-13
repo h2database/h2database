@@ -167,7 +167,6 @@ public class PageStore implements CacheWriter {
     private long writeCount;
     private int logFirstTrunkPage, logFirstDataPage;
 
-    private int cacheSize;
     private Cache cache;
 
     private int freeListPagesPerList;
@@ -218,9 +217,8 @@ public class PageStore implements CacheWriter {
         trace = database.getTrace(Trace.PAGE_STORE);
         // int test;
         // trace.setLevel(TraceSystem.DEBUG);
-        this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
-        this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
+        this.cache = CacheLRU.getCache(this, cacheType, cacheSizeDefault);
         systemSession = new Session(database, null, 0);
     }
 
@@ -1130,7 +1128,7 @@ public class PageStore implements CacheWriter {
 
     private void removeMeta(int logPos, Row row) throws SQLException {
         int id = row.getValue(0).getInt();
-        Index index = metaObjects.remove(id);
+        Index index = metaObjects.get(id);
         int headPos = index.getHeadPos();
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex) {
@@ -1143,6 +1141,7 @@ public class PageStore implements CacheWriter {
             index.getSchema().remove(index);
         }
         index.remove(systemSession);
+        metaObjects.remove(id);
         if (reservedPages != null && reservedPages.containsKey(headPos)) {
             // re-allocate the page if it is used later on again
             int latestPos = reservedPages.get(headPos);
@@ -1396,6 +1395,10 @@ public class PageStore implements CacheWriter {
      */
     public int getRootPageId(int indexId) {
         return metaRootPageId.get(indexId);
+    }
+
+    public Cache getCache() {
+        return cache;
     }
 
     // TODO implement checksum

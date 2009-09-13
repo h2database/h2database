@@ -169,6 +169,7 @@ public class Database implements DataHandler {
     private Properties reconnectLastLock;
     private volatile long reconnectCheckNext;
     private volatile boolean reconnectChangePending;
+    private int cacheSize;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = CompareMode.getInstance(null, 0);
@@ -182,6 +183,7 @@ public class Database implements DataHandler {
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.usePageStore = ci.getProperty("PAGE_STORE", SysProperties.getPageStore());
+        this.cacheSize = ci.getProperty("CACHE_SIZE", SysProperties.CACHE_SIZE_DEFAULT);
         if ("r".equals(accessModeData)) {
             readOnly = true;
             accessModeLog = "r";
@@ -1767,10 +1769,14 @@ public class Database implements DataHandler {
     }
 
     public synchronized void setCacheSize(int kb) throws SQLException {
+        cacheSize = kb;
         if (fileData != null) {
             fileData.getCache().setMaxSize(kb);
             int valueIndex = kb <= 32 ? kb : (kb >>> SysProperties.CACHE_SIZE_INDEX_SHIFT);
             fileIndex.getCache().setMaxSize(valueIndex);
+        }
+        if (pageStore != null) {
+            pageStore.getCache().setMaxSize(kb);
         }
     }
 
@@ -2250,8 +2256,7 @@ public class Database implements DataHandler {
 
     public PageStore getPageStore() throws SQLException {
         if (pageStore == null && usePageStore) {
-            pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData,
-                    SysProperties.CACHE_SIZE_DEFAULT);
+            pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
             pageStore.open();
         }
         return pageStore;

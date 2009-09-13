@@ -32,6 +32,7 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testRecoverDropIndex();
         testDropPk();
         testCreatePkLater();
         testTruncate();
@@ -39,6 +40,30 @@ public class TestPageStore extends TestBase {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testRecoverDropIndex() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn = getConnection("pageStore");
+        Statement stat = conn.createStatement();
+        stat.execute("set write_delay 0");
+        stat.execute("create table test(id int, name varchar) as select x, x from system_range(1, 1400)");
+        stat.execute("create index idx_name on test(name)");
+        conn.close();
+        conn = getConnection("pageStore");
+        stat = conn.createStatement();
+        stat.execute("drop index idx_name");
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
+        conn = getConnection("pageStore;cache_size=1");
+        conn.close();
     }
 
     private void testDropPk() throws SQLException {

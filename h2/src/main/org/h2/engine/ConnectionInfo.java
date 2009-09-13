@@ -403,6 +403,21 @@ public class ConnectionInfo implements Cloneable {
      * @param defaultValue the default value
      * @return the value as a String
      */
+    public int getProperty(String key, int defaultValue) {
+        if (SysProperties.CHECK && !isKnownSetting(key)) {
+            Message.throwInternalError(key);
+        }
+        String s = getProperty(key);
+        return s == null ? defaultValue : Integer.parseInt(s);
+    }
+
+    /**
+     * Get the value of the given property.
+     *
+     * @param key the property key
+     * @param defaultValue the default value
+     * @return the value as a String
+     */
     public String getProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !isKnownSetting(key)) {
             Message.throwInternalError(key);

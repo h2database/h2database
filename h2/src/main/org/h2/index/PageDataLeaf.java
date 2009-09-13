@@ -208,6 +208,10 @@ public class PageDataLeaf extends PageData {
             // free up the space used by the row
             rowRef = new SoftReference<Row>(rows[0]);
             rows[0] = null;
+            Data all = index.getPageStore().createData();
+            all.checkCapacity(data.length());
+            all.write(data.getBytes(), 0, data.length());
+            data.truncate(index.getPageStore().getPageSize());
             do {
                 int type, size, next;
                 if (remaining <= pageSize - PageDataOverflow.START_LAST) {
@@ -219,14 +223,13 @@ public class PageDataLeaf extends PageData {
                     size = pageSize - PageDataOverflow.START_MORE;
                     next = index.getPageStore().allocatePage();
                 }
-                PageDataOverflow overflow = new PageDataOverflow(index, page, type, previous, next, data, dataOffset, size);
+                PageDataOverflow overflow = new PageDataOverflow(index, page, type, previous, next, all, dataOffset, size);
                 index.getPageStore().updateRecord(overflow, true, null);
                 dataOffset += size;
                 remaining -= size;
                 previous = page;
                 page = next;
             } while (remaining > 0);
-            data.truncate(index.getPageStore().getPageSize());
         }
         return -1;
     }

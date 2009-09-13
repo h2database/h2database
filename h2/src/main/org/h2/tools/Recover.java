@@ -87,6 +87,8 @@ public class Recover extends Tool implements DataHandler {
     private long pageDataEmpty;
     private int pageDataRows;
     private int pageDataHead;
+    private int pageSize;
+    private FileStore store;
 
     /**
      * Options are case sensitive. Supported options are:
@@ -723,7 +725,6 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpPageStore(String fileName) {
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length()));
-        FileStore store = null;
         PrintWriter writer = null;
         int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
         int emptyPages = 0;
@@ -746,7 +747,7 @@ public class Recover extends Tool implements DataHandler {
             store.seek(0);
             store.readFully(s.getBytes(), 0, 128);
             s.setPos(48);
-            int pageSize = s.readInt();
+            pageSize = s.readInt();
             int writeVersion = s.readByte();
             int readVersion = s.readByte();
             writer.println("-- pageSize: " + pageSize +
@@ -815,7 +816,7 @@ public class Recover extends Tool implements DataHandler {
                     int columnCount = s.readVarInt();
                     int entries = s.readShortInt();
                     writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries + " columns: " + columnCount);
-                    dumpPageDataLeaf(store, pageSize, writer, s, last, page, columnCount, entries);
+                    dumpPageDataLeaf(writer, s, last, page, columnCount, entries);
                     break;
                 }
                 // type 2
@@ -856,7 +857,7 @@ public class Recover extends Tool implements DataHandler {
                 case Page.TYPE_FREE_LIST:
                     pageTypeCount[type]++;
                     writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
-                    free += dumpPageFreeList(writer, s, pageSize, page, pageCount);
+                    free += dumpPageFreeList(writer, s, page, pageCount);
                     break;
                 // type 7
                 case Page.TYPE_STREAM_TRUNK:
@@ -875,7 +876,7 @@ public class Recover extends Tool implements DataHandler {
             }
             writeSchema(writer);
             try {
-                dumpPageLogStream(writer, store, logFirstTrunkPage, logFirstDataPage, pageSize);
+                dumpPageLogStream(writer, logFirstTrunkPage, logFirstDataPage);
             } catch (EOFException e) {
                 // ignore
             }
@@ -896,7 +897,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageLogStream(PrintWriter writer, FileStore store, int logFirstTrunkPage, int logFirstDataPage, int pageSize) throws IOException, SQLException {
+    private void dumpPageLogStream(PrintWriter writer, int logFirstTrunkPage, int logFirstDataPage) throws IOException, SQLException {
         Data s = Data.create(this, pageSize);
         DataInputStream in = new DataInputStream(
                 new PageInputStream(writer, this, store, logFirstTrunkPage, logFirstDataPage, pageSize)
@@ -1115,7 +1116,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- [" + entryCount + "] child: " + children[entryCount] + " rowCount: " + rowCount);
     }
 
-    private int dumpPageFreeList(PrintWriter writer, Data s, int pageSize, long pageId, long pageCount) {
+    private int dumpPageFreeList(PrintWriter writer, Data s, long pageId, long pageCount) {
         int pagesAddressed = PageFreeList.getPagesAddressed(pageSize);
         BitField used = new BitField();
         for (int i = 0; i < pagesAddressed; i += 8) {
@@ -1171,7 +1172,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, Data s, boolean last, long pageId, int columnCount, int entryCount) throws SQLException {
+    private void dumpPageDataLeaf(PrintWriter writer, Data s, boolean last, long pageId, int columnCount, int entryCount) throws SQLException {
         long[] keys = new long[entryCount];
         int[] offsets = new int[entryCount];
         long next = 0;

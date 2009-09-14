@@ -19,18 +19,18 @@ import org.h2.store.PageStore;
 import org.h2.util.MemoryUtils;
 
 /**
- * A leaf page that contains data of one or multiple rows.
- * Format:
- * <ul><li>parent page id (0 for root): int
- * </li><li>page type: byte
- * </li><li>table id: varInt
- * </li><li>count of all children (-1 if not known): int
- * </li><li>entry count: short
- * </li><li>rightmost child page id: int
- * </li><li>entries (key: varLong, child page id: int)
- * </li></ul>
- * The key is the largest key of the respective child, meaning
- * key[0] is the largest key of child[0].
+ * A leaf page that contains data of one or multiple rows. Format:
+ * <ul>
+ * <li>parent page id (0 for root): int</li>
+ * <li>page type: byte</li>
+ * <li>table id: varInt</li>
+ * <li>count of all children (-1 if not known): int</li>
+ * <li>entry count: short</li>
+ * <li>rightmost child page id: int</li>
+ * <li>entries (key: varLong, child page id: int)</li>
+ * </ul>
+ * The key is the largest key of the respective child, meaning key[0] is the
+ * largest key of child[0].
  */
 public class PageDataNode extends PageData {
 

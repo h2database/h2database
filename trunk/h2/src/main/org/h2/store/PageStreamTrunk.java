@@ -10,19 +10,19 @@ import java.sql.SQLException;
 import org.h2.engine.Session;
 
 /**
- * A trunk page of a stream. It contains the page numbers of the stream, and
- * the page number of the next trunk. The format is:
+ * A trunk page of a stream. It contains the page numbers of the stream, and the
+ * page number of the next trunk. The format is:
  * <ul>
- * <li>0-3: the last trunk page, or 0 if none</li>
- * <li>4-4: page type</li>
- * <li>5-8: the next trunk page</li>
- * <li>9-12: the number of pages</li>
- * <li>13-remainder: page ids</li>
+ * <li>previous trunk page, or 0 if none: int (0-3)</li>
+ * <li>page type: byte (4)</li>
+ * <li>next trunk page: int (5-8)</li>
+ * <li>number of pages (9-10)</li>
+ * <li>remainder: page ids (11-)</li>
  * </ul>
  */
 public class PageStreamTrunk extends Page {
 
-    private static final int DATA_START = 13;
+    private static final int DATA_START = 11;
 
     private final PageStore store;
     private int parent;
@@ -83,7 +83,7 @@ public class PageStreamTrunk extends Page {
         parent = data.readInt();
         data.readByte();
         nextTrunk = data.readInt();
-        pageCount = data.readInt();
+        pageCount = data.readShortInt();
         pageIds = new int[pageCount];
         for (int i = 0; i < pageCount; i++) {
             pageIds[i] = data.readInt();
@@ -121,7 +121,7 @@ public class PageStreamTrunk extends Page {
         data.writeInt(parent);
         data.writeByte((byte) Page.TYPE_STREAM_TRUNK);
         data.writeInt(nextTrunk);
-        data.writeInt(pageCount);
+        data.writeShortInt(pageCount);
         for (int i = 0; i < pageCount; i++) {
             data.writeInt(pageIds[i]);
         }

@@ -12,10 +12,10 @@ import org.h2.engine.Session;
 /**
  * A data page of a stream. The format is:
  * <ul>
- * <li>0-3: the trunk page id</li>
- * <li>4-4: page type</li>
- * <li>5-8: the number of bytes used</li>
- * <li>9-remainder: data</li>
+ * <li>the trunk page id: int (0-3)</li>
+ * <li>page type: byte (4)</li>
+ * <li>the number of bytes used: short (5-6)</li>
+ * <li>data (9-)</li>
  * </ul>
  */
 public class PageStreamData extends Page {

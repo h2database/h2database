@@ -15,9 +15,9 @@ import org.h2.util.BitField;
  * The list of free pages of a page store. The format of a free list trunk page
  * is:
  * <ul>
- * <li>0-3: parent page id (always 0)</li>
- * <li>4-4: page type</li>
- * <li>5-remainder: data</li>
+ * <li>parent page id (always 0): int</li>
+ * <li>page type: byte</li>
+ * <li>data (5-)</li>
  * </ul>
  */
 public class PageFreeList extends Page {

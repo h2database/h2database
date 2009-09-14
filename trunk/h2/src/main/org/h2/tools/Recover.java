@@ -1201,7 +1201,6 @@ public class Recover extends Tool implements DataHandler {
                 store.readFully(s2.getBytes(), 0, pageSize);
                 s2.setPos(4);
                 int type = s2.readByte();
-                int indexId = s2.readInt();
                 if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
                     int size = s2.readShortInt();
                     writer.println("-- chain: " + next + " type: " + type + " size: " + size);

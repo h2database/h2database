@@ -18,21 +18,21 @@ import org.h2.store.Page;
 import org.h2.store.PageStore;
 
 /**
- * A b-tree leaf page that contains index data.
- * Format:
- * <ul><li>parent page id (0 for root): int
- * </li><li>page type: byte
- * </li><li>index id: varInt
- * </li><li>entry count: short
- * </li><li>list of offsets: short
- * </li><li>data (key: varLong, value,...)
- * </li></ul>
+ * A b-tree leaf page that contains index data. Format:
+ * <ul>
+ * <li>parent page id (0 for root): int</li>
+ * <li>page type: byte</li>
+ * <li>index id: varInt</li>
+ * <li>entry count: short</li>
+ * <li>list of offsets: short</li>
+ * <li>data (key: varLong, value,...)</li>
+ * </ul>
  */
 public class PageBtreeLeaf extends PageBtree {
 
     private static final int OFFSET_LENGTH = 2;
 
-    PageBtreeLeaf(PageBtreeIndex index, int pageId, Data data) {
+    private PageBtreeLeaf(PageBtreeIndex index, int pageId, Data data) {
         super(index, pageId, data);
     }
 

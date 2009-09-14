@@ -19,17 +19,17 @@ import org.h2.store.Page;
 import org.h2.store.PageStore;
 
 /**
- * A leaf page that contains data of one or multiple rows.
- * Format:
- * <ul><li>parent page id (0 for root): int
- * </li><li>page type: byte
- * </li><li>table id: varInt
- * </li><li>column count: varInt
- * </li><li>entry count: short
- * </li><li>with overflow: the first overflow page id: int
- * </li><li>list of key / offset pairs (key: varLong, offset: shortInt)
- * </li><li>data
- * </li></ul>
+ * A leaf page that contains data of one or multiple rows. Format:
+ * <ul>
+ * <li>parent page id (0 for root): int</li>
+ * <li>page type: byte</li>
+ * <li>table id: varInt</li>
+ * <li>column count: varInt</li>
+ * <li>entry count: short</li>
+ * <li>with overflow: the first overflow page id: int</li>
+ * <li>list of key / offset pairs (key: varLong, offset: shortInt)</li>
+ * <li>data</li>
+ * </ul>
  */
 public class PageDataLeaf extends PageData {
 
@@ -223,7 +223,7 @@ public class PageDataLeaf extends PageData {
                     size = pageSize - PageDataOverflow.START_MORE;
                     next = index.getPageStore().allocatePage();
                 }
-                PageDataOverflow overflow = new PageDataOverflow(index, page, type, previous, next, all, dataOffset, size);
+                PageDataOverflow overflow = PageDataOverflow.create(index.getPageStore(), page, type, previous, next, all, dataOffset, size);
                 index.getPageStore().updateRecord(overflow, true, null);
                 dataOffset += size;
                 remaining -= size;
@@ -295,6 +295,7 @@ public class PageDataLeaf extends PageData {
                     PageDataOverflow page = index.getPageOverflow(next);
                     next = page.readInto(buff);
                 } while (next != 0);
+int checkRequired;
                 overflowRowSize = pageSize + buff.length();
                 buff.setPos(0);
                 r = index.readRow(buff, columnCount);

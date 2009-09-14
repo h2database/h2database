@@ -52,8 +52,7 @@ public class PageBtreeIndex extends PageIndex {
             // it should not for new tables, otherwise redo of other operations
             // must ensure this page is not used for other things
             store.addMeta(this, session);
-            PageBtreeLeaf root = new PageBtreeLeaf(this, rootPageId, store.createData());
-            root.parentPageId = PageBtree.ROOT;
+            PageBtreeLeaf root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
             store.updateRecord(root, true, root.data);
         } else {
             rootPageId = store.getRootPageId(id);
@@ -131,8 +130,7 @@ public class PageBtreeIndex extends PageIndex {
     PageBtree getPage(int id) throws SQLException {
         PageBtree p = (PageBtree) store.getPage(id);
         if (p == null) {
-            Data data = store.createData();
-            PageBtreeLeaf empty = new PageBtreeLeaf(this, id, data);
+            PageBtreeLeaf empty = PageBtreeLeaf.create(this, id, PageBtree.ROOT);
             return empty;
         }
         return p;
@@ -245,8 +243,7 @@ public class PageBtreeIndex extends PageIndex {
     private void removeAllRows() throws SQLException {
         PageBtree root = getPage(rootPageId);
         root.freeChildren();
-        root = new PageBtreeLeaf(this, rootPageId, store.createData());
-        root.parentPageId = PageBtree.ROOT;
+        root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
         store.removeRecord(rootPageId);
         store.updateRecord(root, true, null);
         rowCount = 0;

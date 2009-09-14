@@ -16,34 +16,33 @@ import org.h2.store.Page;
 import org.h2.store.PageStore;
 
 /**
- * Overflow data for a leaf page.
- * Format:
- * <ul><li>0-3: parent page id (0 for root): int
- * </li><li>4-4: page type: byte
- * </li><li>5-8: table id: int
- * </li><li>9-12: if more data: next overflow page id: int
- * </li><li>9-10: else remaining size: short
- * </li><li>data
- * </li></ul>
+ * Overflow data for a leaf page. Format:
+ * <ul>
+ * <li>parent page id (0 for root): int (0-3)</li>
+ * <li>page type: byte (4)</li>
+ * <li>more data: next overflow page id: int (5-8)</li>
+ * <li>last remaining size: short (5-6)</li>
+ * <li>data (9-/7-)</li>
+ * </ul>
  */
 public class PageDataOverflow extends Page {
 
     /**
      * The start of the data in the last overflow page.
      */
-    static final int START_LAST = 11;
+    static final int START_LAST = 7;
 
     /**
      * The start of the data in a overflow page that is not the last one.
      */
-    static final int START_MORE = 13;
+    static final int START_MORE = 9;
 
-    private static final int START_NEXT_OVERFLOW = 9;
+    private static final int START_NEXT_OVERFLOW = 5;
 
     /**
-     * The index.
+     * The page store.
      */
-    private final PageScanIndex index;
+    private final PageStore store;
 
     /**
      * The page type.
@@ -53,38 +52,17 @@ public class PageDataOverflow extends Page {
     /**
      * The parent page (overflow or leaf).
      */
-    private int parentPage;
+    private int parentPageId;
 
     /**
      * The next overflow page, or 0.
      */
     private int nextPage;
 
-    /**
-     * The number of content bytes.
-     */
-    private int size;
-
     private Data data;
 
-    PageDataOverflow(PageScanIndex index, int pageId, int type, int previous, int next, Data allData, int offset, int size) {
-        this.index = index;
-        setPos(pageId);
-        this.type = type;
-        this.parentPage = previous;
-        this.nextPage = next;
-        this.size = size;
-        data = index.getPageStore().createData();
-        data.writeInt(parentPage);
-        data.writeByte((byte) type);
-        data.writeInt(index.getId());
-        if (type == Page.TYPE_DATA_OVERFLOW) {
-            data.writeInt(nextPage);
-        } else {
-            data.writeShortInt(size);
-        }
-        data.write(allData.getBytes(), offset, size);
-    }
+    private int start;
+    private int size;
 
     /**
      * Create an object from the given data page.
@@ -94,8 +72,8 @@ public class PageDataOverflow extends Page {
      * @param data the data page
      * @param offset the offset
      */
-    PageDataOverflow(PageScanIndex index, int pageId, Data data) {
-        this.index = index;
+    private PageDataOverflow(PageStore store, int pageId, Data data) {
+        this.store = store;
         setPos(pageId);
         this.data = data;
     }
@@ -103,14 +81,46 @@ public class PageDataOverflow extends Page {
     /**
      * Read an overflow page.
      *
-     * @param index the index
+     * @param store the page store
      * @param data the data
      * @param pageId the page id
      * @return the page
      */
-    public static Page read(PageScanIndex index, Data data, int pageId) throws SQLException {
-        PageDataOverflow p = new PageDataOverflow(index, pageId, data);
+    public static Page read(PageStore store, Data data, int pageId) throws SQLException {
+        PageDataOverflow p = new PageDataOverflow(store, pageId, data);
         p.read();
+        return p;
+    }
+
+    /**
+     * Create a new overflow page.
+     *
+     * @param store the page store
+     * @param page the page id
+     * @param type the page type
+     * @param parentPageId the parent page id
+     * @param next the next page or 0
+     * @param all the data
+     * @param offset the offset within the data
+     * @param size the number of bytes
+     * @return the page
+     */
+    static PageDataOverflow create(PageStore store, int page, int type, int parentPageId, int next, Data all, int offset, int size) {
+        Data data = store.createData();
+        PageDataOverflow p = new PageDataOverflow(store, page, data);
+        data.writeInt(parentPageId);
+        data.writeByte((byte) type);
+        if (type == Page.TYPE_DATA_OVERFLOW) {
+            data.writeInt(next);
+        } else {
+            data.writeShortInt(size);
+        }
+        p.start = data.length();
+        data.write(all.getBytes(), offset, size);
+        p.type = type;
+        p.parentPageId = parentPageId;
+        p.nextPage = next;
+        p.size = size;
         return p;
     }
 
@@ -119,23 +129,18 @@ public class PageDataOverflow extends Page {
      */
     private void read() throws SQLException {
         data.reset();
-        parentPage = data.readInt();
+        parentPageId = data.readInt();
         type = data.readByte();
-        int indexId = data.readInt();
-        if (indexId != index.getId()) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
-                    "page:" + getPos() + " expected index:" + index.getId() +
-                    " got:" + indexId + " type:" + type);
-        }
         if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
             size = data.readShortInt();
             nextPage = 0;
         } else if (type == Page.TYPE_DATA_OVERFLOW) {
-            size = index.getPageStore().getPageSize() - START_MORE;
             nextPage = data.readInt();
+            size = store.getPageSize() - data.length();
         } else {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page:" + getPos() + " type:" + type);
         }
+        start = data.length();
     }
 
     /**
@@ -159,15 +164,33 @@ public class PageDataOverflow extends Page {
     }
 
     public int getByteCount(DataPage dummy) {
-        return index.getPageStore().getPageSize();
+        return store.getPageSize();
+    }
+
+    private void writeHead() {
+        data.writeInt(parentPageId);
+        data.writeByte((byte) type);
     }
 
     public void write(DataPage buff) throws SQLException {
-        index.getPageStore().writePage(getPos(), data);
+        write();
+        store.writePage(getPos(), data);
     }
 
+
+    private void write() {
+        data.reset();
+        writeHead();
+        if (type == Page.TYPE_DATA_OVERFLOW) {
+            data.writeInt(nextPage);
+        } else {
+            data.writeShortInt(size);
+        }
+    }
+
+
     public String toString() {
-        return "page[" + getPos() + "] data leaf overflow parent:" + parentPage + " next:" + nextPage;
+        return "page[" + getPos() + "] data leaf overflow parent:" + parentPageId + " next:" + nextPage;
     }
 
     /**
@@ -177,29 +200,27 @@ public class PageDataOverflow extends Page {
      */
     public int getMemorySize() {
         // double the byte array size
-        return index.getPageStore().getPageSize() >> 1;
+        return store.getPageSize() >> 1;
     }
 
     void setParentPageId(int parent) {
-        this.parentPage = parent;
+        this.parentPageId = parent;
     }
 
     public void moveTo(Session session, int newPos) throws SQLException {
-        PageStore store = index.getPageStore();
-        int start =  type == Page.TYPE_DATA_OVERFLOW ? START_MORE : START_LAST;
-        PageDataOverflow p2 = new PageDataOverflow(index, newPos, type, parentPage, nextPage, data, start, size);
+        PageDataOverflow p2 = PageDataOverflow.create(store, newPos, type, parentPageId, nextPage, data, start, size);
         store.updateRecord(p2, false, null);
         if (nextPage != 0) {
             PageDataOverflow p3 = (PageDataOverflow) store.getPage(nextPage);
             p3.setParentPageId(newPos);
         }
-        Page p = store.getPage(parentPage);
+        Page p = store.getPage(parentPageId);
         if (p == null) {
             throw Message.throwInternalError();
         }
         if (p instanceof PageDataOverflow) {
             PageDataOverflow p1 = (PageDataOverflow) p;
-            p1.setOverflow(newPos);
+            p1.setNext(newPos);
         } else {
             PageDataLeaf p1 = (PageDataLeaf) p;
             p1.setOverflow(newPos);
@@ -207,10 +228,10 @@ public class PageDataOverflow extends Page {
         store.freePage(getPos(), true, data);
     }
 
-    private void setOverflow(int nextPage) throws SQLException {
+    private void setNext(int nextPage) throws SQLException {
         this.nextPage = nextPage;
         data.setInt(START_NEXT_OVERFLOW, nextPage);
-        index.getPageStore().updateRecord(this, true, data);
+        store.updateRecord(this, true, data);
     }
 
 }

@@ -19,17 +19,17 @@ import org.h2.store.PageStore;
 import org.h2.util.MemoryUtils;
 
 /**
- * A b-tree node page that contains index data.
- * Format:
- * <ul><li>parent page id (0 for root): int
- * </li><li>page type: byte
- * </li><li>index id: varInt
- * </li><li>count of all children (-1 if not known): int
- * </li><li>entry count: short
- * </li><li>rightmost child page id: int
- * </li><li>entries (child page id: int, offset: short)
- * The row contains the largest key of the respective child, meaning
- * row[0] contains the largest key of child[0].
+ * A b-tree node page that contains index data. Format:
+ * <ul>
+ * <li>parent page id (0 for root): int</li>
+ * <li>page type: byte</li>
+ * <li>index id: varInt</li>
+ * <li>count of all children (-1 if not known): int</li>
+ * <li>entry count: short</li>
+ * <li>rightmost child page id: int</li>
+ * <li>entries (child page id: int, offset: short) The row contains the largest
+ * key of the respective child, meaning row[0] contains the largest key of
+ * child[0].
  */
 public class PageBtreeNode extends PageBtree {
 
@@ -70,7 +70,7 @@ public class PageBtreeNode extends PageBtree {
      * @param parentPageId the parent page id
      * @return the page
      */
-    public static PageBtreeNode create(PageBtreeIndex index, int pageId, int parentPageId) {
+    static PageBtreeNode create(PageBtreeIndex index, int pageId, int parentPageId) {
         PageBtreeNode p = new PageBtreeNode(index, pageId, index.getPageStore().createData());
         p.parentPageId = parentPageId;
         p.writeHead();

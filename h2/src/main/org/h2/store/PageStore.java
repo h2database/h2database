@@ -79,15 +79,15 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO delete: only log the key
+    // TODO fix page format of ..
+    // TODO log: use varInt / varLong
+
     // TODO update: only log the key and changed values
-    // TODO fix page format of data overflow and so on
     // TODO implement checksum; 0 for empty pages
-    // TODO undo log: fully compress empty pages
+    // TODO undo log: (option) fully compress empty pages
     // TODO undo log: don't store empty space between head and data
     // TODO undo log: lzf compression
     // TODO long primary keys don't use delegating index yet (setPos(): int)
-    // TODO replace CRC32
     // TODO maybe remove parent pointer
     // TODO index creation: use less space (ordered, split at insertion point)
     // TODO test running out of disk space (using a special file system)
@@ -467,12 +467,7 @@ public class PageStore implements CacheWriter {
             break;
         }
         case Page.TYPE_DATA_OVERFLOW: {
-            int indexId = data.readInt();
-            PageScanIndex index = (PageScanIndex) metaObjects.get(indexId);
-            if (index == null) {
-                Message.throwInternalError("index not found " + indexId);
-            }
-            p = PageDataOverflow.read(index, data, pageId);
+            p = PageDataOverflow.read(this, data, pageId);
             break;
         }
         case Page.TYPE_BTREE_LEAF: {

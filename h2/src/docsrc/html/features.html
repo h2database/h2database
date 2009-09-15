@@ -1593,7 +1593,9 @@ This database supports Java triggers that are called before or after a row is up
 Triggers can be used for complex consistency checks, or to update related data in the database.
 It is also possible to use triggers to simulate materialized views.
 For a complete sample application, see src/test/org/h2/samples/TriggerSample.java.
-A Java trigger must implement the interface org.h2.api.Trigger:
+A Java trigger must implement the interface org.h2.api.Trigger. The trigger class must be available
+in the classpath of the database engine (when using the server mode, it must be in the classpath
+of the server).
 </p>
 <pre>
 import org.h2.api.Trigger;

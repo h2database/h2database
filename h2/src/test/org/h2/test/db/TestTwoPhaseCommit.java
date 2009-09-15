@@ -43,7 +43,30 @@ public class TestTwoPhaseCommit extends TestBase {
         prepare();
         openWith(false);
         test(false);
+
+        testLargeTransactionName();
         deleteDb("twoPhaseCommit");
+    }
+
+    private void testLargeTransactionName() throws SQLException {
+        if (!config.pageStore) {
+            return;
+        }
+        Connection conn = getConnection("twoPhaseCommit");
+        Statement stat = conn.createStatement();
+        conn.setAutoCommit(false);
+        stat.execute("CREATE TABLE TEST2(ID INT)");
+        String name = "tx12345678";
+        try {
+            for (int i = 0;; i++) {
+                stat.execute("INSERT INTO TEST2 VALUES(1)");
+                name += "x";
+                stat.execute("PREPARE COMMIT " + name);
+            }
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        conn.close();
     }
 
     private void test(boolean rolledBack) throws SQLException {

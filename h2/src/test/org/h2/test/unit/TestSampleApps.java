@@ -7,6 +7,7 @@
 package org.h2.test.unit;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -35,6 +36,7 @@ public class TestSampleApps extends TestBase {
     public void test() throws Exception {
         deleteDb("optimizations");
         InputStream in = getClass().getClassLoader().getResourceAsStream("org/h2/samples/optimizations.sql");
+        new File(baseDir).mkdirs();
         FileOutputStream out = new FileOutputStream(baseDir + "/optimizations.sql");
         IOUtils.copyAndClose(in, out);
         String url = "jdbc:h2:" + baseDir + "/optimizations";
@@ -54,6 +56,7 @@ public class TestSampleApps extends TestBase {
         // TODO test ShutdownServer (server needs to be started in a separate
         // process)
         testApp("The sum is 20.00", org.h2.samples.TriggerSample.class);
+        testApp("Hello: 1\nWorld: 2", org.h2.samples.TriggerPassData.class);
 
         // tools
         testApp("Allows changing the database file encryption password or algorithm*",

@@ -36,6 +36,7 @@ import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.DataPage;
+import org.h2.store.DataReader;
 import org.h2.store.DiskFile;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
@@ -56,7 +57,6 @@ import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.value.Value;
@@ -899,7 +899,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpPageLogStream(PrintWriter writer, int logFirstTrunkPage, int logFirstDataPage) throws IOException, SQLException {
         Data s = Data.create(this, pageSize);
-        DataInputStream in = new DataInputStream(
+        DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logFirstTrunkPage, logFirstDataPage, pageSize)
         );
         while (true) {
@@ -908,44 +908,41 @@ public class Recover extends Tool implements DataHandler {
                 break;
             }
             if (x == PageLog.UNDO) {
-                int pageId = in.readInt();
-                in.readFully(new byte[pageSize]);
+                int pageId = in.readVarInt();
+                in.readFully(new byte[pageSize], 0, pageSize);
                 writer.println("-- undo page " + pageId);
             } else if (x == PageLog.ADD || x == PageLog.REMOVE) {
-                int sessionId = in.readInt();
-                setStorage(in.readInt());
+                int sessionId = in.readVarInt();
+                setStorage(in.readVarInt());
                 Row row = PageLog.readRow(in, s);
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " " + (x == PageLog.ADD ? "add" : "remove") + " " + row.toString());
             } else if (x == PageLog.TRUNCATE) {
-                int sessionId = in.readInt();
-                setStorage(in.readInt());
+                int sessionId = in.readVarInt();
+                setStorage(in.readVarInt());
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " truncate");
             } else if (x == PageLog.COMMIT) {
-                int sessionId = in.readInt();
+                int sessionId = in.readVarInt();
                 writer.println("-- commit " + sessionId);
             } else if (x == PageLog.ROLLBACK) {
-                int sessionId = in.readInt();
+                int sessionId = in.readVarInt();
                 writer.println("-- rollback " + sessionId);
             } else if (x == PageLog.PREPARE_COMMIT) {
-                int sessionId = in.readInt();
-                int len = in.readInt();
-                byte[] t = new byte[len];
-                in.readFully(t);
-                String transaction = StringUtils.utf8Decode(t);
+                int sessionId = in.readVarInt();
+                String transaction = in.readString();
                 writer.println("-- prepare commit " + sessionId + " " + transaction);
             } else if (x == PageLog.NOOP) {
                 // nothing to do
             } else if (x == PageLog.CHECKPOINT) {
                 writer.println("-- checkpoint");
             } else if (x == PageLog.FREE_LOG) {
-                int size = in.readInt();
+                int size = in.readVarInt();
                 StringBuilder buff = new StringBuilder("-- free");
                 for (int i = 0; i < size; i++) {
-                    buff.append(' ').append(in.readInt());
+                    buff.append(' ').append(in.readVarInt());
                 }
                 writer.println(buff);
             } else {

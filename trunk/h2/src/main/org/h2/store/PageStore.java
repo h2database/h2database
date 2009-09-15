@@ -79,16 +79,15 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO fix page format of ..
-    // TODO log: use varInt / varLong
+    // TODO check commit delay
 
-    // TODO update: only log the key and changed values
-    // TODO implement checksum; 0 for empty pages
-    // TODO undo log: (option) fully compress empty pages
-    // TODO undo log: don't store empty space between head and data
-    // TODO undo log: lzf compression
+    // TODO record: replace getPos() with long getKey() in page store
     // TODO long primary keys don't use delegating index yet (setPos(): int)
-    // TODO maybe remove parent pointer
+
+    // TODO implement checksum; 0 for empty pages
+    // TODO undo log: don't store empty space between head and data
+    // TODO update: only log the key and changed values
+    // TODO maybe remove some parent pointers
     // TODO index creation: use less space (ordered, split at insertion point)
     // TODO test running out of disk space (using a special file system)
 

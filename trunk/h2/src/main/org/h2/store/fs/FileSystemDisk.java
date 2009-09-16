@@ -167,7 +167,7 @@ public class FileSystemDisk extends FileSystem {
             dir = null;
         } else {
             dir = new File(name).getAbsoluteFile().getParentFile();
-            dir.mkdirs();
+            FileUtils.mkdirs(dir);
         }
         if (prefix.length() < 3) {
             prefix += "0";
@@ -304,7 +304,7 @@ public class FileSystemDisk extends FileSystem {
             }
             File dir = new File(parent);
             for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-                if (dir.exists() || dir.mkdirs()) {
+                if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
                     return;
                 }
                 wait(i);

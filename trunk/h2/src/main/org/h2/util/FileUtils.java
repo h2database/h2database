@@ -28,6 +28,29 @@ public class FileUtils {
     }
 
     /**
+     * Create the directory and all parent directories if required.
+     *
+     * @param directory the directory
+     * @throws IOException
+     */
+    public static void mkdirs(File directory) throws IOException {
+        // loop, to deal with race conditions (if another thread creates or
+        // deletes the same directory at the same time).
+        for (int i = 0; i < 5; i++) {
+            if (directory.exists()) {
+                if (directory.isDirectory()) {
+                    return;
+                }
+                throw new IOException("Could not create directory, because a file with the same name already exists: " + directory.getAbsolutePath());
+            }
+            if (directory.mkdirs()) {
+                return;
+            }
+        }
+        throw new IOException("Could not create directory: " + directory.getAbsolutePath());
+    }
+
+    /**
      * Change the length of the file.
      *
      * @param file the random access file

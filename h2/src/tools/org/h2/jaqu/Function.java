@@ -16,6 +16,7 @@ import org.h2.jaqu.util.Utils;
 public class Function implements Token {
 //## Java 1.5 begin ##
 
+    // it must be a new instance
     private static final Long COUNT_STAR = new Long(0);
 
     protected Object[] x;

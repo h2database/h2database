@@ -200,6 +200,9 @@ public class PageStore implements CacheWriter {
     // TODO reduce DEFAULT_MAX_LOG_SIZE, and don't divide here
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE / 10;
     private Session systemSession;
+    private BitField freed = new BitField();
+
+    private ObjectArray<PageFreeList> freeLists = ObjectArray.newInstance();
 
     /**
      * Create a new page store object.
@@ -335,9 +338,11 @@ public class PageStore implements CacheWriter {
             // write back the free list
             writeBack();
             byte[] empty = new byte[pageSize];
-            // TODO avoid to write empty pages more than once
             for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
-                if (!isUsed(i)) {
+                if (isUsed(i)) {
+                    freed.clear(i);
+                } else if (!freed.get(i)) {
+                    freed.set(i);
                     file.seek((long) i << pageSizeShift);
                     file.write(empty, 0, pageSize);
                     writeCount++;
@@ -391,6 +396,8 @@ public class PageStore implements CacheWriter {
             }
         }
         pageCount = lastUsed + 1;
+        // the easiest way to remove superfluous entries
+        freeLists.clear();
         trace.debug("pageCount:" + pageCount);
         file.setLength((long) pageCount << pageSizeShift);
     }
@@ -701,11 +708,17 @@ public class PageStore implements CacheWriter {
     }
 
     private PageFreeList getFreeList(int i) throws SQLException {
+        PageFreeList list = null;
+        if (i < freeLists.size()) {
+            list = freeLists.get(i);
+            if (list != null) {
+                return list;
+            }
+        }
         int p = PAGE_ID_FREE_LIST_ROOT + i * freeListPagesPerList;
         while (p >= pageCount) {
             increaseFileSize(INCREMENT_PAGES);
         }
-        PageFreeList list = null;
         if (p < pageCount) {
             list = (PageFreeList) getPage(p);
         }
@@ -713,6 +726,10 @@ public class PageStore implements CacheWriter {
             list = PageFreeList.create(this, p);
             cache.put(list);
         }
+        while (freeLists.size() <= i) {
+            freeLists.add(null);
+        }
+        freeLists.set(i, list);
         return list;
     }
 

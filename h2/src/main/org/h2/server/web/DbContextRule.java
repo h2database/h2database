@@ -134,9 +134,9 @@ public class DbContextRule implements Rule {
     }
 
     private void addNewTableAlias(Sentence sentence) {
-        String query = sentence.getQuery();
         if (SUGGEST_TABLE_ALIAS) {
-            // good when testing!
+            // good for testing!
+            String query = sentence.getQuery();
             if (query.length() > 3) {
                 return;
             }

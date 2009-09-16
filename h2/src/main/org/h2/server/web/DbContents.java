@@ -9,6 +9,7 @@ package org.h2.server.web;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 import org.h2.command.Parser;
@@ -101,12 +102,15 @@ public class DbContents {
         if (url != null) {
             isH2 = url.startsWith("jdbc:h2:");
             if (isH2) {
-                ResultSet rs = meta.getConnection().createStatement().executeQuery(
+                Statement stat = meta.getConnection().createStatement();
+                ResultSet rs = stat.executeQuery(
                         "SELECT UPPER(VALUE) FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='MODE'");
                 rs.next();
                 if ("MYSQL".equals(rs.getString(1))) {
                     isH2ModeMySQL = true;
                 }
+                rs.close();
+                stat.close();
             }
             isOracle = url.startsWith("jdbc:oracle:");
             isPostgreSQL = url.startsWith("jdbc:postgresql:");

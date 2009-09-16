@@ -8,6 +8,7 @@ package org.h2.store;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
 import org.h2.compress.CompressLZF;
@@ -120,6 +121,7 @@ public class PageLog {
 
     private Data outBuffer;
     private PageInputStream pageIn;
+    private OutputStream pageBuffer;
     private PageOutputStream pageOut;
     private DataReader in;
     private int firstTrunkPage;
@@ -180,6 +182,9 @@ public class PageLog {
         this.firstTrunkPage = firstTrunkPage;
         pageOut = new PageOutputStream(store, firstTrunkPage, undoAll, atEnd);
         pageOut.reserve(1);
+        // TODO maybe buffer to improve speed
+        pageBuffer = pageOut;
+        // pageBuffer = new BufferedOutputStream(pageOut, 8 * 1024);
         store.setLogFirstPage(firstTrunkPage, pageOut.getCurrentDataPageId());
         outBuffer = store.createData();
     }
@@ -226,6 +231,7 @@ public class PageLog {
         if (stage == RECOVERY_STAGE_ALLOCATE) {
             PageInputStream in = new PageInputStream(store, firstTrunkPage, firstDataPage);
             usedLogPages = in.allocateAllPages();
+            in.close();
             return;
         }
         pageIn = new PageInputStream(store, firstTrunkPage, firstDataPage);
@@ -465,7 +471,7 @@ public class PageLog {
     }
 
     private void flushOut() throws IOException {
-        pageOut.write(outBuffer.getBytes(), 0, outBuffer.length());
+        pageBuffer.write(outBuffer.getBytes(), 0, outBuffer.length());
         outBuffer.reset();
     }
 
@@ -513,6 +519,7 @@ public class PageLog {
             }
             // store it on a separate log page
             int pageSize = store.getPageSize();
+            flushBuffer();
             pageOut.fillPage();
             outBuffer.writeByte((byte) PREPARE_COMMIT);
             outBuffer.writeVarInt(session.getId());
@@ -522,6 +529,7 @@ public class PageLog {
             }
             flushOut();
             // store it on a separate log page
+            flushBuffer();
             pageOut.fillPage();
             if (log.getFlushOnEachCommit()) {
                 flush();
@@ -600,6 +608,7 @@ public class PageLog {
      */
     void flush() throws SQLException {
         try {
+            flushBuffer();
             pageOut.flush();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
@@ -619,6 +628,7 @@ public class PageLog {
         undo = new BitField();
         logSectionId++;
         logPos = 0;
+        flushBuffer();
         pageOut.fillPage();
         int currentDataPage = pageOut.getCurrentDataPageId();
         logSectionPageMap.put(logSectionId, currentDataPage);
@@ -783,6 +793,14 @@ public class PageLog {
      */
     void recoverEnd() {
         sessionStates = New.hashMap();
+    }
+
+    private void flushBuffer() throws SQLException {
+        try {
+            pageBuffer.flush();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
     }
 
 }

@@ -45,6 +45,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     private HashMap<Integer, Integer> sessionRowCount;
     private int mainIndexColumn = -1;
     private SQLException fastDuplicateKeyException;
+    private int memorySizePerPage;
 
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
@@ -81,6 +82,11 @@ public class PageScanIndex extends PageIndex implements RowIndex {
         }
         table.setRowCount(rowCount);
         fastDuplicateKeyException = super.getDuplicateKeyException();
+        // estimate the memory usage as follows:
+        // the less column, the more memory is required, because the more rows fit on a page
+        memorySizePerPage = store.getPageSize();
+        int estimatedRowsPerPage =  store.getPageSize() / ((1 + columns.length) * 8);
+        memorySizePerPage += estimatedRowsPerPage * 64;
     }
 
     public SQLException getDuplicateKeyException() {
@@ -478,6 +484,10 @@ public class PageScanIndex extends PageIndex implements RowIndex {
 
     public int getMainIndexColumn() {
         return mainIndexColumn;
+    }
+
+    int getMemorySizePerPage() {
+        return memorySizePerPage;
     }
 
 }

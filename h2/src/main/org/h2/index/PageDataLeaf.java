@@ -65,6 +65,8 @@ public class PageDataLeaf extends PageData {
 
     private int columnCount;
 
+    private int memorySize;
+
     private PageDataLeaf(PageScanIndex index, int pageId, Data data) {
         super(index, pageId, data);
     }
@@ -185,6 +187,7 @@ public class PageDataLeaf extends PageData {
         newOffsets[x] = offset;
         newKeys[x] = row.getPos();
         newRows[x] = row;
+        memorySize += row.getMemorySize();
         offsets = newOffsets;
         keys = newKeys;
         rows = newRows;
@@ -237,6 +240,10 @@ public class PageDataLeaf extends PageData {
     private void removeRow(int i) throws SQLException {
         written = false;
         readAllRows();
+        Row r = rows[i];
+        if (r != null) {
+            memorySize += r.getMemorySize();
+        }
         entryCount--;
         if (entryCount < 0) {
             Message.throwInternalError();
@@ -305,6 +312,7 @@ int checkRequired;
                 rowRef = new SoftReference<Row>(r);
             } else {
                 rows[at] = r;
+                memorySize += r.getMemorySize();
             }
         }
         return r;
@@ -482,6 +490,10 @@ int checkRequired;
         written = false;
         this.firstOverflowPageId = overflow;
         index.getPageStore().updateRecord(this, true, data);
+    }
+
+    public int getMemorySize() {
+        return index.getMemorySizePerPage();
     }
 
 }

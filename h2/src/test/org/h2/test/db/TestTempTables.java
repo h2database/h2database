@@ -101,7 +101,7 @@ public class TestTempTables extends TestBase {
         assertResultRowCount(rs, 1);
         c1.commit();
         try {
-            rs = s1.executeQuery("select * from test_temp");
+            s1.executeQuery("select * from test_temp");
             fail("test_temp should have been dropped automatically");
         } catch (SQLException e) {
             assertKnownException(e);

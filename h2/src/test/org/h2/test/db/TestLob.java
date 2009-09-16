@@ -450,9 +450,9 @@ public class TestLob extends TestBase {
         conn = reconnect(null);
         Statement stat = conn.createStatement();
         if (compress) {
-            conn.createStatement().execute("SET COMPRESS_LOB LZF");
+            stat.execute("SET COMPRESS_LOB LZF");
         } else {
-            conn.createStatement().execute("SET COMPRESS_LOB NO");
+            stat.execute("SET COMPRESS_LOB NO");
         }
         conn = reconnect(conn);
         stat = conn.createStatement();

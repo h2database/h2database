@@ -490,8 +490,9 @@ public class PrepareTranslation {
                 }
             }
         }
-        Map<String, String> autoTranslated = new HashMap<String, String>();
+        Map<String, String> autoTranslated;
         if (AUTO_TRANSLATE) {
+            autoTranslated = new HashMap<String, String>();
             HashSet<String> set = new HashSet<String>();
             for (String key : toTranslate) {
                 String now = main.getProperty(key);

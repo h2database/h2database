@@ -540,7 +540,7 @@ public class TestPreparedStatement extends TestBase {
         rs = prep.executeQuery();
         assertFalse(rs.next());
         try {
-            prep = conn.prepareStatement("select ? from dual union select ? from dual");
+            conn.prepareStatement("select ? from dual union select ? from dual");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

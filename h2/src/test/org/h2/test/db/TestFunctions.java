@@ -268,7 +268,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         conn = getConnection("functions");
         stat = conn.createStatement();
-        rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         DatabaseMetaData meta = conn.getMetaData();
         rs = meta.getProcedures(null, null, "MEDIAN");
         assertTrue(rs.next());
@@ -343,7 +343,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertFalse(rs.next());
 
         try {
-            rs = stat.executeQuery("CALL SELECT_F('ERROR')");
+            stat.executeQuery("CALL SELECT_F('ERROR')");
             fail();
         } catch (SQLException e) {
             assertEquals("42001", e.getSQLState());

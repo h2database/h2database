@@ -46,7 +46,7 @@ public class TestEncryptedDb extends TestBase {
         }
 
         try {
-            conn = getConnection("exclusive;CIPHER=AES", "sa", "1234 1234");
+            getConnection("exclusive;CIPHER=AES", "sa", "1234 1234");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

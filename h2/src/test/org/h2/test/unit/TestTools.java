@@ -146,7 +146,7 @@ public class TestTools extends TestBase {
         assertTrue(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
+            DriverManager.getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
@@ -475,7 +475,7 @@ public class TestTools extends TestBase {
         // check that the database is closed
         deleteDb("test");
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
+            DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
             fail("server must have been closed");
         } catch (SQLException e) {
             assertKnownException(e);

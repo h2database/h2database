@@ -506,6 +506,9 @@ implements XAConnection, XAResource
         }
 
         protected void finalize() {
+            // don't call super.finalize because
+            // this should print its own stack trace,
+            // and would close the connection
             if (!SysProperties.runFinalize) {
                 return;
             }

@@ -60,7 +60,7 @@ public class CompareMode {
      * @param strength the collation strength
      * @return the compare mode
      */
-    public static CompareMode getInstance(String name, int strength) {
+    public static synchronized CompareMode getInstance(String name, int strength) {
         if (lastUsed != null) {
             if (StringUtils.equals(lastUsed.name, name)) {
                 if (lastUsed.strength == strength) {

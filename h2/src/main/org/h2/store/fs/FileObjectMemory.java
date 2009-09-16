@@ -25,7 +25,7 @@ public class FileObjectMemory implements FileObject {
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private static final CompressLZF LZF = new CompressLZF();
     private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
-    private static byte[] cachedCompressedEmptyBlock;
+    private static final byte[] COMPRESSED_EMPTY_BLOCK;
 
 //## Java 1.4 begin ##
     private static final Cache<CompressItem, CompressItem> COMPRESS_LATER = new Cache<CompressItem, CompressItem>(CACHE_SIZE);
@@ -37,6 +37,13 @@ public class FileObjectMemory implements FileObject {
     private long pos;
     private byte[][] data;
     private long lastModified;
+
+    static {
+        byte[] n = new byte[BLOCK_SIZE];
+        int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
+        COMPRESSED_EMPTY_BLOCK = new byte[len];
+        System.arraycopy(BUFFER, 0, COMPRESSED_EMPTY_BLOCK, 0, len);
+    }
 
     /**
      * This small cache compresses the data if an element leaves the cache.
@@ -77,7 +84,7 @@ public class FileObjectMemory implements FileObject {
         int page;
 
         public int hashCode() {
-            return data.hashCode() ^ page;
+            return page;
         }
 
         public boolean equals(Object o) {
@@ -138,16 +145,6 @@ public class FileObjectMemory implements FileObject {
         }
     }
 
-    static byte[] getCompressedEmptyBlock() {
-        if (cachedCompressedEmptyBlock == null) {
-            byte[] n = new byte[BLOCK_SIZE];
-            int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
-            cachedCompressedEmptyBlock = new byte[len];
-            System.arraycopy(BUFFER, 0, cachedCompressedEmptyBlock, 0, len);
-        }
-        return cachedCompressedEmptyBlock;
-    }
-
     private void touch() {
         lastModified = System.currentTimeMillis();
     }
@@ -190,7 +187,7 @@ public class FileObjectMemory implements FileObject {
             byte[][] n = new byte[blocks][];
             System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
             for (int i = data.length; i < blocks; i++) {
-                n[i] = getCompressedEmptyBlock();
+                n[i] = COMPRESSED_EMPTY_BLOCK;
             }
             data = n;
         }

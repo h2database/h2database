@@ -253,8 +253,8 @@ public abstract class PageBtree extends Page {
      * @return number of double words (4 bytes)
      */
     public int getMemorySize() {
-        // double the byte array size
-        return index.getPageStore().getPageSize() >> 1;
+        // four times the byte array size
+        return index.getPageStore().getPageSize();
     }
 
 }

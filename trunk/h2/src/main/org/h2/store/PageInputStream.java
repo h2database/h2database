@@ -148,4 +148,8 @@ public class PageInputStream extends InputStream {
         return data.getPos();
     }
 
+    public void close() {
+        // nothing to do
+    }
+
 }

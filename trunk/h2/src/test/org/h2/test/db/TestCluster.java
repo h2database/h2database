@@ -73,7 +73,7 @@ public class TestCluster extends TestBase {
         }
 
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", user, password);
+            DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", user, password);
             fail("should not be able to connect in standalone mode");
         } catch (SQLException e) {
             assertKnownException(e);
@@ -87,7 +87,6 @@ public class TestCluster extends TestBase {
         // test if only one server is available at the beginning
         n2.stop();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191,localhost:9192/test", user, password);
-        stat = conn.createStatement();
         check(conn, len);
         conn.close();
 

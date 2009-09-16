@@ -224,7 +224,7 @@ public class TestFullText extends TestBase {
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0)");
 
         stat.execute("CALL " + prefix + "DROP_ALL()");
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 2, 1)");
+        stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 2, 1)");
         stat.execute("CALL " + prefix + "DROP_ALL()");
 
         conn.close();

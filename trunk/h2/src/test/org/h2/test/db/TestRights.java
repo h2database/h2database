@@ -210,7 +210,7 @@ public class TestRights extends TestBase {
             assertKnownException(e);
         }
         try {
-            conn = getConnection("rights", "TEST", getPassword(""));
+            getConnection("rights", "TEST", getPassword(""));
             fail("wrong password");
         } catch (SQLException e) {
             assertKnownException(e);

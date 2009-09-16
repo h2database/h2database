@@ -148,7 +148,7 @@ public class Db {
     /**
      * This class represents a prepared statement.
      */
-    public class Prepared {
+    public static class Prepared {
         private PreparedStatement prep;
         private int index;
 

@@ -152,8 +152,12 @@ public class SwitchSource {
             fileBack.delete();
             f.renameTo(fileBack);
             File fileCopy = new File(name);
-            fileNew.renameTo(fileCopy);
-            fileBack.delete();
+            if (!fileNew.renameTo(fileCopy)) {
+                throw new IOException("Could not rename " + fileNew.getAbsolutePath() + " to " + name);
+            }
+            if (!fileBack.delete()) {
+                throw new IOException("Could not delete " + fileBack.getAbsolutePath());
+            }
             // System.out.println(name);
         }
     }

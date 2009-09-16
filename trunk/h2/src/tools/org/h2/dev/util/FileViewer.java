@@ -104,7 +104,7 @@ public class FileViewer extends Tool {
             }
         }
         if (tail) {
-            long pos = length - 100 * lines;
+            long pos = length - 100L * lines;
             ArrayList<String> list = null;
             while (pos > 0) {
                 file.seek(pos);
@@ -112,7 +112,7 @@ public class FileViewer extends Tool {
                 if (list.size() > lines) {
                     break;
                 }
-                pos -= 100 * lines;
+                pos -= 100L * lines;
             }
             // remove the first (maybe partial) line
             list.remove(0);

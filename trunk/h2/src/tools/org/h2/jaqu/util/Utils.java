@@ -51,6 +51,7 @@ public class Utils {
 
     @SuppressWarnings("unchecked")
     public static <T> T newObject(Class<T> clazz) {
+        // must create new instances
         if (clazz == Integer.class) {
             return (T) new Integer((int) counter++);
         } else if (clazz == String.class) {

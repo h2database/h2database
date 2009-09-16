@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -162,7 +163,10 @@ public class Db {
      */
     public int executeUpdate(String sql) {
         try {
-            return conn.createStatement().executeUpdate(sql);
+            Statement stat = conn.createStatement();
+            int updateCount = stat.executeUpdate(sql);
+            stat.close();
+            return updateCount;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

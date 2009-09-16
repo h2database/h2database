@@ -76,11 +76,13 @@ implements ObjectFactory
 //## Java 1.4 end ##
 
     private TraceSystem getTraceSystem() {
-        if (cachedTraceSystem == null) {
-            cachedTraceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE, false);
-            cachedTraceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
+        synchronized (JdbcDataSourceFactory.class) {
+            if (cachedTraceSystem == null) {
+                cachedTraceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE, false);
+                cachedTraceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
+            }
+            return cachedTraceSystem;
         }
-        return cachedTraceSystem;
     }
 
     Trace getTrace() {

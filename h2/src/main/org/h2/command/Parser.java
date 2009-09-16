@@ -179,7 +179,7 @@ public class Parser {
     private char[] sqlCommandChars;
     private int lastParseIndex;
     private int parseIndex;
-    private Prepared prepared;
+    private CreateView createView;
     private Prepared currentPrepared;
     private Select currentSelect;
     private ObjectArray<Parameter> parameters;
@@ -284,7 +284,7 @@ public class Parser {
         parameters = ObjectArray.newInstance();
         currentSelect = null;
         currentPrepared = null;
-        prepared = null;
+        createView = null;
         recompileAlways = false;
         indexedParameterList = null;
         read();
@@ -941,7 +941,7 @@ public class Parser {
                 query.setParameterList(params);
                 query.init();
                 Session s;
-                if (prepared != null && prepared instanceof CreateView) {
+                if (createView != null) {
                     s = database.getSystemSession();
                 } else {
                     s = session;
@@ -3815,7 +3815,7 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
-        this.prepared = command;
+        this.createView = command;
         command.setViewName(viewName);
         command.setIfNotExists(ifNotExists);
         command.setComment(readCommentIf());

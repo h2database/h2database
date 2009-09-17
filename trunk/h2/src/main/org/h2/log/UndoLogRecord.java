@@ -115,7 +115,7 @@ public class UndoLogRecord {
             break;
         case DELETE:
             try {
-                row.setPos(0);
+                row.setKey(0);
                 table.addRow(session, row);
                 // reset session id, otherwise other session think
                 // that this row was inserted by this session

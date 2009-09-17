@@ -67,7 +67,7 @@ public class PageDataLeaf extends PageData {
 
     private int memorySize;
 
-    private PageDataLeaf(PageScanIndex index, int pageId, Data data) {
+    private PageDataLeaf(PageDataIndex index, int pageId, Data data) {
         super(index, pageId, data);
     }
 
@@ -79,7 +79,7 @@ public class PageDataLeaf extends PageData {
      * @param parentPageId the parent
      * @return the page
      */
-    static PageDataLeaf create(PageScanIndex index, int pageId, int parentPageId) {
+    static PageDataLeaf create(PageDataIndex index, int pageId, int parentPageId) {
         PageDataLeaf p = new PageDataLeaf(index, pageId, index.getPageStore().createData());
         p.parentPageId = parentPageId;
         p.columnCount = index.getTable().getColumns().length;
@@ -96,7 +96,7 @@ public class PageDataLeaf extends PageData {
      * @param pageId the page id
      * @return the page
      */
-    public static Page read(PageScanIndex index, Data data, int pageId) throws SQLException {
+    public static Page read(PageDataIndex index, Data data, int pageId) throws SQLException {
         PageDataLeaf p = new PageDataLeaf(index, pageId, data);
         p.read();
         return p;
@@ -139,9 +139,9 @@ public class PageDataLeaf extends PageData {
         int rowLength = getRowLength(row);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-        int keyOffsetPairLen = 2 + data.getVarLongLen(row.getPos());
+        int keyOffsetPairLen = 2 + data.getVarLongLen(row.getKey());
         if (entryCount > 0 && last - rowLength < start + keyOffsetPairLen) {
-            int x = find(row.getPos());
+            int x = find(row.getKey());
             if (entryCount > 1) {
                 if (entryCount < 5) {
                     // required, otherwise the index doesn't work correctly
@@ -164,8 +164,8 @@ public class PageDataLeaf extends PageData {
             x = 0;
         } else {
             readAllRows();
-            x = find(row.getPos());
-            if (x < keys.length && keys[x] == row.getPos()) {
+            x = find(row.getKey());
+            if (x < keys.length && keys[x] == row.getKey()) {
                 throw index.getDuplicateKeyException();
             }
             System.arraycopy(offsets, 0, newOffsets, 0, x);
@@ -185,7 +185,7 @@ public class PageDataLeaf extends PageData {
         entryCount++;
         start += keyOffsetPairLen;
         newOffsets[x] = offset;
-        newKeys[x] = row.getPos();
+        newKeys[x] = row.getKey();
         newRows[x] = row;
         memorySize += row.getMemorySize();
         offsets = newOffsets;
@@ -270,7 +270,7 @@ public class PageDataLeaf extends PageData {
 
     Cursor find(Session session, long min, long max, boolean multiVersion) {
         int x = find(min);
-        return new PageScanCursor(session, this, x, max, multiVersion);
+        return new PageDataCursor(session, this, x, max, multiVersion);
     }
 
     /**
@@ -302,12 +302,11 @@ public class PageDataLeaf extends PageData {
                     PageDataOverflow page = index.getPageOverflow(next);
                     next = page.readInto(buff);
                 } while (next != 0);
-int checkRequired;
                 overflowRowSize = pageSize + buff.length();
                 buff.setPos(0);
                 r = index.readRow(buff, columnCount);
             }
-            r.setPos((int) keys[at]);
+            r.setKey(keys[at]);
             if (firstOverflowPageId != 0) {
                 rowRef = new SoftReference<Row>(r);
             } else {
@@ -337,7 +336,7 @@ int checkRequired;
         if (entryCount == 0) {
             return 0;
         }
-        return getRowAt(entryCount - 1).getPos();
+        return getRowAt(entryCount - 1).getKey();
     }
 
     PageDataLeaf getNextPage() throws SQLException {
@@ -361,7 +360,7 @@ int checkRequired;
         index.getPageStore().updateRecord(overflow, true, null);
     }
 
-    boolean remove(int key) throws SQLException {
+    boolean remove(long key) throws SQLException {
         int i = find(key);
         if (keys[i] != key) {
             throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + key);
@@ -436,10 +435,10 @@ int checkRequired;
         }
         readAllRows();
         data.reset();
-        data.checkCapacity(overflowRowSize);
         writeHead();
         if (firstOverflowPageId != 0) {
             data.writeInt(firstOverflowPageId);
+            data.checkCapacity(overflowRowSize);
         }
         for (int i = 0; i < entryCount; i++) {
             data.writeVarLong(keys[i]);

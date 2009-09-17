@@ -39,7 +39,7 @@ public class NonUniqueHashCursor implements Cursor {
         return tableData.getRow(session, positions.get(index));
     }
 
-    public int getPos() {
+    public long getKey() {
         return index;
     }
 

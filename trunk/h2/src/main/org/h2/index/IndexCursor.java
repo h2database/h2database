@@ -147,8 +147,8 @@ public class IndexCursor implements Cursor {
         return cursor.get();
     }
 
-    public int getPos() {
-        return cursor.getPos();
+    public long getKey() {
+        return cursor.getKey();
     }
 
     public SearchRow getSearchRow() throws SQLException {

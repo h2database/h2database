@@ -30,7 +30,7 @@ abstract class PageData extends Page {
     /**
      * The index.
      */
-    protected final PageScanIndex index;
+    protected final PageDataIndex index;
 
     /**
      * The page number of the parent.
@@ -57,7 +57,7 @@ abstract class PageData extends Page {
      */
     protected boolean written;
 
-    PageData(PageScanIndex index, int pageId, Data data) {
+    PageData(PageDataIndex index, int pageId, Data data) {
         this.index = index;
         this.data = data;
         setPos(pageId);
@@ -184,7 +184,7 @@ abstract class PageData extends Page {
      * @param key the key of the row to remove
      * @return true if this page is now empty
      */
-    abstract boolean remove(int key) throws SQLException;
+    abstract boolean remove(long key) throws SQLException;
 
     /**
      * Free up all child pages.

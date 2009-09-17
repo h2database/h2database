@@ -33,7 +33,7 @@ public class MetaCursor implements Cursor {
         return current;
     }
 
-    public int getPos() {
+    public long getKey() {
         throw Message.throwInternalError();
     }
 

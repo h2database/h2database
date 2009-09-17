@@ -397,7 +397,7 @@ public class PageLog {
      * @return the row
      */
     public static Row readRow(DataReader in, Data data) throws IOException, SQLException {
-        long pos = in.readVarLong();
+        long key = in.readVarLong();
         int len = in.readVarInt();
         data.reset();
         data.checkCapacity(len);
@@ -409,7 +409,7 @@ public class PageLog {
         }
         // TODO maybe calculate the memory usage
         Row row = new Row(values, 0);
-        row.setPos((int) pos);
+        row.setKey(key);
         return row;
     }
 
@@ -462,7 +462,7 @@ public class PageLog {
             outBuffer.writeByte((byte) FREE_LOG);
             outBuffer.writeVarInt(pages.size());
             for (int i = 0; i < pages.size(); i++) {
-                outBuffer.writeInt(pages.get(i));
+                outBuffer.writeVarInt(pages.get(i));
             }
             flushOut();
         } catch (IOException e) {
@@ -566,7 +566,7 @@ public class PageLog {
             outBuffer.writeByte((byte) (add ? ADD : REMOVE));
             outBuffer.writeVarInt(session.getId());
             outBuffer.writeVarInt(tableId);
-            outBuffer.writeVarLong(row.getPos());
+            outBuffer.writeVarLong(row.getKey());
             if (add) {
                 outBuffer.writeVarInt(data.length());
                 outBuffer.checkCapacity(data.length());

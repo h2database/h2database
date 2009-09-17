@@ -7,7 +7,6 @@
 package org.h2.result;
 
 import java.sql.SQLException;
-
 import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
 import org.h2.store.Record;
@@ -19,6 +18,7 @@ import org.h2.value.Value;
  */
 public class Row extends Record implements SearchRow {
     public static final int MEMORY_CALCULATE = -1;
+    private long key;
     private final Value[] data;
     private final int memory;
     private int version;
@@ -28,8 +28,8 @@ public class Row extends Record implements SearchRow {
         this.memory = memory;
     }
 
-    public void setPosAndVersion(SearchRow row) {
-        setPos(row.getPos());
+    public void setKeyAndVersion(SearchRow row) {
+        setKey(row.getKey());
         setVersion(row.getVersion());
     }
 
@@ -39,6 +39,19 @@ public class Row extends Record implements SearchRow {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public long getKey() {
+        return key;
+    }
+
+    public void setKey(long key) {
+        this.key = key;
+    }
+
+    public void setPos(int pos) {
+        super.setPos(pos);
+        key = pos;
     }
 
     public Value getValue(int i) {
@@ -86,8 +99,8 @@ public class Row extends Record implements SearchRow {
     }
 
     public String toString() {
-        StatementBuilder buff = new StatementBuilder("( /* pos:");
-        buff.append(getPos());
+        StatementBuilder buff = new StatementBuilder("( /* key:");
+        buff.append(getKey());
         if (version != 0) {
             buff.append(" v:" + version);
         }

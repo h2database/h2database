@@ -43,13 +43,13 @@ public class PageBtreeCursor implements Cursor {
 
     public Row get() throws SQLException {
         if (currentRow == null && currentSearchRow != null) {
-            currentRow = index.getRow(session, currentSearchRow.getPos());
+            currentRow = index.getRow(session, currentSearchRow.getKey());
         }
         return currentRow;
     }
 
-    public int getPos() {
-        return currentSearchRow.getPos();
+    public long getKey() {
+        return currentSearchRow.getKey();
     }
 
     public SearchRow getSearchRow() {

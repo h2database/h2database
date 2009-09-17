@@ -27,7 +27,7 @@ import org.h2.index.PageDataNode;
 import org.h2.index.PageDataOverflow;
 import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
-import org.h2.index.PageScanIndex;
+import org.h2.index.PageDataIndex;
 import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
@@ -80,9 +80,7 @@ import org.h2.value.ValueString;
 public class PageStore implements CacheWriter {
 
     // TODO check commit delay
-
-    // TODO record: replace getPos() with long getKey() in page store
-    // TODO long primary keys don't use delegating index yet (setPos(): int)
+    // TODO do not trim large databases fully, only up to x seconds
 
     // TODO implement checksum; 0 for empty pages
     // TODO undo log: don't store empty space between head and data
@@ -103,6 +101,7 @@ public class PageStore implements CacheWriter {
     // synchronized correctly (on the index?)
     // TODO remove trace or use isDebugEnabled
     // TODO recover tool: don't re-do uncommitted operations
+    // TODO recover tool: support syntax to delete a row with a key
     // TODO don't store default values (store a special value)
     // TODO split files (1 GB max size)
     // TODO add a setting (that can be changed at runtime) to call fsync
@@ -119,6 +118,7 @@ public class PageStore implements CacheWriter {
     // remove Record.getByteCount
     // remove Database.objectIds
     // remove TableData.checkRowCount
+    // remove Row.setPos
 
     /**
      * The smallest possible page size.
@@ -186,7 +186,7 @@ public class PageStore implements CacheWriter {
 
     private Schema metaSchema;
     private TableData metaTable;
-    private PageScanIndex metaIndex;
+    private PageDataIndex metaIndex;
     private IntIntHashMap metaRootPageId = new IntIntHashMap();
     private HashMap<Integer, Index> metaObjects = New.hashMap();
 
@@ -456,7 +456,7 @@ public class PageStore implements CacheWriter {
             break;
         case Page.TYPE_DATA_LEAF: {
             int indexId = data.readVarInt();
-            PageScanIndex index = (PageScanIndex) metaObjects.get(indexId);
+            PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
             if (index == null) {
                 Message.throwInternalError("index not found " + indexId);
             }
@@ -465,7 +465,7 @@ public class PageStore implements CacheWriter {
         }
         case Page.TYPE_DATA_NODE: {
             int indexId = data.readVarInt();
-            PageScanIndex index = (PageScanIndex) metaObjects.get(indexId);
+            PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
             if (index == null) {
                 Message.throwInternalError("index not found " + indexId);
             }
@@ -709,12 +709,12 @@ public class PageStore implements CacheWriter {
 
     private PageFreeList getFreeList(int i) throws SQLException {
         PageFreeList list = null;
-        if (i < freeLists.size()) {
-            list = freeLists.get(i);
-            if (list != null) {
-                return list;
-            }
-        }
+//        if (i < freeLists.size()) {
+//            list = freeLists.get(i);
+//            if (list != null) {
+//                return list;
+//            }
+//        }
         int p = PAGE_ID_FREE_LIST_ROOT + i * freeListPagesPerList;
         while (p >= pageCount) {
             increaseFileSize(INCREMENT_PAGES);
@@ -958,7 +958,7 @@ public class PageStore implements CacheWriter {
                 setReadOnly = true;
             }
         }
-        PageScanIndex systemTable = (PageScanIndex) metaObjects.get(0);
+        PageDataIndex systemTable = (PageDataIndex) metaObjects.get(0);
         if (systemTable == null) {
             systemTableHeadPos = Index.EMPTY_HEAD;
         } else {
@@ -1060,7 +1060,7 @@ public class PageStore implements CacheWriter {
      */
     void redoDelete(int logPos, int tableId, long key) throws SQLException {
         Index index = metaObjects.get(tableId);
-        PageScanIndex scan = (PageScanIndex) index;
+        PageDataIndex scan = (PageDataIndex) index;
         Row row = scan.getRow(key);
         redo(logPos, tableId, row, false);
     }
@@ -1123,7 +1123,7 @@ public class PageStore implements CacheWriter {
         data.headPos = 0;
         data.session = systemSession;
         metaTable = new TableData(data);
-        metaIndex = (PageScanIndex) metaTable.getScanIndex(
+        metaIndex = (PageDataIndex) metaTable.getScanIndex(
                 systemSession);
         metaObjects.clear();
         metaObjects.put(-1, metaIndex);
@@ -1250,7 +1250,7 @@ public class PageStore implements CacheWriter {
      * @param session the session
      */
     public void addMeta(PageIndex index, Session session) throws SQLException {
-        int type = index instanceof PageScanIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
+        int type = index instanceof PageDataIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
         IndexColumn[] columns = index.getIndexColumns();
         StatementBuilder buff = new StatementBuilder();
         for (IndexColumn col : columns) {

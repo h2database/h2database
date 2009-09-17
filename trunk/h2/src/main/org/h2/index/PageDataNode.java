@@ -48,7 +48,7 @@ public class PageDataNode extends PageData {
      */
     private int length;
 
-    private PageDataNode(PageScanIndex index, int pageId, Data data) {
+    private PageDataNode(PageDataIndex index, int pageId, Data data) {
         super(index, pageId, data);
     }
 
@@ -60,7 +60,7 @@ public class PageDataNode extends PageData {
      * @param parentPageId the parent
      * @return the page
      */
-    static PageDataNode create(PageScanIndex index, int pageId, int parentPageId) {
+    static PageDataNode create(PageDataIndex index, int pageId, int parentPageId) {
         PageDataNode p = new PageDataNode(index, pageId, index.getPageStore().createData());
         p.parentPageId = parentPageId;
         p.writeHead();
@@ -77,7 +77,7 @@ public class PageDataNode extends PageData {
      * @param pageId the page id
      * @return the page
      */
-    public static Page read(PageScanIndex index, Data data, int pageId) throws SQLException {
+    public static Page read(PageDataIndex index, Data data, int pageId) throws SQLException {
         PageDataNode p = new PageDataNode(index, pageId, data);
         p.read();
         return p;
@@ -129,9 +129,9 @@ public class PageDataNode extends PageData {
     }
 
     int addRowTry(Row row) throws SQLException {
-        int keyOffsetPairLen = 4 + data.getVarLongLen(row.getPos());
+        int keyOffsetPairLen = 4 + data.getVarLongLen(row.getKey());
         while (true) {
-            int x = find(row.getPos());
+            int x = find(row.getKey());
             PageData page = index.getPage(childPageIds[x], getPos());
             int splitPoint = page.addRowTry(row);
             if (splitPoint == -1) {
@@ -140,7 +140,7 @@ public class PageDataNode extends PageData {
             if (length + keyOffsetPairLen > index.getPageStore().getPageSize()) {
                 return entryCount / 2;
             }
-            long pivot = splitPoint == 0 ? row.getPos() : page.getKey(splitPoint - 1);
+            long pivot = splitPoint == 0 ? row.getKey() : page.getKey(splitPoint - 1);
             PageData page2 = page.split(splitPoint);
             index.getPageStore().updateRecord(page, true, page.data);
             index.getPageStore().updateRecord(page2, true, page2.data);
@@ -234,7 +234,7 @@ public class PageDataNode extends PageData {
         return index.getPage(child, getPos()).getFirstLeaf();
     }
 
-    boolean remove(int key) throws SQLException {
+    boolean remove(long key) throws SQLException {
         int at = find(key);
         // merge is not implemented to allow concurrent usage
         // TODO maybe implement merge

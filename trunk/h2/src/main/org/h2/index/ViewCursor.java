@@ -38,7 +38,7 @@ public class ViewCursor implements Cursor {
         return current;
     }
 
-    public int getPos() {
+    public long getKey() {
         throw Message.throwInternalError();
     }
 

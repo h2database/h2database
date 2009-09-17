@@ -55,7 +55,7 @@ public class RowList {
         buff.writeByte((byte) 1);
         buff.writeInt(r.getMemorySize());
         buff.writeInt(r.getColumnCount());
-        buff.writeInt(r.getPos());
+        buff.writeLong(r.getKey());
         buff.writeInt(r.getVersion());
         buff.writeInt(r.isDeleted() ? 1 : 0);
         buff.writeInt(r.getSessionId());
@@ -170,10 +170,10 @@ public class RowList {
         }
         int memory = buff.readInt();
         int columnCount = buff.readInt();
-        int pos = buff.readInt();
+        long key = buff.readLong();
         int version = buff.readInt();
         if (readUncached) {
-            pos = 0;
+            key = 0;
         }
         boolean deleted = buff.readInt() == 1;
         int sessionId = buff.readInt();
@@ -191,14 +191,14 @@ public class RowList {
             }
             values[i] = v;
         }
-        if (pos != 0 && cache != null) {
-            CacheObject found = cache.find(pos);
+        if (key != 0 && cache != null) {
+            CacheObject found = cache.find((int) key);
             if (found != null) {
                 return (Row) found;
             }
         }
         Row row = new Row(values, memory);
-        row.setPos(pos);
+        row.setKey(key);
         row.setVersion(version);
         row.setDeleted(deleted);
         row.setSessionId(sessionId);

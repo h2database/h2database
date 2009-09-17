@@ -21,9 +21,9 @@ import org.h2.table.TableData;
  */
 public class PageDelegateIndex extends PageIndex {
 
-    private final PageScanIndex mainIndex;
+    private final PageDataIndex mainIndex;
 
-    public PageDelegateIndex(TableData table, int id, String name, IndexType indexType, PageScanIndex mainIndex, int headPos, Session session) throws SQLException {
+    public PageDelegateIndex(TableData table, int id, String name, IndexType indexType, PageDataIndex mainIndex, int headPos, Session session) throws SQLException {
         IndexColumn[] columns = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
         this.initBaseIndex(table, id, name, columns, indexType);
         this.mainIndex = mainIndex;

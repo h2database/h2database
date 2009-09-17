@@ -13,7 +13,7 @@ import org.h2.value.Value;
  */
 public class SimpleRowValue implements SearchRow {
 
-    private int pos;
+    private long key;
     private int version;
     private int index;
     private int virtualColumnCount;
@@ -23,8 +23,8 @@ public class SimpleRowValue implements SearchRow {
         this.virtualColumnCount = columnCount;
     }
 
-    public void setPosAndVersion(SearchRow row) {
-        pos = row.getPos();
+    public void setKeyAndVersion(SearchRow row) {
+        key = row.getKey();
         version = row.getVersion();
     }
 
@@ -35,14 +35,25 @@ public class SimpleRowValue implements SearchRow {
     public int getColumnCount() {
         return virtualColumnCount;
     }
+
     public int getPos() {
-        return pos;
+        return (int) key;
     }
+
+    public void setPos(int pos) {
+        this.key = pos;
+    }
+
+    public long getKey() {
+        return key;
+    }
+
+    public void setKey(long key) {
+        this.key = key;
+    }
+
     public Value getValue(int idx) {
         return idx == index ? data : null;
-    }
-    public void setPos(int pos) {
-        this.pos = pos;
     }
 
     public void setValue(int idx, Value v) {
@@ -51,7 +62,7 @@ public class SimpleRowValue implements SearchRow {
     }
 
     public String toString() {
-        return "( /* " + pos + " */ " + data.getTraceSQL() + " )";
+        return "( /* " + key + " */ " + data.getTraceSQL() + " )";
     }
 
 }

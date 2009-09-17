@@ -74,7 +74,7 @@ public class PageBtreeIndex extends PageIndex {
 
     public void add(Session session, Row row) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("add " + row.getPos());
+            trace.debug("add " + row.getKey());
         }
         // safe memory
         SearchRow newRow = getSearchRow(row);
@@ -113,7 +113,7 @@ public class PageBtreeIndex extends PageIndex {
      */
     private SearchRow getSearchRow(Row row) {
         SearchRow r = table.getTemplateSimpleRow(columns.length == 1);
-        r.setPosAndVersion(row);
+        r.setKeyAndVersion(row);
         for (int j = 0; j < columns.length; j++) {
             int idx = columns[j].getColumnId();
             r.setValue(idx, row.getValue(idx));
@@ -199,7 +199,7 @@ public class PageBtreeIndex extends PageIndex {
 
     public void remove(Session session, Row row) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("remove " + row.getPos());
+            trace.debug("remove " + row.getKey());
         }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {
@@ -260,7 +260,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param key the row key
      * @return the row
      */
-    Row getRow(Session session, int key) throws SQLException {
+    Row getRow(Session session, long key) throws SQLException {
         return tableData.getRow(session, key);
     }
 
@@ -293,12 +293,12 @@ public class PageBtreeIndex extends PageIndex {
      */
     SearchRow readRow(Data data, int offset, boolean onlyPosition) throws SQLException {
         data.setPos(offset);
-        long pos = data.readVarLong();
+        long key = data.readVarLong();
         if (onlyPosition) {
-            return tableData.getRow(null, (int) pos);
+            return tableData.getRow(null, key);
         }
         SearchRow row = table.getTemplateSimpleRow(columns.length == 1);
-        row.setPos((int) pos);
+        row.setKey(key);
         for (Column col : columns) {
             int idx = col.getColumnId();
             row.setValue(idx, data.readValue());
@@ -316,7 +316,7 @@ public class PageBtreeIndex extends PageIndex {
      */
     void writeRow(Data data, int offset, SearchRow row, boolean onlyPosition) throws SQLException {
         data.setPos(offset);
-        data.writeVarLong(row.getPos());
+        data.writeVarLong(row.getKey());
         if (!onlyPosition) {
             for (Column col : columns) {
                 int idx = col.getColumnId();

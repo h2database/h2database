@@ -126,6 +126,10 @@ public class ValueInt extends Value {
         return value;
     }
 
+    public long getLong() {
+        return value;
+    }
+
     protected int compareSecure(Value o, CompareMode mode) {
         ValueInt v = (ValueInt) o;
         if (value == v.value) {

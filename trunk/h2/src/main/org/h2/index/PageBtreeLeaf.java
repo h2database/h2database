@@ -194,7 +194,7 @@ public class PageBtreeLeaf extends PageBtree {
     SearchRow remove(SearchRow row) throws SQLException {
         int at = find(row, false, false, true);
         SearchRow delete = getRow(at);
-        if (index.compareRows(row, delete) != 0 || delete.getPos() != row.getPos()) {
+        if (index.compareRows(row, delete) != 0 || delete.getKey() != row.getKey()) {
             throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + row);
         }
         if (entryCount == 1) {

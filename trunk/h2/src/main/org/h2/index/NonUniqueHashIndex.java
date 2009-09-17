@@ -50,7 +50,7 @@ public class NonUniqueHashIndex extends BaseHashIndex {
             positions = new IntArray(1);
             rows.put(key, positions);
         }
-        positions.add(row.getPos());
+        positions.add((int) row.getKey());
         rowCount++;
     }
 
@@ -65,7 +65,7 @@ public class NonUniqueHashIndex extends BaseHashIndex {
                 // last row with such key
                 rows.remove(key);
             } else {
-                positions.removeValue(row.getPos());
+                positions.removeValue((int) row.getKey());
             }
             rowCount--;
         }

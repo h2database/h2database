@@ -217,7 +217,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         // create a row that only contains the key values
         setChanged(session);
         Row row = table.getTemplateRow();
-        row.setPosAndVersion(r);
+        row.setKeyAndVersion(r);
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
             int idx = col.getColumnId();
@@ -247,7 +247,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
      */
     SearchRow getSearchRow(Row row) {
         SearchRow r = table.getTemplateSimpleRow(columns.length == 1);
-        r.setPosAndVersion(row);
+        r.setKeyAndVersion(row);
         for (int j = 0; j < columns.length; j++) {
             int idx = columns[j].getColumnId();
             r.setValue(idx, row.getValue(idx));
@@ -324,7 +324,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
                 r = null;
             } else {
                 r = table.getTemplateSimpleRow(columns.length == 1);
-                r.setPos(pos);
+                r.setKey(pos);
                 for (int j = 0; j < columns.length; j++) {
                     int idx = columns[j].getColumnId();
                     r.setValue(idx, s.readValue());
@@ -339,11 +339,11 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
      * Get a row from the data file.
      *
      * @param session the session
-     * @param pos the position in the data file
+     * @param key the unique key
      * @return the row
      */
-    Row getRow(Session session, int pos) throws SQLException {
-        return tableData.getRow(session, pos);
+    Row getRow(Session session, long key) throws SQLException {
+        return tableData.getRow(session, key);
     }
 
     private void flushHead(Session session) throws SQLException {

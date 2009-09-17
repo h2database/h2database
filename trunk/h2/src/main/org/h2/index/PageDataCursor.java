@@ -17,7 +17,7 @@ import org.h2.result.SearchRow;
 /**
  * The cursor implementation for the page scan index.
  */
-class PageScanCursor implements Cursor {
+class PageDataCursor implements Cursor {
 
     private PageDataLeaf current;
     private int idx;
@@ -27,7 +27,7 @@ class PageScanCursor implements Cursor {
     private final Session session;
     private Iterator<Row> delta;
 
-    PageScanCursor(Session session, PageDataLeaf current, int idx, long max, boolean multiVersion) {
+    PageDataCursor(Session session, PageDataLeaf current, int idx, long max, boolean multiVersion) {
         this.current = current;
         this.idx = idx;
         this.max = max;
@@ -42,8 +42,8 @@ class PageScanCursor implements Cursor {
         return row;
     }
 
-    public int getPos() {
-        return row.getPos();
+    public long getKey() {
+        return row.getKey();
     }
 
     public SearchRow getSearchRow() {

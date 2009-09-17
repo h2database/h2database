@@ -41,7 +41,7 @@ public class FunctionCursor implements Cursor {
         return get();
     }
 
-    public int getPos() {
+    public long getKey() {
         throw Message.throwInternalError();
     }
 

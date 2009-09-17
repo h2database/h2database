@@ -36,7 +36,7 @@ class RangeCursor implements Cursor {
         return currentRow;
     }
 
-    public int getPos() {
+    public long getKey() {
         throw Message.throwInternalError();
     }
 

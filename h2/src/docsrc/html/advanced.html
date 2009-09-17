@@ -737,6 +737,11 @@ CREATE USER statement. If you run the script against a database that was created
 user, or if there are conflicting users, running the script will fail. Consider running the script
 against a database that was created with a user name that is not in the script.
 </p>
+<p>
+The recover tool creates a SQL script from the .data.db file. It also processes the transaction log file(s),
+however it does not automatically apply those changes. Usually, many of those changes are already
+applied in the .data.db file.
+</p>
 
 <br /><a name="file_locking_protocols"></a>
 <h2>File Locking Protocols</h2>
@@ -760,10 +765,10 @@ The two methods are 'file method' and 'socket methods'.
 The default method for database file locking is the 'File Method'. The algorithm is:
 </p>
 <ul>
-<li>When the lock file does not exist, it is created (using the atomic operation File.createNewFile).
+<li>If the lock file does not exist, it is created (using the atomic operation File.createNewFile).
 Then, the process waits a little bit (20ms) and checks the file again. If the file was changed
 during this time, the operation is aborted. This protects against a race condition
-when a process deletes the lock file just after one create it, and a third process creates
+when one process deletes the lock file just after another one create it, and a third process creates
 the file again. It does not occur if there are only two writers.
 </li><li>
 If the file can be created, a random number is inserted together with the locking method
@@ -775,7 +780,7 @@ not get through undetected even if the system is very busy. However, the watchdo
 does use very little resources (CPU time), because it waits most of the time. Also, the watchdog only reads from the hard disk
 and does not write to it.
 </li><li>
-If the lock file exists, and it was modified in the 20 ms, the process waits for some time (up to 10 times).
+If the lock file exists and was recently modified, the process waits for some time (up to two seconds).
 If it was still changed, an exception is thrown (database is locked). This is done to eliminate race conditions with many concurrent
 writers. Afterwards, the file is overwritten with a new version (challenge).
 After that, the thread waits for 2 seconds.

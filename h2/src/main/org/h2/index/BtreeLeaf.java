@@ -245,7 +245,7 @@ public class BtreeLeaf extends BtreePage {
         Column[] columns = index.getColumns();
         for (int i = 0; i < len; i++) {
             SearchRow row = pageData.get(i);
-            buff.writeInt(row.getPos());
+            buff.writeInt((int) row.getKey());
             if (!writePos) {
                 for (int j = 0; j < columns.length; j++) {
                     Value v = row.getValue(columns[j].getColumnId());

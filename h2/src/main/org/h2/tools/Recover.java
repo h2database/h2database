@@ -82,6 +82,7 @@ public class Recover extends Tool implements DataHandler {
     private ObjectArray<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
+    private HashMap<Integer, Integer> sessionCommit;
     private boolean remove;
 
     private long pageDataEmpty;
@@ -324,7 +325,8 @@ public class Recover extends Tool implements DataHandler {
             } else if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
                 dumpIndex(fileName);
             } else if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
-                dumpLog(fileName);
+                dumpLog(fileName, true);
+                dumpLog(fileName, false);
             } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 dumpLob(fileName, true);
                 dumpLob(fileName, false);
@@ -405,7 +407,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void writeLogRecord(PrintWriter writer, DataPage s) {
+    private void writeLogRecord(PrintWriter writer, DataPage s, boolean insert) {
         recordLength = s.readInt();
         if (recordLength <= 0) {
             writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
@@ -419,13 +421,24 @@ public class Recover extends Tool implements DataHandler {
             return;
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("//     data: ");
+        if (insert) {
+            sb.append("MERGE INTO ").append(storageName).append(" VALUES(");
+        } else {
+            sb.append("DELETE FROM ").append(storageName).append(" WHERE ");
+        }
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {
                 Value v = s.readValue();
                 data[valueId] = v;
                 if (valueId > 0) {
-                    sb.append(", ");
+                    if (insert) {
+                        sb.append(", ");
+                    } else {
+                        sb.append(" AND ");
+                    }
+                }
+                if (!insert) {
+                    sb.append(" C").append(valueId).append('=');
                 }
                 sb.append(getSQL(v));
             } catch (Exception e) {
@@ -439,6 +452,10 @@ public class Recover extends Tool implements DataHandler {
                 continue;
             }
         }
+        if (insert) {
+            sb.append(')');
+        }
+        sb.append(';');
         writer.println(sb.toString());
         writer.flush();
     }
@@ -463,15 +480,22 @@ public class Recover extends Tool implements DataHandler {
         lobFilesInDirectories = FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
     }
 
-    private void dumpLog(String fileName) {
+    private void dumpLog(String fileName, boolean sessionState) {
         PrintWriter writer = null;
         FileStore store = null;
         try {
+            if (sessionState) {
+                sessionCommit = New.hashMap();
+            }
             setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_LOG_FILE.length()));
-            writer = getWriter(fileName, ".txt");
+            if (!sessionState) {
+                writer = getWriter(fileName, ".txt");
+            }
             store = FileStore.open(null, fileName, "r");
             long length = store.length();
-            writer.println("// length: " + length);
+            if (!sessionState) {
+                writer.println("// length: " + length);
+            }
             int offset = FileStore.HEADER_LENGTH;
             int blockSize = LogFile.BLOCK_SIZE;
             int blocks = (int) (length / blockSize);
@@ -482,7 +506,9 @@ public class Recover extends Tool implements DataHandler {
             s.reset();
             if (length < FileStore.HEADER_LENGTH + len) {
                 // this is an empty file
-                writer.println("// empty file");
+                if (!sessionState) {
+                    writer.println("// empty file");
+                }
                 return;
             }
             store.seek(offset);
@@ -490,11 +516,13 @@ public class Recover extends Tool implements DataHandler {
             int id = s.readInt();
             int firstUncommittedPos = s.readInt();
             int firstUnwrittenPos = s.readInt();
-            writer.println("// id: " + id);
-            writer.println("// firstUncommittedPos: " + firstUncommittedPos);
-            writer.println("// firstUnwrittenPos: " + firstUnwrittenPos);
             int max = (int) (length / blockSize);
-            writer.println("// max: " + max);
+            if (!sessionState) {
+                writer.println("// id: " + id);
+                writer.println("// firstUncommittedPos: " + firstUncommittedPos);
+                writer.println("// firstUnwrittenPos: " + firstUnwrittenPos);
+                writer.println("// max: " + max);
+            }
             while (true) {
                 int pos = (int) (store.getFilePointer() / blockSize);
                 if ((long) pos * blockSize >= length) {
@@ -521,16 +549,24 @@ public class Recover extends Tool implements DataHandler {
                 // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
                 blocks = MathUtils.convertLongToInt(Math.abs(s.readInt()));
                 if (blocks == 0) {
-                    writer.println("// [" + pos + "] blocks: " + blocks + " (end)");
+                    if (!sessionState) {
+                        writer.println("// [" + pos + "] blocks: " + blocks + " (end)");
+                    }
                     break;
                 }
                 char type = (char) s.readByte();
                 int sessionId = s.readInt();
                 if (type == 'P') {
                     String transaction = s.readString();
-                    writer.println("//   prepared session: " + sessionId + " tx: " + transaction);
+                    if (!sessionState) {
+                        writer.println("//   prepared session: " + sessionId + " tx: " + transaction);
+                    }
                 } else if (type == 'C') {
-                    writer.println("//   commit session: " + sessionId);
+                    if (!sessionState) {
+                        writer.println("//   commit session: " + sessionId);
+                    } else {
+                        sessionCommit.put(sessionId, pos);
+                    }
                 } else {
                     int storageId = s.readInt();
                     int recId = s.readInt();
@@ -546,32 +582,54 @@ public class Recover extends Tool implements DataHandler {
                         if (sumLength > 0) {
                             s.read(summary, 0, sumLength);
                         }
-                        writer.println("//   summary session: "+sessionId+" fileType: " + fileType + " sumLength: " + sumLength);
-                        dumpSummary(writer, summary);
+                        if (!sessionState) {
+                            writer.println("//   summary session: "+sessionId+" fileType: " + fileType + " sumLength: " + sumLength);
+                            dumpSummary(writer, summary);
+                        }
                         break;
                     }
                     case 'T':
-                        writer.println("//   truncate session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
+                        if (!sessionState) {
+                            writer.println("//   truncate session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
+                            if (sessionCommit.get(sessionId) >= pos) {
+                                setStorage(storageId);
+                                writer.println("TRUNCATE TABLE " + storageName + ";");
+                            }
+                        }
                         break;
                     case 'I':
-                        writer.println("//   insert session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
-                        if (storageId >= 0) {
-                            writeLogRecord(writer, s);
+                        if (!sessionState) {
+                            writer.println("//   insert session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
+                            if (storageId >= 0) {
+                                if (sessionCommit.get(sessionId) >= pos) {
+                                    setStorage(storageId);
+                                    writeLogRecord(writer, s, true);
+                                }
+                            }
                         }
                         break;
                     case 'D':
-                        writer.println("//   delete session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
-                        if (storageId >= 0) {
-                            writeLogRecord(writer, s);
+                        if (!sessionState) {
+                            writer.println("//   delete session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
+                            if (storageId >= 0) {
+                                if (sessionCommit.get(sessionId) >= pos) {
+                                    setStorage(storageId);
+                                    writeLogRecord(writer, s, false);
+                                }
+                            }
                         }
                         break;
                     default:
-                        writer.println("//   type?: "+type+" session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
+                        if (!sessionState) {
+                            writer.println("//   type?: "+type+" session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
+                        }
                         break;
                     }
                 }
             }
-            writer.close();
+            if (!sessionState) {
+                writer.close();
+            }
         } catch (Throwable e) {
             writeError(writer, e);
         } finally {
@@ -911,13 +969,20 @@ public class Recover extends Tool implements DataHandler {
                 int pageId = in.readVarInt();
                 in.readFully(new byte[pageSize], 0, pageSize);
                 writer.println("-- undo page " + pageId);
-            } else if (x == PageLog.ADD || x == PageLog.REMOVE) {
+            } else if (x == PageLog.ADD) {
                 int sessionId = in.readVarInt();
                 setStorage(in.readVarInt());
                 Row row = PageLog.readRow(in, s);
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
-                        " " + (x == PageLog.ADD ? "add" : "remove") + " " + row.toString());
+                        " add " + row.toString());
+            } else if (x == PageLog.REMOVE) {
+                int sessionId = in.readVarInt();
+                setStorage(in.readVarInt());
+                long key = in.readVarLong();
+                writer.println("-- session " + sessionId +
+                        " table " + storageId +
+                        " remove " + key);
             } else if (x == PageLog.TRUNCATE) {
                 int sessionId = in.readVarInt();
                 setStorage(in.readVarInt());

@@ -42,21 +42,7 @@ public interface SearchRow {
      *
      * @param old the other row.
      */
-    void setPosAndVersion(SearchRow old);
-
-    /**
-     * Set the position (where the row is stored in the data file).
-     *
-     * @param pos the position.
-     */
-    void setPos(int pos);
-
-    /**
-     * Get the position of the row in the data file.
-     *
-     * @return the position
-     */
-    int getPos();
+    void setKeyAndVersion(SearchRow old);
 
     /**
      * Get the version of the row.
@@ -64,5 +50,19 @@ public interface SearchRow {
      * @return the version
      */
     int getVersion();
+
+    /**
+     * Set the unique key of the row.
+     *
+     * @param key the key
+     */
+    void setKey(long key);
+
+    /**
+     * Get the unique key of the row.
+     *
+     * @return the key
+     */
+    long getKey();
 
 }

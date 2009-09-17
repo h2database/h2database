@@ -128,7 +128,7 @@ public class MultiVersionIndex implements Index {
         Cursor c = delta.find(session, row, row);
         while (c.next()) {
             Row r = c.get();
-            if (r.getPos() == row.getPos() && r.getVersion() == row.getVersion()) {
+            if (r.getKey() == row.getKey() && r.getVersion() == row.getVersion()) {
                 if (r != row && table.getScanIndex(session).compareRows(r, row) != 0) {
                     row.setVersion(r.getVersion() + 1);
                 } else {

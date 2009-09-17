@@ -336,7 +336,7 @@ public class ConstraintReferential extends Constraint {
         while (cursor.next()) {
             SearchRow found;
             found = cursor.getSearchRow();
-            if (excluding != null && found.getPos() == excluding.getPos()) {
+            if (excluding != null && found.getKey() == excluding.getKey()) {
                 continue;
             }
             Column[] cols = searchIndex.getColumns();

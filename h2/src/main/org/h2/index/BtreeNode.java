@@ -350,7 +350,7 @@ public class BtreeNode extends BtreePage {
                 buff.writeInt(-1);
             } else {
                 SearchRow row = getData(i);
-                buff.writeInt(row.getPos());
+                buff.writeInt((int) row.getKey());
                 for (int j = 0; j < columns.length; j++) {
                     Value v = row.getValue(columns[j].getColumnId());
                     buff.writeValue(v);

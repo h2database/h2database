@@ -29,7 +29,7 @@ import org.h2.index.MultiVersionIndex;
 import org.h2.index.NonUniqueHashIndex;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageDelegateIndex;
-import org.h2.index.PageScanIndex;
+import org.h2.index.PageDataIndex;
 import org.h2.index.RowIndex;
 import org.h2.index.ScanIndex;
 import org.h2.index.TreeIndex;
@@ -66,7 +66,7 @@ public class TableData extends Table implements RecordReader {
     private final ObjectArray<Index> indexes = ObjectArray.newInstance();
     private long lastModificationId;
     private boolean containsLargeObject;
-    private PageScanIndex mainIndex;
+    private PageDataIndex mainIndex;
 
     public TableData(CreateTableData data) throws SQLException {
         super(data.schema, data.id, data.tableName, data.persistIndexes, data.persistData);
@@ -75,7 +75,7 @@ public class TableData extends Table implements RecordReader {
         setColumns(cols);
         setTemporary(data.temporary);
         if (database.isPageStoreEnabled() && data.persistData && database.isPersistent()) {
-            mainIndex = new PageScanIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData), data.headPos, data.session);
+            mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData), data.headPos, data.session);
             scanIndex = mainIndex;
         } else {
             scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData));
@@ -104,10 +104,10 @@ public class TableData extends Table implements RecordReader {
      * Read the given row.
      *
      * @param session the session
-     * @param key the position of the row in the file
+     * @param key unique key
      * @return the row
      */
-    public Row getRow(Session session, int key) throws SQLException {
+    public Row getRow(Session session, long key) throws SQLException {
         return scanIndex.getRow(session, key);
     }
 
@@ -302,8 +302,7 @@ public class TableData extends Table implements RecordReader {
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:
-            int todoPosIsInt;
-//            case Value.LONG:
+        case Value.LONG:
             break;
         default:
             return -1;

@@ -82,12 +82,12 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
-    public int getPos() {
+    public long getKey() {
         synchronized (sync) {
             if (SysProperties.CHECK && end) {
                 Message.throwInternalError();
             }
-            return onBase ? baseCursor.getPos() : deltaCursor.getPos();
+            return onBase ? baseCursor.getKey() : deltaCursor.getKey();
         }
     }
 
@@ -147,8 +147,8 @@ public class MultiVersionCursor implements Cursor {
                 if (compare == 0) {
                     // can't use compareKeys because the
                     // version would be compared as well
-                    int k1 = deltaRow.getPos();
-                    int k2 = baseRow.getPos();
+                    long k1 = deltaRow.getKey();
+                    long k2 = baseRow.getKey();
                     compare = k1 == k2 ? 0 : k1 > k2 ? 1 : -1;
                 }
                 if (compare == 0) {

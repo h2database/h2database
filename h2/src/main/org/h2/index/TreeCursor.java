@@ -36,8 +36,8 @@ public class TreeCursor implements Cursor {
         return get();
     }
 
-    public int getPos() {
-        return node.row.getPos();
+    public long getKey() {
+        return node.row.getKey();
     }
 
     public boolean next() throws SQLException {

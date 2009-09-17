@@ -270,8 +270,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public int compareKeys(SearchRow rowData, SearchRow compare) {
-        int k1 = rowData.getPos();
-        int k2 = compare.getPos();
+        long k1 = rowData.getKey();
+        long k2 = compare.getKey();
         if (k1 == k2) {
             if (isMultiVersion) {
                 int v1 = rowData.getVersion();

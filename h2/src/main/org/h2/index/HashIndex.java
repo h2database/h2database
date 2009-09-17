@@ -47,7 +47,7 @@ public class HashIndex extends BaseHashIndex {
     public void add(Session session, Row row) throws SQLException {
         if (intMap != null) {
             int key = row.getValue(columns[0].getColumnId()).getInt();
-            intMap.put(key, row.getPos());
+            intMap.put(key, (int) row.getKey());
         } else {
             Value key = getKey(row);
             Object old = rows.get(key);
@@ -55,7 +55,7 @@ public class HashIndex extends BaseHashIndex {
                 // TODO index duplicate key for hash indexes: is this allowed?
                 throw getDuplicateKeyException();
             }
-            rows.put(getKey(row), row.getPos());
+            rows.put(getKey(row), (int) row.getKey());
         }
     }
 

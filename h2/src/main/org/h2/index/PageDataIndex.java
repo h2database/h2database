@@ -34,7 +34,7 @@ import org.h2.value.ValueNull;
  * all rows of a table. Each regular table has one such object, even if no
  * primary key or indexes are defined.
  */
-public class PageScanIndex extends PageIndex implements RowIndex {
+public class PageDataIndex extends PageIndex implements RowIndex {
 
     private PageStore store;
     private TableData tableData;
@@ -47,7 +47,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     private SQLException fastDuplicateKeyException;
     private int memorySizePerPage;
 
-    public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
+    public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         // trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
@@ -83,7 +83,8 @@ public class PageScanIndex extends PageIndex implements RowIndex {
         table.setRowCount(rowCount);
         fastDuplicateKeyException = super.getDuplicateKeyException();
         // estimate the memory usage as follows:
-        // the less column, the more memory is required, because the more rows fit on a page
+        // the less column, the more memory is required,
+        // because the more rows fit on a page
         memorySizePerPage = store.getPageSize();
         int estimatedRowsPerPage =  store.getPageSize() / ((1 + columns.length) * 8);
         memorySizePerPage += estimatedRowsPerPage * 64;
@@ -96,10 +97,10 @@ public class PageScanIndex extends PageIndex implements RowIndex {
     public void add(Session session, Row row) throws SQLException {
         boolean retry = false;
         if (mainIndexColumn != -1) {
-            row.setPos(row.getValue(mainIndexColumn).getInt());
+            row.setKey(row.getValue(mainIndexColumn).getLong());
         } else {
-            if (row.getPos() == 0) {
-                row.setPos((int) ++lastKey);
+            if (row.getKey() == 0) {
+                row.setKey((int) ++lastKey);
                 retry = true;
             }
         }
@@ -135,16 +136,14 @@ public class PageScanIndex extends PageIndex implements RowIndex {
                 if (add == 0) {
                     // in the first re-try add a small random number,
                     // to avoid collisions after a re-start
-                    // TODO use long
-                    row.setPos((int) (row.getPos() + Math.random() * 10000));
+                    row.setKey((long) (row.getKey() + Math.random() * 10000));
                 } else {
-                    // TODO use long
-                    row.setPos((int) (row.getPos() + add));
+                    row.setKey(row.getKey() + add);
                 }
                 add++;
             }
         }
-        lastKey = Math.max(lastKey, row.getPos() + 1);
+        lastKey = Math.max(lastKey, row.getKey() + 1);
     }
 
     private void addTry(Session session, Row row) throws SQLException {
@@ -157,7 +156,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
             if (trace.isDebugEnabled()) {
                 trace.debug("split " + splitPoint);
             }
-            long pivot = splitPoint == 0 ? row.getPos() : root.getKey(splitPoint - 1);
+            long pivot = splitPoint == 0 ? row.getKey() : root.getKey(splitPoint - 1);
             PageData page1 = root;
             PageData page2 = root.split(splitPoint);
             int rootPageId = root.getPos();
@@ -284,7 +283,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
 
     public void remove(Session session, Row row) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("remove " + row.getPos());
+            trace.debug("remove " + row.getKey());
         }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {
@@ -297,7 +296,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
         if (rowCount == 1) {
             removeAllRows();
         } else {
-            int key = row.getPos();
+            long key = row.getKey();
             PageData root = getPage(rootPageId, 0);
             root.remove(key);
             invalidateRowCount();
@@ -361,7 +360,7 @@ public class PageScanIndex extends PageIndex implements RowIndex {
         throw Message.getUnsupportedException("PAGE");
     }
 
-    public Row getRow(Session session, int key) throws SQLException {
+    public Row getRow(Session session, long key) throws SQLException {
         return getRow(key);
     }
 

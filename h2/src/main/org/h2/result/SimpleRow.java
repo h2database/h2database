@@ -14,7 +14,7 @@ import org.h2.value.Value;
  */
 public class SimpleRow implements SearchRow {
 
-    private int pos;
+    private long key;
     private int version;
     private Value[] data;
 
@@ -26,16 +26,16 @@ public class SimpleRow implements SearchRow {
         return data.length;
     }
 
-    public int getPos() {
-        return pos;
+    public long getKey() {
+        return key;
     }
 
-    public void setPos(int pos) {
-        this.pos = pos;
+    public void setKey(long key) {
+        this.key = key;
     }
 
-    public void setPosAndVersion(SearchRow row) {
-        pos = row.getPos();
+    public void setKeyAndVersion(SearchRow row) {
+        key = row.getKey();
         version = row.getVersion();
     }
 
@@ -52,8 +52,8 @@ public class SimpleRow implements SearchRow {
     }
 
     public String toString() {
-        StatementBuilder buff = new StatementBuilder("( /* pos:");
-        buff.append(getPos());
+        StatementBuilder buff = new StatementBuilder("( /* key:");
+        buff.append(getKey());
         if (version != 0) {
             buff.append(" v:" + version);
         }

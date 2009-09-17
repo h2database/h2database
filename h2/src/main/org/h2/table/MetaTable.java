@@ -1681,7 +1681,7 @@ public class MetaTable extends Table {
             values[i] = v;
         }
         Row row = new Row(values, 0);
-        row.setPos(rows.size());
+        row.setKey(rows.size());
         rows.add(row);
     }
 

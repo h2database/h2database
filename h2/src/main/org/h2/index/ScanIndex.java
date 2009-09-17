@@ -35,7 +35,7 @@ import org.h2.value.ValueLob;
  * indexes are defined.
  */
 public class ScanIndex extends BaseIndex implements RowIndex {
-    private int firstFree = -1;
+    private long firstFree = -1;
     private ObjectArray<Row> rows = ObjectArray.newInstance();
     private Storage storage;
     private TableData tableData;
@@ -95,11 +95,11 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         }
     }
 
-    public Row getRow(Session session, int key) throws SQLException {
+    public Row getRow(Session session, long key) throws SQLException {
         if (storage != null) {
-            return (Row) storage.getRecord(session, key);
+            return (Row) storage.getRecord(session, (int) key);
         }
-        return rows.get(key);
+        return rows.get((int) key);
     }
 
     public void add(Session session, Row row) throws SQLException {
@@ -121,14 +121,16 @@ public class ScanIndex extends BaseIndex implements RowIndex {
             // in-memory
             if (firstFree == -1) {
                 int key = rows.size();
+                row.setKey(key);
                 row.setPos(key);
                 rows.add(row);
             } else {
-                int key = firstFree;
-                Row free = rows.get(key);
-                firstFree = free.getPos();
-                row.setPos(key);
-                rows.set(key, row);
+                long key = firstFree;
+                Row free = rows.get((int) key);
+                firstFree = free.getKey();
+                row.setPos((int) key);
+                row.setKey(key);
+                rows.set((int) key, row);
             }
             row.setDeleted(false);
         }
@@ -166,7 +168,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
 
     public void remove(Session session, Row row) throws SQLException {
         if (storage != null) {
-            storage.removeRecord(session, row.getPos());
+            storage.removeRecord(session, (int) row.getKey());
             if (tableData.getContainsLargeObject()) {
                 for (int i = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
@@ -182,9 +184,10 @@ public class ScanIndex extends BaseIndex implements RowIndex {
                 firstFree = -1;
             } else {
                 Row free = new Row(null, 0);
-                free.setPos(firstFree);
-                int key = row.getPos();
-                rows.set(key, free);
+                free.setPos((int) firstFree);
+                free.setKey(firstFree);
+                long key = row.getKey();
+                rows.set((int) key, free);
                 firstFree = key;
             }
         }
@@ -235,18 +238,18 @@ public class ScanIndex extends BaseIndex implements RowIndex {
      */
     Row getNextRow(Session session, Row row) throws SQLException {
         if (storage == null) {
-            int key;
+            long key;
             if (row == null) {
                 key = -1;
             } else {
-                key = row.getPos();
+                key = row.getKey();
             }
             while (true) {
                 key++;
                 if (key >= rows.size()) {
                     return null;
                 }
-                row = rows.get(key);
+                row = rows.get((int) key);
                 if (!row.isEmpty()) {
                     return row;
                 }

@@ -30,8 +30,8 @@ public class HashCursor implements Cursor {
         return row;
     }
 
-    public int getPos() {
-        return row.getPos();
+    public long getKey() {
+        return row.getKey();
     }
 
     public boolean next() {

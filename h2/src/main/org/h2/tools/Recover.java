@@ -817,7 +817,7 @@ public class Recover extends Tool implements DataHandler {
             }
             int pageCount = (int) (length / pageSize);
             s = Data.create(this, pageSize);
-            int logFirstTrunkPage = 0, logFirstDataPage = 0;
+            int logKey = 0, logFirstTrunkPage = 0, logFirstDataPage = 0;
             for (int i = 1;; i++) {
                 if (i == 3) {
                     break;
@@ -825,22 +825,28 @@ public class Recover extends Tool implements DataHandler {
                 s.reset();
                 store.seek(i * pageSize);
                 store.readFully(s.getBytes(), 0, pageSize);
+                int type = s.readByte();
                 long writeCounter = s.readLong();
+                int key = s.readInt();
                 int firstTrunkPage = s.readInt();
                 int firstDataPage = s.readInt();
+                int start = s.length();
+                int got = s.readInt();
+                s.setPos(start);
+                s.writeInt(0);
                 CRC32 crc = new CRC32();
-                crc.update(s.getBytes(), 0, s.length());
-                long expected = crc.getValue();
-                long got = s.readLong();
+                crc.update(s.getBytes(), 0, pageSize);
+                int expected = (int) crc.getValue();
                 if (expected == got) {
                     if (logFirstTrunkPage == 0) {
+                        logKey = key;
                         logFirstTrunkPage = firstTrunkPage;
                         logFirstDataPage = firstDataPage;
                     }
                 }
                 writer.println("-- head " + i +
-                        ": writeCounter: " + writeCounter +
-                        " trunk: " + firstTrunkPage + "/" + firstDataPage +
+                        ": type: " + type + " writeCounter: " + writeCounter +
+                        " log key: " + key + " trunk: " + firstTrunkPage + "/" + firstDataPage +
                         " crc expected " + expected +
                         " got " + got + " (" + (expected == got ? "ok" : "different") + ")");
             }
@@ -934,7 +940,7 @@ public class Recover extends Tool implements DataHandler {
             }
             writeSchema(writer);
             try {
-                dumpPageLogStream(writer, logFirstTrunkPage, logFirstDataPage);
+                dumpPageLogStream(writer, logKey, logFirstTrunkPage, logFirstDataPage);
             } catch (EOFException e) {
                 // ignore
             }
@@ -955,10 +961,10 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageLogStream(PrintWriter writer, int logFirstTrunkPage, int logFirstDataPage) throws IOException, SQLException {
+    private void dumpPageLogStream(PrintWriter writer, int logKey, int logFirstTrunkPage, int logFirstDataPage) throws IOException, SQLException {
         Data s = Data.create(this, pageSize);
         DataReader in = new DataReader(
-                new PageInputStream(writer, this, store, logFirstTrunkPage, logFirstDataPage, pageSize)
+                new PageInputStream(writer, this, store, logKey, logFirstTrunkPage, logFirstDataPage, pageSize)
         );
         while (true) {
             int x = in.read();
@@ -1037,16 +1043,17 @@ public class Recover extends Tool implements DataHandler {
         private IntArray dataPages = new IntArray();
         private boolean endOfFile;
         private int remaining;
+        private int logKey;
 
         public PageInputStream(PrintWriter writer, DataHandler handler,
-                FileStore store, int firstTrunkPage, int firstDataPage, int pageSize) {
+                FileStore store, int logKey, int firstTrunkPage, int firstDataPage, int pageSize) {
             this.writer = writer;
             this.store = store;
             this.pageSize = pageSize;
+            this.logKey = logKey - 1;
             this.trunkPage = firstTrunkPage;
             this.dataPage = firstDataPage;
             page = DataPage.create(handler, pageSize);
-
         }
 
         public int read() throws IOException {
@@ -1108,7 +1115,12 @@ public class Recover extends Tool implements DataHandler {
                         return;
                     }
                     trunkPage = page.readInt();
-                    int pageCount = page.readInt();
+                    int key = page.readInt();
+                    logKey++;
+                    if (key != logKey) {
+                        writer.println("-- eof  page: " +trunkPage + " type: " + t + " expected key: " + logKey + " got: " + key);
+                    }
+                    int pageCount = page.readShortInt();
                     for (int i = 0; i < pageCount; i++) {
                         int d = page.readInt();
                         if (dataPage != 0) {
@@ -1130,9 +1142,15 @@ public class Recover extends Tool implements DataHandler {
                 page.reset();
                 int p = page.readInt();
                 int t = page.readByte();
+                int k = page.readInt();
                 if (t != Page.TYPE_STREAM_DATA) {
                     writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
                             " expected type: " + Page.TYPE_STREAM_DATA);
+                    endOfFile = true;
+                    return;
+                } else if (k != logKey) {
+                    writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
+                            " expected key: " + logKey + " got: " + k);
                     endOfFile = true;
                     return;
                 }

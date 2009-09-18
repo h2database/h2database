@@ -70,6 +70,11 @@ public abstract class Page extends Record {
     public static final int TYPE_STREAM_DATA = 8;
 
     /**
+     * A header page.
+     */
+    public static final int TYPE_HEADER = 9;
+
+    /**
      * Copy the data to a new location, change the parent to point to the new
      * location, and free up the current page.
      *

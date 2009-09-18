@@ -30,11 +30,10 @@ import org.h2.value.Value;
  * Transaction log mechanism. The stream contains a list of records. The data
  * format for a record is:
  * <ul>
- * <li>0-0: type (0: undo,...)</li>
- * <li>1-4: page id</li>
- * <li>5-: data</li>
+ * <li>type (0: no-op, 1: undo, 2: commit, ...)</li>
+ * <li>data</li>
  * </ul>
- * The log file is split into sections, each section starts with a new log id.
+ * The log file is split into sections.
  * A checkpoint starts a new section.
  */
 public class PageLog {
@@ -87,7 +86,7 @@ public class PageLog {
     public static final int TRUNCATE = 7;
 
     /**
-     * Perform a checkpoint. The log id is incremented.
+     * Perform a checkpoint. The log section id is incremented.
      * Format: -
      */
     public static final int CHECKPOINT = 8;
@@ -127,8 +126,9 @@ public class PageLog {
     private int firstTrunkPage;
     private int firstDataPage;
     private Data data;
+    private int logKey;
     private int logSectionId, logPos;
-    private int firstLogId;
+    private int firstSectionId;
 
     private CompressLZF compress;
     private byte[] compressBuffer;
@@ -180,12 +180,13 @@ public class PageLog {
     void openForWriting(int firstTrunkPage, boolean atEnd) throws SQLException {
         trace.debug("log openForWriting firstPage:" + firstTrunkPage);
         this.firstTrunkPage = firstTrunkPage;
-        pageOut = new PageOutputStream(store, firstTrunkPage, undoAll, atEnd);
+        logKey++;
+        pageOut = new PageOutputStream(store, firstTrunkPage, undoAll, logKey, atEnd);
         pageOut.reserve(1);
         // TODO maybe buffer to improve speed
         pageBuffer = pageOut;
         // pageBuffer = new BufferedOutputStream(pageOut, 8 * 1024);
-        store.setLogFirstPage(firstTrunkPage, pageOut.getCurrentDataPageId());
+        store.setLogFirstPage(logKey, firstTrunkPage, pageOut.getCurrentDataPageId());
         outBuffer = store.createData();
     }
 
@@ -208,10 +209,12 @@ public class PageLog {
     /**
      * Open the log for reading.
      *
+     * @param logKey the first expected log key
      * @param firstTrunkPage the first trunk page
      * @param firstDataPage the index of the first data page
      */
-    void openForReading(int firstTrunkPage, int firstDataPage) {
+    void openForReading(int logKey, int firstTrunkPage, int firstDataPage) {
+        this.logKey = logKey;
         this.firstTrunkPage = firstTrunkPage;
         this.firstDataPage = firstDataPage;
     }
@@ -229,12 +232,12 @@ public class PageLog {
             trace.debug("log recover stage:" + stage);
         }
         if (stage == RECOVERY_STAGE_ALLOCATE) {
-            PageInputStream in = new PageInputStream(store, firstTrunkPage, firstDataPage);
+            PageInputStream in = new PageInputStream(store, logKey, firstTrunkPage, firstDataPage);
             usedLogPages = in.allocateAllPages();
             in.close();
             return;
         }
-        pageIn = new PageInputStream(store, firstTrunkPage, firstDataPage);
+        pageIn = new PageInputStream(store, logKey, firstTrunkPage, firstDataPage);
         in = new DataReader(pageIn);
         int logId = 0;
         Data data = store.createData();
@@ -249,8 +252,8 @@ public class PageLog {
                 if (x == UNDO) {
                     int pageId = in.readVarInt();
                     int size = in.readVarInt();
-                    if (size == store.getPageSize()) {
-                        in.readFully(data.getBytes(), 0, size);
+                    if (size == 0) {
+                        in.readFully(data.getBytes(), 0, store.getPageSize());
                     } else {
                         in.readFully(compressBuffer, 0, size);
                         compress.expand(compressBuffer, 0, size, data.getBytes(), 0, store.getPageSize());
@@ -440,11 +443,12 @@ public class PageLog {
                     outBuffer.checkCapacity(size);
                     outBuffer.write(compressBuffer, 0, size);
                 } else {
-                    outBuffer.writeVarInt(pageSize);
+                    outBuffer.writeVarInt(0);
                     outBuffer.checkCapacity(pageSize);
                     outBuffer.write(page.getBytes(), 0, pageSize);
                 }
             } else {
+                outBuffer.writeVarInt(0);
                 outBuffer.checkCapacity(pageSize);
                 outBuffer.write(page.getBytes(), 0, pageSize);
             }
@@ -616,7 +620,7 @@ public class PageLog {
     }
 
     /**
-     * Switch to a new log id.
+     * Switch to a new log section.
      */
     void checkpoint() throws SQLException {
         try {
@@ -645,21 +649,21 @@ public class PageLog {
     /**
      * Remove all pages until the given log (excluding).
      *
-     * @param firstUncommittedLog the first log id to keep
+     * @param firstUncommittedSection the first log section to keep
      */
-    void removeUntil(int firstUncommittedLog) throws SQLException {
-        if (firstUncommittedLog == 0) {
+    void removeUntil(int firstUncommittedSection) throws SQLException {
+        if (firstUncommittedSection == 0) {
             return;
         }
-        int firstDataPageToKeep = logSectionPageMap.get(firstUncommittedLog);
+        int firstDataPageToKeep = logSectionPageMap.get(firstUncommittedSection);
         firstTrunkPage = removeUntil(firstTrunkPage, firstDataPageToKeep);
-        store.setLogFirstPage(firstTrunkPage, firstDataPageToKeep);
-        while (firstLogId < firstUncommittedLog) {
-            if (firstLogId > 0) {
+        store.setLogFirstPage(logKey, firstTrunkPage, firstDataPageToKeep);
+        while (firstSectionId < firstUncommittedSection) {
+            if (firstSectionId > 0) {
                 // there is no entry for log 0
-                logSectionPageMap.remove(firstLogId);
+                logSectionPageMap.remove(firstSectionId);
             }
-            firstLogId++;
+            firstSectionId++;
         }
     }
 
@@ -674,6 +678,7 @@ public class PageLog {
         trace.debug("log.removeUntil " + firstDataPageToKeep);
         while (true) {
             PageStreamTrunk t = (PageStreamTrunk) store.getPage(firstTrunkPage);
+            logKey = t.getLogKey();
             t.resetIndex();
             if (t.contains(firstDataPageToKeep)) {
                 return t.getPos();

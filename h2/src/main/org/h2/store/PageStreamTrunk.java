@@ -15,28 +15,31 @@ import org.h2.engine.Session;
  * <ul>
  * <li>previous trunk page, or 0 if none: int (0-3)</li>
  * <li>page type: byte (4)</li>
- * <li>next trunk page: int (5-8)</li>
- * <li>number of pages (9-10)</li>
- * <li>remainder: page ids (11-)</li>
+ * <li>log key: int (5-8)</li>
+ * <li>next trunk page: int (9-12)</li>
+ * <li>number of pages: short (13-14)</li>
+ * <li>page ids (15-)</li>
  * </ul>
  */
 public class PageStreamTrunk extends Page {
 
-    private static final int DATA_START = 11;
+    private static final int DATA_START = 15;
 
     private final PageStore store;
     private int parent;
+    private int logKey;
     private int nextTrunk;
     private int[] pageIds;
     private int pageCount;
     private Data data;
     private int index;
 
-    private PageStreamTrunk(PageStore store, int parent, int pageId, int next, int[] pageIds) {
+    private PageStreamTrunk(PageStore store, int parent, int pageId, int next, int logKey, int[] pageIds) {
         setPos(pageId);
         this.parent = parent;
         this.store = store;
         this.nextTrunk = next;
+        this.logKey = logKey;
         this.pageCount = pageIds.length;
         this.pageIds = pageIds;
     }
@@ -68,11 +71,12 @@ public class PageStreamTrunk extends Page {
      * @param parent the parent page
      * @param pageId the page id
      * @param next the next trunk page
+     * @param logKey the log key
      * @param pageIds the stream data page ids
      * @return the page
      */
-    static PageStreamTrunk create(PageStore store, int parent, int pageId, int next, int[] pageIds) {
-        return new PageStreamTrunk(store, parent, pageId, next, pageIds);
+    static PageStreamTrunk create(PageStore store, int parent, int pageId, int next, int logKey, int[] pageIds) {
+        return new PageStreamTrunk(store, parent, pageId, next, logKey, pageIds);
     }
 
     /**
@@ -82,6 +86,7 @@ public class PageStreamTrunk extends Page {
         data.reset();
         parent = data.readInt();
         data.readByte();
+        logKey = data.readInt();
         nextTrunk = data.readInt();
         pageCount = data.readShortInt();
         pageIds = new int[pageCount];
@@ -120,6 +125,7 @@ public class PageStreamTrunk extends Page {
         data = store.createData();
         data.writeInt(parent);
         data.writeByte((byte) Page.TYPE_STREAM_TRUNK);
+        data.writeInt(logKey);
         data.writeInt(nextTrunk);
         data.writeShortInt(pageCount);
         for (int i = 0; i < pageCount; i++) {
@@ -159,16 +165,13 @@ public class PageStreamTrunk extends Page {
      * @return the number of pages freed
      */
     int free() throws SQLException {
-        Data empty = store.createData();
         store.freePage(getPos(), false, null);
         int freed = 1;
         for (int i = 0; i < pageCount; i++) {
             int page = pageIds[i];
             store.freePage(page, false, null);
             freed++;
-            store.writePage(page, empty);
         }
-        store.writePage(getPos(), empty);
         return freed;
     }
 
@@ -199,6 +202,10 @@ public class PageStreamTrunk extends Page {
 
     public void moveTo(Session session, int newPos) {
         // not required
+    }
+
+    int getLogKey() {
+        return logKey;
     }
 
 }

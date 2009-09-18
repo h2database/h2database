@@ -22,6 +22,7 @@ import org.h2.util.MemoryUtils;
  * A leaf page that contains data of one or multiple rows. Format:
  * <ul>
  * <li>page type: byte</li>
+ * <li>checksum: short</li>
  * <li>parent page id (0 for root): int</li>
  * <li>table id: varInt</li>
  * <li>count of all children (-1 if not known): int</li>
@@ -86,6 +87,7 @@ public class PageDataNode extends PageData {
     private void read() throws SQLException {
         data.reset();
         data.readByte();
+        data.readShortInt();
         this.parentPageId = data.readInt();
         int indexId = data.readVarInt();
         if (indexId != index.getId()) {
@@ -313,6 +315,7 @@ public class PageDataNode extends PageData {
 
     private void writeHead() {
         data.writeByte((byte) Page.TYPE_DATA_NODE);
+        data.writeShortInt(0);
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
         data.writeInt(rowCountStored);

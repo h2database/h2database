@@ -60,7 +60,6 @@ import org.h2.util.StatementBuilder;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 
@@ -825,27 +824,22 @@ public class Recover extends Tool implements DataHandler {
                 s.reset();
                 store.seek(i * pageSize);
                 store.readFully(s.getBytes(), 0, pageSize);
-                int type = s.readByte();
+
+                CRC32 crc = new CRC32();
+                crc.update(s.getBytes(), 4, pageSize - 4);
+                int expected = (int) crc.getValue();
+                int got = s.readInt();
                 long writeCounter = s.readLong();
                 int key = s.readInt();
                 int firstTrunkPage = s.readInt();
                 int firstDataPage = s.readInt();
-                int start = s.length();
-                int got = s.readInt();
-                s.setPos(start);
-                s.writeInt(0);
-                CRC32 crc = new CRC32();
-                crc.update(s.getBytes(), 0, pageSize);
-                int expected = (int) crc.getValue();
                 if (expected == got) {
-                    if (logFirstTrunkPage == 0) {
-                        logKey = key;
-                        logFirstTrunkPage = firstTrunkPage;
-                        logFirstDataPage = firstDataPage;
-                    }
+                    logKey = key;
+                    logFirstTrunkPage = firstTrunkPage;
+                    logFirstDataPage = firstDataPage;
                 }
                 writer.println("-- head " + i +
-                        ": type: " + type + " writeCounter: " + writeCounter +
+                        ": writeCounter: " + writeCounter +
                         " log key: " + key + " trunk: " + firstTrunkPage + "/" + firstDataPage +
                         " crc expected " + expected +
                         " got " + got + " (" + (expected == got ? "ok" : "different") + ")");
@@ -855,7 +849,7 @@ public class Recover extends Tool implements DataHandler {
 
             s = Data.create(this, pageSize);
             int free = 0;
-            for (long page = 3; page < pageCount; page++) {
+            for (int page = 3; page < pageCount; page++) {
                 s = Data.create(this, pageSize);
                 store.seek(page * pageSize);
                 store.readFully(s.getBytes(), 0, pageSize);
@@ -868,6 +862,10 @@ public class Recover extends Tool implements DataHandler {
                 }
                 boolean last = (type & Page.FLAG_LAST) != 0;
                 type &= ~Page.FLAG_LAST;
+                if (!PageStore.checksumTest(s.getBytes(), page, pageSize)) {
+                    writer.println("-- ERROR: page " + page + " checksum mismatch");
+                }
+                s.readShortInt();
                 switch (type) {
                 // type 1
                 case Page.TYPE_DATA_LEAF: {
@@ -938,7 +936,7 @@ public class Recover extends Tool implements DataHandler {
                     writer.println("-- page " + page + ": log data");
                     break;
                 default:
-                    writer.println("-- page " + page + ": ERROR unknown type " + type);
+                    writer.println("-- ERROR page " + page + " unknown type " + type);
                     break;
                 }
             }
@@ -1240,10 +1238,10 @@ public class Recover extends Tool implements DataHandler {
         for (int i = 0; i < entryCount; i++) {
             int off = offsets[i];
             s.setPos(off);
-            int pos = s.readInt();
+            long key = s.readVarLong();
             Value data;
             if (positionOnly) {
-                data = ValueInt.get(pos);
+                data = ValueLong.get(key);
             } else {
                 try {
                     data = s.readValue();
@@ -1252,7 +1250,7 @@ public class Recover extends Tool implements DataHandler {
                     continue;
                 }
             }
-            writer.println("-- [" + i + "] pos: " + pos + " data: " + data);
+            writer.println("-- [" + i + "] key: " + key + " data: " + data);
         }
     }
 

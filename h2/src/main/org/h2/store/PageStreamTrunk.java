@@ -14,16 +14,17 @@ import org.h2.engine.Session;
  * page number of the next trunk. The format is:
  * <ul>
  * <li>page type: byte (0)</li>
- * <li>previous trunk page, or 0 if none: int (1-4)</li>
- * <li>log key: int (5-8)</li>
- * <li>next trunk page: int (9-12)</li>
- * <li>number of pages: short (13-14)</li>
- * <li>page ids (15-)</li>
+ * <li>checksum: short (1-2)</li>
+ * <li>previous trunk page, or 0 if none: int (3-6)</li>
+ * <li>log key: int (7-10)</li>
+ * <li>next trunk page: int (11-14)</li>
+ * <li>number of pages: short (15-16)</li>
+ * <li>page ids (17-)</li>
  * </ul>
  */
 public class PageStreamTrunk extends Page {
 
-    private static final int DATA_START = 15;
+    private static final int DATA_START = 17;
 
     private final PageStore store;
     private int parent;
@@ -85,6 +86,7 @@ public class PageStreamTrunk extends Page {
     private void read() {
         data.reset();
         data.readByte();
+        data.readShortInt();
         parent = data.readInt();
         logKey = data.readInt();
         nextTrunk = data.readInt();
@@ -124,6 +126,7 @@ public class PageStreamTrunk extends Page {
     public void write(DataPage buff) throws SQLException {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_STREAM_TRUNK);
+        data.writeShortInt(0);
         data.writeInt(parent);
         data.writeInt(logKey);
         data.writeInt(nextTrunk);

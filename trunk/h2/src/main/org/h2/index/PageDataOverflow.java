@@ -18,8 +18,8 @@ import org.h2.store.PageStore;
 /**
  * Overflow data for a leaf page. Format:
  * <ul>
- * <li>parent page id (0 for root): int (0-3)</li>
- * <li>page type: byte (4)</li>
+ * <li>page type: byte (0)</li>
+ * <li>parent page id (0 for root): int (1-4)</li>
  * <li>more data: next overflow page id: int (5-8)</li>
  * <li>last remaining size: short (5-6)</li>
  * <li>data (9-/7-)</li>
@@ -108,8 +108,8 @@ public class PageDataOverflow extends Page {
     static PageDataOverflow create(PageStore store, int page, int type, int parentPageId, int next, Data all, int offset, int size) {
         Data data = store.createData();
         PageDataOverflow p = new PageDataOverflow(store, page, data);
-        data.writeInt(parentPageId);
         data.writeByte((byte) type);
+        data.writeInt(parentPageId);
         if (type == Page.TYPE_DATA_OVERFLOW) {
             data.writeInt(next);
         } else {
@@ -129,8 +129,8 @@ public class PageDataOverflow extends Page {
      */
     private void read() throws SQLException {
         data.reset();
-        parentPageId = data.readInt();
         type = data.readByte();
+        parentPageId = data.readInt();
         if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
             size = data.readShortInt();
             nextPage = 0;
@@ -168,8 +168,8 @@ public class PageDataOverflow extends Page {
     }
 
     private void writeHead() {
-        data.writeInt(parentPageId);
         data.writeByte((byte) type);
+        data.writeInt(parentPageId);
     }
 
     public void write(DataPage buff) throws SQLException {

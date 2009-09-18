@@ -13,8 +13,8 @@ import org.h2.engine.Session;
  * A trunk page of a stream. It contains the page numbers of the stream, and the
  * page number of the next trunk. The format is:
  * <ul>
- * <li>previous trunk page, or 0 if none: int (0-3)</li>
- * <li>page type: byte (4)</li>
+ * <li>page type: byte (0)</li>
+ * <li>previous trunk page, or 0 if none: int (1-4)</li>
  * <li>log key: int (5-8)</li>
  * <li>next trunk page: int (9-12)</li>
  * <li>number of pages: short (13-14)</li>
@@ -84,8 +84,8 @@ public class PageStreamTrunk extends Page {
      */
     private void read() {
         data.reset();
-        parent = data.readInt();
         data.readByte();
+        parent = data.readInt();
         logKey = data.readInt();
         nextTrunk = data.readInt();
         pageCount = data.readShortInt();
@@ -123,8 +123,8 @@ public class PageStreamTrunk extends Page {
 
     public void write(DataPage buff) throws SQLException {
         data = store.createData();
-        data.writeInt(parent);
         data.writeByte((byte) Page.TYPE_STREAM_TRUNK);
+        data.writeInt(parent);
         data.writeInt(logKey);
         data.writeInt(nextTrunk);
         data.writeShortInt(pageCount);

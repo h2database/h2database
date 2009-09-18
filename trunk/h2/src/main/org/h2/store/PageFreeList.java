@@ -6,23 +6,20 @@
 package org.h2.store;
 
 import java.sql.SQLException;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
-import org.h2.message.Message;
 import org.h2.util.BitField;
 
 /**
  * The list of free pages of a page store. The format of a free list trunk page
  * is:
  * <ul>
- * <li>parent page id (always 0): int</li>
  * <li>page type: byte</li>
- * <li>data (5-)</li>
+ * <li>data (1-)</li>
  * </ul>
  */
 public class PageFreeList extends Page {
 
-    private static final int DATA_START = 5;
+    private static final int DATA_START = 1;
 
     private final PageStore store;
     private final BitField used = new BitField();
@@ -45,7 +42,7 @@ public class PageFreeList extends Page {
      * @param pageId the page id
      * @return the page
      */
-    static PageFreeList read(PageStore store, Data data, int pageId) throws SQLException {
+    static PageFreeList read(PageStore store, Data data, int pageId) {
         PageFreeList p = new PageFreeList(store, pageId);
         p.data = data;
         p.read();
@@ -140,14 +137,9 @@ public class PageFreeList extends Page {
     /**
      * Read the page from the disk.
      */
-    private void read() throws SQLException {
+    private void read() {
         data.reset();
-        int p = data.readInt();
-        int t = data.readByte();
-        if (p != 0) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "pos:" + getPos() + " type:" + t + " parent:" + p
-                    + " expected type:" + Page.TYPE_FREE_LIST);
-        }
+        data.readByte();
         for (int i = 0; i < pageCount; i += 8) {
             used.setByte(i, data.readByte() & 255);
         }
@@ -160,9 +152,7 @@ public class PageFreeList extends Page {
 
     public void write(DataPage buff) throws SQLException {
         data = store.createData();
-        data.writeInt(0);
-        int type = Page.TYPE_FREE_LIST;
-        data.writeByte((byte) type);
+        data.writeByte((byte) Page.TYPE_FREE_LIST);
         for (int i = 0; i < pageCount; i += 8) {
             data.writeByte((byte) used.getByte(i));
         }

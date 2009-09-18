@@ -21,8 +21,8 @@ import org.h2.store.PageStore;
 /**
  * A leaf page that contains data of one or multiple rows. Format:
  * <ul>
- * <li>parent page id (0 for root): int</li>
  * <li>page type: byte</li>
+ * <li>parent page id (0 for root): int</li>
  * <li>table id: varInt</li>
  * <li>column count: varInt</li>
  * <li>entry count: short</li>
@@ -104,8 +104,8 @@ public class PageDataLeaf extends PageData {
 
     private void read() throws SQLException {
         data.reset();
-        this.parentPageId = data.readInt();
         int type = data.readByte();
+        this.parentPageId = data.readInt();
         int tableId = data.readVarInt();
         if (tableId != index.getId()) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
@@ -416,7 +416,6 @@ public class PageDataLeaf extends PageData {
     }
 
     private void writeHead() {
-        data.writeInt(parentPageId);
         int type;
         if (firstOverflowPageId == 0) {
             type = Page.TYPE_DATA_LEAF | Page.FLAG_LAST;
@@ -424,6 +423,7 @@ public class PageDataLeaf extends PageData {
             type = Page.TYPE_DATA_LEAF;
         }
         data.writeByte((byte) type);
+        data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
         data.writeVarInt(columnCount);
         data.writeShortInt(entryCount);

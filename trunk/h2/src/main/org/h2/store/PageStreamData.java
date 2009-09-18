@@ -14,25 +14,25 @@ import org.h2.engine.Session;
  * <ul>
  * <li>the trunk page id: int (0-3)</li>
  * <li>page type: byte (4)</li>
- * <li>the number of bytes used: short (5-6)</li>
+ * <li>log key: int (5-8)</li>
  * <li>data (9-)</li>
  * </ul>
  */
 public class PageStreamData extends Page {
 
-    private static final int LENGTH_START = 5;
     private static final int DATA_START = 9;
 
     private final PageStore store;
     private int trunk;
+    private int logKey;
     private Data data;
     private int remaining;
-    private int length;
 
-    private PageStreamData(PageStore store, int pageId, int trunk) {
+    private PageStreamData(PageStore store, int pageId, int trunk, int logKey) {
         setPos(pageId);
         this.store = store;
         this.trunk = trunk;
+        this.logKey = logKey;
     }
 
     /**
@@ -44,7 +44,7 @@ public class PageStreamData extends Page {
      * @return the page
      */
     static PageStreamData read(PageStore store, Data data, int pageId) {
-        PageStreamData p = new PageStreamData(store, pageId, 0);
+        PageStreamData p = new PageStreamData(store, pageId, 0, 0);
         p.data = data;
         p.read();
         return p;
@@ -56,10 +56,11 @@ public class PageStreamData extends Page {
      * @param store the page store
      * @param pageId the page id
      * @param trunk the trunk page
+     * @param logKey the log key
      * @return the page
      */
-    static PageStreamData create(PageStore store, int pageId, int trunk) {
-        return new PageStreamData(store, pageId, trunk);
+    static PageStreamData create(PageStore store, int pageId, int trunk, int logKey) {
+        return new PageStreamData(store, pageId, trunk, logKey);
     }
 
     /**
@@ -68,9 +69,8 @@ public class PageStreamData extends Page {
     private void read() {
         data.reset();
         trunk = data.readInt();
-        data.setPos(4);
         data.readByte();
-        length = data.readInt();
+        logKey = data.readInt();
     }
 
     public int getByteCount(DataPage dummy) {
@@ -84,9 +84,8 @@ public class PageStreamData extends Page {
         data = store.createData();
         data.writeInt(trunk);
         data.writeByte((byte) Page.TYPE_STREAM_DATA);
-        data.writeInt(0);
+        data.writeInt(logKey);
         remaining = store.getPageSize() - data.length();
-        length = 0;
     }
 
     /**
@@ -100,13 +99,11 @@ public class PageStreamData extends Page {
     int write(byte[] buff, int offset, int len) {
         int max = Math.min(remaining, len);
         data.write(buff, offset, max);
-        length += max;
         remaining -= max;
         return max;
     }
 
     public void write(DataPage buff) throws SQLException {
-        data.setInt(LENGTH_START, length);
         store.writePage(getPos(), data);
     }
 
@@ -118,10 +115,6 @@ public class PageStreamData extends Page {
      */
     static int getCapacity(int pageSize) {
         return pageSize - DATA_START;
-    }
-
-    int getLength() {
-        return length;
     }
 
     /**
@@ -158,11 +151,19 @@ public class PageStreamData extends Page {
      */
     void initRead() {
         data.setPos(DATA_START);
-        remaining = length;
+        remaining = store.getPageSize() - DATA_START;
     }
 
     public void moveTo(Session session, int newPos) {
         // not required
+    }
+
+    int getLogKey() {
+        return logKey;
+    }
+
+    public String toString() {
+        return "[" + getPos() + "] stream data pos:" + data.length() + " remaining:" + remaining;
     }
 
 }

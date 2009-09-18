@@ -22,12 +22,12 @@ import org.h2.index.IndexType;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageBtreeLeaf;
 import org.h2.index.PageBtreeNode;
+import org.h2.index.PageDataIndex;
 import org.h2.index.PageDataLeaf;
 import org.h2.index.PageDataNode;
 import org.h2.index.PageDataOverflow;
 import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
-import org.h2.index.PageDataIndex;
 import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
@@ -69,18 +69,23 @@ import org.h2.value.ValueString;
  * </ul>
  * The format of page 1 and 2 is:
  * <ul>
- * <li>0-7: write counter (incremented each time the header changes)</li>
- * <li>8-11: log trunk page (0 for none)</li>
- * <li>12-15: log data page (0 for none)</li>
- * <li>16-23: checksum of bytes 0-15 (CRC32)</li>
+ * <li>page type: byte (0)</li>
+ * <li>write counter (incremented each time the header changes): long (1-8)</li>
+ * <li>log trunk key: int (9-12)</li>
+ * <li>log trunk page (0 for none): int (13-16)</li>
+ * <li>log data page (0 for none): int (17-20)</li>
+ * <li>CRC32 checksum of the page: int (20-23)</li>
  * </ul>
  * Page 3 contains the first free list page.
  * Page 4 contains the meta table root page.
  */
 public class PageStore implements CacheWriter {
 
+    // TODO freed: truncate when decreasing size
     // TODO check commit delay
     // TODO do not trim large databases fully, only up to x seconds
+
+    // TODO use regular page type for page 1 and 2
 
     // TODO implement checksum; 0 for empty pages
     // TODO undo log: don't store empty space between head and data
@@ -164,7 +169,7 @@ public class PageStore implements CacheWriter {
     private int pageSize;
     private int pageSizeShift;
     private long writeCount;
-    private int logFirstTrunkPage, logFirstDataPage;
+    private int logKey, logFirstTrunkPage, logFirstDataPage;
 
     private Cache cache;
 
@@ -264,7 +269,6 @@ public class PageStore implements CacheWriter {
             } else {
                 openNew();
             }
-            // lastUsedPage = getFreeList().getLastUsed() + 1;
         } catch (SQLException e) {
             close();
             throw e;
@@ -301,7 +305,7 @@ public class PageStore implements CacheWriter {
         }
         readVariableHeader();
         log = new PageLog(this);
-        log.openForReading(logFirstTrunkPage, logFirstDataPage);
+        log.openForReading(logKey, logFirstTrunkPage, logFirstDataPage);
         recover();
         if (!database.isReadOnly()) {
             recoveryRunning = true;
@@ -384,7 +388,7 @@ public class PageStore implements CacheWriter {
         recoveryRunning = true;
         try {
             log.free();
-            setLogFirstPage(0, 0);
+            setLogFirstPage(0, 0, 0);
         } finally {
             recoveryRunning = false;
         }
@@ -443,7 +447,7 @@ public class PageStore implements CacheWriter {
         if (rec != null) {
             return (Page) rec;
         }
-        Data data = Data.create(database, pageSize);
+        Data data = createData();
         readPage(pageId, data);
         data.readInt();
         int type = data.readByte();
@@ -510,17 +514,17 @@ public class PageStore implements CacheWriter {
     private void switchLog() throws SQLException {
         trace.debug("switchLog");
         Session[] sessions = database.getSessions(true);
-        int firstUncommittedLog = log.getLogSectionId();
+        int firstUncommittedSection = log.getLogSectionId();
         for (int i = 0; i < sessions.length; i++) {
             Session session = sessions[i];
             int log = session.getFirstUncommittedLog();
             if (log != LogSystem.LOG_WRITTEN) {
-                if (log < firstUncommittedLog) {
-                    firstUncommittedLog = log;
+                if (log < firstUncommittedSection) {
+                    firstUncommittedSection = log;
                 }
             }
         }
-        log.removeUntil(firstUncommittedLog);
+        log.removeUntil(firstUncommittedSection);
     }
 
     private void readStaticHeader() throws SQLException {
@@ -544,22 +548,30 @@ public class PageStore implements CacheWriter {
     }
 
     private void readVariableHeader() throws SQLException {
-        Data page = Data.create(database, pageSize);
+        Data page = createData();
         for (int i = 1;; i++) {
             if (i == 3) {
                 throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
             }
             page.reset();
             readPage(i, page);
-            writeCount = page.readLong();
-            logFirstTrunkPage = page.readInt();
-            logFirstDataPage = page.readInt();
-            CRC32 crc = new CRC32();
-            crc.update(page.getBytes(), 0, page.length());
-            long expected = crc.getValue();
-            long got = page.readLong();
-            if (expected == got) {
-                break;
+            int type = page.readByte();
+            if (type == Page.TYPE_HEADER) {
+                writeCount = page.readLong();
+                logKey = page.readInt();
+                logFirstTrunkPage = page.readInt();
+                logFirstDataPage = page.readInt();
+                // read the CRC, then reset it to 0
+                int start = page.length();
+                int got = page.readInt();
+                page.setPos(start);
+                page.writeInt(0);
+                CRC32 crc = new CRC32();
+                crc.update(page.getBytes(), 0, pageSize);
+                int expected = (int) crc.getValue();
+                if (expected == got) {
+                    break;
+                }
             }
         }
     }
@@ -603,23 +615,30 @@ public class PageStore implements CacheWriter {
     /**
      * Set the trunk page and data page id of the log.
      *
+     * @param logKey the log key of the trunk page
      * @param trunkPageId the trunk page id
      * @param dataPageId the data page id
      */
-    void setLogFirstPage(int trunkPageId, int dataPageId) throws SQLException {
+    void setLogFirstPage(int logKey, int trunkPageId, int dataPageId) throws SQLException {
+        if (trace.isDebugEnabled()) {
+            trace.debug("setLogFirstPage key: " + logKey + " trunk: " + trunkPageId + " data: " + dataPageId);
+        }
+        this.logKey = logKey;
         this.logFirstTrunkPage = trunkPageId;
         this.logFirstDataPage = dataPageId;
         writeVariableHeader();
     }
 
     private void writeVariableHeader() throws SQLException {
-        Data page = Data.create(database, pageSize);
+        Data page = createData();
+        page.writeByte((byte) Page.TYPE_HEADER);
         page.writeLong(writeCount);
+        page.writeInt(logKey);
         page.writeInt(logFirstTrunkPage);
         page.writeInt(logFirstDataPage);
         CRC32 crc = new CRC32();
-        crc.update(page.getBytes(), 0, page.length());
-        page.writeLong(crc.getValue());
+        crc.update(page.getBytes(), 0, pageSize);
+        page.writeInt((int) crc.getValue());
         file.seek(pageSize);
         file.write(page.getBytes(), 0, pageSize);
         file.seek(pageSize + pageSize);
@@ -709,12 +728,12 @@ public class PageStore implements CacheWriter {
 
     private PageFreeList getFreeList(int i) throws SQLException {
         PageFreeList list = null;
-//        if (i < freeLists.size()) {
-//            list = freeLists.get(i);
-//            if (list != null) {
-//                return list;
-//            }
-//        }
+        if (i < freeLists.size()) {
+            list = freeLists.get(i);
+            if (list != null) {
+                return list;
+            }
+        }
         int p = PAGE_ID_FREE_LIST_ROOT + i * freeListPagesPerList;
         while (p >= pageCount) {
             increaseFileSize(INCREMENT_PAGES);
@@ -799,6 +818,9 @@ public class PageStore implements CacheWriter {
     }
 
     private void increaseFileSize(int increment) throws SQLException {
+        for (int i = pageCount; i < pageCount + increment; i++) {
+            freed.set(i);
+        }
         pageCount += increment;
         long newLength = (long) pageCount << pageSizeShift;
         file.setLength(newLength);

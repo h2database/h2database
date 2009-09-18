@@ -27,10 +27,13 @@ public class PageInputStream extends InputStream {
     private boolean endOfFile;
     private int remaining;
     private byte[] buffer = new byte[1];
+    private int logKey;
 
-    PageInputStream(PageStore store, int trunkPage, int dataPage) {
+    PageInputStream(PageStore store, int logKey, int trunkPage, int dataPage) {
         this.store = store;
         this.trace = store.getTrace();
+        // minus one, because we increment before reading the trunk page
+        this.logKey = logKey - 1;
         this.trunkNext = trunkPage;
         this.dataPage = dataPage;
     }
@@ -88,7 +91,10 @@ public class PageInputStream extends InputStream {
         while (true) {
             if (trunk == null) {
                 trunk = (PageStreamTrunk) store.getPage(trunkNext);
+                logKey++;
                 if (trunk == null) {
+                    throw new EOFException();
+                } else if (trunk.getLogKey() != logKey) {
                     throw new EOFException();
                 }
                 trunk.resetIndex();
@@ -110,9 +116,11 @@ public class PageInputStream extends InputStream {
         data = (PageStreamData) store.getPage(next);
         if (data == null) {
             throw new EOFException();
+        } else if (data.getLogKey() != logKey) {
+            throw new EOFException();
         }
         data.initRead();
-        remaining = data.getLength();
+        remaining = data.getRemaining();
     }
 
     /**

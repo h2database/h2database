@@ -35,19 +35,24 @@ public class PageOutputStream extends OutputStream {
     private boolean writing;
     private int pages;
     private boolean atEnd;
+    private int logKey;
 
     /**
      * Create a new page output stream.
      *
      * @param store the page store
      * @param trunkPage the first trunk page (already allocated)
+     * @param exclude the pages not to use
+     * @param logKey the log key of the first trunk page
      * @param atEnd whether only pages at the end of the file should be used
      */
-    public PageOutputStream(PageStore store, int trunkPage, BitField exclude, boolean atEnd) {
+    public PageOutputStream(PageStore store, int trunkPage, BitField exclude, int logKey, boolean atEnd) {
         this.trace = store.getTrace();
         this.store = store;
         this.trunkPageId = trunkPage;
         this.exclude = exclude;
+        // minus one, because we increment before creating a trunk page
+        this.logKey = logKey - 1;
         this.atEnd = atEnd;
     }
 
@@ -102,13 +107,14 @@ public class PageOutputStream extends OutputStream {
                 pageIds[i] = reservedPages.get(i);
             }
             trunkNext = reservedPages.get(len);
-            trunk = PageStreamTrunk.create(store, parent, trunkPageId, trunkNext, pageIds);
+            logKey++;
+            trunk = PageStreamTrunk.create(store, parent, trunkPageId, trunkNext, logKey, pageIds);
             pages++;
             trunk.write(null);
             reservedPages.removeRange(0, len + 1);
             nextData = trunk.getNextPageData();
         }
-        data = PageStreamData.create(store, nextData, trunk.getPos());
+        data = PageStreamData.create(store, nextData, trunk.getPos(), logKey);
         pages++;
         data.initWrite();
     }
@@ -145,7 +151,7 @@ public class PageOutputStream extends OutputStream {
     private void storePage() throws IOException {
         try {
             if (trace.isDebugEnabled()) {
-                trace.debug("pageOut.storePage " + data.getPos());
+                trace.debug("pageOut.storePage " + data);
             }
             data.write(null);
         } catch (SQLException e) {
@@ -193,6 +199,10 @@ public class PageOutputStream extends OutputStream {
      */
     void free(PageStreamTrunk t) throws SQLException {
         pages -= t.free();
+    }
+
+    int getCurrentLogKey() {
+        return trunk.getLogKey();
     }
 
 }

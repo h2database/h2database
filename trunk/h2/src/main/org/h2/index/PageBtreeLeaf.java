@@ -21,6 +21,7 @@ import org.h2.store.PageStore;
  * A b-tree leaf page that contains index data. Format:
  * <ul>
  * <li>page type: byte</li>
+ * <li>checksum: short</li>
  * <li>parent page id (0 for root): int</li>
  * <li>index id: varInt</li>
  * <li>entry count: short</li>
@@ -69,6 +70,7 @@ public class PageBtreeLeaf extends PageBtree {
     private void read() throws SQLException {
         data.reset();
         int type = data.readByte();
+        data.readShortInt();
         this.parentPageId = data.readInt();
         onlyPosition = (type & Page.FLAG_LAST) == 0;
         int indexId = data.readVarInt();
@@ -234,6 +236,7 @@ public class PageBtreeLeaf extends PageBtree {
 
     private void writeHead() {
         data.writeByte((byte) (Page.TYPE_BTREE_LEAF | (onlyPosition ? 0 : Page.FLAG_LAST)));
+        data.writeShortInt(0);
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
         data.writeShortInt(entryCount);

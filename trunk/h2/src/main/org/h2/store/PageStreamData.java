@@ -13,14 +13,15 @@ import org.h2.engine.Session;
  * A data page of a stream. The format is:
  * <ul>
  * <li>page type: byte (0)</li>
- * <li>the trunk page id: int (1-4)</li>
- * <li>log key: int (5-8)</li>
- * <li>data (9-)</li>
+ * <li>checksum: short (1-2)</li>
+ * <li>the trunk page id: int (3-6)</li>
+ * <li>log key: int (7-10)</li>
+ * <li>data (11-)</li>
  * </ul>
  */
 public class PageStreamData extends Page {
 
-    private static final int DATA_START = 9;
+    private static final int DATA_START = 11;
 
     private final PageStore store;
     private int trunk;
@@ -69,6 +70,7 @@ public class PageStreamData extends Page {
     private void read() {
         data.reset();
         data.readByte();
+        data.readShortInt();
         trunk = data.readInt();
         logKey = data.readInt();
     }
@@ -83,6 +85,7 @@ public class PageStreamData extends Page {
     void initWrite() {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_STREAM_DATA);
+        data.writeShortInt(0);
         data.writeInt(trunk);
         data.writeInt(logKey);
         remaining = store.getPageSize() - data.length();

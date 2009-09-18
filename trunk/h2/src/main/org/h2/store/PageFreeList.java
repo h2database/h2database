@@ -13,13 +13,14 @@ import org.h2.util.BitField;
  * The list of free pages of a page store. The format of a free list trunk page
  * is:
  * <ul>
- * <li>page type: byte</li>
- * <li>data (1-)</li>
+ * <li>page type: byte (0)</li>
+ * <li>checksum: short (1-2)</li>
+ * <li>data (3-)</li>
  * </ul>
  */
 public class PageFreeList extends Page {
 
-    private static final int DATA_START = 1;
+    private static final int DATA_START = 3;
 
     private final PageStore store;
     private final BitField used = new BitField();
@@ -140,6 +141,7 @@ public class PageFreeList extends Page {
     private void read() {
         data.reset();
         data.readByte();
+        data.readShortInt();
         for (int i = 0; i < pageCount; i += 8) {
             used.setByte(i, data.readByte() & 255);
         }
@@ -153,6 +155,7 @@ public class PageFreeList extends Page {
     public void write(DataPage buff) throws SQLException {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_FREE_LIST);
+        data.writeShortInt(0);
         for (int i = 0; i < pageCount; i += 8) {
             data.writeByte((byte) used.getByte(i));
         }

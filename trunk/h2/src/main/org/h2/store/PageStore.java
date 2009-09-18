@@ -69,19 +69,17 @@ import org.h2.value.ValueString;
  * </ul>
  * The format of page 1 and 2 is:
  * <ul>
- * <li>page type: byte (0)</li>
- * <li>write counter (incremented each time the header changes): long (1-8)</li>
- * <li>log trunk key: int (9-12)</li>
- * <li>log trunk page (0 for none): int (13-16)</li>
- * <li>log data page (0 for none): int (17-20)</li>
- * <li>CRC32 checksum of the page: int (20-23)</li>
+ * <li>CRC32 of the remaining data: int (0-3)</li>
+ * <li>write counter (incremented each time the header changes): long (4-11)</li>
+ * <li>log trunk key: int (12-15)</li>
+ * <li>log trunk page (0 for none): int (16-19)</li>
+ * <li>log data page (0 for none): int (20-23)</li>
  * </ul>
  * Page 3 contains the first free list page.
  * Page 4 contains the meta table root page.
  */
 public class PageStore implements CacheWriter {
 
-    // TODO implement checksum; 0 for empty pages
     // TODO test running out of disk space (using a special file system)
 
     // TODO utf-x: test if it's faster
@@ -455,11 +453,16 @@ public class PageStore implements CacheWriter {
         Data data = createData();
         readPage(pageId, data);
         int type = data.readByte();
+        if (type == Page.TYPE_EMPTY) {
+            return null;
+        }
+        data.readShortInt();
         data.readInt();
+        if (!checksumTest(data.getBytes(), pageId, pageSize)) {
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
+        }
         Page p;
         switch (type & ~Page.FLAG_LAST) {
-        case Page.TYPE_EMPTY:
-            return null;
         case Page.TYPE_FREE_LIST:
             p = PageFreeList.read(this, data, pageId);
             break;
@@ -560,23 +563,16 @@ public class PageStore implements CacheWriter {
             }
             page.reset();
             readPage(i, page);
-            int type = page.readByte();
-            if (type == Page.TYPE_HEADER) {
+            CRC32 crc = new CRC32();
+            crc.update(page.getBytes(), 4, pageSize - 4);
+            int expected = (int) crc.getValue();
+            int got = page.readInt();
+            if (expected == got) {
                 writeCount = page.readLong();
                 logKey = page.readInt();
                 logFirstTrunkPage = page.readInt();
                 logFirstDataPage = page.readInt();
-                // read the CRC, then reset it to 0
-                int start = page.length();
-                int got = page.readInt();
-                page.setPos(start);
-                page.writeInt(0);
-                CRC32 crc = new CRC32();
-                crc.update(page.getBytes(), 0, pageSize);
-                int expected = (int) crc.getValue();
-                if (expected == got) {
-                    break;
-                }
+                break;
             }
         }
     }
@@ -636,14 +632,14 @@ public class PageStore implements CacheWriter {
 
     private void writeVariableHeader() throws SQLException {
         Data page = createData();
-        page.writeByte((byte) Page.TYPE_HEADER);
+        page.writeInt(0);
         page.writeLong(writeCount);
         page.writeInt(logKey);
         page.writeInt(logFirstTrunkPage);
         page.writeInt(logFirstDataPage);
         CRC32 crc = new CRC32();
-        crc.update(page.getBytes(), 0, pageSize);
-        page.writeInt((int) crc.getValue());
+        crc.update(page.getBytes(), 4, pageSize - 4);
+        page.setInt(0, (int) crc.getValue());
         file.seek(pageSize);
         file.write(page.getBytes(), 0, pageSize);
         file.seek(pageSize + pageSize);
@@ -938,9 +934,11 @@ public class PageStore implements CacheWriter {
         if (pageId <= 0) {
             Message.throwInternalError("write to page " + pageId);
         }
+        byte[] bytes = data.getBytes();
+        checksumSet(bytes, pageId);
         synchronized (database) {
             file.seek((long) pageId << pageSizeShift);
-            file.write(data.getBytes(), 0, pageSize);
+            file.write(bytes, 0, pageSize);
             writeCount++;
         }
     }
@@ -1439,32 +1437,41 @@ public class PageStore implements CacheWriter {
         return cache;
     }
 
-    // TODO implement checksum
-//    private void updateChecksum(byte[] d, int pos) {
-//        int ps = pageSize;
-//        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
-//        s2 += s1 += d[1] & 255;
-//        s2 += s1 += d[(ps >> 1) - 1] & 255;
-//        s2 += s1 += d[ps >> 1] & 255;
-//        s2 += s1 += d[ps - 2] & 255;
-//        s2 += s1 += d[ps - 1] & 255;
-//        d[5] = (byte) (((s1 & 255) + (s1 >> 8)) ^ pos);
-//        d[6] = (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8));
-//    }
-//
-//    private void verifyChecksum(byte[] d, int pos) throws SQLException {
-//        int ps = pageSize;
-//        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
-//        s2 += s1 += d[1] & 255;
-//        s2 += s1 += d[(ps >> 1) - 1] & 255;
-//        s2 += s1 += d[ps >> 1] & 255;
-//        s2 += s1 += d[ps - 2] & 255;
-//        s2 += s1 += d[ps - 1] & 255;
-//        if (d[5] != (byte) (((s1 & 255) + (s1 >> 8)) ^ pos)
-//                || d[6] != (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8))) {
-//            throw Message.getSQLException(
-//                ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
-//        }
-//    }
+    private void checksumSet(byte[] d, int pageId) {
+        int ps = pageSize;
+        int type = d[0];
+        if (type == Page.TYPE_EMPTY) {
+            return;
+        }
+        int s1 = 255 + (type & 255), s2 = 255 + s1;
+        s2 += s1 += d[6] & 255;
+        s2 += s1 += d[(ps >> 1) - 1] & 255;
+        s2 += s1 += d[ps >> 1] & 255;
+        s2 += s1 += d[ps - 2] & 255;
+        s2 += s1 += d[ps - 1] & 255;
+        d[1] = (byte) (((s1 & 255) + (s1 >> 8)) ^ pageId);
+        d[2] = (byte) (((s2 & 255) + (s2 >> 8)) ^ (pageId >> 8));
+    }
+
+    /**
+     * Check if the stored checksum is correct
+     * @param d the data
+     * @param pageId the page id
+     * @return true if it is correct
+     */
+    public static boolean checksumTest(byte[] d, int pageId, int pageSize) {
+        int ps = pageSize;
+        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
+        s2 += s1 += d[6] & 255;
+        s2 += s1 += d[(ps >> 1) - 1] & 255;
+        s2 += s1 += d[ps >> 1] & 255;
+        s2 += s1 += d[ps - 2] & 255;
+        s2 += s1 += d[ps - 1] & 255;
+        if (d[1] != (byte) (((s1 & 255) + (s1 >> 8)) ^ pageId)
+                || d[2] != (byte) (((s2 & 255) + (s2 >> 8)) ^ (pageId >> 8))) {
+            return false;
+        }
+        return true;
+    }
 
 }

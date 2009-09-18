@@ -19,10 +19,11 @@ import org.h2.store.PageStore;
  * Overflow data for a leaf page. Format:
  * <ul>
  * <li>page type: byte (0)</li>
- * <li>parent page id (0 for root): int (1-4)</li>
- * <li>more data: next overflow page id: int (5-8)</li>
- * <li>last remaining size: short (5-6)</li>
- * <li>data (9-/7-)</li>
+ * <li>checksum: short (1-2)</li>
+ * <li>parent page id (0 for root): int (3-6)</li>
+ * <li>more data: next overflow page id: int (7-10)</li>
+ * <li>last remaining size: short (7-8)</li>
+ * <li>data (11-/9-)</li>
  * </ul>
  */
 public class PageDataOverflow extends Page {
@@ -30,14 +31,14 @@ public class PageDataOverflow extends Page {
     /**
      * The start of the data in the last overflow page.
      */
-    static final int START_LAST = 7;
+    static final int START_LAST = 9;
 
     /**
      * The start of the data in a overflow page that is not the last one.
      */
-    static final int START_MORE = 9;
+    static final int START_MORE = 11;
 
-    private static final int START_NEXT_OVERFLOW = 5;
+    private static final int START_NEXT_OVERFLOW = 7;
 
     /**
      * The page store.
@@ -130,6 +131,7 @@ public class PageDataOverflow extends Page {
     private void read() throws SQLException {
         data.reset();
         type = data.readByte();
+        data.readShortInt();
         parentPageId = data.readInt();
         if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
             size = data.readShortInt();
@@ -169,6 +171,7 @@ public class PageDataOverflow extends Page {
 
     private void writeHead() {
         data.writeByte((byte) type);
+        data.writeShortInt(0);
         data.writeInt(parentPageId);
     }
 

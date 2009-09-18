@@ -859,14 +859,10 @@ public class Recover extends Tool implements DataHandler {
                 s = Data.create(this, pageSize);
                 store.seek(page * pageSize);
                 store.readFully(s.getBytes(), 0, pageSize);
-                int parentPageId = s.readInt();
                 int type = s.readByte();
                 switch (type) {
                 case Page.TYPE_EMPTY:
                     pageTypeCount[type]++;
-                    if (parentPageId != 0) {
-                        writer.println("-- ERROR empty page with parent: " + parentPageId);
-                    }
                     emptyPages++;
                     continue;
                 }
@@ -876,20 +872,24 @@ public class Recover extends Tool implements DataHandler {
                 // type 1
                 case Page.TYPE_DATA_LEAF: {
                     pageTypeCount[type]++;
+                    int parentPageId = s.readInt();
                     setStorage(s.readVarInt());
                     int columnCount = s.readVarInt();
                     int entries = s.readShortInt();
-                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries + " columns: " + columnCount);
+                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " parent: " + parentPageId +
+                            " table: " + storageId + " entries: " + entries + " columns: " + columnCount);
                     dumpPageDataLeaf(writer, s, last, page, columnCount, entries);
                     break;
                 }
                 // type 2
                 case Page.TYPE_DATA_NODE: {
                     pageTypeCount[type]++;
+                    int parentPageId = s.readInt();
                     setStorage(s.readVarInt());
                     int rowCount = s.readInt();
                     int entries = s.readShortInt();
-                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " entries: " + entries + " rowCount: " + rowCount);
+                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " parent: " + parentPageId +
+                            " entries: " + entries + " rowCount: " + rowCount);
                     break;
                 }
                 // type 3
@@ -900,9 +900,11 @@ public class Recover extends Tool implements DataHandler {
                 // type 4
                 case Page.TYPE_BTREE_LEAF: {
                     pageTypeCount[type]++;
+                    int parentPageId = s.readInt();
                     setStorage(s.readVarInt());
                     int entries = s.readShortInt();
-                    writer.println("-- page " + page + ": b-tree leaf " + (last ? "(last)" : "") + " index: " + storageId + " entries: " + entries);
+                    writer.println("-- page " + page + ": b-tree leaf " + (last ? "(last)" : "") + " parent: " + parentPageId +
+                            " index: " + storageId + " entries: " + entries);
                     if (trace) {
                         dumpPageBtreeLeaf(writer, s, entries, !last);
                     }
@@ -911,8 +913,10 @@ public class Recover extends Tool implements DataHandler {
                 // type 5
                 case Page.TYPE_BTREE_NODE:
                     pageTypeCount[type]++;
+                    int parentPageId = s.readInt();
                     setStorage(s.readVarInt());
-                    writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : "") +  " index: " + storageId);
+                    writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : "") +  " parent: " + parentPageId +
+                            "index: " + storageId);
                     if (trace) {
                         dumpPageBtreeNode(writer, s, !last);
                     }
@@ -1107,8 +1111,8 @@ public class Recover extends Tool implements DataHandler {
                     store.seek((long) trunkPage * pageSize);
                     store.readFully(page.getBytes(), 0, pageSize);
                     page.reset();
-                    page.readInt();
                     int t = page.readByte();
+                    page.readInt();
                     if (t != Page.TYPE_STREAM_TRUNK) {
                         writer.println("-- eof  page: " +trunkPage + " type: " + t + " expected type: " + Page.TYPE_STREAM_TRUNK);
                         endOfFile = true;
@@ -1140,8 +1144,8 @@ public class Recover extends Tool implements DataHandler {
                 store.seek((long) nextPage * pageSize);
                 store.readFully(page.getBytes(), 0, pageSize);
                 page.reset();
-                int p = page.readInt();
                 int t = page.readByte();
+                int p = page.readInt();
                 int k = page.readInt();
                 if (t != Page.TYPE_STREAM_DATA) {
                     writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +

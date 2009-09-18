@@ -454,8 +454,8 @@ public class PageStore implements CacheWriter {
         }
         Data data = createData();
         readPage(pageId, data);
-        data.readInt();
         int type = data.readByte();
+        data.readInt();
         Page p;
         switch (type & ~Page.FLAG_LAST) {
         case Page.TYPE_EMPTY:

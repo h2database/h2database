@@ -21,8 +21,8 @@ import org.h2.util.MemoryUtils;
 /**
  * A leaf page that contains data of one or multiple rows. Format:
  * <ul>
- * <li>parent page id (0 for root): int</li>
  * <li>page type: byte</li>
+ * <li>parent page id (0 for root): int</li>
  * <li>table id: varInt</li>
  * <li>count of all children (-1 if not known): int</li>
  * <li>entry count: short</li>
@@ -85,8 +85,8 @@ public class PageDataNode extends PageData {
 
     private void read() throws SQLException {
         data.reset();
-        this.parentPageId = data.readInt();
         data.readByte();
+        this.parentPageId = data.readInt();
         int indexId = data.readVarInt();
         if (indexId != index.getId()) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
@@ -312,8 +312,8 @@ public class PageDataNode extends PageData {
     }
 
     private void writeHead() {
-        data.writeInt(parentPageId);
         data.writeByte((byte) Page.TYPE_DATA_NODE);
+        data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
         data.writeInt(rowCountStored);
         data.writeShortInt(entryCount);

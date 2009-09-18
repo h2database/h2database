@@ -81,17 +81,7 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO freed: truncate when decreasing size
-    // TODO check commit delay
-    // TODO do not trim large databases fully, only up to x seconds
-
-    // TODO use regular page type for page 1 and 2
-
     // TODO implement checksum; 0 for empty pages
-    // TODO undo log: don't store empty space between head and data
-    // TODO update: only log the key and changed values
-    // TODO maybe remove some parent pointers
-    // TODO index creation: use less space (ordered, split at insertion point)
     // TODO test running out of disk space (using a special file system)
 
     // TODO utf-x: test if it's faster
@@ -99,7 +89,9 @@ public class PageStore implements CacheWriter {
     // TODO optimization: try to avoid allocating a byte array per page
     // TODO optimization: check if calling Data.getValueLen slows things down
     // TODO order pages so that searching for a key only seeks forward
-
+    // TODO optimization: update: only log the key and changed values
+    // TODO maybe remove some parent pointers
+    // TODO index creation: use less space (ordered, split at insertion point)
     // TODO detect circles in linked lists
     // (input stream, free list, extend pages...)
     // at runtime and recovery
@@ -158,6 +150,9 @@ public class PageStore implements CacheWriter {
     private static final int META_TYPE_SCAN_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
+
+    private static final int MAX_COMACT_TIME = 2000;
+    private static final int MAX_COMACT_COUNT = Integer.MAX_VALUE;
 
     private static final SearchRow[] EMPTY_SEARCH_ROW = new SearchRow[0];
 
@@ -379,9 +374,15 @@ public class PageStore implements CacheWriter {
         } finally {
             recoveryRunning = false;
         }
-        int maxMove = Integer.MAX_VALUE;
+        long start = System.currentTimeMillis();
+        int maxCompactTime = MAX_COMACT_TIME;
+        int maxMove = MAX_COMACT_COUNT;
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x--, j++) {
             compact(x);
+            long now = System.currentTimeMillis();
+            if (now > start + maxCompactTime) {
+                break;
+            }
         }
         writeBack();
         // truncate the log
@@ -399,7 +400,11 @@ public class PageStore implements CacheWriter {
                 break;
             }
         }
-        pageCount = lastUsed + 1;
+        int newPageCount = lastUsed + 1;
+        if (newPageCount < pageCount) {
+            freed.setRange(newPageCount, pageCount - newPageCount, false);
+        }
+        pageCount = newPageCount;
         // the easiest way to remove superfluous entries
         freeLists.clear();
         trace.debug("pageCount:" + pageCount);

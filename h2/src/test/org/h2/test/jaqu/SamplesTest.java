@@ -27,6 +27,7 @@ import org.h2.test.TestBase;
  * no more SQL injection.</p>
  */
 public class SamplesTest extends TestBase {
+
     /**
      * This object represents a database (actually a connection to the database).
      */
@@ -140,7 +141,6 @@ public class SamplesTest extends TestBase {
         assertEquals("[Northwoods Cranberry Sauce: 6, Mishi Kobe Niku: 29, Ikura: 31]",
                 expensiveInStockProducts.toString());
     }
-
 
     private void testWhereSimple4() {
 

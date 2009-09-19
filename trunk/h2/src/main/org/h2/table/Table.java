@@ -382,7 +382,7 @@ public abstract class Table extends SchemaObjectBase {
         // remove the old rows
         int rowScanCount = 0;
         for (rows.reset(); rows.hasNext();) {
-            if ((rowScanCount++ & 127) == 0) {
+            if ((++rowScanCount & 127) == 0) {
                 prepared.checkCanceled();
             }
             Row o = rows.next();
@@ -392,7 +392,7 @@ public abstract class Table extends SchemaObjectBase {
         }
         // add the new rows
         for (rows.reset(); rows.hasNext();) {
-            if ((rowScanCount++ & 127) == 0) {
+            if ((++rowScanCount & 127) == 0) {
                 prepared.checkCanceled();
             }
             rows.next();

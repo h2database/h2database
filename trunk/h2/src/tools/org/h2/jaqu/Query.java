@@ -11,12 +11,10 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
-
 import org.h2.jaqu.util.ClassReader;
 import org.h2.jaqu.util.Utils;
-//## Java 1.5 end ##
 
 /**
  * This class represents a query.
@@ -30,7 +28,7 @@ public class Query<T> {
     private SelectTable<T> from;
     private ArrayList<Token> conditions = Utils.newArrayList();
     private ArrayList<SelectTable< ? >> joins = Utils.newArrayList();
-    private final HashMap<Object, SelectColumn<T>> aliasMap = Utils.newHashMap();
+    private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = Utils.newIdentityHashMap();
     private ArrayList<OrderExpression<T>> orderByList = Utils.newArrayList();
     private Object[] groupByExpressions;
 

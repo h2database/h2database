@@ -68,6 +68,13 @@ public class TableData extends Table implements RecordReader {
     private boolean containsLargeObject;
     private PageDataIndex mainIndex;
 
+    /**
+     * True if one thread ever was waiting to lock this table. This is to avoid
+     * calling notifyAll if no session was ever waiting to lock this table. If
+     * set, the flag stays. In theory, it could be reset, however not sure when.
+     */
+    private boolean waitForLock;
+
     public TableData(CreateTableData data) throws SQLException {
         super(data.schema, data.id, data.tableName, data.persistIndexes, data.persistData);
         Column[] cols = new Column[data.columns.size()];
@@ -507,6 +514,7 @@ public class TableData extends Table implements RecordReader {
                 if (sleep == 0) {
                     sleep = 1;
                 }
+                waitForLock = true;
                 database.wait(sleep);
             } catch (InterruptedException e) {
                 // ignore
@@ -643,7 +651,7 @@ public class TableData extends Table implements RecordReader {
             // TODO lock: maybe we need we fifo-queue to make sure nobody
             // starves. check what other databases do
             synchronized (database) {
-                if (database.getSessionCount() > 1) {
+                if (database.getSessionCount() > 1 && waitForLock) {
                     database.notifyAll();
                 }
             }

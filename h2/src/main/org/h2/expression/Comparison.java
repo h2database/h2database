@@ -227,11 +227,15 @@ public class Comparison extends Condition {
             }
             return ValueBoolean.get(result);
         }
-        l = l.convertTo(dataType);
-        Value r = right.getValue(session).convertTo(dataType);
-        if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+        if (l == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
+        Value r = right.getValue(session);
+        if (r == ValueNull.INSTANCE) {
+            return ValueNull.INSTANCE;
+        }
+        l = l.convertTo(dataType);
+        r = r.convertTo(dataType);
         boolean result = compareNotNull(database, l, r, compareType);
         return ValueBoolean.get(result);
     }

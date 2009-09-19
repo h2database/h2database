@@ -64,7 +64,7 @@ public class Delete extends Prepared {
             }
             int rowScanCount = 0;
             for (rows.reset(); rows.hasNext();) {
-                if ((rowScanCount++ & 127) == 0) {
+                if ((++rowScanCount & 127) == 0) {
                     checkCanceled();
                 }
                 Row row = rows.next();

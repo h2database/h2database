@@ -345,7 +345,7 @@ public abstract class Prepared {
      * @param rowNumber the row number
      */
     protected void setCurrentRowNumber(int rowNumber) throws SQLException {
-        if ((rowScanCount++ & 127) == 0) {
+        if ((++rowScanCount & 127) == 0) {
             checkCanceled();
         }
         this.currentRowNumber = rowNumber;

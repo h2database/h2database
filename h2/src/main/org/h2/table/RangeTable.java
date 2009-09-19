@@ -107,7 +107,7 @@ public class RangeTable extends Table {
     }
 
     public long getRowCount(Session session) throws SQLException {
-        return getMax(session) - getMin(session);
+        return Math.max(0, getMax(session) - getMin(session) + 1);
     }
 
     public String getTableType() {

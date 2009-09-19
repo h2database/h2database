@@ -11,6 +11,7 @@ import java.util.Properties;
 import org.h2.Driver;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.store.PageStore;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
@@ -295,8 +296,9 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-        int testRecoverToolProcessLog;
 /*
+
+javadoc: constructor parameters are not verified (PageOutputStream)
 
 System.setProperty("h2.optimizeInList", "true");
 System.setProperty("h2.optimizeOr", "true");
@@ -352,14 +354,15 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             test.pageStore = true;
             test.runTests();
             TestPerformance.main("-init", "-db", "1");
-            Recover.execute("data", null);
-            // RunScript.execute("jdbc:h2:data/test2", "sa1", "sa1", "data/test.h2.sql", null, false);
-            // Recover.execute("data", null);
+//            Recover.execute("data", null);
+//            RunScript.execute("jdbc:h2:data/test2",
+//                 "sa1", "sa1", "data/test.h2.sql", null, false);
+//            Recover.execute("data", null);
 
-            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
-            test.pageStore = false;
-            test.runTests();
-            TestPerformance.main("-init", "-db", "1");
+//            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
+//            test.pageStore = false;
+//            test.runTests();
+//            TestPerformance.main("-init", "-db", "1");
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
     }

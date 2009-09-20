@@ -110,6 +110,7 @@ public class PageDataOverflow extends Page {
         Data data = store.createData();
         PageDataOverflow p = new PageDataOverflow(store, page, data);
         data.writeByte((byte) type);
+        data.writeShortInt(0);
         data.writeInt(parentPageId);
         if (type == Page.TYPE_DATA_OVERFLOW) {
             data.writeInt(next);

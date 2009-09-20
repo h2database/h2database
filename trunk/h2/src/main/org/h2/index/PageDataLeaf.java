@@ -33,7 +33,7 @@ import org.h2.store.PageStore;
  * </ul>
  */
 public class PageDataLeaf extends PageData {
-    
+
     /**
      * The start of the data in the last overflow page.
      */
@@ -222,11 +222,6 @@ public class PageDataLeaf extends PageData {
             all.checkCapacity(data.length());
             all.write(data.getBytes(), 0, data.length());
             data.truncate(index.getPageStore().getPageSize());
-            // write the page now to disk, to avoid  problems
-            // when the page needs to be written before the overflow
-            // is written to disk (the cache first removes elements, 
-            // moves them in a write queue, and then writes them)
-            write(null);
             do {
                 int type, size, next;
                 if (remaining <= pageSize - PageDataOverflow.START_LAST) {
@@ -506,20 +501,6 @@ public class PageDataLeaf extends PageData {
 
     public int getMemorySize() {
         return index.getMemorySizePerPage();
-    }
-    
-    void setParentPageId(int id) {
-        // never reset the written flag not only for speed, but also
-        // because if would cause the page to be written again if
-        // it contains overflow, which would cause the data to be read,
-        // and that's not possible because the overflow page may be
-        // not in the cache but in the write queue already
-        if (written) {
-            data.setInt(START_PARENT, id);
-            this.parentPageId = id;
-        } else {
-            super.setParentPageId(id);
-        }
     }
 
 }

@@ -126,8 +126,11 @@ public class CacheLRU implements Cache {
 
     private void removeOld() throws SQLException {
         int i = 0;
+        int todoImplementInOtherCachesAsWell;
         ObjectArray<CacheObject> changed = ObjectArray.newInstance();
-        while (sizeMemory * 4 > maxSize * 3 && recordCount > Constants.CACHE_MIN_RECORDS) {
+        int mem = sizeMemory;
+        int rc = recordCount;
+        while (mem * 4 > maxSize * 3 && rc > Constants.CACHE_MIN_RECORDS) {
             i++;
             if (i == recordCount) {
                 writer.flushLog();
@@ -151,16 +154,23 @@ public class CacheLRU implements Cache {
                 addToFront(last);
                 continue;
             }
-            remove(last.getPos());
             if (last.isChanged()) {
                 changed.add(last);
+            } else {
+                remove(last.getPos());
             }
+            rc--;
+            mem -= last.getMemorySize();
         }
         if (changed.size() > 0) {
             CacheObject.sort(changed);
             for (i = 0; i < changed.size(); i++) {
                 CacheObject rec = changed.get(i);
                 writer.writeBack(rec);
+            }
+            for (i = 0; i < changed.size(); i++) {
+                CacheObject rec = changed.get(i);
+                remove(rec.getPos());
             }
         }
     }

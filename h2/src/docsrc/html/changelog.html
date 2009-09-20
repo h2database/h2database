@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 119: JaQu creates wrong WHERE condition on some inputs.
+<ul><li>The new page store mechanism is now alpha-level quality. The next release
+    will most likely be "1.2.120 beta" where this mode is enabled by default. To use
+    it right now, append ;PAGE_STORE=TRUE to the database URL. The file format
+    of this mode will probably not change any more.
+</li><li>Issue 119: JaQu creates wrong WHERE conditions on some inputs.
 </li><li>SELECT COUNT(*) FROM SYSTEM_RANGE(...) returned the wrong result. Fixed.
 </li><li>The Recover tool now also processes the log files, however applying those changes
     is still a manual process.

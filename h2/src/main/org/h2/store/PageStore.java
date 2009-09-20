@@ -149,8 +149,8 @@ public class PageStore implements CacheWriter {
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
 
-    private static final int MAX_COMACT_TIME = 2000;
-    private static final int MAX_COMACT_COUNT = Integer.MAX_VALUE;
+    private static final int MAX_COMPACT_TIME = 2000;
+    private static final int MAX_COMPACT_COUNT = Integer.MAX_VALUE;
 
     private static final SearchRow[] EMPTY_SEARCH_ROW = new SearchRow[0];
 
@@ -373,8 +373,8 @@ public class PageStore implements CacheWriter {
             recoveryRunning = false;
         }
         long start = System.currentTimeMillis();
-        int maxCompactTime = MAX_COMACT_TIME;
-        int maxMove = MAX_COMACT_COUNT;
+        int maxCompactTime = MAX_COMPACT_TIME;
+        int maxMove = MAX_COMPACT_COUNT;
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x--, j++) {
             compact(x);
             long now = System.currentTimeMillis();
@@ -1461,6 +1461,7 @@ public class PageStore implements CacheWriter {
      * Check if the stored checksum is correct
      * @param d the data
      * @param pageId the page id
+     * @param pageSize the page size
      * @return true if it is correct
      */
     public static boolean checksumTest(byte[] d, int pageId, int pageSize) {

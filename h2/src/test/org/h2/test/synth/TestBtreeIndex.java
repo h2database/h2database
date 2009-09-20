@@ -91,8 +91,11 @@ public class TestBtreeIndex extends TestBase {
         StringBuilder buff = new StringBuilder();
         for (int j = 0; j < prefixLength; j++) {
             buff.append("x");
+            if (buff.length() % 10 == 0) {
+                buff.append(buff.length());
+            }
         }
-        String prefix = buff.toString();
+        String prefix = buff.toString().substring(0, prefixLength);
         DeleteDbFiles.execute(baseDir, null, true);
         Connection conn = getConnection("index");
         try {
@@ -148,6 +151,17 @@ public class TestBtreeIndex extends TestBase {
             testCount = 0;
             ResultSet rs = stat.executeQuery("SELECT text FROM a ORDER BY text");
             ResultSet rs2 = conn.createStatement().executeQuery("SELECT text FROM a ORDER BY 'x' || text");
+
+//System.out.println("-----------");
+//while(rs.next()) {
+//    System.out.println(rs.getString(1));
+//}
+//System.out.println("-----------");
+//while(rs2.next()) {
+//    System.out.println(rs2.getString(1));
+//}
+//if (true) throw new Error("stop");
+//
             testCount = 0;
             while (rs.next() && rs2.next()) {
                 if (!rs.getString(1).equals(rs2.getString(1))) {

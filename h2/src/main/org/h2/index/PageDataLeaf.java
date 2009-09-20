@@ -21,9 +21,9 @@ import org.h2.store.PageStore;
 /**
  * A leaf page that contains data of one or multiple rows. Format:
  * <ul>
- * <li>page type: byte</li>
- * <li>checksum: short</li>
- * <li>parent page id (0 for root): int</li>
+ * <li>page type: byte (0)</li>
+ * <li>checksum: short (1-2)</li>
+ * <li>parent page id (0 for root): int (3-6)</li>
  * <li>table id: varInt</li>
  * <li>column count: varInt</li>
  * <li>entry count: short</li>
@@ -33,6 +33,11 @@ import org.h2.store.PageStore;
  * </ul>
  */
 public class PageDataLeaf extends PageData {
+    
+    /**
+     * The start of the data in the last overflow page.
+     */
+    static final int START_PARENT = 3;
 
     /**
      * The row offsets.
@@ -217,6 +222,11 @@ public class PageDataLeaf extends PageData {
             all.checkCapacity(data.length());
             all.write(data.getBytes(), 0, data.length());
             data.truncate(index.getPageStore().getPageSize());
+            // write the page now to disk, to avoid  problems
+            // when the page needs to be written before the overflow
+            // is written to disk (the cache first removes elements, 
+            // moves them in a write queue, and then writes them)
+            write(null);
             do {
                 int type, size, next;
                 if (remaining <= pageSize - PageDataOverflow.START_LAST) {
@@ -496,6 +506,20 @@ public class PageDataLeaf extends PageData {
 
     public int getMemorySize() {
         return index.getMemorySizePerPage();
+    }
+    
+    void setParentPageId(int id) {
+        // never reset the written flag not only for speed, but also
+        // because if would cause the page to be written again if
+        // it contains overflow, which would cause the data to be read,
+        // and that's not possible because the overflow page may be
+        // not in the cache but in the write queue already
+        if (written) {
+            data.setInt(START_PARENT, id);
+            this.parentPageId = id;
+        } else {
+            super.setParentPageId(id);
+        }
     }
 
 }

@@ -973,9 +973,16 @@ public class Recover extends Tool implements DataHandler {
             if (x < 0) {
                 break;
             }
-            if (x == PageLog.UNDO) {
+            if (x == PageLog.NOOP) {
+                // ignore
+            } else if (x == PageLog.UNDO) {
                 int pageId = in.readVarInt();
-                in.readFully(new byte[pageSize], 0, pageSize);
+                int size = in.readVarInt();
+                if (size == 0) {
+                    in.readFully(new byte[pageSize], 0, pageSize);
+                } else {
+                    in.readFully(new byte[size], 0, size);
+                }
                 writer.println("-- undo page " + pageId);
             } else if (x == PageLog.ADD) {
                 int sessionId = in.readVarInt();
@@ -1019,7 +1026,7 @@ public class Recover extends Tool implements DataHandler {
                 }
                 writer.println(buff);
             } else {
-                writer.println("-- end " + x);
+                writer.println("-- ERROR: unknown operation " + x);
                 break;
             }
         }
@@ -1101,7 +1108,7 @@ public class Recover extends Tool implements DataHandler {
                 return;
             }
             try {
-                if (dataPages.size() == 0) {
+                while (dataPages.size() == 0) {
                     if (trunkPage == 0) {
                         endOfFile = true;
                         return;
@@ -1109,19 +1116,25 @@ public class Recover extends Tool implements DataHandler {
                     store.seek((long) trunkPage * pageSize);
                     store.readFully(page.getBytes(), 0, pageSize);
                     page.reset();
-                    int t = page.readByte();
-                    page.readInt();
-                    if (t != Page.TYPE_STREAM_TRUNK) {
-                        writer.println("-- eof  page: " +trunkPage + " type: " + t + " expected type: " + Page.TYPE_STREAM_TRUNK);
+                    if (!PageStore.checksumTest(page.getBytes(), trunkPage, pageSize)) {
+                        writer.println("-- ERROR: checksum mismatch page: " +trunkPage);
                         endOfFile = true;
                         return;
                     }
-                    trunkPage = page.readInt();
+                    int t = page.readByte();
+                    page.readShortInt();
+                    if (t != Page.TYPE_STREAM_TRUNK) {
+                        writer.println("-- eof  page: " + trunkPage + " type: " + t + " expected type: " + Page.TYPE_STREAM_TRUNK);
+                        endOfFile = true;
+                        return;
+                    }
+                    page.readInt();
                     int key = page.readInt();
                     logKey++;
                     if (key != logKey) {
-                        writer.println("-- eof  page: " +trunkPage + " type: " + t + " expected key: " + logKey + " got: " + key);
+                        writer.println("-- eof  page: " + trunkPage + " type: " + t + " expected key: " + logKey + " got: " + key);
                     }
+                    trunkPage = page.readInt();
                     int pageCount = page.readShortInt();
                     for (int i = 0; i < pageCount; i++) {
                         int d = page.readInt();
@@ -1136,27 +1149,35 @@ public class Recover extends Tool implements DataHandler {
                         dataPages.add(d);
                     }
                 }
-                page.reset();
-                int nextPage = dataPages.get(0);
-                dataPages.remove(0);
-                store.seek((long) nextPage * pageSize);
-                store.readFully(page.getBytes(), 0, pageSize);
-                page.reset();
-                int t = page.readByte();
-                int p = page.readInt();
-                int k = page.readInt();
-                if (t != Page.TYPE_STREAM_DATA) {
-                    writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
-                            " expected type: " + Page.TYPE_STREAM_DATA);
-                    endOfFile = true;
-                    return;
-                } else if (k != logKey) {
-                    writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
-                            " expected key: " + logKey + " got: " + k);
-                    endOfFile = true;
-                    return;
+                if (dataPages.size() > 0) {
+                    page.reset();
+                    int nextPage = dataPages.get(0);
+                    dataPages.remove(0);
+                    store.seek((long) nextPage * pageSize);
+                    store.readFully(page.getBytes(), 0, pageSize);
+                    page.reset();
+                    if (!PageStore.checksumTest(page.getBytes(), nextPage, pageSize)) {
+                        writer.println("-- ERROR: checksum mismatch page: " +nextPage);
+                        endOfFile = true;
+                        return;
+                    }
+                    int t = page.readByte();
+                    page.readShortInt();
+                    int p = page.readInt();
+                    int k = page.readInt();
+                    if (t != Page.TYPE_STREAM_DATA) {
+                        writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
+                                " expected type: " + Page.TYPE_STREAM_DATA);
+                        endOfFile = true;
+                        return;
+                    } else if (k != logKey) {
+                        writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
+                                " expected key: " + logKey + " got: " + k);
+                        endOfFile = true;
+                        return;
+                    }
+                    remaining = pageSize - page.length();
                 }
-                remaining = page.readInt();
             } catch (SQLException e) {
                 throw Message.convertToIOException(e);
             }

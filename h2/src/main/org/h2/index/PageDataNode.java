@@ -21,9 +21,9 @@ import org.h2.util.MemoryUtils;
 /**
  * A leaf page that contains data of one or multiple rows. Format:
  * <ul>
- * <li>page type: byte</li>
- * <li>checksum: short</li>
- * <li>parent page id (0 for root): int</li>
+ * <li>page type: byte (0)</li>
+ * <li>checksum: short (1-2)</li>
+ * <li>parent page id (0 for root): int (3-6)</li>
  * <li>table id: varInt</li>
  * <li>count of all children (-1 if not known): int</li>
  * <li>entry count: short</li>

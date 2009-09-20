@@ -611,4 +611,4 @@ daload dstore saload anewarray tableswitch lushr ladd lshr lreturn acmpne
 locals multianewarray icmpne fneg faload ifeq decompiler zeroes forgot
 modern slight boost characteristics significantly gae vfs centrally ten
 approach risky getters suxxess gmb delegate delegating delegates collisions
-linkage superfluous
+linkage superfluous disallow scoop moebius inputs

@@ -967,6 +967,9 @@ public class PageStore implements CacheWriter {
         log.recover(PageLog.RECOVERY_STAGE_UNDO);
         if (reservedPages != null) {
             for (int r : reservedPages.keySet()) {
+                if (trace.isDebugEnabled()) {
+                    trace.debug("reserve " + r);
+                }
                 allocatePage(r);
             }
         }
@@ -1164,8 +1167,8 @@ public class PageStore implements CacheWriter {
 
     private void removeMeta(int logPos, Row row) throws SQLException {
         int id = row.getValue(0).getInt();
-        Index index = metaObjects.get(id);
-        int headPos = index.getHeadPos();
+        PageIndex index = (PageIndex) metaObjects.get(id);
+        int rootPageId = index.getRootPageId();
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex) {
             if (index.isTemporary()) {
@@ -1178,11 +1181,11 @@ public class PageStore implements CacheWriter {
         }
         index.remove(systemSession);
         metaObjects.remove(id);
-        if (reservedPages != null && reservedPages.containsKey(headPos)) {
+        if (reservedPages != null && reservedPages.containsKey(rootPageId)) {
             // re-allocate the page if it is used later on again
-            int latestPos = reservedPages.get(headPos);
+            int latestPos = reservedPages.get(rootPageId);
             if (latestPos > logPos) {
-                allocatePage(headPos);
+                allocatePage(rootPageId);
             }
         }
     }
@@ -1201,6 +1204,7 @@ public class PageStore implements CacheWriter {
             trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
         }
         if (redo && rootPageId != 0) {
+            // ensure the page is empty, but not used by regular data
             writePage(rootPageId, createData());
             allocatePage(rootPageId);
         }

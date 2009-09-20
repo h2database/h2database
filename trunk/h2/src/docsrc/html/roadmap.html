@@ -452,6 +452,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support reading sequences using DatabaseMetaData.getTables(null, null, null, new String[]{"SEQUENCE"}).
     See PostgreSQL.
 </li><li>Add option to enable TCP_NODELAY using Socket.setTcpNoDelay(true).
+</li><li>Maybe disallow = within database names (jdbc:h2:mem:MODE=DB2 means database name MODE=DB2).
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -197,4 +197,8 @@ public class PageFreeList extends Page {
         store.freePage(getPos(), true, data);
     }
 
+    public String toString() {
+        return "page [" + getPos() + "] freeList" + (full ? "full" : "");
+    }
+
 }

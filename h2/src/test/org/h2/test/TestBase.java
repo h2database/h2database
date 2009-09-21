@@ -254,7 +254,7 @@ public abstract class TestBase {
         if (config.mvcc && url.indexOf("MVCC=") < 0) {
             url += ";MVCC=TRUE";
         }
-        if (config.cache2Q) {
+        if (config.cache2Q && url.indexOf("CACHE_TYPE=") < 0) {
             url += ";CACHE_TYPE=TQ";
         }
         if (config.diskResult && admin) {

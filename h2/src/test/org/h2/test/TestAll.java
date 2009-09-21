@@ -299,7 +299,9 @@ java org.h2.test.TestAll timer
 
 /*
 
-test cacheTQ
+test linked table cache.patch
+
+mvcc merge problem
 
 javadoc: constructor parameters are not verified (PageOutputStream)
 
@@ -426,6 +428,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         diskResult = true;
         deleteIndex = true;
         traceLevelFile = 3;
+        cache2Q = true;
         throttle = 1;
         cipher = "XTEA";
         test();
@@ -434,6 +437,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         diskResult = false;
         deleteIndex = false;
         traceLevelFile = 1;
+        cache2Q = false;
         throttle = 0;
         cipher = null;
         test();
@@ -471,6 +475,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      * Run all tests with the current settings.
      */
     private void test() throws SQLException {
+//if(logMode != 2)         return;
+
+
         System.out.println();
         System.out.println("Test " + toString() + " (" + MemoryUtils.getMemoryUsed() + " KB used)");
         beforeTest();

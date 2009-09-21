@@ -1004,6 +1004,7 @@ public class PageStore implements CacheWriter {
         writeBack();
         // clear the cache because it contains pages with closed indexes
         cache.clear();
+        freeLists.clear();
         if (setReadOnly) {
             database.setReadOnly(true);
         }

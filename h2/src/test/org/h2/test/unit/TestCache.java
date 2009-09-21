@@ -12,12 +12,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
+import org.h2.message.Trace;
 import org.h2.test.TestBase;
+import org.h2.util.Cache;
+import org.h2.util.CacheLRU;
+import org.h2.util.CacheObject;
+import org.h2.util.CacheWriter;
 
 /**
  * Tests the cache.
  */
-public class TestCache extends TestBase {
+public class TestCache extends TestBase implements CacheWriter {
+
+    private String out;
 
     /**
      * Run just this test.
@@ -29,11 +36,67 @@ public class TestCache extends TestBase {
     }
 
     public void test() throws SQLException {
+        testCache(false);
+        testCache(true);
+        testCacheDb(false);
+        testCacheDb(true);
+    }
+
+    private void testCache(boolean lru) throws SQLException {
+        out = "";
+        Cache c = CacheLRU.getCache(this, lru ? "LRU" : "TQ", 16);
+        for (int i = 0; i < 20; i++) {
+            c.put(new Obj(i));
+        }
+        assertEquals(lru ? "0 1 2 3 " : "4 5 6 ", out);
+
+    }
+
+    /**
+     * A simple cache object
+     */
+    class Obj extends CacheObject {
+
+        Obj(int pos) {
+            setPos(pos);
+        }
+
+        public int getMemorySize() {
+            return 1024;
+        }
+
+        public boolean canRemove() {
+            return true;
+        }
+
+        public boolean isChanged() {
+            return true;
+        }
+
+        public String toString() {
+            return "[" + getPos() + "]";
+        }
+
+    }
+
+    public void flushLog() {
+        out += "flush ";
+    }
+
+    public Trace getTrace() {
+        return null;
+    }
+
+    public void writeBack(CacheObject entry) {
+        out += entry.getPos() + " ";
+    }
+
+    private void testCacheDb(boolean lru) throws SQLException {
         if (config.memory) {
             return;
         }
         deleteDb("cache");
-        Connection conn = getConnection("cache");
+        Connection conn = getConnection("cache;CACHE_TYPE=" + (lru ? "LRU" : "TQ"));
         Statement stat = conn.createStatement();
         stat.execute("SET CACHE_SIZE 1024");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");

@@ -126,11 +126,13 @@ public class CacheLRU implements Cache {
 
     private void removeOld() throws SQLException {
         int i = 0;
-        int todoImplementInOtherCachesAsWell;
         ObjectArray<CacheObject> changed = ObjectArray.newInstance();
         int mem = sizeMemory;
         int rc = recordCount;
+        CacheObject next = head.next;
         while (mem * 4 > maxSize * 3 && rc > Constants.CACHE_MIN_RECORDS) {
+            CacheObject check = next;
+            next = check.next;
             i++;
             if (i == recordCount) {
                 writer.flushLog();
@@ -142,35 +144,47 @@ public class CacheLRU implements Cache {
                 writer.getTrace().info("Cannot remove records, cache size too small?");
                 break;
             }
-            CacheObject last = head.next;
-            if (SysProperties.CHECK && last == head) {
+            if (SysProperties.CHECK && check == head) {
                 Message.throwInternalError("try to remove head");
             }
             // we are not allowed to remove it if the log is not yet written
             // (because we need to log before writing the data)
             // also, can't write it if the record is pinned
-            if (!last.canRemove()) {
-                removeFromLinkedList(last);
-                addToFront(last);
+            if (!check.canRemove()) {
+                removeFromLinkedList(check);
+                addToFront(check);
                 continue;
             }
-            if (last.isChanged()) {
-                changed.add(last);
-            } else {
-                remove(last.getPos());
-            }
             rc--;
-            mem -= last.getMemorySize();
+            mem -= check.getMemorySize();
+            if (check.isChanged()) {
+                changed.add(check);
+            } else {
+                remove(check.getPos());
+            }
         }
         if (changed.size() > 0) {
             CacheObject.sort(changed);
-            for (i = 0; i < changed.size(); i++) {
-                CacheObject rec = changed.get(i);
-                writer.writeBack(rec);
+            int max = maxSize;
+            try {
+                // temporary disable size checking,
+                // to avoid stack overflow
+                maxSize = Integer.MAX_VALUE;
+                for (i = 0; i < changed.size(); i++) {
+                    CacheObject rec = changed.get(i);
+                    writer.writeBack(rec);
+                }
+            } finally {
+                maxSize = max;
             }
             for (i = 0; i < changed.size(); i++) {
                 CacheObject rec = changed.get(i);
                 remove(rec.getPos());
+                if (SysProperties.CHECK) {
+                    if (rec.next != null) {
+                        throw Message.throwInternalError();
+                    }
+                }
             }
         }
     }

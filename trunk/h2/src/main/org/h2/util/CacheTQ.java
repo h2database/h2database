@@ -62,8 +62,8 @@ class CacheTQ implements Cache {
 
     private void recalculateMax() {
         maxMain = maxSize;
-        maxIn = maxSize * PERCENT_IN / 100;
-        maxOut = maxSize * PERCENT_OUT / 100;
+        maxIn = Math.max(1, maxSize * PERCENT_IN / 100);
+        maxOut = Math.max(1, maxSize * PERCENT_OUT / 100);
     }
 
     private void addToFront(CacheObject head, CacheObject rec) {
@@ -140,7 +140,9 @@ class CacheTQ implements Cache {
             } while (rec.getPos() != pos);
             last.chained = rec.chained;
         }
-        recordCount--;
+        if (!(rec instanceof CacheHead)) {
+            recordCount--;
+        }
         if (SysProperties.CHECK) {
             rec.chained = null;
         }
@@ -161,7 +163,7 @@ class CacheTQ implements Cache {
 
     private void removeOldIfRequired() throws SQLException {
         // a small method, to allow inlining
-        if ((sizeIn >= maxIn) || (sizeOut >= maxOut) || (sizeMain >= maxMain)) {
+        if ((sizeIn >= maxIn) || (sizeMain >= maxMain)) {
             removeOld();
         }
     }
@@ -169,66 +171,101 @@ class CacheTQ implements Cache {
     private void removeOld() throws SQLException {
         int i = 0;
         ObjectArray<CacheObject> changed = ObjectArray.newInstance();
-        while (((sizeIn * 4 > maxIn * 3) || (sizeOut * 4 > maxOut * 3) || (sizeMain * 4 > maxMain * 3))
-                && recordCount > Constants.CACHE_MIN_RECORDS) {
+        int si = sizeIn, sm = sizeMain, rc = recordCount;
+        CacheObject inNext = headIn.next, mainNext = headMain.next;
+        while (((si * 4 > maxIn * 3) || (sm * 4 > maxMain * 3))
+                && rc > Constants.CACHE_MIN_RECORDS) {
             i++;
-            if (i == recordCount) {
+            if (i == rc) {
                 writer.flushLog();
             }
-            if (i >= recordCount * 2) {
+            if (i >= rc * 2) {
                 // can't remove any record, because the log is not written yet
                 // hopefully this does not happen too much, but it could happen
                 // theoretically
                 writer.getTrace().info("Cannot remove records, cache size too small?");
                 break;
             }
-            if (sizeIn > maxIn) {
-                CacheObject r = headIn.next;
+            if (si > maxIn) {
+                CacheObject r = inNext;
+                inNext = r.next;
                 if (!r.canRemove()) {
                     removeFromList(r);
                     addToFront(headIn, r);
                     continue;
                 }
-                sizeIn -= r.getMemorySize();
-                int pos = r.getPos();
-                removeCacheObject(pos);
-                removeFromList(r);
+                rc--;
+                si -= r.getMemorySize();
                 if (r.isChanged()) {
                     changed.add(r);
+                } else {
+                    remove(r);
                 }
-                r = new CacheHead();
-                r.setPos(pos);
-                r.cacheQueue = OUT;
-                putCacheObject(r);
-                addToFront(headOut, r);
-                sizeOut++;
-                if (sizeOut >= maxOut) {
-                    r = headOut.next;
-                    sizeOut--;
-                    removeCacheObject(r.getPos());
-                    removeFromList(r);
-                }
-            } else if (sizeMain > 0) {
-                CacheObject r = headMain.next;
+            } else if (sm > 0) {
+                CacheObject r = mainNext;
+                mainNext = r.next;
                 if (!r.canRemove() && !(r instanceof CacheHead)) {
                     removeFromList(r);
                     addToFront(headMain, r);
                     continue;
                 }
-                sizeMain -= r.getMemorySize();
-                removeCacheObject(r.getPos());
-                removeFromList(r);
+                rc--;
+                sm -= r.getMemorySize();
                 if (r.isChanged()) {
                     changed.add(r);
+                } else {
+                    remove(r);
                 }
             }
         }
         if (changed.size() > 0) {
-            CacheObject.sort(changed);
+            int mm = maxMain;
+            int mi = maxIn;
+            try {
+                // temporary disable size checking,
+                // to avoid stack overflow
+                maxMain = Integer.MAX_VALUE;
+                maxIn = Integer.MAX_VALUE;
+                CacheObject.sort(changed);
+                for (i = 0; i < changed.size(); i++) {
+                    CacheObject rec = changed.get(i);
+                    writer.writeBack(rec);
+                }
+            } finally {
+                maxMain = mm;
+                maxIn = mi;
+            }
             for (i = 0; i < changed.size(); i++) {
                 CacheObject rec = changed.get(i);
-                writer.writeBack(rec);
+                remove(rec);
             }
+        }
+    }
+
+    private void remove(CacheObject r) {
+        int pos = r.getPos();
+        removeCacheObject(pos);
+        removeFromList(r);
+        if (r.cacheQueue == IN) {
+            // remove the record from the IN queue
+            sizeIn -= r.getMemorySize();
+            // replace it with an OUT record
+            r = new CacheHead();
+            r.setPos(pos);
+            r.cacheQueue = OUT;
+            putCacheObject(r);
+            addToFront(headOut, r);
+            sizeOut++;
+            while (sizeOut >= maxOut) {
+                r = headOut.next;
+                sizeOut--;
+                removeCacheObject(r.getPos());
+                removeFromList(r);
+            }
+        } else if (r.cacheQueue == MAIN) {
+            sizeMain -= r.getMemorySize();
+        } else {
+            throw Message.throwInternalError();
         }
     }
 
@@ -268,10 +305,21 @@ class CacheTQ implements Cache {
         int index = rec.getPos() & mask;
         rec.chained = values[index];
         values[index] = rec;
-        recordCount++;
+        if (!(rec instanceof CacheHead)) {
+            recordCount++;
+        }
     }
 
     public void put(CacheObject rec) throws SQLException {
+        if (SysProperties.CHECK) {
+            int pos = rec.getPos();
+            for (int i = 0; i < rec.getBlockCount(); i++) {
+                CacheObject old = find(pos + i);
+                if (old != null) {
+                    Message.throwInternalError("try to add a record twice pos:" + pos + " i:" + i);
+                }
+            }
+        }
         int pos = rec.getPos();
         CacheObject r = findCacheObject(pos);
         if (r != null) {

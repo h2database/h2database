@@ -16,6 +16,7 @@ import java.util.List;
 import org.h2.jaqu.util.ClassReader;
 import org.h2.jaqu.util.Utils;
 
+import org.h2.util.JdbcUtils;
 /**
  * This class represents a query.
  *
@@ -55,6 +56,8 @@ public class Query<T> {
             return value;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            JdbcUtils.closeSilently(rs);
         }
     }
 
@@ -95,6 +98,8 @@ public class Query<T> {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            JdbcUtils.closeSilently(rs);
         }
         return result;
     }
@@ -138,6 +143,8 @@ public class Query<T> {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            JdbcUtils.closeSilently(rs);
         }
         return result;
     }
@@ -159,6 +166,8 @@ public class Query<T> {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            JdbcUtils.closeSilently(rs);
         }
         return result;
     }

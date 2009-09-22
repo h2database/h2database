@@ -475,9 +475,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      * Run all tests with the current settings.
      */
     private void test() throws SQLException {
-//if(logMode != 2)         return;
-
-
         System.out.println();
         System.out.println("Test " + toString() + " (" + MemoryUtils.getMemoryUsed() + " KB used)");
         beforeTest();

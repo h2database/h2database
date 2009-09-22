@@ -190,8 +190,10 @@ class CacheTQ implements Cache {
                 CacheObject r = inNext;
                 inNext = r.next;
                 if (!r.canRemove()) {
-                    removeFromList(r);
-                    addToFront(headIn, r);
+                    if (r != headIn) {
+                        removeFromList(r);
+                        addToFront(headIn, r);
+                    }
                     continue;
                 }
                 rc--;

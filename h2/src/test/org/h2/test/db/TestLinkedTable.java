@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -44,6 +45,8 @@ public class TestLinkedTable extends TestBase {
         testLinkEmitUpdates();
         testLinkTable();
         testLinkTwoTables();
+        testCachingResults();
+
         deleteDb("linkedTable");
     }
 
@@ -458,4 +461,59 @@ public class TestLinkedTable extends TestBase {
         assertEquals("2.25", rs.getString("XDO"));
     }
 
+    private void testCachingResults() throws SQLException {
+        org.h2.Driver.load();
+        Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+
+        Statement sa = ca.createStatement();
+        Statement sb = cb.createStatement();
+        sa.execute("CREATE TABLE TEST(ID VARCHAR)");
+        sa.execute("INSERT INTO TEST (ID) VALUES('abc')");
+        sb.execute("CREATE LOCAL TEMPORARY LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
+
+        PreparedStatement paData = ca.prepareStatement("select id from TEST where id = ?");
+        PreparedStatement pbData = cb.prepareStatement("select id from T where id = ?");
+        PreparedStatement paCount = ca.prepareStatement("select count(*) from TEST");
+        PreparedStatement pbCount = cb.prepareStatement("select count(*) from T");
+
+        // Direct query => Result 1
+        testCachingResultsCheckResult(paData, 1, "abc");
+        testCachingResultsCheckResult(paCount, 1);
+
+        // Via linked table => Result 1
+        testCachingResultsCheckResult(pbData, 1, "abc");
+        testCachingResultsCheckResult(pbCount, 1);
+
+        sa.execute("INSERT INTO TEST (ID) VALUES('abc')");
+
+        // Direct query => Result 2
+        testCachingResultsCheckResult(paData, 2, "abc");
+        testCachingResultsCheckResult(paCount, 2);
+
+        // Via linked table => Result must be 2
+        testCachingResultsCheckResult(pbData, 2, "abc");
+        testCachingResultsCheckResult(pbCount, 2);
+
+        ca.close();
+        cb.close();
+    }
+
+    private void testCachingResultsCheckResult(PreparedStatement ps, int expected) throws SQLException {
+        ResultSet rs = ps.executeQuery();
+        rs.next();
+        assertEquals(expected, rs.getInt(1));
+    }
+
+    private void testCachingResultsCheckResult(PreparedStatement ps, int expected, String value) throws SQLException {
+        ps.setString(1, value);
+        ResultSet rs = ps.executeQuery();
+        int counter = 0;
+        while (rs.next()) {
+            counter++;
+            String result = rs.getString(1);
+            assertEquals(result, value);
+        }
+        assertEquals(expected, counter);
+    }
 }

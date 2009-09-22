@@ -62,6 +62,7 @@ import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestView;
 import org.h2.test.jaqu.AliasMapTest;
 import org.h2.test.jaqu.SamplesTest;
+import org.h2.test.jaqu.UpdateTest;
 import org.h2.test.jdbc.TestBatchUpdates;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
@@ -530,6 +531,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // jaqu
         new AliasMapTest().runTest(this);
         new SamplesTest().runTest(this);
+        new UpdateTest().runTest(this);
 
         // jdbc
         new TestBatchUpdates().runTest(this);

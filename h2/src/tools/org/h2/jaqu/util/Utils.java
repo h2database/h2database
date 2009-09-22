@@ -130,7 +130,7 @@ public class Utils {
             return null;
         }
         Class< ? > currentType = o.getClass();
-        if (currentType == targetType) {
+        if (targetType.isAssignableFrom(currentType)) {
             return o;
         }
         if (targetType == String.class) {

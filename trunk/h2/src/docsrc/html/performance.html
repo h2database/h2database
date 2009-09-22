@@ -387,23 +387,23 @@ following profiling data (results vary):
 <h3>Use a Modern JVM</h3>
 <p>
 Newer JVMs are faster. Upgrading to the latest version of your JVM can provide a "free" boost to performance.
-On the Windows platform, switching from the default Client JVM to the Server JVM
-using the <code>-server</code> command-line option improves performance at the cost of a slight increase in start-up time.
+Switching from the default Client JVM to the Server JVM using the <code>-server</code> command-line
+option improves performance at the cost of a slight increase in start-up time.
 </p>
 
 <h3>Virus Scanners</h3>
 <p>
 Some virus scanners scan files every time they are accessed.
 It is very important for performance that database files are not scanned for viruses.
-The database engine does never interprets the data stored in the files as programs,
+The database engine never interprets the data stored in the files as programs,
 that means even if somebody would store a virus in a database file, this would
 be harmless (when the virus does not run, it cannot spread).
-Some virus scanners allow to exclude files by suffix. Make sure files ending with .db are not scanned.
+Some virus scanners allow to exclude files by suffix. Ensure files ending with .db are not scanned.
 </p>
 
 <h3>Using the Trace Options</h3>
 <p>
-If the main performance hot spots are in the database engine, in many cases the performance
+If the performance hot spots are in the database engine, in many cases the performance
 can be optimized by creating additional indexes, or changing the schema. Sometimes the
 application does not directly generate the SQL statements, for example if an O/R mapping tool
 is used. To view the SQL statements and JDBC API calls, you can use the trace options.

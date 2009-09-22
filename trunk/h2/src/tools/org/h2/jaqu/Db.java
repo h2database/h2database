@@ -85,6 +85,16 @@ public class Db {
         define(clazz).createTableIfRequired(this).insert(this, t);
     }
 
+    public <T> void merge(T t) {
+        Class< ? > clazz = t.getClass();
+        define(clazz).createTableIfRequired(this).merge(this, t);
+    }
+
+    public <T> void update(T t) {
+        Class< ? > clazz = t.getClass();
+        define(clazz).createTableIfRequired(this).update(this, t);
+    }
+
     public <T extends Object> Query<T> from(T alias) {
         Class< ? > clazz = alias.getClass();
         define(clazz).createTableIfRequired(this);

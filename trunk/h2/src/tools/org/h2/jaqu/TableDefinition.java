@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.h2.jaqu.util.Utils;
@@ -34,7 +35,7 @@ class TableDefinition<T> {
     static class IndexDefinition {
         boolean unique;
         String indexName;
-        String[] columnNames;
+        List<String> columnNames;
     }
 //## Java 1.5 end ##
 
@@ -47,6 +48,7 @@ class TableDefinition<T> {
         Field field;
         String dataType;
         int maxLength;
+        boolean isPrimaryKey;
 
         Object getValue(Object obj) {
             try {
@@ -84,7 +86,7 @@ class TableDefinition<T> {
     private ArrayList<FieldDefinition> fields = Utils.newArrayList();
     private IdentityHashMap<Object, FieldDefinition> fieldMap =
             Utils.newIdentityHashMap();
-    private String[] primaryKeyColumnNames;
+    private List<String> primaryKeyColumnNames;
     private ArrayList<IndexDefinition> indexes = Utils.newArrayList();
 
     TableDefinition(Class<T> clazz) {
@@ -98,6 +100,11 @@ class TableDefinition<T> {
 
     void setPrimaryKey(Object[] primaryKeyColumns) {
         this.primaryKeyColumnNames = mapColumnNames(primaryKeyColumns);
+        // set isPrimaryKey flag for all field definitions
+        for (FieldDefinition fieldDefinition : fieldMap.values()) {
+            fieldDefinition.isPrimaryKey = this.primaryKeyColumnNames
+                .contains(fieldDefinition.columnName);
+        }
     }
 
     <A> String getColumnName(A fieldObject) {
@@ -105,11 +112,10 @@ class TableDefinition<T> {
         return def == null ? null : def.columnName;
     }
 
-    private String[] mapColumnNames(Object[] columns) {
-        int len = columns.length;
-        String[] columnNames = new String[len];
-        for (int i = 0; i < len; i++) {
-            columnNames[i] = getColumnName(columns[i]);
+    private List<String> mapColumnNames(Object[] columns) {
+        List<String> columnNames = Utils.newArrayList();
+        for (Object column : columns) {
+            columnNames.add(getColumnName(column));
         }
         return columnNames;
     }
@@ -183,6 +189,80 @@ class TableDefinition<T> {
         }
         buff.append(')');
         stat.setSQL(buff.toString());
+        stat.executeUpdate();
+    }
+
+    void merge(Db db, Object obj) {
+        if (primaryKeyColumnNames == null || primaryKeyColumnNames.size() == 0) {
+            throw new IllegalStateException("No primary key columns defined "
+                + "for table " + obj.getClass() + " - no update possible");
+        }
+        SQLStatement stat = new SQLStatement(db);
+        StatementBuilder buff = new StatementBuilder("MERGE INTO ");
+        buff.append(tableName).append(" (");
+        buff.resetCount();
+        for (FieldDefinition field : fields) {
+            buff.appendExceptFirst(", ");
+            buff.append(field.columnName);
+        }
+        buff.append(") KEY(");
+        buff.resetCount();
+        for (FieldDefinition field : fields) {
+            if (field.isPrimaryKey) {
+                buff.appendExceptFirst(", ");
+                buff.append(field.columnName);
+            }
+        }
+        buff.append(") ");
+        buff.resetCount();
+        buff.append("VALUES (");
+        for (FieldDefinition field : fields) {
+            buff.appendExceptFirst(", ");
+            buff.append('?');
+            Object value = field.getValue(obj);
+            stat.addParameter(value);
+        }
+        buff.append(')');
+        stat.setSQL(buff.toString());
+        stat.executeUpdate();
+    }
+
+    void update(Db db, Object obj) {
+        if (primaryKeyColumnNames == null || primaryKeyColumnNames.size() == 0) {
+            throw new IllegalStateException("No primary key columns defined "
+                + "for table " + obj.getClass() + " - no update possible");
+        }
+        SQLStatement stat = new SQLStatement(db);
+        StatementBuilder buff = new StatementBuilder("UPDATE ");
+        buff.append(tableName).append(" SET ");
+        buff.resetCount();
+        for (FieldDefinition field : fields) {
+            if (!field.isPrimaryKey) {
+                buff.appendExceptFirst(", ");
+                buff.append(field.columnName);
+                buff.append(" = ?");
+                Object value = field.getValue(obj);
+                stat.addParameter(value);
+            }
+        }
+        Object alias = Utils.newObject(obj.getClass());
+        Query<Object> query = Query.from(db, alias);
+        boolean firstCondition = true;
+        for (FieldDefinition field : fields) {
+            if (field.isPrimaryKey) {
+                Object aliasValue = field.getValue(alias);
+                Object value = field.getValue(obj);
+                if (!firstCondition) {
+                    query.addConditionToken(ConditionAndOr.AND);
+                }
+                firstCondition = false;
+                query.addConditionToken(
+                    new Condition<Object>(
+                        aliasValue, value, CompareType.EQUAL));
+            }
+        }
+        stat.setSQL(buff.toString());
+        query.appendWhere(stat);
         stat.executeUpdate();
     }
 

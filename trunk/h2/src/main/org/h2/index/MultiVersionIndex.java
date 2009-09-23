@@ -57,6 +57,10 @@ public class MultiVersionIndex implements Index {
         }
     }
 
+    public int getRootPageId() {
+        return base.getRootPageId();
+    }
+
     public void close(Session session) throws SQLException {
         synchronized (sync) {
             base.close(session);

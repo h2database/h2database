@@ -1470,8 +1470,10 @@ public class Database implements DataHandler {
      */
     public Session[] getSessions(boolean includingSystemSession) {
         ArrayList<Session> list = New.arrayList(userSessions);
-        if (includingSystemSession && systemSession != null) {
-            list.add(systemSession);
+        // copy, to ensure the reference is stable
+        Session sys = systemSession;
+        if (includingSystemSession && sys != null) {
+            list.add(sys);
         }
         Session[] array = new Session[list.size()];
         list.toArray(array);

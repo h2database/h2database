@@ -256,4 +256,11 @@ public interface Index extends SchemaObject {
      */
     void commit(int operation, Row row) throws SQLException;
 
+    /**
+     * Get the root page of this index.
+     *
+     * @return the root page id
+     */
+    int getRootPageId();
+
 }

@@ -65,6 +65,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         }
     }
 
+    public int getRootPageId() {
+        return 0;
+    }
+
     /**
      * Close this index.
      *

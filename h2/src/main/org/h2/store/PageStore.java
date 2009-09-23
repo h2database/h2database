@@ -1168,7 +1168,7 @@ public class PageStore implements CacheWriter {
 
     private void removeMeta(int logPos, Row row) throws SQLException {
         int id = row.getValue(0).getInt();
-        PageIndex index = (PageIndex) metaObjects.get(id);
+        Index index = metaObjects.get(id);
         int rootPageId = index.getRootPageId();
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex) {

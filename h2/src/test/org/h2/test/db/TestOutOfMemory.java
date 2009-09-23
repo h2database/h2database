@@ -41,7 +41,7 @@ public class TestOutOfMemory extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("drop all objects");
         stat.execute("create table stuff (id int, text varchar as space(100) || id)");
-        stat.execute("insert into stuff(id) select x from system_range(1, 2000)");
+        stat.execute("insert into stuff(id) select x from system_range(1, 3000)");
         PreparedStatement prep = conn.prepareStatement("update stuff set text = text || ' upd'");
         prep.execute();
         eatMemory(80);
@@ -55,7 +55,7 @@ public class TestOutOfMemory extends TestBase {
             freeMemory();
             ResultSet rs = stat.executeQuery("select count(*) from stuff");
             rs.next();
-            assertEquals(2000, rs.getInt(1));
+            assertEquals(3000, rs.getInt(1));
         } finally {
             conn.close();
         }

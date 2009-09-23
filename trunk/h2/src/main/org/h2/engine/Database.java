@@ -1469,7 +1469,12 @@ public class Database implements DataHandler {
      * @return the list of sessions
      */
     public Session[] getSessions(boolean includingSystemSession) {
-        ArrayList<Session> list = New.arrayList(userSessions);
+        ArrayList<Session> list;
+        // need to synchronized on userSession, otherwise the list
+        // may contain null elements
+        synchronized (userSessions) {
+            list = New.arrayList(userSessions);
+        }
         // copy, to ensure the reference is stable
         Session sys = systemSession;
         if (includingSystemSession && sys != null) {

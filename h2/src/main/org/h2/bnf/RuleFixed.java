@@ -55,7 +55,7 @@ public class RuleFixed implements Rule {
         case DIGIT:
             return "0";
         default:
-            throw new Error("type="+type);
+            throw new AssertionError("type="+type);
         }
     }
 
@@ -92,7 +92,7 @@ public class RuleFixed implements Rule {
         case DIGIT:
             return "" + (char) ('0' + r.nextInt(10));
         default:
-            throw new Error("type="+type);
+            throw new AssertionError("type="+type);
         }
     }
 
@@ -213,7 +213,7 @@ public class RuleFixed implements Rule {
             }
             break;
         default:
-            throw new Error("type=" + type);
+            throw new AssertionError("type=" + type);
         }
         if (s.equals(query)) {
             return false;
@@ -292,7 +292,7 @@ public class RuleFixed implements Rule {
             }
             break;
         default:
-            throw new Error("type="+type);
+            throw new AssertionError("type="+type);
         }
     }
 

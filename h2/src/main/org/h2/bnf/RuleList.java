@@ -58,7 +58,7 @@ public class RuleList implements Rule {
             if (level > 10) {
                 if (level > 1000) {
                     // better than stack overflow
-                    throw new Error();
+                    throw new AssertionError();
                 }
                 return get(0).random(config, level);
             }

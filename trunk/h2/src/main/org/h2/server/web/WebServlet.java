@@ -26,7 +26,7 @@ import org.h2.util.StringUtils;
  */
 public class WebServlet extends HttpServlet {
 
-    private static final long serialVersionUID = 9171446624885086692L;
+    private static final long serialVersionUID = 1L;
     private transient WebServer server;
 
     public void init() {

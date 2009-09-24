@@ -423,16 +423,19 @@ public class TestTools extends TestBase {
 
     private void testChangeFileEncryption() throws SQLException {
         org.h2.Driver.load();
-        Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils;CIPHER=XTEA", "sa",
-                "abc 123");
+        DeleteDbFiles.execute(baseDir, "utils", true);
+        Connection conn = DriverManager.getConnection("jdbc:h2:" +
+                baseDir + "/utils;CIPHER=XTEA", "sa", "abc 123");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB) " +
+                "AS SELECT X, SPACE(3000) FROM SYSTEM_RANGE(1, 300)");
         conn.close();
         String[] args = new String[] { "-dir", baseDir, "-db", "utils", "-cipher", "XTEA", "-decrypt", "abc", "-quiet" };
         ChangeFileEncryption.main(args);
         args = new String[] { "-dir", baseDir, "-db", "utils", "-cipher", "AES", "-encrypt", "def", "-quiet" };
         ChangeFileEncryption.main(args);
-        conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils;CIPHER=AES", "sa", "def 123");
+        conn = DriverManager.getConnection("jdbc:h2:" +
+                baseDir + "/utils;CIPHER=AES", "sa", "def 123");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         conn.close();

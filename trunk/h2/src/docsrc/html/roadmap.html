@@ -23,8 +23,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </p>
 
 <h2>Version 1.2</h2>
-<ul><li>Enable system property h2.optimizeInList by default.
-</li><li>Enable Mode.nullConcatIsNull by default, and use a system property.
+<ul><li>Enable the system property h2.optimizeInList by default.
+</li><li>Enable the system property h2.nullConcatIsNull by default.
+</li><li>Enable the system property h2.pageStore by default.
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -455,6 +456,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Add option to enable TCP_NODELAY using Socket.setTcpNoDelay(true).
 </li><li>Maybe disallow = within database names (jdbc:h2:mem:MODE=DB2 means database name MODE=DB2).
 </li><li>Fast alter table add column.
+</li><li>Improve concurrency for in-memory database operations.
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -391,7 +391,9 @@ FOR classAndMethodName
 Creates a new function alias. The method name must be the full qualified class
 and method name, and may optionally include the parameter classes as in
 ""java.lang.Integer.parseInt(java.lang.String, int)""). The class and the method
-must both be public, and the method must be static.
+must both be public, and the method must be static. The class must be available
+in the classpath of the database engine (when using the server mode, 
+it must be in the classpath of the server).
 
 Deterministic functions always return the same value for the same parameters.
 If the first parameter of the Java function is a java.sql.Connection, then a
@@ -541,9 +543,11 @@ ON tableName
 CALL triggeredClassName
 ","
 Creates a new trigger. The trigger class must be public. Nested and inner
-classes are not supported. Before triggers are called after data conversion is
-made, default values are set, null and length constraint checks have been made;
-but before other constraints have been checked.
+classes are not supported.  The class must be available in the classpath of the 
+database engine (when using the server mode, it must be in the classpath of the server).
+
+Before triggers are called after data conversion is made, default values are set, 
+null and length constraint checks have been made; but before other constraints have been checked.
 
 This command commits an open transaction.
 ","

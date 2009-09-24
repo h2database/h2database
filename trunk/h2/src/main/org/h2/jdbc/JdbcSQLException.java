@@ -17,7 +17,7 @@ import org.h2.engine.Constants;
  */
 public class JdbcSQLException extends SQLException {
 
-    private static final long serialVersionUID = -8200821788226954151L;
+    private static final long serialVersionUID = 1L;
     private final String originalMessage;
     private final Throwable cause;
     private final String stackTrace;

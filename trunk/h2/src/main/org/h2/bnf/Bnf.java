@@ -69,7 +69,7 @@ public class Bnf {
     private RuleHead addRule(String topic, String section, Rule rule) {
         RuleHead head = new RuleHead(section, topic, rule);
         if (ruleMap.get(StringUtils.toLowerEnglish(topic)) != null) {
-            throw new Error("already exists: " + topic);
+            throw new AssertionError("already exists: " + topic);
         }
         ruleMap.put(StringUtils.toLowerEnglish(topic), head);
         return head;
@@ -206,13 +206,13 @@ public class Bnf {
             Rule r2 = parseOr();
             r = new RuleOptional(r2);
             if (firstChar != ']') {
-                throw new Error("expected ], got " + currentToken + " syntax:" + syntax);
+                throw new AssertionError("expected ], got " + currentToken + " syntax:" + syntax);
             }
         } else if (firstChar == '{') {
             read();
             r = parseOr();
             if (firstChar != '}') {
-                throw new Error("expected }, got " + currentToken + " syntax:" + syntax);
+                throw new AssertionError("expected }, got " + currentToken + " syntax:" + syntax);
             }
         } else if ("@commaDots@".equals(currentToken)) {
             r = new RuleList(new RuleElement(",", currentTopic), lastRepeat, false);

@@ -16,7 +16,7 @@ import java.sql.SQLException;
  */
 public class JdbcBatchUpdateException extends BatchUpdateException {
 
-    private static final long serialVersionUID = 9006432914018679675L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * INTERNAL

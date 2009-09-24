@@ -40,7 +40,7 @@ public class RuleElement implements Rule {
         if (link != null) {
             return link.random(config, level + 1);
         }
-        throw new Error(name);
+        throw new AssertionError(name);
     }
 
     public String name() {
@@ -76,7 +76,7 @@ public class RuleElement implements Rule {
                 return;
             }
         }
-        throw new Error("Unknown " + name + "/" + test);
+        throw new AssertionError("Unknown " + name + "/" + test);
     }
 
     public boolean matchRemove(Sentence sentence) {

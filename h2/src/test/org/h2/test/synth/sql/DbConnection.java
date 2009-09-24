@@ -67,7 +67,7 @@ class DbConnection implements DbInterface {
             }
             // could not drop any table and still tables to drop
             if (dropped == 0 && tables.size() > 0) {
-                throw new Error("Cannot drop " + tables);
+                throw new AssertionError("Cannot drop " + tables);
             }
         }
     }

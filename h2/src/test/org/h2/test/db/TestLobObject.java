@@ -12,7 +12,8 @@ import java.io.Serializable;
  * A utility class for TestLob.
  */
 class TestLobObject implements Serializable {
-    private static final long serialVersionUID = 904356179316518715L;
+
+    private static final long serialVersionUID = 1L;
     String data;
 
     TestLobObject(String data) {

@@ -235,9 +235,9 @@ public class TestSynth extends TestBase {
             Result copy = results.get(i);
             if (original.compareTo(copy) != 0) {
                 if (showError) {
-                    throw new Error("Results don't match: original (0): \r\n" + original + "\r\n" + "other:\r\n" + copy);
+                    throw new AssertionError("Results don't match: original (0): \r\n" + original + "\r\n" + "other:\r\n" + copy);
                 }
-                throw new Error("Results don't match");
+                throw new AssertionError("Results don't match");
             }
         }
     }

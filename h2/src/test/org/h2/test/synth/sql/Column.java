@@ -64,7 +64,7 @@ class Column {
         case DataType.TYPE_BOOLEAN:
             break;
         default:
-            throw new Error("type=" + type);
+            throw new AssertionError("type=" + type);
         }
     }
 
@@ -103,10 +103,10 @@ class Column {
             case Types.LONGVARBINARY:
                 return false;
             default:
-                throw new Error("type=" + type);
+                throw new AssertionError("type=" + type);
             }
         default:
-            throw new Error("type=" + type);
+            throw new AssertionError("type=" + type);
         }
     }
 
@@ -155,7 +155,7 @@ class Column {
         case Types.BIT:
             return "BOOLEAN";
         default:
-            throw new Error("type=" + type);
+            throw new AssertionError("type=" + type);
         }
     }
 

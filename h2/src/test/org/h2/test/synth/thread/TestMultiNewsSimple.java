@@ -70,19 +70,18 @@ public class TestMultiNewsSimple extends TestMultiThread {
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
                     System.out.println("No row found");
-                    // throw new Error("No row found");
+                    // throw new AssertionError("No row found");
                 }
                 if (rs.next()) {
                     System.out.println("Multiple rows found");
-                    // throw new Error("Multiple rows found");
+                    // throw new AssertionError("Multiple rows found");
                 }
             }
         }
     }
 
     void finalTest() {
-        // TODO Auto-generated method stub
-
+        // nothing to do
     }
 
 }

@@ -87,7 +87,7 @@ public class Player {
                 if ("-trace".equals(args[i])) {
                     trace = true;
                 } else {
-                    throw new Error("Unknown setting: " + args[i]);
+                    throw new RuntimeException("Unknown setting: " + args[i]);
                 }
             }
         } catch (Exception e) {
@@ -153,7 +153,7 @@ public class Player {
                 // ignore
             }
         }
-        throw new Error("Class not found: " + className);
+        throw new RuntimeException("Class not found: " + className);
     }
 
     /**

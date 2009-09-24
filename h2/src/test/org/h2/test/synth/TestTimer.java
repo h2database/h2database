@@ -110,7 +110,7 @@ public class TestTimer extends TestBase {
             }
             if (real != count) {
                 println("real count: " + real);
-                throw new Error("COUNT(*)=" + count + " SELECT=" + real);
+                throw new AssertionError("COUNT(*)=" + count + " SELECT=" + real);
             }
             rs = stat.executeQuery("SCRIPT");
             while (rs.next()) {

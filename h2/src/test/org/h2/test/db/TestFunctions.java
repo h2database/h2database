@@ -536,12 +536,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         if (count == null) {
             if (ip != 0 || bp || fp != 0.0 || dp != 0.0 || sp != 0 || lp != 0 || byParam != 0) {
-                throw new Error("params not 0/false");
+                throw new AssertionError("params not 0/false");
             }
         }
         if (count != null) {
             if (ip != 1 || !bp || fp != 1.0 || dp != 1.0 || sp != 1 || lp != 1 || byParam != 1) {
-                throw new Error("params not 1/true");
+                throw new AssertionError("params not 1/true");
             }
             if (count.intValue() >= 1) {
                 rs.addRow(0, "Hello");

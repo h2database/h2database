@@ -178,7 +178,7 @@ public class TestScript extends TestBase {
             String param = readLine();
             write(param);
             if (!param.equals("{")) {
-                throw new Error("expected '{', got " + param + " in " + sql);
+                throw new AssertionError("expected '{', got " + param + " in " + sql);
             }
             try {
                 PreparedStatement prep = conn.prepareStatement(sql);

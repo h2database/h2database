@@ -372,7 +372,7 @@ public class Expression {
     }
 
     public String toString() {
-        throw new Error("hey!");
+        throw new AssertionError();
     }
 
 }

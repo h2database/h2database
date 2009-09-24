@@ -75,7 +75,7 @@ public class BenchCThread {
                 processStockLevel();
                 break;
             default:
-                throw new Error("op=" + op);
+                throw new AssertionError("op=" + op);
             }
         }
     }

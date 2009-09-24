@@ -91,7 +91,7 @@ public class TaskProcess {
                         }
                     }
                 } catch (Exception e) {
-                    throw new Error("Error: " + e, e);
+                    throw new RuntimeException(e);
                 }
             }
         } .start();

@@ -68,7 +68,7 @@ public class MergeDocs {
 
         int idx = text.indexOf(end);
         if (idx < 0) {
-            throw new Error("Footer not found in file " + fileName);
+            throw new RuntimeException("Footer not found in file " + fileName);
         }
         text = text.substring(0, idx);
         idx = text.indexOf(start) + start.length();

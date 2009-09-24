@@ -124,7 +124,7 @@ public class Build extends BuildBase {
                 SwitchSource.main("-dir", "src", "-version", version);
             }
         } catch (IOException e) {
-            throw new Error(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -325,7 +325,7 @@ public class Build extends BuildBase {
             exclude("*.txt");
         long kb = jar("bin/h2client" + getJarSuffix(), files, "temp");
         if (kb < 300 || kb > 400) {
-            throw new Error("Expected file size 300 - 400 KB, got: " + kb);
+            throw new RuntimeException("Expected file size 300 - 400 KB, got: " + kb);
         }
     }
 
@@ -582,7 +582,7 @@ public class Build extends BuildBase {
     public void uploadBuild() {
         String password = System.getProperty("h2.ftpPassword");
         if (password == null) {
-            throw new Error("h2.ftpPassword not set");
+            throw new RuntimeException("h2.ftpPassword not set");
         }
         String cp = "bin" + File.pathSeparator + "temp";
         exec("java", args("-Xmx128m", "-cp", cp,

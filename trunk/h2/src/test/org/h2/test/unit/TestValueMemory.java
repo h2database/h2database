@@ -161,7 +161,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.STRING_FIXED:
             return ValueStringFixed.get(randomString(random.nextInt(100)));
         default:
-            throw new Error("type=" + type);
+            throw new AssertionError("type=" + type);
         }
     }
 

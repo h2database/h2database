@@ -40,7 +40,7 @@ public class Base64 {
 
     private static void check(String a, String b) {
         if (!a.equals(b)) {
-            throw new Error("mismatch: " + a + " <> " + b);
+            throw new RuntimeException("mismatch: " + a + " <> " + b);
         }
     }
 
@@ -89,11 +89,11 @@ public class Base64 {
 
     private static void test(byte[] in, byte[] out) {
         if (in.length != out.length) {
-            throw new Error("Length error");
+            throw new RuntimeException("Length error");
         }
         for (int i = 0; i < in.length; i++) {
             if (in[i] != out[i]) {
-                throw new Error("Error at " + i);
+                throw new RuntimeException("Error at " + i);
             }
         }
     }

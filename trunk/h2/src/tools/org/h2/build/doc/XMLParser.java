@@ -124,7 +124,7 @@ public class XMLParser {
     }
 
     private void error(String expected) {
-        throw new Error("expected: " + expected + " got: " + xml.substring(index));
+        throw new RuntimeException("Expected: " + expected + " got: " + xml.substring(index));
     }
 
     private void read(String chars) {

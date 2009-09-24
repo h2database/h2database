@@ -66,7 +66,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
                 try {
                     return v1.compareTo(v2, compareMode);
                 } catch (SQLException e) {
-                    throw new Error(e);
+                    throw new AssertionError(e);
                 }
             }
         };

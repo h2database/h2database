@@ -87,7 +87,7 @@ public class TestStringCache extends TestBase {
                 TestBase.logError("error", e);
             }
             if (a != null && a == b && a.length() > 0) {
-                throw new Error("a=" + System.identityHashCode(a) + " b=" + System.identityHashCode(b));
+                throw new AssertionError("a=" + System.identityHashCode(a) + " b=" + System.identityHashCode(b));
             }
         } else {
             String b;

@@ -129,7 +129,7 @@ public class BuildBase {
                 pattern = pattern.substring(1);
             }
             if (pattern.indexOf('*') >= 0) {
-                throw new Error("Unsupported pattern, may only start or end with *:" + pattern);
+                throw new RuntimeException("Unsupported pattern, may only start or end with *:" + pattern);
             }
             // normalize / and \
             pattern = replaceAll(pattern, "/", File.separator);
@@ -204,8 +204,12 @@ public class BuildBase {
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
+        } catch (Error e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Throwable e) {
-            throw e instanceof Error ? ((Error) e) : new Error(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -291,7 +295,7 @@ public class BuildBase {
             p.waitFor();
             return p.exitValue();
         } catch (Exception e) {
-            throw new Error("Error: " + e, e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -309,7 +313,7 @@ public class BuildBase {
                         }
                     }
                 } catch (Exception e) {
-                    throw new Error("Error: " + e, e);
+                    throw new RuntimeException(e);
                 }
             }
         } .start();
@@ -328,7 +332,7 @@ public class BuildBase {
             Field field = clazz.getField(fieldName);
             return field.get(null).toString();
         } catch (Exception e) {
-            throw new Error("Can not read field " + className + "." + fieldName, e);
+            throw new RuntimeException("Can not read field " + className + "." + fieldName, e);
         }
     }
 
@@ -345,7 +349,7 @@ public class BuildBase {
             Method method = clazz.getMethod(methodName);
             return method.invoke(null).toString();
         } catch (Exception e) {
-            throw new Error("Can not read value " + className + "." + methodName + "()", e);
+            throw new RuntimeException("Can not read value " + className + "." + methodName + "()", e);
         }
     }
 
@@ -436,7 +440,7 @@ public class BuildBase {
             System.setOut(old);
         }
         if (result != 0) {
-            throw new Error("An error occurred");
+            throw new RuntimeException("An error occurred, result=" + result);
         }
     }
 
@@ -462,7 +466,7 @@ public class BuildBase {
             md = MessageDigest.getInstance("SHA-1");
             return convertBytesToString(md.digest(data));
         } catch (NoSuchAlgorithmException e) {
-            throw new Error(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -503,7 +507,7 @@ public class BuildBase {
             }
             in.close();
         } catch (IOException e) {
-            throw new Error("Error downloading", e);
+            throw new RuntimeException("Error downloading", e);
         }
         byte[] data = buff.toByteArray();
         String got = getSHA1(data);
@@ -511,7 +515,7 @@ public class BuildBase {
             println("SHA1 checksum: " + got);
         } else {
             if (!got.equals(sha1Checksum)) {
-                throw new Error("SHA1 checksum mismatch");
+                throw new RuntimeException("SHA1 checksum mismatch");
             }
         }
         writeFile(targetFile, data);
@@ -576,7 +580,7 @@ public class BuildBase {
             ra.setLength(data.length);
             ra.close();
         } catch (IOException e) {
-            throw new Error("Error writing to file " + file, e);
+            throw new RuntimeException("Error writing to file " + file, e);
         }
     }
 
@@ -591,14 +595,14 @@ public class BuildBase {
             RandomAccessFile ra = new RandomAccessFile(file, "r");
             long len = ra.length();
             if (len >= Integer.MAX_VALUE) {
-                throw new Error("File " + file.getPath() + " is too large");
+                throw new RuntimeException("File " + file.getPath() + " is too large");
             }
             byte[] buffer = new byte[(int) len];
             ra.readFully(buffer);
             ra.close();
             return buffer;
         } catch (IOException e) {
-            throw new Error("Error reading from file " + file, e);
+            throw new RuntimeException("Error reading from file " + file, e);
         }
     }
 
@@ -688,7 +692,7 @@ public class BuildBase {
             zipOut.close();
             return new File(destFile).length() / 1024;
         } catch (IOException e) {
-            throw new Error("Error creating file " + destFile, e);
+            throw new RuntimeException("Error creating file " + destFile, e);
         }
     }
 
@@ -740,7 +744,7 @@ public class BuildBase {
             System.setErr(old);
         }
         if (result != 0) {
-            throw new Error("An error occurred");
+            throw new RuntimeException("An error occurred");
         }
     }
 
@@ -757,7 +761,7 @@ public class BuildBase {
             Method main = Class.forName(className).getMethod("main", String[].class);
             invoke(main, null, new Object[] { array });
         } catch (Exception e) {
-            throw new Error(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -770,7 +774,7 @@ public class BuildBase {
         File f = new File(dir);
         if (f.exists()) {
             if (f.isFile()) {
-                throw new Error("Can not create directory " + dir + " because a file with this name exists");
+                throw new RuntimeException("Can not create directory " + dir + " because a file with this name exists");
             }
         } else {
             mkdirs(f);
@@ -780,7 +784,7 @@ public class BuildBase {
     private void mkdirs(File f) {
         if (!f.exists()) {
             if (!f.mkdirs()) {
-                throw new Error("Can not create directory " + f.getAbsolutePath());
+                throw new RuntimeException("Can not create directory " + f.getAbsolutePath());
             }
         }
     }
@@ -815,7 +819,7 @@ public class BuildBase {
                 }
             }
             if (!file.delete()) {
-                throw new Error("Can not delete " + file.getPath());
+                throw new RuntimeException("Can not delete " + file.getPath());
             }
         }
     }

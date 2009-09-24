@@ -46,7 +46,7 @@ public class TestIntIntHashMap extends TestBase {
         }
         for (int i = 0; i < len; i++) {
             if (map.get(x[i]) != i) {
-                throw new Error("get " + x[i] + " = " + map.get(i) + " should be " + i);
+                throw new AssertionError("get " + x[i] + " = " + map.get(i) + " should be " + i);
             }
         }
         for (int i = 1; i < len; i += 2) {
@@ -54,7 +54,7 @@ public class TestIntIntHashMap extends TestBase {
         }
         for (int i = 1; i < len; i += 2) {
             if (map.get(x[i]) != -1) {
-                throw new Error("get " + x[i] + " = " + map.get(i) + " should be <=0");
+                throw new AssertionError("get " + x[i] + " = " + map.get(i) + " should be <=0");
             }
         }
         for (int i = 1; i < len; i += 2) {
@@ -62,7 +62,7 @@ public class TestIntIntHashMap extends TestBase {
         }
         for (int i = 0; i < len; i++) {
             if (map.get(x[i]) != i) {
-                throw new Error("get " + x[i] + " = " + map.get(i) + " should be " + i);
+                throw new AssertionError("get " + x[i] + " = " + map.get(i) + " should be " + i);
             }
         }
     }

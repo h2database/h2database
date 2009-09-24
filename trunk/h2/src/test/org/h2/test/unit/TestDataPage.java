@@ -242,11 +242,11 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     public int getMaxLengthInplaceLob() {
-        throw new Error();
+        throw new AssertionError();
     }
 
     public int allocateObjectId(boolean b, boolean c) {
-        throw new Error();
+        throw new AssertionError();
     }
 
     public String createTempFile() throws SQLException {
@@ -254,7 +254,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     public String getLobCompressionAlgorithm(int type) {
-        throw new Error();
+        throw new AssertionError();
     }
 
     public Object getLobSyncObject() {

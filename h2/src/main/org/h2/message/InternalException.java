@@ -13,7 +13,7 @@ package org.h2.message;
  */
 public class InternalException extends RuntimeException {
 
-    private static final long serialVersionUID = -5369631382082604330L;
+    private static final long serialVersionUID = 1L;
     private Exception cause;
 
     public InternalException(Exception e) {

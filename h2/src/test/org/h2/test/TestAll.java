@@ -271,11 +271,6 @@ java org.h2.test.TestAll timer
      */
     boolean stopOnError;
 
-    /**
-     * If the Two-Queue cache algorithm should be used.
-     */
-    boolean cache2Q;
-
     private Server server;
 
     /**
@@ -300,7 +295,8 @@ java org.h2.test.TestAll timer
 
 /*
 
-test linked table cache.patch
+slow startup with a large number of lob files
+scramble encryption
 
 mvcc merge problem
 
@@ -408,7 +404,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         jdk14 = true;
         smallLog = big = networked = memory = ssl = false;
         diskResult = deleteIndex = traceSystemOut = diskUndo = false;
-        mvcc = traceTest = stopOnError = cache2Q = false;
+        mvcc = traceTest = stopOnError = false;
         traceLevelFile = throttle = 0;
         logMode = 1;
         cipher = null;
@@ -429,7 +425,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         diskResult = true;
         deleteIndex = true;
         traceLevelFile = 3;
-        cache2Q = true;
         throttle = 1;
         cipher = "XTEA";
         test();
@@ -438,7 +433,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         diskResult = false;
         deleteIndex = false;
         traceLevelFile = 1;
-        cache2Q = false;
         throttle = 0;
         cipher = null;
         test();
@@ -703,7 +697,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, throttle > 0, "throttle:" + throttle);
         appendIf(buff, traceTest, "traceTest");
         appendIf(buff, stopOnError, "stopOnError");
-        appendIf(buff, cache2Q, "cache2Q");
         appendIf(buff, deleteIndex, "deleteIndex");
         return buff.toString();
     }

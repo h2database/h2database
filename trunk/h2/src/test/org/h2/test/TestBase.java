@@ -121,7 +121,7 @@ public abstract class TestBase {
             println("FAIL " + e.toString());
             logError("FAIL " + e.toString(), e);
             if (config.stopOnError) {
-                throw new Error("ERROR");
+                throw new AssertionError("ERROR");
             }
             if (e instanceof OutOfMemoryError) {
                 throw (OutOfMemoryError) e;
@@ -253,9 +253,6 @@ public abstract class TestBase {
         }
         if (config.mvcc && url.indexOf("MVCC=") < 0) {
             url += ";MVCC=TRUE";
-        }
-        if (config.cache2Q && url.indexOf("CACHE_TYPE=") < 0) {
-            url += ";CACHE_TYPE=TQ";
         }
         if (config.diskResult && admin) {
             url += ";MAX_MEMORY_ROWS=100;CACHE_SIZE=0";

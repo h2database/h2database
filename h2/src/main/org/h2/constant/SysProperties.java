@@ -364,6 +364,19 @@ public class SysProperties {
     public static final boolean NIO_CLEANER_HACK = getBooleanSetting("h2.nioCleanerHack", true);
 
     /**
+     * System property <code>h2.nullConcatIsNull</code>.<br />
+     * Concatenation with NULL results in NULL. Usually, NULL is treated as an
+     * empty string if only one of the operands is NULL, and NULL is only
+     * returned if both operands are NULL.
+     * <p>
+     * In version 1.1, it is disabled by default.
+     * </p><p>
+     * In version 1.2, it is enabled by default.
+     * </p>
+     */
+    public static final boolean NULL_CONCAT_IS_NULL = getBooleanSetting("h2.nullConcatIsNull", Constants.VERSION >= 1.2);
+
+    /**
      * System property <code>h2.objectCache</code> (default: true).<br />
      * Cache commonly used objects (integers, strings).
      */
@@ -446,8 +459,13 @@ public class SysProperties {
      * Optimize IN(...) and IN(SELECT ...) comparisons. This includes
      * optimization for SELECT, DELETE, and UPDATE. Overrides h2.optimizeIn and
      * h2.optimizeInJoin if enabled.
+     * <p>
+     * In version 1.1, it is disabled by default.
+     * </p><p>
+     * In version 1.2, it is enabled by default.
+     * </p>
      */
-    public static final boolean OPTIMIZE_IN_LIST = getBooleanSetting("h2.optimizeInList", false);
+    public static final boolean OPTIMIZE_IN_LIST = getBooleanSetting("h2.optimizeInList", Constants.VERSION >= 1.2);
 
     /**
      * System property <code>h2.optimizeInJoin</code> (default: false).<br />
@@ -496,6 +514,17 @@ public class SysProperties {
      * Throw an exception on integer overflows.
      */
     public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
+
+    /**
+     * System property <code>h2.pageStore</code>.<br />
+     * Use the 'page store' database file format for new databases.
+     * <p>
+     * In version 1.1, it is disabled by default.
+     * </p><p>
+     * In version 1.2, it is enabled by default.
+     * </p>
+     */
+    public static final boolean PAGE_STORE = getBooleanSetting(H2_PAGE_STORE, Constants.VERSION >= 1.2);
 
     /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
@@ -752,7 +781,7 @@ public class SysProperties {
      * INTERNAL
      */
     public static boolean getPageStore() {
-        return getBooleanSetting(H2_PAGE_STORE, false);
+        return getBooleanSetting(H2_PAGE_STORE, PAGE_STORE);
     }
 
     private static Character getEscapeChar(String s) {

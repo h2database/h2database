@@ -60,8 +60,8 @@ public class CacheLRU implements Cache {
             prefix = "WEAK_";
         }
         Cache cache;
-        if (CacheTQ.TYPE_NAME.equals(cacheType)) {
-            cache = new CacheTQ(writer, cacheSize);
+        if ("TQ".equals(cacheType)) {
+            cache = new CacheLRU(writer, cacheSize);
         } else if (CacheLRU.TYPE_NAME.equals(cacheType)) {
             cache = new CacheLRU(writer, cacheSize);
         } else {

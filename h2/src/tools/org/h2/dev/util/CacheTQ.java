@@ -4,13 +4,19 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.util;
+package org.h2.dev.util;
 
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.util.Cache;
+import org.h2.util.CacheHead;
+import org.h2.util.CacheObject;
+import org.h2.util.CacheWriter;
+import org.h2.util.MathUtils;
+import org.h2.util.ObjectArray;
 
 /**
  * A cache implementation based on the 2Q algorithm.

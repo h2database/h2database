@@ -109,7 +109,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
             }
             index = (index + plus++) & mask;
         } while(plus <= len);
-        throw new Error("hashmap is full");
+        throw new RuntimeException("Hashmap is full");
     }
 
     public V remove(Object key) {

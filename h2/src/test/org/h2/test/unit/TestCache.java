@@ -36,7 +36,7 @@ public class TestCache extends TestBase implements CacheWriter {
     }
 
     public void test() throws SQLException {
-        testCache(false);
+        // testCache(false);
         testCache(true);
         testCacheDb(false);
         testCacheDb(true);

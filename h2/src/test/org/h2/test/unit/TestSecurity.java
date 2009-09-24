@@ -93,7 +93,7 @@ public class TestSecurity extends TestBase {
         test.encrypt(enc, 0, 128);
         test.decrypt(enc, 0, 128);
         if (ByteUtils.compareNotNull(in, enc) != 0) {
-            throw new Error("hey!");
+            throw new AssertionError();
         }
 
         for (int i = 0; i < 10; i++) {

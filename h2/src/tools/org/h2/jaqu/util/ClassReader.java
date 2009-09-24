@@ -137,7 +137,7 @@ public class ClassReader {
                 break;
             }
             default:
-                throw new Error("Unsupported constant pool tag: " + tag);
+                throw new RuntimeException("Unsupported constant pool tag: " + tag);
             }
         }
         int accessFlags = readShort();
@@ -1308,7 +1308,7 @@ public class ClassReader {
                 op = "wide ret " + readShort();
                 break;
             default:
-                throw new Error("unsupported wide opCode " + opCode);
+                throw new RuntimeException("Unsupported wide opCode " + opCode);
             }
             break;
         }
@@ -1338,7 +1338,7 @@ public class ClassReader {
             op = "jsr_w " + getAbsolutePos(pos, readInt());
             break;
         default:
-            throw new Error("unsupported opCode " + opCode);
+            throw new RuntimeException("Unsupported opCode " + opCode);
         }
         debug("    " + startPos + ": " + op);
     }
@@ -1395,7 +1395,7 @@ public class ClassReader {
             // TODO escape
             return "\"" + cpString[cpInt[constantRef]] + "\"";
         default:
-            throw new Error("not a constant: " + constantRef);
+            throw new RuntimeException("Not a constant: " + constantRef);
         }
     }
 

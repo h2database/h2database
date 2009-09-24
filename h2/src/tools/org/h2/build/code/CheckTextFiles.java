@@ -98,7 +98,7 @@ public class CheckTextFiles {
                 }
             }
             if (ignore == check) {
-                throw new Error("Unknown suffix: " + suffix + " for file: " + file.getAbsolutePath());
+                throw new RuntimeException("Unknown suffix: " + suffix + " for file: " + file.getAbsolutePath());
             }
             if (check) {
                 checkOrFixFile(file, autoFix, checkLicense);
@@ -268,7 +268,7 @@ public class CheckTextFiles {
         System.out.println("FAIL at " + name + " " + error + " " + file.getAbsolutePath());
         hasError = true;
         if (failOnError) {
-            throw new Error("FAIL");
+            throw new RuntimeException("FAIL");
         }
     }
 

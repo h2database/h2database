@@ -51,7 +51,7 @@ public class Db {
         try {
             return clazz.newInstance();
         } catch (Exception e) {
-            throw new Error(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -124,7 +124,7 @@ public class Db {
         try {
             conn.close();
         } catch (Exception e) {
-            throw new Error(e);
+            throw new RuntimeException(e);
         }
     }
 

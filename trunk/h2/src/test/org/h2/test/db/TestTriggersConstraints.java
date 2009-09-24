@@ -164,23 +164,23 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
         if (mustNotCallTrigger) {
-            throw new Error("must not be called now");
+            throw new AssertionError("must not be called now");
         }
         if (conn == null) {
-            throw new Error("connection is null");
+            throw new AssertionError("connection is null");
         }
         if (triggerName.startsWith("INS_BEFORE")) {
             newRow[1] = newRow[1] + "-updated";
         } else if (triggerName.startsWith("INS_AFTER")) {
             if (!newRow[1].toString().endsWith("-updated")) {
-                throw new Error("supposed to be updated");
+                throw new AssertionError("supposed to be updated");
             }
             checkCommit(conn);
         } else if (triggerName.startsWith("UPD_BEFORE")) {
             newRow[1] = newRow[1] + "-updated2";
         } else if (triggerName.startsWith("UPD_AFTER")) {
             if (!newRow[1].toString().endsWith("-updated2")) {
-                throw new Error("supposed to be updated2");
+                throw new AssertionError("supposed to be updated2");
             }
             checkCommit(conn);
         }
@@ -189,22 +189,22 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     private void checkCommit(Connection conn) {
         try {
             conn.commit();
-            throw new Error("Commit must not work here");
+            throw new AssertionError("Commit must not work here");
         } catch (SQLException e) {
             try {
                 assertKnownException(e);
             } catch (Exception e2) {
-                throw new Error("Unexpected: " + e.toString());
+                throw new AssertionError("Unexpected: " + e.toString());
             }
         }
         try {
             conn.createStatement().execute("CREATE TABLE X(ID INT)");
-            throw new Error("CREATE TABLE WORKED, but implicitly commits");
+            throw new AssertionError("CREATE TABLE WORKED, but implicitly commits");
         } catch (SQLException e) {
             try {
                 assertKnownException(e);
             } catch (Exception e2) {
-                throw new Error("Unexpected: " + e.toString());
+                throw new AssertionError("Unexpected: " + e.toString());
             }
         }
     }
@@ -212,13 +212,13 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
         this.triggerName = triggerName;
         if (!"TEST".equals(tableName)) {
-            throw new Error("supposed to be TEST");
+            throw new AssertionError("supposed to be TEST");
         }
         if ((triggerName.endsWith("AFTER") && before) || (triggerName.endsWith("BEFORE") && !before)) {
-            throw new Error("triggerName: " + triggerName + " before:" + before);
+            throw new AssertionError("triggerName: " + triggerName + " before:" + before);
         }
         if ((triggerName.startsWith("UPD") && type != UPDATE) || (triggerName.startsWith("INS") && type != INSERT) || (triggerName.startsWith("DEL") && type != DELETE)) {
-            throw new Error("triggerName: " + triggerName + " type:" + type);
+            throw new AssertionError("triggerName: " + triggerName + " type:" + type);
         }
     }
 

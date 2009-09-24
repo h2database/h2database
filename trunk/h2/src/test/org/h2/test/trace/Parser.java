@@ -171,7 +171,7 @@ class Parser {
 
     private void read(String s) {
         if (!readIf(s)) {
-            throw new Error("Expected: " + s + " got: " + token + " in "
+            throw new RuntimeException("Expected: " + s + " got: " + token + " in "
                     + line);
         }
     }
@@ -182,7 +182,7 @@ class Parser {
             try {
                 s = StringUtils.javaDecode(s.substring(1, s.length() - 1));
             } catch (SQLException e) {
-                throw new Error(e);
+                throw new RuntimeException(e);
             }
             return new Arg(String.class, s);
         } else if (tokenType == NUMBER) {
@@ -206,7 +206,7 @@ class Parser {
             } else if (readIf("false")) {
                 return new Arg(boolean.class, Boolean.FALSE);
             } else if (readIf("null")) {
-                throw new Error(
+                throw new RuntimeException(
                         "Null: class not specified. Example: (java.lang.String)null");
             } else if (readIf("new")) {
                 if (readIf("String")) {
@@ -227,7 +227,7 @@ class Parser {
                     read(")");
                     return new Arg(BigDecimal.class, value);
                 } else {
-                    throw new Error("Unsupported constructor: " + readToken());
+                    throw new RuntimeException("Unsupported constructor: " + readToken());
                 }
             }
             String name = readToken();
@@ -248,7 +248,7 @@ class Parser {
             String number = readToken();
             return new Arg(short.class, new Short(Short.parseShort(number)));
         } else {
-            throw new Error("Value expected, got: " + readToken() + " in "
+            throw new RuntimeException("Value expected, got: " + readToken() + " in "
                     + line);
         }
     }

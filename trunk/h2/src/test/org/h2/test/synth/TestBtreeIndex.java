@@ -160,7 +160,7 @@ public class TestBtreeIndex extends TestBase {
 //while(rs2.next()) {
 //    System.out.println(rs2.getString(1));
 //}
-//if (true) throw new Error("stop");
+//if (true) throw new AssertionError("stop");
 //
             testCount = 0;
             while (rs.next() && rs2.next()) {

@@ -178,7 +178,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     public void exceptionThrown(SQLException e, String sql) {
-        throw new Error("unexpected: " + e + " sql: " + sql);
+        throw new AssertionError("unexpected: " + e + " sql: " + sql);
     }
 
     public void setProgress(int state, String name, int current, int max) {
@@ -187,13 +187,13 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         case STATE_SCAN_FILE:
             stateName = "Scan " + name + " " + current + "/" + max;
             if (current > 0) {
-                throw new Error("unexpected: " + stateName);
+                throw new AssertionError("unexpected: " + stateName);
             }
             break;
         case STATE_CREATE_INDEX:
             stateName = "Create Index " + name + " " + current + "/" + max;
             if (!"SYS:SYS_ID".equals(name)) {
-                throw new Error("unexpected: " + stateName);
+                throw new AssertionError("unexpected: " + stateName);
             }
             break;
         case STATE_RECOVER:

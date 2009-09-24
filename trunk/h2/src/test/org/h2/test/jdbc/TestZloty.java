@@ -40,7 +40,7 @@ public class TestZloty extends TestBase {
      */
     private static class ZlotyBigDecimal extends BigDecimal {
 
-        private static final long serialVersionUID = -8004563653683501484L;
+        private static final long serialVersionUID = 1L;
 
         public ZlotyBigDecimal(String s) {
             super(s);
@@ -103,7 +103,8 @@ public class TestZloty extends TestBase {
         prep.setInt(1, 3);
         try {
             BigDecimal value = new BigDecimal("12.100000") {
-                private static final long serialVersionUID = -7909023971521750844L;
+
+                private static final long serialVersionUID = 1L;
 
                 public String toString() {
                     return "12,100000 EURO";

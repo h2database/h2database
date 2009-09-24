@@ -69,7 +69,7 @@ public class Value {
         case Types.BIT:
             return (String) data;
         default:
-            throw new Error("type=" + type);
+            throw new AssertionError("type=" + type);
         }
     }
 
@@ -189,7 +189,7 @@ public class Value {
             data = rs.getBoolean(index) ? "TRUE" : "FALSE";
             break;
         default:
-            throw new Error("type=" + type);
+            throw new AssertionError("type=" + type);
         }
         if (rs.wasNull()) {
             data = null;
@@ -248,7 +248,7 @@ public class Value {
             data = config.random().getBoolean(50) ? "TRUE" : "FALSE";
             break;
         default:
-            throw new Error("type=" + type);
+            throw new AssertionError("type=" + type);
         }
         return new Value(config, type, data);
     }
@@ -289,7 +289,7 @@ public class Value {
 //    private int compareTo(Object o) {
 //        Value v = (Value) o;
 //        if (type != v.type) {
-//            throw new Error("compare " + type +
+//            throw new AssertionError("compare " + type +
 //                    " " + v.type + " " + data + " " + v.data);
 //        }
 //        if (data == null) {
@@ -312,7 +312,7 @@ public class Value {
 //        case Types.INTEGER:
 //            return ((Integer) data).compareTo((Integer) v.data);
 //        default:
-//            throw new Error("type=" + type);
+//            throw new AssertionError("type=" + type);
 //        }
 //    }
 

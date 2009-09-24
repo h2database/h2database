@@ -374,7 +374,7 @@ class Command {
                 result = new Result("rollback");
                 break;
             default:
-                throw new Error("internal");
+                throw new AssertionError("type=" + type);
             }
         } catch (SQLException e) {
             result = new Result("", e);

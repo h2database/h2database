@@ -139,17 +139,17 @@ public class TestSpeed extends TestBase {
             // ResultSet rs = stat.executeQuery("SELECT * FROM TEST WHERE
             // ID="+i);
             // if(!rs.next()) {
-            // throw new Error("hey! i="+i);
+            // throw new AssertionError("hey! i="+i);
             // }
             // if(rs.next()) {
-            // throw new Error("hey! i="+i);
+            // throw new AssertionError("hey! i="+i);
             // }
         }
         // for(int i=0; i<max; i++) {
         // stat.execute("DELETE FROM TEST WHERE ID="+i);
         // ResultSet rs = stat.executeQuery("SELECT * FROM TEST WHERE ID="+i);
         // if(rs.next()) {
-        // throw new Error("hey!");
+        // throw new AssertionError("hey!");
         // }
         // }
 

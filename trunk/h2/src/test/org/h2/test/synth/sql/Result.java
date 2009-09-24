@@ -103,7 +103,7 @@ class Result implements Comparable<Result> {
             }
             return result + "}";
         default:
-            throw new Error("internal");
+            throw new AssertionError("type=" + type);
         }
     }
 
@@ -122,7 +122,7 @@ class Result implements Comparable<Result> {
         case RESULT_SET:
             return toString().compareTo(r.toString());
         default:
-            throw new Error("internal");
+            throw new AssertionError("type=" + type);
         }
     }
 

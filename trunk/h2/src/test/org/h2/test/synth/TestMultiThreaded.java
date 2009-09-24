@@ -67,7 +67,7 @@ public class TestMultiThreaded extends TestBase {
                                     "DELETE FROM TEST WHERE NAME = '"+ id +"' AND ROWNUM()<2");
                             traceThread("delete done");
                             if (updateCount != 1) {
-                                throw new Error("Expected: 1 Deleted: " + updateCount);
+                                throw new AssertionError("Expected: 1 Deleted: " + updateCount);
                             }
                             count--;
                         }
@@ -80,7 +80,7 @@ public class TestMultiThreaded extends TestBase {
                         rs.next();
                         int got = rs.getInt(1);
                         if (got != count) {
-                            throw new Error("Expected: " + count + " got: " + got);
+                            throw new AssertionError("Expected: " + count + " got: " + got);
                         }
                         break;
                     case 3:

@@ -76,7 +76,7 @@ public class Newsfeed {
         s = StringUtils.replaceAll(s, "<br/>", "");
         s = StringUtils.replaceAll(s, "<br>", "");
         if (s.indexOf('<') >= 0 || s.indexOf('>') >= 0) {
-            throw new Error("Unsupported HTML Tag: < or > in " + s);
+            throw new RuntimeException("Unsupported HTML Tag: < or > in " + s);
         }
         return s;
     }

@@ -33,7 +33,7 @@ import org.h2.message.TraceSystem;
  */
 public class SortedProperties extends Properties {
 
-    private static final long serialVersionUID = 5657650728102821923L;
+    private static final long serialVersionUID = 1L;
 
     public synchronized Enumeration<Object> keys() {
         Vector<Object> v = new Vector<Object>(keySet());

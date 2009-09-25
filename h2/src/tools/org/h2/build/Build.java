@@ -257,7 +257,7 @@ public class Build extends BuildBase {
         try {
             exec("makensis", args("/v2", "src/installer/h2.nsi"));
             installer = true;
-        } catch (Error e) {
+        } catch (Exception e) {
             print("NSIS is not available: " + e);
         }
         String buildDate = getStaticField("org.h2.engine.Constants", "BUILD_DATE");

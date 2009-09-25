@@ -176,11 +176,6 @@ public class Constants {
     public static final int DEFAULT_MAX_LENGTH_CLIENTSIDE_LOB = 65536;
 
     /**
-     * The default maximum length of an LOB that is stored in the data file itself.
-     */
-    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 1024;
-
-    /**
      * The default maximum number of rows to be kept in memory in a result set.
      */
     public static final int DEFAULT_MAX_MEMORY_ROWS = 10000;

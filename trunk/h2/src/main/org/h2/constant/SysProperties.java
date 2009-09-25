@@ -194,6 +194,18 @@ public class SysProperties {
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
 
     /**
+     * System property <code>h2.defaultMaxLengthInplaceLob</code>.<br />
+     * The default maximum length of an LOB that is stored in the data file itself.
+     * <p>
+     * In version 1.1, the default is 1024.
+     * </p>
+     * <p>
+     * In version 1.2, the default is 4096.
+     * </p>
+     */
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = getIntSetting("h2.defaultMaxLengthInplaceLob", Constants.VERSION <= 1.1 ? 1024 : 4096);
+
+    /**
      * System property <code>h2.defaultResultSetConcurrency</code> (default:
      * ResultSet.CONCUR_READ_ONLY).<br />
      * The default result set concurrency for statements created with

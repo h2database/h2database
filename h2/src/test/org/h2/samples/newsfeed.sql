@@ -13,6 +13,32 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+/*
+<ul><li>The new page store mechanism is now alpha-level quality.
+</li><li>New committer: Christian Peter. He works for Docware.
+</li><li>The context class loader is used for user defined classes.
+</li><li>Non-unique in-memory hash indexes are now supported.
+</li><li>Improved performance for joins if indexes are missing.
+</li><li>New system property h2.defaultMaxLengthInplaceLob.
+</li><li>New system property h2.nullConcatIsNull.
+</li><li>The Recover tool now also processes the log files.
+</li><li>New sample application that shows how to pass data to a trigger.
+</li><li>The cache algorithm TQ is disabled.
+</li></ul>
+
+<ul><li>ChangeFileEncryption did not work with Lob subdirectories.
+</li><li>SELECT COUNT(*) FROM SYSTEM_RANGE(...) returned the wrong result.
+</li><li>More bugs in the server-less multi-connection mode have been fixed.
+</li><li>Updating many rows with LOB could throw an exception.
+</li><li>The native fulltext index could leak memory.
+</li><li>Statement.getConnection() didn't work if the connection was closed.
+</li><li>Issue 121: JaQu: new simple update and merge methods.
+</li><li>Issue 120: JaQu didn't close result sets.
+</li><li>Issue 119: JaQu creates wrong WHERE conditions on some inputs.
+</li></ul>
+
+*/
+
 INSERT INTO ITEM VALUES(68,
 'New version available: 1.1.118 (2009-09-04)', '2009-09-04 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

@@ -299,8 +299,10 @@ public class TableLink extends Table {
         if (isTemporary()) {
             if (globalTemporary) {
                 buff.append("GLOBAL ");
+            } else {
+                buff.append("LOCAL ");
             }
-            buff.append("TEMP ");
+            buff.append("TEMPORARY ");
         }
         buff.append("LINKED TABLE ").append(getSQL());
         if (comment != null) {

@@ -34,6 +34,16 @@ public class TestAutoServer extends TestBase {
     }
 
     public void test() throws Exception {
+        testAutoServer();
+        testLinkedLocalTablesWithAutoServerReconnect();
+    }
+
+    /**
+     * Tests basic AUTO_SERVER functionality
+     *
+     * @throws Exception
+     */
+    public void testAutoServer() throws Exception {
         if (config.memory || config.networked) {
             return;
         }
@@ -72,6 +82,48 @@ public class TestAutoServer extends TestBase {
         conn.close();
         connServer.close();
         deleteDb("autoServer");
+    }
+
+    /**
+     * Tests recreation of temporary linked tables on reconnect
+     *
+     * @throws SQLException
+     */
+    private void testLinkedLocalTablesWithAutoServerReconnect() throws SQLException {
+        if (config.memory || config.networked) {
+            return;
+        }
+        deleteDb("autoServerLinkedTable1");
+        deleteDb("autoServerLinkedTable2");
+        String url = getURL("autoServerLinkedTable1;AUTO_SERVER=TRUE", true);
+        String urlLinked = getURL("autoServerLinkedTable2", true);
+        String user = getUser(), password = getPassword();
+
+        Connection connLinked = getConnection(urlLinked + ";OPEN_NEW=TRUE", "sa", "sa");
+        Statement statLinked = connLinked.createStatement();
+        statLinked.execute("CREATE TABLE TEST(ID VARCHAR)");
+        connLinked.close();
+
+        // Server is connection 1
+        Connection connAutoServer1 = getConnection(url + ";OPEN_NEW=TRUE", user, password);
+        Statement statAutoServer1 = connAutoServer1.createStatement();
+        statAutoServer1.execute("CREATE LOCAL TEMPORARY LINKED TABLE T('org.h2.Driver', '" + urlLinked + ";OPEN_NEW=TRUE', 'sa', 'sa', 'TEST')");
+
+        // Connection 2 connects
+        Connection connAutoServer2 = getConnection(url + ";OPEN_NEW=TRUE", user, password);
+        Statement statAutoServer2 = connAutoServer2.createStatement();
+        statAutoServer2.execute("CREATE LOCAL TEMPORARY LINKED TABLE T('org.h2.Driver', '" + urlLinked + ";OPEN_NEW=TRUE', 'sa', 'sa', 'TEST')");
+
+        // Server 1 closes the connection => connection 2 will be the server
+        // => the "force create local linked..." must be reissued
+        connAutoServer1.close();
+
+        // Now test insert
+        statAutoServer2.execute("INSERT INTO T (ID) VALUES('abc')");
+
+        connAutoServer2.close();
+        deleteDb("autoServerLinkedTable1");
+        deleteDb("autoServerLinkedTable2");
     }
 
     /**

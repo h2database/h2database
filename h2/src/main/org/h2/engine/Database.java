@@ -136,7 +136,7 @@ public class Database implements DataHandler {
     private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
     private boolean logIndexChanges;
     private int logLevel = 1;
-    private int maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
+    private int maxLengthInplaceLob = SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB;
     private int allowLiterals = Constants.DEFAULT_ALLOW_LITERALS;
 
     private int powerOffCount = initialPowerOffCount;

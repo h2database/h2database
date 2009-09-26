@@ -13,7 +13,12 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
-/*
+INSERT INTO ITEM VALUES(69,
+'New version available: 1.1.119 (2009-09-26)', '2009-09-26 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
 <ul><li>The new page store mechanism is now alpha-level quality.
 </li><li>New committer: Christian Peter. He works for Docware.
 </li><li>The context class loader is used for user defined classes.
@@ -24,8 +29,9 @@ CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARC
 </li><li>The Recover tool now also processes the log files.
 </li><li>New sample application that shows how to pass data to a trigger.
 </li><li>The cache algorithm TQ is disabled.
+</li><li>SQL statements in the exception are no longer always included.
 </li></ul>
-
+<b>Bugfixes:</b>
 <ul><li>ChangeFileEncryption did not work with Lob subdirectories.
 </li><li>SELECT COUNT(*) FROM SYSTEM_RANGE(...) returned the wrong result.
 </li><li>More bugs in the server-less multi-connection mode have been fixed.
@@ -35,9 +41,14 @@ CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARC
 </li><li>Issue 121: JaQu: new simple update and merge methods.
 </li><li>Issue 120: JaQu didn't close result sets.
 </li><li>Issue 119: JaQu creates wrong WHERE conditions on some inputs.
+</li><li>Temporary local tables did not always work after reconnect if AUTO_SERVER=TRUE
 </li></ul>
-
-*/
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
 
 INSERT INTO ITEM VALUES(68,
 'New version available: 1.1.118 (2009-09-04)', '2009-09-04 12:00:00',
@@ -425,40 +436,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
     Thanks a lot to Eric Faulhaber for finding and fixing this problem!
 </li><li>When using the auto-server mode, and if the lock file was modified in the future,
     the wrong exception was thrown.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(55,
-'New version available: 1.1.105 (beta; 2008-12-19)', '2008-12-19 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>New meta data column TABLES.LAST_MODIFICATION.
-</li><li>The setting STORAGE=TEXT is no longer supported.
-</li><li>Natural join: the joined columns are not repeated any more.
-</li><li>MySQL compatibility: support for := assignment.
-</li><li>INSERT INTO TEST(SELECT * FROM TEST) is now supported.
-</li><li>H2 Console: columns are now listed for up to 500 tables.
-</li><li>H2 Console: support for the 'command' key.
-</li><li>JaQu: the maximum length of a column can now be defined.
-</li><li>The fulltext search documentation has been improved.
-</li><li>Ridvan Agar has completed the Turkish translation.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>The tool DeleteDbFiles could deleted LOB files of other databases.
-</li><li>When used in a subquery, LIKE and IN(..) did not work correctly.
-</li><li>ARRAY_GET returned the wrong data type.
-</li><li>User defined aggregate functions: the method getType was incorrect.
-</li><li>User defined aggregate functions did not work sometimes.
-</li><li>Each session threw an invisible exception when garbage collected.
-</li><li>Foreign key constraints that refer to a quoted column did not work.
-</li><li>Shell: line comments didn't work correctly.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

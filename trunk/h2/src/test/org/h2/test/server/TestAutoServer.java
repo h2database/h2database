@@ -86,8 +86,6 @@ public class TestAutoServer extends TestBase {
 
     /**
      * Tests recreation of temporary linked tables on reconnect
-     *
-     * @throws SQLException
      */
     private void testLinkedLocalTablesWithAutoServerReconnect() throws SQLException {
         if (config.memory || config.networked) {
@@ -99,29 +97,38 @@ public class TestAutoServer extends TestBase {
         String urlLinked = getURL("autoServerLinkedTable2", true);
         String user = getUser(), password = getPassword();
 
-        Connection connLinked = getConnection(urlLinked + ";OPEN_NEW=TRUE", "sa", "sa");
+        Connection connLinked = getConnection(urlLinked, user, password);
         Statement statLinked = connLinked.createStatement();
         statLinked.execute("CREATE TABLE TEST(ID VARCHAR)");
-        connLinked.close();
 
         // Server is connection 1
         Connection connAutoServer1 = getConnection(url + ";OPEN_NEW=TRUE", user, password);
         Statement statAutoServer1 = connAutoServer1.createStatement();
-        statAutoServer1.execute("CREATE LOCAL TEMPORARY LINKED TABLE T('org.h2.Driver', '" + urlLinked + ";OPEN_NEW=TRUE', 'sa', 'sa', 'TEST')");
+        statAutoServer1.execute("CREATE LOCAL TEMPORARY LINKED TABLE T('', '" +
+                urlLinked + "', '" + user + "', '" + password + "', 'TEST')");
 
         // Connection 2 connects
         Connection connAutoServer2 = getConnection(url + ";OPEN_NEW=TRUE", user, password);
         Statement statAutoServer2 = connAutoServer2.createStatement();
-        statAutoServer2.execute("CREATE LOCAL TEMPORARY LINKED TABLE T('org.h2.Driver', '" + urlLinked + ";OPEN_NEW=TRUE', 'sa', 'sa', 'TEST')");
+        statAutoServer2.execute("CREATE LOCAL TEMPORARY LINKED TABLE T('', '" +
+                urlLinked + "', '" + user + "', '" + password + "', 'TEST')");
 
         // Server 1 closes the connection => connection 2 will be the server
-        // => the "force create local linked..." must be reissued
-        connAutoServer1.close();
+        // => the "force create local temporary linked..." must be reissued
+        statAutoServer1.execute("shutdown immediately");
+        try {
+            connAutoServer1.close();
+        } catch (SQLException e) {
+            // ignore
+        }
 
         // Now test insert
         statAutoServer2.execute("INSERT INTO T (ID) VALUES('abc')");
 
         connAutoServer2.close();
+
+        connLinked.close();
+
         deleteDb("autoServerLinkedTable1");
         deleteDb("autoServerLinkedTable2");
     }

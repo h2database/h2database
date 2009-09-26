@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
+and under the Eclipse Public License, Version 1.0
+(http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+Build
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
+
+<h1>Build</h1>
+<a href="#portability">
+    Portability</a><br />
+<a href="#environment">
+    Environment</a><br />
+<a href="#building">
+    Building the Software</a><br />
+<a href="#build_targets">
+    Build Targets</a><br />
+<a href="#maven2">
+    Using Maven 2</a><br />
+<a href="#translating">
+    Translating</a><br />
+<a href="#providing_patches">
+    Providing Patches</a><br />
+<a href="#automated">
+    Automated Build</a><br />
+
+<br /><a name="portability"></a>
+<h2>Portability</h2>
+<p>
+This database is written in Java and therefore works on many platforms.
+It can also be compiled to a native executable using GCJ.
+</p>
+
+<br /><a name="environment"></a>
+<h2>Environment</h2>
+<p>
+A Java Runtime Environment (JRE) version 1.5 or higher is required to run this database.
+</p>
+<p>
+To build the database executables, the following software stack was used.
+Newer version or compatible software works too.
+</p>
+<ul><li>Mac OS X and Windows XP
+</li><li><a href="http://java.sun.com/javase/downloads">Sun JDK Version 1.5 and 1.6</a>
+</li><li><a href="http://www.eclipse.org">Eclipse Version 3.4</a>
+</li><li>Eclipse Plugins:
+    <a href="http://subclipse.tigris.org">Subclipse 1.4.6</a>,
+    <a href="http://eclipse-cs.sourceforge.net">Eclipse Checkstyle Plug-in 4.4.2</a>,
+    <a href="http://www.eclemma.org">EclEmma Java Code Coverage 1.3.0</a>
+</li><li><a href="http://emma.sourceforge.net">Emma Java Code Coverage</a>
+</li><li><a href="http://www.mozilla.com/firefox">Mozilla Firefox 3.0</a>
+</li><li><a href="http://www.openoffice.org">OpenOffice 3.0</a>
+</li><li><a href="http://nsis.sourceforge.net">NSIS 2.38</a> (Nullsoft Scriptable Install System)
+</li><li><a href="http://maven.apache.org">Maven 2.0.9</a>
+</li></ul>
+
+<br /><a name="building"></a>
+<h2>Building the Software</h2>
+<p>
+You need to install a JDK, for example the Sun JDK version 1.5 or 1.6.
+Ensure that Java binary directory is included in the PATH environment variable, and that
+the environment variable JAVA_HOME points to your Java installation.
+On the command line, go to the directory h2 and execute the following command:
+</p>
+<pre>
+build -?
+</pre>
+<p>
+For Linux and OS X, use <code>./build.sh</code> instead of <code>build</code>.
+</p>
+<p>
+You will get a list of targets. If you want to build the jar file, execute (Windows):
+</p>
+<pre>
+build jar
+</pre>
+
+<h3>Switching the Source Code</h3>
+<p>
+By default the source code uses Java 1.5 features, however Java 1.6 is supported as well.
+To switch the source code to the install version of Java, run:
+</p>
+<pre>
+build switchSource
+</pre>
+
+<br /><a name="build_targets"></a>
+<h2>Build Targets</h2>
+<p>
+The build system can generate smaller jar files as well. The following targets are currently supported:
+</p>
+<ul><li>jarClient creates the h2client.jar. This only contains the JDBC client.
+</li><li>jarSmall creates the file h2small.jar. This only contains the embedded database. Debug information is disabled.
+</li><li>jarJaqu creates the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
+</li><li>javadocImpl creates the Javadocs of the implementation.
+</li></ul>
+<p>
+To create the h2client.jar file, go to the directory h2 and execute the following command:
+</p>
+<pre>
+build jarClient
+</pre>
+
+<br /><a name="maven2"></a>
+<h2>Using Maven 2</h2>
+<h3>Using a Central Repository</h3>
+<p>
+You can include the database in your Maven 2 project as a dependency.
+Example:
+</p>
+<pre>
+&lt;dependency&gt;
+    &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+    &lt;artifactId&gt;h2&lt;/artifactId&gt;
+    &lt;version&gt;${version}&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
+<p>
+New versions of this database are first uploaded to http://hsql.sourceforge.net/m2-repo/ and then automatically
+synchronized with the main maven repository; however after a new release it may take a few hours before
+they are available there.
+</p>
+
+<h3>Using Snapshot Version</h3>
+<p>
+To build a 'snapshot' H2 .jar file and upload it the to the local Maven 2 repository, execute the following command:
+</p>
+<pre>
+build mavenInstallLocal
+</pre>
+<p>
+Afterwards, you can include the database in your Maven 2 project as a dependency:
+</p>
+<pre>
+&lt;dependency&gt;
+    &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+    &lt;artifactId&gt;h2&lt;/artifactId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
+
+<br /><a name="translating"></a>
+<h2>Translating</h2>
+<p>
+The translation of this software is split into the following parts:
+</p>
+<ul>
+<li>H2 Console: src/main/org/h2/server/web/res/_text_*.properties
+</li><li>Error messages: src/main/org/h2/res/_messages_*.properties
+</li><li>Web site: src/docsrc/text/_docs_*.utf8.txt
+</li></ul>
+<p>
+To translate the H2 Console, start it and select Preferences / Translate.
+The conversion between UTF-8 and Java encoding (using the \u syntax), as well as the HTML entities (&amp;#..;)
+is automated by running the tool PropertiesToUTF8. The web site translation is automated as well,
+using <code>build docs</code>.
+</p>
+
+<br /><a name="providing_patches"></a>
+<h2>Providing Patches</h2>
+<p>
+If you like to provide patches, please consider the following guidelines to simplify merging them:
+</p>
+<ul><li>Only use Java 1.5 features (do not use Java 1.6) (see Environment).
+</li><li>Follow the coding style used in the project, and use Checkstyle (see above) to verify.
+    For example, do not use tabs (use spaces instead).
+    The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>.
+</li><li>Please provide test cases and integrate them into the test suite.
+    For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>.
+    For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or <code>testSimple.in.txt</code>.
+</li><li>The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above).
+    or use the build target 'coverage'.
+</li><li>Verify that you did not break other features: run the test cases by executing <code>build test</code>.
+</li><li>Provide end user documentation if required (<code>src/docsrc/html/*</code>).
+</li><li>Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
+</li><li>Provide a change log entry (<code>src/docsrc/html/changelog.html</code>).
+</li><li>Verify the spelling using <code>build spellcheck</code>. If required
+    add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>.
+</li><li>Run the src/installer/buildRelease to find and fix formatting errors.
+</li><li>Verify the formatting using <code>build docs</code> and <code>build javadoc</code>.
+</li><li>Submit patches as .patch files (compressed if big). To create a patch using Eclipse, use Team / Create Patch.
+</li></ul>
+<p>
+For legal reasons, patches need to be public in the form of an email to the
+<a href="http://groups.google.com/group/h2-database">group</a>, or in the form
+of an <a href="http://code.google.com/p/h2database/issues/list">issue report or attachment</a>.
+Significant contributions need to include the following statement:
+</p>
+<pre>
+"I wrote the code, it's mine, and I'm contributing it to H2 for distribution
+multiple-licensed under the H2 License, version 1.0, and under the
+Eclipse Public License, version 1.0 (http://h2database.com/html/license.html)."
+</pre>
+
+<br /><a name="automated"></a>
+<h2>Automated Build</h2>
+<p>
+This build process is automated and runs regularly.
+The build process includes running the tests and code coverage, using the command line
+<code>./build.sh clean jar coverage -Dh2.ftpPassword=... uploadBuild</code>.
+The last results are available here:
+</p>
+<ul><li><a href="http://h2database.com/html/testOutput.html">Test Output</a>
+</li><li><a href="http://h2database.com/coverage/overview.html">Code Coverage Summary</a>
+</li><li><a href="http://h2database.com/coverage/coverage.zip">Code Coverage Details (download, 1.3 MB)</a>
+</li><li><a href="http://www.h2database.com/automated/newsfeed.xml">Build Newsfeed</a>
+</li><li><a href="http://www.h2database.com/automated/h2-latest.jar">Latest Jar File (download, 1 MB)</a>
+</li></ul>
+
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
+

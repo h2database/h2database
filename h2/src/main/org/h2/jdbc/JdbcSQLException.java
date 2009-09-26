@@ -132,6 +132,7 @@ public class JdbcSQLException extends SQLException {
 
     /**
      * Returns the SQL statement.
+     * SQL statements that contain '--hide--' are not listed.
      *
      * @return the SQL statement
      */
@@ -143,8 +144,10 @@ public class JdbcSQLException extends SQLException {
      * INTERNAL
      */
     public void setSQL(String sql) {
-        this.sql = sql;
-        buildMessage();
+        if (sql.indexOf("--hide--") < 0) {
+            this.sql = sql;
+            buildMessage();
+        }
     }
 
     private void buildMessage() {

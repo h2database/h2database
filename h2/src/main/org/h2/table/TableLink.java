@@ -325,6 +325,7 @@ public class TableLink extends Table {
         if (readOnly) {
             buff.append(" READONLY");
         }
+        buff.append(" /*--hide--*/");
         return buff.toString();
     }
 

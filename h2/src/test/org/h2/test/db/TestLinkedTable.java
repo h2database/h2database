@@ -15,7 +15,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
@@ -34,6 +33,7 @@ public class TestLinkedTable extends TestBase {
     }
 
     public void test() throws SQLException {
+        testHiddenSQL();
         // testLinkAutoAdd();
         testNestedQueriesToSameTable();
         testSharedConnection();
@@ -48,6 +48,30 @@ public class TestLinkedTable extends TestBase {
         testCachingResults();
 
         deleteDb("linkedTable");
+    }
+
+    private void testHiddenSQL() throws SQLException {
+        if (config.memory || !SysProperties.SHARE_LINKED_CONNECTIONS) {
+            return;
+        }
+        org.h2.Driver.load();
+        deleteDb("linkedTable");
+        Connection conn = getConnection("linkedTable");
+        try {
+            conn.createStatement().execute(
+                    "create linked table test(null, 'jdbc:h2:mem:', 'sa', 'pwd', 'DUAL2')");
+            fail();
+        } catch (SQLException e) {
+            assertTrue(e.toString().indexOf("pwd") >= 0);
+        }
+        try {
+            conn.createStatement().execute(
+                    "create linked table test(null, 'jdbc:h2:mem:', 'sa', 'pwd', 'DUAL2') --hide--");
+            fail();
+        } catch (SQLException e) {
+            assertTrue(e.toString().indexOf("pwd") < 0);
+        }
+        conn.close();
     }
 
     // this is not a bug, it is the documented behavior

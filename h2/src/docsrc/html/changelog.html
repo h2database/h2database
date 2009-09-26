@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Temporary local tables did not always work after reconnect if AUTO_SERVER=TRUE
+<ul><li>SQL statements in the exception message are no longer included if they contain '--hide--'.
+</li><li>Temporary local tables did not always work after reconnect if AUTO_SERVER=TRUE
 </li><li>New system property h2.defaultMaxLengthInplaceLob to change the default maximum size
     of an in-place LOB object.
 </li><li>New system property h2.nullConcatIsNull to change the default null concatenation behavior.

@@ -17,6 +17,13 @@ import org.h2.engine.Constants;
  */
 public class JdbcSQLException extends SQLException {
 
+    /**
+     * If the SQL statement contains this text, then it is never added to the
+     * SQL exception. Hiding the SQL statement may be important if it contains a
+     * passwords, such as a CREATE LINKED TABLE statement.
+     */
+    public static final String HIDE_SQL = "--hide--";
+
     private static final long serialVersionUID = 1L;
     private final String originalMessage;
     private final Throwable cause;
@@ -144,7 +151,7 @@ public class JdbcSQLException extends SQLException {
      * INTERNAL
      */
     public void setSQL(String sql) {
-        if (sql.indexOf("--hide--") < 0) {
+        if (sql.indexOf(HIDE_SQL) < 0) {
             this.sql = sql;
             buildMessage();
         }

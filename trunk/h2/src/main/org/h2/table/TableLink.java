@@ -20,6 +20,7 @@ import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.LinkedIndex;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -325,7 +326,7 @@ public class TableLink extends Table {
         if (readOnly) {
             buff.append(" READONLY");
         }
-        buff.append(" /*--hide--*/");
+        buff.append(" /*" + JdbcSQLException.HIDE_SQL + "*/");
         return buff.toString();
     }
 

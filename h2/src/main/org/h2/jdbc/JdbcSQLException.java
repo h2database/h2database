@@ -33,16 +33,19 @@ public class JdbcSQLException extends SQLException {
     private volatile Object payload;
 
     /**
-     * Creates a SQLException a message, sqlstate and cause.
+     * Creates a SQLException.
      *
      * @param message the reason
+     * @param sql the SQL statement
      * @param state the SQL state
+     * @param errorCode the error code
      * @param cause the exception that was the reason for this exception
+     * @param stackTrace the stack trace
      */
     public JdbcSQLException(String message, String sql, String state, int errorCode, Throwable cause, String stackTrace) {
         super(message, state, errorCode);
         this.originalMessage = message;
-        this.sql = sql;
+        setSQL(sql);
         this.cause = cause;
         this.stackTrace = stackTrace;
         buildMessage();
@@ -152,9 +155,10 @@ public class JdbcSQLException extends SQLException {
      */
     public void setSQL(String sql) {
         if (sql.indexOf(HIDE_SQL) < 0) {
-            this.sql = sql;
-            buildMessage();
+            sql = "-";
         }
+        this.sql = sql;
+        buildMessage();
     }
 
     private void buildMessage() {

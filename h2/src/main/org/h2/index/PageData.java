@@ -18,6 +18,11 @@ import org.h2.store.Page;
 abstract class PageData extends Page {
 
     /**
+     * The position of the parent page id.
+     */
+    static final int START_PARENT = 3;
+
+    /**
      * This is a root page.
      */
     static final int ROOT = 0;
@@ -143,7 +148,6 @@ abstract class PageData extends Page {
      * @param id the new page id
      */
     void setPageId(int id) throws SQLException {
-        written = false;
         index.getPageStore().removeRecord(getPos());
         setPos(id);
         remapChildren();
@@ -169,8 +173,10 @@ abstract class PageData extends Page {
      * @param id the new parent page id
      */
     void setParentPageId(int id) {
-        written = false;
         parentPageId = id;
+        if (written) {
+            data.setInt(START_PARENT, parentPageId);
+        }
     }
 
     /**

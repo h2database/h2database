@@ -292,8 +292,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-slow startup with a large number of lob files
-
 mvcc merge problem
 
 System.setProperty("h2.optimizeInList", "true");
@@ -307,7 +305,7 @@ out of memory in tests: analyze heap dump
 
 -------------
 
-create a short documentation
+integrate the short documentation, but where?
 
 documentation: rolling review at roadmap.html: done
 

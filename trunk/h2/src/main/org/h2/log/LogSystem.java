@@ -65,7 +65,7 @@ public class LogSystem {
      * @param fileNamePrefix the name of the database file
      * @param readOnly if the log should be opened in read-only mode
      * @param accessMode the file access mode (r, rw, rws, rwd)
-     * @param pageStore
+     * @param pageStore the page store
      */
     public LogSystem(Database database, String fileNamePrefix, boolean readOnly, String accessMode, PageStore pageStore) {
         this.database = database;

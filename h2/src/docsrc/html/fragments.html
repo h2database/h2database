@@ -13,7 +13,7 @@ Initial Developer: H2 Group
 </head><body onload="highlight();">
 
 <table class="nav" onmousemove="return mouseMove(event)"><tr class="nav"><td class="nav" valign="top">
-<div id="searchMenu" style="width: 180px; overflow: hidden;">
+<div id = "searchMenu" style="width: 180px; overflow: hidden;">
 <div class="menu">
 <img src="images/h2-logo.png" alt="H2 Logo"  onclick="document.location='main.html'" width="136" height="74"/>
 </div>
@@ -32,17 +32,17 @@ Initial Developer: H2 Group
     </tr>
     <tr class="search">
         <td class="search" colspan="2">
-            <input id="search" name="search" type="text" size="21" maxlength="100" onkeyup="listWords(this.value, '')" /><br />
-            <input type="reset" id="clear" style="display:none;" value="Clear" onclick="listWords('', '');" />
+            <input id = "search" name="search" type="text" size="21" maxlength="100" onkeyup="listWords(this.value, '')" /><br />
+            <input type="reset" id = "clear" style="display:none;" value="Clear" onclick="listWords('', '');" />
         </td>
     </tr>
     <tr class="search" style="display:none;" >
-        <td class="search" style="width: 1%; vertical-align: middle;"><input id="highlight" type="checkbox" checked="checked" onclick="highlightCurrent(this.checked, search.value)" /></td>
+        <td class="search" style="width: 1%; vertical-align: middle;"><input id = "highlight" type="checkbox" checked="checked" onclick="highlightCurrent(this.checked, search.value)" /></td>
         <td class="search" style="width: 99%; padding: 0px; vertical-align: middle;"> Highlight keyword(s) </td>
     </tr>
     <tr class="search">
         <td class="search" colspan="2">
-            <table id="result" style="border: 0px;">
+            <table id = "result" style="border: 0px;">
                 <tr style="display:none"><td></td></tr>
             </table>
         </td>

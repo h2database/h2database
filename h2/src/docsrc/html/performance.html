@@ -29,8 +29,8 @@ Performance
 <a href="#fast_import">
     Fast Database Import</a><br />
 
-<br /><a name="performance_comparison"></a>
-<h2>Performance Comparison</h2>
+<br />
+<h2 id="performance_comparison">Performance Comparison</h2>
 <p>
 In many cases H2 is faster than other
 (open source and not open source) database engines.
@@ -271,8 +271,8 @@ Here, one (wrapper) connection is opened at the start,
 and for each step a new connection is opened and then closed.
 </p>
 
-<br /><a name="poleposition_benchmark"></a>
-<h2>PolePosition Benchmark</h2>
+<br />
+<h2 id="poleposition_benchmark">PolePosition Benchmark</h2>
 <p>
 The PolePosition is an open source benchmark. The algorithms are all quite simple.
 It was developed / sponsored by db4o.
@@ -315,8 +315,8 @@ To change that, use the database URL jdbc:h2:file:data/h2/dbbench;DB_CLOSE_DELAY
 Unfortunately, the PolePosition test does not take this into account.
 </li></ul>
 
-<br /><a name="application_profiling"></a>
-<h2>Application Profiling</h2>
+<br />
+<h2 id="application_profiling">Application Profiling</h2>
 
 <h3>Analyze First</h3>
 <p>
@@ -342,8 +342,8 @@ run <code>jstack &lt;pid&gt;</code> or <code>kill -QUIT &lt;pid&gt;</code> (Linu
 Ctrl+C (Windows).
 </p>
 
-<br /><a name="database_profiling"></a>
-<h2>Database Profiling</h2>
+<br />
+<h2 id="database_profiling">Database Profiling</h2>
 <p>
 The ConvertTraceFile tool generates SQL statement statistics at the end of the SQL script file.
 The format used is similar to the profiling data generated when using java -Xrunhprof.
@@ -381,8 +381,8 @@ following profiling data (results vary):
 --   0% 100%       0       1       0 SET TRACE_LEVEL_FILE 3;
 </pre>
 
-<br /><a name="database_performance_tuning"></a>
-<h2>Database Performance Tuning</h2>
+<br />
+<h2 id="database_performance_tuning">Database Performance Tuning</h2>
 
 <h3>Use a Modern JVM</h3>
 <p>
@@ -510,8 +510,8 @@ Each data type has different storage and performance characteristics:
 </li><li>SMALLINT/TINYINT/BOOLEAN are not significantly smaller or faster to work with than INTEGER in most modes.
 </li></ul>
 
-<br /><a name="fast_import"></a>
-<h2>Fast Database Import</h2>
+<br />
+<h2 id="fast_import">Fast Database Import</h2>
 <p>
 To speed up large imports, consider using the following options temporarily:
 </p>

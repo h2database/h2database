@@ -186,14 +186,14 @@ function sizeTextArea() {
 <h1>Online Error Analyzer</h1>
 <b><a href="../html/main.html">Home</a></b><br />
 <h2>
-    <a href="javascript:select('input')" id="inputTab">Input</a>&nbsp;
-    <a href="javascript:select('details')" id="detailsTab">Details</a>&nbsp;
-    <a href="javascript:select('source')" id="sourceTab">Source Code</a>
+    <a href="javascript:select('input')" id = "inputTab">Input</a>&nbsp;
+    <a href="javascript:select('details')" id = "detailsTab">Details</a>&nbsp;
+    <a href="javascript:select('source')" id = "sourceTab">Source Code</a>
 </h2>
 <hr/>
-<div id="input">
+<div id = "input">
     <p>Fill in the error message and stack trace and click on 'Details' or 'Source Code': </p>
-    <textarea id="error" cols="100" style="width: 100%; overflow: auto;" rows="20"
+    <textarea id = "error" cols="100" style="width: 100%; overflow: auto;" rows="20"
         onChange="convert()"
         onSelect="convert()"
         onKeyUp="convert()"
@@ -203,24 +203,24 @@ function sizeTextArea() {
     >
     </textarea>
 </div>
-<div id="details">
-    <p><b>Error Code: </b><span id="errorCode"></span></p>
-    <p><b>Product Version: </b><span id="version"></span></p>
+<div id = "details">
+    <p><b>Error Code: </b><span id = "errorCode"></span></p>
+    <p><b>Product Version: </b><span id = "version"></span></p>
     <p><b>Message: </b></p>
-    <p id="message"></p>
+    <p id = "message"></p>
     <p><b>More Information:</b></p>
-    <iframe id="more" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="100px" src="">
+    <iframe id = "more" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="100px" src="">
     </iframe>
 </div>
-<div id="source">
-    <table id="sourceTable" style="border:0px" width="100%"><tr>
+<div id = "source">
+    <table id = "sourceTable" style="border:0px" width="100%"><tr>
     <td style="border:0px" width="30px">
         <p><b>Stack Trace: </b></p>
-        <p id="links"></p>
+        <p id = "links"></p>
     </td><td style="border:0px" width="90%">
-        <p><b>Source File: </b><span id="file"></span><br />
-        Raw file <input type="checkbox" id="rawSource" /> (fast; only Firefox)</p>
-        <iframe id="code" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="100px" src="">
+        <p><b>Source File: </b><span id = "file"></span><br />
+        Raw file <input type="checkbox" id = "rawSource" /> (fast; only Firefox)</p>
+        <iframe id = "code" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="100px" src="">
         </iframe>
     </td>
     </tr></table>

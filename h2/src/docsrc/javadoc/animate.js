@@ -15,18 +15,18 @@ function off(id) {
 
 function allDetails() {
     for (i = 0;; i++) {
-        x = document.getElementById('m' + i);
+        x = document.getElementById('_' + i);
         if (x == null) {
             break;
         }
-        switchTag('m' + i, 'titleOff', 'detailOn');
+        switchTag(i, 'titleOff', 'detailOn');
     }
     return false;
 }
 
 function switchTag(id, title, detail) {
-    document.getElementById('t' + id).className = title;
-    document.getElementById(id).className = detail;
+    document.getElementById('__' + id).className = title;
+    document.getElementById('_' + id).className = detail;
     return false;
 }
 
@@ -38,7 +38,7 @@ function openLink() {
     }
     var ref = page.substr(pos);
     link = decodeURIComponent(ref);
-    el = document.getElementsByName(link)[0].parentNode.parentNode;
+    el = document.getElementById(link).parentNode.parentNode;
     on(el.id);
     window.scrollTo(0, el.offsetTop);
     return true;

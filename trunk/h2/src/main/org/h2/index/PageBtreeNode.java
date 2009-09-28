@@ -182,6 +182,7 @@ public class PageBtreeNode extends PageBtree {
         rows = newRows;
         childPageIds = newChildPageIds;
         entryCount++;
+        written = false;
     }
 
     int addRowTry(SearchRow row) throws SQLException {
@@ -301,6 +302,7 @@ public class PageBtreeNode extends PageBtree {
         PageBtree page = index.getPage(childPageIds[at]);
         SearchRow last = page.remove(row);
         updateRowCount(-1);
+        written = false;
         if (last == null) {
             // the last row didn't change - nothing to do
             return null;
@@ -373,6 +375,7 @@ public class PageBtreeNode extends PageBtree {
     }
 
     private void writeHead() {
+        data.reset();
         data.writeByte((byte) (Page.TYPE_BTREE_NODE | (onlyPosition ? 0 : Page.FLAG_LAST)));
         data.writeShortInt(0);
         data.writeInt(parentPageId);
@@ -386,7 +389,6 @@ public class PageBtreeNode extends PageBtree {
             return;
         }
         readAllRows();
-        data.reset();
         writeHead();
         data.writeInt(childPageIds[entryCount]);
         for (int i = 0; i < entryCount; i++) {

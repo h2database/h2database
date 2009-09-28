@@ -38,7 +38,7 @@ SQL Grammar
 
 <c:forEach var="item" items="commands">
 <br />
-<a name="${item.link}"></a><h3>${item.topic}</h3>
+<h3 id="${item.link}">${item.topic}</h3>
 <pre>
 ${item.syntax}
 </pre>
@@ -52,7 +52,7 @@ ${item.example}
 
 <c:forEach var="item" items="otherGrammar">
 <br />
-<a name="${item.link}"></a><h3>${item.topic}</h3>
+<h3 id="${item.link}">${item.topic}</h3>
 <pre>
 ${item.syntax}
 </pre>
@@ -65,7 +65,7 @@ ${item.example}
 </c:forEach>
 
 <br />
-<a name="information_schema"></a><h3>Information Schema</h3>
+<h3 id="information_schema">Information Schema</h3>
 <p>
 The system tables in the schema 'INFORMATION_SCHEMA' contain the meta data
 of all tables in the database as well as the current settings.
@@ -77,7 +77,7 @@ of all tables in the database as well as the current settings.
 </table>
 
 <br />
-<a name="range_table"></a><h3>Range Table</h3>
+<h3 id="range_table">Range Table</h3>
 <p>
 The range table is a dynamic system table that contains all values from a start to an end value.
 The table contains one column called X. Both the start and end values are included in the result.

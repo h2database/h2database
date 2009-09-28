@@ -53,8 +53,8 @@ Tutorial
 <a href="#spring">
     Using Spring</a><br />
 
-<br /><a name="tutorial_starting_h2_console"></a>
-<h2>Starting and Using the H2 Console</h2>
+<br />
+<h2 id="tutorial_starting_h2_console">Starting and Using the H2 Console</h2>
 <p>
 The H2 Console application lets you access a SQL database using a browser interface.
 This can be a H2 database, or another database that supports the JDBC API.
@@ -220,8 +220,8 @@ press [Ctrl]+[C] in the console where the server was started (Windows),
 or close the console window.
 </p>
 
-<br /><a name="console_settings"></a>
-<h2>Settings of the H2 Console</h2>
+<br />
+<h2 id="console_settings">Settings of the H2 Console</h2>
 <p>
 The settings of the H2 Console are stored in a configuration file
 called <code>.h2.server.properties</code> in you user home directory.
@@ -229,8 +229,8 @@ For Windows installations, the user home directory is usually <code>C:\Documents
 The configuration file contains the settings of the application and is automatically created when the H2 Console is first started.
 </p>
 
-<br /><a name="connecting_using_jdbc"></a>
-<h2>Connecting to a Database using JDBC</h2>
+<br />
+<h2 id="connecting_using_jdbc">Connecting to a Database using JDBC</h2>
 <p>
 To connect to a database, a Java application first needs to load the database driver,
 and then get a connection. A simple way to do that is using the following code:
@@ -258,16 +258,16 @@ is the user name ('sa' for System Administrator in this example). The third para
 In this database, user names are not case sensitive, but passwords are.
 </p>
 
-<br /><a name="creating_new_databases"></a>
-<h2>Creating New Databases</h2>
+<br />
+<h2 id="creating_new_databases">Creating New Databases</h2>
 <p>
 By default, if the database specified in the URL does not yet exist, a new (empty)
 database is created automatically. The user that created the database automatically becomes
 the administrator of this database.
 </p>
 
-<br /><a name="using_server"></a>
-<h2>Using the Server</h2>
+<br />
+<h2 id="using_server">Using the Server</h2>
 <p>
 H2 currently supports three server: a web server (for the H2 Console),
 a TCP server (for client/server connections) and an PG server (for PostgreSQL clients).
@@ -342,8 +342,8 @@ Shutting down a TCP server can be protected using the option -tcpPassword
 (the same password must be used to start and stop the TCP server).
 </p>
 
-<br /><a name="using_hibernate"></a>
-<h2>Using Hibernate</h2>
+<br />
+<h2 id="using_hibernate">Using Hibernate</h2>
 <p>
 This database supports Hibernate version 3.1 and newer. You can use the HSQLDB Dialect,
 or the native H2 Dialect. Unfortunately the H2 Dialect included in Hibernate is buggy. A
@@ -353,8 +353,8 @@ is also available at src/tools/org/hibernate/dialect/H2Dialect.java.txt.
 You can rename it to H2Dialect.java and include this as a patch in your application.
 </p>
 
-<br /><a name="using_toplink"></a>
-<h2>Using TopLink and Glassfish</h2>
+<br />
+<h2 id="using_toplink">Using TopLink and Glassfish</h2>
 <p>
 To use H2 with Glassfish (or Sun AS), set the Datasource Classname to
 <code>org.h2.jdbcx.JdbcDataSource</code>. You can set this in the GUI
@@ -380,8 +380,8 @@ To enable it, change the following setting in persistence.xml:
 In old versions of Glassfish, the property name is <code>toplink.platform.class.name</code>.
 </p>
 
-<br /><a name="web_applications"></a>
-<h2>Using Databases in Web Applications</h2>
+<br />
+<h2 id="web_applications">Using Databases in Web Applications</h2>
 <p>
 There are multiple ways to access a database from within web
 applications. Here are some examples if you use Tomcat or JBoss.
@@ -487,8 +487,8 @@ To create a web application with just the H2 Console, run the following command:
 build warConsole
 </pre>
 
-<br /><a name="csv"></a>
-<h2>CSV (Comma Separated Values) Support</h2>
+<br />
+<h2 id="csv">CSV (Comma Separated Values) Support</h2>
 <p>
 The CSV file support can be used inside the database using the functions CSVREAD and CSVWRITE,
 or it can be used outside the database as a standalone tool.
@@ -560,8 +560,8 @@ public class TestCsv {
 }
 </pre>
 
-<br /><a name="upgrade_backup_restore"></a>
-<h2>Upgrade, Backup, and Restore</h2>
+<br />
+<h2 id="upgrade_backup_restore">Upgrade, Backup, and Restore</h2>
 
 <h3>Database Upgrade</h3>
 <p>
@@ -625,8 +625,8 @@ if the file systems support creating snapshots. The problem is that it can't
 be guaranteed that the data is copied in the right order.
 </p>
 
-<br /><a name="command_line_tools"></a>
-<h2>Command Line Tools</h2>
+<br />
+<h2 id="command_line_tools">Command Line Tools</h2>
 <p>
 This database comes with a number of command line tools. To get more information about a tool,
 start it with the parameter '-?', for example:
@@ -655,8 +655,8 @@ The tools can also be called from an application by calling the main or another 
 For details, see the Javadoc documentation.
 </p>
 
-<br /><a name="open_office"></a>
-<h2>Using OpenOffice Base</h2>
+<br />
+<h2 id="open_office">Using OpenOffice Base</h2>
 <p>
 OpenOffice.org Base supports database access over the JDBC API. To connect to a H2 database
 using OpenOffice Base, you first need to add the JDBC driver to OpenOffice.
@@ -703,8 +703,8 @@ This can be done by create it using the NetBeans OpenOffice plugin.
 See also <a href="http://wiki.services.openoffice.org/wiki/Extensions_development_java">Extensions Development</a>.
 </p>
 
-<br /><a name="web_start"></a>
-<h2>Java Web Start / JNLP</h2>
+<br />
+<h2 id="web_start">Java Web Start / JNLP</h2>
 <p>
 When using Java Web Start / JNLP (Java Network Launch Protocol), permissions tags must be set in the .jnlp file,
 and the application .jar file must be signed. Otherwise, when trying to write to the file system, the following
@@ -717,8 +717,8 @@ Example permission tags:
 &lt;/security>
 </pre>
 
-<br /><a name="connection_pool"></a>
-<h2>Using a Connection Pool</h2>
+<br />
+<h2 id="connection_pool">Using a Connection Pool</h2>
 <p>
 For H2, opening a connection is fast if the database is already open.
 Still, using a connection pool improves performance if you open and close connections a lot.
@@ -746,8 +746,8 @@ public class Test {
 }
 </pre>
 
-<br /><a name="fulltext"></a>
-<h2>Fulltext Search</h2>
+<br />
+<h2 id="fulltext">Fulltext Search</h2>
 <p>
 H2 includes two fulltext search implementations. One is using Apache Lucene,
 and the other (the native implementation) stores the index data in special
@@ -791,7 +791,7 @@ The result contains the columns SCHEMA (the schema name),
 TABLE (the table name), COLUMNS (an array of column names), and KEYS
 (an array of objects). To join a table, use a join as in:
 <code>SELECT T.* FROM FT_SEARCH_DATA('Hello', 0, 0) FT, TEST T
-WHERE FT.TABLE='TEST' AND T.ID= FT.KEYS[0];</code>
+WHERE FT.TABLE='TEST' AND T.ID=FT.KEYS[0];</code>
 </p>
 <p>
 You can also call the index from within a Java application:
@@ -841,7 +841,7 @@ The result contains the columns SCHEMA (the schema name),
 TABLE (the table name), COLUMNS (an array of column names), and KEYS
 (an array of objects). To join a table, use a join as in:
 <code>SELECT T.* FROM FTL_SEARCH_DATA('Hello', 0, 0) FT, TEST T
-WHERE FT.TABLE='TEST' AND T.ID= FT.KEYS[0];</code>
+WHERE FT.TABLE='TEST' AND T.ID=FT.KEYS[0];</code>
 </p>
 <p>
 You can also call the index from within a Java application:
@@ -851,8 +851,8 @@ org.h2.fulltext.FullTextLucene.search(conn, text, limit, offset);
 org.h2.fulltext.FullTextLucene.searchData(conn, text, limit, offset);
 </pre>
 
-<br /><a name="user_defined_variables"></a>
-<h2>User-Defined Variables</h2>
+<br />
+<h2 id="user_defined_variables">User-Defined Variables</h2>
 <p>
 This database supports user-defined variables. Variables start with @ and can be used wherever
 expressions or parameters are allowed. Variables are not persisted and session scoped, that means only visible
@@ -874,8 +874,8 @@ of the value assigned to it, that means it is not necessary (or possible) to dec
 There are no restrictions on the assigned values; large objects (LOBs) are supported as well.
 </p>
 
-<br /><a name="date_time"></a>
-<h2>Date and Time</h2>
+<br />
+<h2 id="date_time">Date and Time</h2>
 <p>
 Date, time and timestamp values support ISO 8601 formatting, including time zone:
 </p>
@@ -891,13 +891,13 @@ you need to create a SQL script file using the SCRIPT command or Script tool, an
 the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
 </p>
 
-<br /><a name="spring"></a>
-<h2>Using Spring</h2>
+<br />
+<h2 id="spring">Using Spring</h2>
 <p>
 Use the following configuration to start and stop the H2 TCP server using the Spring Framework:
 </p>
 <pre>
-&lt;bean id="org.h2.tools.Server"
+&lt;bean id = "org.h2.tools.Server"
             class="org.h2.tools.Server"
             factory-method="createTcpServer"
             init-method="start"

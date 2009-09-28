@@ -84,8 +84,8 @@ Features
 <a href="#cache_settings">
     Cache Settings</a><br />
 
-<br /><a name="feature_list"></a>
-<h2>Feature List</h2>
+<br />
+<h2 id="feature_list">Feature List</h2>
 <h3>Main Features</h3>
 <ul>
 <li>Very fast database engine
@@ -152,8 +152,8 @@ Features
 </li><li>Well tested (high code coverage, randomized stress tests)
 </li></ul>
 
-<br /><a name="comparison"></a>
-<h2>Comparison to Other Database Engines</h2>
+<br />
+<h2 id="comparison">Comparison to Other Database Engines</h2>
 
 <table><tr>
 <th>Feature</th>
@@ -383,15 +383,15 @@ It looks like the development of this database has stopped. The last release was
 It looks like the development of this database has stopped. The last release was August 2004
 </p>
 
-<br /><a name="products_work_with"></a>
-<h2>H2 in Use</h2>
+<br />
+<h2 id="products_work_with">H2 in Use</h2>
 <p>
 For a list of applications that work with or use H2, see:
 <a href="links.html">Links</a>.
 </p>
 
-<br /><a name="connection_modes"></a>
-<h2>Connection Modes</h2>
+<br />
+<h2 id="connection_modes">Connection Modes</h2>
 <p>
 The following connection modes are supported:
 </p>
@@ -445,8 +445,8 @@ it's an local or remote connection) can do so using the exact same database URL.
 <img src="images/connection-mode-mixed.png"
     alt="The database and the server is running inside the application; another application connects remotely" />
 
-<br /><a name="database_url"></a>
-<h2>Database URL Overview</h2>
+<br />
+<h2 id="database_url">Database URL Overview</h2>
 <p>
 This database supports multiple connection modes and connection settings.
 This is achieved using different database URLs. Settings in the URLs are not case sensitive.
@@ -586,8 +586,8 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 </tr>
 </table>
 
-<br /><a name="embedded_databases"></a>
-<h2>Connecting to an Embedded (Local) Database</h2>
+<br />
+<h2 id="embedded_databases">Connecting to an Embedded (Local) Database</h2>
 <p>
 The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code>.
 The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working
@@ -597,8 +597,8 @@ The database name must be at least three characters long (a limitation of File.c
 To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 </p>
 
-<br /><a name="memory_only_databases"></a>
-<h2>Memory-Only Databases</h2>
+<br />
+<h2 id="memory_only_databases">Memory-Only Databases</h2>
 <p>
 For certain use cases (for example: rapid prototyping, testing, high performance
 operations, read-only databases), it may not be required to persist data, or persist changes to the data.
@@ -625,8 +625,8 @@ To keep the content of an in-memory database as long as the virtual machine is a
 <code>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code>.
 </p>
 
-<br /><a name="file_encryption"></a>
-<h2>Database Files Encryption</h2>
+<br />
+<h2 id="file_encryption">Database Files Encryption</h2>
 <p>
 The database files can be encrypted. Two encryption algorithms are supported: AES and XTEA.
 To use file encryption, you need to specify the encryption algorithm (the 'cipher')
@@ -668,8 +668,8 @@ with the file password 'filepwd' and the encryption algorithm AES:
 java -cp h2*.jar org.h2.tools.ChangeFileEncryption -dir ~ -db test -cipher AES -encrypt filepwd
 </pre>
 
-<br /><a name="database_file_locking"></a>
-<h2>Database File Locking</h2>
+<br />
+<h2 id="database_file_locking">Database File Locking</h2>
 <p>
 Whenever a database is opened, a lock file is created to signal other processes
 that the database is in use. If database is closed, or if the process that opened
@@ -706,8 +706,8 @@ For more information about the algorithms, see
 <a href="advanced.html#file_locking_protocols">Advanced / File Locking Protocols</a>.
 </p>
 
-<br /><a name="database_only_if_exists"></a>
-<h2>Opening a Database Only if it Already Exists</h2>
+<br />
+<h2 id="database_only_if_exists">Opening a Database Only if it Already Exists</h2>
 <p>
 By default, when an application calls <code>DriverManager.getConnection(url, ...)</code>
 and the database specified in the URL does not yet exist, a new (empty) database is created.
@@ -721,8 +721,8 @@ The complete URL may look like this:
 String url = "jdbc:h2:/data/sample;IFEXISTS=TRUE";
 </pre>
 
-<br /><a name="closing_a_database"></a>
-<h2>Closing a Database</h2>
+<br />
+<h2 id="closing_a_database">Closing a Database</h2>
 
 <h3>Delayed Database Closing</h3>
 <p>
@@ -743,8 +743,8 @@ This setting is persistent and can be set by an administrator only.
 It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>.
 </p>
 
-<br /><a name="do_not_close_on_exit"></a>
-<h3>Don't Close a Database when the VM Exits</h3>
+<br />
+<h3 id="do_not_close_on_exit">Don't Close a Database when the VM Exits</h3>
 <p>
 By default, a database is closed when the last connection is closed. However, if it is never closed,
 the database is closed when the virtual machine exits normally, using a shutdown hook.
@@ -759,8 +759,8 @@ The database URL to disable database closing on exit is:
 String url = "jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE";
 </pre>
 
-<br /><a name="log_index_changes"></a>
-<h2>Log Index Changes</h2>
+<br />
+<h2 id="log_index_changes">Log Index Changes</h2>
 <p>
 Usually, changes to the index file are not logged for performance.
 If the index file is corrupt or missing when opening a database, it is re-created from the data.
@@ -775,8 +775,8 @@ This setting should be specified when connecting.
 The update performance of the database will be reduced when using this option.
 </p>
 
-<br /><a name="ignore_unknown_settings"></a>
-<h2>Ignore Unknown Settings</h2>
+<br />
+<h2 id="ignore_unknown_settings">Ignore Unknown Settings</h2>
 <p>
 Some applications (for example OpenOffice.org Base) pass some additional parameters
 when connecting to the database. Why those parameters are passed is unknown.
@@ -787,8 +787,8 @@ saying the parameter is not supported. It is possible to ignored such parameters
 ;IGNORE_UNKNOWN_SETTINGS=TRUE to the database URL.
 </p>
 
-<br /><a name="other_settings"></a>
-<h2>Changing Other Settings when Opening a Connection</h2>
+<br />
+<h2 id="other_settings">Changing Other Settings when Opening a Connection</h2>
 <p>
 In addition to the settings already described,
 other database settings can be passed in the database URL.
@@ -797,8 +797,8 @@ same as executing the statement <code>SET setting value</code> just after
 connecting. For a list of supported settings, see <a href="grammar.html">SQL Grammar</a>.
 </p>
 
-<br /><a name="custom_access_mode"></a>
-<h2>Custom File Access Mode</h2>
+<br />
+<h2 id="custom_access_mode">Custom File Access Mode</h2>
 <p>
 Usually, the database opens log, data and index files with the access mode 'rw', meaning
 read-write (except for read only databases, where the mode 'r' is used).
@@ -817,8 +817,8 @@ For more information see <a href="advanced.html#durability_problems">Durability 
 On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
 </p>
 
-<br /><a name="multiple_connections"></a>
-<h2>Multiple Connections</h2>
+<br />
+<h2 id="multiple_connections">Multiple Connections</h2>
 
 <h3>Opening Multiple Databases at the Same Time</h3>
 <p>
@@ -900,8 +900,8 @@ The initial lock timeout (that is the timeout used for new connections) can be s
 SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;. The default lock timeout is persistent.
 </p>
 
-<br /><a name="database_file_layout"></a>
-<h2>Database File Layout</h2>
+<br />
+<h2 id="database_file_layout">Database File Layout</h2>
 <p>
 There are a number of files created for persistent databases. Unlike some other databases,
 not every table and/or index is stored in its own file. Instead, usually only the following files are created:
@@ -998,8 +998,8 @@ automatically if they don't exist.
 To backup data while the database is running, the SQL command SCRIPT can be used.
 </p>
 
-<br /><a name="logging_recovery"></a>
-<h2>Logging and Recovery</h2>
+<br />
+<h2 id="logging_recovery">Logging and Recovery</h2>
 <p>
 Whenever data is modified in the database and those changes are committed, the changes are logged
 to disk (except for in-memory objects). The changes to the data file itself are usually written
@@ -1022,8 +1022,8 @@ must contain RECOVER=1, as in jdbc:h2:~/test;RECOVER=1. Indexes are rebuilt in t
 the summary (object allocation table) is not read in this case, so opening the database takes longer.
 </p>
 
-<br /><a name="compatibility"></a>
-<h2>Compatibility</h2>
+<br />
+<h2 id="compatibility">Compatibility</h2>
 <p>
 All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard,
 and tries to be compatible to other databases. There are still a few differences however:
@@ -1130,8 +1130,8 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>The system columns 'CTID' and 'OID' are supported.
 </li></ul>
 
-<br /><a name="auto_reconnect"></a>
-<h2>Auto-Reconnect</h2>
+<br />
+<h2 id="auto_reconnect">Auto-Reconnect</h2>
 <p>
 The auto-reconnect feature causes the JDBC driver to reconnect to
 the database if the connection is lost. The automatic re-connect only
@@ -1144,8 +1144,8 @@ The contents of the system table INFORMATION_SCHEMA.SESSION_STATE
 contains all client side state that is re-created.
 </p>
 
-<br /><a name="auto_mixed_mode"></a>
-<h2>Automatic Mixed Mode</h2>
+<br />
+<h2 id="auto_mixed_mode">Automatic Mixed Mode</h2>
 <p>
 Multiple processes can access the same database without having to start the server manually.
 To do that, append <code>;AUTO_SERVER=TRUE</code> to the database URL.
@@ -1184,8 +1184,8 @@ DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 </pre>
 
-<br /><a name="trace_options"></a>
-<h2>Using the Trace Options</h2>
+<br />
+<h2 id="trace_options">Using the Trace Options</h2>
 <p>
 To find problems in an application, it is sometimes good to see what database operations
 where executed. This database offers the following trace features:
@@ -1259,8 +1259,8 @@ If this is the case, the source code needs to be split in multiple methods.
 The password is not listed in the trace file and therefore not included in the source code.
 </p>
 
-<br /><a name="other_logging"></a>
-<h2>Using Other Logging APIs</h2>
+<br />
+<h2 id="other_logging">Using Other Logging APIs</h2>
 <p>
 By default, this database uses its own native 'trace' facility. This facility is called 'trace' and not
 'log' within this database to avoid confusion with the transaction log. Trace messages can be
@@ -1287,8 +1287,8 @@ will not have the desired effect. To use SLF4J, all required jar files need to b
 If it does not work, check the file &lt;database&gt;.trace.db for error messages.
 </p>
 
-<br /><a name="read_only"></a>
-<h2>Read Only Databases</h2>
+<br />
+<h2 id="read_only">Read Only Databases</h2>
 <p>
 If the database files are read-only, then the database is read-only as well.
 It is not possible to create new tables, add or modify data in this database.
@@ -1300,8 +1300,8 @@ There are two ways an application can find out whether database is read-only:
 by calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
 </p>
 
-<br /><a name="database_in_zip"></a>
-<h2>Read Only Databases in Zip or Jar File</h2>
+<br />
+<h2 id="database_in_zip">Read Only Databases in Zip or Jar File</h2>
 <p>
 To create a read-only database in a zip file, first create a regular persistent database, and then create a backup.
 If you are using a database named 'test', an easy way to do that is using the Backup tool or the BACKUP SQL statement:
@@ -1325,8 +1325,8 @@ is not read in memory; therefore large databases are supported as well. The same
 a regular database.
 </p>
 
-<br /><a name="low_disk_space"></a>
-<h2>Graceful Handling of Low Disk Space Situations</h2>
+<br />
+<h2 id="low_disk_space">Graceful Handling of Low Disk Space Situations</h2>
 <p>
 If the database needs more disk space, it calls the database event listener if one is installed.
 The application may then delete temporary files, or display a message and wait until
@@ -1344,8 +1344,8 @@ is corrupted, then the database can be opened by specifying a database event lis
 The exceptions are logged, but opening the database will continue.
 </p>
 
-<br /><a name="computed_columns"></a>
-<h2>Computed Columns / Function Based Index</h2>
+<br />
+<h2 id="computed_columns">Computed Columns / Function Based Index</h2>
 <p>
 Function indexes are not directly supported by this database, but they can be emulated
 by using computed columns. For example, if an index on the upper-case version of
@@ -1370,8 +1370,8 @@ INSERT INTO ADDRESS(ID, NAME) VALUES(1, 'Miller');
 SELECT * FROM ADDRESS WHERE UPPER_NAME='MILLER';
 </pre>
 
-<br /><a name="multi_dimensional"></a>
-<h2>Multi-Dimensional Indexes</h2>
+<br />
+<h2 id="multi_dimensional">Multi-Dimensional Indexes</h2>
 <p>
 A tool is provided to execute efficient multi-dimension (spatial) range queries.
 This database does not support a specialized spatial index (R-Tree or similar).
@@ -1393,8 +1393,8 @@ For an example how to use the tool, please have a look at the sample code provid
 in TestMultiDimension.java.
 </p>
 
-<br /><a name="passwords"></a>
-<h2>Using Passwords</h2>
+<br />
+<h2 id="passwords">Using Passwords</h2>
 
 <h3>Using Secure Passwords</h3>
 <p>
@@ -1466,8 +1466,8 @@ Connection conn = DriverManager.
 The settings in the URL override the settings passed as a separate parameter.
 </p>
 
-<br /><a name="user_defined_functions"></a>
-<h2>User-Defined Functions and Stored Procedures</h2>
+<br />
+<h2 id="user_defined_functions">User-Defined Functions and Stored Procedures</h2>
 <p>
 In addition to the built-in functions, this database supports user-defined Java functions.
 In this database, Java functions can be used as stored procedures as well.
@@ -1586,8 +1586,8 @@ CREATE ALIAS MATRIX FOR "org.h2.samples.Function.getMatrix";
 SELECT * FROM MATRIX(4) ORDER BY X, Y;
 </pre>
 
-<br /><a name="triggers"></a>
-<h2>Triggers</h2>
+<br />
+<h2 id="triggers">Triggers</h2>
 <p>
 This database supports Java triggers that are called before or after a row is updated, inserted or deleted.
 Triggers can be used for complex consistency checks, or to update related data in the database.
@@ -1621,8 +1621,8 @@ CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE
 The trigger can be used to veto a change, by throwing a SQLException.
 </p>
 
-<br /><a name="compacting"></a>
-<h2>Compacting a Database</h2>
+<br />
+<h2 id="compacting">Compacting a Database</h2>
 <p>
 Empty space in the database file is re-used automatically.
 To re-build the indexes, the simplest way is to delete the .index.db file
@@ -1646,8 +1646,8 @@ The commands SCRIPT / RUNSCRIPT can be used as well to create a backup
 of a database and re-build the database from the script.
 </p>
 
-<br /><a name="cache_settings"></a>
-<h2>Cache Settings</h2>
+<br />
+<h2 id="cache_settings">Cache Settings</h2>
 <p>
 The database keeps most frequently used data and index pages in the main memory.
 The amount of memory used for caching can be changed using the setting

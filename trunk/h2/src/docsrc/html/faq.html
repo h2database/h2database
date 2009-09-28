@@ -40,8 +40,8 @@ Frequently Asked Questions
 <a href="#translate">
     How to Translate this Project?</a><br />
 
-<br /><a name="known_bugs"></a>
-<h3>Are there Known Bugs? When is the Next Release?</h3>
+<br />
+<h3 id="known_bugs">Are there Known Bugs? When is the Next Release?</h3>
 <p>
 Usually, bugs get fixes as they are found. There is a release every few weeks.
 Here is the list of known and confirmed issues:
@@ -62,15 +62,15 @@ Here is the list of known and confirmed issues:
     This problem is solved in Install4j 4.1.4.
 </li></ul>
 
-<br /><a name="open_source"></a>
-<h3>Is this Database Engine Open Source?</h3>
+<br />
+<h3 id="open_source">Is this Database Engine Open Source?</h3>
 <p>
 Yes. It is free to use and distribute, and the source code is included.
 See also under license.
 </p>
 
-<br /><a name="query_slow"></a>
-<h3>My Query is Slow</h3>
+<br />
+<h3 id="query_slow">My Query is Slow</h3>
 <p>
 Slow SELECT (or DELETE, UPDATE, MERGE) statement can have multiple reasons.
 Follow this checklist:
@@ -83,14 +83,14 @@ Follow this checklist:
 </li>
 </ul>
 
-<br /><a name="create_database"></a>
-<h3>How to Create a New Database?</h3>
+<br />
+<h3 id="create_database">How to Create a New Database?</h3>
 <p>
 By default, a new database is automatically created if it does not yet exist.
 </p>
 
-<br /><a name="connect"></a>
-<h3>How to Connect to a Database?</h3>
+<br />
+<h3 id="connect">How to Connect to a Database?</h3>
 <p>
 The database driver is <code>org.h2.Driver</code>,
 and the database URL starts with <code>jdbc:h2:</code>.
@@ -101,8 +101,8 @@ Class.forName("org.h2.Driver");
 Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
 </pre>
 
-<br /><a name="database_files"></a>
-<h3>Where are the Database Files Stored?</h3>
+<br />
+<h3 id="database_files">Where are the Database Files Stored?</h3>
 <p>
 When using database URLs like jdbc:h2:~/test, the database is stored in the user directory.
 For Windows, this is usually "C:\Documents and Settings\&lt;userName&gt;".
@@ -114,14 +114,14 @@ The directory is created automatically if it does not yet exist. It is also poss
 Example: jdbc:h2:file:C:/data/test
 </p>
 
-<br /><a name="size_limit"></a>
-<h3>What is the Size Limit (Maximum Size) of a Database?</h3>
+<br />
+<h3 id="size_limit">What is the Size Limit (Maximum Size) of a Database?</h3>
 <p>
 See <a href="advanced.html#limits_limitations">Limits and Limitations</a>.
 </p>
 
-<br /><a name="reliable"></a>
-<h3>Is it Reliable?</h3>
+<br />
+<h3 id="reliable">Is it Reliable?</h3>
 <p>
 Some users have reported that after a power failure, the database can sometimes not be
 opened because the index file is corrupt. In that case, the index file can be deleted
@@ -173,8 +173,8 @@ Areas considered Experimental:
 </li><li>Compatibility modes for other databases (only some features are implemented)
 </li></ul>
 
-<br /><a name="slow_open"></a>
-<h3>Why is Opening my Database Slow?</h3>
+<br />
+<h3 id="slow_open">Why is Opening my Database Slow?</h3>
 <p>
 If it takes a long time to open a database, in most cases it was not closed the last time.
 This is specially a problem for larger databases.
@@ -194,8 +194,8 @@ Other possible reasons are: the database is very big (many GB), or contains link
 that are slow to open.
 </p>
 
-<br /><a name="gcj"></a>
-<h3>Is the GCJ Version Stable? Faster?</h3>
+<br />
+<h3 id="gcj">Is the GCJ Version Stable? Faster?</h3>
 <p>
 The GCJ version is not as stable as the Java version.
 When running the regression test with the GCJ version, sometimes the application just stops
@@ -204,8 +204,8 @@ Currently, the GCJ version is also slower than when using the Sun VM.
 However, the startup of the GCJ version is faster than when using a VM.
 </p>
 
-<br /><a name="translate"></a>
-<h3>How to Translate this Project?</h3>
+<br />
+<h3 id="translate">How to Translate this Project?</h3>
 <p>
 For more information, see
 <a href="build.html#translating">Build/Translating</a>.

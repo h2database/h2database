@@ -22,6 +22,14 @@ public class Constants {
     public static final int BUILD_ID_STABLE = 118;
 
     /**
+     * If H2 is compiled to be included in a product, this should be set to
+     * a unique vendor id (to distinguish from official releases).
+     * Additionally, a version number should be set to distinguish releases.
+     * Example: ACME_SVN1651_BUILD3
+     */
+    public static final String BUILD_VENDOR_AND_VERSION = null;
+
+    /**
      * The build date is updated for each public release.
      */
     public static final String BUILD_DATE = "2009-09-26";
@@ -44,17 +52,17 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_6 = 6;
 
     /**
-     * The major version of this product.
+     * The major version of this database.
      */
     public static final int VERSION_MAJOR = 1;
 
     /**
-     * The minor version of this product.
+     * The minor version of this database.
      */
     public static final int VERSION_MINOR = 1;
 
     /**
-     * The version number (major.minor) of this product.
+     * The version number (major.minor) of this database.
      */
     public static final double VERSION = VERSION_MAJOR + VERSION_MINOR / 10.;
 
@@ -494,7 +502,11 @@ public class Constants {
      * @return the version number
      */
     public static String getVersion() {
-        return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
+        String version = VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
+        if (BUILD_VENDOR_AND_VERSION != null) {
+            version += "_" + BUILD_VENDOR_AND_VERSION;
+        }
+        return version;
     }
 
     /**

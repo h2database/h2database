@@ -293,11 +293,8 @@ java org.h2.test.TestAll timer
 /*
 
 slow startup with a large number of lob files
-scramble encryption
 
 mvcc merge problem
-
-javadoc: constructor parameters are not verified (PageOutputStream)
 
 System.setProperty("h2.optimizeInList", "true");
 System.setProperty("h2.optimizeOr", "true");

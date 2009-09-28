@@ -105,6 +105,7 @@ public class FileLock {
      * Create a new file locking object.
      *
      * @param traceSystem the trace system to use
+     * @param fileName the file name
      * @param sleep the number of milliseconds to sleep
      */
     public FileLock(TraceSystem traceSystem, String fileName, int sleep) {

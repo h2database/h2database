@@ -124,7 +124,7 @@ public class Update extends Prepared {
             // don't work if update is multi-row and 'inversed' the condition!
             // probably need multi-row triggers with 'deleted' and 'inserted'
             // at the same time. anyway good for sql compatibility
-            // TODO update in-place (but if the position changes,
+            // TODO update in-place (but if the key changes,
             // we need to update all indexes) before row triggers
 
             // the cached row is already updated - we need the old values

@@ -33,7 +33,7 @@ public class GenerateHelp {
         String in = "src/docsrc/help/help.csv";
         String out = "src/main/org/h2/res/help.csv";
         ResultSet rs = Csv.getInstance().read(in, null, null);
-        SimpleResultSet rs2 = SimpleResultSet.newInstance();
+        SimpleResultSet rs2 = new SimpleResultSet();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount() - 1;
         for (int i = 0; i < columnCount; i++) {

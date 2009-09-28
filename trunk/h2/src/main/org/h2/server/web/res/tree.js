@@ -98,7 +98,7 @@ function writeTree() {
         if(node.link==null) {
             document.write(node.text);
         } else {
-            document.write("<a name='"+node.text+"' href=\""+node.link+"\" >"+node.text+"</a>");
+            document.write("<a id='"+node.text+"' href=\""+node.link+"\" >"+node.text+"</a>");
         }
         document.write("<br />");
     }

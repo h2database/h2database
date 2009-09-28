@@ -77,7 +77,7 @@ public class LinkChecker {
             if (!link.startsWith("http") && !link.endsWith("h2.pdf")
                     && link.indexOf("_ja.") < 0) {
                 if (targets.get(link) == null) {
-                    errors.add(links.get(link) + ": link missing " + link);
+                    errors.add(links.get(link) + ": Link missing " + link);
                 }
             }
         }
@@ -87,7 +87,7 @@ public class LinkChecker {
             }
         }
         for (String name : targets.keySet()) {
-            if (targets.get(name).equals("name")) {
+            if (targets.get(name).equals("id")) {
                 boolean ignore = false;
                 for (String to : IGNORE_MISSING_LINKS_TO) {
                     if (name.indexOf(to) >= 0) {
@@ -138,13 +138,56 @@ public class LinkChecker {
             if (idx < 0) {
                 break;
             }
-            int start = idx + 4;
+            int start = idx + " id=\"".length();
+            int end = html.indexOf("\"", start);
+            if (end < 0) {
+                error(fileName, "Expected \" after id= " + html.substring(idx, idx + 100));
+            }
+            String ref = html.substring(start, end);
+            if (!ref.startsWith("_")) {
+                targets.put(path + "#" + ref, "id");
+            }
+        }
+        idx = -1;
+        while (true) {
+            idx = html.indexOf(" href=\"", idx + 1);
+            if (idx < 0) {
+                break;
+            }
+            int start = html.indexOf("\"", idx);
+            if (start < 0) {
+                error(fileName, "Expected \" after href= at " + html.substring(idx, idx + 100));
+            }
             int end = html.indexOf("\"", start + 1);
             if (end < 0) {
-                error(fileName, "expected \" after id= " + html.substring(idx, idx + 100));
+                error(fileName, "Expected \" after href= at " + html.substring(idx, idx + 100));
             }
             String ref = html.substring(start + 1, end);
-            targets.put(path + "#" + ref, "id");
+            if (ref.startsWith("http:") || ref.startsWith("https:")) {
+                // ok
+            } else if (ref.startsWith("javascript:")) {
+                ref = null;
+                // ok
+            } else if (ref.length() == 0) {
+                ref = null;
+                // ok
+            } else if (ref.startsWith("#")) {
+                ref = path + ref;
+            } else {
+                String p = parent;
+                while (ref.startsWith(".")) {
+                    if (ref.startsWith("./")) {
+                        ref = ref.substring(2);
+                    } else if (ref.startsWith("../")) {
+                        ref = ref.substring(3);
+                        p = p.substring(0, p.lastIndexOf('/'));
+                    }
+                }
+                ref = p + "/" + ref;
+            }
+            if (ref != null) {
+                links.put(ref, path);
+            }
         }
         idx = -1;
         while (true) {
@@ -154,48 +197,24 @@ public class LinkChecker {
             }
             int equals = html.indexOf("=", idx);
             if (equals < 0) {
-                error(fileName, "expected = after <a at " + html.substring(idx, idx + 100));
+                error(fileName, "Expected = after <a at " + html.substring(idx, idx + 100));
             }
             String type = html.substring(idx + 2, equals).trim();
             int start = html.indexOf("\"", idx);
             if (start < 0) {
-                error(fileName, "expected \" after <a at " + html.substring(idx, idx + 100));
+                error(fileName, "Expected \" after <a at " + html.substring(idx, idx + 100));
             }
             int end = html.indexOf("\"", start + 1);
             if (end < 0) {
-                error(fileName, "expected \" after <a at " + html.substring(idx, idx + 100));
+                error(fileName, "Expected \" after <a at " + html.substring(idx, idx + 100));
             }
             String ref = html.substring(start + 1, end);
             if (type.equals("href")) {
-                if (ref.startsWith("http:") || ref.startsWith("https:")) {
-                    // ok
-                } else if (ref.startsWith("javascript:")) {
-                    ref = null;
-                    // ok
-                } else if (ref.length() == 0) {
-                    ref = null;
-                    // ok
-                } else if (ref.startsWith("#")) {
-                    ref = path + ref;
-                } else {
-                    String p = parent;
-                    while (ref.startsWith(".")) {
-                        if (ref.startsWith("./")) {
-                            ref = ref.substring(2);
-                        } else if (ref.startsWith("../")) {
-                            ref = ref.substring(3);
-                            p = p.substring(0, p.lastIndexOf('/'));
-                        }
-                    }
-                    ref = p + "/" + ref;
-                }
-                if (ref != null) {
-                    links.put(ref, path);
-                }
-            } else if (type.equals("name")) {
-                targets.put(path + "#" + ref, "name");
+                // already checked
+            } else if (type.equals("id")) {
+                targets.put(path + "#" + ref, "id");
             } else {
-                error(fileName, "unsupported <a ?: " + html.substring(idx, idx + 100));
+                error(fileName, "Unsupported <a ?: " + html.substring(idx, idx + 100));
             }
         }
     }

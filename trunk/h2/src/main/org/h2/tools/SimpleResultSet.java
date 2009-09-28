@@ -202,26 +202,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Constructor a new result set that is later populated with addRow.
-     *
-     * @return the new object
-     */
-    public static SimpleResultSet newInstance() {
-        return new SimpleResultSet();
-    }
-
-    /**
-     * Constructor a new result set if the rows should be retrieved using
-     * the specified row source object.
-     *
-     * @param source the row source
-     * @return the new object
-     */
-    public static SimpleResultSet newInstance(SimpleRowSource source) {
-        return new SimpleResultSet(source);
-    }
-
-    /**
      * Adds a column to the result set.
      *
      * @param name null is replaced with C1, C2,...

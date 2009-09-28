@@ -10,6 +10,7 @@ import java.lang.ref.SoftReference;
 import java.sql.SQLException;
 import java.util.Arrays;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -33,11 +34,6 @@ import org.h2.store.PageStore;
  * </ul>
  */
 public class PageDataLeaf extends PageData {
-
-    /**
-     * The start of the data in the last overflow page.
-     */
-    static final int START_PARENT = 3;
 
     /**
      * The row offsets.
@@ -132,6 +128,7 @@ public class PageDataLeaf extends PageData {
             offsets[i] = data.readShortInt();
         }
         start = data.length();
+        written = true;
     }
 
     private int getRowLength(Row row) throws SQLException {
@@ -423,6 +420,7 @@ public class PageDataLeaf extends PageData {
     }
 
     private void writeHead() {
+        data.reset();
         int type;
         if (firstOverflowPageId == 0) {
             type = Page.TYPE_DATA_LEAF | Page.FLAG_LAST;
@@ -431,6 +429,11 @@ public class PageDataLeaf extends PageData {
         }
         data.writeByte((byte) type);
         data.writeShortInt(0);
+        if (SysProperties.CHECK2) {
+            if (data.length() != START_PARENT) {
+                Message.throwInternalError();
+            }
+        }
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
         data.writeVarInt(columnCount);
@@ -441,8 +444,10 @@ public class PageDataLeaf extends PageData {
         if (written) {
             return;
         }
+        if (SysProperties.CHECK && firstOverflowPageId != 0 && rows[0] == null) {
+            Message.throwInternalError(toString());
+        }
         readAllRows();
-        data.reset();
         writeHead();
         if (firstOverflowPageId != 0) {
             data.writeInt(firstOverflowPageId);
@@ -478,12 +483,17 @@ public class PageDataLeaf extends PageData {
         p2.firstOverflowPageId = firstOverflowPageId;
         p2.rowRef = rowRef;
         p2.rows = rows;
+        if (firstOverflowPageId != 0) {
+            p2.rows[0] = getRowAt(0);
+        }
         p2.entryCount = entryCount;
         p2.offsets = offsets;
         p2.parentPageId = parentPageId;
         p2.start = start;
         store.updateRecord(p2, false, null);
         p2.remapChildren();
+        p2.write();
+        p2.data.truncate(index.getPageStore().getPageSize());
         store.freePage(getPos(), true, data);
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
@@ -494,8 +504,11 @@ public class PageDataLeaf extends PageData {
     }
 
     void setOverflow(int overflow) throws SQLException {
-        written = false;
-        this.firstOverflowPageId = overflow;
+        firstOverflowPageId = overflow;
+        if (written) {
+            writeHead();
+            data.writeInt(firstOverflowPageId);
+        }
         index.getPageStore().updateRecord(this, true, data);
     }
 

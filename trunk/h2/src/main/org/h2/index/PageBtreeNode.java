@@ -107,6 +107,7 @@ public class PageBtreeNode extends PageBtree {
         }
         check();
         start = data.length();
+        written = true;
     }
 
     /**

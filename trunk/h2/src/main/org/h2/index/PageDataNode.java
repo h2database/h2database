@@ -9,6 +9,7 @@ package org.h2.index;
 import java.sql.SQLException;
 import java.util.Arrays;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -106,6 +107,7 @@ public class PageDataNode extends PageData {
         }
         length = data.length();
         check();
+        written = true;
     }
 
     private void addChild(int x, int childPageId, long key) {
@@ -159,6 +161,9 @@ public class PageDataNode extends PageData {
         }
         if (rowCountStored != UNKNOWN_ROWCOUNT) {
             rowCountStored = UNKNOWN_ROWCOUNT;
+            if (written) {
+                writeHead();
+            }
             index.getPageStore().updateRecord(this, true, data);
         }
     }
@@ -292,6 +297,9 @@ public class PageDataNode extends PageData {
         this.rowCount = rowCount;
         if (rowCountStored != rowCount) {
             rowCountStored = rowCount;
+            if (written) {
+                writeHead();
+            }
             index.getPageStore().updateRecord(this, true, data);
         }
     }
@@ -314,8 +322,14 @@ public class PageDataNode extends PageData {
     }
 
     private void writeHead() {
+        data.reset();
         data.writeByte((byte) Page.TYPE_DATA_NODE);
         data.writeShortInt(0);
+        if (SysProperties.CHECK2) {
+            if (data.length() != START_PARENT) {
+                Message.throwInternalError();
+            }
+        }
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
         data.writeInt(rowCountStored);
@@ -327,7 +341,6 @@ public class PageDataNode extends PageData {
             return;
         }
         check();
-        data.reset();
         writeHead();
         data.writeInt(childPageIds[entryCount]);
         for (int i = 0; i < entryCount; i++) {

@@ -86,6 +86,7 @@ public class PageBtreeLeaf extends PageBtree {
             offsets[i] = data.readShortInt();
         }
         start = data.length();
+        written = true;
     }
 
     int addRowTry(SearchRow row) throws SQLException {

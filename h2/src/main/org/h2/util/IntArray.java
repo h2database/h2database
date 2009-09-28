@@ -22,11 +22,13 @@ public class IntArray {
      * Create an int array with the default initial capacity.
      */
     public IntArray() {
-        data = new int[10];
+        this(10);
     }
 
     /**
      * Create an int array with specified initial capacity.
+     *
+     * @param capacity the initial capacity
      */
     public IntArray(int capacity) {
         data = new int[capacity];
@@ -34,6 +36,8 @@ public class IntArray {
 
     /**
      * Create an int array with the given values and size.
+     *
+     * @param data the int array
      */
     public IntArray(int[] data) {
         this.data = data;

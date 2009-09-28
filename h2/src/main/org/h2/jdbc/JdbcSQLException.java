@@ -154,7 +154,7 @@ public class JdbcSQLException extends SQLException {
      * INTERNAL
      */
     public void setSQL(String sql) {
-        if (sql.indexOf(HIDE_SQL) < 0) {
+        if (sql != null && sql.indexOf(HIDE_SQL) >= 0) {
             sql = "-";
         }
         this.sql = sql;

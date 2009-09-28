@@ -236,6 +236,7 @@ public class PageBtreeLeaf extends PageBtree {
     }
 
     private void writeHead() {
+        data.reset();
         data.writeByte((byte) (Page.TYPE_BTREE_LEAF | (onlyPosition ? 0 : Page.FLAG_LAST)));
         data.writeShortInt(0);
         data.writeInt(parentPageId);
@@ -248,7 +249,6 @@ public class PageBtreeLeaf extends PageBtree {
             return;
         }
         readAllRows();
-        data.reset();
         writeHead();
         for (int i = 0; i < entryCount; i++) {
             data.writeShortInt(offsets[i]);

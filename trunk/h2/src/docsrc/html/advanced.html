@@ -146,11 +146,6 @@ target database, that means no joins. Prepared statements are used where possibl
 To view the statements that are executed against the target table, set the trace level to 3.
 </p>
 <p>
-There is a restriction: when inserting into a linked table, and when updating a linked table,
-NULL and values that are not set are both inserted as NULL.
-This may not have the desired effect if the default value for this column in the target table is not NULL.
-</p>
-<p>
 If multiple linked tables point to the same database (using the same database URL), the connection
 is shared. To disable this, set the system property h2.shareLinkedConnections to false.
 </p>

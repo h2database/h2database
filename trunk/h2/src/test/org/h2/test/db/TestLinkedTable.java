@@ -6,6 +6,7 @@
  */
 package org.h2.test.db;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -47,6 +48,7 @@ public class TestLinkedTable extends TestBase {
         testLinkTable();
         testLinkTwoTables();
         testCachingResults();
+        testLinkedTableInReadOnlyDb();
 
         deleteDb("linkedTable");
     }
@@ -582,4 +584,46 @@ public class TestLinkedTable extends TestBase {
         }
         assertEquals(expected, counter);
     }
+
+    private void testLinkedTableInReadOnlyDb() throws SQLException {
+        if (config.memory || config.networked) {
+            return;
+        }
+
+        deleteDb("testLinkedTableInReadOnlyDb");
+        org.h2.Driver.load();
+
+        Connection memConn = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+        Statement memStat = memConn.createStatement();
+        memStat.execute("CREATE TABLE TEST(ID VARCHAR)");
+
+        String url1 = getURL("testLinkedTableInReadOnlyDb", true);
+        Connection conn = DriverManager.getConnection(url1, "sa1", "abc abc");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
+        conn.close();
+
+        File[] files = new File(baseDir).listFiles();
+        for (File file : files) {
+            if (file.getName().startsWith("testLinkedTableInReadOnlyDb")) {
+                boolean isReadOnly = file.setReadOnly();
+                if (!isReadOnly) {
+                    fail("File " + file.getAbsolutePath() + " is not read only. Can't test it");
+                }
+            }
+        }
+
+        // Now it's read only
+        conn = DriverManager.getConnection(url1, "sa1", "abc abc");
+        stat = conn.createStatement();
+        stat.execute("CREATE LOCAL TEMPORARY LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
+        // This is valid because it's a linked table
+        stat.execute("INSERT INTO T VALUES('abc')");
+
+        conn.close();
+        memConn.close();
+
+        deleteDb("testLinkedTableInReadOnlyDb");
+    }
+
 }

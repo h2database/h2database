@@ -938,6 +938,15 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Tests if the table can be written. Usually, this depends on the
+     * database.checkWritingAllowed method, but some tables (eg. TableLink)
+     * overwrite this default behaviour.
+     */
+    public void checkWritingAllowed() throws SQLException {
+        database.checkWritingAllowed();
+    }
+
+    /**
      * Get or generate a default value for the given column.
      *
      * @param session the session

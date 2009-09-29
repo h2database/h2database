@@ -544,6 +544,13 @@ public class TableLink extends Table {
     }
 
     /**
+     * Linked tables don't know if they are readonly. This overwrites
+     * the default handling.
+     */
+    public void checkWritingAllowed() throws SQLException {
+    }
+
+    /**
      * Convert the values if required. Default values are not set (kept as
      * null).
      *

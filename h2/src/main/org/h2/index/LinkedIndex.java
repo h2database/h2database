@@ -55,8 +55,10 @@ public class LinkedIndex extends BaseIndex {
         buff.append(targetTableName).append(" VALUES(");
         for (int i = 0; i < row.getColumnCount(); i++) {
             Value v = row.getValue(i);
-            buff.appendExceptFirst(",");
-            if (isNull(v)) {
+            buff.appendExceptFirst(", ");
+            if (v == null) {
+                buff.append("DEFAULT");
+            } else if (isNull(v)) {
                 buff.append("NULL");
             } else {
                 buff.append('?');
@@ -221,7 +223,13 @@ public class LinkedIndex extends BaseIndex {
         buff.append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
             buff.appendExceptFirst(", ");
-            buff.append(table.getColumn(i).getSQL()).append("=?");
+            buff.append(table.getColumn(i).getSQL()).append('=');
+            Value v = newRow.getValue(i);
+            if (v == null) {
+                buff.append("DEFAULT");
+            } else {
+                buff.append('?');
+            }
         }
         buff.append(" WHERE ");
         buff.resetCount();
@@ -243,8 +251,11 @@ public class LinkedIndex extends BaseIndex {
                 int j = 1;
                 PreparedStatement prep = link.getPreparedStatement(sql, false);
                 for (int i = 0; i < newRow.getColumnCount(); i++) {
-                    newRow.getValue(i).set(prep, j);
-                    j++;
+                    Value v = newRow.getValue(i);
+                    if (v != null) {
+                        v.set(prep, j);
+                        j++;
+                    }
                 }
                 for (int i = 0; i < oldRow.getColumnCount(); i++) {
                     Value v = oldRow.getValue(i);

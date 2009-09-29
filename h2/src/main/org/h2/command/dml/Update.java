@@ -96,15 +96,7 @@ public class Update extends Prepared {
                             newValue = oldRow.getValue(i);
                         } else if (newExpr == ValueExpression.getDefault()) {
                             Column column = table.getColumn(i);
-                            Expression defaultExpr = column.getDefaultExpression();
-                            Value v;
-                            if (defaultExpr == null) {
-                                v = column.validateConvertUpdateSequence(session, null);
-                            } else {
-                                v = defaultExpr.getValue(session);
-                            }
-                            int type = column.getType();
-                            newValue = v.convertTo(type);
+                            newValue = table.getDefaultValue(session, column);
                         } else {
                             Column column = table.getColumn(i);
                             newValue = newExpr.getValue(session).convertTo(column.getType());

@@ -62,24 +62,29 @@ public class RowList {
         buff.writeInt(r.getStorageId());
         for (int i = 0; i < r.getColumnCount(); i++) {
             Value v = r.getValue(i);
-            if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
-                // need to keep a reference to temporary lobs,
-                // otherwise the temp file is deleted
-                ValueLob lob = (ValueLob) v;
-                if (lob.getSmall() == null && lob.getTableId() == 0) {
-                    if (lobs == null) {
-                        lobs = ObjectArray.newInstance();
+            if (v == null) {
+                buff.writeByte((byte) 0);
+            } else {
+                buff.writeByte((byte) 1);
+                if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
+                    // need to keep a reference to temporary lobs,
+                    // otherwise the temp file is deleted
+                    ValueLob lob = (ValueLob) v;
+                    if (lob.getSmall() == null && lob.getTableId() == 0) {
+                        if (lobs == null) {
+                            lobs = ObjectArray.newInstance();
+                        }
+                        // need to create a copy, otherwise,
+                        // if stored multiple times, it may be renamed
+                        // and then not found
+                        lob = lob.copyToTemp();
+                        lobs.add(lob);
+                        v = lob;
                     }
-                    // need to create a copy, otherwise,
-                    // if stored multiple times, it may be renamed
-                    // and then not found
-                    lob = lob.copyToTemp();
-                    lobs.add(lob);
-                    v = lob;
                 }
+                buff.checkCapacity(buff.getValueLen(v));
+                buff.writeValue(v);
             }
-            buff.checkCapacity(buff.getValueLen(v));
-            buff.writeValue(v);
         }
     }
 
@@ -180,13 +185,18 @@ public class RowList {
         int storageId = buff.readInt();
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            Value v = buff.readValue();
-            if (v.isLinked()) {
-                ValueLob lob = (ValueLob) v;
-                // the table id is 0 if it was linked when writing
-                // a temporary entry
-                if (lob.getTableId() == 0) {
-                    session.unlinkAtCommit(lob);
+            Value v;
+            if (buff.readByte() == 0) {
+                v = null;
+            } else {
+                v = buff.readValue();
+                if (v.isLinked()) {
+                    ValueLob lob = (ValueLob) v;
+                    // the table id is 0 if it was linked when writing
+                    // a temporary entry
+                    if (lob.getTableId() == 0) {
+                        session.unlinkAtCommit(lob);
+                    }
                 }
             }
             values[i] = v;

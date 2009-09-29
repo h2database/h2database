@@ -33,6 +33,7 @@ import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
+import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -540,6 +541,39 @@ public class TableLink extends Table {
 
     public boolean isDeterministic() {
         return false;
+    }
+
+    /**
+     * Convert the values if required. Default values are not set (kept as
+     * null).
+     *
+     * @param session the session
+     * @param row the row
+     */
+    public void validateConvertUpdateSequence(Session session, Row row) throws SQLException {
+        for (int i = 0; i < columns.length; i++) {
+            Value value = row.getValue(i);
+            if (value != null) {
+                // null means use the default value
+                Column column = columns[i];
+                Value v2 = column.validateConvertUpdateSequence(session, value);
+                if (v2 != value) {
+                    row.setValue(i, v2);
+                }
+            }
+        }
+    }
+
+    /**
+     * Get or generate a default value for the given column. Default values are
+     * not set (kept as null).
+     *
+     * @param session the session
+     * @param column the column
+     * @return the value
+     */
+    public Value getDefaultValue(Session session, Column column) {
+        return null;
     }
 
 }

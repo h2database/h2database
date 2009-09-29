@@ -129,20 +129,23 @@ public class CacheLRU implements Cache {
         ObjectArray<CacheObject> changed = ObjectArray.newInstance();
         int mem = sizeMemory;
         int rc = recordCount;
+        boolean flushed = false;
         CacheObject next = head.next;
         while (mem * 4 > maxSize * 3 && rc > Constants.CACHE_MIN_RECORDS) {
             CacheObject check = next;
             next = check.next;
             i++;
-            if (i == recordCount) {
-                writer.flushLog();
-            }
-            if (i >= recordCount * 2) {
-                // can't remove any record, because the log is not written yet
-                // hopefully this does not happen too much, but it could happen
-                // theoretically
-                writer.getTrace().info("Cannot remove records, cache size too small?");
-                break;
+            if (i >= recordCount) {
+                if (!flushed) {
+                    writer.flushLog();
+                    flushed = true;
+                    i = 0;
+                } else {
+                    // can't remove any record, because the log is not written yet
+                    // hopefully this does not happen frequently, but it can happen
+                    writer.getTrace().info("Cannot remove records, cache size too small?");
+                    break;
+                }
             }
             if (SysProperties.CHECK && check == head) {
                 Message.throwInternalError("try to remove head");

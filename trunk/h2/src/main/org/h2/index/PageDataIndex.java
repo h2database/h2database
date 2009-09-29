@@ -65,17 +65,12 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             rootPageId = store.allocatePage();
             store.addMeta(this, session);
             PageDataLeaf root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
-            store.updateRecord(root, true, root.data);
+            store.updateRecord(root);
         } else {
             rootPageId = store.getRootPageId(id);
             PageData root = getPage(rootPageId, 0);
             lastKey = root.getLastKey();
             rowCount = root.getRowCount();
-            // could have been created before, but never committed
-            if (!database.isReadOnly()) {
-                // TODO check if really required
-                store.updateRecord(root, false, null);
-            }
         }
         if (trace.isDebugEnabled()) {
             trace.debug("opened " + getName() + " rows:" + rowCount);
@@ -166,9 +161,9 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             page2.setParentPageId(rootPageId);
             PageDataNode newRoot = PageDataNode.create(this, rootPageId, PageData.ROOT);
             newRoot.init(page1, pivot, page2);
-            store.updateRecord(page1, true, page1.data);
-            store.updateRecord(page2, true, page2.data);
-            store.updateRecord(newRoot, true, null);
+            store.updateRecord(page1);
+            store.updateRecord(page2);
+            store.updateRecord(newRoot);
             root = newRoot;
         }
         row.setDeleted(false);
@@ -208,6 +203,9 @@ public class PageDataIndex extends PageIndex implements RowIndex {
         PageData p = (PageData) store.getPage(id);
         if (p == null) {
             PageDataLeaf empty = PageDataLeaf.create(this, id, parent);
+            // could have been created before, but never committed
+            store.logUndo(empty, null);
+            store.updateRecord(empty);
             return empty;
         }
         if (p.index.rootPageId != rootPageId) {
@@ -351,7 +349,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
         root.freeChildren();
         root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
         store.removeRecord(rootPageId);
-        store.updateRecord(root, true, null);
+        store.updateRecord(root);
         rowCount = 0;
         lastKey = 0;
     }

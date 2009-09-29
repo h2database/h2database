@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -691,13 +692,36 @@ public class PageStore implements CacheWriter {
     }
 
     /**
+     * Write an undo log entry if required.
+     *
+     * @param record the page
+     * @param old the old data (if known) or null
+     */
+    public void logUndo(Record record, Data old) throws SQLException {
+        synchronized (database) {
+            if (trace.isDebugEnabled()) {
+                if (!record.isChanged()) {
+                    trace.debug("logUndo " + record.toString());
+                }
+            }
+            checkOpen();
+            database.checkWritingAllowed();
+            if (!recoveryRunning) {
+                int pos = record.getPos();
+                if (old == null) {
+                    old = readPage(pos);
+                }
+                log.addUndo(pos, old);
+            }
+        }
+    }
+
+    /**
      * Update a record.
      *
      * @param record the record
-     * @param logUndo if an undo entry need to be logged
-     * @param old the old data (if known)
      */
-    public void updateRecord(Record record, boolean logUndo, Data old) throws SQLException {
+    public void updateRecord(Record record) throws SQLException {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
                 if (!record.isChanged()) {
@@ -708,14 +732,12 @@ public class PageStore implements CacheWriter {
             database.checkWritingAllowed();
             record.setChanged(true);
             int pos = record.getPos();
+            if (SysProperties.CHECK && !recoveryRunning) {
+                // ensure the undo entry is already written
+                log.addUndo(pos, null);
+            }
             allocatePage(pos);
             cache.update(pos, record);
-            if (logUndo && !recoveryRunning) {
-                if (old == null) {
-                    old = readPage(pos);
-                }
-                log.addUndo(pos, old);
-            }
         }
     }
 
@@ -840,7 +862,12 @@ public class PageStore implements CacheWriter {
         if (trace.isDebugEnabled()) {
             // trace.debug("freePage " + pageId);
         }
+        int todoRemoveOld;
         synchronized (database) {
+            if (SysProperties.CHECK && !recoveryRunning && logUndo) {
+                // ensure the undo entry is already written
+                log.addUndo(pageId, null);
+            }
             cache.remove(pageId);
             freePage(pageId);
             if (recoveryRunning) {

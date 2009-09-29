@@ -213,7 +213,8 @@ public abstract class PageBtree extends Page {
      *
      * @param id the new parent page id
      */
-    void setParentPageId(int id) {
+    void setParentPageId(int id) throws SQLException {
+        index.getPageStore().logUndo(this, data);
         written = false;
         parentPageId = id;
     }

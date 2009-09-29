@@ -86,8 +86,9 @@ public class PageFreeList extends Page {
                     return -1;
                 }
             } else {
+                store.logUndo(this, data);
                 used.set(free);
-                store.updateRecord(this, true, data);
+                store.updateRecord(this);
                 return free + getPos();
             }
         }
@@ -118,8 +119,9 @@ public class PageFreeList extends Page {
     int allocate(int pageId) throws SQLException {
         int idx = pageId - getPos();
         if (idx >= 0 && !used.get(idx)) {
+            store.logUndo(this, data);
             used.set(idx);
-            store.updateRecord(this, true, data);
+            store.updateRecord(this);
         }
         return pageId;
     }
@@ -131,8 +133,9 @@ public class PageFreeList extends Page {
      */
     void free(int pageId) throws SQLException {
         full = false;
+        store.logUndo(this, data);
         used.clear(pageId - getPos());
-        store.updateRecord(this, true, data);
+        store.updateRecord(this);
     }
 
     /**

@@ -14,7 +14,6 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
-import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -53,18 +52,14 @@ public class PageBtreeIndex extends PageIndex {
             // must ensure this page is not used for other things
             store.addMeta(this, session);
             PageBtreeLeaf root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
-            store.updateRecord(root, true, root.data);
+            store.logUndo(root, null);
+            store.updateRecord(root);
         } else {
             rootPageId = store.getRootPageId(id);
             PageBtree root = getPage(rootPageId);
             rowCount = root.getRowCount();
             if (rowCount == 0 && store.isRecoveryRunning()) {
                 needRebuild = true;
-            }
-            if (!database.isReadOnly()) {
-                // could have been created before, but never committed
-                // TODO test if really required
-                store.updateRecord(root, false, null);
             }
         }
         if (trace.isDebugEnabled()) {
@@ -88,18 +83,21 @@ public class PageBtreeIndex extends PageIndex {
                 trace.debug("split " + splitPoint);
             }
             SearchRow pivot = root.getRow(splitPoint - 1);
+            store.logUndo(root, root.data);
             PageBtree page1 = root;
             PageBtree page2 = root.split(splitPoint);
+            store.logUndo(page2, null);
             int rootPageId = root.getPos();
             int id = store.allocatePage();
             page1.setPageId(id);
             page1.setParentPageId(rootPageId);
             page2.setParentPageId(rootPageId);
             PageBtreeNode newRoot = PageBtreeNode.create(this, rootPageId, PageBtree.ROOT);
+            store.logUndo(newRoot, null);
             newRoot.init(page1, pivot, page2);
-            store.updateRecord(page1, true, page1.data);
-            store.updateRecord(page2, true, page2.data);
-            store.updateRecord(newRoot, true, null);
+            store.updateRecord(page1);
+            store.updateRecord(page2);
+            store.updateRecord(newRoot);
             root = newRoot;
         }
         rowCount++;
@@ -131,6 +129,9 @@ public class PageBtreeIndex extends PageIndex {
         PageBtree p = (PageBtree) store.getPage(id);
         if (p == null) {
             PageBtreeLeaf empty = PageBtreeLeaf.create(this, id, PageBtree.ROOT);
+            // could have been created before, but never committed
+            store.logUndo(empty, null);
+            store.updateRecord(empty);
             return empty;
         }
         return p;
@@ -242,10 +243,11 @@ public class PageBtreeIndex extends PageIndex {
 
     private void removeAllRows() throws SQLException {
         PageBtree root = getPage(rootPageId);
+        store.logUndo(root, root.data);
         root.freeChildren();
         root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
         store.removeRecord(rootPageId);
-        store.updateRecord(root, true, null);
+        store.updateRecord(root);
         rowCount = 0;
     }
 
@@ -334,7 +336,7 @@ public class PageBtreeIndex extends PageIndex {
      * @return the number of bytes
      */
     int getRowSize(Data dummy, SearchRow row, boolean onlyPosition) throws SQLException {
-        int rowsize = DataPage.LENGTH_INT;
+        int rowsize = dummy.getVarLongLen(row.getKey());
         if (!onlyPosition) {
             for (Column col : columns) {
                 Value v = row.getValue(col.getColumnId());

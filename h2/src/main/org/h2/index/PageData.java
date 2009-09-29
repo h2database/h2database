@@ -172,7 +172,8 @@ abstract class PageData extends Page {
      *
      * @param id the new parent page id
      */
-    void setParentPageId(int id) {
+    void setParentPageId(int id) throws SQLException {
+        index.getPageStore().logUndo(this, data);
         parentPageId = id;
         if (written) {
             data.setInt(START_PARENT, parentPageId);

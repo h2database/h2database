@@ -59,8 +59,9 @@ public class PageBtreeLeaf extends PageBtree {
      * @param parentPageId the parent
      * @return the page
      */
-    static PageBtreeLeaf create(PageBtreeIndex index, int pageId, int parentPageId) {
+    static PageBtreeLeaf create(PageBtreeIndex index, int pageId, int parentPageId) throws SQLException {
         PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, index.getPageStore().createData());
+        index.getPageStore().logUndo(p, p.data);
         p.parentPageId = parentPageId;
         p.writeHead();
         p.start = p.data.length();
@@ -119,6 +120,7 @@ public class PageBtreeLeaf extends PageBtree {
                 throw Message.throwInternalError();
             }
         }
+        index.getPageStore().logUndo(this, data);
         written = false;
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];
@@ -145,12 +147,13 @@ public class PageBtreeLeaf extends PageBtree {
         newRows[x] = row;
         offsets = newOffsets;
         rows = newRows;
-        index.getPageStore().updateRecord(this, true, data);
+        index.getPageStore().updateRecord(this);
         return -1;
     }
 
     private void removeRow(int i) throws SQLException {
         readAllRows();
+        index.getPageStore().logUndo(this, data);
         entryCount--;
         written = false;
         if (entryCount <= 0) {
@@ -177,8 +180,7 @@ public class PageBtreeLeaf extends PageBtree {
 
     PageBtree split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
-        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPageId, index.getPageStore().createData());
-        p2.parentPageId = parentPageId;
+        PageBtreeLeaf p2 = PageBtreeLeaf.create(index, newPageId, parentPageId);
         for (int i = splitPoint; i < entryCount;) {
             p2.addRowTry(getRow(splitPoint));
             removeRow(splitPoint);
@@ -204,8 +206,9 @@ public class PageBtreeLeaf extends PageBtree {
             // the page is now empty
             return row;
         }
+        index.getPageStore().logUndo(this, data);
         removeRow(at);
-        index.getPageStore().updateRecord(this, true, data);
+        index.getPageStore().updateRecord(this);
         if (at == entryCount) {
             // the last row changed
             return getRow(at - 1);
@@ -314,15 +317,17 @@ public class PageBtreeLeaf extends PageBtree {
 
     public void moveTo(Session session, int newPos) throws SQLException {
         PageStore store = index.getPageStore();
-        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPos, store.createData());
         readAllRows();
+        PageBtreeLeaf p2 = PageBtreeLeaf.create(index, newPos, parentPageId);
+        store.logUndo(this, data);
+        store.logUndo(p2, null);
         p2.rows = rows;
         p2.entryCount = entryCount;
         p2.offsets = offsets;
         p2.onlyPosition = onlyPosition;
         p2.parentPageId = parentPageId;
         p2.start = start;
-        store.updateRecord(p2, false, null);
+        store.updateRecord(p2);
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {

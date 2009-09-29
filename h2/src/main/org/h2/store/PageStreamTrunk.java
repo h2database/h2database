@@ -194,13 +194,14 @@ public class PageStreamTrunk extends Page {
      * @param newPos the new position
      */
     void moveChild(int oldPos, int newPos) throws SQLException {
+        store.logUndo(this, data);
         for (int i = 0; i < pageIds.length; i++) {
             if (pageIds[i] == oldPos) {
                 pageIds[i] = newPos;
                 break;
             }
         }
-        store.updateRecord(this, true, data);
+        store.updateRecord(this);
     }
 
     public void moveTo(Session session, int newPos) {

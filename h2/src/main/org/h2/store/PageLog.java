@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
 import org.h2.compress.CompressLZF;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
@@ -431,6 +432,9 @@ public class PageLog {
             if (trace.isDebugEnabled()) {
                 trace.debug("log undo " + pageId);
             }
+            if (SysProperties.CHECK && page == null) {
+                Message.throwInternalError("Undo entry not written");
+            }
             undo.set(pageId);
             undoAll.set(pageId);
             outBuffer.writeByte((byte) UNDO);
@@ -612,8 +616,10 @@ public class PageLog {
      */
     void flush() throws SQLException {
         try {
-            flushBuffer();
-            pageOut.flush();
+            if (pageOut != null) {
+                flushBuffer();
+                pageOut.flush();
+            }
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }

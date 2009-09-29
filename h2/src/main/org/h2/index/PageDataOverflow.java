@@ -106,9 +106,10 @@ public class PageDataOverflow extends Page {
      * @param size the number of bytes
      * @return the page
      */
-    static PageDataOverflow create(PageStore store, int page, int type, int parentPageId, int next, Data all, int offset, int size) {
+    static PageDataOverflow create(PageStore store, int page, int type, int parentPageId, int next, Data all, int offset, int size) throws SQLException {
         Data data = store.createData();
         PageDataOverflow p = new PageDataOverflow(store, page, data);
+        store.logUndo(p, data);
         data.writeByte((byte) type);
         data.writeShortInt(0);
         data.writeInt(parentPageId);
@@ -207,16 +208,19 @@ public class PageDataOverflow extends Page {
         return store.getPageSize() >> 1;
     }
 
-    void setParentPageId(int parent) {
+    void setParentPageId(int parent) throws SQLException {
+        store.logUndo(this, data);
         this.parentPageId = parent;
     }
 
     public void moveTo(Session session, int newPos) throws SQLException {
+        store.logUndo(this, data);
         PageDataOverflow p2 = PageDataOverflow.create(store, newPos, type, parentPageId, nextPage, data, start, size);
-        store.updateRecord(p2, false, null);
+        store.updateRecord(p2);
         if (nextPage != 0) {
             PageDataOverflow p3 = (PageDataOverflow) store.getPage(nextPage);
             p3.setParentPageId(newPos);
+            store.updateRecord(p3);
         }
         Page p = store.getPage(parentPageId);
         if (p == null) {
@@ -229,13 +233,14 @@ public class PageDataOverflow extends Page {
             PageDataLeaf p1 = (PageDataLeaf) p;
             p1.setOverflow(newPos);
         }
+        store.updateRecord(p);
         store.freePage(getPos(), true, data);
     }
 
     private void setNext(int nextPage) throws SQLException {
+        store.logUndo(this, data);
         this.nextPage = nextPage;
         data.setInt(START_NEXT_OVERFLOW, nextPage);
-        store.updateRecord(this, true, data);
     }
 
 }

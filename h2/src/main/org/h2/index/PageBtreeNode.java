@@ -71,8 +71,9 @@ public class PageBtreeNode extends PageBtree {
      * @param parentPageId the parent page id
      * @return the page
      */
-    static PageBtreeNode create(PageBtreeIndex index, int pageId, int parentPageId) {
+    static PageBtreeNode create(PageBtreeIndex index, int pageId, int parentPageId) throws SQLException {
         PageBtreeNode p = new PageBtreeNode(index, pageId, index.getPageStore().createData());
+        index.getPageStore().logUndo(p, p.data);
         p.parentPageId = parentPageId;
         p.writeHead();
         // 4 bytes for the rightmost child page id
@@ -194,6 +195,7 @@ public class PageBtreeNode extends PageBtree {
                 break;
             }
             SearchRow pivot = page.getRow(splitPoint - 1);
+            index.getPageStore().logUndo(this, data);
             int splitPoint2 = addChildTry(pivot);
             if (splitPoint2 != -1) {
                 return splitPoint2;
@@ -201,9 +203,9 @@ public class PageBtreeNode extends PageBtree {
             PageBtree page2 = page.split(splitPoint);
             readAllRows();
             addChild(x, page2.getPos(), pivot);
-            index.getPageStore().updateRecord(page, true, page.data);
-            index.getPageStore().updateRecord(page2, true, page2.data);
-            index.getPageStore().updateRecord(this, true, data);
+            index.getPageStore().updateRecord(page);
+            index.getPageStore().updateRecord(page2);
+            index.getPageStore().updateRecord(this);
         }
         updateRowCount(1);
         written = false;
@@ -218,8 +220,8 @@ public class PageBtreeNode extends PageBtree {
 
     PageBtree split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
-        PageBtreeNode p2 = new PageBtreeNode(index, newPageId, index.getPageStore().createData());
-        p2.parentPageId = parentPageId;
+        PageBtreeNode p2 = PageBtreeNode.create(index, newPageId, parentPageId);
+        index.getPageStore().logUndo(this, data);
         if (onlyPosition) {
             // TODO optimize: maybe not required
             p2.onlyPosition = true;
@@ -245,7 +247,7 @@ public class PageBtreeNode extends PageBtree {
         for (int child : childPageIds) {
             PageBtree p = index.getPage(child);
             p.setParentPageId(getPos());
-            index.getPageStore().updateRecord(p, true, p.data);
+            index.getPageStore().updateRecord(p);
         }
     }
 
@@ -301,6 +303,7 @@ public class PageBtreeNode extends PageBtree {
         // TODO maybe implement merge
         PageBtree page = index.getPage(childPageIds[at]);
         SearchRow last = page.remove(row);
+        index.getPageStore().logUndo(this, data);
         updateRowCount(-1);
         written = false;
         if (last == null) {
@@ -320,7 +323,7 @@ public class PageBtreeNode extends PageBtree {
                 last = null;
             }
             removeChild(at);
-            index.getPageStore().updateRecord(this, true, data);
+            index.getPageStore().updateRecord(this);
             return last;
         }
         // the last row is in the last child
@@ -336,7 +339,7 @@ public class PageBtreeNode extends PageBtree {
         int temp = childPageIds[at];
         childPageIds[at] = childPageIds[at + 1];
         childPageIds[at + 1] = temp;
-        index.getPageStore().updateRecord(this, true, data);
+        index.getPageStore().updateRecord(this);
         return null;
     }
 
@@ -503,7 +506,8 @@ public class PageBtreeNode extends PageBtree {
 
     public void moveTo(Session session, int newPos) throws SQLException {
         PageStore store = index.getPageStore();
-        PageBtreeNode p2 = new PageBtreeNode(index, newPos, store.createData());
+        store.logUndo(this, data);
+        PageBtreeNode p2 = PageBtreeNode.create(index, newPos, parentPageId);
         readAllRows();
         p2.childPageIds = childPageIds;
         p2.rows = rows;
@@ -512,7 +516,7 @@ public class PageBtreeNode extends PageBtree {
         p2.onlyPosition = onlyPosition;
         p2.parentPageId = parentPageId;
         p2.start = start;
-        store.updateRecord(p2, false, null);
+        store.updateRecord(p2);
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {
@@ -522,7 +526,7 @@ public class PageBtreeNode extends PageBtree {
         for (int i = 0; i < childPageIds.length; i++) {
             PageBtree p = (PageBtree) store.getPage(childPageIds[i]);
             p.setParentPageId(newPos);
-            store.updateRecord(p, true, p.data);
+            store.updateRecord(p);
         }
         store.freePage(getPos(), true, data);
     }
@@ -536,9 +540,10 @@ public class PageBtreeNode extends PageBtree {
     void moveChild(int oldPos, int newPos) throws SQLException {
         for (int i = 0; i < childPageIds.length; i++) {
             if (childPageIds[i] == oldPos) {
+                index.getPageStore().logUndo(this, data);
                 written = false;
                 childPageIds[i] = newPos;
-                index.getPageStore().updateRecord(this, true, data);
+                index.getPageStore().updateRecord(this);
                 return;
             }
         }

@@ -18,6 +18,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -934,6 +935,25 @@ public abstract class Table extends SchemaObjectBase {
 
     public CompareMode getCompareMode() {
         return compareMode;
+    }
+
+    /**
+     * Get or generate a default value for the given column.
+     *
+     * @param session the session
+     * @param column the column
+     * @return the value
+     */
+    public Value getDefaultValue(Session session, Column column) throws SQLException {
+        Expression defaultExpr = column.getDefaultExpression();
+        Value v;
+        if (defaultExpr == null) {
+            v = column.validateConvertUpdateSequence(session, null);
+        } else {
+            v = defaultExpr.getValue(session);
+        }
+        int type = column.getType();
+        return  v.convertTo(type);
     }
 
 }

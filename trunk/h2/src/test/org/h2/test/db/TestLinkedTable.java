@@ -33,6 +33,7 @@ public class TestLinkedTable extends TestBase {
     }
 
     public void test() throws SQLException {
+        testDefaultValues();
         testHiddenSQL();
         // testLinkAutoAdd();
         testNestedQueriesToSameTable();
@@ -48,6 +49,47 @@ public class TestLinkedTable extends TestBase {
         testCachingResults();
 
         deleteDb("linkedTable");
+    }
+
+    private void testDefaultValues() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("linkedTable");
+        Connection connMain = DriverManager.getConnection("jdbc:h2:mem:linkedTable");
+        Statement statMain = connMain.createStatement();
+        statMain.execute("create table test(id identity, name varchar default 'test')");
+
+        Connection conn = getConnection("linkedTable");
+        Statement stat = conn.createStatement();
+        stat.execute("create linked table test1('', 'jdbc:h2:mem:linkedTable', '', '', 'TEST') emit updates");
+        stat.execute("create linked table test2('', 'jdbc:h2:mem:linkedTable', '', '', 'TEST')");
+        stat.execute("insert into test1 values(default, default)");
+        stat.execute("insert into test2 values(default, default)");
+        stat.execute("merge into test2 values(3, default)");
+        stat.execute("update test1 set name=default where id=1");
+        stat.execute("update test2 set name=default where id=2");
+
+        ResultSet rs = statMain.executeQuery("select * from test order by id");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        assertEquals("test", rs.getString(2));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        assertEquals("test", rs.getString(2));
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+        assertEquals("test", rs.getString(2));
+        assertFalse(rs.next());
+
+        stat.execute("delete from test1 where id=1");
+        stat.execute("delete from test2 where id=2");
+        stat.execute("delete from test2 where id=3");
+        conn.close();
+        rs = statMain.executeQuery("select * from test order by id");
+        assertFalse(rs.next());
+
+        connMain.close();
     }
 
     private void testHiddenSQL() throws SQLException {

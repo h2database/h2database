@@ -91,7 +91,7 @@ public class User extends RightOwner {
      */
     public void checkRight(Table table, int rightMask) throws SQLException {
         if (rightMask != Right.SELECT && !systemUser) {
-            database.checkWritingAllowed();
+            table.checkWritingAllowed();
         }
         if (admin) {
             return;

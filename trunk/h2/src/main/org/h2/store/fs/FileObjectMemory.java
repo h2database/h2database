@@ -122,8 +122,10 @@ public class FileObjectMemory implements FileObject {
             return;
         }
         byte[] out = new byte[BLOCK_SIZE];
-        synchronized (LZF) {
-            LZF.expand(d, 0, d.length, out, 0, BLOCK_SIZE);
+        if (d != COMPRESSED_EMPTY_BLOCK) {
+            synchronized (LZF) {
+                LZF.expand(d, 0, d.length, out, 0, BLOCK_SIZE);
+            }
         }
         data[page] = out;
     }
@@ -192,7 +194,6 @@ public class FileObjectMemory implements FileObject {
             }
             data = n;
         }
-
     }
 
     private void readWrite(byte[] b, int off, int len, boolean write) throws IOException {

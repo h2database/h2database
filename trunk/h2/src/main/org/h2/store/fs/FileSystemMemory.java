@@ -76,10 +76,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public boolean tryDelete(String fileName) {
-        fileName = normalize(fileName);
-        synchronized (MEMORY_FILES) {
-            MEMORY_FILES.remove(fileName);
-        }
+        delete(fileName);
         return true;
     }
 

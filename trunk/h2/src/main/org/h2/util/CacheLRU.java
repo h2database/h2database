@@ -294,25 +294,13 @@ public class CacheLRU implements Cache {
 //        if(Database.CHECK) {
 //            testConsistency();
 //        }
-        // TODO cache: should probably use the LRU list
         ObjectArray<CacheObject> list = ObjectArray.newInstance();
-        for (int i = 0; i < len; i++) {
-            CacheObject rec = values[i];
-            while (rec != null) {
-                if (rec.isChanged()) {
-                    list.add(rec);
-                    if (list.size() >= recordCount) {
-                        if (SysProperties.CHECK) {
-                            if (list.size() > recordCount) {
-                                Message.throwInternalError("cache chain error");
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                }
-                rec = rec.chained;
+        CacheObject rec = head.next;
+        while (rec != head) {
+            if (rec.isChanged()) {
+                list.add(rec);
             }
+            rec = rec.next;
         }
         return list;
     }

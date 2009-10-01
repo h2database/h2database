@@ -26,6 +26,11 @@ public class FileSystemDebug extends FileSystem {
 
     private static final FileSystemDebug INSTANCE = new FileSystemDebug();
 
+    private static final IOException POWER_OFF = new IOException("Simulated power failure");
+
+    private int powerOffCount;
+    private boolean trace;
+
     /**
      * Register the file system.
      */
@@ -33,114 +38,133 @@ public class FileSystemDebug extends FileSystem {
         FileSystem.register(INSTANCE);
     }
 
+    /**
+     * Check if the simulated power failure occurred.
+     * This call will decrement the countdown.
+     *
+     * @throws IOException if the simulated power failure occurred
+     */
+    void checkPowerOff() throws IOException {
+        if (powerOffCount == 0) {
+            return;
+        }
+        if (powerOffCount > 1) {
+            powerOffCount--;
+            return;
+        }
+        powerOffCount = -1;
+        // throw new IOException("Simulated power failure");
+        throw POWER_OFF;
+    }
+
     public boolean canWrite(String fileName) {
         fileName = translateFileName(fileName);
-        debug("canWrite", fileName);
+        trace("canWrite", fileName);
         return FileSystem.getInstance(fileName).canWrite(fileName);
     }
 
     public void copy(String original, String copy) throws SQLException {
         original = translateFileName(original);
         copy = translateFileName(copy);
-        debug("copy", original, copy);
+        trace("copy", original, copy);
         FileSystem.getInstance(original).copy(original, copy);
     }
 
     public void createDirs(String fileName) throws SQLException {
         fileName = translateFileName(fileName);
-        debug("createDirs", fileName);
+        trace("createDirs", fileName);
         FileSystem.getInstance(fileName).createDirs(fileName);
     }
 
     public boolean createNewFile(String fileName) throws SQLException {
         fileName = translateFileName(fileName);
-        debug("createNewFile", fileName);
+        trace("createNewFile", fileName);
         return FileSystem.getInstance(fileName).createNewFile(fileName);
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
         prefix = translateFileName(prefix);
-        debug("createTempFile", prefix, suffix, deleteOnExit, inTempDir);
+        trace("createTempFile", prefix, suffix, deleteOnExit, inTempDir);
         return PREFIX + FileSystem.getInstance(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
     }
 
     public void delete(String fileName) throws SQLException {
         fileName = translateFileName(fileName);
-        debug("fileName", fileName);
+        trace("fileName", fileName);
         FileSystem.getInstance(fileName).delete(fileName);
     }
 
     public void deleteRecursive(String directory, boolean tryOnly) throws SQLException {
         directory = translateFileName(directory);
-        debug("deleteRecursive", directory);
+        trace("deleteRecursive", directory);
         FileSystem.getInstance(directory).deleteRecursive(directory, tryOnly);
     }
 
     public boolean exists(String fileName) {
         fileName = translateFileName(fileName);
-        debug("exists", fileName);
+        trace("exists", fileName);
         return FileSystem.getInstance(fileName).exists(fileName);
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
         fileName = translateFileName(fileName);
         prefix = translateFileName(prefix);
-        debug("fileStartsWith", fileName, prefix);
+        trace("fileStartsWith", fileName, prefix);
         return FileSystem.getInstance(fileName).fileStartsWith(fileName, prefix);
     }
 
     public String getAbsolutePath(String fileName) {
         fileName = translateFileName(fileName);
-        debug("getAbsolutePath", fileName);
+        trace("getAbsolutePath", fileName);
         return PREFIX + FileSystem.getInstance(fileName).getAbsolutePath(fileName);
     }
 
     public String getFileName(String name) throws SQLException {
         name = translateFileName(name);
-        debug("getFileName", name);
+        trace("getFileName", name);
         return FileSystem.getInstance(name).getFileName(name);
     }
 
     public long getLastModified(String fileName) {
         fileName = translateFileName(fileName);
-        debug("getLastModified", fileName);
+        trace("getLastModified", fileName);
         return FileSystem.getInstance(fileName).getLastModified(fileName);
     }
 
     public String getParent(String fileName) {
         fileName = translateFileName(fileName);
-        debug("getParent", fileName);
+        trace("getParent", fileName);
         return PREFIX + FileSystem.getInstance(fileName).getParent(fileName);
     }
 
     public boolean isAbsolute(String fileName) {
         fileName = translateFileName(fileName);
-        debug("isAbsolute", fileName);
+        trace("isAbsolute", fileName);
         return FileSystem.getInstance(fileName).isAbsolute(fileName);
     }
 
     public boolean isDirectory(String fileName) {
         fileName = translateFileName(fileName);
-        debug("isDirectory", fileName);
+        trace("isDirectory", fileName);
         return FileSystem.getInstance(fileName).isDirectory(fileName);
     }
 
     public boolean isReadOnly(String fileName) {
         fileName = translateFileName(fileName);
-        debug("isReadOnly", fileName);
+        trace("isReadOnly", fileName);
         return FileSystem.getInstance(fileName).isReadOnly(fileName);
     }
 
     public long length(String fileName) {
         fileName = translateFileName(fileName);
-        debug("length", fileName);
+        trace("length", fileName);
         return FileSystem.getInstance(fileName).length(fileName);
     }
 
     public String[] listFiles(String directory) throws SQLException {
         directory = translateFileName(directory);
-        debug("listFiles", directory);
+        trace("listFiles", directory);
         String[] list = FileSystem.getInstance(directory).listFiles(directory);
         for (int i = 0; i < list.length; i++) {
             list[i] = PREFIX + list[i];
@@ -150,38 +174,38 @@ public class FileSystemDebug extends FileSystem {
 
     public String normalize(String fileName) throws SQLException {
         fileName = translateFileName(fileName);
-        debug("normalize", fileName);
+        trace("normalize", fileName);
         return PREFIX + FileSystem.getInstance(fileName).normalize(fileName);
     }
 
     public InputStream openFileInputStream(String fileName) throws IOException {
         fileName = translateFileName(fileName);
-        debug("openFileInputStream", fileName);
+        trace("openFileInputStream", fileName);
         return FileSystem.getInstance(fileName).openFileInputStream(fileName);
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
-        debug("openFileObject", fileName, mode);
+        trace("openFileObject", fileName, mode);
         return new FileObjectDebug(this, FileSystem.getInstance(fileName).openFileObject(fileName, mode));
     }
 
     public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
         fileName = translateFileName(fileName);
-        debug("openFileOutputStream", fileName, append);
+        trace("openFileOutputStream", fileName, append);
         return FileSystem.getInstance(fileName).openFileOutputStream(fileName, append);
     }
 
     public void rename(String oldName, String newName) throws SQLException {
         oldName = translateFileName(oldName);
         newName = translateFileName(newName);
-        debug("rename", oldName, newName);
+        trace("rename", oldName, newName);
         FileSystem.getInstance(oldName).copy(oldName, newName);
     }
 
     public boolean tryDelete(String fileName) {
         fileName = translateFileName(fileName);
-        debug("tryDelete", fileName);
+        trace("tryDelete", fileName);
         return FileSystem.getInstance(fileName).tryDelete(fileName);
     }
 
@@ -203,13 +227,31 @@ public class FileSystemDebug extends FileSystem {
      * @param fileName the file name
      * @param params parameters if any
      */
-    void debug(String method, String fileName, Object... params) {
-        StringBuilder buff = new StringBuilder("    ");
-        buff.append(fileName).append(' ').append(method);
-        for (Object s : params) {
-            buff.append(' ').append(s);
+    void trace(String method, String fileName, Object... params) {
+        if (trace) {
+            StringBuilder buff = new StringBuilder("    ");
+            buff.append(fileName).append(' ').append(method);
+            for (Object s : params) {
+                buff.append(' ').append(s);
+            }
+            System.out.println(buff);
         }
-        System.out.println(buff);
+    }
+
+    public void setPowerOffCount(int count) {
+        this.powerOffCount = count;
+    }
+
+    public int getPowerOffCount() {
+        return powerOffCount;
+    }
+
+    public boolean isTrace() {
+        return trace;
+    }
+
+    public void setTrace(boolean trace) {
+        this.trace = trace;
     }
 
 }

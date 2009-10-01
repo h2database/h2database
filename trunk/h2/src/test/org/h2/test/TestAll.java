@@ -228,6 +228,11 @@ java org.h2.test.TestAll timer
     public boolean traceTest;
 
     /**
+     * If testing on Google App Engine.
+     */
+    public boolean googleAppEngine;
+
+    /**
      * If the transaction log files should be kept small (that is, log files
      * should be switched early).
      */

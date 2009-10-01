@@ -547,7 +547,8 @@ public class TableLink extends Table {
      * Linked tables don't know if they are readonly. This overwrites
      * the default handling.
      */
-    public void checkWritingAllowed() throws SQLException {
+    public void checkWritingAllowed() {
+        // only the target database can verify this
     }
 
     /**

@@ -55,6 +55,7 @@ public class FileObjectDebug implements FileObject {
     }
 
     public void setFileLength(long newLength) throws IOException {
+        checkPowerOff();
         debug("setFileLength", newLength);
         file.setFileLength(newLength);
     }
@@ -65,12 +66,25 @@ public class FileObjectDebug implements FileObject {
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
+        checkPowerOff();
         debug("write", off, len);
         file.write(b, off, len);
     }
 
     private void debug(String method, Object... params) {
-        fs.debug(method, name, params);
+        fs.trace(method, name, params);
     }
 
+    private void checkPowerOff() throws IOException {
+        try {
+            fs.checkPowerOff();
+        } catch (IOException e) {
+            try {
+                file.close();
+            } catch (IOException e2) {
+                // ignore
+            }
+            throw e;
+        }
+    }
 }

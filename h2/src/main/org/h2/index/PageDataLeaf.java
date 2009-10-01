@@ -198,7 +198,7 @@ public class PageDataLeaf extends PageData {
         offsets = newOffsets;
         keys = newKeys;
         rows = newRows;
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().update(this);
         if (offset < start) {
             if (entryCount > 1) {
                 Message.throwInternalError();
@@ -234,7 +234,7 @@ public class PageDataLeaf extends PageData {
                     next = index.getPageStore().allocatePage();
                 }
                 PageDataOverflow overflow = PageDataOverflow.create(index.getPageStore(), page, type, previous, next, all, dataOffset, size);
-                index.getPageStore().updateRecord(overflow);
+                index.getPageStore().update(overflow);
                 dataOffset += size;
                 remaining -= size;
                 previous = page;
@@ -365,7 +365,7 @@ public class PageDataLeaf extends PageData {
         }
         PageDataOverflow overflow = index.getPageOverflow(firstOverflowPageId);
         overflow.setParentPageId(getPos());
-        index.getPageStore().updateRecord(overflow);
+        index.getPageStore().update(overflow);
     }
 
     boolean remove(long key) throws SQLException {
@@ -379,7 +379,7 @@ public class PageDataLeaf extends PageData {
             return true;
         }
         removeRow(i);
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().update(this);
         return false;
     }
 
@@ -389,7 +389,7 @@ public class PageDataLeaf extends PageData {
             int next = firstOverflowPageId;
             do {
                 PageDataOverflow page = index.getPageOverflow(next);
-                store.freePage(next, false, null);
+                store.free(next, false);
                 next = page.getNextOverflow();
             } while (next != 0);
         }
@@ -499,8 +499,8 @@ public class PageDataLeaf extends PageData {
         p2.remapChildren();
         p2.write();
         p2.data.truncate(index.getPageStore().getPageSize());
-        store.updateRecord(p2);
-        store.freePage(getPos(), true, data);
+        store.update(p2);
+        store.free(getPos(), true);
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {
@@ -516,7 +516,7 @@ public class PageDataLeaf extends PageData {
             writeHead();
             data.writeInt(firstOverflowPageId);
         }
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().update(this);
     }
 
     public int getMemorySize() {

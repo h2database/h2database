@@ -168,11 +168,11 @@ public class PageStreamTrunk extends Page {
      * @return the number of pages freed
      */
     int free() throws SQLException {
-        store.freePage(getPos(), false, null);
+        store.free(getPos(), false);
         int freed = 1;
         for (int i = 0; i < pageCount; i++) {
             int page = pageIds[i];
-            store.freePage(page, false, null);
+            store.free(page, false);
             freed++;
         }
         return freed;
@@ -201,7 +201,7 @@ public class PageStreamTrunk extends Page {
                 break;
             }
         }
-        store.updateRecord(this);
+        store.update(this);
     }
 
     public void moveTo(Session session, int newPos) {

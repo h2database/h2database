@@ -198,7 +198,7 @@ public class PageLog {
         while (firstTrunkPage != 0) {
             PageStreamTrunk t = (PageStreamTrunk) store.getPage(firstTrunkPage);
             if (t == null) {
-                store.freePage(firstTrunkPage, false, null);
+                store.free(firstTrunkPage, false);
                 // EOF
                 break;
             }
@@ -352,7 +352,7 @@ public class PageLog {
                         int pageId = in.readVarInt();
                         if (stage == RECOVERY_STAGE_REDO) {
                             if (!usedLogPages.get(pageId)) {
-                                store.freePage(pageId, false, null);
+                                store.free(pageId, false);
                             }
                         }
                     }

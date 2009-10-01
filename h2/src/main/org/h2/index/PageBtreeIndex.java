@@ -53,7 +53,7 @@ public class PageBtreeIndex extends PageIndex {
             store.addMeta(this, session);
             PageBtreeLeaf root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
             store.logUndo(root, null);
-            store.updateRecord(root);
+            store.update(root);
         } else {
             rootPageId = store.getRootPageId(id);
             PageBtree root = getPage(rootPageId);
@@ -95,9 +95,9 @@ public class PageBtreeIndex extends PageIndex {
             PageBtreeNode newRoot = PageBtreeNode.create(this, rootPageId, PageBtree.ROOT);
             store.logUndo(newRoot, null);
             newRoot.init(page1, pivot, page2);
-            store.updateRecord(page1);
-            store.updateRecord(page2);
-            store.updateRecord(newRoot);
+            store.update(page1);
+            store.update(page2);
+            store.update(newRoot);
             root = newRoot;
         }
         rowCount++;
@@ -131,7 +131,7 @@ public class PageBtreeIndex extends PageIndex {
             PageBtreeLeaf empty = PageBtreeLeaf.create(this, id, PageBtree.ROOT);
             // could have been created before, but never committed
             store.logUndo(empty, null);
-            store.updateRecord(empty);
+            store.update(empty);
             return empty;
         }
         return p;
@@ -226,7 +226,7 @@ public class PageBtreeIndex extends PageIndex {
             trace.debug("remove");
         }
         removeAllRows();
-        store.freePage(rootPageId, false, null);
+        store.free(rootPageId, true);
         store.removeMeta(this, session);
     }
 
@@ -247,7 +247,7 @@ public class PageBtreeIndex extends PageIndex {
         root.freeChildren();
         root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
         store.removeRecord(rootPageId);
-        store.updateRecord(root);
+        store.update(root);
         rowCount = 0;
     }
 

@@ -88,7 +88,7 @@ public class PageFreeList extends Page {
             } else {
                 store.logUndo(this, data);
                 used.set(free);
-                store.updateRecord(this);
+                store.update(this);
                 return free + getPos();
             }
         }
@@ -121,7 +121,7 @@ public class PageFreeList extends Page {
         if (idx >= 0 && !used.get(idx)) {
             store.logUndo(this, data);
             used.set(idx);
-            store.updateRecord(this);
+            store.update(this);
         }
         return pageId;
     }
@@ -135,7 +135,7 @@ public class PageFreeList extends Page {
         full = false;
         store.logUndo(this, data);
         used.clear(pageId - getPos());
-        store.updateRecord(this);
+        store.update(this);
     }
 
     /**
@@ -197,7 +197,7 @@ public class PageFreeList extends Page {
     public void moveTo(Session session, int newPos) throws SQLException {
         // the old data does not need to be copied, as free-list pages
         // at the end of the file are not required
-        store.freePage(getPos(), true, data);
+        store.free(getPos(), false);
     }
 
     public String toString() {

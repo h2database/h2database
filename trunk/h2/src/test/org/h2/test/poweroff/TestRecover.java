@@ -43,7 +43,7 @@ public class TestRecover {
 
     private static final String TEST_DIRECTORY = DIR + "/data" + NODE;
     private static final String BACKUP_DIRECTORY = DIR + "/last";
-    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test;MAX_LOG_SIZE=2");
+    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test;PAGE_STORE=TRUE");
     private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
 
     private Random random;
@@ -68,6 +68,7 @@ public class TestRecover {
     }
 
     private void runTest() throws Exception {
+        System.out.println("URL=" + URL);
         System.out.println("backup...");
         new File(TEST_DIRECTORY).mkdirs();
         File backup = backup(TEST_DIRECTORY, BACKUP_DIRECTORY, "data", 10, NODE);
@@ -292,8 +293,8 @@ public class TestRecover {
                 int id = rs.getInt("ID");
                 String name = rs.getString("NAME");
                 int value = Integer.parseInt(name);
-                if (value % 2 == 0) {
-                    throw new Exception("unexpected odd entry " + id);
+                if (value % 2 != 0) {
+                    throw new Exception("unexpected odd entry " + id + " value " + value);
                 }
                 max = Math.max(max, id);
             }

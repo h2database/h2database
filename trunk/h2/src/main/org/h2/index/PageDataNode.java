@@ -149,10 +149,10 @@ public class PageDataNode extends PageData {
             }
             long pivot = splitPoint == 0 ? row.getKey() : page.getKey(splitPoint - 1);
             PageData page2 = page.split(splitPoint);
-            index.getPageStore().updateRecord(page);
-            index.getPageStore().updateRecord(page2);
+            index.getPageStore().update(page);
+            index.getPageStore().update(page2);
             addChild(x, page2.getPos(), pivot);
-            index.getPageStore().updateRecord(this);
+            index.getPageStore().update(this);
         }
         updateRowCount(1);
         return -1;
@@ -168,7 +168,7 @@ public class PageDataNode extends PageData {
             if (written) {
                 writeHead();
             }
-            index.getPageStore().updateRecord(this);
+            index.getPageStore().update(this);
         }
     }
 
@@ -198,7 +198,7 @@ public class PageDataNode extends PageData {
         for (int child : childPageIds) {
             PageData p = index.getPage(child, -1);
             p.setParentPageId(getPos());
-            index.getPageStore().updateRecord(p);
+            index.getPageStore().update(p);
         }
     }
 
@@ -251,19 +251,20 @@ public class PageDataNode extends PageData {
         // TODO maybe implement merge
         PageData page = index.getPage(childPageIds[at], getPos());
         boolean empty = page.remove(key);
+        index.getPageStore().logUndo(this, data);
         updateRowCount(-1);
         if (!empty) {
             // the first row didn't change - nothing to do
             return false;
         }
         // this child is now empty
-        index.getPageStore().freePage(page.getPos(), true, page.data);
+        index.getPageStore().free(page.getPos(), true);
         if (entryCount < 1) {
             // no more children - this page is empty as well
             return true;
         }
         removeChild(at);
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().update(this);
         return false;
     }
 
@@ -271,7 +272,7 @@ public class PageDataNode extends PageData {
         for (int i = 0; i <= entryCount; i++) {
             int childPageId = childPageIds[i];
             PageData child = index.getPage(childPageId, getPos());
-            index.getPageStore().freePage(childPageId, false, null);
+            index.getPageStore().free(childPageId, false);
             child.freeChildren();
         }
     }
@@ -305,7 +306,7 @@ public class PageDataNode extends PageData {
             if (written) {
                 writeHead();
             }
-            index.getPageStore().updateRecord(this);
+            index.getPageStore().update(this);
         }
     }
 
@@ -393,7 +394,7 @@ public class PageDataNode extends PageData {
         p2.keys = keys;
         p2.entryCount = entryCount;
         p2.length = length;
-        store.updateRecord(p2);
+        store.update(p2);
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {
@@ -403,9 +404,9 @@ public class PageDataNode extends PageData {
         for (int i = 0; i < childPageIds.length; i++) {
             PageData p = (PageData) store.getPage(childPageIds[i]);
             p.setParentPageId(newPos);
-            store.updateRecord(p);
+            store.update(p);
         }
-        store.freePage(getPos(), true, data);
+        store.free(getPos(), true);
     }
 
     /**
@@ -420,7 +421,7 @@ public class PageDataNode extends PageData {
                 index.getPageStore().logUndo(this, data);
                 written = false;
                 childPageIds[i] = newPos;
-                index.getPageStore().updateRecord(this);
+                index.getPageStore().update(this);
                 return;
             }
         }

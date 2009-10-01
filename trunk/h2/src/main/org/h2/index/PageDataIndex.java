@@ -65,7 +65,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             rootPageId = store.allocatePage();
             store.addMeta(this, session);
             PageDataLeaf root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
-            store.updateRecord(root);
+            store.update(root);
         } else {
             rootPageId = store.getRootPageId(id);
             PageData root = getPage(rootPageId, 0);
@@ -161,9 +161,9 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             page2.setParentPageId(rootPageId);
             PageDataNode newRoot = PageDataNode.create(this, rootPageId, PageData.ROOT);
             newRoot.init(page1, pivot, page2);
-            store.updateRecord(page1);
-            store.updateRecord(page2);
-            store.updateRecord(newRoot);
+            store.update(page1);
+            store.update(page2);
+            store.update(newRoot);
             root = newRoot;
         }
         row.setDeleted(false);
@@ -205,7 +205,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             PageDataLeaf empty = PageDataLeaf.create(this, id, parent);
             // could have been created before, but never committed
             store.logUndo(empty, null);
-            store.updateRecord(empty);
+            store.update(empty);
             return empty;
         }
         if (p.index.rootPageId != rootPageId) {
@@ -325,7 +325,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             trace.debug("remove");
         }
         removeAllRows();
-        store.freePage(rootPageId, false, null);
+        store.free(rootPageId, true);
         store.removeMeta(this, session);
     }
 
@@ -349,7 +349,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
         root.freeChildren();
         root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
         store.removeRecord(rootPageId);
-        store.updateRecord(root);
+        store.update(root);
         rowCount = 0;
         lastKey = 0;
     }

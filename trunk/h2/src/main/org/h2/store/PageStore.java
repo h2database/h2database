@@ -717,27 +717,27 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Update a record.
+     * Update a page.
      *
-     * @param record the record
+     * @param page the page
      */
-    public void updateRecord(Record record) throws SQLException {
+    public void update(Page page) throws SQLException {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
-                if (!record.isChanged()) {
-                    trace.debug("updateRecord " + record.toString());
+                if (!page.isChanged()) {
+                    trace.debug("updateRecord " + page.toString());
                 }
             }
             checkOpen();
             database.checkWritingAllowed();
-            record.setChanged(true);
-            int pos = record.getPos();
+            page.setChanged(true);
+            int pos = page.getPos();
             if (SysProperties.CHECK && !recoveryRunning) {
                 // ensure the undo entry is already written
                 log.addUndo(pos, null);
             }
             allocatePage(pos);
-            cache.update(pos, record);
+            cache.update(pos, page);
         }
     }
 
@@ -854,29 +854,22 @@ public class PageStore implements CacheWriter {
     /**
      * Add a page to the free list.
      *
-     * @param pageId the page id
-     * @param logUndo if an undo entry need to be logged
-     * @param old the old data (if known)
+     * @param page the page
+     * @param undo if the undo record must have been written
      */
-    public void freePage(int pageId, boolean logUndo, Data old) throws SQLException {
+    public void free(int pageId, boolean undo) throws SQLException {
         if (trace.isDebugEnabled()) {
             // trace.debug("freePage " + pageId);
         }
-        int todoRemoveOld;
         synchronized (database) {
-            if (SysProperties.CHECK && !recoveryRunning && logUndo) {
+            cache.remove(pageId);
+            if (SysProperties.CHECK && !recoveryRunning && undo) {
                 // ensure the undo entry is already written
                 log.addUndo(pageId, null);
             }
-            cache.remove(pageId);
             freePage(pageId);
             if (recoveryRunning) {
                 writePage(pageId, createData());
-            } else if (logUndo) {
-                if (old == null) {
-                    old = readPage(pageId);
-                }
-                log.addUndo(pageId, old);
             }
         }
     }

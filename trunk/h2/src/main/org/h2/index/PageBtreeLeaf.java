@@ -147,7 +147,7 @@ public class PageBtreeLeaf extends PageBtree {
         newRows[x] = row;
         offsets = newOffsets;
         rows = newRows;
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().update(this);
         return -1;
     }
 
@@ -202,13 +202,13 @@ public class PageBtreeLeaf extends PageBtree {
         if (index.compareRows(row, delete) != 0 || delete.getKey() != row.getKey()) {
             throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + row);
         }
+        index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {
             // the page is now empty
             return row;
         }
-        index.getPageStore().logUndo(this, data);
         removeRow(at);
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().update(this);
         if (at == entryCount) {
             // the last row changed
             return getRow(at - 1);
@@ -327,14 +327,14 @@ public class PageBtreeLeaf extends PageBtree {
         p2.onlyPosition = onlyPosition;
         p2.parentPageId = parentPageId;
         p2.start = start;
-        store.updateRecord(p2);
+        store.update(p2);
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {
             PageBtreeNode p = (PageBtreeNode) store.getPage(parentPageId);
             p.moveChild(getPos(), newPos);
         }
-        store.freePage(getPos(), true, data);
+        store.free(getPos(), true);
     }
 
 }

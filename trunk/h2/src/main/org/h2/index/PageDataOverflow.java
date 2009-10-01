@@ -216,11 +216,11 @@ public class PageDataOverflow extends Page {
     public void moveTo(Session session, int newPos) throws SQLException {
         store.logUndo(this, data);
         PageDataOverflow p2 = PageDataOverflow.create(store, newPos, type, parentPageId, nextPage, data, start, size);
-        store.updateRecord(p2);
+        store.update(p2);
         if (nextPage != 0) {
             PageDataOverflow p3 = (PageDataOverflow) store.getPage(nextPage);
             p3.setParentPageId(newPos);
-            store.updateRecord(p3);
+            store.update(p3);
         }
         Page p = store.getPage(parentPageId);
         if (p == null) {
@@ -233,8 +233,8 @@ public class PageDataOverflow extends Page {
             PageDataLeaf p1 = (PageDataLeaf) p;
             p1.setOverflow(newPos);
         }
-        store.updateRecord(p);
-        store.freePage(getPos(), true, data);
+        store.update(p);
+        store.free(getPos(), true);
     }
 
     private void setNext(int nextPage) throws SQLException {

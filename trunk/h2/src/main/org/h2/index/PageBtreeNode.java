@@ -203,9 +203,9 @@ public class PageBtreeNode extends PageBtree {
             PageBtree page2 = page.split(splitPoint);
             readAllRows();
             addChild(x, page2.getPos(), pivot);
-            index.getPageStore().updateRecord(page);
-            index.getPageStore().updateRecord(page2);
-            index.getPageStore().updateRecord(this);
+            index.getPageStore().update(page);
+            index.getPageStore().update(page2);
+            index.getPageStore().update(this);
         }
         updateRowCount(1);
         written = false;
@@ -247,7 +247,7 @@ public class PageBtreeNode extends PageBtree {
         for (int child : childPageIds) {
             PageBtree p = index.getPage(child);
             p.setParentPageId(getPos());
-            index.getPageStore().updateRecord(p);
+            index.getPageStore().update(p);
         }
     }
 
@@ -311,7 +311,7 @@ public class PageBtreeNode extends PageBtree {
             return null;
         } else if (last == row) {
             // this child is now empty
-            index.getPageStore().freePage(page.getPos(), true, page.data);
+            index.getPageStore().free(page.getPos(), true);
             if (entryCount < 1) {
                 // no more children - this page is empty as well
                 return row;
@@ -323,7 +323,7 @@ public class PageBtreeNode extends PageBtree {
                 last = null;
             }
             removeChild(at);
-            index.getPageStore().updateRecord(this);
+            index.getPageStore().update(this);
             return last;
         }
         // the last row is in the last child
@@ -339,7 +339,7 @@ public class PageBtreeNode extends PageBtree {
         int temp = childPageIds[at];
         childPageIds[at] = childPageIds[at + 1];
         childPageIds[at + 1] = temp;
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().update(this);
         return null;
     }
 
@@ -408,7 +408,7 @@ public class PageBtreeNode extends PageBtree {
         for (int i = 0; i <= entryCount; i++) {
             int childPageId = childPageIds[i];
             PageBtree child = index.getPage(childPageId);
-            index.getPageStore().freePage(childPageId, false, null);
+            index.getPageStore().free(childPageId, false);
             child.freeChildren();
         }
     }
@@ -516,7 +516,7 @@ public class PageBtreeNode extends PageBtree {
         p2.onlyPosition = onlyPosition;
         p2.parentPageId = parentPageId;
         p2.start = start;
-        store.updateRecord(p2);
+        store.update(p2);
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {
@@ -526,9 +526,9 @@ public class PageBtreeNode extends PageBtree {
         for (int i = 0; i < childPageIds.length; i++) {
             PageBtree p = (PageBtree) store.getPage(childPageIds[i]);
             p.setParentPageId(newPos);
-            store.updateRecord(p);
+            store.update(p);
         }
-        store.freePage(getPos(), true, data);
+        store.free(getPos(), true);
     }
 
     /**
@@ -543,7 +543,7 @@ public class PageBtreeNode extends PageBtree {
                 index.getPageStore().logUndo(this, data);
                 written = false;
                 childPageIds[i] = newPos;
-                index.getPageStore().updateRecord(this);
+                index.getPageStore().update(this);
                 return;
             }
         }

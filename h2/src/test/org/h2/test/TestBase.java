@@ -219,6 +219,8 @@ public abstract class TestBase {
             } else {
                 url = "tcp://localhost:9192/" + name;
             }
+        } else if (config.googleAppEngine) {
+            url = "gae://" + name + ";FILE_LOCK=NO;AUTO_SERVER=FALSE;DB_CLOSE_ON_EXIT=FALSE";
         } else {
             url = name;
         }
@@ -1108,7 +1110,16 @@ public abstract class TestBase {
      * @return the new test
      */
     public static TestBase createCaller() {
-        String className = new Exception().getStackTrace()[1].getClassName();
+        return createCaller(new Exception().getStackTrace()[1].getClassName());
+    }
+
+    /**
+     * Create a new object of the given class.
+     *
+     * @param className the class name
+     * @return the new test
+     */
+    public static TestBase createCaller(String className) {
         org.h2.Driver.load();
         try {
             return (TestBase) Class.forName(className).newInstance();

@@ -3490,6 +3490,11 @@ public class Parser {
                     hash = true;
                 }
                 primaryKey = true;
+                if (!isToken("ON")) {
+                    ifNotExists = readIfNoExists();
+                    indexName = readIdentifierWithSchema(null);
+                    oldSchema = getSchema();
+                }
             } else {
                 if (readIf("UNIQUE")) {
                     unique = true;

@@ -55,7 +55,7 @@ public class H2Dialect extends Dialect {
         registerColumnType(Types.TIMESTAMP, "timestamp");
         registerColumnType(Types.VARCHAR, "varchar($l)");
         registerColumnType(Types.VARBINARY, "binary($l)");
-        registerColumnType(Types.NUMERIC, "numeric");
+        registerColumnType(Types.NUMERIC, "decimal($p,$s)");
         registerColumnType(Types.BLOB, "blob");
         registerColumnType(Types.CLOB, "clob");
 

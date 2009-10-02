@@ -854,7 +854,7 @@ public class PageStore implements CacheWriter {
     /**
      * Add a page to the free list.
      *
-     * @param page the page
+     * @param pageId the page id
      * @param undo if the undo record must have been written
      */
     public void free(int pageId, boolean undo) throws SQLException {

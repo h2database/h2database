@@ -346,6 +346,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
 
     private void removeAllRows() throws SQLException {
         PageData root = getPage(rootPageId, 0);
+        store.logUndo(root, root.data);
         root.freeChildren();
         root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
         store.removeRecord(rootPageId);

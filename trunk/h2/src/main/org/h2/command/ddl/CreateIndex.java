@@ -63,10 +63,12 @@ public class CreateIndex extends SchemaCommand {
             persistent = false;
         }
         int id = getObjectId(true, false);
-        if (primaryKey) {
-            indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY);
-        } else if (indexName == null) {
-            indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_INDEX);
+        if (indexName == null) {
+            if (primaryKey) {
+                indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY);
+            } else {
+                indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_INDEX);
+            }
         }
         if (getSchema().findIndex(session, indexName) != null) {
             if (ifNotExists) {

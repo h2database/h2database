@@ -36,6 +36,7 @@ public class TestIndex extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("index");
+        testRenamePrimaryKey();
         testRandomized();
         testDescIndex();
         testHashIndex();
@@ -81,6 +82,28 @@ public class TestIndex extends TestBase {
 
         conn.close();
         deleteDb("index");
+    }
+
+    private void testRenamePrimaryKey() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        reconnect();
+        stat.execute("create table test(id int not null)");
+        stat.execute("alter table test add constraint x primary key(id)");
+        ResultSet rs;
+        rs = conn.getMetaData().getIndexInfo(null, null, "TEST", true, false);
+        rs.next();
+        String old = rs.getString("INDEX_NAME");
+        stat.execute("alter index " + old + " rename to y");
+        rs = conn.getMetaData().getIndexInfo(null, null, "TEST", true, false);
+        rs.next();
+        assertEquals("Y", rs.getString("INDEX_NAME"));
+        reconnect();
+        rs = conn.getMetaData().getIndexInfo(null, null, "TEST", true, false);
+        rs.next();
+        assertEquals("Y", rs.getString("INDEX_NAME"));
+        stat.execute("drop table test");
     }
 
     private void testRandomized() throws SQLException {

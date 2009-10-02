@@ -2251,6 +2251,7 @@ public class Database implements DataHandler {
         } catch (SQLException e) {
             // ignore
         }
+        closeFiles();
     }
 
     public TempFileDeleter getTempFileDeleter() {

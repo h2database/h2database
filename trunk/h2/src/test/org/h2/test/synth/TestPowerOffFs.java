@@ -32,7 +32,6 @@ public class TestPowerOffFs extends TestBase {
     }
 
     public void test() throws Exception {
-        int todo;
         FileSystemDebug.register();
         fs = (FileSystemDebug) FileSystem.getInstance("debug:/");
         test(Integer.MAX_VALUE);
@@ -53,9 +52,6 @@ public class TestPowerOffFs extends TestBase {
         url += ";page_store=true";
         Connection conn = null;
         Statement stat = null;
-if (x == 16) {
-    System.out.println("x");
-}
         try {
             conn = DriverManager.getConnection(url);
             stat = conn.createStatement();

@@ -288,6 +288,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("IDENTITY", IDENTITY, 0, Value.LONG);
         addFunctionNotDeterministic("IDENTITY_VAL_LOCAL", IDENTITY, 0, Value.LONG);
         addFunctionNotDeterministic("LAST_INSERT_ID", IDENTITY, 0, Value.LONG);
+        addFunctionNotDeterministic("LASTVAL", IDENTITY, 0, Value.LONG);
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT, 0, Value.BOOLEAN);
         addFunctionNotDeterministic("READONLY", READONLY, 0, Value.BOOLEAN);
         addFunction("DATABASE_PATH", DATABASE_PATH, 0, Value.STRING);

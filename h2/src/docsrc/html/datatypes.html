@@ -16,22 +16,21 @@ Data Types
 <!-- } -->
 
 <h1>Data Types</h1>
+<p class="notranslate">
 <c:forEach var="item" items="dataTypes">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+</p>
 
 <c:forEach var="item" items="dataTypes">
 <br />
-<h3 id="${item.link}">${item.topic}</h3>
-<pre>
+<h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<pre class="notranslate">
 ${item.syntax}
 </pre>
-<p>
-${item.text}
-</p>
-<b>Example:</b><br />
-${item.example}
-<br />
+<p>${item.text}</p>
+<b>Example:</b>
+<p class="notranslate">${item.example}</p>
 </c:forEach>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -128,10 +128,11 @@ public class GenerateDoc {
                 for (int i = 0; i < meta.getColumnCount(); i++) {
                     String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i + 1));
                     String value = rs.getString(i + 1);
+                    value = value.trim();
                     map.put(k, PageParser.escapeHtml(value));
                 }
                 String topic = rs.getString("TOPIC");
-                String syntax = rs.getString("SYNTAX");
+                String syntax = rs.getString("SYNTAX").trim();
                 syntax = PageParser.escapeHtml(syntax);
                 // if enabled, HTML docs get very wide
                 // syntax = StringUtils.replaceAll(syntax, "<br />", " ");
@@ -141,7 +142,6 @@ public class GenerateDoc {
                 // remove newlines in the regular text
                 String text = map.get("text");
                 if (text != null) {
-                    text = text.trim();
                     // text is enclosed in <p> .. </p> so this works.
                     text = StringUtils.replaceAll(text, "<br /><br />", "</p><p>");
                     text = StringUtils.replaceAll(text, "<br />", " ");
@@ -153,6 +153,7 @@ public class GenerateDoc {
                 // link = StringUtils.replaceAll(link, "_", "");
                 link = StringUtils.replaceAll(link, "@", "_");
                 map.put("link", StringUtils.urlEncode(link));
+
                 list.add(map);
             }
             session.put(key, list);

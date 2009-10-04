@@ -137,8 +137,8 @@ CREATE LINKED TABLE LINK('org.postgresql.Driver', 'jdbc:postgresql:test', 'sa', 
 <p>
 You can then access the table in the usual way.
 Whenever the linked table is accessed, the database issues specific queries over JDBC.
-Using the example above, if you issue the query <code>SELECT * FROM LINK WHERE ID=1</code>,
-then the following query is run against the PostgreSQL database: <code>SELECT * FROM TEST WHERE ID=?</code>.
+Using the example above, if you issue the query <code class="notranslate">SELECT * FROM LINK WHERE ID=1</code>,
+then the following query is run against the PostgreSQL database: <code class="notranslate">SELECT * FROM TEST WHERE ID=?</code>.
 The same happens for insert and update statements. Only simple statements are executed against the
 target database, that means no joins. Prepared statements are used where possible.
 </p>
@@ -169,16 +169,16 @@ This database supports the following transaction isolation levels:
     This is the default level.
     Read locks are released immediately.
     Higher concurrency is possible when using this level.<br />
-    To enable, execute the SQL statement    'SET LOCK_MODE 3'<br />
-    or append ;LOCK_MODE=3 to the database URL: jdbc:h2:~/test;LOCK_MODE=3
+    To enable, execute the SQL statement <code class="notranslate">SET LOCK_MODE 3</code><br />
+    or append <code class="notranslate">;LOCK_MODE=3</code> to the database URL: <code class="notranslate">jdbc:h2:~/test;LOCK_MODE=3</code>
 </li><li>
 <b>Serializable</b><br />
-    To enable, execute the SQL statement    'SET LOCK_MODE 1'<br />
-    or append ;LOCK_MODE=1 to the database URL: jdbc:h2:~/test;LOCK_MODE=1
+    To enable, execute the SQL statement <code class="notranslate">SET LOCK_MODE 1</code><br />
+    or append <code class="notranslate">;LOCK_MODE=1</code> to the database URL: <code class="notranslate">jdbc:h2:~/test;LOCK_MODE=1</code>
 </li><li><b>Read Uncommitted</b><br />
     This level means that transaction isolation is disabled.<br />
-    To enable, execute the SQL statement    'SET LOCK_MODE 0'<br />
-    or append ;LOCK_MODE=0 to the database URL: jdbc:h2:~/test;LOCK_MODE=0
+    To enable, execute the SQL statement <code class="notranslate">SET LOCK_MODE 0</code><br />
+    or append <code class="notranslate">;LOCK_MODE=0</code> to the database URL: <code class="notranslate">jdbc:h2:~/test;LOCK_MODE=0</code>
 </li>
 </ul>
 <p>
@@ -304,7 +304,7 @@ java org.h2.tools.Server
 </li><li>Use the CreateCluster tool to initialize clustering.
     This will automatically create a new, empty database if it does not exist.
     Run the tool on the command line:
-<pre>
+<pre class="notranslate">
 java org.h2.tools.CreateCluster
     -urlSource jdbc:h2:tcp://localhost:9101/~/test
     -urlTarget jdbc:h2:tcp://localhost:9102/~/test
@@ -342,15 +342,15 @@ The two phase commit protocol is supported. 2-phase-commit works as follows:
 <li>Autocommit needs to be switched off
 </li><li>A transaction is started, for example by inserting a row
 </li><li>The transaction is marked 'prepared' by executing the SQL statement
-    <code>PREPARE COMMIT transactionName</code>
+    <code class="notranslate">PREPARE COMMIT transactionName</code>
 </li><li>The transaction can now be committed or rolled back
 </li><li>If a problem occurs before the transaction was successfully committed or rolled back
     (for example because a network problem occurred), the transaction is in the state 'in-doubt'
 </li><li>When re-connecting to the database, the in-doubt transactions can be listed
-    with <code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
+    with <code class="notranslate">SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
 </li><li>Each transaction in this list must now be committed or rolled back by executing
-    <code>COMMIT TRANSACTION transactionName</code> or
-    <code>ROLLBACK TRANSACTION transactionName</code>
+    <code class="notranslate">COMMIT TRANSACTION transactionName</code> or
+    <code class="notranslate">ROLLBACK TRANSACTION transactionName</code>
 </li><li>The database needs to be closed and re-opened to apply the changes
 </li></ul>
 
@@ -445,7 +445,7 @@ as experimental. It should not be used for production applications.
 </p>
 <p>
 To use the PostgreSQL ODBC driver on 64 bit versions of Windows,
-first run <code>c:/windows/syswow64/odbcad32.exe</code>.
+first run <code class="notranslate">c:/windows/syswow64/odbcad32.exe</code>.
 At this point you set up your DSN just like you would on any other system.
 See also:
 <a href="http://archives.postgresql.org/pgsql-odbc/2005-09/msg00125.php">Re: ODBC Driver on Windows 64 bit</a>
@@ -485,13 +485,13 @@ server.stop();
 </pre>
 <p>
 By default, only connections from localhost are allowed. To allow remote connections, use
-<code>-pgAllowOthers</code> when starting the server.
+<code class="notranslate">-pgAllowOthers</code> when starting the server.
 </p>
 
 <h3>ODBC Configuration</h3>
 <p>
 After installing the driver, a new Data Source must be added. In Windows,
-run <code>odbcad32.exe</code> to open the Data Source Administrator. Then click on 'Add...'
+run <code class="notranslate">odbcad32.exe</code> to open the Data Source Administrator. Then click on 'Add...'
 and select the PostgreSQL Unicode driver. Then click 'Finish'.
 You will be able to change the connection properties:
 </p>
@@ -560,12 +560,12 @@ An implementation of the ADO.NET interface is available in the open source proje
 </li><li>Install <a href="http://www.ikvm.net">IKVM.NET</a>.
 </li><li>Copy the h2*.jar file to ikvm/bin
 </li><li>Run the H2 Console using:
-    <code>ikvm -jar h2*.jar</code>
+    <code class="notranslate">ikvm -jar h2*.jar</code>
 </li><li>Convert the H2 Console to an .exe file using:
-    <code>ikvmc -target:winexe h2*.jar</code>.
+    <code class="notranslate">ikvmc -target:winexe h2*.jar</code>.
     You may ignore the warnings.
 </li><li>Create a .dll file using (change the version accordingly):
-    <code>ikvmc.exe -target:library -version:1.0.69.0 h2*.jar</code>
+    <code class="notranslate">ikvmc.exe -target:library -version:1.0.69.0 h2*.jar</code>
 </li></ul>
 <p>
 If you want your C# application use H2, you need to add the h2.dll and the
@@ -726,7 +726,7 @@ java -cp h2*.jar org.h2.tools.Recover
 For each database in the current directory, a text file will be created.
 This file contains raw insert statements (for the data) and data definition (DDL) statements to recreate
 the schema of the database. This file can be executed using the RunScript tool or a
-<code>RUNSCRIPT FROM</code> SQL statement. The script includes at least one
+<code class="notranslate">RUNSCRIPT FROM</code> SQL statement. The script includes at least one
 CREATE USER statement. If you run the script against a database that was created with the same
 user, or if there are conflicting users, running the script will fail. Consider running the script
 against a database that was created with a user name that is not in the script.
@@ -796,7 +796,7 @@ to the user if it cannot open a database, and not try again in a (fast) loop.
 <h3>File Locking Method 'Socket'</h3>
 <p>
 There is a second locking mechanism implemented, but disabled by default.
-To use it, append <code>;FILE_LOCK=SOCKET</code> to the database URL.
+To use it, append <code class="notranslate">;FILE_LOCK=SOCKET</code> to the database URL.
 The algorithm is:
 </p>
 <ul>
@@ -1055,17 +1055,17 @@ custom certificates are supported as well.
 <p>
 Remote SSL/TLS connections are supported using the Java Secure Socket Extension
 (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled.
-The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code>.
+The default cipher suite is <code class="notranslate">SSL_DH_anon_WITH_RC4_128_MD5</code>.
 </p>
 <p>
-To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and
-<code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client.
+To use your own keystore, set the system properties <code class="notranslate">javax.net.ssl.keyStore</code> and
+<code class="notranslate">javax.net.ssl.keyStorePassword</code> before starting the H2 server and client.
 See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
 Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a>
 for more information.
 </p>
 <p>
-To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
+To disable anonymous SSL, set the system property <code class="notranslate">h2.enableAnonymousSSL</code> to false.
 </p>
 
 <br />
@@ -1154,7 +1154,7 @@ is selected using a file name prefix. The following file systems are included:
 </li></ul>
 <p>
 As an example, to use the the <b>nio</b> file system, use the following database URL:
-<code>jdbc:h2:nio:~/test</code>.
+<code class="notranslate">jdbc:h2:nio:~/test</code>.
 </p>
 <p>
 To register a new file system, extend the classes org.h2.store.fs.FileSystem and FileObject,
@@ -1175,7 +1175,7 @@ This database has the following known limitations:
 the limit is 4 GB for the data. This is the limitation of the file system. The database does provide a
 workaround for this problem, it is to use the file name prefix 'split:'. In that case files are split into
 files of 1 GB by default. An example database URL is:
-<code>jdbc:h2:split:~/test</code>.
+<code class="notranslate">jdbc:h2:split:~/test</code>.
 </li><li>The maximum number of rows per table is 2'147'483'648.
 </li><li>Main memory requirements: The larger the database, the more main memory is required.
     With the default storage mechanism, the minimum main memory required for a 12 GB database is around 240 MB.

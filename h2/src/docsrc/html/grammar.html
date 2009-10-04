@@ -17,73 +17,84 @@ SQL Grammar
 
 <h1>SQL Grammar</h1>
 <h2>Commands (Data Manipulation)</h2>
+<p class="notranslate">
 <c:forEach var="item" items="commandsDML">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+</p>
+
 <h2>Commands (Data Definition)</h2>
+<p class="notranslate">
 <c:forEach var="item" items="commandsDDL">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+</p>
+
 <h2>Commands (Other)</h2>
+<p class="notranslate">
 <c:forEach var="item" items="commandsOther">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+</p>
+
 <h2>Other Grammar</h2>
+<p class="notranslate">
 <c:forEach var="item" items="otherGrammar">
-    <a href="#${item.link}">${item.topic}</a><br />
+    <a href="#${item.link}" >${item.topic}</a><br />
 </c:forEach>
+</p>
+
 <h2>System Tables</h2>
+<p class="notranslate">
 <a href="#information_schema">Information Schema</a><br />
 <a href="#range_table">Range Table</a><br />
+</p>
 
 <c:forEach var="item" items="commands">
 <br />
-<h3 id="${item.link}">${item.topic}</h3>
-<pre>
+<h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<pre class="notranslate">
 ${item.syntax}
 </pre>
-<p>
-${item.text}
-</p>
-<b>Example:</b><br />
-${item.example}
-<br />
+<p>${item.text}</p>
+<b>Example:</b>
+<p class="notranslate">${item.example}</p>
 </c:forEach>
 
 <c:forEach var="item" items="otherGrammar">
 <br />
-<h3 id="${item.link}">${item.topic}</h3>
-<pre>
+<h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<pre class="notranslate">
 ${item.syntax}
 </pre>
-<p>
-${item.text}
-</p>
-<b>Example:</b><br />
-${item.example}
-<br />
+<p>${item.text}</p>
+<b>Example:</b>
+<p class="notranslate">${item.example}</p>
 </c:forEach>
 
 <br />
-<h3 id="information_schema">Information Schema</h3>
+<h3 id="information_schema" class="notranslate">Information Schema</h3>
 <p>
 The system tables in the schema 'INFORMATION_SCHEMA' contain the meta data
 of all tables in the database as well as the current settings.
 </p>
 <table><tr><th>Table</th><th>Columns</th></tr>
 <c:forEach var="item" items="informationSchema">
-<tr><td>${item.topic}</td><td>${item.syntax}</td></tr>
+<tr class="notranslate">
+    <td>${item.topic}</td>
+    <td>${item.syntax}</td>
+</tr>
 </c:forEach>
 </table>
 
 <br />
-<h3 id="range_table">Range Table</h3>
+<h3 id="range_table" class="notranslate">Range Table</h3>
 <p>
 The range table is a dynamic system table that contains all values from a start to an end value.
 The table contains one column called X. Both the start and end values are included in the result.
 The table is used as follows:
 </p>
-<pre>
+<pre class="notranslate">
 SELECT X FROM SYSTEM_RANGE(1, 10);
 </pre>
 

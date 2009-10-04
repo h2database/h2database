@@ -454,7 +454,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 <table><tr><th>Topic</th><th>URL Format and Examples</th></tr>
 <tr>
     <td><a href="#embedded_databases">Embedded (local) connection</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;<br />
         jdbc:h2:~/test<br />
         jdbc:h2:file:/data/sample<br />
@@ -463,18 +463,18 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 </tr>
 <tr>
     <td><a href="#memory_only_databases">In-memory (private)</a></td>
-    <td>jdbc:h2:mem:</td>
+    <td class="notranslate">jdbc:h2:mem:</td>
 </tr>
 <tr>
     <td><a href="#memory_only_databases">In-memory (named)</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:mem:&lt;databaseName&gt;<br />
         jdbc:h2:mem:test_mem
     </td>
 </tr>
 <tr>
     <td><a href="tutorial.html#using_server">Server mode (remote connections)<br /> using TCP/IP</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/[&lt;path&gt;]&lt;databaseName&gt;<br />
         jdbc:h2:tcp://localhost/~/test<br />
         jdbc:h2:tcp://dbserv:8084/~/sample
@@ -482,14 +482,14 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 </tr>
 <tr>
     <td><a href="advanced.html#ssl_tls_connections">Server mode (remote connections)<br /> using SSL/TLS</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
         jdbc:h2:ssl://secureserv:8085/~/sample;
     </td>
 </tr>
 <tr>
     <td><a href="#file_encryption">Using encrypted files</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
         jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES<br />
         jdbc:h2:file:~/secure;CIPHER=XTEA<br />
@@ -497,7 +497,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 </tr>
 <tr>
     <td><a href="#database_file_locking">File locking methods</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br />
         jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO<br />
         jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET<br />
@@ -505,81 +505,81 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 </tr>
 <tr>
     <td><a href="#database_only_if_exists">Only open if it already exists</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE<br />
         jdbc:h2:file:~/sample;IFEXISTS=TRUE<br />
     </td>
 </tr>
 <tr>
     <td><a href="#do_not_close_on_exit">Don't close the database when the VM exits</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
     </td>
 </tr>
 <tr>
     <td><a href="#passwords">User name and/or password</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
         jdbc:h2:file:~/sample;USER=sa;PASSWORD=123<br />
     </td>
 </tr>
 <tr>
     <td><a href="#log_index_changes">Log index changes</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;LOG=2<br />
         jdbc:h2:file:~/sample;LOG=2<br />
     </td>
 </tr>
 <tr>
     <td><a href="#trace_options">Debug trace settings</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br />
         jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3<br />
     </td>
 </tr>
 <tr>
     <td><a href="#ignore_unknown_settings">Ignore unknown settings</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE<br />
     </td>
 </tr>
 <tr>
     <td><a href="#custom_access_mode">Custom file access mode</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws<br />
     </td>
 </tr>
 <tr>
     <td><a href="#database_in_zip">Database in a zip file</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;<br />
         jdbc:h2:zip:~/db.zip!/test
     </td>
 </tr>
 <tr>
     <td><a href="#compatibility">Compatibility mode</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;MODE=&lt;databaseType&gt;<br />
         jdbc:h2:~/test;MODE=MYSQL
     </td>
 </tr>
 <tr>
     <td><a href="#auto_reconnect">Auto-reconnect</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;AUTO_RECONNECT=TRUE<br />
         jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
     </td>
 </tr>
 <tr>
     <td><a href="#auto_mixed_mode">Automatic mixed mode</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;AUTO_SERVER=TRUE<br />
         jdbc:h2:~/test;AUTO_SERVER=TRUE
     </td>
 </tr>
 <tr>
     <td><a href="#other_settings">Changing other settings</a></td>
-    <td>
+    <td class="notranslate">
         jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />
         jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3<br />
     </td>
@@ -589,12 +589,12 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 <br />
 <h2 id="embedded_databases">Connecting to an Embedded (Local) Database</h2>
 <p>
-The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code>.
-The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working
+The database URL for connecting to a local database is <code class="notranslate">jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code>.
+The prefix <code class="notranslate">file:</code> is optional. If no or only a relative path is used, then the current working
 directory is used as a starting point. The case sensitivity of the path and database name depend on the
 operating system, however it is recommended to use lowercase letters only.
 The database name must be at least three characters long (a limitation of File.createTempFile).
-To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
+To point to the user home directory, use <code class="notranslate">~/</code>, as in: <code class="notranslate">jdbc:h2:~/test</code>.
 </p>
 
 <br />
@@ -606,23 +606,23 @@ This database supports the memory-only mode, where the data is not persisted.
 </p><p>
 In some cases, only one connection to a memory-only database is required.
 This means the database to be opened is private. In this case, the database URL is
-<code>jdbc:h2:mem:</code> Opening two connections within the same virtual machine
+<code class="notranslate">jdbc:h2:mem:</code> Opening two connections within the same virtual machine
 means opening two different (private) databases.
 </p><p>
 Sometimes multiple connections to the same memory-only database are required.
-In this case, the database URL must include a name. Example: <code>jdbc:h2:mem:db1</code>.
+In this case, the database URL must include a name. Example: <code class="notranslate">jdbc:h2:mem:db1</code>.
 Accessing the same database in this way only works within the same virtual machine and
 class loader environment.
 </p><p>
 It is also possible to access a memory-only database remotely
 (or from multiple processes in the same machine) using TCP/IP or SSL/TLS.
-An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code>.
+An example database URL is: <code class="notranslate">jdbc:h2:tcp://localhost/mem:db1</code>.
 </p><p>
 By default, closing the last connection to a database closes the database.
 For an in-memory database, this means the content is lost.
 To keep the database open, add ;DB_CLOSE_DELAY=-1 to the database URL.
 To keep the content of an in-memory database as long as the virtual machine is alive, use
-<code>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code>.
+<code class="notranslate">jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code>.
 </p>
 
 <br />
@@ -647,7 +647,7 @@ and the user password; the file password itself may not contain spaces. File pas
 and user passwords are case sensitive. Here is an example to connect to a
 password-encrypted database:
 </p>
-<pre>
+<pre class="notranslate">
 Class.forName("org.h2.Driver");
 String url = "jdbc:h2:~/test;CIPHER=AES";
 String user = "sa";
@@ -664,7 +664,7 @@ The tool is available from within the H2 Console in the Tools section, or you ca
 The following command line will encrypt the database 'test' in the user home directory
 with the file password 'filepwd' and the encryption algorithm AES:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.ChangeFileEncryption -dir ~ -db test -cipher AES -encrypt filepwd
 </pre>
 
@@ -690,7 +690,7 @@ in this case it is up to the application to protect the database files.
 To open the database with a different file locking method, use the parameter 'FILE_LOCK'.
 The following code opens the database with the 'socket' locking method:
 </p>
-<pre>
+<pre class="notranslate">
 String url = "jdbc:h2:~/test;FILE_LOCK=SOCKET";
 </pre>
 <p>
@@ -698,7 +698,7 @@ The following code forces the database to not create a lock file at all. Please 
 this is unsafe as another process is able to open the same database, possibly leading to
 data corruption:
 </p>
-<pre>
+<pre class="notranslate">
 String url = "jdbc:h2:~/test;FILE_LOCK=NO";
 </pre>
 <p>
@@ -709,15 +709,15 @@ For more information about the algorithms, see
 <br />
 <h2 id="database_only_if_exists">Opening a Database Only if it Already Exists</h2>
 <p>
-By default, when an application calls <code>DriverManager.getConnection(url, ...)</code>
+By default, when an application calls <code class="notranslate">DriverManager.getConnection(url, ...)</code>
 and the database specified in the URL does not yet exist, a new (empty) database is created.
 In some situations, it is better to restrict creating new databases, and only allow to open
-existing databases. To do this, add <code>;ifexists=true</code>
+existing databases. To do this, add <code class="notranslate">;ifexists=true</code>
 to the database URL. In this case, if the database does not already exist, an exception is thrown when
 trying to connect. The connection only succeeds when the database already exists.
 The complete URL may look like this:
 </p>
-<pre>
+<pre class="notranslate">
 String url = "jdbc:h2:/data/sample;IFEXISTS=TRUE";
 </pre>
 
@@ -733,14 +733,14 @@ SET DB_CLOSE_DELAY &lt;seconds&gt;. The parameter &lt;seconds&gt; specifies the 
 a database open after the last connection to it was closed. The following statement
 will keep a database open for 10 seconds after the last connection was closed:
 </p>
-<pre>
+<pre class="notranslate">
 SET DB_CLOSE_DELAY 10
 </pre>
 <p>
 The value -1 means the database is not closed automatically.
 The value 0 is the default and means the database is closed when the last connection is closed.
 This setting is persistent and can be set by an administrator only.
-It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>.
+It is possible to set the value in the database URL: <code class="notranslate">jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>.
 </p>
 
 <br />
@@ -755,7 +755,7 @@ The first connection (the one that is opening the database) needs to
 set the option in the database URL (it is not possible to change the setting afterwards).
 The database URL to disable database closing on exit is:
 </p>
-<pre>
+<pre class="notranslate">
 String url = "jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE";
 </pre>
 
@@ -770,7 +770,7 @@ In some situations, for example when using very large databases (over a few hund
 re-creating the index file takes very long.
 In these situations it may be better to log changes to the index file,
 so that recovery from a corrupted index file is fast.
-To enable log index changes, add LOG=2 to the URL, as in <code>jdbc:h2:~/test;LOG=2</code>.
+To enable log index changes, add LOG=2 to the URL, as in <code class="notranslate">jdbc:h2:~/test;LOG=2</code>.
 This setting should be specified when connecting.
 The update performance of the database will be reduced when using this option.
 </p>
@@ -792,8 +792,8 @@ saying the parameter is not supported. It is possible to ignored such parameters
 <p>
 In addition to the settings already described,
 other database settings can be passed in the database URL.
-Adding <code>;setting=value</code> at the end of a database URL is the
-same as executing the statement <code>SET setting value</code> just after
+Adding <code class="notranslate">;setting=value</code> at the end of a database URL is the
+same as executing the statement <code class="notranslate">SET setting value</code> just after
 connecting. For a list of supported settings, see <a href="grammar.html">SQL Grammar</a>.
 </p>
 
@@ -809,7 +809,7 @@ The access mode used for log files is set via ACCESS_MODE_LOG; for
 data and index files use ACCESS_MODE_DATA.
 These settings must be specified in the database URL:
 </p>
-<pre>
+<pre class="notranslate">
 String url = "jdbc:h2:~/test;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws";
 </pre>
 <p>
@@ -1018,7 +1018,7 @@ If the database file is corrupted, because the checksum of a record does not mat
 file was edited with another application), the database can be opened in recovery mode. In this case,
 errors in the database are logged but not thrown. The database should be backed up to a script
 and re-built as soon as possible. To open the database in the recovery mode, use a database URL
-must contain RECOVER=1, as in jdbc:h2:~/test;RECOVER=1. Indexes are rebuilt in this case, and
+must contain <code class="notranslate">;RECOVER=1</code>, as in <code class="notranslate">jdbc:h2:~/test;RECOVER=1</code>. Indexes are rebuilt in this case, and
 the summary (object allocation table) is not read in this case, so opening the database takes longer.
 </p>
 
@@ -1031,7 +1031,7 @@ and tries to be compatible to other databases. There are still a few differences
 <p>
 In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However
 H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append
-IGNORECASE=TRUE to the database URL (example: <code>jdbc:h2:~/test;IGNORECASE=TRUE</code>).
+IGNORECASE=TRUE to the database URL (example: <code class="notranslate">jdbc:h2:~/test;IGNORECASE=TRUE</code>).
 </p>
 
 <h3>Compatibility Modes</h3>
@@ -1043,8 +1043,8 @@ Here is the list of currently supported modes and the differences to the regular
 
 <h3>DB2 Compatibility Mode</h3>
 <p>
-To use the IBM DB2 mode, use the database URL <code>jdbc:h2:~/test;MODE=DB2</code>
-or the SQL statement <code>SET MODE DB2</code>.
+To use the IBM DB2 mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=DB2</code>
+or the SQL statement <code class="notranslate">SET MODE DB2</code>.
 </p>
 <ul><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
     and getTableName() returns null.
@@ -1054,8 +1054,8 @@ or the SQL statement <code>SET MODE DB2</code>.
 
 <h3>Derby Compatibility Mode</h3>
 <p>
-To use the Apache Derby mode, use the database URL <code>jdbc:h2:~/test;MODE=Derby</code>
-or the SQL statement <code>SET MODE Derby</code>.
+To use the Apache Derby mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=Derby</code>
+or the SQL statement <code class="notranslate">SET MODE Derby</code>.
 </p>
 <ul><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
     and getTableName() returns null.
@@ -1065,8 +1065,8 @@ or the SQL statement <code>SET MODE Derby</code>.
 
 <h3>HSQLDB Compatibility Mode</h3>
 <p>
-To use the HSQLDB mode, use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code>
-or the SQL statement <code>SET MODE HSQLDB</code>.
+To use the HSQLDB mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=HSQLDB</code>
+or the SQL statement <code class="notranslate">SET MODE HSQLDB</code>.
 </p>
 <ul><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
     and getTableName() returns null.
@@ -1080,8 +1080,8 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
 
 <h3>MS SQL Server Compatibility Mode</h3>
 <p>
-To use the MS SQL Server mode, use the database URL <code>jdbc:h2:~/test;MODE=MSSQLServer</code>
-or the SQL statement <code>SET MODE MSSQLServer</code>.
+To use the MS SQL Server mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=MSSQLServer</code>
+or the SQL statement <code class="notranslate">SET MODE MSSQLServer</code>.
 </p>
 <ul><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
     and getTableName() returns null.
@@ -1092,8 +1092,8 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 
 <h3>MySQL Compatibility Mode</h3>
 <p>
-To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL</code>
-or the SQL statement <code>SET MODE MySQL</code>.
+To use the MySQL mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=MySQL</code>
+or the SQL statement <code class="notranslate">SET MODE MySQL</code>.
 </p>
 <ul><li>When inserting data, if a column is defined to be NOT NULL and NULL is inserted,
     then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.
@@ -1106,8 +1106,8 @@ or the SQL statement <code>SET MODE MySQL</code>.
 
 <h3>Oracle Compatibility Mode</h3>
 <p>
-To use the Oracle mode, use the database URL <code>jdbc:h2:~/test;MODE=Oracle</code>
-or the SQL statement <code>SET MODE Oracle</code>.
+To use the Oracle mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=Oracle</code>
+or the SQL statement <code class="notranslate">SET MODE Oracle</code>.
 </p>
 <ul><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
     and getTableName() returns null.
@@ -1118,8 +1118,8 @@ or the SQL statement <code>SET MODE Oracle</code>.
 
 <h3>PostgreSQL Compatibility Mode</h3>
 <p>
-To use the PostgreSQL mode, use the database URL <code>jdbc:h2:~/test;MODE=PostgreSQL</code>
-or the SQL statement <code>SET MODE PostgreSQL</code>.
+To use the PostgreSQL mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=PostgreSQL</code>
+or the SQL statement <code class="notranslate">SET MODE PostgreSQL</code>.
 </p>
 <ul><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
     and getTableName() returns null.
@@ -1148,7 +1148,7 @@ contains all client side state that is re-created.
 <h2 id="auto_mixed_mode">Automatic Mixed Mode</h2>
 <p>
 Multiple processes can access the same database without having to start the server manually.
-To do that, append <code>;AUTO_SERVER=TRUE</code> to the database URL.
+To do that, append <code class="notranslate">;AUTO_SERVER=TRUE</code> to the database URL.
 You can use the same database URL no matter if the database is already open or not.
 </p>
 <p>
@@ -1168,7 +1168,7 @@ open, one of them will then start a server (auto-reconnect is enabled automatica
 <p>
 All processes need to have access to the database files.
 If the first connection is closed (the connection that started the server), open transactions of other connections will be rolled back.
-Explicit client/server connections (using jdbc:h2:tcp:// or ssl://) are not supported.
+Explicit client/server connections (using <code class="notranslate">jdbc:h2:tcp://</code> or <code class="notranslate">ssl://</code>) are not supported.
 This mode is not supported for in-memory databases.
 </p>
 <p>
@@ -1176,7 +1176,7 @@ Here is an example how to use this mode. Application 1 and 2 are not necessarily
 on the same computer, but they need to have access to the database files. Application 1
 and 2 are typically two different processes (however they could run within the same process).
 </p>
-<pre>
+<pre class="notranslate">
 // Application 1:
 DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 
@@ -1206,16 +1206,16 @@ and one for file tracing (TRACE_LEVEL_FILE).
 The trace levels are 0 for OFF, 1 for ERROR (the default), 2 for INFO and 3 for DEBUG.
 A database URL with both levels set to DEBUG is:
 </p>
-<pre>
+<pre class="notranslate">
 jdbc:h2:~/test;TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3
 </pre>
 <p>
 The trace level can be changed at runtime by executing the SQL command
-<code>SET TRACE_LEVEL_SYSTEM_OUT level</code> (for System.out tracing)
-or <code>SET TRACE_LEVEL_FILE level</code> (for file tracing).
+<code class="notranslate">SET TRACE_LEVEL_SYSTEM_OUT level</code> (for System.out tracing)
+or <code class="notranslate">SET TRACE_LEVEL_FILE level</code> (for file tracing).
 Example:
 </p>
-<pre>
+<pre class="notranslate">
 SET TRACE_LEVEL_SYSTEM_OUT 3
 </pre>
 
@@ -1225,10 +1225,10 @@ When using a high trace level, the trace file can get very big quickly.
 The default size limit is 16 MB, if the trace file exceeds this limit, it is renamed to .old and a new file is created.
 If another .old file exists, it is deleted.
 The size limit can be changed using the SQL statement
-<code>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</code>.
+<code class="notranslate">SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</code>.
 Example:
 </p>
-<pre>
+<pre class="notranslate">
 SET TRACE_MAX_FILE_SIZE 1
 </pre>
 
@@ -1237,7 +1237,7 @@ SET TRACE_MAX_FILE_SIZE 1
 When setting the trace level to INFO or DEBUG, Java source code is generated as well.
 This allows to reproduce problems more easily. The trace file looks like this:
 </p>
-<pre>
+<pre class="notranslate">
 ...
 12-20 20:58:09 jdbc[0]:
 /**/dbMeta3.getURL();
@@ -1248,12 +1248,12 @@ This allows to reproduce problems more easily. The trace file looks like this:
 <p>
 To filter the Java source code, use the ConvertTraceFile tool as follows:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.ConvertTraceFile
     -traceFile "~/test.trace.db" -javaClass "Test"
 </pre>
 <p>
-The generated file <code>Test.java</code> will contain the Java source code.
+The generated file <code class="notranslate">Test.java</code> will contain the Java source code.
 The generated source code may be too large to compile (the size of a Java method is limited).
 If this is the case, the source code needs to be split in multiple methods.
 The password is not listed in the trace file and therefore not included in the source code.
@@ -1277,7 +1277,7 @@ Java logging, x4juli, and Simple Log.
 <p>
 To enable SLF4J, set the file trace level to 4 in the database URL:
 </p>
-<pre>
+<pre class="notranslate">
 jdbc:h2:~/test;TRACE_LEVEL_FILE=4
 </pre>
 <p>
@@ -1306,7 +1306,7 @@ by calling Connection.isReadOnly() or by executing the SQL statement CALL READON
 To create a read-only database in a zip file, first create a regular persistent database, and then create a backup.
 If you are using a database named 'test', an easy way to do that is using the Backup tool or the BACKUP SQL statement:
 </p>
-<pre>
+<pre class="notranslate">
 BACKUP TO 'data.zip'
 </pre>
 <p>
@@ -1314,7 +1314,7 @@ The database must not have pending changes, that means you need to close all con
 database, open one single connection, and then execute the statement. Afterwards, you can log out,
 and directly open the database in the zip file using the following database URL:
 </p>
-<pre>
+<pre class="notranslate">
 jdbc:h2:zip:~/data.zip!/test
 </pre>
 <p>
@@ -1352,7 +1352,7 @@ by using computed columns. For example, if an index on the upper-case version of
 a column is required, create a computed column with the upper-case version of the original column,
 and create an index for this column:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE TABLE ADDRESS(
     ID INT PRIMARY KEY,
     NAME VARCHAR,
@@ -1365,7 +1365,7 @@ When inserting data, it is not required (and not allowed) to specify a value for
 version of the column, because the value is generated. But you can use the
 column when querying the table:
 </p>
-<pre>
+<pre class="notranslate">
 INSERT INTO ADDRESS(ID, NAME) VALUES(1, 'Miller');
 SELECT * FROM ADDRESS WHERE UPPER_NAME='MILLER';
 </pre>
@@ -1424,7 +1424,7 @@ password will not be stored in the swap file.
 This database supports using char arrays instead of String to pass user and file passwords.
 The following code can be used to do that:
 </p>
-<pre>
+<pre class="notranslate">
 import java.sql.*;
 import java.util.*;
 public class Test {
@@ -1454,12 +1454,12 @@ When using Swing, use javax.swing.JPasswordField.
 <h3>Passing the User Name and/or Password in the URL</h3>
 <p>
 Instead of passing the user name as a separate parameter as in
-<code>
+<code class="notranslate">
 Connection conn = DriverManager.
     getConnection("jdbc:h2:~/test", "sa", "123");
 </code>
 the user name (and/or password) can be supplied in the URL itself:
-<code>
+<code class="notranslate">
 Connection conn = DriverManager.
     getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");
 </code>
@@ -1475,7 +1475,7 @@ A function must be declared (registered) before it can be used.
 Only static Java methods are supported; both the class and the method must be public.
 Example Java method:
 </p>
-<pre>
+<pre class="notranslate">
 package acme;
 import java.math.*;
 public class Function {
@@ -1487,7 +1487,7 @@ public class Function {
 <p>
 The Java function must be registered in the database by calling CREATE ALIAS:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE ALIAS IS_PRIME FOR "acme.Function.isPrime"
 </pre>
 <p>
@@ -1524,7 +1524,7 @@ and the exception is thrown to the application.
 <p>
 Functions may returns a result set. Such a function can be called with the CALL statement:
 </p>
-<pre>
+<pre class="notranslate">
 public static ResultSet query(Connection conn, String sql) throws SQLException {
     return conn.createStatement().executeQuery(sql);
 }
@@ -1537,7 +1537,7 @@ CALL QUERY('SELECT * FROM TEST');
 <p>
 A function can create a result set using the SimpleResultSet tool:
 </p>
-<pre>
+<pre class="notranslate">
 import org.h2.tools.SimpleResultSet;
 ...
 public static ResultSet simpleResultSet() throws SQLException {
@@ -1561,10 +1561,10 @@ first while parsing the statement to collect the column names
 (with parameters set to null where not known at compile time).
 And then, while executing the statement to get the data (maybe multiple times if this is a join).
 If the function is called just to get the column list, the URL of the connection passed to the function is
-<code>jdbc:columnlist:connection</code>. Otherwise, the URL of the connection is
-<code>jdbc:default:connection</code>.
+<code class="notranslate">jdbc:columnlist:connection</code>. Otherwise, the URL of the connection is
+<code class="notranslate">jdbc:default:connection</code>.
 </p>
-<pre>
+<pre class="notranslate">
 public static ResultSet getMatrix(Connection conn, Integer size)
         throws SQLException {
     SimpleResultSet rs = new SimpleResultSet();
@@ -1597,7 +1597,7 @@ A Java trigger must implement the interface org.h2.api.Trigger. The trigger clas
 in the classpath of the database engine (when using the server mode, it must be in the classpath
 of the server).
 </p>
-<pre>
+<pre class="notranslate">
 import org.h2.api.Trigger;
 ...
 public class TriggerSample implements Trigger {
@@ -1613,7 +1613,7 @@ public class TriggerSample implements Trigger {
 The connection can be used to query or update data in other tables.
 The trigger then needs to be defined in the database:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE
     FOR EACH ROW CALL "org.h2.samples.TriggerSample"
 </pre>
@@ -1630,7 +1630,7 @@ while the database is closed. However in some situations (for example after dele
 a lot of data in a database), one sometimes wants to shrink the size of the database
 (compact a database). Here is a sample function to do this:
 </p>
-<pre>
+<pre class="notranslate">
 public static void compact(String dir, String dbName,
         String user, String password) throws Exception {
     String url = "jdbc:h2:" + dir + "/" + dbName;
@@ -1651,24 +1651,16 @@ of a database and re-build the database from the script.
 <p>
 The database keeps most frequently used data and index pages in the main memory.
 The amount of memory used for caching can be changed using the setting
-CACHE_SIZE. This setting can be set in the database connection URL
-(jdbc:h2:~/test;CACHE_SIZE=131072), or it can be changed at runtime using
-SET CACHE_SIZE size.
-</p><p>
-This database supports two cache page replacement algorithms: LRU (the default) and
-TQ. For LRU, the pages that were least frequently used are removed from the
-cache if it becomes full. The TQ (Two Queue, also called 2Q) algorithm is a bit more complicated: basically two
-queues are used. It is more resistant to table scans, however the overhead
-is a bit higher compared to the LRU. To use the cache algorithm TQ, use a database URL
-of the form jdbc:h2:~/test;CACHE_TYPE=TQ. The cache algorithm cannot be changed
-once the database is open.
+<code class="notranslate">CACHE_SIZE</code>. This setting can be set in the database connection URL
+(<code class="notranslate">jdbc:h2:~/test;CACHE_SIZE=131072</code>), or it can be changed at runtime using
+<code class="notranslate">SET CACHE_SIZE size</code>.
 </p><p>
 Also supported is a second level soft reference cache. Rows in this cache are only garbage collected
 on low memory. By default the second level cache is disabled. To enable it,
-use the prefix SOFT_. Example: jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU .
+use the prefix <code class="notranslate">SOFT_</code>. Example: <code class="notranslate">jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code>.
 </p><p>
 To get information about page reads and writes, and the current caching algorithm in use,
-call SELECT * FROM INFORMATION_SCHEMA.SETTINGS. The number of pages read / written
+call <code class="notranslate">SELECT * FROM INFORMATION_SCHEMA.SETTINGS</code>. The number of pages read / written
 is listed for the data and index file.
 </p>
 

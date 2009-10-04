@@ -52,7 +52,7 @@ Here is the list of known and confirmed issues:
     run into this issue. In Tomcat >= 6.0 this behavior can be disabled by setting the
     system property org.apache.catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES
     to false, however Tomcat may then run out of memory. A known workaround is to
-    put the h2.jar file in a shared <code>lib</code> directory (common/lib).
+    put the h2.jar file in a shared <code class="notranslate">lib</code> directory (common/lib).
 </li><li>Some problems have been found with right outer join. Internally, it is converted
     to left outer join, which does not always produce the same results as other databases
     when used in combination with other joins.
@@ -92,11 +92,11 @@ By default, a new database is automatically created if it does not yet exist.
 <br />
 <h3 id="connect">How to Connect to a Database?</h3>
 <p>
-The database driver is <code>org.h2.Driver</code>,
-and the database URL starts with <code>jdbc:h2:</code>.
+The database driver is <code class="notranslate">org.h2.Driver</code>,
+and the database URL starts with <code class="notranslate">jdbc:h2:</code>.
 To connect to a database using JDBC, use the following code:
 </p>
-<pre>
+<pre class="notranslate">
 Class.forName("org.h2.Driver");
 Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
 </pre>
@@ -104,14 +104,14 @@ Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
 <br />
 <h3 id="database_files">Where are the Database Files Stored?</h3>
 <p>
-When using database URLs like jdbc:h2:~/test, the database is stored in the user directory.
-For Windows, this is usually "C:\Documents and Settings\&lt;userName&gt;".
-If the base directory is not set (as in jdbc:h2:test), the database files are stored in the directory where the application is started
+When using database URLs like <code class="notranslate">jdbc:h2:~/test</code>, the database is stored in the user directory.
+For Windows, this is usually C:\Documents and Settings\&lt;userName&gt;".
+If the base directory is not set (as in <code class="notranslate">jdbc:h2:test</code>), the database files are stored in the directory where the application is started
 (the current working directory). When using the H2 Console application from the start menu, this is "&lt;Installation Directory&gt;/bin".
 The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL
 jdbc:h2:file:data/sample, the database is stored in the directory "data" (relative to the current working directory).
 The directory is created automatically if it does not yet exist. It is also possible to use the fully qualified directory name (and for Windows, drive name).
-Example: jdbc:h2:file:C:/data/test
+Example: <code class="notranslate">jdbc:h2:file:C:/data/test</code>
 </p>
 
 <br />

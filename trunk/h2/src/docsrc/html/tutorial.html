@@ -99,7 +99,7 @@ Depending on your platform and environment, there are multiple ways to start the
     <td>Any</td>
     <td>
     Open a console window, navigate to the directory 'h2/bin' and type:
-    <pre>java -cp h2*.jar org.h2.tools.Server</pre>
+    <pre class="notranslate">java -cp h2*.jar org.h2.tools.Server</pre>
     </td>
 </tr>
 </table>
@@ -126,7 +126,7 @@ To change this, go to 'Preferences' and select 'Allow connections from other com
 <p>
 To find out which version of Java is installed, open a command prompt and type:
 </p>
-<pre>
+<pre class="notranslate">
 java -version
 </pre>
 <p>
@@ -224,8 +224,8 @@ or close the console window.
 <h2 id="console_settings">Settings of the H2 Console</h2>
 <p>
 The settings of the H2 Console are stored in a configuration file
-called <code>.h2.server.properties</code> in you user home directory.
-For Windows installations, the user home directory is usually <code>C:\Documents and Settings\[username]</code>.
+called <code class="notranslate">.h2.server.properties</code> in you user home directory.
+For Windows installations, the user home directory is usually <code class="notranslate">C:\Documents and Settings\[username]</code>.
 The configuration file contains the settings of the application and is automatically created when the H2 Console is first started.
 </p>
 
@@ -235,7 +235,7 @@ The configuration file contains the settings of the application and is automatic
 To connect to a database, a Java application first needs to load the database driver,
 and then get a connection. A simple way to do that is using the following code:
 </p>
-<pre>
+<pre class="notranslate">
 import java.sql.*;
 public class Test {
     public static void main(String[] a)
@@ -249,11 +249,11 @@ public class Test {
 }
 </pre>
 <p>
-This code first loads the driver (<code>Class.forName(...)</code>)
-and then opens a connection (using <code>DriverManager.getConnection()</code>).
-The driver name is <code>"org.h2.Driver"</code>.
-The database URL always needs to start with <code>jdbc:h2:</code>
-to be recognized by this database. The second parameter in the <code>getConnection()</code> call
+This code first loads the driver (<code class="notranslate">Class.forName(...)</code>)
+and then opens a connection (using <code class="notranslate">DriverManager.getConnection()</code>).
+The driver name is <code class="notranslate">"org.h2.Driver"</code>.
+The database URL always needs to start with <code class="notranslate">jdbc:h2:</code>
+to be recognized by this database. The second parameter in the <code class="notranslate">getConnection()</code> call
 is the user name ('sa' for System Administrator in this example). The third parameter is the password.
 In this database, user names are not case sensitive, but passwords are.
 </p>
@@ -278,13 +278,13 @@ The servers can be started in different ways, one is using the server tool.
 <p>
 To start the server tool from the command line with the default settings, run:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.Server
 </pre>
 <p>
 This will start the server tool with the default options. To get the list of options and default values, run:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.Server -?
 </pre>
 <p>
@@ -297,8 +297,8 @@ parts. For details, see the API documentation of the server tool.
 To remotely connect to a database using the TCP server, use the following driver and database URL:
 </p>
 <ul>
-<li>JDBC driver class: org.h2.Driver
-</li><li>Database URL: jdbc:h2:tcp://localhost/~/test
+<li>JDBC driver class: <code class="notranslate">org.h2.Driver</code>
+</li><li>Database URL: <code class="notranslate">jdbc:h2:tcp://localhost/~/test</code>
 </li></ul>
 <p>
 For details about the database URL, see also in Features.
@@ -308,7 +308,7 @@ For details about the database URL, see also in Features.
 <p>
 Servers can also be started and stopped from within an application. Sample code:
 </p>
-<pre>
+<pre class="notranslate">
 import org.h2.tools.Server;
 ...
 // start the TCP Server
@@ -323,13 +323,13 @@ server.stop();
 The TCP server can be stopped from another process.
 To stop the server from the command line, run:
 </p>
-<pre>
+<pre class="notranslate">
 java org.h2.tools.Server -tcpShutdown tcp://localhost:9092
 </pre>
 <p>
 To stop the server from a user application, use the following code:
 </p>
-<pre>
+<pre class="notranslate">
 org.h2.tools.Server.shutdownTcpServer("tcp://localhost:9094");
 </pre>
 <p>
@@ -357,27 +357,27 @@ You can rename it to H2Dialect.java and include this as a patch in your applicat
 <h2 id="using_toplink">Using TopLink and Glassfish</h2>
 <p>
 To use H2 with Glassfish (or Sun AS), set the Datasource Classname to
-<code>org.h2.jdbcx.JdbcDataSource</code>. You can set this in the GUI
+<code class="notranslate">org.h2.jdbcx.JdbcDataSource</code>. You can set this in the GUI
 at Application Server - Resources - JDBC - Connection Pools,
-or by editing the file <code>sun-resources.xml</code>: at element
-<code>jdbc-connection-pool</code>, set the attribute
-<code>datasource-classname</code> to <code>org.h2.jdbcx.JdbcDataSource</code>.
+or by editing the file <code class="notranslate">sun-resources.xml</code>: at element
+<code class="notranslate">jdbc-connection-pool</code>, set the attribute
+<code class="notranslate">datasource-classname</code> to <code class="notranslate">org.h2.jdbcx.JdbcDataSource</code>.
 </p>
 <p>
 The H2 database is compatible with HSQLDB and PostgreSQL.
-To take advantage of H2 specific features, use the <code>H2Platform</code>.
+To take advantage of H2 specific features, use the <code class="notranslate">H2Platform</code>.
 The source code of this platform is included in H2 at
-<code>src/tools/oracle/toplink/essentials/platform/database/DatabasePlatform.java.txt</code>.
+<code class="notranslate">src/tools/oracle/toplink/essentials/platform/database/DatabasePlatform.java.txt</code>.
 You will need to copy this file to your application, and rename it to .java.
 To enable it, change the following setting in persistence.xml:
 </p>
-<pre>
+<pre class="notranslate">
 &lt;property
     name="toplink.target-database"
     value="oracle.toplink.essentials.platform.database.H2Platform"/>
 </pre>
 <p>
-In old versions of Glassfish, the property name is <code>toplink.platform.class.name</code>.
+In old versions of Glassfish, the property name is <code class="notranslate">toplink.platform.class.name</code>.
 </p>
 
 <br />
@@ -418,7 +418,7 @@ The server mode is similar, but it allows you to run the server in another proce
 Add the h2*.jar file to your web application, and
 add the following snippet to your web.xml file (between the 'context-param' and the 'filter' section):
 </p>
-<pre>
+<pre class="notranslate">
 &lt;listener>
     &lt;listener-class>org.h2.server.web.DbStarter&lt;/listener-class>
 &lt;/listener>
@@ -429,7 +429,7 @@ By default the DbStarter listener opens an embedded connection
 using the database URL 'jdbc:h2:~/test', user name 'sa', and password 'sa'.
 If you want to use this connection within your servlet, you can access as follows:
 </p>
-<pre>
+<pre class="notranslate">
 Connection conn = getServletContext().getAttribute("connection");
 </pre>
 <p>
@@ -437,7 +437,7 @@ The DbStarter can also start the TCP server, however this is disabled by default
 To enable it, use the parameter db.tcpServer in the file web.xml. Here is the complete list of options.
 These options need to be placed between the 'description' tag and the 'listener' / 'filter' tags:
 </p>
-<pre>
+<pre class="notranslate">
 &lt;context-param>
     &lt;param-name>db.url&lt;/param-name>
     &lt;param-value>jdbc:h2:~/test&lt;/param-value>
@@ -466,7 +466,7 @@ The H2 Console is a standalone application and includes its own web server, but 
 used as a servlet as well. To do that, include the the h2 jar file in your application, and
 add the following configuration to your web.xml:
 </p>
-<pre>
+<pre class="notranslate">
 &lt;servlet&gt;
     &lt;servlet-name&gt;H2Console&lt;/servlet-name&gt;
     &lt;servlet-class&gt;org.h2.server.web.WebServlet&lt;/servlet-class&gt;
@@ -478,12 +478,12 @@ add the following configuration to your web.xml:
 &lt;/servlet-mapping&gt;
 </pre>
 <p>
-For details, see also <code>src/tools/WEB-INF/web.xml</code>.
+For details, see also <code class="notranslate">src/tools/WEB-INF/web.xml</code>.
 </p>
 <p>
 To create a web application with just the H2 Console, run the following command:
 </p>
-<pre>
+<pre class="notranslate">
 build warConsole
 </pre>
 
@@ -499,7 +499,7 @@ or it can be used outside the database as a standalone tool.
 The built-in function CSVWRITE can be used to create a CSV file from a query.
 Example:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE TABLE TEST(ID INT, NAME VARCHAR);
 INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');
 CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');
@@ -509,7 +509,7 @@ CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');
 <p>
 A CSV file can be read using the function CSVREAD. Example:
 </p>
-<pre>
+<pre class="notranslate">
 SELECT * FROM CSVREAD('test.csv');
 </pre>
 
@@ -518,7 +518,7 @@ SELECT * FROM CSVREAD('test.csv');
 The CSV tool can be used in a Java application even when not using a database at all.
 Example:
 </p>
-<pre>
+<pre class="notranslate">
 import java.sql.*;
 import org.h2.tools.Csv;
 import org.h2.tools.SimpleResultSet;
@@ -539,7 +539,7 @@ public class TestCsv {
 It is possible to read a CSV file without opening a database.
 Example:
 </p>
-<pre>
+<pre class="notranslate">
 import java.sql.*;
 import org.h2.tools.Csv;
 public class TestCsv {
@@ -577,7 +577,7 @@ However, this is not recommended while the database is in use. Also, the databas
 and quite large. The recommended way to backup a database is to create a compressed SQL script file.
 This can be done using the Script tool:
 </p>
-<pre>
+<pre class="notranslate">
 java org.h2.tools.Script -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
 </pre>
 <p>
@@ -591,7 +591,7 @@ The built in FTP server could be used to retrieve the file from the server.
 <p>
 To restore a database from a SQL script file, you can use the RunScript tool:
 </p>
-<pre>
+<pre class="notranslate">
 java org.h2.tools.RunScript -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
 </pre>
 <p>
@@ -612,7 +612,7 @@ Other than the SCRIPT statement, the BACKUP statement does not lock the
 database objects, and therefore does not block other users. The resulting
 backup is transactionally consistent:
 </p>
-<pre>
+<pre class="notranslate">
 BACKUP TO 'backup.zip'
 </pre>
 <p>
@@ -631,7 +631,7 @@ be guaranteed that the data is copied in the right order.
 This database comes with a number of command line tools. To get more information about a tool,
 start it with the parameter '-?', for example:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.Backup -?
 </pre>
 <p>
@@ -669,8 +669,8 @@ The steps to connect to a H2 database are:
 </li><li>Click [OK] (as much as needed), stop OpenOffice (including the Quickstarter)
 </li><li>Start OpenOffice Base
 </li><li>Connect to an existing database; select [JDBC]; [Next]
-</li><li>Example datasource URL: jdbc:h2:~/test
-</li><li>JDBC driver class: org.h2.Driver
+</li><li>Example datasource URL: <code class="notranslate">jdbc:h2:~/test</code>
+</li><li>JDBC driver class: <code class="notranslate">org.h2.Driver</code>
 </li></ul>
 <p>
 Now you can access the database stored in the current users home directory.
@@ -689,8 +689,8 @@ Now, when creating a new database using the "Database Wizard" :
 </p>
 <ul><li>Click [File], [New], [Database].
 </li><li>Select [Connect to existing database] and the select [JDBC]. Click next.
-</li><li>Example datasource URL: jdbc:h2:~/test
-</li><li>JDBC driver class: org.h2.Driver
+</li><li>Example datasource URL: <code class="notranslate">jdbc:h2:~/test</code>
+</li><li>JDBC driver class: <code class="notranslate">org.h2.Driver</code>
 </li></ul>
 <p>
 Another solution to use H2 in NeoOffice is:
@@ -711,7 +711,7 @@ and the application .jar file must be signed. Otherwise, when trying to write to
 exception will occur: java.security.AccessControlException: access denied (java.io.FilePermission ... read).
 Example permission tags:
 </p>
-<pre>
+<pre class="notranslate">
 &lt;security>
     &lt;all-permissions/>
 &lt;/security>
@@ -729,7 +729,7 @@ for example the <a href="http://jakarta.apache.org/commons/dbcp/">Apache Commons
 For H2, it is about twice as faster to get a connection from the built-in connection pool than to get
 one using DriverManager.getConnection(). The build-in connection pool is used as follows:
 </p>
-<pre>
+<pre class="notranslate">
 import java.sql.*;
 import org.h2.jdbcx.JdbcConnectionPool;
 public class Test {
@@ -758,7 +758,7 @@ tables in the database.
 <p>
 To initialize, call:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE ALIAS IF NOT EXISTS FT_INIT FOR "org.h2.fulltext.FullText.init";
 CALL FT_INIT();
 </pre>
@@ -766,7 +766,7 @@ CALL FT_INIT();
 You need to initialize it in each database where you want to use it.
 Afterwards, you can create a fulltext index for a table using:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
 INSERT INTO TEST VALUES(1, 'Hello World');
 CALL FT_CREATE_INDEX('PUBLIC', 'TEST', NULL);
@@ -776,7 +776,7 @@ PUBLIC is the schema, TEST is the table name. The list of column names (column s
 in this case all columns are indexed. The index is updated in realtime.
 To search the index, use the following query:
 </p>
-<pre>
+<pre class="notranslate">
 SELECT * FROM FT_SEARCH('Hello', 0, 0);
 </pre>
 <p>
@@ -786,17 +786,17 @@ This will produce a result set that contains the query needed to retrieve the da
 QUERY: "PUBLIC"."TEST" WHERE "ID"=1
 </p>
 <p>
-To get the raw data, use <code>FT_SEARCH_DATA('Hello', 0, 0);</code>.
+To get the raw data, use <code class="notranslate">FT_SEARCH_DATA('Hello', 0, 0);</code>.
 The result contains the columns SCHEMA (the schema name),
 TABLE (the table name), COLUMNS (an array of column names), and KEYS
 (an array of objects). To join a table, use a join as in:
-<code>SELECT T.* FROM FT_SEARCH_DATA('Hello', 0, 0) FT, TEST T
+<code class="notranslate">SELECT T.* FROM FT_SEARCH_DATA('Hello', 0, 0) FT, TEST T
 WHERE FT.TABLE='TEST' AND T.ID=FT.KEYS[0];</code>
 </p>
 <p>
 You can also call the index from within a Java application:
 </p>
-<pre>
+<pre class="notranslate">
 org.h2.fulltext.FullText.search(conn, text, limit, offset);
 org.h2.fulltext.FullText.searchData(conn, text, limit, offset);
 </pre>
@@ -808,7 +808,7 @@ How to do that depends on the application; if you use the H2 Console, you can ad
 jar file to the environment variables H2DRIVERS or CLASSPATH.
 To initialize the Lucene fulltext search in a database, call:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";
 CALL FTL_INIT();
 </pre>
@@ -816,7 +816,7 @@ CALL FTL_INIT();
 You need to initialize it in each database where you want to use it.
 Afterwards, you can create a full text index for a table using:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
 INSERT INTO TEST VALUES(1, 'Hello World');
 CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', NULL);
@@ -826,7 +826,7 @@ PUBLIC is the schema, TEST is the table name. The list of column names (column s
 in this case all columns are indexed. The index is updated in realtime. To search the index,
 use the following query:
 </p>
-<pre>
+<pre class="notranslate">
 SELECT * FROM FTL_SEARCH('Hello', 0, 0);
 </pre>
 <p>
@@ -836,17 +836,17 @@ This will produce a result set that contains the query needed to retrieve the da
 QUERY: "PUBLIC"."TEST" WHERE "ID"=1
 </p>
 <p>
-To get the raw data, use <code>FTL_SEARCH_DATA('Hello', 0, 0);</code>.
+To get the raw data, use <code class="notranslate">FTL_SEARCH_DATA('Hello', 0, 0);</code>.
 The result contains the columns SCHEMA (the schema name),
 TABLE (the table name), COLUMNS (an array of column names), and KEYS
 (an array of objects). To join a table, use a join as in:
-<code>SELECT T.* FROM FTL_SEARCH_DATA('Hello', 0, 0) FT, TEST T
+<code class="notranslate">SELECT T.* FROM FTL_SEARCH_DATA('Hello', 0, 0) FT, TEST T
 WHERE FT.TABLE='TEST' AND T.ID=FT.KEYS[0];</code>
 </p>
 <p>
 You can also call the index from within a Java application:
 </p>
-<pre>
+<pre class="notranslate">
 org.h2.fulltext.FullTextLucene.search(conn, text, limit, offset);
 org.h2.fulltext.FullTextLucene.searchData(conn, text, limit, offset);
 </pre>
@@ -858,13 +858,13 @@ This database supports user-defined variables. Variables start with @ and can be
 expressions or parameters are allowed. Variables are not persisted and session scoped, that means only visible
 from within the session in which they are defined. A value is usually assigned using the SET command:
 </p>
-<pre>
+<pre class="notranslate">
 SET @USER = 'Joe';
 </pre>
 <p>
 The value can also be changed using the SET() method. This is useful in queries:
 </p>
-<pre>
+<pre class="notranslate">
 SET @TOTAL = NULL;
 SELECT X, SET(@TOTAL, IFNULL(@TOTAL, 1.) * X) F FROM SYSTEM_RANGE(1, 50);
 </pre>
@@ -879,7 +879,7 @@ There are no restrictions on the assigned values; large objects (LOBs) are suppo
 <p>
 Date, time and timestamp values support ISO 8601 formatting, including time zone:
 </p>
-<pre>
+<pre class="notranslate">
 CALL TIMESTAMP '2008-01-01 12:00:00+01:00';
 </pre>
 <p>
@@ -896,7 +896,7 @@ the database using the RUNSCRIPT command or the RunScript tool in the new time z
 <p>
 Use the following configuration to start and stop the H2 TCP server using the Spring Framework:
 </p>
-<pre>
+<pre class="notranslate">
 &lt;bean id = "org.h2.tools.Server"
             class="org.h2.tools.Server"
             factory-method="createTcpServer"
@@ -906,7 +906,7 @@ Use the following configuration to start and stop the H2 TCP server using the Sp
 &lt;/bean&gt;
 </pre>
 <p>
-The "destroy-method" will help prevent exceptions on hot-redeployment or when restarting the server.
+The <code class="notranslate">"destroy-method"</code> will help prevent exceptions on hot-redeployment or when restarting the server.
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

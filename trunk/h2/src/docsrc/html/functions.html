@@ -18,42 +18,49 @@ Functions
 <h1>Functions</h1>
 
 <h2>Aggregate Functions</h2>
+<p class="notranslate">
 <c:forEach var="item" items="functionsAggregate">
-    <a href="#${item.link}">${item.topic}</a><br />
+    <a href="#${item.link}" >${item.topic}</a><br />
 </c:forEach>
+</p>
 
 <h2>Numeric Functions</h2>
+<p class="notranslate">
 <c:forEach var="item" items="functionsNumeric">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+</p>
 
 <h2>String Functions</h2>
+<p class="notranslate">
 <c:forEach var="item" items="functionsString">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+</p>
 
 <h2>Time and Date Functions</h2>
+<p class="notranslate">
 <c:forEach var="item" items="functionsTimeDate">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+</p>
 
 <h2>System Functions</h2>
+<p class="notranslate">
 <c:forEach var="item" items="functionsSystem">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+</p>
 
 <c:forEach var="item" items="functionsAll">
 <br />
-<h3 id="${item.link}">${item.topic}</h3>
-<pre>
+<h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<pre class="notranslate">
 ${item.syntax}
 </pre>
-<p>
-${item.text}
-</p>
-<b>Example:</b><br />
-${item.example}
-<br />
+<p>${item.text}</p>
+<b>Example:</b>
+<p class="notranslate">${item.example}</p>
 </c:forEach>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

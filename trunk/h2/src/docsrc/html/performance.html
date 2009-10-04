@@ -107,7 +107,7 @@ HSQLDB is fast when using simple operations.
 HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer.
 One query where HSQLDB is slow is a two-table join:
 </p>
-<pre>
+<pre class="notranslate">
 SELECT COUNT(DISTINCT S_I_ID) FROM ORDER_LINE, STOCK
 WHERE OL_W_ID=? AND OL_D_ID=? AND OL_O_ID&lt;? AND OL_O_ID&gt;=?
 AND S_W_ID=? AND S_I_ID=OL_I_ID AND S_QUANTITY&lt;?
@@ -178,7 +178,7 @@ SQLite was not tested because the JDBC driver doesn't support transactions.
 <p>
 This test was executed as follows:
 </p>
-<pre>
+<pre class="notranslate">
 build benchmark
 </pre>
 
@@ -310,7 +310,7 @@ poleposition-0.20/lib/hsqldb.jar with a newer version (for example hsqldb-1.8.0.
 and then use the setting
 hsqldb.connecturl=jdbc:hsqldb:file:data/hsqldb/dbbench2;hsqldb.default_table_type=cached;sql.enforce_size=true in Jdbc.properties.
 </li><li>HSQLDB keeps the database open between tests, while H2 closes the database (losing all the cache).
-To change that, use the database URL jdbc:h2:file:data/h2/dbbench;DB_CLOSE_DELAY=-1
+To change that, use the database URL <code class="notranslate">jdbc:h2:file:data/h2/dbbench;DB_CLOSE_DELAY=-1</code>
 </li><li>The amount of cache memory is quite important, specially for the PolePosition test.
 Unfortunately, the PolePosition test does not take this into account.
 </li></ul>
@@ -332,13 +332,13 @@ A good tool to measure both memory usage and performance is the
 <p>
 A simple way to profile an application is to use the built-in profiling tool of java. Example:
 </p>
-<pre>
+<pre class="notranslate">
 java -Xrunhprof:cpu=samples,depth=16 com.acme.Test
 </pre>
 <p>
 Unfortunately, it is only possible to profile the application from start to end. Another solution is to create
-a number of full thread dumps. To do that, first run <code>jps -l</code> to get the process id, and then
-run <code>jstack &lt;pid&gt;</code> or <code>kill -QUIT &lt;pid&gt;</code> (Linux) or press
+a number of full thread dumps. To do that, first run <code class="notranslate">jps -l</code> to get the process id, and then
+run <code class="notranslate">jstack &lt;pid&gt;</code> or <code class="notranslate">kill -QUIT &lt;pid&gt;</code> (Linux) or press
 Ctrl+C (Windows).
 </p>
 
@@ -349,7 +349,7 @@ The ConvertTraceFile tool generates SQL statement statistics at the end of the S
 The format used is similar to the profiling data generated when using java -Xrunhprof.
 As an example, execute the the following script using the H2 Console:
 </p>
-<pre>
+<pre class="notranslate">
 SET TRACE_LEVEL_FILE 3;
 DROP TABLE IF EXISTS TEST;
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
@@ -359,15 +359,15 @@ SET TRACE_LEVEL_FILE 0;
 <p>
 Now convert the .trace.db file using the ConvertTraceFile tool:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.ConvertTraceFile
     -traceFile "~/test.trace.db" -script "~/test.sql"
 </pre>
 <p>
-The generated file <code>test.sql</code> will contain the SQL statements as well as the
+The generated file <code class="notranslate">test.sql</code> will contain the SQL statements as well as the
 following profiling data (results vary):
 </p>
-<pre>
+<pre class="notranslate">
 -----------------------------------------
 -- SQL Statement Statistics
 -- time: total time in milliseconds (accumulated)
@@ -387,7 +387,7 @@ following profiling data (results vary):
 <h3>Use a Modern JVM</h3>
 <p>
 Newer JVMs are faster. Upgrading to the latest version of your JVM can provide a "free" boost to performance.
-Switching from the default Client JVM to the Server JVM using the <code>-server</code> command-line
+Switching from the default Client JVM to the Server JVM using the <code class="notranslate">-server</code> command-line
 option improves performance at the cost of a slight increase in start-up time.
 </p>
 
@@ -475,7 +475,7 @@ queries and data manipulation.
 </p>
 <p>In-memory indexes are automatically used
 for in-memory databases, but can also be created for persistent databases
-using <code>CREATE MEMORY TABLE</code>. In many cases,
+using <code class="notranslate">CREATE MEMORY TABLE</code>. In many cases,
 the rows itself will also be kept in-memory. Please note this may cause memory
 problems for large tables.
 </p>
@@ -483,13 +483,13 @@ problems for large tables.
 In-memory hash indexes are backed by a hash table and are usually faster than
 regular indexes. However, hash indexes only supports direct lookup (WHERE ID = ?)
 but not range scan (WHERE ID &lt; ?). To use hash indexes, use HASH as in:
-<code>CREATE UNIQUE HASH INDEX</code> and
-<code>CREATE TABLE ...(ID INT PRIMARY KEY HASH,...)</code>.
+<code class="notranslate">CREATE UNIQUE HASH INDEX</code> and
+<code class="notranslate">CREATE TABLE ...(ID INT PRIMARY KEY HASH,...)</code>.
 </p>
 
 <h3>Optimization Examples</h3>
 <p>
-See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries
+See <code class="notranslate">src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries
 that benefit from special optimizations built into the database.
 </p>
 
@@ -522,7 +522,7 @@ To speed up large imports, consider using the following options temporarily:
 </li></ul>
 <p>
 These options can be set in the database URL:
-<code>jdbc:h2:~/test;CACHE_SIZE=65536;LOCK_MODE=0;LOG=0;UNDO_LOG=0</code>.
+<code class="notranslate">jdbc:h2:~/test;CACHE_SIZE=65536;LOCK_MODE=0;LOG=0;UNDO_LOG=0</code>.
 Most of those options are not recommended for regular use, that means you need to reset them after use.
 </p>
 

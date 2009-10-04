@@ -71,16 +71,16 @@ Ensure that Java binary directory is included in the PATH environment variable, 
 the environment variable JAVA_HOME points to your Java installation.
 On the command line, go to the directory h2 and execute the following command:
 </p>
-<pre>
+<pre class="notranslate">
 build -?
 </pre>
 <p>
-For Linux and OS X, use <code>./build.sh</code> instead of <code>build</code>.
+For Linux and OS X, use <code class="notranslate">./build.sh</code> instead of <code class="notranslate">build</code>.
 </p>
 <p>
 You will get a list of targets. If you want to build the jar file, execute (Windows):
 </p>
-<pre>
+<pre class="notranslate">
 build jar
 </pre>
 
@@ -89,7 +89,7 @@ build jar
 By default the source code uses Java 1.5 features, however Java 1.6 is supported as well.
 To switch the source code to the install version of Java, run:
 </p>
-<pre>
+<pre class="notranslate">
 build switchSource
 </pre>
 
@@ -106,7 +106,7 @@ The build system can generate smaller jar files as well. The following targets a
 <p>
 To create the h2client.jar file, go to the directory h2 and execute the following command:
 </p>
-<pre>
+<pre class="notranslate">
 build jarClient
 </pre>
 
@@ -117,7 +117,7 @@ build jarClient
 You can include the database in your Maven 2 project as a dependency.
 Example:
 </p>
-<pre>
+<pre class="notranslate">
 &lt;dependency&gt;
     &lt;groupId&gt;com.h2database&lt;/groupId&gt;
     &lt;artifactId&gt;h2&lt;/artifactId&gt;
@@ -134,13 +134,13 @@ they are available there.
 <p>
 To build a 'snapshot' H2 .jar file and upload it the to the local Maven 2 repository, execute the following command:
 </p>
-<pre>
+<pre class="notranslate">
 build mavenInstallLocal
 </pre>
 <p>
 Afterwards, you can include the database in your Maven 2 project as a dependency:
 </p>
-<pre>
+<pre class="notranslate">
 &lt;dependency&gt;
     &lt;groupId&gt;com.h2database&lt;/groupId&gt;
     &lt;artifactId&gt;h2&lt;/artifactId&gt;
@@ -162,7 +162,7 @@ The translation of this software is split into the following parts:
 To translate the H2 Console, start it and select Preferences / Translate.
 The conversion between UTF-8 and Java encoding (using the \u syntax), as well as the HTML entities (&amp;#..;)
 is automated by running the tool PropertiesToUTF8. The web site translation is automated as well,
-using <code>build docs</code>.
+using <code class="notranslate">build docs</code>.
 </p>
 
 <br />
@@ -173,20 +173,20 @@ If you like to provide patches, please consider the following guidelines to simp
 <ul><li>Only use Java 1.5 features (do not use Java 1.6) (see Environment).
 </li><li>Follow the coding style used in the project, and use Checkstyle (see above) to verify.
     For example, do not use tabs (use spaces instead).
-    The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>.
+    The checkstyle configuration is in <code class="notranslate">src/installer/checkstyle.xml</code>.
 </li><li>Please provide test cases and integrate them into the test suite.
-    For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>.
-    For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or <code>testSimple.in.txt</code>.
+    For Java level tests, see <code class="notranslate">src/test/org/h2/test/TestAll.java</code>.
+    For SQL level tests, see <code class="notranslate">src/test/org/h2/test/test.in.txt</code> or <code class="notranslate">testSimple.in.txt</code>.
 </li><li>The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above).
     or use the build target 'coverage'.
-</li><li>Verify that you did not break other features: run the test cases by executing <code>build test</code>.
-</li><li>Provide end user documentation if required (<code>src/docsrc/html/*</code>).
-</li><li>Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
-</li><li>Provide a change log entry (<code>src/docsrc/html/changelog.html</code>).
-</li><li>Verify the spelling using <code>build spellcheck</code>. If required
-    add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>.
+</li><li>Verify that you did not break other features: run the test cases by executing <code class="notranslate">build test</code>.
+</li><li>Provide end user documentation if required (<code class="notranslate">src/docsrc/html/*</code>).
+</li><li>Document grammar changes in <code class="notranslate">src/main/org/h2/res/help.csv</code>
+</li><li>Provide a change log entry (<code class="notranslate">src/docsrc/html/changelog.html</code>).
+</li><li>Verify the spelling using <code class="notranslate">build spellcheck</code>. If required
+    add the new words to <code class="notranslate">src/tools/org/h2/build/doc/dictionary.txt</code>.
 </li><li>Run the src/installer/buildRelease to find and fix formatting errors.
-</li><li>Verify the formatting using <code>build docs</code> and <code>build javadoc</code>.
+</li><li>Verify the formatting using <code class="notranslate">build docs</code> and <code class="notranslate">build javadoc</code>.
 </li><li>Submit patches as .patch files (compressed if big). To create a patch using Eclipse, use Team / Create Patch.
 </li></ul>
 <p>
@@ -195,18 +195,18 @@ For legal reasons, patches need to be public in the form of an email to the
 of an <a href="http://code.google.com/p/h2database/issues/list">issue report or attachment</a>.
 Significant contributions need to include the following statement:
 </p>
-<pre>
+<p>
 "I wrote the code, it's mine, and I'm contributing it to H2 for distribution
 multiple-licensed under the H2 License, version 1.0, and under the
 Eclipse Public License, version 1.0 (http://h2database.com/html/license.html)."
-</pre>
+</p>
 
 <br />
 <h2 id="automated">Automated Build</h2>
 <p>
 This build process is automated and runs regularly.
 The build process includes running the tests and code coverage, using the command line
-<code>./build.sh clean jar coverage -Dh2.ftpPassword=... uploadBuild</code>.
+<code class="notranslate">./build.sh clean jar coverage -Dh2.ftpPassword=... uploadBuild</code>.
 The last results are available here:
 </p>
 <ul><li><a href="http://h2database.com/html/testOutput.html">Test Output</a>

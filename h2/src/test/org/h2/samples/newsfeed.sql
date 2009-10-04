@@ -13,6 +13,35 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(70,
+'New version available: 1.2.120 (2009-10-04)', '2009-10-04 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>This is a beta version.
+</li><li>New databases are now stored in a new file format.
+    Existing databases are kept in the old file format.
+</li><li>Databases created by this version can not be opened with older versions.
+</li><li>In version 1.2, the following system properties are enabled by default:
+    h2.pageStore, h2.nullConcatIsNull, h2.optimizeInList.
+</li><li>PostgreSQL compatibility: function LASTVAL() as an alias for IDENTITY().
+</li><li>Linked tables now support default values when inserting, updating or merging.
+</li><li>Possibility to set a vendor id in Constants.java.
+</li><li>Allow writing to linked tables in readonly databases.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Issue 125: Renaming primary keys was not persistent. Fixed.
+</li><li>Issue 124: Hibernate schema validation failed for decimal/numeric columns.
+</li><li>Bugfixes in the page store.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(69,
 'New version available: 1.1.119 (2009-09-26)', '2009-09-26 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -406,36 +435,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>Some DatabaseMetaData operations did not work for non-admin users.
 </li><li>When using LOG=2, the index file grew quickly in some situations.
 </li><li>In versions 1.1.105-106, old encrypted script files could not be processed.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(56,
-'New version available: 1.1.106 (beta; 2009-01-04)', '2009-01-04 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>The license change a bit: so far the license was modified to say
-    'Swiss law'. This is now changed back to the original 'US law'.
-</li><li>CREATE DOMAIN: built-in data types can now only be changed if no tables exist.
-</li><li>DatabaseMetaData.getPrimaryKeys: the column PK_NAME now contains the
-    constraint name instead of the index name (compatibility for PostgreSQL and Derby).
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Statement.setQueryTimeout did not work correctly for some statements.
-</li><li>Linked tables: a workaround for Oracle DATE columns has been implemented.
-</li><li>Using IN(..) inside a IN(SELECT..) did not always work.
-</li><li>Views with IN(..) that used a view itself did not work.
-</li><li>Union queries with LIMIT or ORDER BY that are used in a view or subquery did not work.
-</li><li>Constraints for local temporary tables now session scoped. So far they were global.
-    Thanks a lot to Eric Faulhaber for finding and fixing this problem!
-</li><li>When using the auto-server mode, and if the lock file was modified in the future,
-    the wrong exception was thrown.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

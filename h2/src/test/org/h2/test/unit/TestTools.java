@@ -298,7 +298,10 @@ public class TestTools extends TestBase {
 
         conn = DriverManager.getConnection(url, "another", "another");
         stat = conn.createStatement();
-        String suffix = config.pageStore ? ".h2.sql" : ".data.sql";
+        String suffix = ".data.sql";
+        if (new File(baseDir + "/toolsRecover.h2.sql").exists()) {
+            suffix = ".h2.sql";
+        }
         stat.execute("runscript from '" + baseDir + "/toolsRecover" + suffix + "'");
         rs = stat.executeQuery("select * from \"test 2\"");
         assertFalse(rs.next());

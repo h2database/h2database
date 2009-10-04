@@ -25,8 +25,10 @@ function allDetails() {
 }
 
 function switchTag(id, title, detail) {
-    document.getElementById('__' + id).className = title;
-    document.getElementById('_' + id).className = detail;
+    if (document.getElementById('__' + id) != null) {
+        document.getElementById('__' + id).className = title;
+        document.getElementById('_' + id).className = detail;
+    }
     return false;
 }
 

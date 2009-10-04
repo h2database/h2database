@@ -6104,7 +6104,7 @@ H2 データベース エンジン
 #Small footprint: around 1 MB jar file size
 
 @mainWeb_1006_h3
-#Download Beta #ダウンロード
+#Download Beta
 
 @mainWeb_1007_td
 #Version 1.2.120 (2009-10-04):

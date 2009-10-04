@@ -1,4 +1,5 @@
 Change version and build number in Constants.java
+If the minor version changes, change sourceError.html and source.html
 Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
 Update the changelog (add new version)
 Update the newsfeed

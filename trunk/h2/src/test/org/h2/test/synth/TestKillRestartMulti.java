@@ -145,8 +145,8 @@ public class TestKillRestartMulti extends TestBase {
             System.out.println("#Starting...");
             Random random = new Random();
             boolean wasRunning = false;
-            for (int i = 0; i < 3000; i++) {
-                if (i > 1000 && connections.size() > 1 && tables.size() > 1) {
+            for (int i = 0; i < 200; i++) {
+                if (connections.size() > 1 && tables.size() > 1) {
                     System.out.println("#Running connections: " + connections.size() + " tables: " + tables.size());
                     wasRunning = true;
                 }

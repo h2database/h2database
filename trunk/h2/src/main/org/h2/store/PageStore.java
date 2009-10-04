@@ -20,6 +20,7 @@ import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.index.MultiVersionIndex;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageBtreeLeaf;
 import org.h2.index.PageBtreeNode;
@@ -1191,6 +1192,9 @@ public class PageStore implements CacheWriter {
         Index index = metaObjects.get(id);
         int rootPageId = index.getRootPageId();
         index.getTable().removeIndex(index);
+        if (index instanceof MultiVersionIndex) {
+            index = ((MultiVersionIndex) index).getBaseIndex();
+        }
         if (index instanceof PageBtreeIndex) {
             if (index.isTemporary()) {
                 systemSession.removeLocalTempTableIndex(index);

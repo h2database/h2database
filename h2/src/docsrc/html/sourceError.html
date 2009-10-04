@@ -64,6 +64,8 @@ function go(file, line) {
         var tag = 'trunk/h2';
         if (build == 64) {
             tag = 'tags/version-1.0.' + build;
+        } else if (build >= 120) {
+            tag = 'tags/version-1.2.' + build + '/h2';
         } else if (build >= 100) {
             tag = 'tags/version-1.1.' + build + '/h2';
         } else if (build >= 63) {
@@ -97,7 +99,7 @@ function convert() {
             hasData = true;
             idx = errorCode.indexOf("-");
             build = parseInt(errorCode.substring(idx + 1));
-            get('version').innerHTML = (build < 100 ? '1.0.' : '1.1.') + build;
+            get('version').innerHTML = (build < 100 ? '1.0.' : (build < 120 ? '1.1.' : '1.2.')) + build;
             errorCode = errorCode.substring(0, idx);
             while (errorCode.length > 1 && errorCode.charAt(0) == '0') {
                 errorCode = errorCode.substring(1);
@@ -137,7 +139,7 @@ function convert() {
             result += lineNumber;
             result += ")'>";
             result += element;
-            result += "</a>";
+            result += "<" + "/a>";
             hasData = true;
             idx = end + 1;
         }

@@ -83,3 +83,27 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
     Could you send them please?
 - Do you still have any .trace.db files, and if yes could you send them?
 - Could you send the .data.db file where this exception occurs?
+
+
+
+Hi,
+
+I have a few questions:
+
+- The database URL?
+- With which version of H2 was this database created?
+    You can find it out using:
+    select * from information_schema.settings where name='CREATE_BUILD'
+- Did you use multiple connections?
+- Do you use any settings or special features (for example, the setting
+    LOG=0, or two phase commit, linked tables, cache settings)?
+- Is the application multi-threaded?
+- What operating system, file system, and virtual machine
+    (java -version) do you use?
+- How big is the database (file sizes)?
+- Is the database usually closed normally, or is process terminated
+    forcefully or the computer switched off?
+- Are there any other exceptions (maybe in the .trace.db file)?
+    Could you send them please?
+- Do you still have any .trace.db files, and if yes could you send them?
+- Could you send the .h2.db file where this exception occurs?

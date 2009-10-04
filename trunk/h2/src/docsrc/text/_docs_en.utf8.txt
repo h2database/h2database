@@ -6107,7 +6107,7 @@ Small footprint: around 1 MB jar file size
 Download
 
 @mainWeb_1007_td
-Version 1.2.120 (2009-10-04):
+Version 1.2.120 (2009-10-04, beta):
 
 @mainWeb_1008_a
 Windows Installer (4 MB)

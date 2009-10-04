@@ -28,6 +28,8 @@ public class WebSite {
     private static final String ANALYTICS_SCRIPT =
         "<script src=\"http://www.google-analytics.com/ga.js\" type=\"text/javascript\"></script>\n" +
         "<script type=\"text/javascript\">var pageTracker=_gat._getTracker(\"UA-2351060-1\");pageTracker._initData();pageTracker._trackPageview();</script>";
+    private static final String TRANSLATE_START = "<!-- translate";
+    private static final String TRANSLATE_END = "translate -->";
 
     private String sourceDir = "docs";
     private String webDir = "../h2web";
@@ -142,6 +144,10 @@ public class WebSite {
                     page = replaceFragments(name, page);
                     page = StringUtils.replaceAll(page, "<a href=\"frame", "<a href=\"main");
                     page = StringUtils.replaceAll(page, "html/frame.html", "html/main.html");
+                }
+                if (web) {
+                    page = StringUtils.replaceAll(page, TRANSLATE_START, "");
+                    page = StringUtils.replaceAll(page, TRANSLATE_END, "");
                 }
                 bytes = page.getBytes("UTF-8");
             }

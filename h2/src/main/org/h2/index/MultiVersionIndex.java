@@ -317,4 +317,8 @@ public class MultiVersionIndex implements Index {
         return base.getRowCountApproximation();
     }
 
+    public Index getBaseIndex() {
+        return base;
+    }
+
 }

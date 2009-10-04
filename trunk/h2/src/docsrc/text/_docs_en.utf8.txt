@@ -2417,7 +2417,7 @@ The database file was growing after deleting many rows, and after large update o
 Downloads
 
 @download_1001_h3
-Version 1.2.120 (2009-10-04)
+Version 1.2.120 (2009-10-04, Beta)
 
 @download_1002_a
 Windows Installer
@@ -6104,10 +6104,10 @@ Browser based Console application
 Small footprint: around 1 MB jar file size
 
 @mainWeb_1006_h3
-Download
+Download Beta
 
 @mainWeb_1007_td
-Version 1.2.120 (2009-10-04, beta):
+Version 1.2.120 (2009-10-04):
 
 @mainWeb_1008_a
 Windows Installer (4 MB)

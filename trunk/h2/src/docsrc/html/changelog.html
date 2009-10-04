@@ -22,16 +22,16 @@ Change Log
 <h2>Version 1.2.120 (2009-09-26)</h2>
 <ul><li>This is a beta version.
 </li><li>In version 1.2, the following system properties are now enabled by default:
-    h2.pageStore, h2.nullConcatIsNull, h2.optimizeInList. The default value for 
+    h2.pageStore, h2.nullConcatIsNull, h2.optimizeInList. The default value for
     h2.defaultMaxLengthInplaceLob is now 4096 (it was 1024 with version 1.1).
 </li><li>New databases are now stored in the new 'page store' file format.
-	Existing databases are kept in the old file format. To use the old file format,
-	append ;PAGE_STORE=FALSE to the database URL or set the system property h2.pageStore to false.
+    Existing databases are kept in the old file format. To use the old file format,
+    append ;PAGE_STORE=FALSE to the database URL or set the system property h2.pageStore to false.
 </li><li>Issue 125: Renaming primary keys was not persistent. Fixed.
+    Unfortunately, databases created by this version can not be opened with older versions because of this change.
 </li><li>Issue 124: Hibernate schema validation failed for decimal/numeric columns.
     This problem is fixed in the Hibernate dialect that is included with H2
     (src/tools/org/hibernate/dialect/H2Dialect.java.txt), but not in Hibernate yet.
-    Unfortunately, databases created by this version can not be opened with older versions because of this change.
 </li><li>PostgreSQL compatibility: function LASTVAL() as an alias for IDENTITY().
 </li><li>Linked tables now support default values when inserting, updating or merging.
 </li><li>Bugfixes in the page store.

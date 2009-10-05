@@ -89,6 +89,7 @@ public class Recover extends Tool implements DataHandler {
     private int pageDataHead;
     private int pageSize;
     private FileStore store;
+    private int[] parents;
 
     /**
      * Options are case sensitive. Supported options are:
@@ -815,7 +816,16 @@ public class Recover extends Tool implements DataHandler {
                 writer.println("-- ERROR: page size; using " + pageSize);
             }
             int pageCount = (int) (length / pageSize);
+            parents = new int[pageCount];
             s = Data.create(this, pageSize);
+            for (int i = 3; i < pageCount; i++) {
+                s.reset();
+                store.seek(i * pageSize);
+                store.readFully(s.getBytes(), 0, 32);
+                s.readByte();
+                s.readShortInt();
+                parents[i] = s.readInt();
+            }
             int logKey = 0, logFirstTrunkPage = 0, logFirstDataPage = 0;
             for (int i = 1;; i++) {
                 if (i == 3) {
@@ -884,10 +894,12 @@ public class Recover extends Tool implements DataHandler {
                     pageTypeCount[type]++;
                     int parentPageId = s.readInt();
                     setStorage(s.readVarInt());
-                    int rowCount = s.readInt();
+                    // row count
+                    s.readInt();
                     int entries = s.readShortInt();
                     writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " parent: " + parentPageId +
-                            " entries: " + entries + " rowCount: " + rowCount);
+                            " entries: " + entries);
+                    dumpPageDataNode(writer, s, page, entries);
                     break;
                 }
                 // type 3
@@ -914,10 +926,8 @@ public class Recover extends Tool implements DataHandler {
                     int parentPageId = s.readInt();
                     setStorage(s.readVarInt());
                     writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : "") +  " parent: " + parentPageId +
-                            "index: " + storageId);
-                    if (trace) {
-                        dumpPageBtreeNode(writer, s, !last);
-                    }
+                            " index: " + storageId);
+                    dumpPageBtreeNode(writer, s, page, !last);
                     break;
                 // type 6
                 case Page.TYPE_FREE_LIST:
@@ -1184,20 +1194,27 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageBtreeNode(PrintWriter writer, Data s, boolean positionOnly) {
+    private void dumpPageBtreeNode(PrintWriter writer, Data s, int pageId, boolean positionOnly) {
         int rowCount = s.readInt();
         int entryCount = s.readShortInt();
         int[] children = new int[entryCount + 1];
         int[] offsets = new int[entryCount];
-        children[entryCount] = s.readInt();
+        int rightmost = s.readInt();
+        checkParent(writer, pageId, rightmost);
+        children[entryCount] = rightmost;
         int empty = Integer.MAX_VALUE;
         for (int i = 0; i < entryCount; i++) {
-            children[i] = s.readInt();
+            int child = s.readInt();
+            checkParent(writer, pageId, child);
+            children[i] = child;
             int off = s.readShortInt();
             empty = Math.min(off, empty);
             offsets[i] = off;
         }
         empty = empty - s.length();
+        if (!trace) {
+            return;
+        }
         writer.println("--   empty: " + empty);
         for (int i = 0; i < entryCount; i++) {
             int off = offsets[i];
@@ -1275,6 +1292,35 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
+    private void checkParent(PrintWriter writer, long pageId, long child) {
+        if (child < 0 || child >= parents.length) {
+            writer.println("-- ERROR [" + pageId + "] child: " + child + " page count: " + parents.length);
+        } else if (parents[(int) child] != pageId) {
+            writer.println("-- ERROR [" + pageId + "] expected child: " + child + " got: " + parents[(int) child]);
+        }
+    }
+
+    private void dumpPageDataNode(PrintWriter writer, Data s, long pageId, int entryCount) {
+        int[] children = new int[entryCount + 1];
+        long[] keys = new long[entryCount];
+        int child = s.readInt();
+        children[entryCount] = child;
+        checkParent(writer, pageId, child);
+        for (int i = 0; i < entryCount; i++) {
+            child = s.readInt();
+            children[i] = child;
+            checkParent(writer, pageId, child);
+            keys[i] = s.readVarLong();
+        }
+        if (!trace) {
+            return;
+        }
+        for (int i = 0; i < entryCount; i++) {
+            writer.println("-- [" + i + "] child: " + children[i] + " key: " + keys[i]);
+        }
+        writer.println("-- [" + entryCount + "] child: " + children[entryCount]);
+    }
+
     private void dumpPageDataLeaf(PrintWriter writer, Data s, boolean last, long pageId, int columnCount, int entryCount) throws SQLException {
         long[] keys = new long[entryCount];
         int[] offsets = new int[entryCount];
@@ -1299,7 +1345,10 @@ public class Recover extends Tool implements DataHandler {
         if (!last) {
             DataPage s2 = DataPage.create(this, pageSize);
             s.setPos(pageSize);
+            long parent = pageId;
             while (true) {
+                checkParent(writer, parent, next);
+                parent = next;
                 store.seek(pageSize * next);
                 store.readFully(s2.getBytes(), 0, pageSize);
                 s2.reset();
@@ -1415,7 +1464,6 @@ public class Recover extends Tool implements DataHandler {
         }
         sb.append(");");
         writer.println(sb.toString());
-        writer.flush();
         if (storageId == 0) {
             try {
                 SimpleRow r = new SimpleRow(data);

@@ -29,7 +29,7 @@ import org.h2.util.MemoryUtils;
  * <li>count of all children (-1 if not known): int</li>
  * <li>entry count: short</li>
  * <li>rightmost child page id: int</li>
- * <li>entries (key: varLong, child page id: int)</li>
+ * <li>entries (child page id: int, key: varLong)</li>
  * </ul>
  * The key is the largest key of the respective child, meaning key[0] is the
  * largest key of child[0].

@@ -539,6 +539,12 @@ public class SysProperties {
     public static final boolean PAGE_STORE = getBooleanSetting(H2_PAGE_STORE, Constants.VERSION >= 1.2);
 
     /**
+     * System property <code>h2.pageStoreTrim</code> (default: true).<br />
+     * Trim the database size when closing.
+     */
+    public static final boolean PAGE_STORE_TRIM = getBooleanSetting("h2.pageStoreTrim", true);
+
+    /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
      * Default client encoding for PG server. It is used if the client does not
      * sends his encoding.

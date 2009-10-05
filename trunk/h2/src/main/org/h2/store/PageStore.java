@@ -354,6 +354,9 @@ public class PageStore implements CacheWriter {
      * Shrink the file so there are no empty pages at the end.
      */
     public void trim() throws SQLException {
+        if (!SysProperties.PAGE_STORE_TRIM) {
+            return;
+        }
         // find the last used page
         int lastUsed = -1;
         for (int i = getFreeListId(pageCount); i >= 0; i--) {

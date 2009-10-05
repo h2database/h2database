@@ -277,7 +277,7 @@ public class FileStore {
      */
     public void readFully(byte[] b, int off, int len) throws SQLException {
         if (SysProperties.CHECK && (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0)) {
-            Message.throwInternalError("unaligned write " + name + " len " + len);
+            Message.throwInternalError("unaligned read " + name + " len " + len);
         }
         checkPowerOff();
         try {

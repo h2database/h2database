@@ -140,7 +140,6 @@ public abstract class PageBtree extends Page {
      * @param row the row to add
      * @return the split point of this page, or -1 if no split is required
      */
-
     abstract int addRowTry(SearchRow row) throws SQLException;
 
     /**

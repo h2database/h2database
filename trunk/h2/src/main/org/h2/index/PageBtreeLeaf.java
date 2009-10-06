@@ -91,11 +91,15 @@ public class PageBtreeLeaf extends PageBtree {
     }
 
     int addRowTry(SearchRow row) throws SQLException {
+        return addRow(row, true);
+    }
+
+    private int addRow(SearchRow row, boolean tryOnly) throws SQLException {
         int rowLength = index.getRowSize(data, row, onlyPosition);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + OFFSET_LENGTH) {
-            if (entryCount > 1) {
+            if (tryOnly && entryCount > 1) {
                 int x = find(row, false, true, true);
                 if (entryCount < 5) {
                     // required, otherwise the index doesn't work correctly
@@ -107,6 +111,7 @@ public class PageBtreeLeaf extends PageBtree {
                 int third = entryCount / 3;
                 return x < third ? third : x >= 2 * third ? 2 * third : x;
             }
+            readAllRows();
             onlyPosition = true;
             // change the offsets (now storing only positions)
             int o = pageSize;
@@ -151,7 +156,7 @@ public class PageBtreeLeaf extends PageBtree {
         return -1;
     }
 
-    private void removeRow(int i) throws SQLException {
+    private void removeRow(int at) throws SQLException {
         readAllRows();
         index.getPageStore().logUndo(this, data);
         entryCount--;
@@ -161,14 +166,14 @@ public class PageBtreeLeaf extends PageBtree {
         }
         int[] newOffsets = new int[entryCount];
         SearchRow[] newRows = new SearchRow[entryCount];
-        System.arraycopy(offsets, 0, newOffsets, 0, i);
-        System.arraycopy(rows, 0, newRows, 0, i);
-        int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
-        int rowLength = startNext - offsets[i];
-        for (int j = i; j < entryCount; j++) {
+        System.arraycopy(offsets, 0, newOffsets, 0, at);
+        System.arraycopy(rows, 0, newRows, 0, at);
+        int startNext = at > 0 ? offsets[at - 1] : index.getPageStore().getPageSize();
+        int rowLength = startNext - offsets[at];
+        for (int j = at; j < entryCount; j++) {
             newOffsets[j] = offsets[j + 1] + rowLength;
         }
-        System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
+        System.arraycopy(rows, at + 1, newRows, at, entryCount - at);
         start -= OFFSET_LENGTH;
         offsets = newOffsets;
         rows = newRows;
@@ -182,7 +187,7 @@ public class PageBtreeLeaf extends PageBtree {
         int newPageId = index.getPageStore().allocatePage();
         PageBtreeLeaf p2 = PageBtreeLeaf.create(index, newPageId, parentPageId);
         for (int i = splitPoint; i < entryCount;) {
-            p2.addRowTry(getRow(splitPoint));
+            p2.addRow(getRow(splitPoint), false);
             removeRow(splitPoint);
         }
         return p2;

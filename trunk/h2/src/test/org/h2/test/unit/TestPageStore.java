@@ -7,6 +7,7 @@
 package org.h2.test.unit;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,6 +33,8 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testExistingOld();
+        testLargeRows();
         testRecoverDropIndex();
         testDropPk();
         testCreatePkLater();
@@ -40,6 +43,110 @@ public class TestPageStore extends TestBase {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testExistingOld() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        Connection conn;
+        deleteDb("pageStore");
+        String url;
+        url = "jdbc:h2:" + baseDir + "/pageStore";
+        conn = DriverManager.getConnection(url + ";PAGE_STORE=FALSE");
+        conn.createStatement().execute("create table test(id int) as select 1");
+        conn.close();
+        conn = DriverManager.getConnection(url);
+        conn.createStatement().execute("select * from test");
+        conn.close();
+        conn = DriverManager.getConnection(url + ";PAGE_STORE=TRUE");
+        conn.createStatement().execute("create table test(id int) as select 2");
+        conn.close();
+        conn = DriverManager.getConnection(url);
+        this.assertResult("2", conn.createStatement(), "select * from test");
+        conn.close();
+    }
+
+    private void testLargeRows() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        for (int i = 0; i < 10; i++) {
+            testLargeRows(i);
+        }
+    }
+
+    private void testLargeRows(int seed) throws Exception {
+        deleteDb("pageStore");
+        String url = getURL("pageStore;CACHE_SIZE=16", true);
+        Connection conn = null;
+        Statement stat = null;
+        int count = 0;
+        try {
+            Class.forName("org.h2.Driver");
+            conn = DriverManager.getConnection(url);
+            stat = conn.createStatement();
+            int tableCount = 1;
+            PreparedStatement[] insert = new PreparedStatement[tableCount];
+            PreparedStatement[] deleteMany = new PreparedStatement[tableCount];
+            PreparedStatement[] updateMany = new PreparedStatement[tableCount];
+            for (int i = 0; i < tableCount; i++) {
+                stat.execute("create table test" + i + "(id int primary key, name varchar)");
+                stat.execute("create index idx_test" + i + " on test" + i + "(name)");
+                insert[i] = conn.prepareStatement("insert into test" + i + " values(?, ? || space(?))");
+                deleteMany[i] = conn.prepareStatement("delete from test" + i + " where id between ? and ?");
+                updateMany[i] = conn.prepareStatement("update test" + i + " set name=? || space(?) where id between ? and ?");
+            }
+            Random random = new Random(seed);
+            for (int i = 0; i < 1000; i++) {
+                count = i;
+                PreparedStatement p;
+                if (random.nextInt(100) < 95) {
+                    p = insert[random.nextInt(tableCount)];
+                    p.setInt(1, i);
+                    p.setInt(2, i);
+                    if (random.nextInt(30) == 5) {
+                        p.setInt(3, 3000);
+                    } else {
+                        p.setInt(3, random.nextInt(100));
+                    }
+                    p.execute();
+                 } else if (random.nextInt(100) < 90) {
+                    p = updateMany[random.nextInt(tableCount)];
+                    p.setInt(1, i);
+                    p.setInt(2, random.nextInt(50));
+                    int start = random.nextInt(1 + i);
+                    p.setInt(3, start);
+                    p.setInt(4, start + random.nextInt(50));
+                    p.executeUpdate();
+                } else {
+                    p = deleteMany[random.nextInt(tableCount)];
+                    int start = random.nextInt(1 + i);
+                    p.setInt(1, start);
+                    p.setInt(2, start + random.nextInt(100));
+                    p.executeUpdate();
+                }
+            }
+            conn.close();
+            conn = DriverManager.getConnection(url);
+            conn.close();
+            conn = DriverManager.getConnection(url);
+            stat = conn.createStatement();
+            stat.execute("script to '" + baseDir + "/pageStore.sql'");
+            conn.close();
+        } catch (Exception e) {
+            try {
+                stat.execute("shutdown immediately");
+            } catch (SQLException e2) {
+                // ignore
+            }
+            try {
+                conn.close();
+            } catch (SQLException e2) {
+                // ignore
+            }
+            fail("count: " + count + " " + e);
+        }
     }
 
     private void testRecoverDropIndex() throws SQLException {

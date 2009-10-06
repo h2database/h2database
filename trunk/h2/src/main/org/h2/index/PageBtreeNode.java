@@ -143,6 +143,7 @@ public class PageBtreeNode extends PageBtree {
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
+            readAllRows();
             onlyPosition = true;
             // change the offsets (now storing only positions)
             int o = pageSize;

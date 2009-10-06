@@ -86,8 +86,8 @@ public class PageFreeList extends Page {
                     return -1;
                 }
             } else {
-                store.logUndo(this, data);
                 used.set(free);
+                store.logUndo(this, data);
                 store.update(this);
                 return free + getPos();
             }

@@ -7,7 +7,9 @@
 package org.h2.test.unit;
 
 import java.math.BigInteger;
+import java.util.Random;
 import org.h2.test.TestBase;
+import org.h2.util.MathUtils;
 
 /**
  * Tests math utility methods.
@@ -24,7 +26,42 @@ public class TestMathUtils extends TestBase {
     }
 
     public void test() {
+        testReverse();
         testFactorial();
+    }
+
+    private void testReverse() {
+        assertEquals(Integer.reverse(0), MathUtils.reverse(0));
+        assertEquals(Integer.reverse(Integer.MAX_VALUE), MathUtils.reverse(Integer.MAX_VALUE));
+        assertEquals(Integer.reverse(Integer.MIN_VALUE), MathUtils.reverse(Integer.MIN_VALUE));
+        assertEquals(Long.reverse(0), MathUtils.reverse(0L));
+        assertEquals(Long.reverse(Long.MAX_VALUE), MathUtils.reverse(Long.MAX_VALUE));
+        assertEquals(Long.reverse(Long.MIN_VALUE), MathUtils.reverse(Long.MIN_VALUE));
+        for (int i = Integer.MIN_VALUE; i < 0; i += 1019) {
+            int x = MathUtils.reverse(i);
+            assertEquals(Integer.reverse(i), x);
+        }
+        for (int i = 0; i > 0; i += 1019) {
+            int x = MathUtils.reverse(i);
+            assertEquals(Integer.reverse(i), x);
+        }
+        for (long i = Long.MIN_VALUE; i < 0; i += 1018764321251L) {
+            long x = MathUtils.reverse(i);
+            assertEquals(Long.reverse(i), x);
+        }
+        for (long i = 0; i > 0; i += 1018764321251L) {
+            long x = MathUtils.reverse(i);
+            assertEquals(Long.reverse(i), x);
+        }
+        Random random = new Random(10);
+        for (int i = 0; i < 1000000; i++) {
+            long x = random.nextLong();
+            long r = MathUtils.reverse(x);
+            assertEquals(Long.reverse(x), r);
+            int y = random.nextInt();
+            int s = MathUtils.reverse(y);
+            assertEquals(Integer.reverse(y), s);
+        }
     }
 
     private void testFactorial() {

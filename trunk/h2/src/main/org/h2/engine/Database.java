@@ -164,7 +164,7 @@ public class Database implements DataHandler {
     private HashMap<TableLinkConnection, TableLinkConnection> linkConnections;
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
     private PageStore pageStore;
-    private boolean usePageStore;
+    private boolean usePageStoreSet, usePageStore;
 
     private Properties reconnectLastLock;
     private volatile long reconnectCheckNext;
@@ -182,6 +182,7 @@ public class Database implements DataHandler {
         this.accessModeLog = ci.getProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
+        this.usePageStoreSet = ci.getProperty("PAGE_STORE") != null;
         this.usePageStore = ci.getProperty("PAGE_STORE", SysProperties.getPageStore());
         this.cacheSize = ci.getProperty("CACHE_SIZE", SysProperties.CACHE_SIZE_DEFAULT);
         if ("r".equals(accessModeData)) {
@@ -547,22 +548,35 @@ public class Database implements DataHandler {
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
             String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
-            boolean exists = FileUtils.exists(pageFileName);
-            if (exists) {
-                usePageStore = true;
+            boolean existsPage = FileUtils.exists(pageFileName);
+            String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
+            boolean existsData = FileUtils.exists(dataFileName);
+            if (!usePageStoreSet) {
+                // if the URL flag is not set
+                if (existsData && !existsPage) {
+                    // only an old database exists
+                    usePageStore = false;
+                } else if (existsPage && !existsData) {
+                    // only an new database exists
+                    usePageStore = true;
+                } else {
+                    // for new databases, or if both exists:
+                    // use the system property
+                    usePageStore = SysProperties.getPageStore();
+                }
             }
             if (usePageStore) {
-                if (exists && FileUtils.isReadOnly(pageFileName)) {
-                    readOnly = true;
+                if (existsPage && FileUtils.isReadOnly(pageFileName)) {
+                    // if it is already read-only because ACCESS_MODE_DATA=r
+                    readOnly = readOnly | FileUtils.isReadOnly(pageFileName);
                 }
             } else {
-                String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
-                exists = FileUtils.exists(dataFileName);
-                if (FileUtils.exists(dataFileName)) {
+                if (existsData) {
                     // if it is already read-only because ACCESS_MODE_DATA=r
                     readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
                 }
             }
+            boolean exists = existsData || existsPage;
             if (readOnly) {
                 traceSystem = new TraceSystem(null, false);
             } else {

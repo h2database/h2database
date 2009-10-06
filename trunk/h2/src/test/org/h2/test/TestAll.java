@@ -297,9 +297,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-disable translation in download
-<span class="notranslate"></span>
-
 mvcc merge problem
 
 System.setProperty("h2.optimizeInList", "true");

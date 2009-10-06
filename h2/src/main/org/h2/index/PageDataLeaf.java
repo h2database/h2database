@@ -122,6 +122,9 @@ public class PageDataLeaf extends PageData {
         keys = new long[entryCount];
         rows = new Row[entryCount];
         if (type == Page.TYPE_DATA_LEAF) {
+            if (entryCount != 1) {
+                Message.throwInternalError("entries: " + entryCount);
+            }
             firstOverflowPageId = data.readInt();
         }
         for (int i = 0; i < entryCount; i++) {
@@ -256,6 +259,9 @@ public class PageDataLeaf extends PageData {
         if (entryCount < 0) {
             Message.throwInternalError();
         }
+        firstOverflowPageId = 0;
+        overflowRowSize = 0;
+        rowRef = null;
         int keyOffsetPairLen = 2 + data.getVarLongLen(keys[i]);
         int[] newOffsets = new int[entryCount];
         long[] newKeys = new long[entryCount];
@@ -333,7 +339,10 @@ public class PageDataLeaf extends PageData {
         int newPageId = index.getPageStore().allocatePage();
         PageDataLeaf p2 = PageDataLeaf.create(index, newPageId, parentPageId);
         for (int i = splitPoint; i < entryCount;) {
-            p2.addRowTry(getRowAt(splitPoint));
+            int split = p2.addRowTry(getRowAt(splitPoint));
+            if (split != -1) {
+                Message.throwInternalError("split " + split);
+            }
             removeRow(splitPoint);
         }
         return p2;

@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -473,7 +474,7 @@ public class Data extends DataPage {
                 writeByte((byte) (DOUBLE_0_1 + x));
             } else {
                 writeByte((byte) type);
-                writeVarLong(Long.reverse(Double.doubleToLongBits(x)));
+                writeVarLong(MathUtils.reverse(Double.doubleToLongBits(x)));
             }
             break;
         }
@@ -483,7 +484,7 @@ public class Data extends DataPage {
                 writeByte((byte) (FLOAT_0_1 + x));
             } else {
                 writeByte((byte) type);
-                writeVarInt(Integer.reverse(Float.floatToIntBits(v.getFloat())));
+                writeVarInt(MathUtils.reverse(Float.floatToIntBits(v.getFloat())));
             }
             break;
         }
@@ -617,9 +618,9 @@ public class Data extends DataPage {
         case DOUBLE_0_1 + 1:
             return ValueDouble.get(1);
         case Value.DOUBLE:
-            return ValueDouble.get(Double.longBitsToDouble(Long.reverse(readVarLong())));
+            return ValueDouble.get(Double.longBitsToDouble(MathUtils.reverse(readVarLong())));
         case Value.FLOAT:
-            return ValueFloat.get(Float.intBitsToFloat(Integer.reverse(readVarInt())));
+            return ValueFloat.get(Float.intBitsToFloat(MathUtils.reverse(readVarInt())));
         case Value.BLOB:
         case Value.CLOB: {
             int smallLen = readVarInt();
@@ -712,14 +713,14 @@ public class Data extends DataPage {
             if (x == 0.0 || x == 1.0) {
                 return 1;
             }
-            return 1 + getVarLongLen(Long.reverse(Double.doubleToLongBits(x)));
+            return 1 + getVarLongLen(MathUtils.reverse(Double.doubleToLongBits(x)));
         }
         case Value.FLOAT: {
             float x = v.getFloat();
             if (x == 0.0f || x == 1.0f) {
                 return 1;
             }
-            return 1 + getVarIntLen(Integer.reverse(Float.floatToIntBits(v.getFloat())));
+            return 1 + getVarIntLen(MathUtils.reverse(Float.floatToIntBits(v.getFloat())));
         }
         case Value.STRING: {
             String s = v.getString();

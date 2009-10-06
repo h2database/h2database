@@ -178,4 +178,31 @@ public class MathUtils {
         }
     }
 
+    /**
+     * Reverse the bits in a 32 bit integer. This code is also available in Java
+     * 5 using Integer.reverse, however not available yet in Retrotranslator.
+     * The code was taken from http://www.hackersdelight.org - reverse.c
+     * 
+     * @param x the original value
+     * @return the value with reversed bits
+     */
+    public static int reverse(int x) {
+        x = (x & 0x55555555) << 1 | (x >>> 1) & 0x55555555;
+        x = (x & 0x33333333) << 2 | (x >>> 2) & 0x33333333;
+        x = (x & 0x0f0f0f0f) << 4 | (x >>> 4) & 0x0f0f0f0f;
+        x = (x << 24) | ((x & 0xff00) << 8) | ((x >>> 8) & 0xff00) | (x >>> 24);
+        return x;
+    }
+
+    /**
+     * Reverse the bits in a 64 bit long. This code is also available in Java 5
+     * using Long.reverse, however not available yet in Retrotranslator.
+     * 
+     * @param x the original value
+     * @return the value with reversed bits
+     */
+    public static long reverse(long x) {
+        return (reverse((int) (x >>> 32L)) & 0xffffffffL) ^ (((long) reverse((int) x)) << 32L);
+    }
+
 }

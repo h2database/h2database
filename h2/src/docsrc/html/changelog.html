@@ -18,12 +18,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New system property h2.pageStoreTrim to disable shrinking the database size when closing
+<ul><li>If a database in the old format exists, it is now used.
+    The system property is used for new databases, or if databases exist
+    in both formats. In any case, the flag in the URL overrides this logic.
+</li><li>Page store: large values in indexed columns could corrupt the index.
+</li><li>The page store did not work when using Retrotranslator (because the Retrotranslator doesn't
+    support Integer.reverse and Long.reverse).
+</li><li>New system property h2.pageStoreTrim to disable shrinking the database size when closing
     (disabled by default, meaning by default the database is trimmed).
 </li></ul>
 
 <h2>Version 1.2.120 (2009-09-26)</h2>
 <ul><li>This is a beta version.
+</li><li>Large updates could throw an ArrayIndexOutOfBoundsException in RowList.writeRow.
 </li><li>In version 1.2, the following system properties are now enabled by default:
     h2.pageStore, h2.nullConcatIsNull, h2.optimizeInList. The default value for
     h2.defaultMaxLengthInplaceLob is now 4096 (it was 1024 with version 1.1).
@@ -89,7 +96,7 @@ Change Log
     This is no longer required.
 </li><li>Better support GaeVFS (Google App Engine Virtual File System).
 </li><li>JaQu: the plan is to support natural (pure Java / Scala) conditions such as
-    (id == 1 && name.equals("Test")). A proof of concept decompiler is now included (it doesn't work yet).
+    (id == 1 &amp;&amp; name.equals("Test")). A proof of concept decompiler is now included (it doesn't work yet).
 </li><li>Various bugfixes and improvements in the page store mechanism (still experimental).
 </li><li>PreparedStatement.setObject now converts a java.lang.Character to a string.
 </li><li>H2 Console: PierPaolo Ucchino has completed the Italian translation. Thanks a lot!
@@ -431,7 +438,7 @@ Change Log
 </li><li>H2 Console: Cmd+Enter executes the current statement, Alt+Space for autocomplete.
 </li><li>JaQu: the maximum length of a column can now be defined using maxLength.
     For an example, see Product.java (maxLength(category, 255)).
-</li><li>R&\#305;dvan A&\#287;ar has completed the Turkish translation of the H2 Console. Thanks a lot!
+</li><li>R&#305;dvan A&#287;ar has completed the Turkish translation of the H2 Console. Thanks a lot!
 </li></ul>
 
 <h2>Version 1.1.104 (2008-11-28)</h2>
@@ -625,7 +632,7 @@ Change Log
     is required before those features can be used together.
 </li><li>The data type JAVA_OBJECT could not be used in updatable result sets.
 </li><li>The system property h2.optimizeInJoin did not work correctly.
-</li><li>Conditions such as ID=? AND ID>? were slow.
+</li><li>Conditions such as ID=? AND ID &lt; ? were slow.
 </li></ul>
 
 <h2>Version 1.0.78 (2008-08-28)</h2>

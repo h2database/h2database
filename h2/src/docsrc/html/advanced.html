@@ -79,15 +79,19 @@ Before the result is returned to the application, all rows are read by the datab
 Server side cursors are not supported currently.
 If only the first few rows are interesting for the application, then the
 result set size should be limited to improve the performance.
-This can be done using LIMIT in a query (example: SELECT * FROM TEST LIMIT 100),
+This can be done using <code class="notranslate">LIMIT</code> in a query
+(example: <code class="notranslate">SELECT * FROM TEST LIMIT 100</code>),
 or by using Statement.setMaxRows(max).
 </p>
 
 <h3>Large Result Sets and External Sorting</h3>
 <p>
-For large result set, the result is buffered to disk. The threshold can be defined using the statement SET MAX_MEMORY_ROWS.
-If ORDER BY is used, the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using
-quick sort, then written to disk; when reading the data, the blocks are merged together.
+For large result set, the result is buffered to disk. The threshold can be defined using the statement
+<code class="notranslate">SET MAX_MEMORY_ROWS</code>.
+If <code class="notranslate">ORDER BY</code> is used, the sorting is done using an
+external sort algorithm.
+In this case, each block of rows is sorted using quick sort, then written to disk;
+when reading the data, the blocks are merged together.
 </p>
 
 <br />
@@ -109,7 +113,7 @@ on the client side.
 <p>
 This database stores large LOB (CLOB and BLOB) objects as separate files.
 Small LOB objects are stored in-place, the threshold can be set using
-<a href="grammar.html#set_max_length_inplace_lob">MAX_LENGTH_INPLACE_LOB</a>,
+<a href="grammar.html#set_max_length_inplace_lob" class="notranslate" >MAX_LENGTH_INPLACE_LOB</a>,
 but there is still an overhead to use CLOB/BLOB. Because of this, BLOB and CLOB
 should never be used for columns with a maximum size below about 200 bytes.
 The best threshold depends on the use case; reading in-place objects is faster
@@ -119,7 +123,8 @@ that don't involve this column.
 
 <h3>Large Object Compression</h3>
 <p>
-CLOB and BLOB values can be compressed by using <a href="grammar.html#set_compress_lob">SET COMPRESS_LOB</a>.
+CLOB and BLOB values can be compressed by using
+<a href="grammar.html#set_compress_lob" class="notranslate" >SET COMPRESS_LOB</a>.
 The LZF algorithm is faster but needs more disk space. By default compression is disabled, which usually speeds up write
 operations. If you store many large compressible values such as XML, HTML, text, and uncompressed binary files,
 then compressing can save a lot of disk space (sometimes more than 50%), and read operations may even be faster.
@@ -129,9 +134,10 @@ then compressing can save a lot of disk space (sometimes more than 50%), and rea
 <h2 id="linked_tables">Linked Tables</h2>
 <p>
 This database supports linked tables, which means tables that don't exist in the current database but
-are just links to another database. To create such a link, use the CREATE LINKED TABLE statement:
+are just links to another database. To create such a link, use the
+<code class="notranslate">CREATE LINKED TABLE</code> statement:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE LINKED TABLE LINK('org.postgresql.Driver', 'jdbc:postgresql:test', 'sa', 'sa', 'TEST');
 </pre>
 <p>
@@ -147,10 +153,10 @@ To view the statements that are executed against the target table, set the trace
 </p>
 <p>
 If multiple linked tables point to the same database (using the same database URL), the connection
-is shared. To disable this, set the system property h2.shareLinkedConnections to false.
+is shared. To disable this, set the system property <code class="notranslate">h2.shareLinkedConnections=false</code>.
 </p>
 <p>
-The CREATE LINKED TABLE statement supports an optional schema name parameter.
+The <code class="notranslate">CREATE LINKED TABLE</code> statement supports an optional schema name parameter.
 See the grammar for details.
 </p>
 
@@ -232,24 +238,25 @@ for each connection.
 The MVCC feature allows higher concurrency than using (table level or row level) locks.
 When using MVCC in this database, delete, insert and update operations will only issue a
 shared lock on the table. An exclusive lock is still used when adding or removing columns,
-when dropping the table, and when using SELECT ... FOR UPDATE. Connections
-only 'see' committed data, and own changes. That means, if connection A updates
+when dropping the table, and when using <code class="notranslate">SELECT ... FOR UPDATE</code>.
+Connections only 'see' committed data, and own changes. That means, if connection A updates
 a row but doesn't commit this change yet, connection B will see the old value.
 Only when the change is committed, the new value is visible by other connections
 (read committed). If multiple connections concurrently try to update the same row, the
 database waits until it can apply the change, but at most until the lock timeout expires.
 </p>
 <p>
-To use the MVCC feature, append MVCC=TRUE to the database URL:
+To use the MVCC feature, append <code class="notranslate">;MVCC=TRUE</code> to the database URL:
 </p>
-<pre>
+<pre class="notranslate">
 jdbc:h2:~/test;MVCC=TRUE
 </pre>
 <p>
 The MVCC feature is not fully tested yet.
-The limitations of the MVCC mode are: it can not be used at the same time as MULTI_THREADED;
+The limitations of the MVCC mode are: it can not be used at the same time as
+<code class="notranslate">MULTI_THREADED=TRUE</code>;
 the complete undo log must fit in memory when using multi-version concurrency
-(the setting MAX_MEMORY_UNDO has no effect).
+(the setting <code class="notranslate">MAX_MEMORY_UNDO</code> has no effect).
 </p>
 
 <br />
@@ -271,7 +278,8 @@ To initialize the cluster, use the following steps:
 </p>
 <ul>
 <li>Create a database
-</li><li>Use the CreateCluster tool to copy the database to another location and initialize the clustering.
+</li><li>Use the <code class="notranslate">CreateCluster</code> tool to copy the database to
+    another location and initialize the clustering.
     Afterwards, you have two databases containing the same data.
 </li><li>Start two servers (one for each copy of the database)
 </li><li>You are now ready to connect to the databases with the client application(s)
@@ -288,7 +296,7 @@ databases will be on different servers.
     Each directory will simulate a directory on a computer.
 </li><li>Start a TCP server pointing to the first directory.
     You can do this using the command line:
-<pre>
+<pre class="notranslate">
 java org.h2.tools.Server
     -tcp -tcpPort 9101
     -baseDir server1
@@ -296,12 +304,12 @@ java org.h2.tools.Server
 </li><li>Start a second TCP server pointing to the second directory.
     This will simulate a server running on a second (redundant) computer.
     You can do this using the command line:
-<pre>
+<pre class="notranslate">
 java org.h2.tools.Server
     -tcp -tcpPort 9102
     -baseDir server2
 </pre>
-</li><li>Use the CreateCluster tool to initialize clustering.
+</li><li>Use the <code class="notranslate">CreateCluster</code> tool to initialize clustering.
     This will automatically create a new, empty database if it does not exist.
     Run the tool on the command line:
 <pre class="notranslate">
@@ -313,13 +321,13 @@ java org.h2.tools.CreateCluster
 </pre>
 </li><li>You can now connect to the databases using
 an application or the H2 Console using the JDBC URL
-jdbc:h2:tcp://localhost:9101,localhost:9102/~/test
+<code class="notranslate">jdbc:h2:tcp://localhost:9101,localhost:9102/~/test</code>
 </li><li>If you stop a server (by killing the process),
 you will notice that the other machine continues to work,
 and therefore the database is still accessible.
 </li><li>To restore the cluster, you first need to delete the
 database that failed, then restart the server that was stopped,
-and re-run the CreateCluster tool.
+and re-run the <code class="notranslate">CreateCluster</code> tool.
 </li></ul>
 
 <h3>Clustering Algorithm and Limitations</h3>
@@ -327,9 +335,10 @@ and re-run the CreateCluster tool.
 Read-only queries are only executed against the first cluster node, but all other statements are
 executed against all nodes. There is currently no load balancing made to avoid problems with
 transactions. The following functions may yield different results on different cluster nodes and must be
-executed with care: RANDOM_UUID(), SECURE_RAND(), SESSION_ID(), MEMORY_FREE(), MEMORY_USED(),
-CSVREAD(), CSVWRITE(), RAND() [when not using a seed]. Those functions should not be used
-directly in modifying statements (for example INSERT, UPDATE, or MERGE). However, they can be used
+executed with care: <code class="notranslate">RANDOM_UUID(), SECURE_RAND(), SESSION_ID(),
+MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND()</code> [when not using a seed].
+Those functions should not be used directly in modifying statements
+(for example <code class="notranslate">INSERT, UPDATE, MERGE</code>). However, they can be used
 in read-only statements and the result can then be used for modifying statements.
 </p>
 
@@ -373,12 +382,14 @@ Other database engines may commit the transaction in this case when the result s
 There is a list of keywords that can't be used as identifiers (table names, column names and so on),
 unless they are quoted (surrounded with double quotes). The list is currently:
 </p><p>
+<code class="notranslate">
 CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, DISTINCT, EXCEPT, EXISTS, FALSE,
 FOR, FROM, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, LIMIT, MINUS, NATURAL, NOT, NULL,
 ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION, WHERE
+</code>
 </p><p>
 Certain words of this list are keywords because they are functions that can be used without '()' for compatibility,
-for example CURRENT_TIMESTAMP.
+for example <code class="notranslate">CURRENT_TIMESTAMP</code>.
 </p>
 
 <br />
@@ -394,43 +405,43 @@ are not standardized. Whenever this is the case, this database tries to be compa
 <h2 id="windows_service">Run as Windows Service</h2>
 <p>
 Using a native wrapper / adapter, Java applications can be run as a Windows Service.
-There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc.
-(<a href="http://wrapper.tanukisoftware.org">http://wrapper.tanukisoftware.org</a>)
-is included in the installation. Batch files are provided to install, start, stop and uninstall the H2 Database Engine Service.
-This service contains the TCP Server and the H2 Console web application.
-The batch files are located in the directory H2/service.
+There are various tools available to do that. The Java Service Wrapper from
+<a href="http://wrapper.tanukisoftware.org">Tanuki Software, Inc.</a>
+is included in the installation. Batch files are provided to install, start, stop and uninstall the
+H2 Database Engine Service. This service contains the TCP Server and the H2 Console web application.
+The batch files are located in the directory <code class="notranslate">h2/service</code>.
 </p>
 
 <h3>Install the Service</h3>
 <p>
 The service needs to be registered as a Windows Service first.
-To do that, double click on 1_install_service.bat.
+To do that, double click on <code class="notranslate">1_install_service.bat</code>.
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
 </p>
 
 <h3>Start the Service</h3>
 <p>
 You can start the H2 Database Engine Service using the service manager of Windows,
-or by double clicking on 2_start_service.bat.
+or by double clicking on <code class="notranslate">2_start_service.bat</code>.
 Please note that the batch file does not print an error message if the service is not installed.
 </p>
 
 <h3>Connect to the H2 Console</h3>
 <p>
 After installing and starting the service, you can connect to the H2 Console application using a browser.
-Double clicking on 3_start_browser.bat to do that. The
+Double clicking on <code class="notranslate">3_start_browser.bat</code> to do that. The
 default port (8082) is hard coded in the batch file.
 </p>
 
 <h3>Stop the Service</h3>
 <p>
-To stop the service, double click on 4_stop_service.bat.
+To stop the service, double click on <code class="notranslate">4_stop_service.bat</code>.
 Please note that the batch file does not print an error message if the service is not installed or started.
 </p>
 
 <h3>Uninstall the Service</h3>
 <p>
-To uninstall the service, double click on 5_uninstall_service.bat.
+To uninstall the service, double click on <code class="notranslate">5_uninstall_service.bat</code>.
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
 </p>
 
@@ -463,7 +474,7 @@ The Windows version of the PostgreSQL ODBC driver is available at
 <p>
 After installing the ODBC driver, start the H2 Server using the command line:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.Server
 </pre>
 <p>
@@ -471,13 +482,13 @@ The PG Server (PG for PostgreSQL protocol) is started as well.
 By default, databases are stored in the current working directory where the server is started.
 Use -baseDir to save databases in another directory, for example the user home directory:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.Server -baseDir ~
 </pre>
 <p>
 The PG server can be started and stopped from within a Java application as follows:
 </p>
-<pre>
+<pre class="notranslate">
 Server server = Server.createPgServer("-baseDir", "~");
 server.start();
 ...
@@ -571,7 +582,7 @@ An implementation of the ADO.NET interface is available in the open source proje
 If you want your C# application use H2, you need to add the h2.dll and the
 IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
 </p>
-<pre>
+<pre class="notranslate">
 using System;
 using java.sql;
 
@@ -647,14 +658,15 @@ Making sure that committed transactions are not lost is more complicated than it
 To guarantee complete durability, a database must ensure that the log record is on the hard drive
 before the commit call returns. To do that, databases use different methods. One
 is to use the 'synchronous write' file access mode. In Java, RandomAccessFile
-supports the modes "rws" and "rwd":
+supports the modes <code class="notranslate">"rws"</code> and <code class="notranslate">"rwd"</code>:
 </p>
 <ul>
-<li>rwd: every update to the file's content is written synchronously to the underlying storage device.
-</li><li>rws: in addition to rwd, every update to the metadata is written synchronously.</li>
+<li><code class="notranslate">rwd</code>: every update to the file's content is written synchronously to the underlying storage device.
+</li><li><code class="notranslate">rws</code>: in addition to rwd, every update to the metadata is written synchronously.</li>
 </ul>
 <p>
-A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second.
+A test (<code class="notranslate">org.h2.test.poweroff.TestWrite</code>) with one of those modes achieves
+around 50 thousand write operations per second.
 Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second.
 This feature does not force changes to disk because it does not flush all buffers.
 The test updates the same byte in the file again and again. If the hard drive was able to write at this rate,
@@ -666,16 +678,18 @@ or about 120 revolutions per second. There is an overhead, so the maximum write 
 Calling fsync flushes the buffers. There are two ways to do that in Java:
 </p>
 <ul>
-<li>FileDescriptor.sync(). The documentation says that this forces all system buffers to synchronize with the underlying device.
+<li><code class="notranslate">FileDescriptor.sync()</code>. The documentation says that this forces all system
+buffers to synchronize with the underlying device.
 Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor
 have been written to the physical medium.
-</li><li>FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file
-to be written to the storage device that contains it.
+</li><li><code class="notranslate">FileChannel.force()</code> (since JDK 1.4). This method is supposed
+to force any updates to this channel's file to be written to the storage device that contains it.
 </li></ul>
 <p>
 By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations
 per second can be achieved, which is consistent with the RPM rate of the hard drive used.
-Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(),
+Unfortunately, even when calling <code class="notranslate">FileDescriptor.sync()</code> or
+<code class="notranslate">FileChannel.force()</code>,
 data is not always persisted to the hard drive, because most hard drives do not obey
 fsync(): see
 <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a>.
@@ -692,7 +706,8 @@ Because of those reasons, the default behavior of H2 is to delay writing committ
 </p>
 <p>
 In H2, after a power failure, a bit more than one second of committed transactions may be lost.
-To change the behavior, use SET WRITE_DELAY and CHECKPOINT SYNC.
+To change the behavior, use <code class="notranslate">SET WRITE_DELAY</code> and
+<code class="notranslate">CHECKPOINT SYNC</code>.
 Most other databases support commit delay as well.
 In the performance comparison, commit delay was used for all databases that support it.
 </p>
@@ -700,7 +715,8 @@ In the performance comparison, commit delay was used for all databases that supp
 <h3>Running the Durability Test</h3>
 <p>
 To test the durability / non-durability of this and other databases, you can use the test application
-in the package org.h2.test.poweroff. Two computers with network connection are required to run this test.
+in the package <code class="notranslate">org.h2.test.poweroff</code>.
+Two computers with network connection are required to run this test.
 One computer just listens, while the test application is run (and power is cut) on the other computer.
 The computer with the listener application opens a TCP/IP port and listens for an incoming connection.
 The second computer first connects to the listener, and then created the databases and starts inserting
@@ -719,7 +735,7 @@ The recover tool can be used to extract the contents of a data file, even if the
 It also extracts the content of the log file or large objects (CLOB or BLOB).
 To run the tool, type on the command line:
 </p>
-<pre>
+<pre class="notranslate">
 java -cp h2*.jar org.h2.tools.Recover
 </pre>
 <p>
@@ -727,14 +743,14 @@ For each database in the current directory, a text file will be created.
 This file contains raw insert statements (for the data) and data definition (DDL) statements to recreate
 the schema of the database. This file can be executed using the RunScript tool or a
 <code class="notranslate">RUNSCRIPT FROM</code> SQL statement. The script includes at least one
-CREATE USER statement. If you run the script against a database that was created with the same
+<code class="notranslate">CREATE USER</code> statement. If you run the script against a database that was created with the same
 user, or if there are conflicting users, running the script will fail. Consider running the script
 against a database that was created with a user name that is not in the script.
 </p>
 <p>
-The recover tool creates a SQL script from the .data.db file. It also processes the transaction log file(s),
+The recover tool creates a SQL script from database files. It also processes the transaction log file(s),
 however it does not automatically apply those changes. Usually, many of those changes are already
-applied in the .data.db file.
+applied in the database.
 </p>
 
 <br />
@@ -759,7 +775,8 @@ The two methods are 'file method' and 'socket methods'.
 The default method for database file locking is the 'File Method'. The algorithm is:
 </p>
 <ul>
-<li>If the lock file does not exist, it is created (using the atomic operation File.createNewFile).
+<li>If the lock file does not exist, it is created (using the atomic operation
+<code class="notranslate">File.createNewFile</code>).
 Then, the process waits a little bit (20ms) and checks the file again. If the file was changed
 during this time, the operation is aborted. This protects against a race condition
 when one process deletes the lock file just after another one create it, and a third process creates
@@ -827,16 +844,17 @@ This database engine provides a solution for the security vulnerability known as
 Here is a short description of what SQL injection means.
 Some applications build SQL statements with embedded user input such as:
 </p>
-<pre>
+<pre class="notranslate">
 String sql = "SELECT * FROM USERS WHERE PASSWORD='"+pwd+"'";
 ResultSet rs = conn.createStatement().executeQuery(sql);
 </pre>
 <p>
 If this mechanism is used anywhere in the application, and user input is not correctly filtered or encoded,
 it is possible for a user to inject SQL functionality or statements by using specially built input
-such as (in this example) this password: ' OR ''='. In this case the statement becomes:
+such as (in this example) this password: <code class="notranslate">' OR ''='</code>.
+In this case the statement becomes:
 </p>
-<pre>
+<pre class="notranslate">
 SELECT * FROM USERS WHERE PASSWORD='' OR ''='';
 </pre>
 <p>
@@ -847,9 +865,9 @@ For more information about SQL Injection, see Glossary and Links.
 <h3>Disabling Literals</h3>
 <p>
 SQL Injection is not possible if user input is not directly embedded in SQL statements.
-A simple solution for the problem above is to use a PreparedStatement:
+A simple solution for the problem above is to use a prepared statement:
 </p>
-<pre>
+<pre class="notranslate">
 String sql = "SELECT * FROM USERS WHERE PASSWORD=?";
 PreparedStatement prep = conn.prepareStatement(sql);
 prep.setString(1, pwd);
@@ -860,28 +878,31 @@ This database provides a way to enforce usage of parameters when passing user in
 to the database. This is done by disabling embedded literals in SQL statements.
 To do this, execute the statement:
 </p>
-<pre>
+<pre class="notranslate">
 SET ALLOW_LITERALS NONE;
 </pre>
 <p>
 Afterwards, SQL statements with text and number literals are not allowed any more.
-That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail.
-It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate
+That means, SQL statement of the form <code class="notranslate">WHERE NAME='abc'</code>
+or <code class="notranslate">WHERE CustomerId=10</code> will fail.
+It is still possible to use prepared statements and parameters as described above. Also, it is still possible to generate
 SQL statements dynamically, and use the Statement API, as long as the SQL statements
 do not include literals.
-There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS.
-To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting).
-Literals can only be enabled or disabled by an administrator.
+There is also a second mode where number literals are allowed:
+<code class="notranslate">SET ALLOW_LITERALS NUMBERS</code>.
+To allow all literals, execute <code class="notranslate">SET ALLOW_LITERALS ALL</code>
+(this is the default setting). Literals can only be enabled or disabled by an administrator.
 </p>
 
 <h3>Using Constants</h3>
 <p>
 Disabling literals also means disabling hard-coded 'constant' literals. This database supports
-defining constants using the CREATE CONSTANT command. Constants can be defined only
+defining constants using the <code class="notranslate">CREATE CONSTANT</code> command.
+Constants can be defined only
 when literals are enabled, but used even when literals are disabled. To avoid name clashes
 with column names, constants can be defined in other schemas:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE SCHEMA CONST AUTHORIZATION SA;
 CREATE CONSTANT CONST.ACTIVE VALUE 'Active';
 CREATE CONSTANT CONST.INACTIVE VALUE 'Inactive';
@@ -895,9 +916,9 @@ time, the source code is easier to understand and change.
 
 <h3>Using the ZERO() Function</h3>
 <p>
-It is not required to create a constant for the number 0 as there is already a built-in function ZERO():
+It is not required to create a constant for the number 0 as there is already a built-in function <code class="notranslate">ZERO()</code>:
 </p>
-<pre>
+<pre class="notranslate">
 SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 </pre>
 
@@ -906,8 +927,9 @@ SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 <p>
 By default this database does not allow others to connect when starting the H2 Console,
 the TCP server, or the PG server. Remote access can be enabled using the command line
-options -webAllowOthers, -tcpAllowOthers, and -pgAllowOthers. If you enable remote
-access, please also consider using the options -baseDir and -ifExists, so that remote
+options <code class="notranslate">-webAllowOthers, -tcpAllowOthers, -pgAllowOthers</code>.
+If you enable remote access, please also consider using the options
+<code class="notranslate">-baseDir, -ifExists</code>, so that remote
 users can not create new databases or access existing databases with weak passwords. Also,
 ensure the existing accessible databases are protected using a strong password.
 </p>
@@ -916,9 +938,10 @@ ensure the existing accessible databases are protected using a strong password.
 <h2 id="restricting_classes">Restricting Class Loading and Usage</h2>
 <p>
 By default there is no restriction on loading classes and executing Java code for admins.
-That means an admin may call system functions such as System.setProperty by executing:
+That means an admin may call system functions such as
+<code class="notranslate">System.setProperty</code> by executing:
 </p>
-<pre>
+<pre class="notranslate">
 CREATE ALIAS SET_PROPERTY FOR "java.lang.System.setProperty";
 CALL SET_PROPERTY('abc', '1');
 CREATE ALIAS GET_PROPERTY FOR "java.lang.System.getProperty";
@@ -926,11 +949,12 @@ CALL GET_PROPERTY('abc');
 </pre>
 <p>
 To restrict users (including admins) from loading classes and executing code,
-the list of allowed classes can be set in the system property h2.allowedClasses
+the list of allowed classes can be set in the system property
+<code class="notranslate">h2.allowedClasses</code>
 in the form of a comma separated list of classes or patterns (items ending with '*').
 By default all classes are allowed. Example:
 </p>
-<pre>
+<pre class="notranslate">
 java -Dh2.allowedClasses=java.lang.Math,com.acme.*
 </pre>
 <p>
@@ -1028,8 +1052,8 @@ database operations take about 2.2 times longer when using XTEA, and 2.5 times l
 <h3>Wrong Password / User Name Delay</h3>
 <p>
 To protect against remote brute force password attacks, the delay after each unsuccessful
-login gets double as long. Use the system properties h2.delayWrongPasswordMin
-and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds)
+login gets double as long. Use the system properties <code class="notranslate">h2.delayWrongPasswordMin</code>
+and <code class="notranslate">h2.delayWrongPasswordMax</code> to change the minimum (the default is 250 milliseconds)
 or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only
 applies for those using the wrong password. Normally there is no delay for a user that knows the correct
 password, with one exception: after using the wrong password, there is a delay of up to (randomly distributed)
@@ -1045,7 +1069,7 @@ if the user name was wrong or the password.
 
 <h3>HTTPS Connections</h3>
 <p>
-The web server supports HTTP and HTTPS connections using SSLServerSocket.
+The web server supports HTTP and HTTPS connections using <code class="notranslate">SSLServerSocket</code>.
 There is a default self-certified certificate to support an easy starting point, but
 custom certificates are supported as well.
 </p>
@@ -1054,7 +1078,7 @@ custom certificates are supported as well.
 <h2 id="ssl_tls_connections">SSL/TLS Connections</h2>
 <p>
 Remote SSL/TLS connections are supported using the Java Secure Socket Extension
-(SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled.
+(<code class="notranslate">SSLServerSocket, SSLSocket</code>). By default, anonymous SSL is enabled.
 The default cipher suite is <code class="notranslate">SSL_DH_anon_WITH_RC4_128_MD5</code>.
 </p>
 <p>
@@ -1077,11 +1101,12 @@ With random UUIDs, the chance of two having the same value can be calculated
 using the probability theory. See also 'Birthday Paradox'.
 Standardized randomly generated UUIDs have 122 random bits.
 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz).
-This database supports generating such UUIDs using the built-in function RANDOM_UUID().
+This database supports generating such UUIDs using the built-in function
+<code class="notranslate">RANDOM_UUID()</code>.
 Here is a small program to estimate the probability of having two identical UUIDs
 after generating a number of values:
 </p>
-<pre>
+<pre class="notranslate">
 public class Test {
     public static void main(String[] args) throws Exception {
         double x = Math.pow(2, 122);
@@ -1113,16 +1138,16 @@ that means the probability is about 0.000'000'000'06.
 <h2 id="system_properties">Settings Read from System Properties</h2>
 <p>
 Some settings of the database can be set on the command line using
--DpropertyName=value. It is usually not required to change those settings manually.
+<code class="notranslate">-DpropertyName=value</code>. It is usually not required to change those settings manually.
 The settings are case sensitive.
 Example:
 </p>
-<pre>
+<pre class="notranslate">
 java -Dh2.serverCachedObjects=256 org.h2.tools.Server
 </pre>
 <p>
 The current value of the settings can be read in the table
-INFORMATION_SCHEMA.SETTINGS.
+<code class="notranslate">INFORMATION_SCHEMA.SETTINGS</code>.
 </p>
 <p>
 For a complete list of settings, see
@@ -1134,7 +1159,7 @@ For a complete list of settings, see
 <p>
 Usually server sockets accept connections on any/all local addresses.
 This may be a problem on multi-homed hosts.
-To bind only to one address, use the system property h2.bindAddress.
+To bind only to one address, use the system property <code class="notranslate">h2.bindAddress</code>.
 This setting is used for both regular server sockets and for SSL server sockets.
 IPv4 and IPv6 address formats are supported.
 </p>
@@ -1145,20 +1170,20 @@ IPv4 and IPv6 address formats are supported.
 This database supports a pluggable file system API. The file system implementation
 is selected using a file name prefix. The following file systems are included:
 </p>
-<ul><li><b>zip:</b>  read-only zip-file based file system. Format: zip:/zipFileName!/fileName.
-</li><li><b>nio:</b> file system that uses FileChannel instead of RandomAccessFile (faster in some operating systems).
-</li><li><b>nioMapped:</b> file system that uses memory mapped files (faster in some operating systems).
-</li><li><b>split:</b> file system that splits files in 1 GB files (stackable with other file systems).
-</li><li><b>memFS:</b> in-memory file system (experimental; used for testing).
-</li><li><b>memLZF:</b> compressing in-memory file system (experimental; used for testing).
+<ul><li><code class="notranslate">zip:</code>  read-only zip-file based file system. Format: <code class="notranslate">zip:/zipFileName!/fileName</code>.
+</li><li><code class="notranslate">nio:</code> file system that uses <code class="notranslate">FileChannel</code> instead of <code class="notranslate">RandomAccessFile</code> (faster in some operating systems).
+</li><li><code class="notranslate">nioMapped:</code> file system that uses memory mapped files (faster in some operating systems).
+</li><li><code class="notranslate">split:</code> file system that splits files in 1 GB files (stackable with other file systems).
+</li><li><code class="notranslate">memFS:</code> in-memory file system (experimental; used for testing).
+</li><li><code class="notranslate">memLZF:</code> compressing in-memory file system (experimental; used for testing).
 </li></ul>
 <p>
-As an example, to use the the <b>nio</b> file system, use the following database URL:
+As an example, to use the the <code class="notranslate">nio</code> file system, use the following database URL:
 <code class="notranslate">jdbc:h2:nio:~/test</code>.
 </p>
 <p>
-To register a new file system, extend the classes org.h2.store.fs.FileSystem and FileObject,
-and call the method FileSystem.register before using it.
+To register a new file system, extend the classes <code class="notranslate">org.h2.store.fs.FileSystem, FileObject</code>,
+and call the method <code class="notranslate">FileSystem.register</code> before using it.
 </p>
 
 <br />
@@ -1182,7 +1207,7 @@ files of 1 GB by default. An example database URL is:
     With the page store (experimental), the minimum main memory required is much lower, around 1 MB for each 8 GB database file size.
 </li><li>Limit on the complexity of SQL statements.
 Statements of the following form will result in a stack overflow exception:
-<pre>
+<pre class="notranslate">
 SELECT * FROM DUAL WHERE X = 1
 OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
 -- repeat previous line 500 times --

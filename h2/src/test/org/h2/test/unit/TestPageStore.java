@@ -111,7 +111,7 @@ public class TestPageStore extends TestBase {
                         p.setInt(3, random.nextInt(100));
                     }
                     p.execute();
-                 } else if (random.nextInt(100) < 90) {
+                } else if (random.nextInt(100) < 90) {
                     p = updateMany[random.nextInt(tableCount)];
                     p.setInt(1, i);
                     p.setInt(2, random.nextInt(50));

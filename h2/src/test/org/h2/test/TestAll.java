@@ -297,7 +297,10 @@ java org.h2.test.TestAll timer
 
 /*
 
-check freelist undo recursion
+translate button should be disabled by default because it is slow.
+
+documentation: rolling review at features (alphabetically)
+<code class="notranslate"></code>
 
 mvcc merge problem
 
@@ -313,8 +316,6 @@ out of memory in tests: analyze heap dump
 -------------
 
 integrate the short documentation, but where?
-
-documentation: rolling review at roadmap.html: done
 
 remove old TODO, move to roadmap
 

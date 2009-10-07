@@ -86,6 +86,9 @@ public class PageFreeList extends Page {
                     return -1;
                 }
             } else {
+                // set the bit first, because logUndo can
+                // allocate other pages, and we must not
+                // return the same page twice
                 used.set(free);
                 store.logUndo(this, data);
                 store.update(this);

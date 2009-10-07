@@ -873,7 +873,7 @@ public class Recover extends Tool implements DataHandler {
                 boolean last = (type & Page.FLAG_LAST) != 0;
                 type &= ~Page.FLAG_LAST;
                 if (!PageStore.checksumTest(s.getBytes(), page, pageSize)) {
-                    writer.println("-- ERROR: page " + page + " checksum mismatch");
+                    writer.println("-- ERROR: page " + page + " checksum mismatch type: " + type);
                 }
                 s.readShortInt();
                 switch (type) {
@@ -1166,12 +1166,12 @@ public class Recover extends Tool implements DataHandler {
                     store.seek((long) nextPage * pageSize);
                     store.readFully(page.getBytes(), 0, pageSize);
                     page.reset();
-                    if (!PageStore.checksumTest(page.getBytes(), nextPage, pageSize)) {
+                    int t = page.readByte();
+                    if (t != 0 && !PageStore.checksumTest(page.getBytes(), nextPage, pageSize)) {
                         writer.println("-- ERROR: checksum mismatch page: " +nextPage);
                         endOfFile = true;
                         return;
                     }
-                    int t = page.readByte();
                     page.readShortInt();
                     int p = page.readInt();
                     int k = page.readInt();
@@ -1199,14 +1199,12 @@ public class Recover extends Tool implements DataHandler {
         int entryCount = s.readShortInt();
         int[] children = new int[entryCount + 1];
         int[] offsets = new int[entryCount];
-        int rightmost = s.readInt();
-        checkParent(writer, pageId, rightmost);
-        children[entryCount] = rightmost;
+        children[entryCount] = s.readInt();
+        checkParent(writer, pageId, children, entryCount);
         int empty = Integer.MAX_VALUE;
         for (int i = 0; i < entryCount; i++) {
-            int child = s.readInt();
-            checkParent(writer, pageId, child);
-            children[i] = child;
+            children[i] = s.readInt();
+            checkParent(writer, pageId, children, i);
             int off = s.readShortInt();
             empty = Math.min(off, empty);
             offsets[i] = off;
@@ -1292,24 +1290,23 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void checkParent(PrintWriter writer, long pageId, long child) {
+    private void checkParent(PrintWriter writer, long pageId, int[] children, int index) {
+        int child = children[index];
         if (child < 0 || child >= parents.length) {
-            writer.println("-- ERROR [" + pageId + "] child: " + child + " page count: " + parents.length);
-        } else if (parents[(int) child] != pageId) {
-            writer.println("-- ERROR [" + pageId + "] expected child: " + child + " got: " + parents[(int) child]);
+            writer.println("-- ERROR [" + pageId + "] child[" + index + "]: " + child + " >= page count: " + parents.length);
+        } else if (parents[child] != pageId) {
+            writer.println("-- ERROR [" + pageId + "] child[" + index + "]: " + child + " parent: " + parents[child]);
         }
     }
 
     private void dumpPageDataNode(PrintWriter writer, Data s, long pageId, int entryCount) {
         int[] children = new int[entryCount + 1];
         long[] keys = new long[entryCount];
-        int child = s.readInt();
-        children[entryCount] = child;
-        checkParent(writer, pageId, child);
+        children[entryCount] = s.readInt();
+        checkParent(writer, pageId, children, entryCount);
         for (int i = 0; i < entryCount; i++) {
-            child = s.readInt();
-            children[i] = child;
-            checkParent(writer, pageId, child);
+            children[i] = s.readInt();
+            checkParent(writer, pageId, children, i);
             keys[i] = s.readVarLong();
         }
         if (!trace) {
@@ -1347,7 +1344,7 @@ public class Recover extends Tool implements DataHandler {
             s.setPos(pageSize);
             long parent = pageId;
             while (true) {
-                checkParent(writer, parent, next);
+                checkParent(writer, parent, new int[]{(int) next}, 0);
                 parent = next;
                 store.seek(pageSize * next);
                 store.readFully(s2.getBytes(), 0, pageSize);

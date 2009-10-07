@@ -148,9 +148,10 @@ abstract class PageData extends Page {
      * @param id the new page id
      */
     void setPageId(int id) throws SQLException {
+        int old = getPos();
         index.getPageStore().removeRecord(getPos());
         setPos(id);
-        remapChildren();
+        remapChildren(old);
     }
 
     /**
@@ -182,8 +183,10 @@ abstract class PageData extends Page {
 
     /**
      * Update the parent id of all children.
+     *
+     * @param old the previous position
      */
-    abstract void remapChildren() throws SQLException;
+    abstract void remapChildren(int old) throws SQLException;
 
     /**
      * Remove a row.

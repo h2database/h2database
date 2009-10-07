@@ -297,6 +297,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+check freelist undo recursion
+
 mvcc merge problem
 
 System.setProperty("h2.optimizeInList", "true");

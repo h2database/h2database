@@ -49,6 +49,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
 
     public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
+        // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
             sessionRowCount = New.hashMap();
@@ -73,7 +74,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             rowCount = root.getRowCount();
         }
         if (trace.isDebugEnabled()) {
-            trace.debug("opened " + getName() + " rows:" + rowCount);
+            trace.debug(this + " opened rows:" + rowCount);
         }
         table.setRowCount(rowCount);
         fastDuplicateKeyException = super.getDuplicateKeyException();
@@ -98,9 +99,6 @@ public class PageDataIndex extends PageIndex implements RowIndex {
                 row.setKey((int) ++lastKey);
                 retry = true;
             }
-        }
-        if (trace.isDebugEnabled()) {
-            trace.debug("add table:" + table.getId() + " " + row);
         }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {
@@ -149,7 +147,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
                 break;
             }
             if (trace.isDebugEnabled()) {
-                trace.debug("split " + splitPoint);
+                trace.debug(this + " split");
             }
             long pivot = splitPoint == 0 ? row.getKey() : root.getKey(splitPoint - 1);
             PageData page1 = root;
@@ -207,9 +205,6 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             store.logUndo(empty, null);
             store.update(empty);
             return empty;
-        }
-        if (p.index.rootPageId != rootPageId) {
-            throw Message.throwInternalError("Wrong index: " + p.index.getName() + ":" + p.index.rootPageId + " " + getName() + ":" + rootPageId);
         }
         if (parent != -1) {
             if (p.getParentPageId() != parent) {
@@ -280,9 +275,6 @@ public class PageDataIndex extends PageIndex implements RowIndex {
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        if (trace.isDebugEnabled()) {
-            trace.debug("remove " + row.getKey());
-        }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {
                 Value v = row.getValue(i);
@@ -322,7 +314,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
 
     public void remove(Session session) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("remove");
+            trace.debug(this + " remove");
         }
         removeAllRows();
         store.free(rootPageId, true);
@@ -331,7 +323,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
 
     public void truncate(Session session) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("truncate");
+            trace.debug(this + " truncate");
         }
         store.logTruncate(session, tableData.getId());
         removeAllRows();
@@ -421,7 +413,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
 
     public void close(Session session) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("close");
+            trace.debug(this + " close");
         }
         if (delta != null) {
             delta.clear();
@@ -486,6 +478,10 @@ public class PageDataIndex extends PageIndex implements RowIndex {
 
     int getMemorySizePerPage() {
         return memorySizePerPage;
+    }
+
+    public String toString() {
+        return getName();
     }
 
 }

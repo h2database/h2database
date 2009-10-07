@@ -190,13 +190,13 @@ public class PageDataNode extends PageData {
         removeChild(splitPoint - 1);
         childPageIds[splitPoint - 1] = lastChild;
         p2.childPageIds[0] = firstChild;
-        p2.remapChildren();
+        p2.remapChildren(getPos());
         return p2;
     }
 
-    protected void remapChildren() throws SQLException {
+    protected void remapChildren(int old) throws SQLException {
         for (int child : childPageIds) {
-            PageData p = index.getPage(child, -1);
+            PageData p = index.getPage(child, old);
             p.setParentPageId(getPos());
             index.getPageStore().update(p);
         }

@@ -116,7 +116,7 @@ public class ValueLob extends Value {
         return new ValueLob(type, small);
     }
 
-    private static String getFileName(DataHandler handler, int tableId, int objectId) {
+    private static String getFileName(DataHandler handler, int tableId, int objectId) throws SQLException {
         if (SysProperties.CHECK && tableId == 0 && objectId == 0) {
             Message.throwInternalError("0 LOB");
         }
@@ -138,7 +138,7 @@ public class ValueLob extends Value {
      * @param compression if compression is used
      * @return the value object
      */
-    public static ValueLob open(int type, DataHandler handler, int tableId, int objectId, long precision, boolean compression) {
+    public static ValueLob open(int type, DataHandler handler, int tableId, int objectId, long precision, boolean compression) throws SQLException {
         String fileName = getFileName(handler, tableId, objectId);
         return new ValueLob(type, handler, fileName, tableId, objectId, true, precision, compression);
     }
@@ -231,7 +231,7 @@ public class ValueLob extends Value {
         }
     }
 
-    private static String getFileNamePrefix(String path, int objectId) {
+    private static String getFileNamePrefix(String path, int objectId) throws SQLException {
         String name;
         int f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
         if (f > 0) {
@@ -245,7 +245,7 @@ public class ValueLob extends Value {
             name = File.separator + f + Constants.SUFFIX_LOBS_DIRECTORY + name;
             objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         }
-        name = path + Constants.SUFFIX_LOBS_DIRECTORY + name;
+        name = FileUtils.normalize(path + Constants.SUFFIX_LOBS_DIRECTORY + name);
         return name;
     }
 
@@ -259,7 +259,7 @@ public class ValueLob extends Value {
             boolean[] used = new boolean[SysProperties.LOB_FILES_PER_DIRECTORY];
             for (String name : list) {
                 if (name.endsWith(Constants.SUFFIX_DB_FILE)) {
-                    name = name.substring(name.lastIndexOf(File.separatorChar) + 1);
+                    name = FileUtils.getFileName(name);
                     String n = name.substring(0, name.indexOf('.'));
                     int id;
                     try {

@@ -368,7 +368,7 @@ public class PageDataLeaf extends PageData {
         return this;
     }
 
-    protected void remapChildren() throws SQLException {
+    protected void remapChildren(int old) throws SQLException {
         if (firstOverflowPageId == 0) {
             return;
         }
@@ -503,9 +503,8 @@ public class PageDataLeaf extends PageData {
         }
         p2.entryCount = entryCount;
         p2.offsets = offsets;
-        p2.parentPageId = parentPageId;
         p2.start = start;
-        p2.remapChildren();
+        p2.remapChildren(getPos());
         p2.write();
         p2.data.truncate(index.getPageStore().getPageSize());
         store.update(p2);

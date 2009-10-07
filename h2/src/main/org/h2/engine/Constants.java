@@ -19,7 +19,7 @@ public class Constants {
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 119;
+    public static final int BUILD_ID_STABLE = 118;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to
@@ -37,7 +37,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE_STABLE = "2009-09-26";
+    public static final String BUILD_DATE_STABLE = "2009-09-04";
 
     /**
      * The TCP protocol version number 5. This protocol is used by the TCP

@@ -1884,7 +1884,12 @@ public class Function extends Expression implements FunctionCall {
             char fieldSeparator = csv.getFieldSeparatorRead();
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
             ResultSet rs = csv.read(fileName, columns, charset);
-            ValueResultSet vr = ValueResultSet.getCopy(rs, 0);
+            ValueResultSet vr;
+            try {
+                vr = ValueResultSet.getCopy(rs, 0);
+            } finally {
+                rs.close();
+            }
             return vr;
         }
         default:

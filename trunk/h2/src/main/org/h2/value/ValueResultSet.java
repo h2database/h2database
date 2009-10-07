@@ -40,7 +40,7 @@ public class ValueResultSet extends Value {
 
     /**
      * Create a result set value for the given result set. The result set will
-     * be fully read in memory.
+     * be fully read in memory. The original result set is not closed.
      *
      * @param rs the result set
      * @param maxrows the maximum number of rows to read (0 to just read the

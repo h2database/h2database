@@ -122,8 +122,11 @@ public class PageFreeList extends Page {
     int allocate(int pageId) throws SQLException {
         int idx = pageId - getPos();
         if (idx >= 0 && !used.get(idx)) {
-            store.logUndo(this, data);
+            // set the bit first, because logUndo can
+            // allocate other pages, and we must not
+            // return the same page twice
             used.set(idx);
+            store.logUndo(this, data);
             store.update(this);
         }
         return pageId;

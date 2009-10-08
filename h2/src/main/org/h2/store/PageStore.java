@@ -1018,8 +1018,9 @@ public class PageStore implements CacheWriter {
         }
         for (Index openIndex : metaObjects.values()) {
             if (openIndex.getTable().isTemporary()) {
+                openIndex.truncate(systemSession);
                 openIndex.remove(systemSession);
-                this.removeMetaIndex(openIndex, systemSession);
+                removeMetaIndex(openIndex, systemSession);
             }
             openIndex.close(systemSession);
         }
@@ -1356,7 +1357,11 @@ public class PageStore implements CacheWriter {
     }
 
     private void removeMetaIndex(Index index, Session session) throws SQLException {
-        Row row = metaIndex.getRow(session, index.getId() + 1);
+        int key = index.getId() + 1;
+        Row row = metaIndex.getRow(session, key);
+        if (row.getKey() != key) {
+            Message.throwInternalError();
+        }
         metaIndex.remove(session, row);
     }
 

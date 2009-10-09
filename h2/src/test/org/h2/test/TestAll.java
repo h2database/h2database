@@ -297,10 +297,15 @@ java org.h2.test.TestAll timer
 
 /*
 
-translate button should be disabled by default because it is slow.
+replace class="n" with class="notranslate" for website
 
-documentation: rolling review at features (alphabetically)
+documentation: rolling review at tutorial.html (alphabetically)
 <code class="notranslate"></code>
+check no space http: or https:
+check space' and 'space
+check spaceNULL and NULLspace
+tool...
+
 
 mvcc merge problem
 

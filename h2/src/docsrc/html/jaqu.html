@@ -56,8 +56,8 @@ JaQu provides full control over when and what SQL statements are executed.
 
 <h3>Restrictions</h3>
 <p>
-Primitive types (eg. boolean, int, long, double) are not supported. Use
-Boolean, Integer, Long, and Double instead.
+Primitive types (eg. <code class="notranslate">boolean, int, long, double</code>) are not supported.
+Use <code class="notranslate">java.lang.Boolean, Integer, Long, Double</code> instead.
 </p>
 
 <h3>Why in Java?</h3>
@@ -71,8 +71,8 @@ in the same application is complicated: you would need to split the application 
 Currently, JaQu is only tested with the H2 database. The API may change in future versions.
 JaQu is not part of the h2 jar file, however the source code is included in H2, under:
 </p>
-<ul><li>src/test/org/h2/test/jaqu/* (samples and tests)
-</li><li>src/tools/org/h2/jaqu/* (framework)
+<ul><li><code class="notranslate">src/test/org/h2/test/jaqu/*</code> (samples and tests)
+</li><li><code class="notranslate">src/tools/org/h2/jaqu/*</code> (framework)
 </li></ul>
 
 <h2>Building the JaQu library</h2>
@@ -247,7 +247,7 @@ public class Product implements Table {
 }
 </pre>
 <p>
-The method 'define()' contains the mapping definition. It is called once
+The method <code class="notranslate">define()</code> contains the mapping definition. It is called once
 when the class is used for the first time. Like annotations, the mapping is defined in the class itself.
 Unlike when using annotations, the compiler can check the syntax even for multi-column
 objects (multi-column indexes, multi-column primary keys and so on).

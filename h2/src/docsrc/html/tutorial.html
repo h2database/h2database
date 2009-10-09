@@ -76,29 +76,30 @@ Depending on your platform and environment, there are multiple ways to start the
     <img src="images/db-16.png" alt="[H2 icon]" /><br />
     If you don't get the window and the system tray icon,
     then maybe Java is not installed correctly (in this case, try another way to start the application).
-    A browser window should open and point to the Login page at http://localhost:8082 .
+    A browser window should open and point to the Login page at <code class="notranslate">http://localhost:8082</code>.
     </td>
 </tr>
 <tr>
     <td>Windows</td>
     <td>
-    Open a file browser, navigate to h2/bin, and double click on h2.bat.<br />
+    Open a file browser, navigate to <code class="notranslate">h2/bin</code>, and 
+    double click on <code class="notranslate">h2.bat</code>.<br />
     A console window appears. If there is a problem, you will see an error message
     in this window. A browser window will open and point to the Login page
-    (URL: http://localhost:8082).
+    (URL: <code class="notranslate">http://localhost:8082</code>).
     </td>
 </tr>
 <tr>
     <td>Any</td>
     <td>
-    Double click on the h2*.jar file.
-    This only works if the .jar suffix is associated with java.
+    Double click on the <code class="notranslate">h2*.jar</code> file.
+    This only works if the <code class="notranslate">.jar</code> suffix is associated with java.
     </td>
 </tr>
 <tr>
     <td>Any</td>
     <td>
-    Open a console window, navigate to the directory 'h2/bin' and type:
+    Open a console window, navigate to the directory <code class="notranslate">h2/bin</code> and type:
     <pre class="notranslate">java -cp h2*.jar org.h2.tools.Server</pre>
     </td>
 </tr>
@@ -145,7 +146,7 @@ but this is usually not required as the console supports multiple concurrent con
 <h3>Using another Port</h3>
 <p>
 If the port is in use by another application, you may want to start the H2 Console on a different port.
-This can be done by changing the port in the file .h2.server.properties. This file is stored
+This can be done by changing the port in the file <code class="notranslate">.h2.server.properties</code>. This file is stored
 in the user directory (for Windows, this is usually in "Documents and Settings/&lt;username&gt;").
 The relevant entry is webPort.
 </p>
@@ -154,10 +155,10 @@ The relevant entry is webPort.
 <p>
 If the server started successfully, you can connect to it using a web browser.
 JavaScript needs to be enabled.
-If you started the server on the same computer as the browser, open the URL http://localhost:8082 .
+If you started the server on the same computer as the browser, open the URL <code class="notranslate">http://localhost:8082</code>.
 If you want to connect to the application from another computer, you need to provide the IP address of the server, for example:
-http://192.168.0.2:8082 .
-If you enabled SSL on the server side, the URL needs to start with https:// .
+<code class="notranslate">http://192.168.0.2:8082</code>.
+If you enabled SSL on the server side, the URL needs to start with <code class="notranslate">https://</code>.
 </p>
 
 <h3>Multiple Concurrent Sessions</h3>
@@ -185,11 +186,14 @@ by clicking on the message.
 <h3>Adding Database Drivers</h3>
 <p>
 Additional database drivers can be registered by adding the Jar file location of the driver to the environment
-variables H2DRIVERS or CLASSPATH. Example (Windows): to add the database driver library
-C:\Programs\hsqldb\lib\hsqldb.jar, set the environment variable H2DRIVERS to
-C:\Programs\hsqldb\lib\hsqldb.jar.
+variables <code class="notranslate">H2DRIVERS</code> or <code class="notranslate">CLASSPATH</code>.
+Example (Windows): to add the database driver library
+<code class="notranslate">C:\Programs\hsqldb\lib\hsqldb.jar</code>, set the environment variable 
+<code class="notranslate">H2DRIVERS</code> to
+<code class="notranslate">C:\Programs\hsqldb\lib\hsqldb.jar</code>.
 </p><p>
-Multiple drivers can be set; each entry needs to be separated with a ';' (Windows) or ':' (other operating systems).
+Multiple drivers can be set; each entry needs to be separated with a <code class="notranslate">;</code> (Windows)
+or <code class="notranslate">:</code> (other operating systems).
 Spaces in the path names are supported. The settings must not be quoted.
 </p>
 
@@ -203,9 +207,9 @@ Type in a SQL command on the query panel and click 'Run'. The result of the comm
 <h3>Inserting Table Names or Column Names</h3>
 <p>
 The table name and column names can be inserted in the script by clicking them in the tree.
-If you click on a table while the query is empty, a 'SELECT * FROM ...' is added as well.
+If you click on a table while the query is empty, then <code class="notranslate">SELECT * FROM ...</code> is added as well.
 While typing a query, the table that was used is automatically expanded in the tree.
-For, example if you type 'SELECT * FROM TEST T WHERE T.' then the table TEST is automatically expanded in the tree.
+For example if you type <code class="notranslate">SELECT * FROM TEST T WHERE T.</code> then the table TEST is automatically expanded in the tree.
 </p>
 
 <h3>Disconnecting and Stopping the Application</h3>
@@ -254,7 +258,7 @@ and then opens a connection (using <code class="notranslate">DriverManager.getCo
 The driver name is <code class="notranslate">"org.h2.Driver"</code>.
 The database URL always needs to start with <code class="notranslate">jdbc:h2:</code>
 to be recognized by this database. The second parameter in the <code class="notranslate">getConnection()</code> call
-is the user name ('sa' for System Administrator in this example). The third parameter is the password.
+is the user name (<code class="notranslate">sa</code> for System Administrator in this example). The third parameter is the password.
 In this database, user names are not case sensitive, but passwords are.
 </p>
 
@@ -338,7 +342,7 @@ If other server were started in the same process, they will continue to run.
 To avoid recovery when the databases are opened the next time,
 all connections to the databases should be closed before calling this method.
 To stop a remote server, remote connections must be enabled on the server.
-Shutting down a TCP server can be protected using the option -tcpPassword
+Shutting down a TCP server can be protected using the option <code class="notranslate">-tcpPassword</code>
 (the same password must be used to start and stop the TCP server).
 </p>
 
@@ -349,8 +353,8 @@ This database supports Hibernate version 3.1 and newer. You can use the HSQLDB D
 or the native H2 Dialect. Unfortunately the H2 Dialect included in Hibernate is buggy. A
 <a href="http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401">patch
 for Hibernate</a> has been submitted. The dialect for the newest version of Hibernate
-is also available at src/tools/org/hibernate/dialect/H2Dialect.java.txt.
-You can rename it to H2Dialect.java and include this as a patch in your application.
+is also available at <code class="notranslate">src/tools/org/hibernate/dialect/H2Dialect.java.txt</code>.
+You can rename it to <code class="notranslate">H2Dialect.java</code> and include this as a patch in your application.
 </p>
 
 <br />
@@ -398,8 +402,8 @@ same process. Most Servlet Containers (for example Tomcat) are just
 using one process, so this is not a problem (unless you run Tomcat in
 clustered mode). Tomcat uses multiple threads and multiple
 classloaders. If multiple applications access the same database at the
-same time, you need to put the database jar in the shared/lib or
-server/lib directory. It is a good idea to open the database when the
+same time, you need to put the database jar in the <code class="notranslate">shared/lib</code> or
+<code class="notranslate">server/lib</code> directory. It is a good idea to open the database when the
 web application starts, and close it when the web application stops.
 If using multiple applications, only one (any) of them needs to do
 that. In the application, an idea is to use one connection per
@@ -416,7 +420,8 @@ The server mode is similar, but it allows you to run the server in another proce
 <h3>Using a Servlet Listener to Start and Stop a Database</h3>
 <p>
 Add the h2*.jar file to your web application, and
-add the following snippet to your web.xml file (between the 'context-param' and the 'filter' section):
+add the following snippet to your web.xml file (between the 
+<code class="notranslate">context-param</code> and the <code class="notranslate">filter</code> section):
 </p>
 <pre class="notranslate">
 &lt;listener>
@@ -424,18 +429,21 @@ add the following snippet to your web.xml file (between the 'context-param' and 
 &lt;/listener>
 </pre>
 <p>
-For details on how to access the database, see the file DbStarter.java.
-By default the DbStarter listener opens an embedded connection
-using the database URL 'jdbc:h2:~/test', user name 'sa', and password 'sa'.
+For details on how to access the database, see the file <code class="notranslate">DbStarter.java</code>.
+By default this tool opens an embedded connection
+using the database URL <code class="notranslate">jdbc:h2:~/test</code>, 
+user name <code class="notranslate">sa</code>, and password <code class="notranslate">sa</code>.
 If you want to use this connection within your servlet, you can access as follows:
 </p>
 <pre class="notranslate">
 Connection conn = getServletContext().getAttribute("connection");
 </pre>
 <p>
-The DbStarter can also start the TCP server, however this is disabled by default.
-To enable it, use the parameter db.tcpServer in the file web.xml. Here is the complete list of options.
-These options need to be placed between the 'description' tag and the 'listener' / 'filter' tags:
+<code class="notranslate">DbStarter</code> can also start the TCP server, however this is disabled by default.
+To enable it, use the parameter <code class="notranslate">db.tcpServer</code> in the file <code class="notranslate">web.xml</code>. 
+Here is the complete list of options.
+These options need to be placed between the <code class="notranslate">description</code> tag
+and the <code class="notranslate">listener</code> / <code class="notranslate">filter</code> tags:
 </p>
 <pre class="notranslate">
 &lt;context-param>
@@ -457,14 +465,14 @@ These options need to be placed between the 'description' tag and the 'listener'
 </pre>
 <p>
 When the web application is stopped, the database connection will be closed automatically.
-If the TCP server is started within the DbStarter, it will also be stopped automatically.
+If the TCP server is started within the <code class="notranslate">DbStarter</code>, it will also be stopped automatically.
 </p>
 
 <h3>Using the H2 Console Servlet</h3>
 <p>
 The H2 Console is a standalone application and includes its own web server, but it can be
-used as a servlet as well. To do that, include the the h2 jar file in your application, and
-add the following configuration to your web.xml:
+used as a servlet as well. To do that, include the the <code class="notranslate">h2*.jar</code> file in your application, and
+add the following configuration to your <code class="notranslate">web.xml</code>:
 </p>
 <pre class="notranslate">
 &lt;servlet&gt;
@@ -490,13 +498,14 @@ build warConsole
 <br />
 <h2 id="csv">CSV (Comma Separated Values) Support</h2>
 <p>
-The CSV file support can be used inside the database using the functions CSVREAD and CSVWRITE,
+The CSV file support can be used inside the database using the functions 
+<code class="notranslate">CSVREAD</code> and <code class="notranslate">CSVWRITE</code>,
 or it can be used outside the database as a standalone tool.
 </p>
 
 <h3>Writing a CSV File from Within a Database</h3>
 <p>
-The built-in function CSVWRITE can be used to create a CSV file from a query.
+The built-in function <code class="notranslate">CSVWRITE</code> can be used to create a CSV file from a query.
 Example:
 </p>
 <pre class="notranslate">
@@ -507,7 +516,7 @@ CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');
 
 <h3>Reading a CSV File from Within a Database</h3>
 <p>
-A CSV file can be read using the function CSVREAD. Example:
+A CSV file can be read using the function <code class="notranslate">CSVREAD</code>. Example:
 </p>
 <pre class="notranslate">
 SELECT * FROM CSVREAD('test.csv');
@@ -581,8 +590,8 @@ This can be done using the Script tool:
 java org.h2.tools.Script -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
 </pre>
 <p>
-It is also possible to use the SQL command SCRIPT to create the backup of the database.
-For more information about the options, see the SQL command SCRIPT.
+It is also possible to use the SQL command <code class="notranslate">SCRIPT</code> to create the backup of the database.
+For more information about the options, see the SQL command <code class="notranslate">SCRIPT</code>.
 The backup can be done remotely, however the file will be created on the server side.
 The built in FTP server could be used to retrieve the file from the server.
 </p>
@@ -595,20 +604,20 @@ To restore a database from a SQL script file, you can use the RunScript tool:
 java org.h2.tools.RunScript -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
 </pre>
 <p>
-For more information about the options, see the SQL command RUNSCRIPT.
+For more information about the options, see the SQL command <code class="notranslate">RUNSCRIPT</code>.
 The restore can be done remotely, however the file needs to be on the server side.
 The built in FTP server could be used to copy the file to the server.
-It is also possible to use the SQL command RUNSCRIPT to execute a SQL script.
+It is also possible to use the SQL command <code class="notranslate">RUNSCRIPT</code> to execute a SQL script.
 SQL script files may contain references to other script files, in the form of
-RUNSCRIPT commands. However, when using the server mode, the references script files
+<code class="notranslate">RUNSCRIPT</code> commands. However, when using the server mode, the references script files
 need to be available on the server side.
 </p>
 
 <h3>Online Backup</h3>
 <p>
-The BACKUP SQL statement and the Backup tool both create a zip file
+The <code class="notranslate">BACKUP</code> SQL statement and the Backup tool both create a zip file
 with all database files. However, the contents of this file are not human readable.
-Other than the SCRIPT statement, the BACKUP statement does not lock the
+Other than the SCRIPT statement, the <code class="notranslate">BACKUP</code> statement does not lock the
 database objects, and therefore does not block other users. The resulting
 backup is transactionally consistent:
 </p>
@@ -637,18 +646,18 @@ java -cp h2*.jar org.h2.tools.Backup -?
 <p>
 The command line tools are:
 </p>
-<ul><li><b>Backup</b> creates a backup of a database.
-</li><li><b>ChangeFileEncryption</b> allows changing the file encryption password or algorithm of a database.
-</li><li><b>Console</b> starts the browser based H2 Console.
-</li><li><b>ConvertTraceFile</b> converts a .trace.db file to a Java application and SQL script.
-</li><li><b>CreateCluster</b> creates a cluster from a standalone database.
-</li><li><b>DeleteDbFiles</b> deletes all files belonging to a database.
-</li><li><b>Recover</b> helps recovering a corrupted database.
-</li><li><b>Restore</b> restores a backup of a database.
-</li><li><b>RunScript</b> runs a SQL script against a database.
-</li><li><b>Script</b> allows converting a database to a SQL script for backup or migration.
-</li><li><b>Server</b> is used in the server mode to start a H2 server.
-</li><li><b>Shell</b> is a command line database tool.
+<ul><li><code class="notranslate">Backup</code> creates a backup of a database.
+</li><li><code class="notranslate">ChangeFileEncryption</code> allows changing the file encryption password or algorithm of a database.
+</li><li><code class="notranslate">Console</code> starts the browser based H2 Console.
+</li><li><code class="notranslate">ConvertTraceFile</code> converts a .trace.db file to a Java application and SQL script.
+</li><li><code class="notranslate">CreateCluster</code> creates a cluster from a standalone database.
+</li><li><code class="notranslate">DeleteDbFiles</code> deletes all files belonging to a database.
+</li><li><code class="notranslate">Recover</code> helps recovering a corrupted database.
+</li><li><code class="notranslate">Restore</code> restores a backup of a database.
+</li><li><code class="notranslate">RunScript</code> runs a SQL script against a database.
+</li><li><code class="notranslate">Script</code> allows converting a database to a SQL script for backup or migration.
+</li><li><code class="notranslate">Server</code> is used in the server mode to start a H2 server.
+</li><li><code class="notranslate">Shell</code> is a command line database tool.
 </li></ul>
 <p>
 The tools can also be called from an application by calling the main or another public method.
@@ -708,7 +717,8 @@ See also <a href="http://wiki.services.openoffice.org/wiki/Extensions_developmen
 <p>
 When using Java Web Start / JNLP (Java Network Launch Protocol), permissions tags must be set in the .jnlp file,
 and the application .jar file must be signed. Otherwise, when trying to write to the file system, the following
-exception will occur: java.security.AccessControlException: access denied (java.io.FilePermission ... read).
+exception will occur: <code class="notranslate">java.security.AccessControlException</code>:
+access denied (<code class="notranslate">java.io.FilePermission ... read</code>).
 Example permission tags:
 </p>
 <pre class="notranslate">
@@ -727,7 +737,7 @@ A simple connection pool is included in H2. It is based on the
 from Christian d'Heureuse. There are other, more complex, open source connection pools available,
 for example the <a href="http://jakarta.apache.org/commons/dbcp/">Apache Commons DBCP</a>.
 For H2, it is about twice as faster to get a connection from the built-in connection pool than to get
-one using DriverManager.getConnection(). The build-in connection pool is used as follows:
+one using <code class="notranslate">DriverManager.getConnection()</code>.The build-in connection pool is used as follows:
 </p>
 <pre class="notranslate">
 import java.sql.*;
@@ -782,14 +792,16 @@ SELECT * FROM FT_SEARCH('Hello', 0, 0);
 <p>
 This will produce a result set that contains the query needed to retrieve the data:
 </p>
-<p>
+<pre class="notranslate">
 QUERY: "PUBLIC"."TEST" WHERE "ID"=1
-</p>
+</pre>
 <p>
 To get the raw data, use <code class="notranslate">FT_SEARCH_DATA('Hello', 0, 0);</code>.
-The result contains the columns SCHEMA (the schema name),
-TABLE (the table name), COLUMNS (an array of column names), and KEYS
-(an array of objects). To join a table, use a join as in:
+The result contains the columns <code class="notranslate">SCHEMA</code> (the schema name),
+<code class="notranslate">TABLE</code> (the table name), 
+<code class="notranslate">COLUMNS</code> (an array of column names), and
+<code class="notranslate">KEYS</code> (an array of objects). 
+To join a table, use a join as in:
 <code class="notranslate">SELECT T.* FROM FT_SEARCH_DATA('Hello', 0, 0) FT, TEST T
 WHERE FT.TABLE='TEST' AND T.ID=FT.KEYS[0];</code>
 </p>
@@ -805,7 +817,8 @@ org.h2.fulltext.FullText.searchData(conn, text, limit, offset);
 <p>
 To use the Lucene full text search, you need the Lucene library in the classpath.
 How to do that depends on the application; if you use the H2 Console, you can add the Lucene
-jar file to the environment variables H2DRIVERS or CLASSPATH.
+jar file to the environment variables <code class="notranslate">H2DRIVERS</code> or 
+<code class="notranslate">CLASSPATH</code>.
 To initialize the Lucene fulltext search in a database, call:
 </p>
 <pre class="notranslate">
@@ -832,14 +845,15 @@ SELECT * FROM FTL_SEARCH('Hello', 0, 0);
 <p>
 This will produce a result set that contains the query needed to retrieve the data:
 </p>
-<p>
+<pre class="notranslate">
 QUERY: "PUBLIC"."TEST" WHERE "ID"=1
-</p>
+</pre>
 <p>
 To get the raw data, use <code class="notranslate">FTL_SEARCH_DATA('Hello', 0, 0);</code>.
-The result contains the columns SCHEMA (the schema name),
-TABLE (the table name), COLUMNS (an array of column names), and KEYS
-(an array of objects). To join a table, use a join as in:
+The result contains the columns <code class="notranslate">SCHEMA</code> (the schema name),
+<code class="notranslate">TABLE</code> (the table name),
+<code class="notranslate">COLUMNS</code> (an array of column names), 
+and <code class="notranslate">KEYS</code> (an array of objects). To join a table, use a join as in:
 <code class="notranslate">SELECT T.* FROM FTL_SEARCH_DATA('Hello', 0, 0) FT, TEST T
 WHERE FT.TABLE='TEST' AND T.ID=FT.KEYS[0];</code>
 </p>
@@ -854,7 +868,7 @@ org.h2.fulltext.FullTextLucene.searchData(conn, text, limit, offset);
 <br />
 <h2 id="user_defined_variables">User-Defined Variables</h2>
 <p>
-This database supports user-defined variables. Variables start with @ and can be used wherever
+This database supports user-defined variables. Variables start with <code class="notranslate">@</code> and can be used wherever
 expressions or parameters are allowed. Variables are not persisted and session scoped, that means only visible
 from within the session in which they are defined. A value is usually assigned using the SET command:
 </p>
@@ -869,7 +883,8 @@ SET @TOTAL = NULL;
 SELECT X, SET(@TOTAL, IFNULL(@TOTAL, 1.) * X) F FROM SYSTEM_RANGE(1, 50);
 </pre>
 <p>
-Variables that are not set evaluate to NULL. The data type of a user-defined variable is the data type
+Variables that are not set evaluate to <code class="notranslate">NULL</code>.
+The data type of a user-defined variable is the data type
 of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them.
 There are no restrictions on the assigned values; large objects (LOBs) are supported as well.
 </p>
@@ -887,8 +902,10 @@ If the time zone is not set, the value is parsed using the current time zone set
 Date and time information is stored in H2 database files in GMT (Greenwich Mean Time).
 If the database is opened using another system time zone, the date and time will change accordingly.
 If you want to move a database from one time zone to the other and don't want this to happen,
-you need to create a SQL script file using the SCRIPT command or Script tool, and then load
-the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
+you need to create a SQL script file using the <code class="notranslate">SCRIPT</code> command or
+<code class="notranslate">Script</code> tool, and then load
+the database using the <code class="notranslate">RUNSCRIPT</code> command 
+or the <code class="notranslate">RunScript</code> tool in the new time zone.
 </p>
 
 <br />
@@ -906,7 +923,7 @@ Use the following configuration to start and stop the H2 TCP server using the Sp
 &lt;/bean&gt;
 </pre>
 <p>
-The <code class="notranslate">"destroy-method"</code> will help prevent exceptions on hot-redeployment or when restarting the server.
+The <code class="notranslate">destroy-method</code> will help prevent exceptions on hot-redeployment or when restarting the server.
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

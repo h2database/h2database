@@ -2843,7 +2843,7 @@ Multiple connections, table level locking
 Cost based optimizer, using a genetic algorithm for complex queries, zero-administration
 
 @features_1049_li
-Scrollable and updatable result set support, large result set, external result sorting, functions can return a result set
+Scrollable and updatable result set support, large result set, external result sorting,  functions can return a result set
 
 @features_1050_li
 Encrypted database (AES or XTEA), SHA-256 password encryption, encryption functions, SSL
@@ -2879,7 +2879,7 @@ ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
 Collation support, users, roles
 
 @features_1061_li
-Compatibility modes for IBM DB2, Apache Derby, HSQLDB, MS SQL Server, MySQL, Oracle, and PostgreSQL.
+Compatibility modes for IBM DB2, Apache Derby, HSQLDB,  MS SQL Server, MySQL, Oracle, and PostgreSQL.
 
 @features_1062_h3
 Security Features
@@ -2891,7 +2891,7 @@ Includes a solution for the SQL injection problem
 User password authentication uses SHA-256 and salt
 
 @features_1065_li
-For server mode connections, user passwords are never transmitted in plain text over the network (even when using insecure connections; this only applies to the TCP server and not to the H2 Console however; it also doesn't apply if you set the password in the database URL)
+For server mode connections, user passwords are never transmitted in plain text over the network  (even when using insecure connections; this only applies to the TCP server and not to the H2 Console however;  it also doesn't apply if you set the password in the database URL)
 
 @features_1066_li
 All database files (including script files that can be used to backup data) can be encrypted using AES-256 and XTEA encryption algorithms
@@ -3743,7 +3743,7 @@ jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
 Connecting to an Embedded (Local) Database
 
 @features_1349_p
-The database URL for connecting to a local database is <code class="notranslate">jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code class="notranslate">file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is recommended to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use <code class="notranslate">~/</code> , as in: <code class="notranslate">jdbc:h2:~/test</code> .
+The database URL for connecting to a local database is <code class="notranslate">jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code class="notranslate">file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is recommended to use lowercase letters only. The database name must be at least three characters long (a limitation of <code class="notranslate">File.createTempFile</code> ). To point to the user home directory, use <code class="notranslate">~/</code> , as in: <code class="notranslate">jdbc:h2:~/test</code> .
 
 @features_1350_h2
 Memory-Only Databases
@@ -3761,7 +3761,7 @@ Sometimes multiple connections to the same memory-only database are required. In
 It is also possible to access a memory-only database remotely (or from multiple processes in the same machine) using TCP/IP or SSL/TLS. An example database URL is: <code class="notranslate">jdbc:h2:tcp://localhost/mem:db1</code> .
 
 @features_1355_p
-By default, closing the last connection to a database closes the database. For an in-memory database, this means the content is lost. To keep the database open, add ;DB_CLOSE_DELAY=-1 to the database URL. To keep the content of an in-memory database as long as the virtual machine is alive, use <code class="notranslate">jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code> .
+By default, closing the last connection to a database closes the database. For an in-memory database, this means the content is lost. To keep the database open, add <code class="notranslate">;DB_CLOSE_DELAY=-1</code> to the database URL. To keep the content of an in-memory database as long as the virtual machine is alive, use <code class="notranslate">jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code> .
 
 @features_1356_h2
 Database Files Encryption
@@ -3806,7 +3806,7 @@ The second method is 'socket' and opens a server socket. The socket method does 
 It is also possible to open the database without file locking; in this case it is up to the application to protect the database files.
 
 @features_1370_p
-To open the database with a different file locking method, use the parameter 'FILE_LOCK'. The following code opens the database with the 'socket' locking method:
+To open the database with a different file locking method, use the parameter <code class="notranslate">FILE_LOCK</code> . The following code opens the database with the 'socket' locking method:
 
 @features_1371_p
 The following code forces the database to not create a lock file at all. Please note that this is unsafe as another process is able to open the same database, possibly leading to data corruption:
@@ -3827,7 +3827,7 @@ Closing a Database
 Delayed Database Closing
 
 @features_1377_p
-Usually, a database is closed when the last connection to it is closed. In some situations this slows down the application, for example when it is not possible to keep at least one connection open. The automatic closing of a database can be delayed or disabled with the SQL statement SET DB_CLOSE_DELAY &lt;seconds&gt;. The parameter &lt;seconds&gt; specifies the number of seconds to keep a database open after the last connection to it was closed. The following statement will keep a database open for 10 seconds after the last connection was closed:
+Usually, a database is closed when the last connection to it is closed. In some situations this slows down the application, for example when it is not possible to keep at least one connection open. The automatic closing of a database can be delayed or disabled with the SQL statement <code class="notranslate">SET DB_CLOSE_DELAY &lt;seconds&gt;</code> . The parameter &lt;seconds&gt; specifies the number of seconds to keep a database open after the last connection to it was closed. The following statement will keep a database open for 10 seconds after the last connection was closed:
 
 @features_1378_p
 The value -1 means the database is not closed automatically. The value 0 is the default and means the database is closed when the last connection is closed. This setting is persistent and can be set by an administrator only. It is possible to set the value in the database URL: <code class="notranslate">jdbc:h2:~/test;DB_CLOSE_DELAY=10</code> .
@@ -3848,7 +3848,7 @@ Usually, changes to the index file are not logged for performance. If the index 
 Ignore Unknown Settings
 
 @features_1384_p
-Some applications (for example OpenOffice.org Base) pass some additional parameters when connecting to the database. Why those parameters are passed is unknown. The parameters PREFERDOSLIKELINEENDS and IGNOREDRIVERPRIVILEGES are such examples; they are simply ignored to improve the compatibility with OpenOffice.org. If an application passes other parameters when connecting to the database, usually the database throws an exception saying the parameter is not supported. It is possible to ignored such parameters by adding ;IGNORE_UNKNOWN_SETTINGS=TRUE to the database URL.
+Some applications (for example OpenOffice.org Base) pass some additional parameters when connecting to the database. Why those parameters are passed is unknown. The parameters <code class="notranslate">PREFERDOSLIKELINEENDS</code> and <code class="notranslate">IGNOREDRIVERPRIVILEGES</code> are such examples; they are simply ignored to improve the compatibility with OpenOffice.org. If an application passes other parameters when connecting to the database, usually the database throws an exception saying the parameter is not supported. It is possible to ignored such parameters by adding <code class="notranslate">;IGNORE_UNKNOWN_SETTINGS=TRUE</code> to the database URL.
 
 @features_1385_h2
 Changing Other Settings when Opening a Connection
@@ -3860,7 +3860,7 @@ In addition to the settings already described, other database settings can be pa
 Custom File Access Mode
 
 @features_1388_p
-Usually, the database opens log, data and index files with the access mode 'rw', meaning read-write (except for read only databases, where the mode 'r' is used). To open a database in read-only mode if the files are not read-only, use ACCESS_MODE_DATA=r. Also supported are 'rws' and 'rwd'. The access mode used for log files is set via ACCESS_MODE_LOG; for data and index files use ACCESS_MODE_DATA. These settings must be specified in the database URL:
+Usually, the database opens log, data and index files with the access mode <code class="notranslate">rw</code> , meaning read-write (except for read only databases, where the mode <code class="notranslate">r</code> is used). To open a database in read-only mode if the files are not read-only, use <code class="notranslate">ACCESS_MODE_DATA=r</code> . Also supported are <code class="notranslate">rws</code> and <code class="notranslate">rwd</code> . The access mode used for log files is set via <code class="notranslate">ACCESS_MODE_LOG</code> ; for data and index files use <code class="notranslate">ACCESS_MODE_DATA</code> . These settings must be specified in the database URL:
 
 @features_1389_p
 For more information see <a href="advanced.html#durability_problems">Durability Problems</a> . On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
@@ -3896,7 +3896,7 @@ The database uses table level locks to give each connection a consistent state o
 If a connection wants to reads from a table, and there is no write lock on the table, then a read lock is added to the table. If there is a write lock, then this connection waits for the other connection to release the lock. If a connection cannot get a lock for a specified time, then a lock timeout exception is thrown.
 
 @features_1400_p
-Usually, SELECT statements will generate read locks. This includes subqueries. Statements that modify data use write locks. It is also possible to lock a table exclusively without modifying data, using the statement SELECT ... FOR UPDATE. The statements COMMIT and ROLLBACK releases all open locks. The commands SAVEPOINT and ROLLBACK TO SAVEPOINT don't affect locks. The locks are also released when the autocommit mode changes, and for connections with autocommit set to true (this is the default), locks are released after each statement. The following statements generate locks:
+Usually, <code class="notranslate">SELECT</code> statements will generate read locks. This includes subqueries. Statements that modify data use write locks. It is also possible to lock a table exclusively without modifying data, using the statement <code class="notranslate">SELECT ... FOR UPDATE</code> . The statements <code class="notranslate">COMMIT</code> and <code class="notranslate">ROLLBACK</code> releases all open locks. The commands <code class="notranslate">SAVEPOINT</code> and <code class="notranslate">ROLLBACK TO SAVEPOINT</code> don't affect locks. The locks are also released when the autocommit mode changes, and for connections with autocommit set to true (this is the default), locks are released after each statement. The following statements generate locks:
 
 @features_1401_th
 Type of Lock
@@ -3950,7 +3950,7 @@ CREATE INDEX ... ON TEST ...;
 DROP INDEX ...;
 
 @features_1418_p
-The number of seconds until a lock timeout exception is thrown can be set separately for each connection using the SQL command SET LOCK_TIMEOUT &lt;milliseconds&gt;. The initial lock timeout (that is the timeout used for new connections) can be set using the SQL command SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;. The default lock timeout is persistent.
+The number of seconds until a lock timeout exception is thrown can be set separately for each connection using the SQL command <code class="notranslate">SET LOCK_TIMEOUT &lt;milliseconds&gt;</code> . The initial lock timeout (that is the timeout used for new connections) can be set using the SQL command <code class="notranslate">SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;</code> . The default lock timeout is persistent.
 
 @features_1419_h2
 Database File Layout
@@ -3968,528 +3968,552 @@ Description
 Number of Files
 
 @features_1424_td
-test.data.db
+test.h2.db
 
 @features_1425_td
-Data file.
+Database file.
 
 @features_1426_td
-Contains the data for all tables.
+Contains the data and index data for all tables.
 
 @features_1427_td
-Format: &lt;database&gt;.data.db
+Format: <code class="notranslate">&lt;database&gt;.h2.db</code>
 
 @features_1428_td
 1 per database
 
 @features_1429_td
-test.index.db
+test.data.db
 
 @features_1430_td
-Index file.
+Data file.
 
 @features_1431_td
-Contains the data for all (b tree) indexes.
+Contains the data for all tables.
 
 @features_1432_td
-Format: &lt;database&gt;.index.db
+Format: <code class="notranslate">&lt;database&gt;.data.db</code>
 
 @features_1433_td
 1 per database
 
 @features_1434_td
-test.0.log.db
+test.index.db
 
 @features_1435_td
-Transaction log file.
+Index file.
 
 @features_1436_td
-The transaction log is used for recovery.
+Contains the data for all (b tree) indexes.
 
 @features_1437_td
-Format: &lt;database&gt;.&lt;id&gt;.log.db
+Format: <code class="notranslate">&lt;database&gt;.index.db</code>
 
 @features_1438_td
-0 or more per database
+1 per database
 
 @features_1439_td
-test.lock.db
+test.0.log.db
 
 @features_1440_td
-Database lock file.
+Transaction log file.
 
 @features_1441_td
-Exists only while the database is open.
+The transaction log is used for recovery.
 
 @features_1442_td
-Format: &lt;database&gt;.lock.db
+Format: <code class="notranslate">&lt;database&gt;.&lt;id&gt;.log.db</code>
 
 @features_1443_td
-1 per database
+0 or more per database
 
 @features_1444_td
-test.trace.db
+test.lock.db
 
 @features_1445_td
-Trace file.
+Database lock file.
 
 @features_1446_td
-Contains trace information.
+Exists only while the database is open.
 
 @features_1447_td
-Format: &lt;database&gt;.trace.db
+Format: <code class="notranslate">&lt;database&gt;.lock.db</code>
 
 @features_1448_td
-If the file is too big, it is renamed to &lt;database&gt;.trace.db.old
-
-@features_1449_td
 1 per database
 
+@features_1449_td
+test.trace.db
+
 @features_1450_td
-test.lobs.db/1.t15.lob.db
+Trace file.
 
 @features_1451_td
-Large object.
+Contains trace information.
 
 @features_1452_td
-Contains the data for BLOB or CLOB values.
+Format: <code class="notranslate">&lt;database&gt;.trace.db</code>
 
 @features_1453_td
-Format: &lt;id&gt;.t&lt;tableId&gt;.lob.db
+If the file is too big, it is renamed to <code class="notranslate">&lt;database&gt;.trace.db.old</code>
 
 @features_1454_td
-1 per value
+1 per database
 
 @features_1455_td
-test.123.temp.db
+test.lobs.db/1.t15.lob.db
 
 @features_1456_td
-Temporary file.
+Large object.
 
 @features_1457_td
-Contains a temporary blob or a large result set.
+Contains the data for BLOB or CLOB values.
 
 @features_1458_td
-Format: &lt;database&gt;.&lt;id&gt;.temp.db
+Format: <code class="notranslate">&lt;id&gt;.t&lt;tableId&gt;.lob.db</code>
 
 @features_1459_td
+1 per value
+
+@features_1460_td
+test.123.temp.db
+
+@features_1461_td
+Temporary file.
+
+@features_1462_td
+Contains a temporary blob or a large result set.
+
+@features_1463_td
+Format: <code class="notranslate">&lt;database&gt;.&lt;id&gt;.temp.db</code>
+
+@features_1464_td
 1 per object
 
-@features_1460_h3
+@features_1465_h3
 Moving and Renaming Database Files
 
-@features_1461_p
+@features_1466_p
 Database name and location are not stored inside the database files.
 
-@features_1462_p
+@features_1467_p
 While a database is closed, the files can be moved to another directory, and they can be renamed as well (as long as all files start with the same name).
 
-@features_1463_p
+@features_1468_p
 As there is no platform specific data in the files, they can be moved to other operating systems without problems.
 
-@features_1464_h3
+@features_1469_h3
 Backup
 
-@features_1465_p
+@features_1470_p
 When the database is closed, it is possible to backup the database files. Please note that index files do not need to be backed up, because they contain redundant data, and will be recreated automatically if they don't exist.
 
-@features_1466_p
-To backup data while the database is running, the SQL command SCRIPT can be used.
-
-@features_1467_h2
-Logging and Recovery
-
-@features_1468_p
-Whenever data is modified in the database and those changes are committed, the changes are logged to disk (except for in-memory objects). The changes to the data file itself are usually written later on, to optimize disk access. If there is a power failure, the data and index files are not up-to-date. But because the changes are in the log file, the next time the database is opened, the changes that are in the log file are re-applied automatically.
-
-@features_1469_p
-Please note that index file updates are not logged by default. If the database is opened and recovery is required, the index file is rebuilt from scratch.
-
-@features_1470_p
-There is usually only one log file per database. This file grows until the database is closed successfully, and is then deleted. Or, if the file gets too big, the database switches to another log file (with a higher id). It is possible to force the log switching by using the CHECKPOINT command.
-
 @features_1471_p
-If the database file is corrupted, because the checksum of a record does not match (for example, if the file was edited with another application), the database can be opened in recovery mode. In this case, errors in the database are logged but not thrown. The database should be backed up to a script and re-built as soon as possible. To open the database in the recovery mode, use a database URL must contain <code class="notranslate">;RECOVER=1</code> , as in <code class="notranslate">jdbc:h2:~/test;RECOVER=1</code> . Indexes are rebuilt in this case, and the summary (object allocation table) is not read in this case, so opening the database takes longer.
+To backup data while the database is running, the SQL command <code class="notranslate">SCRIPT</code> can be used.
 
 @features_1472_h2
-Compatibility
+Logging and Recovery
 
 @features_1473_p
-All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard, and tries to be compatible to other databases. There are still a few differences however:
+Whenever data is modified in the database and those changes are committed, the changes are logged to disk (except for in-memory objects). The changes to the data file itself are usually written later on, to optimize disk access. If there is a power failure, the data and index files are not up-to-date. But because the changes are in the log file, the next time the database is opened, the changes that are in the log file are re-applied automatically.
 
 @features_1474_p
-In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append IGNORECASE=TRUE to the database URL (example: <code class="notranslate">jdbc:h2:~/test;IGNORECASE=TRUE</code> ).
+Please note that index file updates are not logged by default. If the database is opened and recovery is required, the index file is rebuilt from scratch.
 
-@features_1475_h3
-Compatibility Modes
+@features_1475_p
+There is usually only one log file per database. This file grows until the database is closed successfully, and is then deleted. Or, if the file gets too big, the database switches to another log file (with a higher id). It is possible to force the log switching by using the <code class="notranslate">CHECKPOINT</code> command.
 
 @features_1476_p
-For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Here is the list of currently supported modes and the differences to the regular mode:
+If the database file is corrupted, because the checksum of a record does not match (for example, if the file was edited with another application), the database can be opened in recovery mode. In this case, errors in the database are logged but not thrown. The database should be backed up to a script and re-built as soon as possible. To open the database in the recovery mode, use a database URL must contain <code class="notranslate">;RECOVER=1</code> , as in <code class="notranslate">jdbc:h2:~/test;RECOVER=1</code> . Indexes are rebuilt in this case, and the summary (object allocation table) is not read in this case, so opening the database takes longer.
 
-@features_1477_h3
-DB2 Compatibility Mode
+@features_1477_h2
+Compatibility
 
 @features_1478_p
+All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard, and tries to be compatible to other databases. There are still a few differences however:
+
+@features_1479_p
+In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append <code class="notranslate">IGNORECASE=TRUE</code> to the database URL (example: <code class="notranslate">jdbc:h2:~/test;IGNORECASE=TRUE</code> ).
+
+@features_1480_h3
+Compatibility Modes
+
+@features_1481_p
+For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Here is the list of currently supported modes and the differences to the regular mode:
+
+@features_1482_h3
+DB2 Compatibility Mode
+
+@features_1483_p
 To use the IBM DB2 mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=DB2</code> or the SQL statement <code class="notranslate">SET MODE DB2</code> .
 
-@features_1479_li
-For aliased columns, ResultSetMetaData.getColumnName() returns the alias name  and getTableName() returns null.
+@features_1484_li
+For aliased columns, <code class="notranslate">ResultSetMetaData.getColumnName()</code> returns the alias name and <code class="notranslate">getTableName()</code> returns <code class="notranslate">null</code> .
 
-@features_1480_li
-Support for the syntax [OFFSET .. ROW] [FETCH ... ONLY]  as an alternative for LIMIT .. OFFSET.
+@features_1485_li
+Support for the syntax <code class="notranslate">[OFFSET .. ROW] [FETCH ... ONLY]</code> as an alternative for <code class="notranslate">LIMIT .. OFFSET</code> .
 
-@features_1481_h3
+@features_1486_li
+Concatenating <code class="notranslate">NULL</code> with another value  results in the other value.
+
+@features_1487_h3
 Derby Compatibility Mode
 
-@features_1482_p
+@features_1488_p
 To use the Apache Derby mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=Derby</code> or the SQL statement <code class="notranslate">SET MODE Derby</code> .
 
-@features_1483_li
-For aliased columns, ResultSetMetaData.getColumnName() returns the alias name  and getTableName() returns null.
-
-@features_1484_li
-For unique indexes, NULL is distinct. That means only one row with NULL  in one of the columns is allowed.
-
-@features_1485_h3
-HSQLDB Compatibility Mode
-
-@features_1486_p
-To use the HSQLDB mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code class="notranslate">SET MODE HSQLDB</code> .
-
-@features_1487_li
-For aliased columns, ResultSetMetaData.getColumnName() returns the alias name  and getTableName() returns null.
-
-@features_1488_li
-When converting the scale of decimal data, the number is only converted if the new scale is  smaller than the current scale. Usually, the scale is converted and 0s are added if required.
-
 @features_1489_li
-Concatenation with NULL results in NULL. Usually, NULL is treated as an empty  string if only one of the operands is NULL, and NULL is only returned if both operands are NULL.
+For aliased columns, <code class="notranslate">ResultSetMetaData.getColumnName()</code> returns the alias name and <code class="notranslate">getTableName()</code> returns <code class="notranslate">null</code> .
 
 @features_1490_li
-For unique indexes, NULL is distinct. That means only one row with NULL  in one of the columns is allowed.
+For unique indexes, <code class="notranslate">NULL</code> is distinct.  That means only one row with <code class="notranslate">NULL</code> in one of the columns is allowed.
 
-@features_1491_h3
-MS SQL Server Compatibility Mode
+@features_1491_li
+Concatenating <code class="notranslate">NULL</code> with another value  results in the other value.
 
-@features_1492_p
-To use the MS SQL Server mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=MSSQLServer</code> or the SQL statement <code class="notranslate">SET MODE MSSQLServer</code> .
+@features_1492_h3
+HSQLDB Compatibility Mode
 
-@features_1493_li
-For aliased columns, ResultSetMetaData.getColumnName() returns the alias name  and getTableName() returns null.
+@features_1493_p
+To use the HSQLDB mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code class="notranslate">SET MODE HSQLDB</code> .
 
 @features_1494_li
-Identifiers may be quoted using square brackets as in [Test].
+For aliased columns, <code class="notranslate">ResultSetMetaData.getColumnName()</code> returns the alias name and <code class="notranslate">getTableName()</code> returns <code class="notranslate">null</code> .
 
 @features_1495_li
-For unique indexes, NULL is distinct. That means only one row with NULL  in one of the columns is allowed.
+When converting the scale of decimal data, the number is only converted if the new scale is  smaller than the current scale. Usually, the scale is converted and 0s are added if required.
 
-@features_1496_h3
-MySQL Compatibility Mode
+@features_1496_li
+For unique indexes, <code class="notranslate">NULL</code> is distinct.  That means only one row with <code class="notranslate">NULL</code> in one of the columns is allowed.
 
-@features_1497_p
-To use the MySQL mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=MySQL</code> or the SQL statement <code class="notranslate">SET MODE MySQL</code> .
+@features_1497_h3
+MS SQL Server Compatibility Mode
 
-@features_1498_li
-When inserting data, if a column is defined to be NOT NULL and NULL is inserted,  then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.  Usually, this operation is not allowed and an exception is thrown.
+@features_1498_p
+To use the MS SQL Server mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=MSSQLServer</code> or the SQL statement <code class="notranslate">SET MODE MSSQLServer</code> .
 
 @features_1499_li
-Creating indexes in the CREATE TABLE statement is allowed.
+For aliased columns, <code class="notranslate">ResultSetMetaData.getColumnName()</code> returns the alias name and <code class="notranslate">getTableName()</code> returns <code class="notranslate">null</code> .
 
 @features_1500_li
-Meta data calls return identifiers in lower case.
+Identifiers may be quoted using square brackets as in <code class="notranslate">[Test]</code> .
 
 @features_1501_li
-When converting a floating point number to an integer, the fractional  digits are not truncated, but the value is rounded.
+For unique indexes, <code class="notranslate">NULL</code> is distinct.  That means only one row with <code class="notranslate">NULL</code> in one of the columns is allowed.
 
-@features_1502_h3
-Oracle Compatibility Mode
+@features_1502_li
+Concatenating <code class="notranslate">NULL</code> with another value  results in the other value.
 
-@features_1503_p
-To use the Oracle mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=Oracle</code> or the SQL statement <code class="notranslate">SET MODE Oracle</code> .
+@features_1503_h3
+MySQL Compatibility Mode
 
-@features_1504_li
-For aliased columns, ResultSetMetaData.getColumnName() returns the alias name  and getTableName() returns null.
+@features_1504_p
+To use the MySQL mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=MySQL</code> or the SQL statement <code class="notranslate">SET MODE MySQL</code> .
 
 @features_1505_li
-When using unique indexes, multiple rows with NULL in all columns  are allowed, however it is not allowed to have multiple rows with the  same values otherwise.
+When inserting data, if a column is defined to be <code class="notranslate">NOT NULL</code> and <code class="notranslate">NULL</code> is inserted,  then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.  Usually, this operation is not allowed and an exception is thrown.
 
-@features_1506_h3
-PostgreSQL Compatibility Mode
+@features_1506_li
+Creating indexes in the <code class="notranslate">CREATE TABLE</code> statement is allowed.
 
-@features_1507_p
-To use the PostgreSQL mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=PostgreSQL</code> or the SQL statement <code class="notranslate">SET MODE PostgreSQL</code> .
+@features_1507_li
+Meta data calls return identifiers in lower case.
 
 @features_1508_li
-For aliased columns, ResultSetMetaData.getColumnName() returns the alias name  and getTableName() returns null.
+When converting a floating point number to an integer, the fractional  digits are not truncated, but the value is rounded.
 
 @features_1509_li
-Concatenation with NULL results in NULL. Usually, NULL is treated as an empty  string if only one of the operands is NULL, and NULL is only returned if both operands are NULL.
+Concatenating <code class="notranslate">NULL</code> with another value  results in the other value.
 
-@features_1510_li
-When converting a floating point number to an integer, the fractional  digits are not be truncated, but the value is rounded.
+@features_1510_h3
+Oracle Compatibility Mode
 
-@features_1511_li
-The system columns 'CTID' and 'OID' are supported.
+@features_1511_p
+To use the Oracle mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=Oracle</code> or the SQL statement <code class="notranslate">SET MODE Oracle</code> .
 
-@features_1512_h2
-Auto-Reconnect
+@features_1512_li
+For aliased columns, <code class="notranslate">ResultSetMetaData.getColumnName()</code> returns the alias name and <code class="notranslate">getTableName()</code> returns <code class="notranslate">null</code> .
 
-@features_1513_p
-The auto-reconnect feature causes the JDBC driver to reconnect to the database if the connection is lost. The automatic re-connect only occurs when auto-commit is enabled; if auto-commit is disabled, an exception is thrown.
+@features_1513_li
+When using unique indexes, multiple rows with <code class="notranslate">NULL</code> in all columns are allowed, however it is not allowed to have multiple rows with the  same values otherwise.
 
-@features_1514_p
-Re-connecting will open a new session. After an automatic re-connect, variables and local temporary tables definitions (excluding data) are re-created. The contents of the system table INFORMATION_SCHEMA.SESSION_STATE contains all client side state that is re-created.
+@features_1514_li
+Concatenating <code class="notranslate">NULL</code> with another value  results in the other value.
 
-@features_1515_h2
-Automatic Mixed Mode
+@features_1515_h3
+PostgreSQL Compatibility Mode
 
 @features_1516_p
-Multiple processes can access the same database without having to start the server manually. To do that, append <code class="notranslate">;AUTO_SERVER=TRUE</code> to the database URL. You can use the same database URL no matter if the database is already open or not.
+To use the PostgreSQL mode, use the database URL <code class="notranslate">jdbc:h2:~/test;MODE=PostgreSQL</code> or the SQL statement <code class="notranslate">SET MODE PostgreSQL</code> .
 
-@features_1517_p
-When using this mode, the first connection to the database is made in embedded mode, and additionally a server is started internally. If the database is already open in another process, the server mode is used automatically.
+@features_1517_li
+For aliased columns, <code class="notranslate">ResultSetMetaData.getColumnName()</code> returns the alias name and <code class="notranslate">getTableName()</code> returns <code class="notranslate">null</code> .
 
-@features_1518_p
-The application that opens the first connection to the database uses the embedded mode, which is faster than the server mode. Therefore the main application should open the database first if possible. The first connection automatically starts a server on a random port. This server allows remote connections, however only to this database (to ensure that, the client reads .lock.db file and sends the the random key that is stored there to the server). When the first connection is closed, the server stops. If other (remote) connections are still open, one of them will then start a server (auto-reconnect is enabled automatically).
+@features_1518_li
+When converting a floating point number to an integer, the fractional  digits are not be truncated, but the value is rounded.
 
-@features_1519_p
-All processes need to have access to the database files. If the first connection is closed (the connection that started the server), open transactions of other connections will be rolled back. Explicit client/server connections (using <code class="notranslate">jdbc:h2:tcp://</code> or <code class="notranslate">ssl://</code> ) are not supported. This mode is not supported for in-memory databases.
+@features_1519_li
+The system columns <code class="notranslate">CTID</code> and <code class="notranslate">OID</code> are supported.
 
-@features_1520_p
-Here is an example how to use this mode. Application 1 and 2 are not necessarily started on the same computer, but they need to have access to the database files. Application 1 and 2 are typically two different processes (however they could run within the same process).
+@features_1520_h2
+Auto-Reconnect
 
-@features_1521_h2
-Using the Trace Options
+@features_1521_p
+The auto-reconnect feature causes the JDBC driver to reconnect to the database if the connection is lost. The automatic re-connect only occurs when auto-commit is enabled; if auto-commit is disabled, an exception is thrown.
 
 @features_1522_p
-To find problems in an application, it is sometimes good to see what database operations where executed. This database offers the following trace features:
+Re-connecting will open a new session. After an automatic re-connect, variables and local temporary tables definitions (excluding data) are re-created. The contents of the system table <code class="notranslate">INFORMATION_SCHEMA.SESSION_STATE</code> contains all client side state that is re-created.
 
-@features_1523_li
-Trace to System.out and/or a file
+@features_1523_h2
+Automatic Mixed Mode
 
-@features_1524_li
-Support for trace levels OFF, ERROR, INFO, and DEBUG
+@features_1524_p
+Multiple processes can access the same database without having to start the server manually. To do that, append <code class="notranslate">;AUTO_SERVER=TRUE</code> to the database URL. You can use the same database URL no matter if the database is already open or not.
 
-@features_1525_li
-The maximum size of the trace file can be set
+@features_1525_p
+When using this mode, the first connection to the database is made in embedded mode, and additionally a server is started internally. If the database is already open in another process, the server mode is used automatically.
 
-@features_1526_li
-It is possible to generate Java source code from the trace file
+@features_1526_p
+The application that opens the first connection to the database uses the embedded mode, which is faster than the server mode. Therefore the main application should open the database first if possible. The first connection automatically starts a server on a random port. This server allows remote connections, however only to this database (to ensure that, the client reads <code class="notranslate">.lock.db</code> file and sends the the random key that is stored there to the server). When the first connection is closed, the server stops. If other (remote) connections are still open, one of them will then start a server (auto-reconnect is enabled automatically).
 
-@features_1527_li
-Trace can be enabled at runtime by manually creating a file
+@features_1527_p
+All processes need to have access to the database files. If the first connection is closed (the connection that started the server), open transactions of other connections will be rolled back. Explicit client/server connections (using <code class="notranslate">jdbc:h2:tcp://</code> or <code class="notranslate">ssl://</code> ) are not supported. This mode is not supported for in-memory databases.
 
-@features_1528_h3
-Trace Options
+@features_1528_p
+Here is an example how to use this mode. Application 1 and 2 are not necessarily started on the same computer, but they need to have access to the database files. Application 1 and 2 are typically two different processes (however they could run within the same process).
 
-@features_1529_p
-The simplest way to enable the trace option is setting it in the database URL. There are two settings, one for System.out (TRACE_LEVEL_SYSTEM_OUT) tracing, and one for file tracing (TRACE_LEVEL_FILE). The trace levels are 0 for OFF, 1 for ERROR (the default), 2 for INFO and 3 for DEBUG. A database URL with both levels set to DEBUG is:
+@features_1529_h2
+Using the Trace Options
 
 @features_1530_p
-The trace level can be changed at runtime by executing the SQL command <code class="notranslate">SET TRACE_LEVEL_SYSTEM_OUT level</code> (for System.out tracing) or <code class="notranslate">SET TRACE_LEVEL_FILE level</code> (for file tracing). Example:
+To find problems in an application, it is sometimes good to see what database operations where executed. This database offers the following trace features:
 
-@features_1531_h3
-Setting the Maximum Size of the Trace File
+@features_1531_li
+Trace to <code class="notranslate">System.out</code> and/or to a file
 
-@features_1532_p
-When using a high trace level, the trace file can get very big quickly. The default size limit is 16 MB, if the trace file exceeds this limit, it is renamed to .old and a new file is created. If another .old file exists, it is deleted. The size limit can be changed using the SQL statement <code class="notranslate">SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</code> . Example:
+@features_1532_li
+Support for trace levels <code class="notranslate">OFF, ERROR, INFO, DEBUG</code>
 
-@features_1533_h3
-Java Code Generation
+@features_1533_li
+The maximum size of the trace file can be set
 
-@features_1534_p
-When setting the trace level to INFO or DEBUG, Java source code is generated as well. This allows to reproduce problems more easily. The trace file looks like this:
+@features_1534_li
+It is possible to generate Java source code from the trace file
 
-@features_1535_p
-To filter the Java source code, use the ConvertTraceFile tool as follows:
+@features_1535_li
+Trace can be enabled at runtime by manually creating a file
 
-@features_1536_p
-The generated file <code class="notranslate">Test.java</code> will contain the Java source code. The generated source code may be too large to compile (the size of a Java method is limited). If this is the case, the source code needs to be split in multiple methods. The password is not listed in the trace file and therefore not included in the source code.
+@features_1536_h3
+Trace Options
 
-@features_1537_h2
-Using Other Logging APIs
+@features_1537_p
+The simplest way to enable the trace option is setting it in the database URL. There are two settings, one for <code class="notranslate">System.out</code> ( <code class="notranslate">TRACE_LEVEL_SYSTEM_OUT</code> ) tracing, and one for file tracing ( <code class="notranslate">TRACE_LEVEL_FILE</code> ). The trace levels are 0 for <code class="notranslate">OFF</code> , 1 for <code class="notranslate">ERROR</code> (the default), 2 for <code class="notranslate">INFO</code> , and 3 for <code class="notranslate">DEBUG</code> . A database URL with both levels set to <code class="notranslate">DEBUG</code> is:
 
 @features_1538_p
-By default, this database uses its own native 'trace' facility. This facility is called 'trace' and not 'log' within this database to avoid confusion with the transaction log. Trace messages can be written to both file and System.out. In most cases, this is sufficient, however sometimes it is better to use the same facility as the application, for example Log4j. To do that, this database support SLF4J.
+The trace level can be changed at runtime by executing the SQL command <code class="notranslate">SET TRACE_LEVEL_SYSTEM_OUT level</code> (for <code class="notranslate">System.out</code> tracing) or <code class="notranslate">SET TRACE_LEVEL_FILE level</code> (for file tracing). Example:
 
-@features_1539_a
-SLF4J
+@features_1539_h3
+Setting the Maximum Size of the Trace File
 
 @features_1540_p
-is a simple facade for various logging APIs and allows to plug in the desired implementation at deployment time. SLF4J supports implementations such as Logback, Log4j, Jakarta Commons Logging (JCL), Java logging, x4juli, and Simple Log.
+When using a high trace level, the trace file can get very big quickly. The default size limit is 16 MB, if the trace file exceeds this limit, it is renamed to <code class="notranslate">.old</code> and a new file is created. If another such file exists, it is deleted. To limit the size to a certain number of megabytes, use <code class="notranslate">SET TRACE_MAX_FILE_SIZE mb</code> . Example:
 
-@features_1541_p
-To enable SLF4J, set the file trace level to 4 in the database URL:
+@features_1541_h3
+Java Code Generation
 
 @features_1542_p
-Changing the log mechanism is not possible after the database is open, that means executing the SQL statement SET TRACE_LEVEL_FILE 4 when the database is already open will not have the desired effect. To use SLF4J, all required jar files need to be in the classpath. If it does not work, check the file &lt;database&gt;.trace.db for error messages.
+When setting the trace level to <code class="notranslate">INFO</code> or <code class="notranslate">DEBUG</code> , Java source code is generated as well. This simplifies reproducing problems. The trace file looks like this:
 
-@features_1543_h2
-Read Only Databases
+@features_1543_p
+To filter the Java source code, use the <code class="notranslate">ConvertTraceFile</code> tool as follows:
 
 @features_1544_p
-If the database files are read-only, then the database is read-only as well. It is not possible to create new tables, add or modify data in this database. Only SELECT and CALL statements are allowed. To create a read-only database, close the database so that the log file gets smaller. Do not delete the log file. Then, make the database files read-only using the operating system. When you open the database now, it is read-only. There are two ways an application can find out whether database is read-only: by calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
+The generated file <code class="notranslate">Test.java</code> will contain the Java source code. The generated source code may be too large to compile (the size of a Java method is limited). If this is the case, the source code needs to be split in multiple methods. The password is not listed in the trace file and therefore not included in the source code.
 
 @features_1545_h2
-Read Only Databases in Zip or Jar File
+Using Other Logging APIs
 
 @features_1546_p
-To create a read-only database in a zip file, first create a regular persistent database, and then create a backup. If you are using a database named 'test', an easy way to do that is using the Backup tool or the BACKUP SQL statement:
+By default, this database uses its own native 'trace' facility. This facility is called 'trace' and not 'log' within this database to avoid confusion with the transaction log. Trace messages can be written to both file and <code class="notranslate">System.out</code> . In most cases, this is sufficient, however sometimes it is better to use the same facility as the application, for example Log4j. To do that, this database support SLF4J.
 
-@features_1547_p
-The database must not have pending changes, that means you need to close all connections to the database, open one single connection, and then execute the statement. Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
+@features_1547_a
+SLF4J
 
 @features_1548_p
-Databases in zip files are read-only. The performance for some queries will be slower than when using a regular database, because random access in zip files is not supported (only streaming). How much this affects the performance depends on the queries and the data. The database is not read in memory; therefore large databases are supported as well. The same indexes are used as when using a regular database.
+is a simple facade for various logging APIs and allows to plug in the desired implementation at deployment time. SLF4J supports implementations such as Logback, Log4j, Jakarta Commons Logging (JCL), Java logging, x4juli, and Simple Log.
 
-@features_1549_h2
-Graceful Handling of Low Disk Space Situations
+@features_1549_p
+To enable SLF4J, set the file trace level to 4 in the database URL:
 
 @features_1550_p
-If the database needs more disk space, it calls the database event listener if one is installed. The application may then delete temporary files, or display a message and wait until the user has resolved the problem. To install a listener, run the SQL statement SET DATABASE_EVENT_LISTENER or use a database URL of the form jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener' (the quotes around the class name are required). See also the DatabaseEventListener API.
+Changing the log mechanism is not possible after the database is open, that means executing the SQL statement <code class="notranslate">SET TRACE_LEVEL_FILE 4</code> when the database is already open will not have the desired effect. To use SLF4J, all required jar files need to be in the classpath. If it does not work, check the file <code class="notranslate">&lt;database&gt;.trace.db</code> for error messages.
 
-@features_1551_h3
-Opening a Corrupted Database
+@features_1551_h2
+Read Only Databases
 
 @features_1552_p
-If a database cannot be opened because the boot info (the SQL script that is run at startup) is corrupted, then the database can be opened by specifying a database event listener. The exceptions are logged, but opening the database will continue.
+If the database files are read-only, then the database is read-only as well. It is not possible to create new tables, add or modify data in this database. Only <code class="notranslate">SELECT</code> and <code class="notranslate">CALL</code> statements are allowed. To create a read-only database, close the database so that the log file gets smaller. Do not delete the log file. Then, make the database files read-only using the operating system. When you open the database now, it is read-only. There are two ways an application can find out whether database is read-only: by calling <code class="notranslate">Connection.isReadOnly()</code> or by executing the SQL statement <code class="notranslate">CALL READONLY()</code> .
 
 @features_1553_h2
-Computed Columns / Function Based Index
+Read Only Databases in Zip or Jar File
 
 @features_1554_p
-Function indexes are not directly supported by this database, but they can be emulated by using computed columns. For example, if an index on the upper-case version of a column is required, create a computed column with the upper-case version of the original column, and create an index for this column:
+To create a read-only database in a zip file, first create a regular persistent database, and then create a backup. If you are using a database named 'test', an easy way to do that is using the <code class="notranslate">Backup</code> tool or the <code class="notranslate">BACKUP</code> SQL statement:
 
 @features_1555_p
-When inserting data, it is not required (and not allowed) to specify a value for the upper-case version of the column, because the value is generated. But you can use the column when querying the table:
+The database must not have pending changes, that means you need to close all connections to the database, open one single connection, and then execute the statement. Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
 
-@features_1556_h2
-Multi-Dimensional Indexes
+@features_1556_p
+Databases in zip files are read-only. The performance for some queries will be slower than when using a regular database, because random access in zip files is not supported (only streaming). How much this affects the performance depends on the queries and the data. The database is not read in memory; therefore large databases are supported as well. The same indexes are used as when using a regular database.
 
-@features_1557_p
-A tool is provided to execute efficient multi-dimension (spatial) range queries. This database does not support a specialized spatial index (R-Tree or similar). Instead, the B-Tree index is used. For each record, the multi-dimensional key is converted (mapped) to a single dimensional (scalar) value. This value specifies the location on a space-filling curve.
+@features_1557_h2
+Graceful Handling of Low Disk Space Situations
 
 @features_1558_p
-Currently, Z-order (also called N-order or Morton-order) is used; Hilbert curve could also be used, but the implementation is more complex. The algorithm to convert the multi-dimensional value is called bit-interleaving. The scalar value is indexed using a B-Tree index (usually using a computed column).
+If the database needs more disk space, it calls the database event listener if one is installed. The application may then delete temporary files, or display a message and wait until the user has resolved the problem. To install a listener, run the SQL statement <code class="notranslate">SET DATABASE_EVENT_LISTENER</code> or use a database URL of the form <code class="notranslate">jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener'</code> (the quotes around the class name are required). See also the <code class="notranslate">DatabaseEventListener</code> API.
 
-@features_1559_p
-The method can result in a drastic performance improvement over just using an index on the first column. Depending on the data and number of dimensions, the improvement is usually higher than factor 5. The tool generates a SQL query from a specified multi-dimensional range. The method used is not database dependent, and the tool can easily be ported to other databases. For an example how to use the tool, please have a look at the sample code provided in TestMultiDimension.java.
+@features_1559_h3
+Opening a Corrupted Database
 
-@features_1560_h2
-Using Passwords
+@features_1560_p
+If a database cannot be opened because the boot info (the SQL script that is run at startup) is corrupted, then the database can be opened by specifying a database event listener. The exceptions are logged, but opening the database will continue.
 
-@features_1561_h3
-Using Secure Passwords
+@features_1561_h2
+Computed Columns / Function Based Index
 
 @features_1562_p
-Remember that weak passwords can be broken no matter of the encryption and security protocol. Don't use passwords that can be found in a dictionary. Also appending numbers does not make them secure. A way to create good passwords that can be remembered is, take the first letters of a sentence, use upper and lower case characters, and creatively include special characters. Example:
+Function indexes are not directly supported by this database, but they can be emulated by using computed columns. For example, if an index on the upper-case version of a column is required, create a computed column with the upper-case version of the original column, and create an index for this column:
 
 @features_1563_p
-i'sE2rtPiUKtT (it's easy to remember this password if you know the trick)
+When inserting data, it is not required (and not allowed) to specify a value for the upper-case version of the column, because the value is generated. But you can use the column when querying the table:
 
-@features_1564_h3
-Passwords: Using Char Arrays instead of Strings
+@features_1564_h2
+Multi-Dimensional Indexes
 
 @features_1565_p
-Java Strings are immutable objects and cannot be safely 'destroyed' by the application. After creating a String, it will remain in the main memory of the computer at least until it is garbage collected. The garbage collection cannot be controlled by the application, and even if it is garbage collected the data may still remain in memory. It might also be possible that the part of memory containing the password is swapped to disk (because not enough main memory is available).
+A tool is provided to execute efficient multi-dimension (spatial) range queries. This database does not support a specialized spatial index (R-Tree or similar). Instead, the B-Tree index is used. For each record, the multi-dimensional key is converted (mapped) to a single dimensional (scalar) value. This value specifies the location on a space-filling curve.
 
 @features_1566_p
-An attacker might have access to the swap file of the operating system. It is therefore a good idea to use char arrays instead of Strings to store passwords. Char arrays can be cleared (filled with zeros) after use, and therefore the password will not be stored in the swap file.
+Currently, Z-order (also called N-order or Morton-order) is used; Hilbert curve could also be used, but the implementation is more complex. The algorithm to convert the multi-dimensional value is called bit-interleaving. The scalar value is indexed using a B-Tree index (usually using a computed column).
 
 @features_1567_p
-This database supports using char arrays instead of String to pass user and file passwords. The following code can be used to do that:
+The method can result in a drastic performance improvement over just using an index on the first column. Depending on the data and number of dimensions, the improvement is usually higher than factor 5. The tool generates a SQL query from a specified multi-dimensional range. The method used is not database dependent, and the tool can easily be ported to other databases. For an example how to use the tool, please have a look at the sample code provided in TestMultiDimension.java.
 
-@features_1568_p
-This example requires Java 1.6. When using Swing, use javax.swing.JPasswordField.
+@features_1568_h2
+Using Passwords
 
 @features_1569_h3
-Passing the User Name and/or Password in the URL
+Using Secure Passwords
 
 @features_1570_p
-Instead of passing the user name as a separate parameter as in <code class="notranslate">Connection conn = DriverManager.  getConnection("jdbc:h2:~/test", "sa", "123");</code> the user name (and/or password) can be supplied in the URL itself: <code class="notranslate">Connection conn = DriverManager.  getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> The settings in the URL override the settings passed as a separate parameter.
+Remember that weak passwords can be broken no matter of the encryption and security protocol. Don't use passwords that can be found in a dictionary. Also appending numbers does not make them secure. A way to create good passwords that can be remembered is, take the first letters of a sentence, use upper and lower case characters, and creatively include special characters. Example:
 
-@features_1571_h2
-User-Defined Functions and Stored Procedures
+@features_1571_p
+i'sE2rtPiUKtT (it's easy to remember this password if you know the trick)
 
-@features_1572_p
-In addition to the built-in functions, this database supports user-defined Java functions. In this database, Java functions can be used as stored procedures as well. A function must be declared (registered) before it can be used. Only static Java methods are supported; both the class and the method must be public. Example Java method:
+@features_1572_h3
+Passwords: Using Char Arrays instead of Strings
 
 @features_1573_p
-The Java function must be registered in the database by calling CREATE ALIAS:
+Java Strings are immutable objects and cannot be safely 'destroyed' by the application. After creating a String, it will remain in the main memory of the computer at least until it is garbage collected. The garbage collection cannot be controlled by the application, and even if it is garbage collected the data may still remain in memory. It might also be possible that the part of memory containing the password is swapped to disk (because not enough main memory is available).
 
 @features_1574_p
-For a complete sample application, see src/test/org/h2/samples/Function.java.
+An attacker might have access to the swap file of the operating system. It is therefore a good idea to use char arrays instead of Strings to store passwords. Char arrays can be cleared (filled with zeros) after use, and therefore the password will not be stored in the swap file.
 
-@features_1575_h3
-Function Data Type Mapping
+@features_1575_p
+This database supports using char arrays instead of String to pass user and file passwords. The following code can be used to do that:
 
 @features_1576_p
-Functions that accept non-nullable parameters such as 'int' will not be called if one of those parameters is NULL. Instead, the result of the function is NULL. If the function should be called if a parameter is NULL, you need to use 'java.lang.Integer' instead of 'int'.
+This example requires Java 1.6. When using Swing, use <code class="notranslate">javax.swing.JPasswordField</code> .
 
-@features_1577_p
-SQL types are mapped to Java classes and vice-versa as in the JDBC API. For details, see <a href="datatypes.html">Data Types</a> . There are two special cases: java.lang.Object is mapped to OTHER (a serialized object). Therefore, java.lang.Object can not be used to match all SQL types (matching all SQL types is not supported). The second special case is Object[]: arrays of any class are mapped to ARRAY.
+@features_1577_h3
+Passing the User Name and/or Password in the URL
 
-@features_1578_h3
-Functions that require a Connection
+@features_1578_p
+Instead of passing the user name as a separate parameter as in <code class="notranslate">Connection conn = DriverManager.  getConnection("jdbc:h2:~/test", "sa", "123");</code> the user name (and/or password) can be supplied in the URL itself: <code class="notranslate">Connection conn = DriverManager.  getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> The settings in the URL override the settings passed as a separate parameter.
 
-@features_1579_p
-If the first parameter of a Java function is a java.sql.Connection, then the connection to database is provided. This connection does not need to be closed before returning. When calling the method from within the SQL statement, this connection parameter does not need to be (can not be) specified.
+@features_1579_h2
+User-Defined Functions and Stored Procedures
 
-@features_1580_h3
-Functions throwing an Exception
+@features_1580_p
+In addition to the built-in functions, this database supports user-defined Java functions. In this database, Java functions can be used as stored procedures as well. A function must be declared (registered) before it can be used. Only static Java methods are supported; both the class and the method must be public. Example Java method:
 
 @features_1581_p
-If a function throws an Exception, then the current statement is rolled back and the exception is thrown to the application.
+The Java function must be registered in the database by calling <code class="notranslate">CREATE ALIAS</code> :
 
-@features_1582_h3
-Functions returning a Result Set
+@features_1582_p
+For a complete sample application, see <code class="notranslate">src/test/org/h2/samples/Function.java</code> .
 
-@features_1583_p
-Functions may returns a result set. Such a function can be called with the CALL statement:
+@features_1583_h3
+Function Data Type Mapping
 
-@features_1584_h3
-Using SimpleResultSet
+@features_1584_p
+Functions that accept non-nullable parameters such as <code class="notranslate">int</code> will not be called if one of those parameters is <code class="notranslate">NULL</code> . Instead, the result of the function is <code class="notranslate">NULL</code> . If the function should be called if a parameter is <code class="notranslate">NULL</code> , you need to use <code class="notranslate">java.lang.Integer</code> instead.
 
 @features_1585_p
-A function can create a result set using the SimpleResultSet tool:
+SQL types are mapped to Java classes and vice-versa as in the JDBC API. For details, see <a href="datatypes.html">Data Types</a> . There are two special cases: <code class="notranslate">java.lang.Object</code> is mapped to <code class="notranslate">OTHER</code> (a serialized object). Therefore, <code class="notranslate">java.lang.Object</code> can not be used to match all SQL types (matching all SQL types is not supported). The second special case is <code class="notranslate">Object[]</code> : arrays of any class are mapped to <code class="notranslate">ARRAY</code> .
 
 @features_1586_h3
-Using a Function as a Table
+Functions that require a Connection
 
 @features_1587_p
-A function that returns a result set can be used like a table. However, in this case the function is called at least twice: first while parsing the statement to collect the column names (with parameters set to null where not known at compile time). And then, while executing the statement to get the data (maybe multiple times if this is a join). If the function is called just to get the column list, the URL of the connection passed to the function is <code class="notranslate">jdbc:columnlist:connection</code> . Otherwise, the URL of the connection is <code class="notranslate">jdbc:default:connection</code> .
+If the first parameter of a Java function is a <code class="notranslate">java.sql.Connection</code> , then the connection to database is provided. This connection does not need to be closed before returning. When calling the method from within the SQL statement, this connection parameter does not need to be (can not be) specified.
 
-@features_1588_h2
-Triggers
+@features_1588_h3
+Functions throwing an Exception
 
 @features_1589_p
-This database supports Java triggers that are called before or after a row is updated, inserted or deleted. Triggers can be used for complex consistency checks, or to update related data in the database. It is also possible to use triggers to simulate materialized views. For a complete sample application, see src/test/org/h2/samples/TriggerSample.java. A Java trigger must implement the interface org.h2.api.Trigger. The trigger class must be available in the classpath of the database engine (when using the server mode, it must be in the classpath of the server).
+If a function throws an exception, then the current statement is rolled back and the exception is thrown to the application.
 
-@features_1590_p
-The connection can be used to query or update data in other tables. The trigger then needs to be defined in the database:
+@features_1590_h3
+Functions returning a Result Set
 
 @features_1591_p
-The trigger can be used to veto a change, by throwing a SQLException.
+Functions may returns a result set. Such a function can be called with the <code class="notranslate">CALL</code> statement:
 
-@features_1592_h2
-Compacting a Database
+@features_1592_h3
+Using SimpleResultSet
 
 @features_1593_p
-Empty space in the database file is re-used automatically. To re-build the indexes, the simplest way is to delete the .index.db file while the database is closed. However in some situations (for example after deleting a lot of data in a database), one sometimes wants to shrink the size of the database (compact a database). Here is a sample function to do this:
+A function can create a result set using the SimpleResultSet tool:
 
-@features_1594_p
-See also the sample application org.h2.samples.Compact. The commands SCRIPT / RUNSCRIPT can be used as well to create a backup of a database and re-build the database from the script.
+@features_1594_h3
+Using a Function as a Table
 
-@features_1595_h2
-Cache Settings
+@features_1595_p
+A function that returns a result set can be used like a table. However, in this case the function is called at least twice: first while parsing the statement to collect the column names (with parameters set to null where not known at compile time). And then, while executing the statement to get the data (maybe multiple times if this is a join). If the function is called just to get the column list, the URL of the connection passed to the function is <code class="notranslate">jdbc:columnlist:connection</code> . Otherwise, the URL of the connection is <code class="notranslate">jdbc:default:connection</code> .
 
-@features_1596_p
-The database keeps most frequently used data and index pages in the main memory. The amount of memory used for caching can be changed using the setting <code class="notranslate">CACHE_SIZE</code> . This setting can be set in the database connection URL ( <code class="notranslate">jdbc:h2:~/test;CACHE_SIZE=131072</code> ), or it can be changed at runtime using <code class="notranslate">SET CACHE_SIZE size</code> .
+@features_1596_h2
+Triggers
 
 @features_1597_p
-Also supported is a second level soft reference cache. Rows in this cache are only garbage collected on low memory. By default the second level cache is disabled. To enable it, use the prefix <code class="notranslate">SOFT_</code> . Example: <code class="notranslate">jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code> .
+This database supports Java triggers that are called before or after a row is updated, inserted or deleted. Triggers can be used for complex consistency checks, or to update related data in the database. It is also possible to use triggers to simulate materialized views. For a complete sample application, see <code class="notranslate">src/test/org/h2/samples/TriggerSample.java</code> . A Java trigger must implement the interface <code class="notranslate">org.h2.api.Trigger</code> . The trigger class must be available in the classpath of the database engine (when using the server mode, it must be in the classpath of the server).
 
 @features_1598_p
+The connection can be used to query or update data in other tables. The trigger then needs to be defined in the database:
+
+@features_1599_p
+The trigger can be used to veto a change by throwing a <code class="notranslate">SQLException</code> .
+
+@features_1600_h2
+Compacting a Database
+
+@features_1601_p
+Empty space in the database file is re-used automatically. To re-build the indexes, the simplest way is to delete the <code class="notranslate">.index.db</code> file while the database is closed. However in some situations (for example after deleting a lot of data in a database), one sometimes wants to shrink the size of the database (compact a database). Here is a sample function to do this:
+
+@features_1602_p
+See also the sample application <code class="notranslate">org.h2.samples.Compact</code> . The commands <code class="notranslate">SCRIPT / RUNSCRIPT</code> can be used as well to create a backup of a database and re-build the database from the script.
+
+@features_1603_h2
+Cache Settings
+
+@features_1604_p
+The database keeps most frequently used data and index pages in the main memory. The amount of memory used for caching can be changed using the setting <code class="notranslate">CACHE_SIZE</code> . This setting can be set in the database connection URL ( <code class="notranslate">jdbc:h2:~/test;CACHE_SIZE=131072</code> ), or it can be changed at runtime using <code class="notranslate">SET CACHE_SIZE size</code> .
+
+@features_1605_p
+Also supported is a second level soft reference cache. Rows in this cache are only garbage collected on low memory. By default the second level cache is disabled. To enable it, use the prefix <code class="notranslate">SOFT_</code> . Example: <code class="notranslate">jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code> .
+
+@features_1606_p
 To get information about page reads and writes, and the current caching algorithm in use, call <code class="notranslate">SELECT * FROM INFORMATION_SCHEMA.SETTINGS</code> . The number of pages read / written is listed for the data and index file.
 
 @fragments_1000_b
@@ -4901,7 +4925,7 @@ JaQu does not require or contain any data caching mechanism. Like JDBC and iBati
 Restrictions
 
 @jaqu_1009_p
-Primitive types (eg. boolean, int, long, double) are not supported. Use Boolean, Integer, Long, and Double instead.
+Primitive types (eg. <code class="notranslate">boolean, int, long, double</code> ) are not supported. Use <code class="notranslate">java.lang.Boolean, Integer, Long, Double</code> instead.
 
 @jaqu_1010_h3
 Why in Java?
@@ -4915,91 +4939,97 @@ Current State
 @jaqu_1013_p
 Currently, JaQu is only tested with the H2 database. The API may change in future versions. JaQu is not part of the h2 jar file, however the source code is included in H2, under:
 
-@jaqu_1014_li
-src/test/org/h2/test/jaqu/* (samples and tests)
+@jaqu_1014_code
+src/test/org/h2/test/jaqu/*
 
 @jaqu_1015_li
-src/tools/org/h2/jaqu/* (framework)
+(samples and tests)
 
-@jaqu_1016_h2
-Building the JaQu library
+@jaqu_1016_code
+src/tools/org/h2/jaqu/*
 
-@jaqu_1017_p
-To create the JaQu jar file, run: <code class="notranslate">build jarJaqu</code> . This will create the file <code class="notranslate">bin/h2jaqu.jar</code> .
+@jaqu_1017_li
+(framework)
 
 @jaqu_1018_h2
-Requirements
+Building the JaQu library
 
 @jaqu_1019_p
-JaQu requires Java 1.5. Annotations are not need. Currently, JaQu is only tested with the H2 database engine, however in theory it should work with any database that supports the JDBC API.
+To create the JaQu jar file, run: <code class="notranslate">build jarJaqu</code> . This will create the file <code class="notranslate">bin/h2jaqu.jar</code> .
 
 @jaqu_1020_h2
+Requirements
+
+@jaqu_1021_p
+JaQu requires Java 1.5. Annotations are not need. Currently, JaQu is only tested with the H2 database engine, however in theory it should work with any database that supports the JDBC API.
+
+@jaqu_1022_h2
 Example Code
 
-@jaqu_1021_h2
+@jaqu_1023_h2
 Configuration
 
-@jaqu_1022_p
+@jaqu_1024_p
 JaQu does not require any configuration when using the default mapping. To define table indices, or if you want to map a class to a table with a different name, or a field to a column with another name, create a function called 'define' in the data class. Example:
 
-@jaqu_1023_p
-The method 'define()' contains the mapping definition. It is called once when the class is used for the first time. Like annotations, the mapping is defined in the class itself. Unlike when using annotations, the compiler can check the syntax even for multi-column objects (multi-column indexes, multi-column primary keys and so on). Because the definition is written in regular Java, the configuration can depend on the environment. This is not possible using annotations. Unlike XML mapping configuration, the configuration is integrated in the class itself.
-
-@jaqu_1024_h2
-Natural Syntax
-
 @jaqu_1025_p
-The plan is to support more natural (pure Java) syntax in conditions. To do that, the condition class is de-compiled to a SQL condition. A proof of concept decompiler is included (but it doesn't work yet). The planned syntax is:
+The method <code class="notranslate">define()</code> contains the mapping definition. It is called once when the class is used for the first time. Like annotations, the mapping is defined in the class itself. Unlike when using annotations, the compiler can check the syntax even for multi-column objects (multi-column indexes, multi-column primary keys and so on). Because the definition is written in regular Java, the configuration can depend on the environment. This is not possible using annotations. Unlike XML mapping configuration, the configuration is integrated in the class itself.
 
 @jaqu_1026_h2
-Other Ideas
+Natural Syntax
 
 @jaqu_1027_p
+The plan is to support more natural (pure Java) syntax in conditions. To do that, the condition class is de-compiled to a SQL condition. A proof of concept decompiler is included (but it doesn't work yet). The planned syntax is:
+
+@jaqu_1028_h2
+Other Ideas
+
+@jaqu_1029_p
 This project has just been started, and nothing is fixed yet. Some ideas for what to implement are:
 
-@jaqu_1028_li
+@jaqu_1030_li
 Support queries on collections (instead of using a database).
 
-@jaqu_1029_li
+@jaqu_1031_li
 Provide API level compatibility with JPA (so that JaQu can be used as an extension of JPA).
 
-@jaqu_1030_li
+@jaqu_1032_li
 Internally use a JPA implementation (for example Hibernate) instead of SQL directly.
 
-@jaqu_1031_li
+@jaqu_1033_li
 Use PreparedStatements and cache them.
 
-@jaqu_1032_h2
+@jaqu_1034_h2
 Related Projects
 
-@jaqu_1033_a
+@jaqu_1035_a
 Dreamsource ORM
 
-@jaqu_1034_a
+@jaqu_1036_a
 Empire-db
 
-@jaqu_1035_a
+@jaqu_1037_a
 JEQUEL: Java Embedded QUEry Language
 
-@jaqu_1036_a
+@jaqu_1038_a
 Joist
 
-@jaqu_1037_a
+@jaqu_1039_a
 JoSQL
 
-@jaqu_1038_a
+@jaqu_1040_a
 LIQUidFORM
 
-@jaqu_1039_a
+@jaqu_1041_a
 Quaere (Alias implementation)
 
-@jaqu_1040_a
+@jaqu_1042_a
 Quaere
 
-@jaqu_1041_a
+@jaqu_1043_a
 Querydsl
 
-@jaqu_1042_a
+@jaqu_1044_a
 Squill
 
 @license_1000_h1

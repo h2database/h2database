@@ -102,9 +102,9 @@ when reading the data, the blocks are merged together.
 If it is possible that the objects don't fit into memory, then the data type
 CLOB (for textual data) or BLOB (for binary data) should be used.
 For these data types, the objects are not fully read into memory, by using streams.
-To store a BLOB, use PreparedStatement.setBinaryStream. To store a CLOB, use
-PreparedStatement.setCharacterStream. To read a BLOB, use ResultSet.getBinaryStream,
-and to read a CLOB, use ResultSet.getCharacterStream.
+To store a BLOB, use <code>PreparedStatement.setBinaryStream</code>. To store a CLOB, use
+<code>PreparedStatement.setCharacterStream</code>. To read a BLOB, use <code>ResultSet.getBinaryStream</code>,
+and to read a CLOB, use <code>ResultSet.getCharacterStream</code>.
 When using the client/server mode, large BLOB and CLOB data is stored in a temporary file
 on the client side.
 </p>
@@ -156,8 +156,8 @@ If multiple linked tables point to the same database (using the same database UR
 is shared. To disable this, set the system property <code>h2.shareLinkedConnections=false</code>.
 </p>
 <p>
-The <code>CREATE LINKED TABLE</code> statement supports an optional schema name parameter.
-See the grammar for details.
+The statement <a href="grammar.html#create_linked_table" class="notranslate" >CREATE LINKED TABLE</a>
+supports an optional schema name parameter.
 </p>
 
 <br />
@@ -165,7 +165,7 @@ See the grammar for details.
 <p>
 Transaction isolation is provided for all data manipulation language (DML) statements.
 Most data definition language (DDL) statements commit the current transaction.
-See the <a href="grammar.html">grammar</a> for details.
+See the <a href="grammar.html">Grammar</a> for details.
 </p>
 <p>
 This database supports the following transaction isolation levels:
@@ -465,7 +465,7 @@ See also:
 <h3>ODBC Installation</h3>
 <p>
 First, the ODBC driver must be installed.
-Any recent PostgreSQL ODBC driver should work, however version 8.2 (psqlodbc-08_02*) or newer is recommended.
+Any recent PostgreSQL ODBC driver should work, however version 8.2 (<code>psqlodbc-08_02*</code>) or newer is recommended.
 The Windows version of the PostgreSQL ODBC driver is available at
 <a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a>.
 </p>
@@ -480,7 +480,7 @@ java -cp h2*.jar org.h2.tools.Server
 <p>
 The PG Server (PG for PostgreSQL protocol) is started as well.
 By default, databases are stored in the current working directory where the server is started.
-Use -baseDir to save databases in another directory, for example the user home directory:
+Use <code>-baseDir</code> to save databases in another directory, for example the user home directory:
 </p>
 <pre>
 java -cp h2*.jar org.h2.tools.Server -baseDir ~
@@ -569,18 +569,18 @@ An implementation of the ADO.NET interface is available in the open source proje
 <ul><li>Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a>.
     Mono has not yet been tested.
 </li><li>Install <a href="http://www.ikvm.net">IKVM.NET</a>.
-</li><li>Copy the h2*.jar file to ikvm/bin
+</li><li>Copy the <code>h2*.jar</code> file to <code>ikvm/bin</code>
 </li><li>Run the H2 Console using:
     <code>ikvm -jar h2*.jar</code>
-</li><li>Convert the H2 Console to an .exe file using:
+</li><li>Convert the H2 Console to an <code>.exe</code> file using:
     <code>ikvmc -target:winexe h2*.jar</code>.
     You may ignore the warnings.
-</li><li>Create a .dll file using (change the version accordingly):
+</li><li>Create a <code>.dll</code> file using (change the version accordingly):
     <code>ikvmc.exe -target:library -version:1.0.69.0 h2*.jar</code>
 </li></ul>
 <p>
-If you want your C# application use H2, you need to add the h2.dll and the
-IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
+If you want your C# application use H2, you need to add the <code>h2.dll</code> and the
+<code>IKVM.OpenJDK.ClassLibrary.dll</code> to your C# solution. Here some sample code:
 </p>
 <pre>
 using System;
@@ -658,7 +658,7 @@ Making sure that committed transactions are not lost is more complicated than it
 To guarantee complete durability, a database must ensure that the log record is on the hard drive
 before the commit call returns. To do that, databases use different methods. One
 is to use the 'synchronous write' file access mode. In Java, <code>RandomAccessFile</code>
-supports the modes <code>"rws"</code> and <code>"rwd"</code>:
+supports the modes <code>rws</code> and <code>rwd</code>:
 </p>
 <ul>
 <li><code>rwd</code>: every update to the file's content is written synchronously to the underlying storage device.
@@ -675,25 +675,25 @@ then the disk would need to make at least 50 thousand revolutions per second, or
 or about 120 revolutions per second. There is an overhead, so the maximum write rate must be lower than that.
 </p>
 <p>
-Calling fsync flushes the buffers. There are two ways to do that in Java:
+Calling <code>fsync</code> flushes the buffers. There are two ways to do that in Java:
 </p>
 <ul>
 <li><code>FileDescriptor.sync()</code>. The documentation says that this forces all system
 buffers to synchronize with the underlying device.
-Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor
+This method is supposed to return after all in-memory modified copies of buffers associated with this file descriptor
 have been written to the physical medium.
 </li><li><code>FileChannel.force()</code> (since JDK 1.4). This method is supposed
 to force any updates to this channel's file to be written to the storage device that contains it.
 </li></ul>
 <p>
-By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations
+By default, MySQL calls <code>fsync</code> for each commit. When using one of those methods, only around 60 write operations
 per second can be achieved, which is consistent with the RPM rate of the hard drive used.
 Unfortunately, even when calling <code>FileDescriptor.sync()</code> or
 <code>FileChannel.force()</code>,
 data is not always persisted to the hard drive, because most hard drives do not obey
-fsync(): see
+<code>fsync()</code>: see
 <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a>.
-In Mac OS X, fsync does not flush hard drive buffers. See
+In Mac OS X, <code>fsync</code> does not flush hard drive buffers. See
 <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a>.
 So the situation is confusing, and tests prove there is a problem.
 </p>
@@ -777,7 +777,7 @@ The default method for database file locking is the 'File Method'. The algorithm
 <ul>
 <li>If the lock file does not exist, it is created (using the atomic operation
 <code>File.createNewFile</code>).
-Then, the process waits a little bit (20ms) and checks the file again. If the file was changed
+Then, the process waits a little bit (20 ms) and checks the file again. If the file was changed
 during this time, the operation is aborted. This protects against a race condition
 when one process deletes the lock file just after another one create it, and a third process creates
 the file again. It does not occur if there are only two writers.
@@ -859,7 +859,7 @@ SELECT * FROM USERS WHERE PASSWORD='' OR ''='';
 </pre>
 <p>
 Which is always true no matter what the password stored in the database is.
-For more information about SQL Injection, see Glossary and Links.
+For more information about SQL Injection, see <a href="#glossary_links">Glossary and Links</a>.
 </p>
 
 <h3>Disabling Literals</h3>
@@ -951,7 +951,7 @@ CALL GET_PROPERTY('abc');
 To restrict users (including admins) from loading classes and executing code,
 the list of allowed classes can be set in the system property
 <code>h2.allowedClasses</code>
-in the form of a comma separated list of classes or patterns (items ending with '*').
+in the form of a comma separated list of classes or patterns (items ending with <code>*</code>).
 By default all classes are allowed. Example:
 </p>
 <pre>
@@ -1011,8 +1011,8 @@ XTEA (using 32 rounds). The reasons for supporting XTEA is performance
 (XTEA is about twice as fast as AES) and to have an alternative algorithm if
 AES is suddenly broken.
 </p><p>
-When a user tries to connect to an encrypted database, the combination of the word
-'file', @, and the file password is hashed using SHA-256. This hash value is
+When a user tries to connect to an encrypted database, the combination of
+<code>file@</code> and the file password is hashed using SHA-256. This hash value is
 transmitted to the server.
 </p><p>
 When a new database file is created, a new cryptographically secure

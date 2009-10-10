@@ -118,7 +118,7 @@ Features
 </li><li>Many built-in functions, including XML and lossless data compression
 </li><li>Wide range of data types including large objects (BLOB/CLOB) and arrays
 </li><li>Sequence and autoincrement columns, computed columns (can be used for function based indexes)
-</li><li>ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
+</li><li><code>ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP</code>
 </li><li>Collation support, users, roles
 </li><li>Compatibility modes for IBM DB2, Apache Derby, HSQLDB,
     MS SQL Server, MySQL, Oracle, and PostgreSQL.
@@ -145,7 +145,7 @@ encrypted using AES-256 and XTEA encryption algorithms
 </li><li>Support for multi-dimensional indexes
 </li><li>CSV (comma separated values) file support
 </li><li>Support for linked tables, and a built-in virtual 'range' table
-</li><li>EXPLAIN PLAN support, sophisticated trace options
+</li><li><code>EXPLAIN PLAN</code> support, sophisticated trace options
 </li><li>Database closing can be delayed or disabled to improve the performance
 </li><li>Web-based Console application (translated to many languages) with autocomplete
 </li><li>The database can generate SQL script files
@@ -720,7 +720,7 @@ For more information about the algorithms, see
 By default, when an application calls <code>DriverManager.getConnection(url, ...)</code>
 and the database specified in the URL does not yet exist, a new (empty) database is created.
 In some situations, it is better to restrict creating new databases, and only allow to open
-existing databases. To do this, add <code>;ifexists=true</code>
+existing databases. To do this, add <code>;IFEXISTS=TRUE</code>
 to the database URL. In this case, if the database does not already exist, an exception is thrown when
 trying to connect. The connection only succeeds when the database already exists.
 The complete URL may look like this:
@@ -779,7 +779,7 @@ In some situations, for example when using very large databases (over a few hund
 re-creating the index file takes very long.
 In these situations it may be better to log changes to the index file,
 so that recovery from a corrupted index file is fast.
-To enable log index changes, add LOG=2 to the URL, as in <code>jdbc:h2:~/test;LOG=2</code>.
+To enable log index changes, add <code>LOG=2</code> to the URL, as in <code>jdbc:h2:~/test;LOG=2</code>.
 This setting should be specified when connecting.
 The update performance of the database will be reduced when using this option.
 </p>
@@ -1438,7 +1438,7 @@ data and number of dimensions, the improvement is usually higher than factor 5.
 The tool generates a SQL query from a specified multi-dimensional range.
 The method used is not database dependent, and the tool can easily be ported to other databases.
 For an example how to use the tool, please have a look at the sample code provided
-in TestMultiDimension.java.
+in <code>TestMultiDimension.java</code>.
 </p>
 
 <br />
@@ -1452,24 +1452,24 @@ secure. A way to create good passwords that can be remembered is, take the first
 letters of a sentence, use upper and lower case characters, and creatively include special characters.
 Example:
 </p><p>
-i'sE2rtPiUKtT (it's easy to remember this password if you know the trick)
+<code>i'sE2rtPiUKtT</code> from the sentence <code>it's easy to remember this password if you know the trick</code>.
 </p>
 
 <h3>Passwords: Using Char Arrays instead of Strings</h3>
 <p>
-Java Strings are immutable objects and cannot be safely 'destroyed' by the application.
-After creating a String, it will remain in the main memory of the computer at least
+Java strings are immutable objects and cannot be safely 'destroyed' by the application.
+After creating a string, it will remain in the main memory of the computer at least
 until it is garbage collected. The garbage collection cannot be controlled by the application,
 and even if it is garbage collected the data may still remain in memory.
 It might also be possible that the part of memory containing the password
 is swapped to disk (because not enough main memory is available).
 </p><p>
 An attacker might have access to the swap file of the operating system.
-It is therefore a good idea to use char arrays instead of Strings to store passwords.
+It is therefore a good idea to use char arrays instead of strings to store passwords.
 Char arrays can be cleared (filled with zeros) after use, and therefore the
 password will not be stored in the swap file.
 </p><p>
-This database supports using char arrays instead of String to pass user and file passwords.
+This database supports using char arrays instead of string to pass user and file passwords.
 The following code can be used to do that:
 </p>
 <pre>

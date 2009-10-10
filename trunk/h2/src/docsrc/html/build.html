@@ -78,7 +78,7 @@ build -?
 For Linux and OS X, use <code>./build.sh</code> instead of <code>build</code>.
 </p>
 <p>
-You will get a list of targets. If you want to build the jar file, execute (Windows):
+You will get a list of targets. If you want to build the <code>jar</code> file, execute (Windows):
 </p>
 <pre>
 build jar
@@ -87,7 +87,7 @@ build jar
 <h3>Switching the Source Code</h3>
 <p>
 By default the source code uses Java 1.5 features, however Java 1.6 is supported as well.
-To switch the source code to the install version of Java, run:
+To switch the source code to the installed version of Java, run:
 </p>
 <pre>
 build switchSource
@@ -131,13 +131,13 @@ Example:
 </pre>
 <p>
 New versions of this database are first uploaded to http://hsql.sourceforge.net/m2-repo/ and then automatically
-synchronized with the main maven repository; however after a new release it may take a few hours before
+synchronized with the main Maven repository; however after a new release it may take a few hours before
 they are available there.
 </p>
 
 <h3>Using Snapshot Version</h3>
 <p>
-To build a 'snapshot' H2 jar file and upload it the to the local Maven 2 repository, execute the following command:
+To build a <code>h2-*-SNAPSHOT.jar</code> file and upload it the to the local Maven 2 repository, execute the following command:
 </p>
 <pre>
 build mavenInstallLocal
@@ -177,7 +177,7 @@ using <code>build docs</code>.
 <p>
 If you like to provide patches, please consider the following guidelines to simplify merging them:
 </p>
-<ul><li>Only use Java 1.5 features (do not use Java 1.6) (see Environment).
+<ul><li>Only use Java 1.5 features (do not use Java 1.6) (see <a href="#environment">Environment</a>).
 </li><li>Follow the coding style used in the project, and use Checkstyle (see above) to verify.
     For example, do not use tabs (use spaces instead).
     The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>.
@@ -191,11 +191,11 @@ If you like to provide patches, please consider the following guidelines to simp
 </li><li>Verify that you did not break other features: run the test cases by executing
     <code>build test</code>.
 </li><li>Provide end user documentation if required (<code>src/docsrc/html/*</code>).
-</li><li>Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
+</li><li>Document grammar changes in <code>src/docsrc/help/help.csv</code>
 </li><li>Provide a change log entry (<code>src/docsrc/html/changelog.html</code>).
 </li><li>Verify the spelling using <code>build spellcheck</code>. If required
     add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>.
-</li><li>Run the <code>src/installer/buildRelease</code> to find and fix formatting errors.
+</li><li>Run <code>src/installer/buildRelease</code> to find and fix formatting errors.
 </li><li>Verify the formatting using <code>build docs</code> and
     <code>build javadoc</code>.
 </li><li>Submit patches as <code>.patch</code> files (compressed if big).

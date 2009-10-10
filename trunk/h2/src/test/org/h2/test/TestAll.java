@@ -297,7 +297,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-documentation: rolling review at advanced.html (alphabetically)
+documentation: rolling review at history.html
 
 mvcc merge problem
 

@@ -297,15 +297,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-replace class="n" with class="notranslate" for website
-
-documentation: rolling review at tutorial.html (alphabetically)
-<code class="notranslate"></code>
-check no space http: or https:
-check space' and 'space
-check spaceNULL and NULLspace
-tool...
-
+documentation: rolling review at advanced.html (alphabetically)
 
 mvcc merge problem
 

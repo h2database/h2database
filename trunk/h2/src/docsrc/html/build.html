@@ -67,20 +67,20 @@ Newer version or compatible software works too.
 <h2 id="building">Building the Software</h2>
 <p>
 You need to install a JDK, for example the Sun JDK version 1.5 or 1.6.
-Ensure that Java binary directory is included in the <code class="notranslate">PATH</code> environment variable, and that
-the environment variable <code class="notranslate">JAVA_HOME</code> points to your Java installation.
-On the command line, go to the directory <code class="notranslate">h2</code> and execute the following command:
+Ensure that Java binary directory is included in the <code>PATH</code> environment variable, and that
+the environment variable <code>JAVA_HOME</code> points to your Java installation.
+On the command line, go to the directory <code>h2</code> and execute the following command:
 </p>
-<pre class="notranslate">
+<pre>
 build -?
 </pre>
 <p>
-For Linux and OS X, use <code class="notranslate">./build.sh</code> instead of <code class="notranslate">build</code>.
+For Linux and OS X, use <code>./build.sh</code> instead of <code>build</code>.
 </p>
 <p>
 You will get a list of targets. If you want to build the jar file, execute (Windows):
 </p>
-<pre class="notranslate">
+<pre>
 build jar
 </pre>
 
@@ -89,7 +89,7 @@ build jar
 By default the source code uses Java 1.5 features, however Java 1.6 is supported as well.
 To switch the source code to the install version of Java, run:
 </p>
-<pre class="notranslate">
+<pre>
 build switchSource
 </pre>
 
@@ -98,20 +98,20 @@ build switchSource
 <p>
 The build system can generate smaller jar files as well. The following targets are currently supported:
 </p>
-<ul><li><code class="notranslate">jarClient</code>
-    creates the file <code class="notranslate">h2client.jar</code>. This only contains the JDBC client.
-</li><li><code class="notranslate">jarSmall</code>
-    creates the file <code class="notranslate">h2small.jar</code>.
+<ul><li><code>jarClient</code>
+    creates the file <code>h2client.jar</code>. This only contains the JDBC client.
+</li><li><code>jarSmall</code>
+    creates the file <code>h2small.jar</code>.
     This only contains the embedded database. Debug information is disabled.
-</li><li><code class="notranslate">jarJaqu</code>
-    creates the file <code class="notranslate">h2jaqu.jar</code>.
+</li><li><code>jarJaqu</code>
+    creates the file <code>h2jaqu.jar</code>.
     This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
-</li><li><code class="notranslate">javadocImpl</code> creates the Javadocs of the implementation.
+</li><li><code>javadocImpl</code> creates the Javadocs of the implementation.
 </li></ul>
 <p>
-To create the file <code class="notranslate">h2client.jar</code>, go to the directory h2 and execute the following command:
+To create the file <code>h2client.jar</code>, go to the directory <code>h2</code> and execute the following command:
 </p>
-<pre class="notranslate">
+<pre>
 build jarClient
 </pre>
 
@@ -122,7 +122,7 @@ build jarClient
 You can include the database in your Maven 2 project as a dependency.
 Example:
 </p>
-<pre class="notranslate">
+<pre>
 &lt;dependency&gt;
     &lt;groupId&gt;com.h2database&lt;/groupId&gt;
     &lt;artifactId&gt;h2&lt;/artifactId&gt;
@@ -139,13 +139,13 @@ they are available there.
 <p>
 To build a 'snapshot' H2 jar file and upload it the to the local Maven 2 repository, execute the following command:
 </p>
-<pre class="notranslate">
+<pre>
 build mavenInstallLocal
 </pre>
 <p>
 Afterwards, you can include the database in your Maven 2 project as a dependency:
 </p>
-<pre class="notranslate">
+<pre>
 &lt;dependency&gt;
     &lt;groupId&gt;com.h2database&lt;/groupId&gt;
     &lt;artifactId&gt;h2&lt;/artifactId&gt;
@@ -159,17 +159,17 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
 The translation of this software is split into the following parts:
 </p>
 <ul>
-<li>H2 Console: <code class="notranslate">src/main/org/h2/server/web/res/_text_*.properties</code>
-</li><li>Error messages: <code class="notranslate">src/main/org/h2/res/_messages_*.properties</code>
-</li><li>Web site: <code class="notranslate">src/docsrc/text/_docs_*.utf8.txt</code>
+<li>H2 Console: <code>src/main/org/h2/server/web/res/_text_*.properties</code>
+</li><li>Error messages: <code>src/main/org/h2/res/_messages_*.properties</code>
+</li><li>Web site: <code>src/docsrc/text/_docs_*.utf8.txt</code>
 </li></ul>
 <p>
 To translate the H2 Console, start it and select Preferences / Translate.
-The conversion between UTF-8 and Java encoding (using the <code class="notranslate">\u</code> syntax),
-as well as the HTML entities (<code class="notranslate">&amp;#..;</code>)
-is automated by running the tool <code class="notranslate">PropertiesToUTF8</code>.
+The conversion between UTF-8 and Java encoding (using the <code>\u</code> syntax),
+as well as the HTML entities (<code>&amp;#..;</code>)
+is automated by running the tool <code>PropertiesToUTF8</code>.
 The web site translation is automated as well,
-using <code class="notranslate">build docs</code>.
+using <code>build docs</code>.
 </p>
 
 <br />
@@ -180,25 +180,25 @@ If you like to provide patches, please consider the following guidelines to simp
 <ul><li>Only use Java 1.5 features (do not use Java 1.6) (see Environment).
 </li><li>Follow the coding style used in the project, and use Checkstyle (see above) to verify.
     For example, do not use tabs (use spaces instead).
-    The checkstyle configuration is in <code class="notranslate">src/installer/checkstyle.xml</code>.
+    The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>.
 </li><li>Please provide test cases and integrate them into the test suite.
-    For Java level tests, see <code class="notranslate">src/test/org/h2/test/TestAll.java</code>.
-    For SQL level tests, see <code class="notranslate">src/test/org/h2/test/test.in.txt</code> or
-    <code class="notranslate">testSimple.in.txt</code>.
+    For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>.
+    For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or
+    <code>testSimple.in.txt</code>.
 </li><li>The test cases should cover at least 90% of the changed and new code;
     use a code coverage tool to verify that (see above).
-    or use the build target <code class="notranslate">coverage</code>.
+    or use the build target <code>coverage</code>.
 </li><li>Verify that you did not break other features: run the test cases by executing
-    <code class="notranslate">build test</code>.
-</li><li>Provide end user documentation if required (<code class="notranslate">src/docsrc/html/*</code>).
-</li><li>Document grammar changes in <code class="notranslate">src/main/org/h2/res/help.csv</code>
-</li><li>Provide a change log entry (<code class="notranslate">src/docsrc/html/changelog.html</code>).
-</li><li>Verify the spelling using <code class="notranslate">build spellcheck</code>. If required
-    add the new words to <code class="notranslate">src/tools/org/h2/build/doc/dictionary.txt</code>.
-</li><li>Run the <code class="notranslate">src/installer/buildRelease</code> to find and fix formatting errors.
-</li><li>Verify the formatting using <code class="notranslate">build docs</code> and
-    <code class="notranslate">build javadoc</code>.
-</li><li>Submit patches as <code class="notranslate">.patch</code> files (compressed if big).
+    <code>build test</code>.
+</li><li>Provide end user documentation if required (<code>src/docsrc/html/*</code>).
+</li><li>Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
+</li><li>Provide a change log entry (<code>src/docsrc/html/changelog.html</code>).
+</li><li>Verify the spelling using <code>build spellcheck</code>. If required
+    add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>.
+</li><li>Run the <code>src/installer/buildRelease</code> to find and fix formatting errors.
+</li><li>Verify the formatting using <code>build docs</code> and
+    <code>build javadoc</code>.
+</li><li>Submit patches as <code>.patch</code> files (compressed if big).
     To create a patch using Eclipse, use Team / Create Patch.
 </li></ul>
 <p>
@@ -218,7 +218,7 @@ Eclipse Public License, version 1.0 (http://h2database.com/html/license.html)."
 <p>
 This build process is automated and runs regularly.
 The build process includes running the tests and code coverage, using the command line
-<code class="notranslate">./build.sh clean jar coverage -Dh2.ftpPassword=... uploadBuild</code>.
+<code>./build.sh clean jar coverage -Dh2.ftpPassword=... uploadBuild</code>.
 The last results are available here:
 </p>
 <ul><li><a href="http://h2database.com/html/testOutput.html">Test Output</a>

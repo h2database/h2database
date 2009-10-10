@@ -148,6 +148,8 @@ public class WebSite {
                 if (web) {
                     page = StringUtils.replaceAll(page, TRANSLATE_START, "");
                     page = StringUtils.replaceAll(page, TRANSLATE_END, "");
+                    page = StringUtils.replaceAll(page, "<pre>", "<pre class=\"notranslate\">");
+                    page = StringUtils.replaceAll(page, "<code>", "<code class=\"notranslate\">");
                 }
                 bytes = page.getBytes("UTF-8");
             }

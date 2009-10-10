@@ -25,7 +25,7 @@ JaQu replaces SQL, JDBC, and persistence frameworks such as Hibernate.
 JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a
 Microsoft .NET technology). The following JaQu code:
 </p>
-<pre class="notranslate">
+<pre>
 Product p = new Product();
 List&lt;Product&gt; soldOutProducts =
     db.from(p).where(p.unitsInStock).is(0).select();
@@ -33,7 +33,7 @@ List&lt;Product&gt; soldOutProducts =
 <p>
 stands for the SQL statement:
 </p>
-<pre class="notranslate">
+<pre>
 SELECT * FROM PRODUCTS P
 WHERE P.UNITS_IN_STOCK = 0
 </pre>
@@ -56,8 +56,8 @@ JaQu provides full control over when and what SQL statements are executed.
 
 <h3>Restrictions</h3>
 <p>
-Primitive types (eg. <code class="notranslate">boolean, int, long, double</code>) are not supported.
-Use <code class="notranslate">java.lang.Boolean, Integer, Long, Double</code> instead.
+Primitive types (eg. <code>boolean, int, long, double</code>) are not supported.
+Use <code>java.lang.Boolean, Integer, Long, Double</code> instead.
 </p>
 
 <h3>Why in Java?</h3>
@@ -71,13 +71,13 @@ in the same application is complicated: you would need to split the application 
 Currently, JaQu is only tested with the H2 database. The API may change in future versions.
 JaQu is not part of the h2 jar file, however the source code is included in H2, under:
 </p>
-<ul><li><code class="notranslate">src/test/org/h2/test/jaqu/*</code> (samples and tests)
-</li><li><code class="notranslate">src/tools/org/h2/jaqu/*</code> (framework)
+<ul><li><code>src/test/org/h2/test/jaqu/*</code> (samples and tests)
+</li><li><code>src/tools/org/h2/jaqu/*</code> (framework)
 </li></ul>
 
 <h2>Building the JaQu library</h2>
 <p>
-To create the JaQu jar file, run: <code class="notranslate">build jarJaqu</code>. This will create the file <code class="notranslate">bin/h2jaqu.jar</code>.
+To create the JaQu jar file, run: <code>build jarJaqu</code>. This will create the file <code>bin/h2jaqu.jar</code>.
 </p>
 
 <h2>Requirements</h2>
@@ -88,7 +88,7 @@ work with any database that supports the JDBC API.
 </p>
 
 <h2>Example Code</h2>
-<pre class="notranslate">
+<pre>
 package org.h2.test.jaqu;
 import java.math.BigDecimal;
 import java.util.List;
@@ -226,10 +226,10 @@ public class Test {
 <p>
 JaQu does not require any configuration when using the default mapping.
 To define table indices, or if you want to map a class to a table with a different name,
-or a field to a column with another name, create a function called 'define' in the data class.
+or a field to a column with another name, create a function called <code>define</code> in the data class.
 Example:
 </p>
-<pre class="notranslate">
+<pre>
 public class Product implements Table {
 
     public Integer productId;
@@ -247,7 +247,7 @@ public class Product implements Table {
 }
 </pre>
 <p>
-The method <code class="notranslate">define()</code> contains the mapping definition. It is called once
+The method <code>define()</code> contains the mapping definition. It is called once
 when the class is used for the first time. Like annotations, the mapping is defined in the class itself.
 Unlike when using annotations, the compiler can check the syntax even for multi-column
 objects (multi-column indexes, multi-column primary keys and so on).
@@ -262,7 +262,7 @@ To do that, the condition class is de-compiled to a SQL condition.
 A proof of concept decompiler is included (but it doesn't work yet).
 The planned syntax is:
 </p>
-<pre class="notranslate">
+<pre>
 long count = db.from(co).
     where(new Filter() { public boolean where() {
         return co.id == x

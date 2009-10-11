@@ -13,6 +13,31 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(71,
+'New version available: 1.2.121 (2009-10-11)', '2009-10-11 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>This is a beta version.
+</li><li>If a database in the old format exists, it is now used.
+</li><li>New system property h2.pageStoreTrim to disable shrinking the database.
+</li></ul>Better support GaeVFS (Google App Engine Virtual File System)
+    thanks to Thanks to Vince Bonfanti.
+<b>Bugfixes:</b>
+<ul><li>
+</li><li>
+</li><li>Page store bugs were fixed.
+</li><li>The page store did not work when using Retrotranslator.
+</li><li>CSVREAD didn't close the file. Thanks to Vince Bonfanti for the patch!
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(70,
 'New version available: 1.2.120 (2009-10-04)', '2009-10-04 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -414,27 +439,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Some built-in functions reported the wrong precision, scale, and display size.
 </li><li>Optimizer: the expected runtime calculation was incorrect. The fixed calculation
     should give slightly better query plans when using many joins.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(57,
-'New version available: 1.1.107 (beta; 2009-01-24)', '2009-01-24 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Enabling the trace mechanism by creating a file is no longer supported.
-</li><li>The MySQL compatibility extension fromUnixTime now used the English locale.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Some DatabaseMetaData operations did not work for non-admin users.
-</li><li>When using LOG=2, the index file grew quickly in some situations.
-</li><li>In versions 1.1.105-106, old encrypted script files could not be processed.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

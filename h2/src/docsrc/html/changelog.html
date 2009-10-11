@@ -18,19 +18,23 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.121 (2009-10-11)</h2>
 <ul><li>Better support GaeVFS (Google App Engine Virtual File System) thanks to Thanks to Vince Bonfanti.
-</li><li>CSVREAD: the function didn't close the file. Thanks to Vince Bonfanti for the patch!
+</li><li>CSVREAD didn't close the file. Thanks to Vince Bonfanti for the patch!
 </li><li>If a database in the old format exists, it is now used.
     The system property is used for new databases, or if databases exist
     in both formats. In any case, the flag in the URL overrides this logic.
-</li><li>Page store: large values in indexed columns could corrupt the index.
+</li><li>Page store bugs were fixed. Large values in indexed columns could corrupt the index.
 </li><li>The page store did not work when using Retrotranslator (because the Retrotranslator doesn't
     support Integer.reverse and Long.reverse).
-</li><li>New system property h2.pageStoreTrim to disable shrinking the database size when closing
+</li><li>New system property h2.pageStoreTrim to disable shrinking the database when closing
     (disabled by default, meaning by default the database is trimmed).
 </li></ul>
 
-<h2>Version 1.2.120 (2009-09-26)</h2>
+<h2>Version 1.2.120 (2009-10-04)</h2>
 <ul><li>This is a beta version.
 </li><li>Large updates could throw an ArrayIndexOutOfBoundsException in RowList.writeRow.
 </li><li>In version 1.2, the following system properties are now enabled by default:

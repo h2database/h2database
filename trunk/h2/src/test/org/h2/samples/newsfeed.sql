@@ -22,12 +22,11 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>This is a beta version.
 </li><li>If a database in the old format exists, it is now used.
 </li><li>New system property h2.pageStoreTrim to disable shrinking the database.
-</li></ul>Better support GaeVFS (Google App Engine Virtual File System)
+</li><li>Better support GaeVFS (Google App Engine Virtual File System)
     thanks to Thanks to Vince Bonfanti.
+</li></ul>
 <b>Bugfixes:</b>
-<ul><li>
-</li><li>
-</li><li>Page store bugs were fixed.
+<ul><li>Page store bugs were fixed.
 </li><li>The page store did not work when using Retrotranslator.
 </li><li>CSVREAD didn't close the file. Thanks to Vince Bonfanti for the patch!
 </li></ul>

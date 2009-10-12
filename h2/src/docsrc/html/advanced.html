@@ -94,7 +94,6 @@ In this case, each block of rows is sorted using quick sort, then written to dis
 when reading the data, the blocks are merged together.
 </p>
 
-<br />
 <h2 id="large_objects">Large Objects</h2>
 
 <h3>Storing and Reading Large Objects</h3>
@@ -130,7 +129,6 @@ operations. If you store many large compressible values such as XML, HTML, text,
 then compressing can save a lot of disk space (sometimes more than 50%), and read operations may even be faster.
 </p>
 
-<br />
 <h2 id="linked_tables">Linked Tables</h2>
 <p>
 This database supports linked tables, which means tables that don't exist in the current database but
@@ -160,7 +158,6 @@ The statement <a href="grammar.html#create_linked_table" class="notranslate" >CR
 supports an optional schema name parameter.
 </p>
 
-<br />
 <h2 id="transaction_isolation">Transaction Isolation</h2>
 <p>
 Transaction isolation is provided for all data manipulation language (DML) statements.
@@ -232,7 +229,6 @@ connection will get a lock timeout exception. The lock timeout can be set indivi
 for each connection.
 </p>
 
-<br />
 <h2 id="mvcc">Multi-Version Concurrency Control (MVCC)</h2>
 <p>
 The MVCC feature allows higher concurrency than using (table level or row level) locks.
@@ -259,7 +255,6 @@ the complete undo log must fit in memory when using multi-version concurrency
 (the setting <code>MAX_MEMORY_UNDO</code> has no effect).
 </p>
 
-<br />
 <h2 id="clustering">Clustering / High Availability</h2>
 <p>
 This database supports a simple clustering / high availability mechanism. The architecture is:
@@ -342,7 +337,6 @@ Those functions should not be used directly in modifying statements
 in read-only statements and the result can then be used for modifying statements.
 </p>
 
-<br />
 <h2 id="two_phase_commit">Two Phase Commit</h2>
 <p>
 The two phase commit protocol is supported. 2-phase-commit works as follows:
@@ -363,7 +357,6 @@ The two phase commit protocol is supported. 2-phase-commit works as follows:
 </li><li>The database needs to be closed and re-opened to apply the changes
 </li></ul>
 
-<br />
 <h2 id="compatibility">Compatibility</h2>
 <p>
 This database is (up to a certain point) compatible to other databases such as HSQLDB, MySQL and PostgreSQL.
@@ -392,7 +385,6 @@ Certain words of this list are keywords because they are functions that can be u
 for example <code>CURRENT_TIMESTAMP</code>.
 </p>
 
-<br />
 <h2 id="standards_compliance">Standards Compliance</h2>
 <p>
 This database tries to be as much standard compliant as possible. For the SQL language, ANSI/ISO is the main
@@ -401,7 +393,6 @@ Unfortunately, the standard documentation is not freely available. Another probl
 are not standardized. Whenever this is the case, this database tries to be compatible to other databases.
 </p>
 
-<br />
 <h2 id="windows_service">Run as Windows Service</h2>
 <p>
 Using a native wrapper / adapter, Java applications can be run as a Windows Service.
@@ -445,7 +436,6 @@ To uninstall the service, double click on <code>5_uninstall_service.bat</code>.
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
 </p>
 
-<br />
 <h2 id="odbc_driver">ODBC Driver</h2>
 <p>
 This database does not come with its own ODBC driver at this time,
@@ -552,7 +542,6 @@ Also, it is currently not possible to use encrypted SSL connections.
 Therefore the ODBC driver should not be used where security is important.
 </p>
 
-<br />
 <h2 id="microsoft_dot_net">Using H2 in Microsoft .NET</h2>
 <p>
 The database can be used from Microsoft .NET even without using Java, by using IKVM.NET.
@@ -602,7 +591,6 @@ class Test
 }
 </pre>
 
-<br />
 <h2 id="acid">ACID</h2>
 <p>
 In the database world, ACID stands for:
@@ -642,7 +630,6 @@ If durability is required for all possible cases of hardware failure, clustering
 such as the H2 clustering mode.
 </p>
 
-<br />
 <h2 id="durability_problems">Durability Problems</h2>
 <p>
 Complete durability means all committed transaction survive a power failure.
@@ -728,7 +715,6 @@ none of the databases contains all the records that the listener computer knows 
 consult the source code of the listener and test application.
 </p>
 
-<br />
 <h2 id="using_recover_tool">Using the Recover Tool</h2>
 <p>
 The <code>Recover</code> tool can be used to extract the contents of a data file, even if the database is corrupted.
@@ -753,7 +739,6 @@ however it does not automatically apply those changes. Usually, many of those ch
 applied in the database.
 </p>
 
-<br />
 <h2 id="file_locking_protocols">File Locking Protocols</h2>
 <p>
 Whenever a database is opened, a lock file is created to signal other processes
@@ -836,7 +821,6 @@ share, two processes (running on different computers) could still open the same
 database files, if they do not have a direct TCP/IP connection.
 </p>
 
-<br />
 <h2 id="sql_injection">Protection against SQL Injection</h2>
 <h3>What is SQL Injection</h3>
 <p>
@@ -922,7 +906,6 @@ It is not required to create a constant for the number 0 as there is already a b
 SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 </pre>
 
-<br />
 <h2 id="remote_access">Protection against Remote Access</h2>
 <p>
 By default this database does not allow others to connect when starting the H2 Console,
@@ -934,7 +917,6 @@ users can not create new databases or access existing databases with weak passwo
 ensure the existing accessible databases are protected using a strong password.
 </p>
 
-<br />
 <h2 id="restricting_classes">Restricting Class Loading and Usage</h2>
 <p>
 By default there is no restriction on loading classes and executing Java code for admins.
@@ -963,7 +945,6 @@ trigger classes, user-defined functions, user-defined aggregate functions, and J
 driver classes (with the exception of the H2 driver) when using the H2 Console.
 </p>
 
-<br />
 <h2 id="security_protocols">Security Protocols</h2>
 <p>
 The following paragraphs document the security protocols used in this database.
@@ -1074,7 +1055,6 @@ There is a default self-certified certificate to support an easy starting point,
 custom certificates are supported as well.
 </p>
 
-<br />
 <h2 id="ssl_tls_connections">SSL/TLS Connections</h2>
 <p>
 Remote SSL/TLS connections are supported using the Java Secure Socket Extension
@@ -1092,7 +1072,6 @@ for more information.
 To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
 </p>
 
-<br />
 <h2 id="uuid">Universally Unique Identifiers (UUID)</h2>
 <p>
 This database supports UUIDs. Also supported is a function to create new UUIDs using
@@ -1135,7 +1114,6 @@ one's annual risk of being hit by a meteorite is estimated to be one chance in 1
 that means the probability is about 0.000'000'000'06.
 </p>
 
-<br />
 <h2 id="system_properties">Settings Read from System Properties</h2>
 <p>
 Some settings of the database can be set on the command line using
@@ -1155,7 +1133,6 @@ For a complete list of settings, see
 <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a>.
 </p>
 
-<br />
 <h2 id="server_bind_address">Setting the Server Bind Address</h2>
 <p>
 Usually server sockets accept connections on any/all local addresses.
@@ -1165,7 +1142,6 @@ This setting is used for both regular server sockets and for SSL server sockets.
 IPv4 and IPv6 address formats are supported.
 </p>
 
-<br />
 <h2 id="file_system">Pluggable File System</h2>
 <p>
 This database supports a pluggable file system API. The file system implementation
@@ -1187,7 +1163,6 @@ To register a new file system, extend the classes <code>org.h2.store.fs.FileSyst
 and call the method <code>FileSystem.register</code> before using it.
 </p>
 
-<br />
 <h2 id="limits_limitations">Limits and Limitations</h2>
 <p>
 This database has the following known limitations:
@@ -1226,7 +1201,6 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
     or the data type documentation of this database.
 </li></ul>
 
-<br />
 <h2 id="glossary_links">Glossary and Links</h2>
 <table>
     <tr>

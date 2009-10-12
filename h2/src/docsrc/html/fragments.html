@@ -17,12 +17,16 @@ Initial Developer: H2 Group
 <div class="menu">
 <img src="images/h2-logo.png" alt="H2 Logo"  onclick="document.location='main.html'" width="136" height="74"/>
 </div>
+
 <form action="submit" onsubmit="return goFirst();">
 <table width="100%" class="search">
     <tr class="search">
         <td class="search" colspan="2">
-            <a href="frame.html"><img src="images/language_en.gif" alt="English" width="23" height="15"/></a>
-            <a href="frame_ja.html"><img src="images/language_ja.gif" alt="Japanese" width="23" height="15"/></a>
+<!-- translate
+<a href="http://translate.google.com/translate?u=http%3A%2F%2Fh2database.com"
+    onclick="javascript:document.getElementById('translate').style.display='';return false;">Translate</a>
+<div id = "translate" style="display:none"><div id = "google_translate_element"></div></div>
+translate -->
         </td>
     </tr>
     <tr class="search">
@@ -52,6 +56,7 @@ Initial Developer: H2 Group
 <div class="menu">
 <b><a href="main.html"> Home </a></b><br />
 <a href="quickstart.html"> Quickstart </a><br />
+<a href="cheatSheet.html"> Cheat Sheet </a><br />
 <a href="installation.html"> Installation </a><br />
 <a href="tutorial.html"> Tutorial </a><br />
 <a href="features.html"> Features </a><br />
@@ -76,18 +81,6 @@ Initial Developer: H2 Group
 <a href="license.html"> License </a><br />
 <br />
 
-<!-- translate
-<a href="http://translate.google.com/translate?u=http%3A%2F%2Fh2database.com"
-    onclick="javascript:document.getElementById('translate').style.display='';return false;">Translate</a>
-<div id = "translate" style="display:none"><div id = "google_translate_element"></div></div>
-<script type="text/javascript">
-function googleTranslateElementInit() {
-    new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
-}
-</script>
-<script type="text/javascript" src="http://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-translate -->
-
 </div>
 </div>
 </td>
@@ -101,6 +94,8 @@ translate -->
 </div></td></tr></table>
 <script type="text/javascript" src="index.js"></script>
 <script type="text/javascript" src="search.js"></script>
+<script type="text/javascript">function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); } </script>
+
 <!-- } -->
 
 </body></html>

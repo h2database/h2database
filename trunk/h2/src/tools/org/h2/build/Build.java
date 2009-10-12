@@ -230,11 +230,7 @@ public class Build extends BuildBase {
     }
 
     private String getJarSuffix() {
-        String version = getVersion();
-        if (version.startsWith("1.0.")) {
-            return ".jar";
-        }
-        return "-" + version + ".jar";
+        return "-" + getVersion() + ".jar";
     }
 
     /**
@@ -249,7 +245,7 @@ public class Build extends BuildBase {
         delete("docs/html/onePage.html");
         FileList files = files("../h2").keep("../h2/build.*");
         files.addAll(files("../h2/bin").keep("../h2/bin/h2*"));
-        files.addAll(files("../h2/docs"));
+        files.addAll(files("../h2/docs").exclude("*.jar"));
         files.addAll(files("../h2/service"));
         files.addAll(files("../h2/src"));
         zip("../h2web/h2.zip", files, "../", false, false);
@@ -270,7 +266,6 @@ public class Build extends BuildBase {
             writeFile(new File("../h2web/h2-setup-" + buildDate + ".exe"), data);
         }
         updateChecksum("../h2web/html/download.html", sha1Zip, sha1Exe);
-        updateChecksum("../h2web/html/download_ja.html", sha1Zip, sha1Exe);
     }
 
     private void updateChecksum(String fileName, String sha1Zip, String sha1Exe) {
@@ -305,6 +300,14 @@ public class Build extends BuildBase {
         filter("src/installer/h2.sh", "bin/h2.sh", "h2.jar", "h2" + getJarSuffix());
         filter("src/installer/h2.bat", "bin/h2.bat", "h2.jar", "h2" + getJarSuffix());
         filter("src/installer/h2w.bat", "bin/h2w.bat", "h2.jar", "h2" + getJarSuffix());
+    }
+
+    /**
+     * Create a jar file that contains the source code.
+     */
+    public void jarSources() {
+        FileList files = files("src/main").keep("*.java");
+        jar("docs/h2-" + getVersion() + "-sources.jar", files, "src/main");
     }
 
     /**
@@ -433,7 +436,7 @@ public class Build extends BuildBase {
      */
     public void mavenDeployCentral() {
         jar();
-        String pom = new String(readFile(new File("src/installer/pom.xml")));
+        String pom = new String(readFile(new File("src/installer/pom-template.xml")));
         pom = replaceAll(pom, "@version@", getVersion());
         writeFile(new File("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(
@@ -445,6 +448,7 @@ public class Build extends BuildBase {
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
                 "-DgroupId=com.h2database"));
+        int todoDeploySources;
     }
 
     /**
@@ -453,7 +457,7 @@ public class Build extends BuildBase {
      */
     public void mavenInstallLocal() {
         jar();
-        String pom = new String(readFile(new File("src/installer/pom.xml")));
+        String pom = new String(readFile(new File("src/installer/pom-template.xml")));
         pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
         writeFile(new File("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(

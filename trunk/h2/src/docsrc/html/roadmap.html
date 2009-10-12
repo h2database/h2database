@@ -32,7 +32,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <ul>
 <li>Bugfixes
 </li><li>Page store: new storage mechanism
-</li><li>[Requires page store] Support large updates (use the transaction log for rollback).
+</li><li>[Requires page store] Support large updates (use the transaction log
+    for rollback instead of persistent UndoLog.file).
 </li><li>[Requires page store] Shutdown compact
 </li><li>More tests with MULTI_THREADED=1
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
@@ -94,6 +95,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Comparison: pluggable sort order: natural sort
 </li><li>Count index range query (count(*) where id between 10 and 20)
 </li><li>Support alter table add column if table has views defined
+</li><li>Recursive Queries (see details)
 </li><li>Eclipse plugin
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
 </li><li>Fulltext search Lucene: analyzer configuration.
@@ -186,7 +188,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 </li><li>Native fulltext search: min word length; store word positions
 </li><li>[Requires page store] Store dates in local time zone (portability of database files)
-</li><li>Recursive Queries (see details)
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
 </li><li>Test Dezign for Databases (http://www.datanamic.com)
 </li><li>Fast library for parsing / formatting: http://javolution.org/
@@ -394,6 +395,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Natural join: support select x from dual natural join dual.
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
+</li><li>Optimization for multi-column IN: use an index if possible. Example: (A, B) IN((1, 2), (2, 3)).
+</li><li>Optimization for EXISTS: convert to inner join or IN(..) if possible.
 </li><li>Functions: support hashcode(value); cryptographic and fast
 </li><li>Serialized file lock: support long running queries.
 </li><li>Network: use 127.0.0.1 if other addresses don't work.
@@ -446,7 +449,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Oracle compatibility: support CREATE SYNONYM table FOR schema.table.
 </li><li>Optimize A=? OR B=? to UNION if the cost is lower.
 </li><li>More secure default configuration if remote access is enabled.
-</li><li>Optimization for EXISTS: convert to inner join if possible.
 </li><li>Improve database file locking (maybe use native file locking). The current approach seems to be problematic
     if the file system is on a remote share (see Google Group 'Lock file modification time is in the future').
 </li><li>Document internal features such as BELONGS_TO_TABLE, NULL_TO_DEFAULT, SEQUENCE.

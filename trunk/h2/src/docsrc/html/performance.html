@@ -29,7 +29,6 @@ Performance
 <a href="#fast_import">
     Fast Database Import</a><br />
 
-<br />
 <h2 id="performance_comparison">Performance Comparison</h2>
 <p>
 In many cases H2 is faster than other
@@ -272,7 +271,6 @@ Here, one (wrapper) connection is opened at the start,
 and for each step a new connection is opened and then closed.
 </p>
 
-<br />
 <h2 id="poleposition_benchmark">PolePosition Benchmark</h2>
 <p>
 The PolePosition is an open source benchmark. The algorithms are all quite simple.
@@ -318,7 +316,6 @@ To change that, use the database URL <code>jdbc:h2:file:data/h2/dbbench;DB_CLOSE
 Unfortunately, the PolePosition test does not take this into account.
 </li></ul>
 
-<br />
 <h2 id="application_profiling">Application Profiling</h2>
 
 <h3>Analyze First</h3>
@@ -345,7 +342,6 @@ run <code>jstack &lt;pid&gt;</code> or <code>kill -QUIT &lt;pid&gt;</code> (Linu
 Ctrl+C (Windows).
 </p>
 
-<br />
 <h2 id="database_profiling">Database Profiling</h2>
 <p>
 The <code>ConvertTraceFile</code> tool generates SQL statement statistics at the end of the SQL script file.
@@ -384,7 +380,6 @@ following profiling data (results vary):
 --   0% 100%       0       1       0 SET TRACE_LEVEL_FILE 3;
 </pre>
 
-<br />
 <h2 id="database_performance_tuning">Database Performance Tuning</h2>
 
 <h3>Use a Modern JVM</h3>
@@ -521,7 +516,6 @@ Each data type has different storage and performance characteristics:
     to work with than <code>INTEGER</code> in most modes.
 </li></ul>
 
-<br />
 <h2 id="fast_import">Fast Database Import</h2>
 <p>
 To speed up large imports, consider using the following options temporarily:

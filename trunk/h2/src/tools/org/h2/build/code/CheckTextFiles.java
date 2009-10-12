@@ -81,7 +81,7 @@ public class CheckTextFiles {
 //                check = false;
 //                ignore = true;
 //            }
-            if (name.endsWith(".utf8.txt")) {
+            if (name.endsWith(".utf8.txt") || (name.startsWith("_docs_") && name.endsWith(".properties"))) {
                 check = false;
                 ignore = true;
             }

@@ -25,9 +25,10 @@ import org.h2.util.StringUtils;
 public class WebSite {
 
     private static final String ANALYTICS_TAG = "<!-- analytics -->";
-    private static final String ANALYTICS_SCRIPT =
+    private static final String ANALYTICS_AND_TRANSLATE_SCRIPT =
         "<script src=\"http://www.google-analytics.com/ga.js\" type=\"text/javascript\"></script>\n" +
-        "<script type=\"text/javascript\">var pageTracker=_gat._getTracker(\"UA-2351060-1\");pageTracker._initData();pageTracker._trackPageview();</script>";
+        "<script type=\"text/javascript\">var pageTracker=_gat._getTracker(\"UA-2351060-1\");pageTracker._initData();pageTracker._trackPageview();</script>\n" +
+        "<script type=\"text/javascript\" src=\"http://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit\"></script>";
     private static final String TRANSLATE_START = "<!-- translate";
     private static final String TRANSLATE_END = "translate -->";
 
@@ -138,7 +139,7 @@ public class WebSite {
             if (name.endsWith(".html")) {
                 String page = new String(bytes, "UTF-8");
                 if (web) {
-                    page = StringUtils.replaceAll(page, ANALYTICS_TAG, ANALYTICS_SCRIPT);
+                    page = StringUtils.replaceAll(page, ANALYTICS_TAG, ANALYTICS_AND_TRANSLATE_SCRIPT);
                 }
                 if (replaceFragments) {
                     page = replaceFragments(name, page);

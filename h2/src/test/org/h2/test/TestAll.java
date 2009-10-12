@@ -297,7 +297,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+check if sources.jar is not in installer and zip, but in h2web
 documentation: rolling review at history.html
+html sql railroads
 
 mvcc merge problem
 

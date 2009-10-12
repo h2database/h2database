@@ -6,7 +6,7 @@ if [ -z "$JAVA_HOME" ] ; then
     echo "Error: JAVA_HOME is not defined."
   fi
 fi
-if [ "$1" == "clean" ] ; then rm -rf temp bin ; fi
+if [ "$1" = "clean" ] ; then rm -rf temp bin ; fi
 if [ ! -d "temp" ] ; then mkdir temp ; fi
 if [ ! -d "bin" ] ; then mkdir bin ; fi
 javac -sourcepath src/tools -d bin src/tools/org/h2/build/*.java

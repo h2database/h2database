@@ -59,28 +59,30 @@ public class GenerateDoc {
         Class.forName("org.h2.Driver");
         conn = DriverManager.getConnection("jdbc:h2:mem:");
         new File(outDir).mkdirs();
+        new RailroadImages().run(outDir + "/images");
         bnf = Bnf.getInstance(null);
+        bnf.linkStatements();
         session.put("version", Constants.getVersion());
         session.put("versionDate", Constants.BUILD_DATE);
         session.put("stableVersion", Constants.getVersionStable());
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + inHelp + "') WHERE SECTION ";
-        map("commands", help + "LIKE 'Commands%' ORDER BY ID");
-        map("commandsDML", help + "= 'Commands (DML)' ORDER BY ID");
-        map("commandsDDL", help + "= 'Commands (DDL)' ORDER BY ID");
-        map("commandsOther", help + "= 'Commands (Other)' ORDER BY ID");
-        map("otherGrammar", help + "= 'Other Grammar' ORDER BY ID");
-        map("functionsAggregate", help + "= 'Functions (Aggregate)' ORDER BY ID");
-        map("functionsNumeric", help + "= 'Functions (Numeric)' ORDER BY ID");
-        map("functionsString", help + "= 'Functions (String)' ORDER BY ID");
-        map("functionsTimeDate", help + "= 'Functions (Time and Date)' ORDER BY ID");
-        map("functionsSystem", help + "= 'Functions (System)' ORDER BY ID");
-        map("functionsAll", help + "LIKE 'Functions%' ORDER BY SECTION, ID");
-        map("dataTypes", help + "LIKE 'Data Types%' ORDER BY SECTION, ID");
+        map("commands", help + "LIKE 'Commands%' ORDER BY ID", true);
+        map("commandsDML", help + "= 'Commands (DML)' ORDER BY ID", true);
+        map("commandsDDL", help + "= 'Commands (DDL)' ORDER BY ID", true);
+        map("commandsOther", help + "= 'Commands (Other)' ORDER BY ID", true);
+        map("otherGrammar", help + "= 'Other Grammar' ORDER BY ID", true);
+        map("functionsAggregate", help + "= 'Functions (Aggregate)' ORDER BY ID", true);
+        map("functionsNumeric", help + "= 'Functions (Numeric)' ORDER BY ID", true);
+        map("functionsString", help + "= 'Functions (String)' ORDER BY ID", true);
+        map("functionsTimeDate", help + "= 'Functions (Time and Date)' ORDER BY ID", true);
+        map("functionsSystem", help + "= 'Functions (System)' ORDER BY ID", true);
+        map("functionsAll", help + "LIKE 'Functions%' ORDER BY SECTION, ID", true);
+        map("dataTypes", help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
         map("informationSchema", "SELECT TABLE_NAME TOPIC, GROUP_CONCAT(COLUMN_NAME "
                 + "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX FROM INFORMATION_SCHEMA.COLUMNS "
-                + "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' GROUP BY TABLE_NAME ORDER BY TABLE_NAME");
+                + "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false);
         processAll("");
         conn.close();
     }
@@ -115,7 +117,7 @@ public class GenerateDoc {
         out.close();
     }
 
-    private void map(String key, String sql) throws Exception {
+    private void map(String key, String sql, boolean railroads) throws Exception {
         ResultSet rs = null;
         Statement stat = null;
         try {
@@ -133,9 +135,10 @@ public class GenerateDoc {
                 }
                 String topic = rs.getString("TOPIC");
                 String syntax = rs.getString("SYNTAX").trim();
-                syntax = PageParser.escapeHtml(syntax);
-                // if enabled, HTML docs get very wide
-                // syntax = StringUtils.replaceAll(syntax, "<br />", " ");
+                if (railroads) {
+                    String railroad = bnf.getRailroadHtml(syntax);
+                    map.put("railroad", railroad);
+                }
                 syntax = bnf.getSyntaxHtml(syntax);
                 map.put("syntax", syntax);
 

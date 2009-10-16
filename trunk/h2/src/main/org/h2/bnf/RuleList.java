@@ -53,6 +53,40 @@ public class RuleList implements Rule {
         return buff.toString();
     }
 
+    public String getHtmlRailroad(Bnf config, boolean topLevel) {
+        StringBuilder buff = new StringBuilder();
+        if (or) {
+            buff.append("<table class=\"railroad\">");
+            int i = 0;
+            for (Rule r : list) {
+                String a = i == 0 ? "t" : i == list.size() - 1 ? "l" : "k";
+                i++;
+                buff.append("<tr class=\"railroad\"><td class=\"" + a + "s\"></td><td class=\"d\">");
+                buff.append(r.getHtmlRailroad(config, false));
+                buff.append("</td><td class=\"" + a + "e\"></td></tr>");
+            }
+            buff.append("</table>");
+        } else {
+            if (!topLevel) {
+                buff.append("<table class=\"railroad\">");
+                buff.append("<tr class=\"railroad\">");
+            }
+            for (Rule r : list) {
+                if (!topLevel) {
+                    buff.append("<td class=\"d\">");
+                }
+                buff.append(r.getHtmlRailroad(config, false));
+                if (!topLevel) {
+                    buff.append("</td>");
+                }
+            }
+            if (!topLevel) {
+                buff.append("</tr></table>");
+            }
+        }
+        return buff.toString();
+    }
+
     public String random(Bnf config, int level) {
         if (or) {
             if (level > 10) {

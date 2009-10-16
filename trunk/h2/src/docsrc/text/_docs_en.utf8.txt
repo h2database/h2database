@@ -8120,7 +8120,7 @@ Bugfixes
 Page store: new storage mechanism 
 
 @roadmap_1009_li
-[Requires page store] Support large updates (use the transaction log for rollback). 
+[Requires page store] Support large updates (use the transaction log for rollback instead of persistent UndoLog.file). 
 
 @roadmap_1010_li
 [Requires page store] Shutdown compact 

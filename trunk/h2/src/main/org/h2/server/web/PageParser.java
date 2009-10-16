@@ -133,7 +133,7 @@ public class PageParser {
                 break;
             }
             case '$':
-                if (p.charAt(i + 1) == '{') {
+                if (p.length() > i + 1 && p.charAt(i + 1) == '{') {
                     i += 2;
                     int j = p.indexOf('}', i);
                     if (j < 0) {

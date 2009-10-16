@@ -4,29 +4,39 @@
 # Initial Developer: H2 Group
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
 "Commands (DML)","SELECT","
-{SELECT selectPart FROM fromPart | FROM fromPart SELECT selectPart}
-[WHERE expression] [GROUP BY expression [,...]] [HAVING expression]
-[{UNION [ALL] | MINUS | EXCEPT | INTERSECT} select]
-[ORDER BY order [,...]] [LIMIT expression [OFFSET expression]
-[SAMPLE_SIZE rowCountInt]] [FOR UPDATE]
+SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
+FROM tableExpression [,...] [ WHERE expression ]
+[ GROUP BY expression [,...] ] [ HAVING expression ]
+[ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
+[ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ FOR UPDATE ]","
 ","
 Selects data from a table or multiple tables.
+GROUP BY groups the the result by the given expression(s).
+HAVING filter rows after grouping.
+ORDER BY sorts the result by the given column(s) or expression(s).
+UNION combines the result of this query with the results of another query.
 
-LIMIT limits the number of rows returned by the query, OFFSET specified how many
-rows to skip. SAMPLE_SIZE limits the number of rows read for aggregate queries.
+LIMIT limits the number of rows returned by the query, OFFSET specified
+how many rows to skip. SAMPLE_SIZE limits the number of rows read for
+aggregate queries.
+
 If FOR UPDATE is specified, the tables are locked for writing.
-
-FOR UPDATE will lock the table for writing.
 ","
 SELECT * FROM TEST;
+SELECT * FROM TEST ORDER BY NAME;
+SELECT ID, COUNT(*) FROM TEST GROUP BY ID;
+SELECT NAME, COUNT(*) FROM TEST GROUP BY NAME HAVING COUNT(*) > 2;
+SELECT 'ID' COL, MAX(ID) AS MAX FROM TEST UNION SELECT 'NAME', MAX(NAME) FROM TEST;
+SELECT * FROM TEST LIMIT 1000;
 SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
     GROUP BY ID UNION SELECT NULL, COUNT(*) FROM TEST)
     ORDER BY 1 NULLS LAST;
 "
 
 "Commands (DML)","INSERT","
-INSERT INTO tableName [(columnName [,...])]
-{VALUES {( [{DEFAULT | expression} [,...]] )} [,...] | select}
+INSERT INTO tableName [ ( columnName [,...] ) ]
+{ VALUES { ( [ { DEFAULT | expression } [,...] ] ) } [,...] | select }
 ","
 Inserts a new row / new rows into a table.
 ","
@@ -34,8 +44,8 @@ INSERT INTO TEST VALUES(1, 'Hello')
 "
 
 "Commands (DML)","UPDATE","
-UPDATE tableName SET {columnName= {DEFAULT | expression} } [,...]
-[WHERE expression]
+UPDATE tableName SET { columnName= { DEFAULT | expression } } [,...]
+[ WHERE expression ]
 ","
 Updates data in a table.
 ","
@@ -43,7 +53,7 @@ UPDATE TEST SET NAME='Hi' WHERE ID=1
 "
 
 "Commands (DML)","DELETE","
-DELETE FROM tableName [WHERE expression]
+DELETE FROM tableName [ WHERE expression ]
 ","
 Deletes rows form a table.
 ","
@@ -68,7 +78,7 @@ CALL 15*25
 "
 
 "Commands (DML)","EXPLAIN","
-EXPLAIN [PLAN FOR] {select | insert | update | delete}
+EXPLAIN [ PLAN FOR ] { select | insert | update | delete }
 ","
 Shows the execution plan for a statement.
 ","
@@ -76,8 +86,9 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1
 "
 
 "Commands (DML)","MERGE","
-MERGE INTO tableName [(columnName [,...])] [KEY(columnName [,...])]
-{VALUES {( [{DEFAULT | expression} [,...]] )} [,...] | select}
+MERGE INTO tableName [ ( columnName [,...] ) ]
+[ KEY ( columnName [,...] ) ]
+{ VALUES { ( [ { DEFAULT | expression } [,...] ] ) } [,...] | select }
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
@@ -90,9 +101,9 @@ MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 
 "Commands (DML)","RUNSCRIPT","
 RUNSCRIPT FROM fileNameString
-[COMPRESSION {DEFLATE|LZF|ZIP|GZIP}]
-[CIPHER cipher PASSWORD string]
-[CHARSET charsetString]
+[ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+[ CIPHER cipher PASSWORD string ]
+[ CHARSET charsetString ]
 ","
 Runs a SQL script from a file. The script is a text file containing SQL
 statements; each statement must end with ';'. This command can be used to
@@ -109,20 +120,25 @@ RUNSCRIPT FROM 'backup'
 "
 
 "Commands (DML)","SCRIPT","
-SCRIPT [SIMPLE] [NODATA] [NOPASSWORDS] [NOSETTINGS] [DROP]
-[BLOCKSIZE blockSizeInt] [TO fileNameString
-[COMPRESSION {DEFLATE|LZF|ZIP|GZIP}]
-[CIPHER cipher PASSWORD string]]
+SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
+[ DROP ] [ BLOCKSIZE blockSizeInt ]
+[ TO fileNameString [ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+    [ CIPHER cipher PASSWORD string ] ]
 ","
-Creates a SQL script with or without the insert statements. The simple format
-does not use multi-row insert statements. If no file name is specified, the
+Creates a SQL script from the database.
+
+SIMPLE does not use multi-row insert statements.
+NODATA will not emit INSERT statements.
+If the DROP option is specified, drop statements are created for tables, views,
+and sequences. If the block size is set, CLOB and BLOB values larger than this
+size are split into separate blocks.
+
+If no file name is specified, the
 script is returned as a result set. This command can be used to create a backup
 of the database. For long term storage, it is more portable than copying the
 database files.
 
-If the DROP option is specified, drop statements are created for tables, views,
-and sequences. If the block size is set, CLOB and BLOB values larger than this
-size are split into separate blocks. If a file name is specified, then the whole
+If a file name is specified, then the whole
 script (including insert statements) is written to this file, and a result set
 without the insert statements is returned. When using encryption, only DEFLATE
 and LZF are supported (LZF is faster but uses more space).
@@ -134,8 +150,8 @@ SCRIPT NODATA
 "
 
 "Commands (DML)","SHOW","
-SHOW { SCHEMAS | TABLES [FROM schemaName] |
-COLUMNS FROM tableName [FROM schemaName] }
+SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
+    COLUMNS FROM tableName [ FROM schemaName ] }
 ","
 Lists the schemas, tables, or the columns of a table.
 ","
@@ -152,7 +168,7 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE sequenceName [RESTART WITH long] [INCREMENT BY long]
+ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 ","
 Changes the next value and the increment of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -162,8 +178,8 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "
 
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE tableName ADD name dataType [DEFAULT expression]
-[[NOT] NULL] [AUTO_INCREMENT | IDENTITY] [BEFORE columnName]
+ALTER TABLE tableName ADD name dataType [ DEFAULT expression ]
+[ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] [ BEFORE columnName ]
 ","
 Adds a new column to a table.
 This command commits an open transaction.
@@ -172,7 +188,7 @@ ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
 
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
-ALTER TABLE tableName ADD constraint [CHECK|NOCHECK]
+ALTER TABLE tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table. If NOCHECK is specified, existing rows are not
 checked for consistency (the default is to check consistency for existing rows).
@@ -184,7 +200,7 @@ ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
 ALTER TABLE tableName ALTER COLUMN columnName dataType
-[DEFAULT expression] [NOT [NULL]] [AUTO_INCREMENT | IDENTITY]
+[ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ]
 ","
 Changes the data type of a column.
 The operation fails if the data can not be converted.
@@ -262,8 +278,7 @@ ALTER TABLE TEST DROP COLUMN NAME
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
-ALTER TABLE tableName DROP
-{CONSTRAINT [IF EXISTS] constraintName | PRIMARY KEY}
+ALTER TABLE tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table.
 This command commits an open transaction.
@@ -273,7 +288,7 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 
 "Commands (DDL)","ALTER TABLE SET","
 ALTER TABLE tableName SET REFERENTIAL_INTEGRITY
-{FALSE | TRUE [CHECK|NOCHECK]}
+    { FALSE | TRUE [ CHECK | NOCHECK ] }
 ","
 Disables or enables referential integrity checking for a table. This command can
 be used inside a transaction. Enabling referential integrity does not check
@@ -296,7 +311,7 @@ ALTER TABLE TEST RENAME TO MY_DATA
 "
 
 "Commands (DDL)","ALTER USER ADMIN","
-ALTER USER userName ADMIN {TRUE | FALSE}
+ALTER USER userName ADMIN { TRUE | FALSE }
 ","
 Switches the admin flag of a user on or off.
 
@@ -321,7 +336,7 @@ ALTER USER TOM RENAME TO THOMAS
 "
 
 "Commands (DDL)","ALTER USER SET PASSWORD","
-ALTER USER userName SET {PASSWORD string | SALT bytes HASH bytes}
+ALTER USER userName SET { PASSWORD string | SALT bytes HASH bytes }
 ","
 Changes the password of a user.
 Only unquoted or uppercase user names are allowed.
@@ -344,7 +359,7 @@ ALTER VIEW ADDRESS_VIEW RECOMPILE
 "
 
 "Commands (DDL)","ANALYZE","
-ANALYZE [SAMPLE_SIZE rowCountInt]
+ANALYZE [ SAMPLE_SIZE rowCountInt ]
 ","
 Updates the selectivity statistics of all tables. The selectivity is used by the
 cost based optimizer to select the best index for a given query. If no sample
@@ -359,9 +374,11 @@ ANALYZE SAMPLE_SIZE 1000
 "
 
 "Commands (DDL)","COMMENT","
-COMMENT ON { { TABLE | VIEW | CONSTANT | CONSTRAINT | ALIAS | INDEX | ROLE
-| SCHEMA | SEQUENCE | TRIGGER | USER | DOMAIN } [schemaName.]objectName }
-| { COLUMN [schemaName.]tableName.columnName } IS expression
+COMMENT ON
+{ { COLUMN [ schemaName. ] tableName.columnName }
+    | { { TABLE | VIEW | CONSTANT | CONSTRAINT | ALIAS | INDEX | ROLE
+    | SCHEMA | SEQUENCE | TRIGGER | USER | DOMAIN } [ schemaName. ] objectName } }
+IS expression
 ","
 Sets the comment of a database object. Use NULL to remove the comment.
 
@@ -372,7 +389,7 @@ COMMENT ON TABLE TEST IS 'Table used for testing'
 "
 
 "Commands (DDL)","CREATE AGGREGATE","
-CREATE AGGREGATE [IF NOT EXISTS] newAggregateName FOR className
+CREATE AGGREGATE [ IF NOT EXISTS ] newAggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
@@ -385,7 +402,7 @@ CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
-CREATE ALIAS [IF NOT EXISTS] newFunctionAliasName [DETERMINISTIC]
+CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
 FOR classAndMethodName
 ","
 Creates a new function alias. The method name must be the full qualified class
@@ -411,7 +428,7 @@ CALL GET_SYSTEM_PROPERTY('com.acme.test', 'true');
 "
 
 "Commands (DDL)","CREATE CONSTANT","
-CREATE CONSTANT [IF NOT EXISTS] newConstantName VALUE expression
+CREATE CONSTANT [ IF NOT EXISTS ] newConstantName VALUE expression
 ","
 Creates a new constant.
 This command commits an open transaction.
@@ -420,8 +437,9 @@ CREATE CONSTANT ONE VALUE 1
 "
 
 "Commands (DDL)","CREATE DOMAIN","
-CREATE DOMAIN [IF NOT EXISTS] newDomainName AS dataType [DEFAULT expression]
-[[NOT] NULL] [SELECTIVITY selectivity] [CHECK condition]
+CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
+[ DEFAULT expression ] [ [ NOT ] NULL ] [ SELECTIVITY selectivity ]
+[ CHECK condition ]
 ","
 Creates a new data type (domain). The check condition must evaluate to true or
 to NULL (to prevent NULL, use NOT NULL). In the condition, the term VALUE refers
@@ -433,8 +451,9 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
 
 "Commands (DDL)","CREATE INDEX","
-CREATE {[UNIQUE] [HASH] INDEX [IF NOT EXISTS] newIndexName
-| PRIMARY KEY [HASH]} ON tableName(indexColumn [,...])
+CREATE { [ UNIQUE ] [ HASH ] INDEX [ IF NOT EXISTS ] newIndexName
+    | PRIMARY KEY [ HASH ] }
+ON tableName ( indexColumn [,...] )
 ","
 Creates a new index.
 This command commits an open transaction.
@@ -443,9 +462,9 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 "
 
 "Commands (DDL)","CREATE LINKED TABLE","
-CREATE [[GLOBAL | LOCAL] TEMPORARY] LINKED TABLE [IF NOT EXISTS]
-name(driverString, urlString, userString, passwordString,
-[originalSchemaString,] originalTableString) [EMIT UPDATES | READONLY]
+CREATE [ [ GLOBAL | LOCAL ] TEMPORARY ] LINKED TABLE [ IF NOT EXISTS ]
+name ( driverString, urlString, userString, passwordString,
+[ originalSchemaString, ] originalTableString ) [ EMIT UPDATES | READONLY ]
 ","
 Creates a table link to an external table. The driver name may be empty if the
 driver is already loaded. If the schema name is not set, only one table with
@@ -474,7 +493,7 @@ CREATE LINKED TABLE LINK('javax.naming.InitialContext',
 "
 
 "Commands (DDL)","CREATE ROLE","
-CREATE ROLE [IF NOT EXISTS] newRoleName
+CREATE ROLE [ IF NOT EXISTS ] newRoleName
 ","
 Creates a new role.
 This command commits an open transaction.
@@ -483,7 +502,7 @@ CREATE ROLE READONLY
 "
 
 "Commands (DDL)","CREATE SCHEMA","
-CREATE SCHEMA [IF NOT EXISTS] name [AUTHORIZATION ownerUserName]
+CREATE SCHEMA [ IF NOT EXISTS ] name [ AUTHORIZATION ownerUserName ]
 ","
 Creates a new schema. If no owner is specified, the current user is used. The
 user that executes the command must have admin rights, as well as the owner.
@@ -494,8 +513,8 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
 
 "Commands (DDL)","CREATE SEQUENCE","
-CREATE SEQUENCE [IF NOT EXISTS] newSequenceName [START WITH long]
-[INCREMENT BY long] [CACHE long]
+CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ START WITH long ]
+[ INCREMENT BY long ] [ CACHE long ]
 ","
 Creates a new sequence. The data type of a sequence is BIGINT. Used values are
 never re-used, even when the transaction is rolled back. The cache is the number
@@ -508,27 +527,23 @@ CREATE SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","CREATE TABLE","
-CREATE [CACHED | MEMORY | TEMP | [GLOBAL | LOCAL] TEMPORARY]
-TABLE [IF NOT EXISTS] name
-{ ( {name dataType [{AS computedColumnExpression | DEFAULT expression}]
-[[NOT] NULL] [{AUTO_INCREMENT | IDENTITY}[(startInt [, incrementInt])]]
-[SELECTIVITY selectivity] [PRIMARY KEY [HASH] | UNIQUE] | constraint} [,...] )
-[AS select] [NOT PERSISTENT] } | { AS select }
+CREATE [ CACHED | MEMORY | TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
+    TABLE [ IF NOT EXISTS ]
+name { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
+    | { AS select } [ NOT PERSISTENT ]
 ","
 Creates a new table.
 
 Cached tables (the default) are persistent, and the number
 of rows is not limited by the main memory. Memory tables are persistent, but the
 index data is kept in main memory, that means memory tables should not get too
-large. Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
+large.
+
+Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed. Temporary tables are not persistent.
 Temporary tables can be global (accessible by all connections) or local (only
 accessible by the current connection). The default is for temporary tables is
 global.
-
-Identity and auto-increment columns are columns with a sequence as the
-default. The column declared as the identity columns is implicitly the
-primary key column of this table (unlike auto-increment columns).
 
 This command commits an open transaction.
 ","
@@ -536,11 +551,9 @@ CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "
 
 "Commands (DDL)","CREATE TRIGGER","
-CREATE TRIGGER [IF NOT EXISTS] newTriggerName
-{BEFORE | AFTER} {INSERT | UPDATE | DELETE} [,...]
-ON tableName
-[FOR EACH ROW] [QUEUE int] [NOWAIT]
-CALL triggeredClassName
+CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER }
+{ INSERT | UPDATE | DELETE } [,...] ON tableName [ FOR EACH ROW ]
+[ QUEUE int ] [ NOWAIT ] CALL triggeredClassName
 ","
 Creates a new trigger. The trigger class must be public. Nested and inner
 classes are not supported.  The class must be available in the classpath of the
@@ -554,9 +567,8 @@ This command commits an open transaction.
 CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger""
 "
 "Commands (DDL)","CREATE USER","
-CREATE USER [IF NOT EXISTS] newUserName
-{PASSWORD string | SALT bytes HASH bytes}
-[ADMIN]
+CREATE USER [ IF NOT EXISTS ] newUserName
+{ PASSWORD string | SALT bytes HASH bytes } [ ADMIN ]
 ","
 Creates a new user. For compatibility, only unquoted or uppercase user names are allowed.
 The password must be in single quotes. It is case sensitive and can contain spaces.
@@ -569,8 +581,8 @@ CREATE USER GUEST PASSWORD 'abc'
 "
 
 "Commands (DDL)","CREATE VIEW","
-CREATE [FORCE] VIEW [IF NOT EXISTS] newViewName [(columnName [,..])]
-AS select
+CREATE [ FORCE ] VIEW [ IF NOT EXISTS ] newViewName
+[ ( columnName [,...] ) ] AS select
 ","
 Creates a new view. If the force option is used, then the view is created even
 if the underlying table(s) don't exist.
@@ -582,7 +594,7 @@ CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 "
 
 "Commands (DDL)","DROP AGGREGATE","
-DROP AGGREGATE [IF EXISTS] aggregateName
+DROP AGGREGATE [ IF EXISTS ] aggregateName
 ","
 Drops an existing user-defined aggregate function.
 
@@ -593,7 +605,7 @@ CREATE AGGREGATE MEDIAN
 "
 
 "Commands (DDL)","DROP ALIAS","
-DROP ALIAS [IF EXISTS] functionAliasName
+DROP ALIAS [ IF EXISTS ] existingFunctionAliasName
 ","
 Drops an existing function alias.
 
@@ -604,7 +616,7 @@ CREATE ALIAS MY_SQRT
 "
 
 "Commands (DDL)","DROP ALL OBJECTS","
-DROP ALL OBJECTS [DELETE FILES]
+DROP ALL OBJECTS [ DELETE FILES ]
 ","
 Drops all existing views, tables, sequences, schemas, function aliases, roles,
 user-defined aggregate functions, domains, and users (except the current user).
@@ -618,7 +630,7 @@ DROP ALL OBJECTS
 "
 
 "Commands (DDL)","DROP CONSTANT","
-DROP CONSTANT [IF EXISTS] constantName
+DROP CONSTANT [ IF EXISTS ] constantName
 ","
 Drops a constant.
 This command commits an open transaction.
@@ -627,7 +639,7 @@ DROP CONSTANT ONE
 "
 
 "Commands (DDL)","DROP DOMAIN","
-DROP DOMAIN [IF EXISTS] domainName
+DROP DOMAIN [ IF EXISTS ] domainName
 ","
 Drops a data type (domain).
 This command commits an open transaction.
@@ -636,7 +648,7 @@ DROP DOMAIN EMAIL
 "
 
 "Commands (DDL)","DROP INDEX","
-DROP INDEX [IF EXISTS] indexName
+DROP INDEX [ IF EXISTS ] indexName
 ","
 Drops an index.
 This command commits an open transaction.
@@ -645,7 +657,7 @@ DROP INDEX IF EXISTS IDXNAME
 "
 
 "Commands (DDL)","DROP ROLE","
-DROP ROLE [IF EXISTS] roleName
+DROP ROLE [ IF EXISTS ] roleName
 ","
 Drops a role.
 This command commits an open transaction.
@@ -654,7 +666,7 @@ DROP ROLE READONLY
 "
 
 "Commands (DDL)","DROP SCHEMA","
-DROP SCHEMA [IF EXISTS] schemaName
+DROP SCHEMA [ IF EXISTS ] schemaName
 ","
 Drops a schema.
 This command commits an open transaction.
@@ -663,7 +675,7 @@ DROP SCHEMA TEST_SCHEMA
 "
 
 "Commands (DDL)","DROP SEQUENCE","
-DROP SEQUENCE [IF EXISTS] sequenceName
+DROP SEQUENCE [ IF EXISTS ] sequenceName
 ","
 Drops a sequence.
 This command commits an open transaction.
@@ -672,7 +684,7 @@ DROP SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","DROP TABLE","
-DROP TABLE [IF EXISTS] tableName [,...]
+DROP TABLE [ IF EXISTS ] tableName [,...]
 ","
 Drops an existing table, or a list of existing tables.
 This command commits an open transaction.
@@ -681,7 +693,7 @@ DROP TABLE TEST
 "
 
 "Commands (DDL)","DROP TRIGGER","
-DROP TRIGGER [IF EXISTS] triggerName
+DROP TRIGGER [ IF EXISTS ] triggerName
 ","
 Drops an existing trigger.
 This command commits an open transaction.
@@ -690,7 +702,7 @@ DROP TRIGGER TRIG_INS
 "
 
 "Commands (DDL)","DROP USER","
-DROP USER [IF EXISTS] userName
+DROP USER [ IF EXISTS ] userName
 ","
 Drops a user. The current user cannot be dropped.
 For compatibility, only unquoted or uppercase user names are allowed.
@@ -702,7 +714,7 @@ DROP USER TOM
 "
 
 "Commands (DDL)","DROP VIEW","
-DROP VIEW [IF EXISTS] viewName
+DROP VIEW [ IF EXISTS ] viewName
 ","
 Drops a view.
 This command commits an open transaction.
@@ -745,7 +757,7 @@ CHECKPOINT SYNC
 "
 
 "Commands (Other)","COMMIT","
-COMMIT [WORK]
+COMMIT [ WORK ]
 ","
 Commits a transaction.
 ","
@@ -764,8 +776,8 @@ COMMIT TRANSACTION XID_TEST
 "
 
 "Commands (Other)","GRANT RIGHT","
-GRANT {SELECT | INSERT | UPDATE | DELETE | ALL} [,...]
-ON tableName [,...] TO {PUBLIC | userName | roleName}
+GRANT { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
+tableName [,...] TO { PUBLIC | userName | roleName }
 ","
 Grants rights for a table to a user or role.
 
@@ -776,7 +788,7 @@ GRANT SELECT ON TEST TO READONLY
 "
 
 "Commands (Other)","GRANT ROLE","
-GRANT roleName TO {PUBLIC | userName | roleName}
+GRANT roleName TO { PUBLIC | userName | roleName }
 ","
 Grants a role to a user or role.
 
@@ -787,7 +799,7 @@ GRANT READONLY TO PUBLIC
 "
 
 "Commands (Other)","HELP","
-HELP [anything [...]]
+HELP [ anything [...] ]
 ","
 Displays the help pages of SQL commands or keywords.
 ","
@@ -804,8 +816,8 @@ PREPARE COMMIT XID_TEST
 "
 
 "Commands (Other)","REVOKE RIGHT","
-REVOKE {SELECT | INSERT | UPDATE | DELETE | ALL} [,...]
-ON tableName [,...] FROM {PUBLIC | userName | roleName}
+REVOKE { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON tableName
+[,...] FROM { PUBLIC | userName | roleName }
 ","
 Removes rights for a table from a user or role.
 
@@ -816,8 +828,7 @@ REVOKE SELECT ON TEST FROM READONLY
 "
 
 "Commands (Other)","REVOKE ROLE","
-REVOKE roleName
-FROM {PUBLIC | userName | roleName}
+REVOKE roleName FROM { PUBLIC | userName | roleName }
 ","
 Removes a role from a user or role.
 
@@ -828,7 +839,7 @@ REVOKE READONLY FROM TOM
 "
 
 "Commands (Other)","ROLLBACK","
-ROLLBACK [TO SAVEPOINT savepointName]
+ROLLBACK [ TO SAVEPOINT savepointName ]
 ","
 Rolls back a transaction. If a savepoint name is used, the transaction is only
 rolled back to the specified savepoint.
@@ -857,7 +868,7 @@ SAVEPOINT HALF_DONE
 "
 
 "Commands (Other)","SET @","
-SET @variableName [=] expression
+SET @variableName [ = ] expression
 ","
 Updates a user-defined variable.
 This command does not commit a transaction, and rollback does not affect it.
@@ -866,7 +877,7 @@ SET @TOTAL=0
 "
 
 "Commands (Other)","SET ALLOW_LITERALS","
-SET ALLOW_LITERALS {NONE|ALL|NUMBERS}
+SET ALLOW_LITERALS { NONE | ALL | NUMBERS }
 ","
 This setting can help solve the SQL injection problem. By default, text and
 number literals are allowed in SQL statements. However, this enables SQL
@@ -888,7 +899,7 @@ SET ALLOW_LITERALS NONE
 "
 
 "Commands (Other)","SET AUTOCOMMIT","
-SET AUTOCOMMIT {TRUE | ON | FALSE | OFF}
+SET AUTOCOMMIT { TRUE | ON | FALSE | OFF }
 ","
 Switches auto commit on or off.
 This setting can be appended to the database URL: jdbc:h2:test;AUTOCOMMIT=OFF
@@ -929,9 +940,8 @@ SET CLUSTER ''
 "
 
 "Commands (Other)","SET COLLATION","
-SET [DATABASE] COLLATION
-{OFF | collationName
-[STRENGTH {PRIMARY | SECONDARY | TERTIARY | IDENTICAL}]}
+SET [ DATABASE ] COLLATION
+{ OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }
 ","
 Sets the collation used for comparing strings. This command can only be executed
 if there are no tables defined. See java.text.Collator for details about
@@ -945,7 +955,7 @@ SET COLLATION ENGLISH
 "
 
 "Commands (Other)","SET COMPRESS_LOB","
-SET COMPRESS_LOB {NO|LZF|DEFLATE}
+SET COMPRESS_LOB { NO | LZF | DEFLATE }
 ","
 Sets the compression algorithm for BLOB and CLOB data. Compression is usually
 slower, but needs less disk space. LZF is faster but uses more space.
@@ -1004,7 +1014,7 @@ SET DEFAULT_LOCK_TIMEOUT 5000
 "
 
 "Commands (Other)","SET DEFAULT_TABLE_TYPE","
-SET DEFAULT_TABLE_TYPE {MEMORY | CACHED}
+SET DEFAULT_TABLE_TYPE { MEMORY | CACHED }
 ","
 Sets the default table storage type that is used when creating new tables.
 Memory tables are kept fully in the main memory (including indexes), however
@@ -1019,7 +1029,7 @@ SET DEFAULT_TABLE_TYPE MEMORY
 "
 
 "Commands (Other)","SET EXCLUSIVE","
-SET EXCLUSIVE {TRUE | FALSE}
+SET EXCLUSIVE { TRUE | FALSE }
 ","
 Switched the database to exclusive mode and back. In exclusive mode, new
 connections are rejected, and operations by other connections are paused until
@@ -1034,7 +1044,7 @@ SET EXCLUSIVE TRUE
 "
 
 "Commands (Other)","SET IGNORECASE","
-SET IGNORECASE {TRUE|FALSE}
+SET IGNORECASE { TRUE | FALSE }
 ","
 If IGNORECASE is enabled, text columns in newly created tables will be
 case-insensitive. Already existing tables are not affected. The effect of
@@ -1182,8 +1192,7 @@ SET MAX_OPERATION_MEMORY 0
 "
 
 "Commands (Other)","SET MODE","
-SET MODE {REGULAR | DB2 | DERBY | HSQLDB |
-MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL}
+SET MODE { REGULAR | DB2 | DERBY | HSQLDB | MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL }
 ","
 Changes to another database compatibility mode. For details, see Compatibility
 Modes in the feature section.
@@ -1197,7 +1206,7 @@ SET MODE HSQLDB
 "
 
 "Commands (Other)","SET MULTI_THREADED","
-SET MULTI_THREADED {0|1}
+SET MULTI_THREADED { 0 | 1 }
 ","
 Enabled (1) or disabled (0) multi-threading inside the database engine. By
 default, this setting is disabled. Currently, enabling this is experimental
@@ -1214,7 +1223,7 @@ SET MULTI_THREADED 1
 "
 
 "Commands (Other)","SET OPTIMIZE_REUSE_RESULTS","
-SET OPTIMIZE_REUSE_RESULTS {0|1}
+SET OPTIMIZE_REUSE_RESULTS { 0 | 1 }
 ","
 Enabled (1) or disabled (0) the result reuse optimization. If enabled,
 subqueries and views used as subqueries are only re-run if the data in one of
@@ -1251,7 +1260,7 @@ SET QUERY_TIMEOUT 10000
 "
 
 "Commands (Other)","SET REFERENTIAL_INTEGRITY","
-SET REFERENTIAL_INTEGRITY [TRUE|FALSE]
+SET REFERENTIAL_INTEGRITY { TRUE | FALSE }
 ","
 Disabled or enables referential integrity checking for the whole database.
 Enabling it does not check existing data. Use ALTER TABLE SET to disable it only
@@ -1315,7 +1324,7 @@ SET THROTTLE 200
 "
 
 "Commands (Other)","SET TRACE_LEVEL","
-SET {TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT} int
+SET { TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT } int
 ","
 Sets the trace level for file the file or system out stream. Levels are: 0=off,
 1=error, 2=info, 3=debug. The default level is 1 for file and 0 for system out.
@@ -1370,7 +1379,7 @@ SET WRITE_DELAY 2000
 "
 
 "Commands (Other)","SHUTDOWN","
-SHUTDOWN [IMMEDIATELY|COMPACT|SCRIPT]
+SHUTDOWN [ IMMEDIATELY | COMPACT | SCRIPT ]
 ","
 This statement is closes all open connections to the database and closes the
 database. This command usually does not need to be used, as the database is
@@ -1388,9 +1397,7 @@ SHUTDOWN
 "
 
 "Other Grammar","Comments","
--- anythingUntilEndOfLine
-| // anythingUntilEndOfLine
-| /* anythingUntilEndComment */
+-- anythingUntilEndOfLine | // anythingUntilEndOfLine | /* anythingUntilEndComment */
 ","
 Comments can be used anywhere in a command and are ignored by the database. Line
 comments end with a newline. Block comments cannot be nested, but can be
@@ -1399,28 +1406,21 @@ multiple lines long.
 // This is a comment
 "
 
-"Other Grammar","Select Part","
-[TOP term] [DISTINCT | ALL] selectExpression [,...]
+"Other Grammar","Order","
+{ int | expression } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
 ","
-The SELECT part of a query.
+Sorts the result by the given column number, or by an expression. If the
+expression is a single parameter, then the value is interpreted as a column
+number. Negative column numbers reverse the sort order.
 ","
-DISTINCT *
-"
-
-"Other Grammar","From Part","
-tableExpression [,...]
-","
-The FROM part of a query.
-","
-FROM TEST
+NAME DESC NULLS LAST
 "
 
 "Other Grammar","Constraint","
-PRIMARY KEY [HASH] (columnName [,...])
-| [CONSTRAINT [IF NOT EXISTS] newConstraintName] {
-CHECK expression
-| UNIQUE (columnName [,...])
-| referentialConstraint}
+[ constraintNameDefinition ] {
+    CHECK expression | UNIQUE ( columnName [,...] )
+    | referentialConstraint }
+    | PRIMARY KEY [ HASH ] ( columnName [,...] )
 ","
 Defines a constraint. The check condition must evaluate to true or to NULL (to
 prevent NULL, use NOT NULL).
@@ -1428,11 +1428,19 @@ prevent NULL, use NOT NULL).
 PRIMARY KEY(ID, NAME)
 "
 
+"Other Grammar","Constraint Name Definition","
+CONSTRAINT [ IF NOT EXISTS ] newConstraintName
+","
+Defines a constraint name.
+","
+CONSTRAINT CONST_ID
+"
+
 "Other Grammar","Referential Constraint","
-FOREIGN KEY (columnName [,...])
-REFERENCES [refTableName] [(refColumnName[,...])]
-[ON DELETE {CASCADE | RESTRICT | NO ACTION | SET {DEFAULT|NULL}}]
-[ON UPDATE {CASCADE | SET {DEFAULT|NULL}}]
+FOREIGN KEY ( columnName [,...] )
+REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
+[ ON DELETE { CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL } } ]
+[ ON UPDATE { CASCADE | SET { DEFAULT | NULL } } ]
 ","
 Defines a referential constraint. If the table name is not specified, then the
 same table is referenced. As this database does not support deferred checking,
@@ -1444,9 +1452,9 @@ FOREIGN KEY(ID) REFERENCES TEST(ID)
 "
 
 "Other Grammar","Table Expression","
-{[schemaName.] tableName | (select)} [[AS] newTableAlias]
-[{{LEFT | RIGHT} [OUTER] | [INNER] | CROSS | NATURAL}
-JOIN tableExpression [[AS] newTableAlias] [ON expression] ]
+{ [ schemaName. ] tableName | ( select ) } [ [ AS ] newTableAlias ]
+[ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
+    JOIN tableExpression [ ON expression ] ]
 ","
 Joins a table. The join expression is not supported for cross and natural joins.
 A natural join is an inner join, where the condition is automatically on the
@@ -1455,18 +1463,8 @@ columns with the same name.
 TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
 "
 
-"Other Grammar","Order","
-{int | expression} [ASC | DESC] [NULLS {FIRST | LAST}]
-","
-Sorts the result by the given column number, or by an expression. If the
-expression is a single parameter, then the value is interpreted as a column
-number. Negative column numbers reverse the sort order.
-","
-NAME DESC NULLS LAST
-"
-
 "Other Grammar","Index Column","
-columnName [ASC | DESC] [NULLS {FIRST | LAST}]
+columnName [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
 ","
 Indexes this column in ascending or descending order. Usually it is not required
 to specify the order; however doing so will speed up large queries that order
@@ -1475,8 +1473,23 @@ the column in the same way.
 NAME
 "
 
+"Other Grammar","Column Definition","
+columnName dataType { DEFAULT expression | AS computedColumnExpression } [ [ NOT ] NULL ]
+[ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
+[ SELECTIVITY selectivity ] [ PRIMARY KEY [ HASH ] | UNIQUE ]
+","
+Default expressions are used if no explicit value was used when adding a row.
+
+Identity and auto-increment columns are columns with a sequence as the
+default. The column declared as the identity columns is implicitly the
+primary key column of this table (unlike auto-increment columns).
+","
+CREATE TABLE(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
+CREATE TABLE(ID BIGINT IDENTITY);
+"
+
 "Other Grammar","Expression","
-andCondition [OR andCondition]
+andCondition [ OR andCondition ]
 ","
 Value or condition.
 ","
@@ -1484,7 +1497,7 @@ ID=1 OR NAME='Hi'
 "
 
 "Other Grammar","And Condition","
-condition [AND condition]
+condition [ AND condition ]
 ","
 Value or condition.
 ","
@@ -1492,7 +1505,7 @@ ID=1 AND NAME='Hi'
 "
 
 "Other Grammar","Condition","
-operand [conditionRightHandSide] | NOT condition | EXISTS (select)
+operand [ conditionRightHandSide ] | NOT condition | EXISTS ( select )
 ","
 Boolean value or condition.
 ","
@@ -1500,12 +1513,12 @@ ID<>2
 "
 
 "Other Grammar","Condition Right Hand Side","
-compare { {{ALL|ANY|SOME}(select)} | operand }
-| IS [NOT] NULL
-| BETWEEN operand AND operand
-| IN ({select | expression[,...]})
-| [NOT] LIKE operand [ESCAPE string]
-| [NOT] REGEXP operand
+compare { { { ALL | ANY | SOME } ( select ) } | operand }
+    | IS [ NOT ] NULL
+    | BETWEEN operand AND operand
+    | IN ( { select | expression [,...] } )
+    | [ NOT ] LIKE operand [ ESCAPE string ]
+    | [ NOT ] REGEXP operand
 ","
 The right hand side of a condition.
 
@@ -1530,7 +1543,7 @@ Comparison operator. The operator != is the same as <>.
 "
 
 "Other Grammar","Operand","
-summand [ || summand]
+summand [ || summand ]
 ","
 A value or a concatenation of values.
 ","
@@ -1538,7 +1551,7 @@ A value or a concatenation of values.
 "
 
 "Other Grammar","Summand","
-factor [{+ | -} factor]
+factor [ { + | - } factor ]
 ","
 A value or a numeric sum.
 ","
@@ -1546,7 +1559,7 @@ ID + 20
 "
 
 "Other Grammar","Factor","
-term [{* | /} term]
+term [ { * | / } term ]
 ","
 A value or a numeric factor.
 ","
@@ -1555,16 +1568,16 @@ ID * 10
 
 "Other Grammar","Term","
 value
-| columnName
-| ?[int]
-| NEXT VALUE FOR sequenceName
-| function
-| {- | +} term
-| (expression)
-| select
-| case
-| caseWhen
-| tableAlias.columnName
+    | columnName
+    | ?[ int ]
+    | NEXT VALUE FOR sequenceName
+    | function
+    | { - | + } term
+    | ( expression )
+    | select
+    | case
+    | caseWhen
+    | tableAlias.columnName
 ","
 A value. Parameters can be indexed, for example ?1 meaning the first parameter.
 ","
@@ -1572,8 +1585,8 @@ A value. Parameters can be indexed, for example ?1 meaning the first parameter.
 "
 
 "Other Grammar","Value","
-string | dollarQuotedString | hexNumber | int | long | decimal | double |
-date | time | timestamp | boolean | bytes | array | null
+string | dollarQuotedString | hexNumber | int | long | decimal | double
+    | date | time | timestamp | boolean | bytes | array | null
 ","
 A value of any data type, or null.
 ","
@@ -1581,8 +1594,8 @@ A value of any data type, or null.
 "
 
 "Other Grammar","Case","
-CASE expression {WHEN expression THEN expression}
-[...] [ELSE expression] END
+CASE expression { WHEN expression THEN expression } [...]
+[ ELSE expression ] END
 ","
 Returns the first expression where the value is equal to the test expression. If
 no else part is specified, return NULL.
@@ -1591,8 +1604,8 @@ CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' ELSE 'Some' END
 "
 
 "Other Grammar","Case When","
-CASE {WHEN expression THEN expression}
-[...] [ELSE expression] END
+CASE { WHEN expression THEN expression} [...]
+[ ELSE expression ] END
 ","
 Returns the first expression where the condition is true. If no else part is
 specified, return NULL.
@@ -1600,8 +1613,16 @@ specified, return NULL.
 CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
 "
 
+"Other Grammar","Csv Options","
+charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]]
+","
+Optional parameters for CSVREAD and CSVWRITE.
+","
+CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'UTF-8', '|');
+"
+
 "Other Grammar","Cipher","
-[AES | XTEA]
+{ AES | XTEA }
 ","
 Two algorithms are supported, AES (AES-256) and XTEA (using 32 rounds). The AES
 algorithm is about half as fast as XTEA.
@@ -1610,7 +1631,7 @@ AES
 "
 
 "Other Grammar","Select Expression","
-* | expression [[AS] columnAlias] | tableAlias.*
+* | expression [ [ AS ] columnAlias ] | tableAlias.*
 ","
 An expression in a SELECT statement.
 ","
@@ -1618,10 +1639,10 @@ ID AS VALUE
 "
 
 "Other Grammar","Data Type","
-intType | booleanType | tinyintType | smallintType | bigintType | identityType |
-decimalType | doubleType | realType | dateType | timeType | timestampType |
-binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-blobType | clobType | uuidType | arrayType
+intType | booleanType | tinyintType | smallintType | bigintType | identityType
+    | decimalType | doubleType | realType | dateType | timeType | timestampType
+    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
+    | blobType | clobType | uuidType | arrayType
 ","
 A data type definition.
 ","
@@ -1629,7 +1650,7 @@ INT
 "
 
 "Other Grammar","Name","
-{ { A-Z|_ } [ { A-Z|_|0-9} [...] ] } | quotedName
+{ { A-Z|_  } [ { A-Z|_|0-9 } [...] ] } | quotedName
 ","
 Names are not case sensitive. There is no maximum name length.
 ","
@@ -1674,7 +1695,7 @@ $$John's car$$
 "
 
 "Other Grammar","Int","
-[- | +] digit [...]
+[ - | + ] digit [...]
 ","
 The maximum integer number is 2147483647, the minimum is -2147483648.
 ","
@@ -1682,7 +1703,7 @@ The maximum integer number is 2147483647, the minimum is -2147483648.
 "
 
 "Other Grammar","Long","
-[- | +] digit [...]
+[ - | + ] digit [...]
 ","
 Long numbers are between -9223372036854775808 and 9223372036854775807.
 ","
@@ -1690,7 +1711,7 @@ Long numbers are between -9223372036854775808 and 9223372036854775807.
 "
 
 "Other Grammar","Hex Number","
-[+ | -] 0x hex
+[ + | - ] 0x hex
 ","
 A number written in hexadecimal notation.
 ","
@@ -1698,7 +1719,7 @@ A number written in hexadecimal notation.
 "
 
 "Other Grammar","Decimal","
-[- | +] digit [...] [. digit [...] ]
+[ - | + ] digit [...] [ . digit [...] ]
 ","
 Number with fixed precision and scale.
 ","
@@ -1706,8 +1727,8 @@ Number with fixed precision and scale.
 "
 
 "Other Grammar","Double","
-[- | +] digit [...]
-[. digit [...] [E [- | +] exponentDigit [...] ]]
+[ - | + ] digit [...]
+[ . digit [...] [ E [ - | + ] exponentDigit [...] ] ]
 ","
 The limitations are the same as for the Java data type Double.
 ","
@@ -1759,7 +1780,7 @@ X'01FF'
 "
 
 "Other Grammar","Array","
-( expression [,..] )
+( expression [,...] )
 ","
 An array of values.
 ","
@@ -1775,7 +1796,7 @@ NULL
 "
 
 "Other Grammar","Hex","
-{{ digit | a-f | A-F } {digit | a-f | A-F }} [...]
+{ { digit | a-f | A-F } { digit | a-f | A-F } } [...]
 ","
 The hexadecimal representation of a number or of bytes. Two characters are one
 byte.
@@ -1854,7 +1875,7 @@ IDENTITY
 "
 
 "Data Types","DECIMAL Type","
-{DECIMAL | NUMBER | DEC | NUMERIC} ( precisionInt [, scaleInt] )
+{ DECIMAL | NUMBER | DEC | NUMERIC } ( precisionInt [ , scaleInt ] )
 ","
 Data type with fixed precision and scale. This data type is recommended for
 storing currency values.
@@ -1865,7 +1886,7 @@ DECIMAL(20, 2)
 "
 
 "Data Types","DOUBLE Type","
-{DOUBLE [PRECISION] | FLOAT | FLOAT4 | FLOAT8}
+{ DOUBLE [ PRECISION ] | FLOAT | FLOAT4 | FLOAT8 }
 ","
 Floating point number. Should not be used to represent currency values, because
 of rounding problems.
@@ -1907,7 +1928,7 @@ DATE
 "
 
 "Data Types","TIMESTAMP Type","
-{TIMESTAMP | DATETIME | SMALLDATETIME}
+{ TIMESTAMP | DATETIME | SMALLDATETIME }
 ","
 The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
 
@@ -1917,8 +1938,7 @@ TIMESTAMP
 "
 
 "Data Types","BINARY Type","
-{BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA}
-[( precisionInt )]
+{ BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA } [ ( precisionInt ) ]
 ","
 Represents a byte array. For very long arrays, use BLOB.
 The maximum size is 2 GB, but the whole object is kept in
@@ -1946,9 +1966,8 @@ OTHER
 "
 
 "Data Types","VARCHAR Type","
-{VARCHAR | LONGVARCHAR |
-VARCHAR2 | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
-[( precisionInt )]
+{ VARCHAR | LONGVARCHAR | VARCHAR2 | NVARCHAR
+    | NVARCHAR2 | VARCHAR_CASESENSITIVE}  [ ( precisionInt ) ]
 ","
 Unicode String. Use two single quotes ('') to create a quote. The maximum precision
 is Integer.MAX_VALUE. The precision is a size constraint; only the actual data is
@@ -1961,7 +1980,7 @@ VARCHAR(255)
 "
 
 "Data Types","VARCHAR_IGNORECASE Type","
-VARCHAR_IGNORECASE [( precisionInt )]
+VARCHAR_IGNORECASE [ ( precisionInt ) ]
 ","
 Same as VARCHAR, but not case sensitive when comparing. Stored in mixed case.
 The maximum precision is Integer.MAX_VALUE characters, but the whole text is kept in
@@ -1974,8 +1993,7 @@ VARCHAR_IGNORECASE
 "
 
 "Data Types","CHAR Type","
-{CHAR | CHARACTER | NCHAR}
-[( precisionInt )]
+{ CHAR | CHARACTER | NCHAR } [ ( precisionInt ) ]
 ","
 This type is supported for compatibility with other databases and older
 applications. The difference to VARCHAR is that trailing spaces are ignored and
@@ -1990,8 +2008,7 @@ CHAR(10)
 "
 
 "Data Types","BLOB Type","
-{BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID}
-[( precisionInt )]
+{ BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID } [ ( precisionInt ) ]
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
 when using BINARY, large objects are not kept fully in-memory. Use
@@ -2004,8 +2021,7 @@ BLOB
 "
 
 "Data Types","CLOB Type","
-{CLOB | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB}
-[( precisionInt )]
+{ CLOB | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB } [ ( precisionInt ) ]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using
 VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.
@@ -2037,7 +2053,7 @@ UUID
 ARRAY
 ","
 An array of values. Use a value list (1, 2) or PreparedStatement.setObject(..,
-new Object[]{..}) to store values.
+new Object[] {..}) to store values.
 
 Mapped to java.lang.Object[] (arrays of any non-primitive type are also supported).
 ","
@@ -2045,7 +2061,7 @@ ARRAY
 "
 
 "Functions (Aggregate)","AVG","
-AVG([DISTINCT] {int | long | decimal | double}): value
+AVG ( [ DISTINCT ] { int | long | decimal | double } ): value
 ","
 The average (mean) value. If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
@@ -2072,7 +2088,7 @@ BOOL_OR(NAME LIKE 'W%')
 "
 
 "Functions (Aggregate)","COUNT","
-COUNT(*) | COUNT([DISTINCT] expression): long
+COUNT(*) | COUNT( [ DISTINCT ] expression ): long
 ","
 The count of all row, or of the non-null values. If no rows are selected, the
 result is 0. Aggregates are only allowed in select statements.
@@ -2081,8 +2097,9 @@ COUNT(*)
 "
 
 "Functions (Aggregate)","GROUP_CONCAT","
-GROUP_CONCAT([DISTINCT] string [ORDER BY {expression [ASC|DESC]}[,...]]
-[SEPARATOR expression]): string
+GROUP_CONCAT ( [ DISTINCT ] string
+[ ORDER BY { expression [ ASC | DESC ] } [,...] ]
+[ SEPARATOR expression ] ): string
 ","
 Concatenates strings with a separator. The default separator is a ',' (without
 space). If no rows are selected, the result is NULL. Aggregates are only allowed
@@ -2110,7 +2127,7 @@ MIN(NAME)
 "
 
 "Functions (Aggregate)","SUM","
-SUM([DISTINCT] {int | long | decimal | double}): value
+SUM( [ DISTINCT ] { int | long | decimal | double } ): value
 ","
 The sum of all values. If no rows are selected, the result is NULL. Aggregates
 are only allowed in select statements.
@@ -2129,7 +2146,7 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
 "
 
 "Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP([DISTINCT] double): double
+STDDEV_POP( [ DISTINCT ] double ): double
 ","
 The population standard deviation. If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
@@ -2138,7 +2155,7 @@ STDDEV_POP(X)
 "
 
 "Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP([DISTINCT] double): double
+STDDEV_SAMP( [ DISTINCT ] double ): double
 ","
 The sample standard deviation. If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
@@ -2147,7 +2164,7 @@ STDDEV(X)
 "
 
 "Functions (Aggregate)","VAR_POP","
-VAR_POP([DISTINCT] double): double
+VAR_POP( [ DISTINCT ] double ): double
 ","
 The population variance (square of the population standard deviation). If no
 rows are selected, the result is NULL. Aggregates are only allowed in select
@@ -2157,7 +2174,7 @@ VAR_POP(X)
 "
 
 "Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP([DISTINCT] double): double
+VAR_SAMP( [ DISTINCT ] double ): double
 ","
 The sample variance (square of the sample standard deviation). If no rows are
 selected, the result is NULL. Aggregates are only allowed in select statements.
@@ -2166,7 +2183,7 @@ VAR_SAMP(X)
 "
 
 "Functions (Numeric)","ABS","
-ABS({int | long | decimal | double}): value
+ABS ( { int | long | decimal | double } ): value
 ","
 See also Java Math.abs. Please note that Math.abs(Integer.MIN_VALUE) ==
 Integer.MIN_VALUE and Math.abs(Long.MIN_VALUE) == Long.MIN_VALUE.
@@ -2351,7 +2368,7 @@ POWER(A, B)
 "
 
 "Functions (Numeric)","RAND","
-RAND([int]): double
+RAND( [ int ] ): double
 ","
 Calling the function without parameter returns the next a pseudo random number.
 Calling it with an parameter seeds the session's random number generator.
@@ -2396,7 +2413,7 @@ CALL SECURE_RAND(16)
 "
 
 "Functions (Numeric)","SIGN","
-SIGN({int | long | decimal | double}): int
+SIGN ( { int | long | decimal | double } ): int
 ","
 Returns -1 if the value is smaller 0, 0 if zero, and otherwise 1.
 ","
@@ -2483,7 +2500,7 @@ BIT_LENGTH(NAME)
 "
 
 "Functions (String)","LENGTH","
-{LENGTH | CHAR_LENGTH | CHARACTER_LENGTH}(string): long
+{ LENGTH | CHAR_LENGTH | CHARACTER_LENGTH } ( string ): long
 ","
 Returns the number of characters in a string. For BLOB, CLOB, BYTES and
 JAVA_OBJECT, the precision is used.
@@ -2501,7 +2518,7 @@ OCTET_LENGTH(NAME)
 "
 
 "Functions (String)","CHAR","
-{CHAR | CHR}(int): string
+{ CHAR | CHR } ( int ): string
 ","
 Returns the character that represents the ASCII value.
 ","
@@ -2563,7 +2580,7 @@ INSERT(NAME, 1, 1, ' ')
 "
 
 "Functions (String)","LOWER","
-{LOWER | LCASE}(string): string
+{ LOWER | LCASE } ( string ): string
 ","
 Converts a string to lowercase.
 ","
@@ -2571,7 +2588,7 @@ LOWER(NAME)
 "
 
 "Functions (String)","UPPER","
-{UPPER | UCASE}(string): string
+{ UPPER | UCASE } ( string ): string
 ","
 Converts a string to uppercase.
 ","
@@ -2649,8 +2666,7 @@ RTRIM(NAME)
 "
 
 "Functions (String)","TRIM","
-TRIM([{LEADING | TRAILING | BOTH} [string] FROM]
-string): string
+TRIM ( [ { LEADING | TRAILING | BOTH } [ string ] FROM ] string ): string
 ","
 Removes all leading spaces, trailing spaces, or spaces at both ends, from a
 string. Other characters can be removed as well.
@@ -2730,7 +2746,7 @@ CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 "
 
 "Functions (String)","SUBSTRING","
-{SUBSTRING | SUBSTR}(string, startInt [, lengthInt]): string
+{ SUBSTRING | SUBSTR } ( string, startInt [, lengthInt ] ): string
 ","
 Returns a substring of a string starting at a position. The length is optional.
 Also supported is: SUBSTRING(string FROM start [FOR length]).
@@ -2797,7 +2813,7 @@ CALL XMLTEXT('test')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-{CURRENT_DATE[()] | CURDATE() | SYSDATE | TODAY}: date
+{ CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }: date
 ","
 Returns the current date.
 ","
@@ -2805,7 +2821,7 @@ CURRENT_DATE()
 "
 
 "Functions (Time and Date)","CURRENT_TIME","
-{CURRENT_TIME[()] | CURTIME()}: time
+{ CURRENT_TIME [ () ] | CURTIME() }: time
 ","
 Returns the current time.
 ","
@@ -2813,7 +2829,7 @@ CURRENT_TIME()
 "
 
 "Functions (Time and Date)","CURRENT_TIMESTAMP","
-{CURRENT_TIMESTAMP[([int])] | NOW([int])}: timestamp
+{ CURRENT_TIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }: timestamp
 ","
 Returns the current timestamp. The precision parameter for nanoseconds precision
 is optional.
@@ -2872,10 +2888,9 @@ DAY_OF_YEAR(CREATED)
 "
 
 "Functions (Time and Date)","EXTRACT","
-EXTRACT(
-{YEAR | YY | MONTH | MM | DAY | DD | DAY_OF_YEAR | DOY |
-HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS}
-FROM timestamp): int
+EXTRACT ( { YEAR | YY | MONTH | MM | DAY | DD | DAY_OF_YEAR
+    | DOY | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
+    FROM timestamp ): int
 ","
 Returns a specific value from a timestamps.
 ","
@@ -2883,8 +2898,8 @@ EXTRACT(SECOND FROM CURRENT_TIMESTAMP)
 "
 
 "Functions (Time and Date)","FORMATDATETIME","
-FORMATDATETIME(timestamp, formatString [, localeString
-[, timeZoneString]]): string
+FORMATDATETIME ( timestamp, formatString
+[ , localeString [ , timeZoneString ] ] ): string
 ","
 Formats a date, time or timestamp as a string. The most important format
 characters are: y year, M month, d day, H hour, m minute, s second For details
@@ -2927,7 +2942,8 @@ MONTHNAME(CREATED)
 "
 
 "Functions (Time and Date)","PARSEDATETIME","
-PARSEDATETIME(string, formatString [, localeString [, timeZoneString]]): string
+PARSEDATETIME(string, formatString
+[, localeString [, timeZoneString]]): string
 ","
 Parses a string and returns a timestamp. The most important format characters
 are: y year, M month, d day, H hour, m minute, s second For details of the
@@ -3041,7 +3057,7 @@ CONVERT(NAME, INT)
 "
 
 "Functions (System)","CURRVAL","
-CURRVAL([schemaName, ] sequenceString): long
+CURRVAL( [ schemaName, ] sequenceString ): long
 ","
 Returns the current (last) value of the sequence, independent of the session. If
 the sequence was just created, the method returns (start - interval). If the
@@ -3052,9 +3068,7 @@ CURRVAL('TEST_SEQ')
 "
 
 "Functions (System)","CSVREAD","
-CSVREAD(fileNameString [, columnNamesString [, charsetString
-[, fieldSeparatorString [, fieldDelimiterString [, escapeCharacterString
-[, nullString]]]]]]): resultSet
+CSVREAD(fileNameString [, columnsString [, csvOptions ] ] ): resultSetValue
 ","
 Returns the result set of reading the CSV (comma separated values) file. For
 each parameter, NULL means the default value should be used.
@@ -3084,9 +3098,7 @@ SELECT ""Last Name"" FROM CSVREAD('address.csv');
 "
 
 "Functions (System)","CSVWRITE","
-CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString
-[, fieldDelimiterString [, escapeCharacterString [, nullString
-[, lineSeparatorString]]]]]]): int
+CSVWRITE ( fileNameString, queryString [, csvOptions [, lineSepString] ] ): int
 ","
 Writes a CSV (comma separated values). The file is overwritten if it exists. For
 each parameter, NULL means the default value should be used. The default charset
@@ -3186,7 +3198,7 @@ LOCK_TIMEOUT()
 
 "Functions (System)","LINK_SCHEMA","
 LINK_SCHEMA(targetSchemaString, driverString, urlString,
-userString, passwordString, sourceSchemaString): resultSet
+userString, passwordString, sourceSchemaString): resultSetValue
 ","
 Creates table links for all tables in a schema. If tables with the same name
 already exist, they are dropped first. The target schema is created
@@ -3218,7 +3230,7 @@ MEMORY_USED()
 "
 
 "Functions (System)","NEXTVAL","
-NEXTVAL([schemaName, ] sequenceString): long
+NEXTVAL ( [ schemaName, ] sequenceString ): long
 ","
 Returns the next value of the sequence. Used values are never re-used, even when
 the transaction is rolled back. If the schema name is not set, the current
@@ -3284,7 +3296,7 @@ SELECT X, SET(@I, IFNULL(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 "
 
 "Functions (System)","TABLE","
-TABLE|TABLE_DISTINCT( { name dataType = expression } [,..]): result set
+{ TABLE | TABLE_DISTINCT } ( { name dataType = expression } [,...] ): resultSetValue
 ","
 Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","
@@ -3304,7 +3316,7 @@ CALL TRANSACTION_ID()
 "
 
 "Functions (System)","USER","
-{USER | CURRENT_USER}(): string
+{ USER | CURRENT_USER } (): string
 ","
 Returns the name of the current user of this session.
 ","

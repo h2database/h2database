@@ -33,6 +33,16 @@ public class RuleElement implements Rule {
         return name;
     }
 
+    public String getHtmlRailroad(Bnf config, boolean topLevel) {
+        String x;
+        if (keyword) {
+            x = StringUtils.xmlText(name.trim());
+        } else {
+            x = config.getLink(name.trim());
+        }
+        return "<code class=\"c\">" + x + "</code>";
+    }
+
     public String random(Bnf config, int level) {
         if (keyword) {
             return name.length() > 1 ? " " + name + " " : name;
@@ -58,17 +68,8 @@ public class RuleElement implements Rule {
         if (keyword) {
             return;
         }
-        StringBuilder buff = new StringBuilder();
-        for (char c : name.toCharArray()) {
-            if (Character.isUpperCase(c)) {
-                buff.append('_');
-                buff.append(Character.toLowerCase(c));
-            } else {
-                buff.append(c);
-            }
-        }
-        String test = buff.toString();
-        for (int i = 0; i < name.length(); i++) {
+        String test = Bnf.getRuleMapKey(name);
+        for (int i = 0; i < test.length(); i++) {
             String t = test.substring(i);
             RuleHead r = ruleMap.get(t);
             if (r != null) {

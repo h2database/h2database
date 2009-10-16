@@ -35,6 +35,8 @@ Frequently Asked Questions
     Is it Reliable?</a><br />
 <a href="#slow_open">
     Why is Opening my Database Slow?</a><br />
+<a href="#column_names_incorrect">
+    Column Names are Incorrect?</a><br />
 <a href="#gcj">
     Is the GCJ Version Stable? Faster?</a><br />
 <a href="#translate">
@@ -175,6 +177,22 @@ opened because the index file is corrupt. In that case, the index file can be de
 <code>;LOG=2</code> to the database URL.
 See also: <a href="grammar.html#set_log" class="notranslate">SET LOG</a>. This problem will be solved
 using the new 'page store' mechanism (currently beta).
+</p>
+
+<h3 id="column_names_incorrect">Column Names are Incorrect?</h3>
+<p>
+For the query <code>SELECT ID AS X FROM TEST</code> the method
+<code>ResultSetMetaData.getColumnName()</code> returns <code>ID</code>, I expect it to
+return <code>X</code>. What's wrong?
+</p>
+<p>
+This is not a bug. According the the JDBC specification, the method
+<code>ResultSetMetaData.getColumnName()</code> should return the name of the column
+and not the alias name. If you need the alias name, use 
+<a href="http://java.sun.com/javase/6/docs/api/java/sql/ResultSetMetaData.html#getColumnLabel(int)"><code>ResultSetMetaData.getColumnLabel()</code></a>.
+Other database don't work like this (they don't follow the JDBC standard). 
+If you need compatibility with those databases, use the <a href="features.html#compatibility">Compatibility Mode</a>, 
+or set the system property <a href="../javadoc/org/h2/constant/SysProperties.html#h2.aliasColumnName"><code>h2.aliasColumnName</code></a>.
 </p>
 
 <h3 id="slow_open">Why is Opening my Database Slow?</h3>

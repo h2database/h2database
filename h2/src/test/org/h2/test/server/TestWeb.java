@@ -76,7 +76,7 @@ public class TestWeb extends TestBase {
         assertContains(result, "TEST");
         result = client.get(url, "autoCompleteList.do?query=select * from ");
         assertContains(result, "test");
-        result = client.get(url, "autoCompleteList.do?query=from test t select t.");
+        result = client.get(url, "autoCompleteList.do?query=select * from test t where t.");
         assertContains(result, "id");
         result = client.get(url, "autoCompleteList.do?query=select id x from test te where t");
         assertContains(result, "te");

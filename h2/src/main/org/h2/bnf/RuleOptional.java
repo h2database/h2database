@@ -23,6 +23,16 @@ public class RuleOptional implements Rule {
         return "[" + rule.toString() + "]";
     }
 
+    public String getHtmlRailroad(Bnf config, boolean topLevel) {
+        StringBuilder buff = new StringBuilder();
+        buff.append("<table class=\"railroad\">");
+        buff.append("<tr class=\"railroad\"><td class=\"ts\"></td><td class=\"d\">&nbsp;</td><td class=\"te\"></td></tr>");
+        buff.append("<tr class=\"railroad\"><td class=\"ls\"></td><td class=\"d\">");
+        buff.append(rule.getHtmlRailroad(config, false));
+        buff.append("</td><td class=\"le\"></td></tr></table>");
+        return buff.toString();
+    }
+
     public String name() {
         return null;
     }

@@ -43,6 +43,7 @@ public class MergeDocs {
             for (String page : pages) {
                 text = StringUtils.replaceAll(text, page + "#", "#");
             }
+            text = disableRailroads(text);
             text = removeHeaderFooter(fileName, text);
             buff.append(text);
         }
@@ -57,6 +58,14 @@ public class MergeDocs {
         writer.println(finalText);
         writer.println("</body></html>");
         writer.close();
+    }
+
+    private String disableRailroads(String text) {
+        text = StringUtils.replaceAll(text, "<!-- railroad-start -->", "<!-- railroad-start ");
+        text = StringUtils.replaceAll(text, "<!-- railroad-end -->", " railroad-end -->");
+        text = StringUtils.replaceAll(text, "<!-- syntax-start", "<!-- syntax-start -->");
+        text = StringUtils.replaceAll(text, "syntax-end -->", "<!-- syntax-end -->");
+        return text;
     }
 
     private String removeHeaderFooter(String fileName, String text) {

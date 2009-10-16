@@ -24,9 +24,14 @@ Data Types
 
 <c:forEach var="item" items="dataTypes">
 <h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<!-- railroad-start -->
+${item.railroad}
+<!-- railroad-end -->
+<!-- syntax-start
 <pre>
 ${item.syntax}
 </pre>
+syntax-end -->
 <p>${item.text}</p>
 <b>Example:</b>
 <p class="notranslate">${item.example}</p>

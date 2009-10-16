@@ -59,6 +59,41 @@ public class RuleFixed implements Rule {
         }
     }
 
+    public String getHtmlRailroad(Bnf config, boolean topLevel) {
+        return getHtmlText();
+    }
+
+    public String getHtmlText() {
+        switch(type) {
+        case YMD:
+            return "2000-01-01";
+        case HMS:
+            return "12:00";
+        case NANOS:
+            return "0";
+        case ANY_UNTIL_EOL:
+        case ANY_EXCEPT_SINGLE_QUOTE:
+        case ANY_EXCEPT_DOUBLE_QUOTE:
+        case ANY_WORD:
+        case ANY_EXCEPT_2_DOLLAR:
+        case ANY_UNTIL_END: {
+            return "anything";
+        }
+        case HEX_START:
+            return "0x";
+        case CONCAT:
+            return "||";
+        case AZ_UNDERSCORE:
+            return "A-Z | _";
+        case AF:
+            return "A-F";
+        case DIGIT:
+            return "0-9";
+        default:
+            throw new AssertionError("type="+type);
+        }
+    }
+
     public String random(Bnf config, int level) {
         Random r = config.getRandom();
         switch(type) {

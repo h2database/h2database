@@ -476,4 +476,9 @@ public class DbContextRule implements Rule {
         }
         return best;
     }
+
+    public String getHtmlRailroad(Bnf config, boolean topLevel) {
+        return null;
+    }
+
 }

@@ -62,4 +62,13 @@ public interface Rule {
      */
     boolean matchRemove(Sentence sentence);
 
+    /**
+     * Get the HTML railroad.
+     *
+     * @param config the configuration
+     * @param topLevel true if line break are permitted
+     * @return the railroad
+     */
+    String getHtmlRailroad(Bnf config, boolean topLevel);
+
 }

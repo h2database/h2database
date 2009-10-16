@@ -31,6 +31,11 @@ import org.h2.util.StringUtils;
 public class Bnf {
 
     private final Random random = new Random();
+
+    /**
+     * The rule map. The key is lowercase, and all spaces
+     * are replaces with underscore.
+     */
     private final HashMap<String, RuleHead> ruleMap = New.hashMap();
     private String syntax;
     private String currentToken;
@@ -68,10 +73,11 @@ public class Bnf {
 
     private RuleHead addRule(String topic, String section, Rule rule) {
         RuleHead head = new RuleHead(section, topic, rule);
-        if (ruleMap.get(StringUtils.toLowerEnglish(topic)) != null) {
+        String key = StringUtils.toLowerEnglish(topic.trim().replace(' ', '_'));
+        if (ruleMap.get(key) != null) {
             throw new AssertionError("already exists: " + topic);
         }
-        ruleMap.put(StringUtils.toLowerEnglish(topic), head);
+        ruleMap.put(key, head);
         return head;
     }
 
@@ -88,9 +94,7 @@ public class Bnf {
             if (section.startsWith("System")) {
                 continue;
             }
-            String topic = StringUtils.toLowerEnglish(rs.getString("TOPIC").trim());
-            topic = StringUtils.replaceAll(topic, " ", "_");
-            // topic = StringUtils.replaceAll(topic, "_", "");
+            String topic = rs.getString("TOPIC");
             syntax = rs.getString("SYNTAX").trim();
             currentTopic = section;
             if (section.startsWith("Function")) {
@@ -132,44 +136,107 @@ public class Bnf {
     }
 
     /**
+     * Get the HTML railroad for a given syntax.
+     *
+     * @param syntax the syntax
+     * @return the HTML formatted railroad
+     */
+    public String getRailroadHtml(String syntax) {
+        syntax = StringUtils.replaceAll(syntax, "\n    ", " ");
+        String[] syntaxList = StringUtils.arraySplit(syntax, '\n', true);
+        StringBuilder buff = new StringBuilder();
+        for (String s : syntaxList) {
+            this.syntax = s;
+            tokens = tokenize();
+            index = 0;
+            Rule rule = parseRule();
+            rule.setLinks(ruleMap);
+            String html = rule.getHtmlRailroad(this, false);
+            html = StringUtils.replaceAll(html, "</code></td><td class=\"d\"><code class=\"c\">", " ");
+            if (buff.length() > 0) {
+                buff.append("<br />");
+            }
+            buff.append(html);
+        }
+        return buff.toString();
+    }
+
+    /**
      * Get the HTML documentation for a given syntax.
      *
      * @param bnf the BNF syntax
      * @return the HTML formatted text
      */
     public String getSyntaxHtml(String bnf) {
+        bnf = StringUtils.replaceAll(bnf, "\n    ", "\n");
         StringTokenizer tokenizer = getTokenizer(bnf);
         StringBuilder buff = new StringBuilder();
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();
             if (s.length() == 1 || StringUtils.toUpperEnglish(s).equals(s)) {
-                buff.append(s);
+                buff.append(StringUtils.xmlText(s));
                 continue;
             }
-            RuleHead found = null;
-            for (int i = 0; i < s.length(); i++) {
-                String test = StringUtils.toLowerEnglish(s.substring(i));
-                RuleHead r = ruleMap.get(test);
-                if (r != null) {
-                    found = r;
-                    break;
-                }
+            buff.append(getLink(s));
+        }
+        String s = buff.toString();
+        // ensure it works within XHTML comments
+        s = StringUtils.replaceAll(s, "--", "&#45;-");
+        return s;
+    }
+
+    /**
+     * Convert convert ruleLink to rule_link.
+     *
+     * @param token the token
+     * @return the rule map key
+     */
+    static String getRuleMapKey(String token) {
+        StringBuilder buff = new StringBuilder();
+        for (char ch : token.toCharArray()) {
+            if (Character.isUpperCase(ch)) {
+                buff.append('_').append(Character.toLowerCase(ch));
+            } else {
+                buff.append(ch);
             }
-            if (found == null || found.getRule() instanceof RuleFixed) {
-                buff.append(s);
-                continue;
-            }
-            String page = "grammar.html";
-            if (found.getSection().startsWith("Data Types")) {
-                page = "datatypes.html";
-            } else if (found.getSection().startsWith("Functions")) {
-                page = "functions.html";
-            }
-            String link = StringUtils.urlEncode(found.getTopic().toLowerCase());
-            buff.append("<a href=\"").append(page).append("#").
-                append(link).append("\">").append(s).append("</a>");
         }
         return buff.toString();
+    }
+
+    /**
+     * Get the HTML link for the given token, or the token itself if no link
+     * exists.
+     *
+     * @param token the token
+     * @return the HTML link
+     */
+    String getLink(String token) {
+        RuleHead found = null;
+        String key = getRuleMapKey(token);
+        for (int i = 0; i < token.length(); i++) {
+            String test = StringUtils.toLowerEnglish(key.substring(i));
+            RuleHead r = ruleMap.get(test);
+            if (r != null) {
+                found = r;
+                break;
+            }
+        }
+        if (found == null) {
+            return token;
+        }
+        String page = "grammar.html";
+        if (found.getSection().startsWith("Data Types")) {
+            page = "datatypes.html";
+        } else if (found.getSection().startsWith("Functions")) {
+            page = "functions.html";
+        } else if (token.equals("@func@")) {
+            return  "<a href=\"functions.html\">Function</a>";
+        } else if (found.getRule() instanceof RuleFixed) {
+            return found.getRule().getHtmlRailroad(this, false);
+        }
+        String link = found.getTopic().toLowerCase().replace(' ', '_');
+        link = page + "#" + StringUtils.urlEncode(link);
+        return "<a href=\"" + link + "\">" + token + "</a>";
     }
 
     private Rule parseRule() {
@@ -216,9 +283,9 @@ public class Bnf {
             }
         } else if ("@commaDots@".equals(currentToken)) {
             r = new RuleList(new RuleElement(",", currentTopic), lastRepeat, false);
-            r = new RuleRepeat(r);
+            r = new RuleRepeat(r, true);
         } else if ("@dots@".equals(currentToken)) {
-            r = new RuleRepeat(lastRepeat);
+            r = new RuleRepeat(lastRepeat, false);
         } else {
             r = new RuleElement(currentToken, currentTopic);
         }

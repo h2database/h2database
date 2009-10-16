@@ -52,9 +52,14 @@ SQL Grammar
 
 <c:forEach var="item" items="commands">
 <h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<!-- railroad-start -->
+${item.railroad}
+<!-- railroad-end -->
+<!-- syntax-start
 <pre>
 ${item.syntax}
 </pre>
+syntax-end -->
 <p>${item.text}</p>
 <b>Example:</b>
 <p class="notranslate">${item.example}</p>
@@ -62,9 +67,14 @@ ${item.syntax}
 
 <c:forEach var="item" items="otherGrammar">
 <h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<!-- railroad-start -->
+${item.railroad}
+<!-- railroad-end -->
+<!-- syntax-start
 <pre>
 ${item.syntax}
 </pre>
+syntax-end -->
 <p>${item.text}</p>
 <b>Example:</b>
 <p class="notranslate">${item.example}</p>

@@ -13,14 +13,39 @@ import java.util.HashMap;
  */
 public class RuleRepeat implements Rule {
 
-    private Rule rule;
+    private static final boolean RAILROAD_DOTS = true;
 
-    RuleRepeat(Rule rule) {
+    private final Rule rule;
+    private final boolean comma;
+
+    RuleRepeat(Rule rule, boolean comma) {
         this.rule = rule;
+        this.comma = comma;
     }
 
     public String toString() {
         return "...";
+    }
+
+    public String getHtmlRailroad(Bnf config, boolean topLevel) {
+        StringBuilder buff = new StringBuilder();
+        if (RAILROAD_DOTS) {
+            buff.append("<code class=\"c\">");
+            if (comma) {
+                buff.append(", ");
+            }
+            buff.append("...</code>");
+        } else {
+            buff.append("<table class=\"railroad\">");
+            buff.append("<tr class=\"railroad\"><td class=\"te\"></td>");
+            buff.append("<td class=\"d\">");
+            buff.append(rule.getHtmlRailroad(config, false));
+            buff.append("</td><td class=\"ts\"></td></tr>");
+            buff.append("<tr class=\"railroad\"><td class=\"ls\"></td>");
+            buff.append("<td class=\"d\">&nbsp;</td>");
+            buff.append("<td class=\"le\"></td></tr></table>");
+        }
+        return buff.toString();
     }
 
     public String name() {

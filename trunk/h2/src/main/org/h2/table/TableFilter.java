@@ -13,6 +13,7 @@ import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -691,6 +692,25 @@ public class TableFilter implements ColumnResolver {
 
     public int hashCode() {
         return hashCode;
+    }
+
+    /**
+     * Returns if there are in(...) comparisons involved
+     *
+     * @see Comparison.IN_LIST
+     * @see Comparison.IN_QUERY
+     *
+     * @return if there are in(...) comparisons involved
+     */
+    public boolean hasInComparisons() {
+        for (int i = 0; i < indexConditions.size(); i++) {
+            if ((indexConditions.get(i).getCompareType() == Comparison.IN_QUERY)
+                    ||
+                (indexConditions.get(i).getCompareType() == Comparison.IN_LIST)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

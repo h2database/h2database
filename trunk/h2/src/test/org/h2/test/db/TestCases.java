@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testOrderByWithSubselect();
         testInsertDeleteRollback();
         testLargeRollback();
         testConstraintAlterTable();
@@ -878,6 +880,36 @@ public class TestCases extends TestBase {
 
         c0 = getConnection("cases");
         c0.close();
+    }
+
+    private void testOrderByWithSubselect() throws SQLException {
+        Connection c = DriverManager.getConnection("jdbc:h2:mem:testdb");
+        Statement s = c.createStatement();
+        s.execute("create table master(id number primary key, name varchar2(30));");
+        s.execute("create table detail(id number references master(id), location varchar2(30));");
+
+        s.execute("Insert into master values(1,'a');");
+        s.execute("Insert into master values(2,'b');");
+        s.execute("Insert into master values(3,'c');");
+        s.execute("commit;");
+        s.execute("Insert into detail values(1,'a');");
+        s.execute("Insert into detail values(2,'b');");
+        s.execute("Insert into detail values(3,'c');");
+        s.execute("commit;");
+
+        ResultSet rs = s.executeQuery(
+                "select master.id, master.name " +
+                "from master " +
+                "where master.id in (select detail.id from detail) " +
+                "order by master.id");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(3, rs.getInt(1));
+
+        c.close();
     }
 
 }

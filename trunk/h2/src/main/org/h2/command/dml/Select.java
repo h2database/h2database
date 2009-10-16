@@ -760,9 +760,10 @@ public class Select extends Query {
             Index current = topTableFilter.getIndex();
             if (index != null && (current.getIndexType().isScan() || current == index)) {
                 topTableFilter.setIndex(index);
-                if (!distinct || isDistinctQuery) {
-                    // sort using index would not work correctly for distinct result sets
-                    // because it would break too early when limit is used
+                if ((!distinct || isDistinctQuery) && (!topTableFilter.hasInComparisons())) {
+                    // - sort using index would not work correctly for distinct result sets
+                    //   because it would break too early when limit is used
+                    // - in(select ...) and in(1,2,3) indices are unsorted
                     sortUsingIndex = true;
                 }
             }

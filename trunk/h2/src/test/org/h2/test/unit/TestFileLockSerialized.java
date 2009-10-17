@@ -70,7 +70,6 @@ public class TestFileLockSerialized extends TestBase {
 
         final int len = 10;
         final Exception[] ex = new Exception[1];
-        final Connection[] connList = new Connection[len];
         final boolean[] stop = new boolean[1];
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {

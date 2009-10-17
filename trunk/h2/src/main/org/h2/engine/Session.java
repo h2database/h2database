@@ -1127,12 +1127,15 @@ public class Session extends SessionWithState {
         }
     }
 
-    public SessionInterface reconnect() throws SQLException {
+    public SessionInterface reconnect(boolean write) throws SQLException {
         readSessionState();
         close();
         Session newSession = Engine.getInstance().getSession(connectionInfo);
         newSession.sessionState = sessionState;
         newSession.recreateSessionState();
+        database.clearCaches();
+        while (write && !database.beforeWriting()) {
+        }
         return newSession;
     }
 

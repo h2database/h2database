@@ -1329,7 +1329,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         if (session.isReconnectNeeded(write)) {
             trace.debug("reconnect");
-            session = session.reconnect();
+            session = session.reconnect(write);
             setTrace(session.getTrace());
         }
     }

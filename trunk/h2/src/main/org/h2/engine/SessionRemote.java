@@ -653,7 +653,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         return false;
     }
 
-    public SessionInterface reconnect() {
+    public SessionInterface reconnect(boolean write) {
         return this;
     }
 

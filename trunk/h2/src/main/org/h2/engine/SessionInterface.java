@@ -84,7 +84,8 @@ public interface SessionInterface {
     /**
      * Close the connection and open a new connection.
      *
+     * @param write if the next operation may be writing
      * @return the new connection
      */
-    SessionInterface reconnect() throws SQLException;
+    SessionInterface reconnect(boolean write) throws SQLException;
 }

@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.Date;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -883,21 +882,17 @@ public class TestCases extends TestBase {
     }
 
     private void testOrderByWithSubselect() throws SQLException {
-        Connection c = DriverManager.getConnection("jdbc:h2:mem:testdb");
-        Statement s = c.createStatement();
-        s.execute("create table master(id number primary key, name varchar2(30));");
-        s.execute("create table detail(id number references master(id), location varchar2(30));");
+        deleteDb("cases");
 
-        s.execute("Insert into master values(1,'a');");
-        s.execute("Insert into master values(2,'b');");
-        s.execute("Insert into master values(3,'c');");
-        s.execute("commit;");
-        s.execute("Insert into detail values(1,'a');");
-        s.execute("Insert into detail values(2,'b');");
-        s.execute("Insert into detail values(3,'c');");
-        s.execute("commit;");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table master(id number primary key, name varchar2(30));");
+        stat.execute("create table detail(id number references master(id), location varchar2(30));");
 
-        ResultSet rs = s.executeQuery(
+        stat.execute("Insert into master values(1,'a'), (2,'b'), (3,'c');");
+        stat.execute("Insert into detail values(1,'a'), (2,'b'), (3,'c');");
+
+        ResultSet rs = stat.executeQuery(
                 "select master.id, master.name " +
                 "from master " +
                 "where master.id in (select detail.id from detail) " +
@@ -909,7 +904,7 @@ public class TestCases extends TestBase {
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
 
-        c.close();
+        conn.close();
     }
 
 }

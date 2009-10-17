@@ -190,6 +190,7 @@ public abstract class Command implements CommandInterface {
                 trace.info("slow query: " + time);
             }
         }
+        session.getDatabase().afterWriting();
     }
 
     public int executeUpdate() throws SQLException {

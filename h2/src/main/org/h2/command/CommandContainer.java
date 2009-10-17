@@ -71,7 +71,6 @@ public class CommandContainer extends Command {
         prepared.checkParameters();
         int updateCount = prepared.update();
         prepared.trace(startTime, updateCount);
-        session.getDatabase().afterWriting();
         return updateCount;
     }
 

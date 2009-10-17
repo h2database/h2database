@@ -1134,7 +1134,10 @@ public class Session extends SessionWithState {
         newSession.sessionState = sessionState;
         newSession.recreateSessionState();
         database.clearCaches();
-        while (write && !database.beforeWriting()) {
+        if (write) {
+            while (!database.beforeWriting()) {
+                // wait until we are allowed to write
+            }
         }
         return newSession;
     }

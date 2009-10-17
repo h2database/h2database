@@ -717,7 +717,7 @@ public abstract class TestBase {
      * @param condition the condition
      * @throws AssertionError if the condition is false
      */
-    protected void assertTrue(boolean condition) {
+    public void assertTrue(boolean condition) {
         assertTrue("Expected: true got: false", condition);
     }
 

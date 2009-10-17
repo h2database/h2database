@@ -697,8 +697,8 @@ public class TableFilter implements ColumnResolver {
     /**
      * Returns if there are in(...) comparisons involved
      *
-     * @see Comparison.IN_LIST
-     * @see Comparison.IN_QUERY
+     * @see Comparison#IN_LIST
+     * @see Comparison#IN_QUERY
      *
      * @return if there are in(...) comparisons involved
      */

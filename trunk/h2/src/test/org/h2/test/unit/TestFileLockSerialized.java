@@ -403,11 +403,8 @@ public class TestFileLockSerialized extends TestBase {
 
         final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;CACHE_SIZE=" + cacheSizeKb;
         final boolean[] importFinished = { false };
-        final boolean[] updateFinished = { false };
-        final boolean[] testFinished   = { false };
         final Exception[] ex = new Exception[1];
-
-        new Thread() {
+        final Thread importUpdate = new Thread() {
             public void run() {
                 try {
                     Connection conn = DriverManager.getConnection(url);
@@ -419,17 +416,17 @@ public class TestFileLockSerialized extends TestBase {
                     importFinished[0] = true;
                     Thread.sleep(5000);
                     stat.execute("update test set id2=999 where id=500");
-                    updateFinished[0] = true;
                     conn.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
                     ex[0] = e;
+                } finally {
+                    importFinished[0] = true;
                 }
             }
+        };
+        importUpdate.start();
 
-        }.start();
-
-        new Thread() {
+        Thread select = new Thread() {
             public void run() {
                 try {
                     Connection conn = DriverManager.getConnection(url);
@@ -442,26 +439,21 @@ public class TestFileLockSerialized extends TestBase {
                     assertTrue(rs.next());
                     assertEquals(500, rs.getInt(1));
                     rs.close();
-                    while (!updateFinished[0]) {
-                        Thread.sleep(100);
-                    }
+                    importUpdate.join();
                     Thread.sleep(1000);
                     rs = stat.executeQuery("select id2 from test where id=500");
                     assertTrue(rs.next());
                     assertEquals(999, rs.getInt(1));
                     rs.close();
                     conn.close();
-                    testFinished[0] = true;
                 } catch (Exception e) {
-                    e.printStackTrace();
                     ex[0] = e;
                 }
             }
-
-        }.start();
-        while ((ex[0] == null) && (!testFinished[0])) {
-            Thread.sleep(10);
-        }
+        };
+        select.start();
+        importUpdate.join();
+        select.join();
         if (ex[0] != null) {
             throw ex[0];
         }

@@ -88,4 +88,5 @@ public interface SessionInterface {
      * @return the new connection
      */
     SessionInterface reconnect(boolean write) throws SQLException;
+
 }

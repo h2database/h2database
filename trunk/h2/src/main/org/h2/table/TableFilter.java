@@ -695,18 +695,14 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Returns if there are in(...) comparisons involved
+     * Are there any index conditions that involve IN(...).
      *
-     * @see Comparison#IN_LIST
-     * @see Comparison#IN_QUERY
-     *
-     * @return if there are in(...) comparisons involved
+     * @return whether there are IN(...) comparisons
      */
     public boolean hasInComparisons() {
-        for (int i = 0; i < indexConditions.size(); i++) {
-            if ((indexConditions.get(i).getCompareType() == Comparison.IN_QUERY)
-                    ||
-                (indexConditions.get(i).getCompareType() == Comparison.IN_LIST)) {
+        for (IndexCondition cond : indexConditions) {
+            int compareType = cond.getCompareType();
+            if (compareType == Comparison.IN_QUERY || compareType == Comparison.IN_LIST) {
                 return true;
             }
         }

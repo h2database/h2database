@@ -42,6 +42,7 @@ public class CommandList extends Command {
     public int update() throws SQLException {
         int updateCount = command.executeUpdate();
         executeRemaining();
+        session.getDatabase().afterWriting();
         return updateCount;
     }
 

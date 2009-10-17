@@ -169,6 +169,9 @@ public class Database implements DataHandler {
     private Properties reconnectLastLock;
     private volatile long reconnectCheckNext;
     private volatile boolean reconnectChangePending;
+    private volatile boolean allowedToRunCheckpoint;
+    private volatile boolean isCheckpointRunning;
+
     private int cacheSize;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
@@ -1801,6 +1804,21 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Clears all caches.
+     *
+     * @throws SQLException
+     */
+    public synchronized void clearCaches() throws SQLException {
+        if (fileData != null) {
+            fileData.getCache().clear();
+            fileIndex.getCache().clear();
+        }
+        if (pageStore != null) {
+            pageStore.getCache().clear();
+        }
+    }
+
     public synchronized void setMasterUser(User user) throws SQLException {
         addDatabaseObject(systemSession, user);
         systemSession.commit(true);
@@ -2365,13 +2383,23 @@ public class Database implements DataHandler {
         if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly || !reconnectChangePending || closing) {
             return;
         }
+        // To avoid race conditions, we already set it here
+        // (overlap with allowedToRunCheckpoint)
+        isCheckpointRunning = true;
+        if (!allowedToRunCheckpoint) {
+            isCheckpointRunning = false;
+            return;
+        }
+
         long now = System.currentTimeMillis();
         if (now > reconnectCheckNext + SysProperties.RECONNECT_CHECK_DELAY) {
             synchronized (this) {
-                getTrace().debug("checkpoint");
+                getTrace().debug("checkpoint start");
                 flushIndexes(0);
                 checkpoint();
                 reconnectModified(false);
+                isCheckpointRunning = false;
+                getTrace().debug("checkpoint end");
             }
         }
     }
@@ -2430,10 +2458,32 @@ public class Database implements DataHandler {
      */
     public boolean beforeWriting() {
         if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
-
-            return reconnectModified(true);
+            // To avoid race conditions, we already set it here (overlap with
+            // isCheckpointRunning)
+            allowedToRunCheckpoint = false;
+            while (isCheckpointRunning) {
+                try {
+                    Thread.sleep(10+(int) Math.random() * 10);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+            boolean allowedToWrite = reconnectModified(true);
+            if (!allowedToWrite) {
+                // make sure the next call to isReconnectNeeded() returns yes
+                reconnectCheckNext = System.currentTimeMillis() - 1;
+                reconnectLastLock = null;
+            }
+            return allowedToWrite;
         }
         return true;
+    }
+
+    /**
+     * This method is called after updates are finished.
+     */
+    public void afterWriting() {
+        allowedToRunCheckpoint = true;
     }
 
     /**

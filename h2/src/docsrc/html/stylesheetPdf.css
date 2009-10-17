@@ -43,14 +43,17 @@ h1 {
 
 h2 {
     font-size: 13pt;
+    margin-top: 1.5em;
 }
 
 h3 {
-    font-size: 10pt;
+    font-size: 11pt;
+    margin-top: 1.5em;
 }
 
 h4 {
     font-size: 9pt;
+    margin-top: 1.5em;
 }
 
 hr {
@@ -128,89 +131,3 @@ em.u {
     color: #800;
 }
 
-.railroad {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-    border-collapse: collapse;
-    vertical-align: top;
-}
-.c {
-    padding: 1px 3px;
-    margin: 0px 0px;
-    border: 2px solid;
-    -moz-border-radius: 0.4em;
-    border-radius: 0.4em;
-    background-color: #fff;
-}
-.ts {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-    border-collapse: collapse;
-    vertical-align: top;
-    height: 24px;
-    background-image: url(images/div-ts.png);
-    width: 16px;
-}
-.ls {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-    border-collapse: collapse;
-    vertical-align: top;
-    height: 24px;
-    background-image: url(images/div-ls.png);
-    width: 16px;
-}
-.ks {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-    border-collapse: collapse;
-    vertical-align: top;
-    height: 24px;
-    background-image: url(images/div-ks.png);
-    width: 16px;
-}
-.te {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-    border-collapse: collapse;
-    vertical-align: top;
-    height: 24px;
-    background-image: url(images/div-te.png);
-    width: 16px;
-}
-.le {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-    border-collapse: collapse;
-    vertical-align: top;
-    height: 24px;
-    background-image: url(images/div-le.png);
-    width: 16px;
-}
-.ke {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-    border-collapse: collapse;
-    vertical-align: top;
-    height: 24px;
-    background-image: url(images/div-ke.png);
-    width: 16px;
-}
-.d {
-    border: 0px;
-    padding: 0px;
-    margin: 0px;
-    border-collapse: collapse;
-    vertical-align: top;
-    height: 24px;
-    background-image: url(images/div-d.png);
-    background-repeat: repeat-x;
-    min-width: 16px;
-}

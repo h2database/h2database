@@ -9,11 +9,12 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
 [ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
-[ FOR UPDATE ]","
-"
+[ FOR UPDATE ]
+","
+Selects data from a table or multiple tables."
 "Commands (DML)","INSERT","
 INSERT INTO tableName [ ( columnName [,...] ) ]
-{ VALUES { ( [ { DEFAULT | expression } [,...] ] ) } [,...] | select }
+{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | select }
 ","
 Inserts a new row / new rows into a table."
 "Commands (DML)","UPDATE","
@@ -40,14 +41,12 @@ Shows the execution plan for a statement."
 "Commands (DML)","MERGE","
 MERGE INTO tableName [ ( columnName [,...] ) ]
 [ KEY ( columnName [,...] ) ]
-{ VALUES { ( [ { DEFAULT | expression } [,...] ] ) } [,...] | select }
+{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | select }
 ","
 Updates existing rows, and insert rows that don't exist."
 "Commands (DML)","RUNSCRIPT","
-RUNSCRIPT FROM fileNameString
-[ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
-[ CIPHER cipher PASSWORD string ]
-[ CHARSET charsetString ]
+RUNSCRIPT FROM fileNameString [ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+[ CIPHER cipher PASSWORD string ] [ CHARSET charsetString ]
 ","
 Runs a SQL script from a file."
 "Commands (DML)","SCRIPT","
@@ -200,8 +199,8 @@ Creates a new sequence."
 "Commands (DDL)","CREATE TABLE","
 CREATE [ CACHED | MEMORY | TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
     TABLE [ IF NOT EXISTS ]
-name { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
-    | { AS select } [ NOT PERSISTENT ]
+name { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
+    | { AS select } } [ NOT PERSISTENT ]
 ","
 Creates a new table."
 "Commands (DDL)","CREATE TRIGGER","
@@ -312,8 +311,8 @@ PREPARE COMMIT newTransactionName
 ","
 Prepares committing a transaction."
 "Commands (Other)","REVOKE RIGHT","
-REVOKE { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON tableName
-[,...] FROM { PUBLIC | userName | roleName }
+REVOKE { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
+tableName [,...] FROM { PUBLIC | userName | roleName }
 ","
 Removes rights for a table from a user or role."
 "Commands (Other)","REVOKE ROLE","
@@ -524,11 +523,11 @@ columnName dataType { DEFAULT expression | AS computedColumnExpression } [ [ NOT
 ","
 Default expressions are used if no explicit value was used when adding a row."
 "Other Grammar","Expression","
-andCondition [ OR andCondition ]
+andCondition [ { OR andCondition } [...] ]
 ","
 Value or condition."
 "Other Grammar","And Condition","
-condition [ AND condition ]
+condition [ { AND condition } [...] ]
 ","
 Value or condition."
 "Other Grammar","Condition","
@@ -549,15 +548,15 @@ The right hand side of a condition."
 ","
 Comparison operator."
 "Other Grammar","Operand","
-summand [ || summand ]
+summand [ { || summand } [...] ]
 ","
 A value or a concatenation of values."
 "Other Grammar","Summand","
-factor [ { + | - } factor ]
+factor [ { { + | - } factor } [...] ]
 ","
 A value or a numeric sum."
 "Other Grammar","Factor","
-term [ { * | / } term ]
+term [ { { * | / } term } [...] ]
 ","
 A value or a numeric factor."
 "Other Grammar","Term","
@@ -629,11 +628,11 @@ $$anythingExceptTwoDollarSigns$$
 ","
 A string starts and ends with two dollar signs."
 "Other Grammar","Int","
-[ - | + ] digit [...]
+[ + | - ] number
 ","
 The maximum integer number is 2147483647, the minimum is -2147483648."
 "Other Grammar","Long","
-[ - | + ] digit [...]
+[ + | - ] number
 ","
 Long numbers are between -9223372036854775808 and 9223372036854775807."
 "Other Grammar","Hex Number","
@@ -641,14 +640,17 @@ Long numbers are between -9223372036854775808 and 9223372036854775807."
 ","
 A number written in hexadecimal notation."
 "Other Grammar","Decimal","
-[ - | + ] digit [...] [ . digit [...] ]
+[ + | - ] number [ . number ]
 ","
 Number with fixed precision and scale."
 "Other Grammar","Double","
-[ - | + ] digit [...]
-[ . digit [...] [ E [ - | + ] exponentDigit [...] ] ]
+[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
 ","
 The limitations are the same as for the Java data type Double."
+"Other Grammar","Number","
+digit [...]
+","
+The maximum length of the number depends on the data type used."
 "Other Grammar","Date","
 DATE 'yyyy-MM-dd'
 ","
@@ -772,575 +774,571 @@ ARRAY
 ","
 An array of values."
 "Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT ] { int | long | decimal | double } ): value
+AVG ( [ DISTINCT ] { int | long | decimal | double } )
 ","
 The average (mean) value."
 "Functions (Aggregate)","BOOL_AND","
-BOOL_AND(boolean): boolean
+BOOL_AND(boolean)
 ","
 Returns true if all expressions are true."
 "Functions (Aggregate)","BOOL_OR","
-BOOL_OR(boolean): boolean
+BOOL_OR(boolean)
 ","
 Returns true if any expression is true."
 "Functions (Aggregate)","COUNT","
-COUNT(*) | COUNT( [ DISTINCT ] expression ): long
+COUNT( { * | { [ DISTINCT ] expression } } )
 ","
 The count of all row, or of the non-null values."
 "Functions (Aggregate)","GROUP_CONCAT","
 GROUP_CONCAT ( [ DISTINCT ] string
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
-[ SEPARATOR expression ] ): string
+[ SEPARATOR expression ] )
 ","
 Concatenates strings with a separator."
 "Functions (Aggregate)","MAX","
-MAX(value): value
+MAX(value)
 ","
 The highest value."
 "Functions (Aggregate)","MIN","
-MIN(value): value
+MIN(value)
 ","
 The lowest value."
 "Functions (Aggregate)","SUM","
-SUM( [ DISTINCT ] { int | long | decimal | double } ): value
+SUM( [ DISTINCT ] { int | long | decimal | double } )
 ","
 The sum of all values."
 "Functions (Aggregate)","SELECTIVITY","
-SELECTIVITY(value): int
+SELECTIVITY(value)
 ","
 Estimates the selectivity (0-100) of a value."
 "Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT ] double ): double
+STDDEV_POP( [ DISTINCT ] double )
 ","
 The population standard deviation."
 "Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT ] double ): double
+STDDEV_SAMP( [ DISTINCT ] double )
 ","
 The sample standard deviation."
 "Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT ] double ): double
+VAR_POP( [ DISTINCT ] double )
 ","
 The population variance (square of the population standard deviation)."
 "Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT ] double ): double
+VAR_SAMP( [ DISTINCT ] double )
 ","
 The sample variance (square of the sample standard deviation)."
 "Functions (Numeric)","ABS","
-ABS ( { int | long | decimal | double } ): value
+ABS ( { int | long | decimal | double } )
 ","
 See also Java Math."
 "Functions (Numeric)","ACOS","
-ACOS(double): double
+ACOS(double)
 ","
 See also Java Math."
 "Functions (Numeric)","ASIN","
-ASIN(double): double
+ASIN(double)
 ","
 See also Java Math."
 "Functions (Numeric)","ATAN","
-ATAN(double): double
+ATAN(double)
 ","
 See also Java Math."
 "Functions (Numeric)","COS","
-COS(double): double
+COS(double)
 ","
 See also Java Math."
 "Functions (Numeric)","COT","
-COT(double): double
+COT(double)
 ","
 See also Java Math."
 "Functions (Numeric)","SIN","
-SIN(double): double
+SIN(double)
 ","
 See also Java Math."
 "Functions (Numeric)","TAN","
-TAN(double): double
+TAN(double)
 ","
 See also Java Math."
 "Functions (Numeric)","ATAN2","
-ATAN2(double, double): double
+ATAN2(double, double)
 ","
 See also Java Math."
 "Functions (Numeric)","BITAND","
-BITAND(long, long): long
+BITAND(long, long)
 ","
-See also Java operator &."
+The bitwise AND operation."
 "Functions (Numeric)","BITOR","
-BITOR(long, long): long
+BITOR(long, long)
 ","
-See also Java operator |."
+The bitwise OR operation."
 "Functions (Numeric)","BITXOR","
-BITXOR(long, long): long
+BITXOR(long, long)
 ","
-See also Java operator ^."
+The bitwise XOR operation."
 "Functions (Numeric)","MOD","
-MOD(long, long): long
+MOD(long, long)
 ","
-See also Java operator %."
+The modulo operation."
 "Functions (Numeric)","CEILING","
-CEILING(double): double
+CEILING(double)
 ","
 See also Java Math."
 "Functions (Numeric)","DEGREES","
-DEGREES(double): double
+DEGREES(double)
 ","
 See also Java Math."
 "Functions (Numeric)","EXP","
-EXP(double): double
+EXP(double)
 ","
 See also Java Math."
 "Functions (Numeric)","FLOOR","
-FLOOR(double): double
+FLOOR(double)
 ","
 See also Java Math."
 "Functions (Numeric)","LOG","
-LOG(double): double
+LOG(double)
 ","
 See also Java Math."
 "Functions (Numeric)","LOG10","
-LOG10(double): double
+LOG10(double)
 ","
 See also Java Math."
 "Functions (Numeric)","RADIANS","
-RADIANS(double): double
+RADIANS(double)
 ","
 See also Java Math."
 "Functions (Numeric)","SQRT","
-SQRT(double): double
+SQRT(double)
 ","
 See also Java Math."
 "Functions (Numeric)","PI","
-PI(): double
+PI()
 ","
 See also Java Math."
 "Functions (Numeric)","POWER","
-POWER(double, double): double
+POWER(double, double)
 ","
 See also Java Math."
 "Functions (Numeric)","RAND","
-RAND( [ int ] ): double
+RAND( [ int ] )
 ","
 Calling the function without parameter returns the next a pseudo random number."
 "Functions (Numeric)","RANDOM_UUID","
-RANDOM_UUID(): UUID
+RANDOM_UUID()
 ","
 Returns a new UUID with 122 pseudo random bits."
 "Functions (Numeric)","ROUND","
-ROUND(double, digitsInt): double
+ROUND(double, digitsInt)
 ","
 Rounds to a number of digits."
 "Functions (Numeric)","ROUNDMAGIC","
-ROUNDMAGIC(double): double
+ROUNDMAGIC(double)
 ","
 This function rounds numbers in a good way, but it is slow."
 "Functions (Numeric)","SECURE_RAND","
-SECURE_RAND(int): bytes
+SECURE_RAND(int)
 ","
 Generates a number of cryptographically secure random numbers."
 "Functions (Numeric)","SIGN","
-SIGN ( { int | long | decimal | double } ): int
+SIGN ( { int | long | decimal | double } )
 ","
 Returns -1 if the value is smaller 0, 0 if zero, and otherwise 1."
 "Functions (Numeric)","ENCRYPT","
-ENCRYPT(algorithmString, keyBytes, dataBytes): bytes
+ENCRYPT(algorithmString, keyBytes, dataBytes)
 ","
 Encrypts data using a key."
 "Functions (Numeric)","DECRYPT","
-DECRYPT(algorithmString, keyBytes, dataBytes): bytes
+DECRYPT(algorithmString, keyBytes, dataBytes)
 ","
 Decrypts data using a key."
 "Functions (Numeric)","HASH","
-HASH(algorithmString, dataBytes, iterationInt): bytes
+HASH(algorithmString, dataBytes, iterationInt)
 ","
-Calculate the hash value using an algorithm, and repeat this process for a
-number of iterations."
+Calculate the hash value using an algorithm, and repeat this process for a number of iterations."
 "Functions (Numeric)","TRUNCATE","
-TRUNCATE(double, digitsInt): double
+TRUNCATE(double, digitsInt)
 ","
 Truncates to a number of digits (to the next value closer to 0)."
 "Functions (Numeric)","COMPRESS","
-COMPRESS(dataBytes [, algorithmString]): bytes
+COMPRESS(dataBytes [, algorithmString])
 ","
 Compresses the data using the specified compression algorithm."
 "Functions (Numeric)","EXPAND","
-EXPAND(bytes): bytes
+EXPAND(bytes)
 ","
 Expands data that was compressed using the COMPRESS function."
 "Functions (Numeric)","ZERO","
-ZERO(): int
+ZERO()
 ","
 Returns the value 0."
 "Functions (String)","ASCII","
-ASCII(string): int
+ASCII(string)
 ","
 Returns the ASCII value of the first character in the string."
 "Functions (String)","BIT_LENGTH","
-BIT_LENGTH(string): long
+BIT_LENGTH(string)
 ","
 Returns the number of bits in a string."
 "Functions (String)","LENGTH","
-{ LENGTH | CHAR_LENGTH | CHARACTER_LENGTH } ( string ): long
+{ LENGTH | CHAR_LENGTH | CHARACTER_LENGTH } ( string )
 ","
 Returns the number of characters in a string."
 "Functions (String)","OCTET_LENGTH","
-OCTET_LENGTH(string): long
+OCTET_LENGTH(string)
 ","
 Returns the number of bytes in a string."
 "Functions (String)","CHAR","
-{ CHAR | CHR } ( int ): string
+{ CHAR | CHR } ( int )
 ","
 Returns the character that represents the ASCII value."
 "Functions (String)","CONCAT","
-CONCAT(string, string [,...]): string
+CONCAT(string, string [,...])
 ","
 Combines strings."
 "Functions (String)","DIFFERENCE","
-DIFFERENCE(string, string): int
+DIFFERENCE(string, string)
 ","
 Returns the difference between the sounds of two strings."
 "Functions (String)","HEXTORAW","
-HEXTORAW(string): string
+HEXTORAW(string)
 ","
 Converts a hex representation of a string to a string."
 "Functions (String)","RAWTOHEX","
-RAWTOHEX(string): string
+RAWTOHEX(string)
 ","
 Converts a string to the hex representation."
 "Functions (String)","INSTR","
-INSTR(string, searchString, [, startInt]): int
+INSTR(string, searchString, [, startInt])
 ","
 Returns the location of a search string in a string (s)."
 "Functions (String)","INSERT Function","
-INSERT(originalString, startInt, lengthInt, addString): string
+INSERT(originalString, startInt, lengthInt, addString)
 ","
-Inserts a additional string into the original string at a specified start
-position."
+Inserts a additional string into the original string at a specified start position."
 "Functions (String)","LOWER","
-{ LOWER | LCASE } ( string ): string
+{ LOWER | LCASE } ( string )
 ","
 Converts a string to lowercase."
 "Functions (String)","UPPER","
-{ UPPER | UCASE } ( string ): string
+{ UPPER | UCASE } ( string )
 ","
 Converts a string to uppercase."
 "Functions (String)","LEFT","
-LEFT(string, int): string
+LEFT(string, int)
 ","
 Returns the leftmost number of characters."
 "Functions (String)","RIGHT","
-RIGHT(string, int): string
+RIGHT(string, int)
 ","
 Returns the rightmost number of characters."
 "Functions (String)","LOCATE","
-LOCATE(searchString, string [, startInt]): int
+LOCATE(searchString, string [, startInt])
 ","
 Returns the location of a search string in a string."
 "Functions (String)","POSITION","
-POSITION(searchString, string): int
+POSITION(searchString, string)
 ","
 Returns the location of a search string in a string."
 "Functions (String)","LPAD","
-LPAD(string, int[, paddingString]): string
+LPAD(string, int[, paddingString])
 ","
 Left pad the string to the specified length."
 "Functions (String)","RPAD","
-RPAD(string, int[, paddingString]): string
+RPAD(string, int[, paddingString])
 ","
 Right pad the string to the specified length."
 "Functions (String)","LTRIM","
-LTRIM(string): string
+LTRIM(string)
 ","
 Removes all leading spaces from a string."
 "Functions (String)","RTRIM","
-RTRIM(string): string
+RTRIM(string)
 ","
 Removes all trailing spaces from a string."
 "Functions (String)","TRIM","
-TRIM ( [ { LEADING | TRAILING | BOTH } [ string ] FROM ] string ): string
+TRIM ( [ { LEADING | TRAILING | BOTH } [ string ] FROM ] string )
 ","
-Removes all leading spaces, trailing spaces, or spaces at both ends, from a
-string."
+Removes all leading spaces, trailing spaces, or spaces at both ends, from a string."
 "Functions (String)","REGEXP_REPLACE","
-REGEXP_REPLACE(inputString, regexString, replacementString): string
+REGEXP_REPLACE(inputString, regexString, replacementString)
 ","
 Replaces each substring that matches a regular expression."
 "Functions (String)","REPEAT","
-REPEAT(string, int): string
+REPEAT(string, int)
 ","
 Returns a string repeated some number of times."
 "Functions (String)","REPLACE","
-REPLACE(string, searchString [, replacementString]): string
+REPLACE(string, searchString [, replacementString])
 ","
 Replaces all occurrences of a search string in a text with another string."
 "Functions (String)","SOUNDEX","
-SOUNDEX(string): string
+SOUNDEX(string)
 ","
 Returns a four character code representing the sound of a string."
 "Functions (String)","SPACE","
-SPACE(int): string
+SPACE(int)
 ","
 Returns a string consisting of a number of spaces."
 "Functions (String)","STRINGDECODE","
-STRINGDECODE(string): string
+STRINGDECODE(string)
 ","
 Converts a encoded string using the Java string literal encoding format."
 "Functions (String)","STRINGENCODE","
-STRINGENCODE(string): string
+STRINGENCODE(string)
 ","
-Encodes special characters in a string using the Java string literal encoding
-format."
+Encodes special characters in a string using the Java string literal encoding format."
 "Functions (String)","STRINGTOUTF8","
-STRINGTOUTF8(string): bytes
+STRINGTOUTF8(string)
 ","
 Encodes a string to a byte array using the UTF8 encoding format."
 "Functions (String)","SUBSTRING","
-{ SUBSTRING | SUBSTR } ( string, startInt [, lengthInt ] ): string
+{ SUBSTRING | SUBSTR } ( string, startInt [, lengthInt ] )
 ","
 Returns a substring of a string starting at a position."
 "Functions (String)","UTF8TOSTRING","
-UTF8TOSTRING(bytes): string
+UTF8TOSTRING(bytes)
 ","
 Decodes a byte array in the UTF8 format to a string."
 "Functions (String)","XMLATTR","
-XMLATTR(nameString, valueString): string
+XMLATTR(nameString, valueString)
 ","
 Creates an XML attribute element of the form name=""value""."
 "Functions (String)","XMLNODE","
-XMLNODE(elementString [, attributesString [, contentString]]): string
+XMLNODE(elementString [, attributesString [, contentString]])
 ","
 Create an XML node element."
 "Functions (String)","XMLCOMMENT","
-XMLCOMMENT(commentString): string
+XMLCOMMENT(commentString)
 ","
 Creates an XML comment."
 "Functions (String)","XMLCDATA","
-XMLCDATA(valueString): string
+XMLCDATA(valueString)
 ","
 Creates an XML CDATA element."
 "Functions (String)","XMLSTARTDOC","
-XMLSTARTDOC(): string
+XMLSTARTDOC()
 ","
 The string '<?xml version=""1."
 "Functions (String)","XMLTEXT","
-XMLTEXT(valueString): string
+XMLTEXT(valueString)
 ","
 Creates an XML text element."
 "Functions (Time and Date)","CURRENT_DATE","
-{ CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }: date
+{ CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }
 ","
 Returns the current date."
 "Functions (Time and Date)","CURRENT_TIME","
-{ CURRENT_TIME [ () ] | CURTIME() }: time
+{ CURRENT_TIME [ () ] | CURTIME() }
 ","
 Returns the current time."
 "Functions (Time and Date)","CURRENT_TIMESTAMP","
-{ CURRENT_TIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }: timestamp
+{ CURRENT_TIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }
 ","
 Returns the current timestamp."
 "Functions (Time and Date)","DATEADD","
-DATEADD(unitString, addInt, timestamp): timestamp
+DATEADD(unitString, addInt, timestamp)
 ","
 Adds units to a timestamp."
 "Functions (Time and Date)","DATEDIFF","
-DATEDIFF(unitString, aTimestamp, bTimestamp): long
+DATEDIFF(unitString, aTimestamp, bTimestamp)
 ","
 Returns the difference between two timestamps."
 "Functions (Time and Date)","DAYNAME","
-DAYNAME(date): string
+DAYNAME(date)
 ","
 Returns the name of the day (in English)."
 "Functions (Time and Date)","DAY_OF_MONTH","
-DAY_OF_MONTH(date): int
+DAY_OF_MONTH(date)
 ","
 Returns the day of the month (1-31)."
 "Functions (Time and Date)","DAY_OF_WEEK","
-DAY_OF_WEEK(date): int
+DAY_OF_WEEK(date)
 ","
 Returns the day of the week (1 means Sunday)."
 "Functions (Time and Date)","DAY_OF_YEAR","
-DAY_OF_YEAR(date): int
+DAY_OF_YEAR(date)
 ","
 Returns the day of the year (1-366)."
 "Functions (Time and Date)","EXTRACT","
 EXTRACT ( { YEAR | YY | MONTH | MM | DAY | DD | DAY_OF_YEAR
     | DOY | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
-    FROM timestamp ): int
+    FROM timestamp )
 ","
 Returns a specific value from a timestamps."
 "Functions (Time and Date)","FORMATDATETIME","
 FORMATDATETIME ( timestamp, formatString
-[ , localeString [ , timeZoneString ] ] ): string
+[ , localeString [ , timeZoneString ] ] )
 ","
 Formats a date, time or timestamp as a string."
 "Functions (Time and Date)","HOUR","
-HOUR(timestamp): int
+HOUR(timestamp)
 ","
 Returns the hour (0-23) from a timestamp."
 "Functions (Time and Date)","MINUTE","
-MINUTE(timestamp): int
+MINUTE(timestamp)
 ","
 Returns the minute (0-59) from a timestamp."
 "Functions (Time and Date)","MONTH","
-MONTH(timestamp): int
+MONTH(timestamp)
 ","
 Returns the month (1-12) from a timestamp."
 "Functions (Time and Date)","MONTHNAME","
-MONTHNAME(date): string
+MONTHNAME(date)
 ","
 Returns the name of the month (in English)."
 "Functions (Time and Date)","PARSEDATETIME","
 PARSEDATETIME(string, formatString
-[, localeString [, timeZoneString]]): string
+[, localeString [, timeZoneString]])
 ","
 Parses a string and returns a timestamp."
 "Functions (Time and Date)","QUARTER","
-QUARTER(timestamp): int
+QUARTER(timestamp)
 ","
 Returns the quarter (1-4) from a timestamp."
 "Functions (Time and Date)","SECOND","
-SECOND(timestamp): int
+SECOND(timestamp)
 ","
 Returns the second (0-59) from a timestamp."
 "Functions (Time and Date)","WEEK","
-WEEK(timestamp): int
+WEEK(timestamp)
 ","
 Returns the week (1-53) from a timestamp."
 "Functions (Time and Date)","YEAR","
-YEAR(timestamp): int
+YEAR(timestamp)
 ","
 Returns the year from a timestamp."
 "Functions (System)","ARRAY_GET","
-ARRAY_GET(arrayExpression, indexExpression): varchar
+ARRAY_GET(arrayExpression, indexExpression)
 ","
 Returns one element of an array."
 "Functions (System)","ARRAY_LENGTH","
-ARRAY_GET(arrayExpression): int
+ARRAY_GET(arrayExpression)
 ","
 Returns the length of an array."
 "Functions (System)","AUTOCOMMIT","
-AUTOCOMMIT(): boolean
+AUTOCOMMIT()
 ","
 Returns true if auto commit is switched on for this session."
 "Functions (System)","CANCEL_SESSION","
-CANCEL_SESSION(sessionInt): boolean
+CANCEL_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session."
 "Functions (System)","CASEWHEN Function","
-CASEWHEN(boolean, aValue, bValue): value
+CASEWHEN(boolean, aValue, bValue)
 ","
 Returns 'a' if the boolean expression is true, otherwise 'b'."
 "Functions (System)","CAST","
-CAST(value AS dataType): value
+CAST(value AS dataType)
 ","
 Converts a value to another data type."
 "Functions (System)","COALESCE","
-COALESCE(aValue, bValue [,...]): value
+COALESCE(aValue, bValue [,...])
 ","
 Returns the first value that is not null."
 "Functions (System)","CONVERT","
-CONVERT(value, dataType): value
+CONVERT(value, dataType)
 ","
 Converts a value to another data type."
 "Functions (System)","CURRVAL","
-CURRVAL( [ schemaName, ] sequenceString ): long
+CURRVAL( [ schemaName, ] sequenceString )
 ","
 Returns the current (last) value of the sequence, independent of the session."
 "Functions (System)","CSVREAD","
-CSVREAD(fileNameString [, columnsString [, csvOptions ] ] ): resultSetValue
+CSVREAD(fileNameString [, columnsString [, csvOptions ] ] )
 ","
 Returns the result set of reading the CSV (comma separated values) file."
 "Functions (System)","CSVWRITE","
-CSVWRITE ( fileNameString, queryString [, csvOptions [, lineSepString] ] ): int
+CSVWRITE ( fileNameString, queryString [, csvOptions [, lineSepString] ] )
 ","
 Writes a CSV (comma separated values)."
 "Functions (System)","DATABASE","
-DATABASE(): string
+DATABASE()
 ","
 Returns the name of the database."
 "Functions (System)","DATABASE_PATH","
-DATABASE_PATH(): string
+DATABASE_PATH()
 ","
 Returns the directory of the database files and the database name, if it is file
 based."
 "Functions (System)","FILE_READ","
-FILE_READ(fileNameString [,encodingString]): value
+FILE_READ(fileNameString [,encodingString])
 ","
 Returns the contents of a file."
 "Functions (System)","GREATEST","
-GREATEST(aValue, bValue [,...]): value
+GREATEST(aValue, bValue [,...])
 ","
 Returns the largest value that is not NULL, or NULL if all values are NULL."
 "Functions (System)","IDENTITY","
-IDENTITY(): long
+IDENTITY()
 ","
 Returns the last inserted identity value for this session."
 "Functions (System)","IFNULL","
-IFNULL(aValue, bValue): value
+IFNULL(aValue, bValue)
 ","
 Returns the value of 'a' if it is not null, otherwise 'b'."
 "Functions (System)","LEAST","
-LEAST(aValue, bValue [,...]): value
+LEAST(aValue, bValue [,...])
 ","
 Returns the smallest value that is not NULL, or NULL if all values are NULL."
 "Functions (System)","LOCK_MODE","
-LOCK_MODE(): int
+LOCK_MODE()
 ","
 Returns the current lock mode."
 "Functions (System)","LOCK_TIMEOUT","
-LOCK_TIMEOUT(): int
+LOCK_TIMEOUT()
 ","
 Returns the lock timeout of the current session (in milliseconds)."
 "Functions (System)","LINK_SCHEMA","
 LINK_SCHEMA(targetSchemaString, driverString, urlString,
-userString, passwordString, sourceSchemaString): resultSetValue
+userString, passwordString, sourceSchemaString)
 ","
 Creates table links for all tables in a schema."
 "Functions (System)","MEMORY_FREE","
-MEMORY_FREE(): int
+MEMORY_FREE()
 ","
 Returns the free memory in KB (where 1024 bytes is a KB)."
 "Functions (System)","MEMORY_USED","
-MEMORY_USED(): int
+MEMORY_USED()
 ","
 Returns the used memory in KB (where 1024 bytes is a KB)."
 "Functions (System)","NEXTVAL","
-NEXTVAL ( [ schemaName, ] sequenceString ): long
+NEXTVAL ( [ schemaName, ] sequenceString )
 ","
 Returns the next value of the sequence."
 "Functions (System)","NULLIF","
-NULLIF(aValue, bValue): value
+NULLIF(aValue, bValue)
 ","
 Returns NULL if 'a' is equals to 'b', otherwise 'a'."
 "Functions (System)","READONLY","
-READONLY(): boolean
+READONLY()
 ","
 Returns true if the database is read-only."
 "Functions (System)","ROWNUM","
-ROWNUM(): int
+ROWNUM()
 ","
 Returns the number of the current row."
 "Functions (System)","SCHEMA","
-SCHEMA(): string
+SCHEMA()
 ","
 Returns the name of the default  schema for this session."
 "Functions (System)","SESSION_ID","
-SESSION_ID(): int
+SESSION_ID()
 ","
 Returns the unique session id number for the current database connection."
 "Functions (System)","SET","
-SET(@variableName, value): value
+SET(@variableName, value)
 ","
 Updates a variable with the given value."
 "Functions (System)","TABLE","
-{ TABLE | TABLE_DISTINCT } ( { name dataType = expression } [,...] ): resultSetValue
+{ TABLE | TABLE_DISTINCT } ( { name dataType = expression } [,...] )
 ","
 Returns the result set."
 "Functions (System)","TRANSACTION_ID","
-TRANSACTION_ID(): string
+TRANSACTION_ID()
 ","
 Returns the current transaction id for this session."
 "Functions (System)","USER","
-{ USER | CURRENT_USER } (): string
+{ USER | CURRENT_USER } ()
 ","
 Returns the name of the current user of this session."
 "System Tables","Information Schema","

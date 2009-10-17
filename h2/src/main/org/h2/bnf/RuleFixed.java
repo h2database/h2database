@@ -68,9 +68,9 @@ public class RuleFixed implements Rule {
         case YMD:
             return "2000-01-01";
         case HMS:
-            return "12:00";
+            return "12:00:00";
         case NANOS:
-            return "0";
+            return "000000000";
         case ANY_UNTIL_EOL:
         case ANY_EXCEPT_SINGLE_QUOTE:
         case ANY_EXCEPT_DOUBLE_QUOTE:

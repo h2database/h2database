@@ -97,10 +97,6 @@ public class Bnf {
             String topic = rs.getString("TOPIC");
             syntax = rs.getString("SYNTAX").trim();
             currentTopic = section;
-            if (section.startsWith("Function")) {
-                int end = syntax.indexOf(':');
-                syntax = syntax.substring(0, end);
-            }
             tokens = tokenize();
             index = 0;
             Rule rule = parseRule();

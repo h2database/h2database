@@ -72,7 +72,7 @@ import org.h2.value.ValueString;
  * The format of page 1 and 2 is:
  * <ul>
  * <li>CRC32 of the remaining data: int (0-3)</li>
- * <li>write counter (incremented each time the header changes): long (4-11)</li>
+ * <li>write counter (incremented each time something is written): long (4-11)</li>
  * <li>log trunk key: int (12-15)</li>
  * <li>log trunk page (0 for none): int (16-19)</li>
  * <li>log data page (0 for none): int (20-23)</li>
@@ -163,7 +163,7 @@ public class PageStore implements CacheWriter {
     private String accessMode;
     private int pageSize;
     private int pageSizeShift;
-    private long writeCount;
+    private long writeCountBase, writeCount, readCount;
     private int logKey, logFirstTrunkPage, logFirstDataPage;
 
     private Cache cache;
@@ -240,6 +240,7 @@ public class PageStore implements CacheWriter {
                 }
                 file.seek((long) pageId << pageSizeShift);
                 file.readFullyDirect(buffer, 0, pageSize);
+                readCount++;
                 out.write(buffer, 0, pageSize);
                 return pageId + 1;
             } catch (IOException e) {
@@ -411,7 +412,11 @@ public class PageStore implements CacheWriter {
         // the easiest way to remove superfluous entries
         freeLists.clear();
         trace.debug("pageCount:" + pageCount);
-        file.setLength((long) pageCount << pageSizeShift);
+        long newLength = (long) pageCount << pageSizeShift;
+        if (file.length() != newLength) {
+            file.setLength(newLength);
+            writeCount++;
+        }
     }
 
     private void compact(int full) throws SQLException {
@@ -546,6 +551,7 @@ public class PageStore implements CacheWriter {
         file.seek(FileStore.HEADER_LENGTH);
         Data page = Data.create(database, new byte[PAGE_SIZE_MIN - FileStore.HEADER_LENGTH]);
         file.readFully(page.getBytes(), 0, PAGE_SIZE_MIN - FileStore.HEADER_LENGTH);
+        readCount++;
         setPageSize(page.readInt());
         int writeVersion = page.readByte();
         int readVersion = page.readByte();
@@ -573,7 +579,7 @@ public class PageStore implements CacheWriter {
             int expected = (int) crc.getValue();
             int got = page.readInt();
             if (expected == got) {
-                writeCount = page.readLong();
+                writeCountBase = page.readLong();
                 logKey = page.readInt();
                 logFirstTrunkPage = page.readInt();
                 logFirstDataPage = page.readInt();
@@ -616,6 +622,7 @@ public class PageStore implements CacheWriter {
         page.writeByte((byte) READ_VERSION);
         file.seek(FileStore.HEADER_LENGTH);
         file.write(page.getBytes(), 0, pageSize - FileStore.HEADER_LENGTH);
+        writeCount++;
     }
 
     /**
@@ -649,7 +656,7 @@ public class PageStore implements CacheWriter {
         file.write(page.getBytes(), 0, pageSize);
         file.seek(pageSize + pageSize);
         file.write(page.getBytes(), 0, pageSize);
-        writeCount++;
+        // don't increment the write counter, because it was just written
     }
 
     /**
@@ -927,6 +934,7 @@ public class PageStore implements CacheWriter {
             }
             file.seek((long) pos << pageSizeShift);
             file.readFully(page.getBytes(), 0, pageSize);
+            readCount++;
         }
     }
 
@@ -1430,12 +1438,30 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Get the write count.
+     * Get the file write count since the database was created.
+     *
+     * @return the write count
+     */
+    public long getWriteCountTotal() {
+        return writeCount + writeCountBase;
+    }
+
+    /**
+     * Get the file write count since the database was opened.
      *
      * @return the write count
      */
     public long getWriteCount() {
         return writeCount;
+    }
+
+    /**
+     * Get the file read count since the database was opened.
+     *
+     * @return the read count
+     */
+    public long getReadCount() {
+        return readCount;
     }
 
     /**

@@ -716,7 +716,7 @@ public class LogSystem {
      */
     public String getWritePos() {
         if (pageStore != null) {
-            return "" + pageStore.getWriteCount();
+            return "" + pageStore.getWriteCountTotal();
         }
         return currentLog.getId() + "/" + currentLog.getPos();
     }

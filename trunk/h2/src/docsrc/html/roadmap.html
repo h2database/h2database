@@ -205,6 +205,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Updatable result set on table without primary key or unique index
 </li><li>Use LinkedList instead of ArrayList where applicable
 </li><li>Support % operator (modulo)
+</li><li>Support JMX: create an MBean for each database and server (support JConsole).
+    See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html
+    http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ManagementFactory.html#getPlatformMBeanServer()
+    http://java.sun.com/j2se/1.5.0/docs/guide/management/agent.html
 </li><li>Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
 </li><li>Support nested transactions
 </li><li>Add a benchmark for big databases, and one for many users
@@ -241,10 +245,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Time based cache writing (one second after writing the log)
 </li><li>Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
-</li><li>Support JMX: create an MBean for each database and server (support JConsole).
-    See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html
-    http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ManagementFactory.html#getPlatformMBeanServer()
-    http://java.sun.com/j2se/1.5.0/docs/guide/management/agent.html
 </li><li>Index usage for REGEXP LIKE.
 </li><li>Compatibility: add a role DBA (like ADMIN).
 </li><li>Better support multiple processors for in-memory databases.

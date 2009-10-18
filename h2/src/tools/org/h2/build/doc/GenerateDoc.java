@@ -16,6 +16,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.h2.bnf.Bnf;
 import org.h2.engine.Constants;
@@ -69,15 +70,15 @@ public class GenerateDoc {
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + inHelp + "') WHERE SECTION ";
         map("commands", help + "LIKE 'Commands%' ORDER BY ID", true);
-        map("commandsDML", help + "= 'Commands (DML)' ORDER BY ID", true);
-        map("commandsDDL", help + "= 'Commands (DDL)' ORDER BY ID", true);
-        map("commandsOther", help + "= 'Commands (Other)' ORDER BY ID", true);
+        map("commandsDML", help + "= 'Commands (DML)' ORDER BY ID", false);
+        map("commandsDDL", help + "= 'Commands (DDL)' ORDER BY ID", false);
+        map("commandsOther", help + "= 'Commands (Other)' ORDER BY ID", false);
         map("otherGrammar", help + "= 'Other Grammar' ORDER BY ID", true);
-        map("functionsAggregate", help + "= 'Functions (Aggregate)' ORDER BY ID", true);
-        map("functionsNumeric", help + "= 'Functions (Numeric)' ORDER BY ID", true);
-        map("functionsString", help + "= 'Functions (String)' ORDER BY ID", true);
-        map("functionsTimeDate", help + "= 'Functions (Time and Date)' ORDER BY ID", true);
-        map("functionsSystem", help + "= 'Functions (System)' ORDER BY ID", true);
+        map("functionsAggregate", help + "= 'Functions (Aggregate)' ORDER BY ID", false);
+        map("functionsNumeric", help + "= 'Functions (Numeric)' ORDER BY ID", false);
+        map("functionsString", help + "= 'Functions (String)' ORDER BY ID", false);
+        map("functionsTimeDate", help + "= 'Functions (Time and Date)' ORDER BY ID", false);
+        map("functionsSystem", help + "= 'Functions (System)' ORDER BY ID", false);
         map("functionsAll", help + "LIKE 'Functions%' ORDER BY SECTION, ID", true);
         map("dataTypes", help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
         map("informationSchema", "SELECT TABLE_NAME TOPIC, GROUP_CONCAT(COLUMN_NAME "
@@ -160,6 +161,12 @@ public class GenerateDoc {
                 list.add(map);
             }
             session.put(key, list);
+            int div = 3;
+            int part = (list.size() + div - 1) / div;
+            for (int i = 0, start = 0; i < div; i++, start += part) {
+                List<HashMap<String, String>> listThird = list.subList(start, Math.min(start + part, list.size()));
+                session.put(key + "-" + i, listThird);
+            }
         } finally {
             JdbcUtils.closeSilently(rs);
             JdbcUtils.closeSilently(stat);

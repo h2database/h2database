@@ -214,6 +214,29 @@ td.content {
     color: #800;
 }
 
+table.index {
+    width: 100%;
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+    border: 0px none;
+    border-collapse: collapse;
+}
+
+/*    width: 570px;
+    width: 190px;
+    */
+
+td.index {
+    width: 33%;
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+    border: 0px none;
+    border-collapse: collapse;
+    vertical-align: top;
+}
+
 .railroad {
     border: 0px;
     padding: 0px;

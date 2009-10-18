@@ -78,35 +78,18 @@ Adds a new column to a table."
 ALTER TABLE tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table."
-"Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE tableName ALTER COLUMN columnName dataType
-[ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ]
+"Commands (DDL)","ALTER TABLE ALTER","
+ALTER TABLE tableName ALTER COLUMN columnName
+{ { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
+    | { RENAME TO name }
+    | { RESTART WITH long }
+    | { SELECTIVITY int }
+    | { SET DEFAULT expression }
+    | { SET NULL }
+    | { SET NOT NULL } }
 ","
-Changes the data type of a column."
-"Commands (DDL)","ALTER TABLE ALTER COLUMN RENAME","
-ALTER TABLE tableName ALTER COLUMN columnName RENAME TO name
-","
-Renames a column."
-"Commands (DDL)","ALTER TABLE ALTER COLUMN RESTART","
-ALTER TABLE tableName ALTER COLUMN columnName RESTART WITH long
-","
-Changes the next value of an auto increment column."
-"Commands (DDL)","ALTER TABLE ALTER COLUMN SELECTIVITY","
-ALTER TABLE tableName ALTER COLUMN columnName SELECTIVITY int
-","
-Sets the selectivity (1-100) for a column."
-"Commands (DDL)","ALTER TABLE ALTER COLUMN SET DEFAULT","
-ALTER TABLE tableName ALTER COLUMN columnName SET DEFAULT expression
-","
-Changes the default value of a column."
-"Commands (DDL)","ALTER TABLE ALTER COLUMN SET NOT NULL","
-ALTER TABLE tableName ALTER COLUMN columnName SET NOT NULL
-","
-Sets a column to not allow NULL."
-"Commands (DDL)","ALTER TABLE ALTER COLUMN SET NULL","
-ALTER TABLE tableName ALTER COLUMN columnName SET NULL
-","
-Sets a column to allow NULL."
+Changes the data type of a column, rename a column,
+change the identity value, or change the selectivity."
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
 ALTER TABLE tableName DROP COLUMN columnName
 ","
@@ -480,56 +463,54 @@ SHUTDOWN [ IMMEDIATELY | COMPACT | SCRIPT ]
 ","
 This statement is closes all open connections to the database and closes the
 database."
-"Other Grammar","Comments","
--- anythingUntilEndOfLine | // anythingUntilEndOfLine | /* anythingUntilEndComment */
+"Other Grammar","Alias","
+name
 ","
-Comments can be used anywhere in a command and are ignored by the database."
-"Other Grammar","Order","
-{ int | expression } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+An alias is a name that is only valid in the context of the statement."
+"Other Grammar","And Condition","
+condition [ { AND condition } [...] ]
 ","
-Sorts the result by the given column number, or by an expression."
-"Other Grammar","Constraint","
-[ constraintNameDefinition ] {
-    CHECK expression | UNIQUE ( columnName [,...] )
-    | referentialConstraint }
-    | PRIMARY KEY [ HASH ] ( columnName [,...] )
+Value or condition."
+"Other Grammar","Array","
+( expression [,...] )
 ","
-Defines a constraint."
-"Other Grammar","Constraint Name Definition","
-CONSTRAINT [ IF NOT EXISTS ] newConstraintName
+An array of values."
+"Other Grammar","Boolean","
+TRUE | FALSE
 ","
-Defines a constraint name."
-"Other Grammar","Referential Constraint","
-FOREIGN KEY ( columnName [,...] )
-REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
-[ ON DELETE { CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL } } ]
-[ ON UPDATE { CASCADE | SET { DEFAULT | NULL } } ]
+A boolean value."
+"Other Grammar","Bytes","
+X'hex'
 ","
-Defines a referential constraint."
-"Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) } [ [ AS ] newTableAlias ]
-[ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
-    JOIN tableExpression [ ON expression ] ]
+A binary value."
+"Other Grammar","Case","
+CASE expression { WHEN expression THEN expression } [...]
+[ ELSE expression ] END
 ","
-Joins a table."
-"Other Grammar","Index Column","
-columnName [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+Returns the first expression where the value is equal to the test expression."
+"Other Grammar","Case When","
+CASE { WHEN expression THEN expression} [...]
+[ ELSE expression ] END
 ","
-Indexes this column in ascending or descending order."
+Returns the first expression where the condition is true."
+"Other Grammar","Cipher","
+{ AES | XTEA }
+","
+Two algorithms are supported, AES (AES-256) and XTEA (using 32 rounds)."
 "Other Grammar","Column Definition","
 columnName dataType { DEFAULT expression | AS computedColumnExpression } [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 [ SELECTIVITY selectivity ] [ PRIMARY KEY [ HASH ] | UNIQUE ]
 ","
 Default expressions are used if no explicit value was used when adding a row."
-"Other Grammar","Expression","
-andCondition [ { OR andCondition } [...] ]
+"Other Grammar","Comments","
+-- anythingUntilEndOfLine | // anythingUntilEndOfLine | /* anythingUntilEndComment */
 ","
-Value or condition."
-"Other Grammar","And Condition","
-condition [ { AND condition } [...] ]
+Comments can be used anywhere in a command and are ignored by the database."
+"Other Grammar","Compare","
+<> | <= | >= | = | < | > | !=
 ","
-Value or condition."
+Comparison operator."
 "Other Grammar","Condition","
 operand [ conditionRightHandSide ] | NOT condition | EXISTS ( select )
 ","
@@ -543,22 +524,125 @@ compare { { { ALL | ANY | SOME } ( select ) } | operand }
     | [ NOT ] REGEXP operand
 ","
 The right hand side of a condition."
-"Other Grammar","Compare","
-<> | <= | >= | = | < | > | !=
+"Other Grammar","Constraint","
+[ constraintNameDefinition ] {
+    CHECK expression | UNIQUE ( columnName [,...] )
+    | referentialConstraint }
+    | PRIMARY KEY [ HASH ] ( columnName [,...] )
 ","
-Comparison operator."
-"Other Grammar","Operand","
-summand [ { || summand } [...] ]
+Defines a constraint."
+"Other Grammar","Constraint Name Definition","
+CONSTRAINT [ IF NOT EXISTS ] newConstraintName
 ","
-A value or a concatenation of values."
-"Other Grammar","Summand","
-factor [ { { + | - } factor } [...] ]
+Defines a constraint name."
+"Other Grammar","Csv Options","
+charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]]
 ","
-A value or a numeric sum."
+Optional parameters for CSVREAD and CSVWRITE."
+"Other Grammar","Data Type","
+intType | booleanType | tinyintType | smallintType | bigintType | identityType
+    | decimalType | doubleType | realType | dateType | timeType | timestampType
+    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
+    | blobType | clobType | uuidType | arrayType
+","
+A data type definition."
+"Other Grammar","Date","
+DATE 'yyyy-MM-dd'
+","
+A date literal."
+"Other Grammar","Decimal","
+[ + | - ] number [ . number ]
+","
+Number with fixed precision and scale."
+"Other Grammar","Digit","
+0-9
+","
+A digit."
+"Other Grammar","Dollar Quoted String","
+$$anythingExceptTwoDollarSigns$$
+","
+A string starts and ends with two dollar signs."
+"Other Grammar","Double","
+[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
+","
+The limitations are the same as for the Java data type Double."
+"Other Grammar","Expression","
+andCondition [ { OR andCondition } [...] ]
+","
+Value or condition."
 "Other Grammar","Factor","
 term [ { { * | / } term } [...] ]
 ","
 A value or a numeric factor."
+"Other Grammar","Hex","
+{ { digit | a-f | A-F } { digit | a-f | A-F } } [...]
+","
+The hexadecimal representation of a number or of bytes."
+"Other Grammar","Hex Number","
+[ + | - ] 0x hex
+","
+A number written in hexadecimal notation."
+"Other Grammar","Index Column","
+columnName [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+","
+Indexes this column in ascending or descending order."
+"Other Grammar","Int","
+[ + | - ] number
+","
+The maximum integer number is 2147483647, the minimum is -2147483648."
+"Other Grammar","Long","
+[ + | - ] number
+","
+Long numbers are between -9223372036854775808 and 9223372036854775807."
+"Other Grammar","Name","
+{ { A-Z|_  } [ { A-Z|_|0-9 } [...] ] } | quotedName
+","
+Names are not case sensitive."
+"Other Grammar","Null","
+NULL
+","
+NULL is a value without data type and means 'unknown value'."
+"Other Grammar","Number","
+digit [...]
+","
+The maximum length of the number depends on the data type used."
+"Other Grammar","Operand","
+summand [ { || summand } [...] ]
+","
+A value or a concatenation of values."
+"Other Grammar","Order","
+{ int | expression } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+","
+Sorts the result by the given column number, or by an expression."
+"Other Grammar","Quoted Name","
+""anythingExceptDoubleQuote""
+","
+Quoted names are case sensitive, and can contain spaces."
+"Other Grammar","Referential Constraint","
+FOREIGN KEY ( columnName [,...] )
+REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
+[ ON DELETE { CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL } } ]
+[ ON UPDATE { CASCADE | SET { DEFAULT | NULL } } ]
+","
+Defines a referential constraint."
+"Other Grammar","Select Expression","
+* | expression [ [ AS ] columnAlias ] | tableAlias.*
+","
+An expression in a SELECT statement."
+"Other Grammar","String","
+'anythingExceptSingleQuote'
+","
+A string starts and ends with a single quote."
+"Other Grammar","Summand","
+factor [ { { + | - } factor } [...] ]
+","
+A value or a numeric sum."
+"Other Grammar","Table Expression","
+{ [ schemaName. ] tableName | ( select ) } [ [ AS ] newTableAlias ]
+[ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
+    JOIN tableExpression [ ON expression ] ]
+","
+Joins a table."
 "Other Grammar","Term","
 value
     | columnName
@@ -573,88 +657,6 @@ value
     | tableAlias.columnName
 ","
 A value."
-"Other Grammar","Value","
-string | dollarQuotedString | hexNumber | int | long | decimal | double
-    | date | time | timestamp | boolean | bytes | array | null
-","
-A value of any data type, or null."
-"Other Grammar","Case","
-CASE expression { WHEN expression THEN expression } [...]
-[ ELSE expression ] END
-","
-Returns the first expression where the value is equal to the test expression."
-"Other Grammar","Case When","
-CASE { WHEN expression THEN expression} [...]
-[ ELSE expression ] END
-","
-Returns the first expression where the condition is true."
-"Other Grammar","Csv Options","
-charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]]
-","
-Optional parameters for CSVREAD and CSVWRITE."
-"Other Grammar","Cipher","
-{ AES | XTEA }
-","
-Two algorithms are supported, AES (AES-256) and XTEA (using 32 rounds)."
-"Other Grammar","Select Expression","
-* | expression [ [ AS ] columnAlias ] | tableAlias.*
-","
-An expression in a SELECT statement."
-"Other Grammar","Data Type","
-intType | booleanType | tinyintType | smallintType | bigintType | identityType
-    | decimalType | doubleType | realType | dateType | timeType | timestampType
-    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType
-","
-A data type definition."
-"Other Grammar","Name","
-{ { A-Z|_  } [ { A-Z|_|0-9 } [...] ] } | quotedName
-","
-Names are not case sensitive."
-"Other Grammar","Alias","
-name
-","
-An alias is a name that is only valid in the context of the statement."
-"Other Grammar","Quoted Name","
-""anythingExceptDoubleQuote""
-","
-Quoted names are case sensitive, and can contain spaces."
-"Other Grammar","String","
-'anythingExceptSingleQuote'
-","
-A string starts and ends with a single quote."
-"Other Grammar","Dollar Quoted String","
-$$anythingExceptTwoDollarSigns$$
-","
-A string starts and ends with two dollar signs."
-"Other Grammar","Int","
-[ + | - ] number
-","
-The maximum integer number is 2147483647, the minimum is -2147483648."
-"Other Grammar","Long","
-[ + | - ] number
-","
-Long numbers are between -9223372036854775808 and 9223372036854775807."
-"Other Grammar","Hex Number","
-[ + | - ] 0x hex
-","
-A number written in hexadecimal notation."
-"Other Grammar","Decimal","
-[ + | - ] number [ . number ]
-","
-Number with fixed precision and scale."
-"Other Grammar","Double","
-[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
-","
-The limitations are the same as for the Java data type Double."
-"Other Grammar","Number","
-digit [...]
-","
-The maximum length of the number depends on the data type used."
-"Other Grammar","Date","
-DATE 'yyyy-MM-dd'
-","
-A date literal."
 "Other Grammar","Time","
 TIME 'hh:mm:ss'
 ","
@@ -663,30 +665,11 @@ A time literal."
 TIMESTAMP 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
 ","
 A timestamp literal."
-"Other Grammar","Boolean","
-TRUE | FALSE
+"Other Grammar","Value","
+string | dollarQuotedString | hexNumber | int | long | decimal | double
+    | date | time | timestamp | boolean | bytes | array | null
 ","
-A boolean value."
-"Other Grammar","Bytes","
-X'hex'
-","
-A binary value."
-"Other Grammar","Array","
-( expression [,...] )
-","
-An array of values."
-"Other Grammar","Null","
-NULL
-","
-NULL is a value without data type and means 'unknown value'."
-"Other Grammar","Hex","
-{ { digit | a-f | A-F } { digit | a-f | A-F } } [...]
-","
-The hexadecimal representation of a number or of bytes."
-"Other Grammar","Digit","
-0-9
-","
-A digit."
+A value of any data type, or null."
 "Data Types","INT Type","
 INT | INTEGER | MEDIUMINT | INT4 | SIGNED
 ","

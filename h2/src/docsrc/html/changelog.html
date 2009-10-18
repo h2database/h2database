@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The SQL syntax is documented using (railroad) diagrams.
+<ul><li>Page store: new write and read counters in the meta data table. Use 
+    SELECT * FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN(
+    'info.FILE_WRITE_TOTAL', 'info.FILE_WRITE', 'info.FILE_READ', 
+    'info.CACHE_MAX_SIZE', 'info.CACHE_SIZE')
+</li><li>The SQL syntax is documented using (railroad) diagrams.
     The diagrams are HTML.
 </li><li>The documentation is no longer available in Japanese because the
     translation was too much out of sync. Please use the Google translation instead.

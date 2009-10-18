@@ -49,6 +49,7 @@ import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.DiskFile;
+import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
@@ -868,6 +869,14 @@ public class MetaTable extends Table {
             add(rows, "h2.serverCachedObjects", "" + SysProperties.SERVER_CACHED_OBJECTS);
             add(rows, "h2.serverResultSetFetchSize", "" + SysProperties.SERVER_RESULT_SET_FETCH_SIZE);
             add(rows, "h2.sortNullsHigh", "" + SysProperties.SORT_NULLS_HIGH);
+            if (database.isPageStoreEnabled() && database.isPersistent()) {
+                PageStore store = database.getPageStore();
+                add(rows, "info.FILE_WRITE_TOTAL", "" + store.getWriteCountTotal());
+                add(rows, "info.FILE_WRITE", "" + store.getWriteCount());
+                add(rows, "info.FILE_READ", "" + store.getReadCount());
+                add(rows, "info.CACHE_MAX_SIZE", "" + store.getCache().getMaxSize());
+                add(rows, "info.CACHE_SIZE", "" + store.getCache().getSize());
+            }
             DiskFile dataFile = database.getDataFile();
             if (dataFile != null) {
                 add(rows, "CACHE_TYPE", dataFile.getCache().getTypeName());

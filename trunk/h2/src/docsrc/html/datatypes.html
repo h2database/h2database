@@ -16,11 +16,33 @@ Data Types
 <!-- } -->
 
 <h1>Data Types</h1>
+<!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="dataTypes">
-    <a href="#${item.link}">${item.topic}</a><br />
+    <a href="#${item.link}" >${item.topic}</a><br />
 </c:forEach>
 </p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="dataTypes-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="dataTypes-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="dataTypes-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
 
 <c:forEach var="item" items="dataTypes">
 <h3 id="${item.link}" class="notranslate">${item.topic}</h3>

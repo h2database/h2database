@@ -196,74 +196,46 @@ This command commits an open transaction.
 ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
 
-"Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE tableName ALTER COLUMN columnName dataType
-[ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ]
+"Commands (DDL)","ALTER TABLE ALTER","
+ALTER TABLE tableName ALTER COLUMN columnName
+{ { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
+    | { RENAME TO name }
+    | { RESTART WITH long }
+    | { SELECTIVITY int }
+    | { SET DEFAULT expression }
+    | { SET NULL }
+    | { SET NOT NULL } }
 ","
-Changes the data type of a column.
-The operation fails if the data can not be converted.
-This command commits an open transaction.
-","
-ALTER TABLE TEST ALTER COLUMN NAME CLOB
-"
+Changes the data type of a column, rename a column,
+change the identity value, or change the selectivity.
 
-"Commands (DDL)","ALTER TABLE ALTER COLUMN RENAME","
-ALTER TABLE tableName ALTER COLUMN columnName RENAME TO name
-","
-Renames a column.
-This command commits an open transaction.
-","
-ALTER TABLE TEST ALTER COLUMN NAME RENAME TO TEXT
-"
+Changing the data type fails if the data can not be converted.
 
-"Commands (DDL)","ALTER TABLE ALTER COLUMN RESTART","
-ALTER TABLE tableName ALTER COLUMN columnName RESTART WITH long
-","
-Changes the next value of an auto increment column. The column must already be
-an auto increment column. The same transactional rules as for ALTER SEQUENCE
-apply.
-","
-ALTER TABLE TEST ALTER COLUMN ID RESTART WITH 10000
-"
+RESTART changes the next value of an auto increment column.
+The column must already be an auto increment column.
+For RESTART, the same transactional rules as for ALTER SEQUENCE apply.
 
-"Commands (DDL)","ALTER TABLE ALTER COLUMN SELECTIVITY","
-ALTER TABLE tableName ALTER COLUMN columnName SELECTIVITY int
-","
-Sets the selectivity (1-100) for a column. Setting the selectivity to 0 means
-the default value. Selectivity is used by the cost based optimizer to calculate
-the estimated cost of an index. Selectivity 100 means values are unique, 10
-means every distinct value appears 10 times on average.
-This command commits an open transaction.
-","
-ALTER TABLE TEST ALTER COLUMN NAME SELECTIVITY 100
-"
+SELECTIVITY sets the selectivity (1-100) for a column.
+Setting the selectivity to 0 means the default value.
+Selectivity is used by the cost based optimizer to calculate the estimated cost of an index.
+Selectivity 100 means values are unique, 10 means every distinct value appears 10 times on average.
 
-"Commands (DDL)","ALTER TABLE ALTER COLUMN SET DEFAULT","
-ALTER TABLE tableName ALTER COLUMN columnName SET DEFAULT expression
-","
-Changes the default value of a column.
-This command commits an open transaction.
-","
-ALTER TABLE TEST ALTER COLUMN NAME SET DEFAULT ''
-"
+SET DEFAULT changes the default value of a column.
 
-"Commands (DDL)","ALTER TABLE ALTER COLUMN SET NOT NULL","
-ALTER TABLE tableName ALTER COLUMN columnName SET NOT NULL
-","
-Sets a column to not allow NULL. Rows may not contains NULL in this column.
-This command commits an open transaction.
-","
-ALTER TABLE TEST ALTER COLUMN NAME SET NOT NULL
-"
-
-"Commands (DDL)","ALTER TABLE ALTER COLUMN SET NULL","
-ALTER TABLE tableName ALTER COLUMN columnName SET NULL
-","
-Sets a column to allow NULL. The row may not be part of a primary key or
+SET NULL sets a column to allow NULL. The row may not be part of a primary key or
 multi-column hash index. Single column indexes on this column are dropped.
+
+SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
+
 This command commits an open transaction.
 ","
-ALTER TABLE TEST ALTER COLUMN NAME SET NULL
+ALTER TABLE TEST ALTER COLUMN NAME CLOB;
+ALTER TABLE TEST ALTER COLUMN NAME RENAME TO TEXT;
+ALTER TABLE TEST ALTER COLUMN ID RESTART WITH 10000;
+ALTER TABLE TEST ALTER COLUMN NAME SELECTIVITY 100;
+ALTER TABLE TEST ALTER COLUMN NAME SET DEFAULT '';
+ALTER TABLE TEST ALTER COLUMN NAME SET NOT NULL;
+ALTER TABLE TEST ALTER COLUMN NAME SET NULL;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
@@ -1394,81 +1366,73 @@ Admin rights are required to execute this command.
 SHUTDOWN
 "
 
-"Other Grammar","Comments","
--- anythingUntilEndOfLine | // anythingUntilEndOfLine | /* anythingUntilEndComment */
+"Other Grammar","Alias","
+name
 ","
-Comments can be used anywhere in a command and are ignored by the database. Line
-comments end with a newline. Block comments cannot be nested, but can be
-multiple lines long.
+An alias is a name that is only valid in the context of the statement.
 ","
-// This is a comment
+A
 "
 
-"Other Grammar","Order","
-{ int | expression } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+"Other Grammar","And Condition","
+condition [ { AND condition } [...] ]
 ","
-Sorts the result by the given column number, or by an expression. If the
-expression is a single parameter, then the value is interpreted as a column
-number. Negative column numbers reverse the sort order.
+Value or condition.
 ","
-NAME DESC NULLS LAST
+ID=1 AND NAME='Hi'
 "
 
-"Other Grammar","Constraint","
-[ constraintNameDefinition ] {
-    CHECK expression | UNIQUE ( columnName [,...] )
-    | referentialConstraint }
-    | PRIMARY KEY [ HASH ] ( columnName [,...] )
+"Other Grammar","Array","
+( expression [,...] )
 ","
-Defines a constraint. The check condition must evaluate to true or to NULL (to
-prevent NULL, use NOT NULL).
+An array of values.
 ","
-PRIMARY KEY(ID, NAME)
+(1, 2)
 "
 
-"Other Grammar","Constraint Name Definition","
-CONSTRAINT [ IF NOT EXISTS ] newConstraintName
+"Other Grammar","Boolean","
+TRUE | FALSE
 ","
-Defines a constraint name.
+A boolean value.
 ","
-CONSTRAINT CONST_ID
+TRUE
 "
 
-"Other Grammar","Referential Constraint","
-FOREIGN KEY ( columnName [,...] )
-REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
-[ ON DELETE { CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL } } ]
-[ ON UPDATE { CASCADE | SET { DEFAULT | NULL } } ]
+"Other Grammar","Bytes","
+X'hex'
 ","
-Defines a referential constraint. If the table name is not specified, then the
-same table is referenced. As this database does not support deferred checking,
-RESTRICT and NO ACTION will both throw an exception if the constraint is
-violated. If the referenced columns are not specified, then the primary key
-columns are used. The required indexes are automatically created if required.
+A binary value. The hex value is not case sensitive.
 ","
-FOREIGN KEY(ID) REFERENCES TEST(ID)
+X'01FF'
 "
 
-"Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) } [ [ AS ] newTableAlias ]
-[ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
-    JOIN tableExpression [ ON expression ] ]
+"Other Grammar","Case","
+CASE expression { WHEN expression THEN expression } [...]
+[ ELSE expression ] END
 ","
-Joins a table. The join expression is not supported for cross and natural joins.
-A natural join is an inner join, where the condition is automatically on the
-columns with the same name.
+Returns the first expression where the value is equal to the test expression. If
+no else part is specified, return NULL.
 ","
-TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
+CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' ELSE 'Some' END
 "
 
-"Other Grammar","Index Column","
-columnName [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+"Other Grammar","Case When","
+CASE { WHEN expression THEN expression} [...]
+[ ELSE expression ] END
 ","
-Indexes this column in ascending or descending order. Usually it is not required
-to specify the order; however doing so will speed up large queries that order
-the column in the same way.
+Returns the first expression where the condition is true. If no else part is
+specified, return NULL.
 ","
-NAME
+CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
+"
+
+"Other Grammar","Cipher","
+{ AES | XTEA }
+","
+Two algorithms are supported, AES (AES-256) and XTEA (using 32 rounds). The AES
+algorithm is about half as fast as XTEA.
+","
+AES
 "
 
 "Other Grammar","Column Definition","
@@ -1486,20 +1450,22 @@ CREATE TABLE(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
 CREATE TABLE(ID BIGINT IDENTITY);
 "
 
-"Other Grammar","Expression","
-andCondition [ { OR andCondition } [...] ]
+"Other Grammar","Comments","
+-- anythingUntilEndOfLine | // anythingUntilEndOfLine | /* anythingUntilEndComment */
 ","
-Value or condition.
+Comments can be used anywhere in a command and are ignored by the database. Line
+comments end with a newline. Block comments cannot be nested, but can be
+multiple lines long.
 ","
-ID=1 OR NAME='Hi'
+// This is a comment
 "
 
-"Other Grammar","And Condition","
-condition [ { AND condition } [...] ]
+"Other Grammar","Compare","
+<> | <= | >= | = | < | > | !=
 ","
-Value or condition.
+Comparison operator. The operator != is the same as <>.
 ","
-ID=1 AND NAME='Hi'
+<>
 "
 
 "Other Grammar","Condition","
@@ -1532,12 +1498,170 @@ See Java Matcher.find for details.
 LIKE 'Jo%'
 "
 
-"Other Grammar","Compare","
-<> | <= | >= | = | < | > | !=
+"Other Grammar","Constraint","
+[ constraintNameDefinition ] {
+    CHECK expression | UNIQUE ( columnName [,...] )
+    | referentialConstraint }
+    | PRIMARY KEY [ HASH ] ( columnName [,...] )
 ","
-Comparison operator. The operator != is the same as <>.
+Defines a constraint. The check condition must evaluate to true or to NULL (to
+prevent NULL, use NOT NULL).
 ","
-<>
+PRIMARY KEY(ID, NAME)
+"
+
+"Other Grammar","Constraint Name Definition","
+CONSTRAINT [ IF NOT EXISTS ] newConstraintName
+","
+Defines a constraint name.
+","
+CONSTRAINT CONST_ID
+"
+
+"Other Grammar","Csv Options","
+charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]]
+","
+Optional parameters for CSVREAD and CSVWRITE.
+","
+CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'UTF-8', '|');
+"
+
+"Other Grammar","Data Type","
+intType | booleanType | tinyintType | smallintType | bigintType | identityType
+    | decimalType | doubleType | realType | dateType | timeType | timestampType
+    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
+    | blobType | clobType | uuidType | arrayType
+","
+A data type definition.
+","
+INT
+"
+
+"Other Grammar","Date","
+DATE 'yyyy-MM-dd'
+","
+A date literal. The limitations are the same as for the Java data type
+java.sql.Date, but for compatibility with other databases the suggested minimum
+and maximum years are 0001 and 9999.
+","
+DATE '2004-12-31'
+"
+
+"Other Grammar","Decimal","
+[ + | - ] number [ . number ]
+","
+Number with fixed precision and scale.
+","
+-1600.05
+"
+
+"Other Grammar","Digit","
+0-9
+","
+A digit.
+","
+0
+"
+
+"Other Grammar","Dollar Quoted String","
+$$anythingExceptTwoDollarSigns$$
+","
+A string starts and ends with two dollar signs. Two dollar signs are not allowed
+within the text. A whitespace is required before the first set of dollar signs.
+No escaping is required within the text.
+","
+$$John's car$$
+"
+
+"Other Grammar","Double","
+[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
+","
+The limitations are the same as for the Java data type Double.
+","
+-1.4e-10
+"
+
+"Other Grammar","Expression","
+andCondition [ { OR andCondition } [...] ]
+","
+Value or condition.
+","
+ID=1 OR NAME='Hi'
+"
+
+"Other Grammar","Factor","
+term [ { { * | / } term } [...] ]
+","
+A value or a numeric factor.
+","
+ID * 10
+"
+
+"Other Grammar","Hex","
+{ { digit | a-f | A-F } { digit | a-f | A-F } } [...]
+","
+The hexadecimal representation of a number or of bytes. Two characters are one
+byte.
+","
+cafe
+"
+
+"Other Grammar","Hex Number","
+[ + | - ] 0x hex
+","
+A number written in hexadecimal notation.
+","
+0xff
+"
+
+"Other Grammar","Index Column","
+columnName [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+","
+Indexes this column in ascending or descending order. Usually it is not required
+to specify the order; however doing so will speed up large queries that order
+the column in the same way.
+","
+NAME
+"
+
+"Other Grammar","Int","
+[ + | - ] number
+","
+The maximum integer number is 2147483647, the minimum is -2147483648.
+","
+10
+"
+
+"Other Grammar","Long","
+[ + | - ] number
+","
+Long numbers are between -9223372036854775808 and 9223372036854775807.
+","
+100000
+"
+
+"Other Grammar","Name","
+{ { A-Z|_  } [ { A-Z|_|0-9 } [...] ] } | quotedName
+","
+Names are not case sensitive. There is no maximum name length.
+","
+TEST
+"
+
+"Other Grammar","Null","
+NULL
+","
+NULL is a value without data type and means 'unknown value'.
+","
+NULL
+"
+
+"Other Grammar","Number","
+digit [...]
+","
+The maximum length of the number depends on the data type used.
+","
+100
 "
 
 "Other Grammar","Operand","
@@ -1548,6 +1672,58 @@ A value or a concatenation of values.
 'Hi' || ' Eva'
 "
 
+"Other Grammar","Order","
+{ int | expression } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+","
+Sorts the result by the given column number, or by an expression. If the
+expression is a single parameter, then the value is interpreted as a column
+number. Negative column numbers reverse the sort order.
+","
+NAME DESC NULLS LAST
+"
+
+"Other Grammar","Quoted Name","
+""anythingExceptDoubleQuote""
+","
+Quoted names are case sensitive, and can contain spaces. There is no maximum
+name length. Two double quotes can be used to create a single double quote
+inside an identifier.
+","
+""FirstName""
+"
+
+"Other Grammar","Referential Constraint","
+FOREIGN KEY ( columnName [,...] )
+REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
+[ ON DELETE { CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL } } ]
+[ ON UPDATE { CASCADE | SET { DEFAULT | NULL } } ]
+","
+Defines a referential constraint. If the table name is not specified, then the
+same table is referenced. As this database does not support deferred checking,
+RESTRICT and NO ACTION will both throw an exception if the constraint is
+violated. If the referenced columns are not specified, then the primary key
+columns are used. The required indexes are automatically created if required.
+","
+FOREIGN KEY(ID) REFERENCES TEST(ID)
+"
+
+"Other Grammar","Select Expression","
+* | expression [ [ AS ] columnAlias ] | tableAlias.*
+","
+An expression in a SELECT statement.
+","
+ID AS VALUE
+"
+
+"Other Grammar","String","
+'anythingExceptSingleQuote'
+","
+A string starts and ends with a single quote. Two single quotes can be used to
+create a single quote inside a string.
+","
+'John''s car'
+"
+
 "Other Grammar","Summand","
 factor [ { { + | - } factor } [...] ]
 ","
@@ -1556,12 +1732,16 @@ A value or a numeric sum.
 ID + 20
 "
 
-"Other Grammar","Factor","
-term [ { { * | / } term } [...] ]
+"Other Grammar","Table Expression","
+{ [ schemaName. ] tableName | ( select ) } [ [ AS ] newTableAlias ]
+[ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
+    JOIN tableExpression [ ON expression ] ]
 ","
-A value or a numeric factor.
+Joins a table. The join expression is not supported for cross and natural joins.
+A natural join is an inner join, where the condition is automatically on the
+columns with the same name.
 ","
-ID * 10
+TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
 "
 
 "Other Grammar","Term","
@@ -1582,174 +1762,6 @@ A value. Parameters can be indexed, for example ?1 meaning the first parameter.
 'Hello'
 "
 
-"Other Grammar","Value","
-string | dollarQuotedString | hexNumber | int | long | decimal | double
-    | date | time | timestamp | boolean | bytes | array | null
-","
-A value of any data type, or null.
-","
-10
-"
-
-"Other Grammar","Case","
-CASE expression { WHEN expression THEN expression } [...]
-[ ELSE expression ] END
-","
-Returns the first expression where the value is equal to the test expression. If
-no else part is specified, return NULL.
-","
-CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' ELSE 'Some' END
-"
-
-"Other Grammar","Case When","
-CASE { WHEN expression THEN expression} [...]
-[ ELSE expression ] END
-","
-Returns the first expression where the condition is true. If no else part is
-specified, return NULL.
-","
-CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
-"
-
-"Other Grammar","Csv Options","
-charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]]
-","
-Optional parameters for CSVREAD and CSVWRITE.
-","
-CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'UTF-8', '|');
-"
-
-"Other Grammar","Cipher","
-{ AES | XTEA }
-","
-Two algorithms are supported, AES (AES-256) and XTEA (using 32 rounds). The AES
-algorithm is about half as fast as XTEA.
-","
-AES
-"
-
-"Other Grammar","Select Expression","
-* | expression [ [ AS ] columnAlias ] | tableAlias.*
-","
-An expression in a SELECT statement.
-","
-ID AS VALUE
-"
-
-"Other Grammar","Data Type","
-intType | booleanType | tinyintType | smallintType | bigintType | identityType
-    | decimalType | doubleType | realType | dateType | timeType | timestampType
-    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType
-","
-A data type definition.
-","
-INT
-"
-
-"Other Grammar","Name","
-{ { A-Z|_  } [ { A-Z|_|0-9 } [...] ] } | quotedName
-","
-Names are not case sensitive. There is no maximum name length.
-","
-TEST
-"
-
-"Other Grammar","Alias","
-name
-","
-An alias is a name that is only valid in the context of the statement.
-","
-A
-"
-
-"Other Grammar","Quoted Name","
-""anythingExceptDoubleQuote""
-","
-Quoted names are case sensitive, and can contain spaces. There is no maximum
-name length. Two double quotes can be used to create a single double quote
-inside an identifier.
-","
-""FirstName""
-"
-
-"Other Grammar","String","
-'anythingExceptSingleQuote'
-","
-A string starts and ends with a single quote. Two single quotes can be used to
-create a single quote inside a string.
-","
-'John''s car'
-"
-
-"Other Grammar","Dollar Quoted String","
-$$anythingExceptTwoDollarSigns$$
-","
-A string starts and ends with two dollar signs. Two dollar signs are not allowed
-within the text. A whitespace is required before the first set of dollar signs.
-No escaping is required within the text.
-","
-$$John's car$$
-"
-
-"Other Grammar","Int","
-[ + | - ] number
-","
-The maximum integer number is 2147483647, the minimum is -2147483648.
-","
-10
-"
-
-"Other Grammar","Long","
-[ + | - ] number
-","
-Long numbers are between -9223372036854775808 and 9223372036854775807.
-","
-100000
-"
-
-"Other Grammar","Hex Number","
-[ + | - ] 0x hex
-","
-A number written in hexadecimal notation.
-","
-0xff
-"
-
-"Other Grammar","Decimal","
-[ + | - ] number [ . number ]
-","
-Number with fixed precision and scale.
-","
--1600.05
-"
-
-"Other Grammar","Double","
-[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
-","
-The limitations are the same as for the Java data type Double.
-","
--1.4e-10
-"
-
-"Other Grammar","Number","
-digit [...]
-","
-The maximum length of the number depends on the data type used.
-","
-100
-"
-
-"Other Grammar","Date","
-DATE 'yyyy-MM-dd'
-","
-A date literal. The limitations are the same as for the Java data type
-java.sql.Date, but for compatibility with other databases the suggested minimum
-and maximum years are 0001 and 9999.
-","
-DATE '2004-12-31'
-"
-
 "Other Grammar","Time","
 TIME 'hh:mm:ss'
 ","
@@ -1768,53 +1780,13 @@ minimum and maximum years are 0001 and 9999.
 TIMESTAMP '2005-12-31 23:59:59'
 "
 
-"Other Grammar","Boolean","
-TRUE | FALSE
+"Other Grammar","Value","
+string | dollarQuotedString | hexNumber | int | long | decimal | double
+    | date | time | timestamp | boolean | bytes | array | null
 ","
-A boolean value.
+A value of any data type, or null.
 ","
-TRUE
-"
-
-"Other Grammar","Bytes","
-X'hex'
-","
-A binary value. The hex value is not case sensitive.
-","
-X'01FF'
-"
-
-"Other Grammar","Array","
-( expression [,...] )
-","
-An array of values.
-","
-(1, 2)
-"
-
-"Other Grammar","Null","
-NULL
-","
-NULL is a value without data type and means 'unknown value'.
-","
-NULL
-"
-
-"Other Grammar","Hex","
-{ { digit | a-f | A-F } { digit | a-f | A-F } } [...]
-","
-The hexadecimal representation of a number or of bytes. Two characters are one
-byte.
-","
-cafe
-"
-
-"Other Grammar","Digit","
-0-9
-","
-A digit.
-","
-0
+10
 "
 
 "Data Types","INT Type","

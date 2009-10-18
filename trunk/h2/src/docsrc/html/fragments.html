@@ -24,7 +24,7 @@ Initial Developer: H2 Group
         <td class="search" colspan="2">
 <!-- translate
 <a href="http://translate.google.com/translate?u=http%3A%2F%2Fh2database.com"
-    onclick="javascript:document.getElementById('translate').style.display='';return false;">Translate</a>
+    onclick="javascript:startTranslate();return false;">Translate</a>
 <div id = "translate" style="display:none"><div id = "google_translate_element"></div></div>
 translate -->
         </td>
@@ -94,7 +94,18 @@ translate -->
 </div></td></tr></table>
 <script type="text/javascript" src="index.js"></script>
 <script type="text/javascript" src="search.js"></script>
-<script type="text/javascript">function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); } </script>
+<script type="text/javascript">
+function startTranslate() {
+    document.getElementById('translate').style.display='';
+    var script=document.createElement('script');
+    script.setAttribute("type","text/javascript");
+    script.setAttribute("src", "http://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
+    document.getElementsByTagName("head")[0].appendChild(script);
+}
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+}
+</script>
 
 <!-- } -->
 

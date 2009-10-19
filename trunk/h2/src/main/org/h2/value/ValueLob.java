@@ -614,8 +614,7 @@ public class ValueLob extends Value {
 
     protected int compareSecure(Value v, CompareMode mode) throws SQLException {
         if (type == Value.CLOB) {
-            int c = getString().compareTo(v.getString());
-            return c == 0 ? 0 : (c < 0 ? -1 : 1);
+            return Integer.signum(getString().compareTo(v.getString()));
         }
         byte[] v2 = v.getBytesNoCopy();
         return ByteUtils.compareNotNull(getBytes(), v2);

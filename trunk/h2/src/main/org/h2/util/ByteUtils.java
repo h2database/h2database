@@ -212,8 +212,7 @@ public class ByteUtils {
                 return b > b2 ? 1 : -1;
             }
         }
-        int c = data1.length - data2.length;
-        return c == 0 ? 0 : (c < 0 ? -1 : 1);
+        return Integer.signum(data1.length - data2.length);
     }
 
     /**

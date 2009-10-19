@@ -12,6 +12,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.util.MathUtils;
 
 /**
  * The cursor implementation for the multi-version index.
@@ -149,7 +150,7 @@ public class MultiVersionCursor implements Cursor {
                     // version would be compared as well
                     long k1 = deltaRow.getKey();
                     long k2 = baseRow.getKey();
-                    compare = k1 == k2 ? 0 : k1 > k2 ? 1 : -1;
+                    compare = MathUtils.compare(k1, k2);
                 }
                 if (compare == 0) {
                     if (isDeleted) {

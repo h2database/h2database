@@ -1133,7 +1133,6 @@ public class Session extends SessionWithState {
         Session newSession = Engine.getInstance().getSession(connectionInfo);
         newSession.sessionState = sessionState;
         newSession.recreateSessionState();
-        database.clearCaches();
         if (write) {
             while (!database.beforeWriting()) {
                 // wait until we are allowed to write

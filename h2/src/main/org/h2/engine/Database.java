@@ -1804,23 +1804,6 @@ public class Database implements DataHandler {
         }
     }
 
-    /**
-     * Clears all caches.
-     *
-     * @throws SQLException
-     */
-    public synchronized void clearCaches() throws SQLException {
-        if (SysProperties.RECONNECT_CLEAR_CACHE) {
-            if (fileData != null) {
-                fileData.getCache().clear();
-                fileIndex.getCache().clear();
-            }
-            if (pageStore != null) {
-                pageStore.getCache().clear();
-            }
-        }
-    }
-
     public synchronized void setMasterUser(User user) throws SQLException {
         addDatabaseObject(systemSession, user);
         systemSession.commit(true);

@@ -31,28 +31,24 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <h2>Priority 1</h2>
 <ul>
 <li>Bugfixes
-</li><li>Page store: new storage mechanism
-</li><li>[Requires page store] Support large updates (use the transaction log
-    for rollback instead of persistent UndoLog.file).
-</li><li>[Requires page store] Shutdown compact
+</li><li>Support large updates (use the transaction log for rollback instead of persistent UndoLog.file).
+</li><li>Shutdown compact
 </li><li>More tests with MULTI_THREADED=1
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>Optimization: result set caching (like MySQL)
 </li><li>Server side cursors
+</li><li>Procedural language / script language (Java, Javascript)
 </li></ul>
 
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
 </li><li>Issue 116: Maven: deploy / upload h2..-sources.jar and javadocs as well.
-</li><li>Procedural language / script language (Java, Javascript)
 </li><li>Fulltext search: support streaming CLOB data.
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
-</li><li>[Requires page store] Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX
-</li><li>[Requires page store] Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Full outer joins
 </li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
 </li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
@@ -183,11 +179,11 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Add H2 to Gem (Ruby install system)
 </li><li>API for functions / user tables
 </li><li>Order conditions inside AND / OR to optimize the performance
+</li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
 </li><li>Support linked JCR tables
 </li><li>Make sure H2 is supported by Execute Query: http://executequery.org/
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 </li><li>Native fulltext search: min word length; store word positions
-</li><li>[Requires page store] Store dates in local time zone (portability of database files)
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
 </li><li>Test Dezign for Databases (http://www.datanamic.com)
 </li><li>Fast library for parsing / formatting: http://javolution.org/
@@ -199,7 +195,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support updatable views with join on primary keys (to extend a table)
 </li><li>Public interface for functions (not public static)
 </li><li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
-</li><li>Document FTP server, including -ftpTask option to execute / kill remote processes
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 </li><li>Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index
@@ -265,18 +260,16 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Store dates as 'local'. Existing files use GMT. Use escape syntax for compatibility.
 </li><li>Support data type INTERVAL
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
-</li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
 </li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
 </li><li>DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
 </li><li>File system that writes to two file systems (replicating file system)
 </li><li>File system with a background writer thread; test if this is faster
-</li><li>FTP access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file).
 </li><li>Better document the source code
 </li><li>Support select * from dual a left join dual b on b.x=(select max(x) from dual)
 </li><li>Optimization: don't lock when the database is read-only
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Support COSH, SINH, and TANH functions
-</li><li>FTP Server: implement SFTP / FTPS
+</li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
@@ -290,7 +283,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
 </li><li>Javadoc: document design patterns used
-</li><li>Does the FTP server has problems with multithreading?
 </li><li>Write an article about SQLInjection (h2\src\docsrc\html\images\SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 </li><li>Improve LOB in directories performance
@@ -337,7 +329,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>Support merge join.
 </li><li>H2 Console: in-place autocomplete.
-</li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Support large databases: split LOB (BLOB, CLOB) to multiple directories / disks (similar to tablespaces).
 </li><li>Support to assign a primary key index a user defined name.
 </li><li>Cluster: add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
@@ -448,6 +439,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Functions to calculate the memory and disk space usage of a row or value.
 </li><li>Oracle compatibility: support CREATE SYNONYM table FOR schema.table.
 </li><li>Optimize A=? OR B=? to UNION if the cost is lower.
+</li><li>FTP: document the server, including -ftpTask option to execute / kill remote processes
+</li><li>FTP: problems with multithreading?
+</li><li>FTP: implement SFTP / FTPS
+</li><li>FTP: access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file).
 </li><li>More secure default configuration if remote access is enabled.
 </li><li>Improve database file locking (maybe use native file locking). The current approach seems to be problematic
     if the file system is on a remote share (see Google Group 'Lock file modification time is in the future').

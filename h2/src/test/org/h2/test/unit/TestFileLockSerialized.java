@@ -35,10 +35,8 @@ public class TestFileLockSerialized extends TestBase {
     public void test() throws Exception {
         println("testWrongDatabaseInstanceOnReconnect");
         testWrongDatabaseInstanceOnReconnect();
-        println("testCache(false)");
-        testCache(false);
-        println("testCache(true)");
-        testCache(true);
+        println("testCache()");
+        testCache();
         println("testBigDatabase(false)");
         testBigDatabase(false);
         println("testBigDatabase(true)");
@@ -369,10 +367,8 @@ public class TestFileLockSerialized extends TestBase {
     /**
      * Caches must be cleared. Session.reconnect only closes the DiskFile (which is
      * associated with the cache) if there is one session
-     *
-     * @throws Exception
      */
-    private void testCache(boolean reconnectClearCache) throws Exception {
+    private void testCache() throws Exception {
         deleteDb("fileLockSerialized");
 
         String urlShared = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED";

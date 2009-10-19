@@ -6,6 +6,8 @@
  */
 package org.h2.index;
 
+import java.sql.SQLException;
+
 /**
  * A page store index.
  */
@@ -23,5 +25,10 @@ public abstract class PageIndex extends BaseIndex {
     public int getHeadPos() {
         return 0;
     }
+
+    /**
+     * Write back the row count if it has changed.
+     */
+    public abstract void writeRowCount() throws SQLException;
 
 }

@@ -18,7 +18,7 @@ import java.util.EventListener;
 public interface DatabaseEventListener extends EventListener {
 
     /**
-     * This state is used when scanning the data or index file.
+     * This state is used when scanning the database file.
      */
     int STATE_SCAN_FILE = 0;
 

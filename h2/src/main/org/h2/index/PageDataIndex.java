@@ -307,11 +307,6 @@ public class PageDataIndex extends PageIndex implements RowIndex {
         store.logAddOrRemoveRow(session, tableData.getId(), row, false);
     }
 
-    private void invalidateRowCount() throws SQLException {
-        PageData root = getPage(rootPageId, 0);
-        root.setRowCountStored(PageData.UNKNOWN_ROWCOUNT);
-    }
-
     public void remove(Session session) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug(this + " remove");
@@ -424,8 +419,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
         }
         // can not close the index because it might get used afterwards,
         // for example after running recovery
-        PageData root = getPage(rootPageId, 0);
-        root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
+        writeRowCount();
     }
 
     Iterator<Row> getDelta() {
@@ -482,6 +476,16 @@ public class PageDataIndex extends PageIndex implements RowIndex {
 
     public String toString() {
         return getName();
+    }
+
+    private void invalidateRowCount() throws SQLException {
+        PageData root = getPage(rootPageId, 0);
+        root.setRowCountStored(PageData.UNKNOWN_ROWCOUNT);
+    }
+
+    public void writeRowCount() throws SQLException {
+        PageData root = getPage(rootPageId, 0);
+        root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
     }
 
 }

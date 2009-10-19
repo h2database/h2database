@@ -908,7 +908,7 @@ SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 
 <h2 id="remote_access">Protection against Remote Access</h2>
 <p>
-By default this database does not allow others to connect when starting the H2 Console,
+By default this database does not allow connections from other machines when starting the H2 Console,
 the TCP server, or the PG server. Remote access can be enabled using the command line
 options <code>-webAllowOthers, -tcpAllowOthers, -pgAllowOthers</code>.
 If you enable remote access, please also consider using the options

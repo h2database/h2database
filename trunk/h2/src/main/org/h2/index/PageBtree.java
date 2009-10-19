@@ -89,7 +89,6 @@ public abstract class PageBtree extends Page {
      *
      * @param rowCount the stored row count
      */
-    // TODO remove
     abstract void setRowCountStored(int rowCount) throws SQLException;
 
     /**

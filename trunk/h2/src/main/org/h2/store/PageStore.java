@@ -90,21 +90,18 @@ public class PageStore implements CacheWriter {
     // TODO optimization: check if calling Data.getValueLen slows things down
     // TODO order pages so that searching for a key only seeks forward
     // TODO optimization: update: only log the key and changed values
-    // TODO maybe remove some parent pointers
     // TODO index creation: use less space (ordered, split at insertion point)
     // TODO detect circles in linked lists
     // (input stream, free list, extend pages...)
     // at runtime and recovery
     // synchronized correctly (on the index?)
     // TODO remove trace or use isDebugEnabled
-    // TODO recover tool: don't re-do uncommitted operations
     // TODO recover tool: support syntax to delete a row with a key
     // TODO don't store default values (store a special value)
     // TODO split files (1 GB max size)
     // TODO add a setting (that can be changed at runtime) to call fsync
     // and delay on each commit
     // TODO check for file size (exception if not exact size expected)
-    // TODO implement missing code for STORE_BTREE_ROWCOUNT (maybe enable)
     // TODO online backup using bsdiff
 
     // TODO when removing DiskFile:
@@ -131,11 +128,6 @@ public class PageStore implements CacheWriter {
      * The default page size.
      */
     public static final int PAGE_SIZE_DEFAULT = 2 * 1024;
-
-    /**
-     * Store the rowcount in b-tree indexes.
-     */
-    public static final boolean STORE_BTREE_ROWCOUNT = false;
 
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
@@ -188,7 +180,7 @@ public class PageStore implements CacheWriter {
     private TableData metaTable;
     private PageDataIndex metaIndex;
     private IntIntHashMap metaRootPageId = new IntIntHashMap();
-    private HashMap<Integer, Index> metaObjects = New.hashMap();
+    private HashMap<Integer, PageIndex> metaObjects = New.hashMap();
 
     /**
      * The map of reserved pages, to ensure index head pages
@@ -313,6 +305,12 @@ public class PageStore implements CacheWriter {
         }
     }
 
+    private void writeIndexRowCounts() throws SQLException {
+        for (PageIndex index: metaObjects.values()) {
+            index.writeRowCount();
+        }
+    }
+
     private void writeBack() throws SQLException {
         ObjectArray<CacheObject> list = cache.getAllChanged();
         CacheObject.sort(list);
@@ -332,6 +330,7 @@ public class PageStore implements CacheWriter {
         }
         synchronized (database) {
             database.checkPowerOff();
+            writeIndexRowCounts();
             writeBack();
             log.checkpoint();
             switchLog();
@@ -1034,10 +1033,13 @@ public class PageStore implements CacheWriter {
         }
         recoveryRunning = false;
         reservedPages = null;
+        writeIndexRowCounts();
         writeBack();
         // clear the cache because it contains pages with closed indexes
         cache.clear();
         freeLists.clear();
+        metaObjects.clear();
+        metaObjects.put(-1, metaIndex);
         if (setReadOnly) {
             database.setReadOnly(true);
         }
@@ -1201,12 +1203,9 @@ public class PageStore implements CacheWriter {
 
     private void removeMeta(int logPos, Row row) throws SQLException {
         int id = row.getValue(0).getInt();
-        Index index = metaObjects.get(id);
+        PageIndex index = metaObjects.get(id);
         int rootPageId = index.getRootPageId();
         index.getTable().removeIndex(index);
-        if (index instanceof MultiVersionIndex) {
-            index = ((MultiVersionIndex) index).getBaseIndex();
-        }
         if (index instanceof PageBtreeIndex) {
             if (index.isTemporary()) {
                 systemSession.removeLocalTempTableIndex(index);
@@ -1297,7 +1296,13 @@ public class PageStore implements CacheWriter {
             }
             meta = table.addIndex(session, "I" + id, id, cols, indexType, id, null);
         }
-        metaObjects.put(id, meta);
+        PageIndex index;
+        if (meta instanceof MultiVersionIndex) {
+            index = (PageIndex) ((MultiVersionIndex) meta).getBaseIndex();
+        } else {
+            index = (PageIndex) meta;
+        }
+        metaObjects.put(id, index);
     }
 
     /**

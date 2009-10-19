@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
@@ -292,6 +293,7 @@ public class PageDataNode extends PageData {
                     throw Message.throwInternalError("Page it its own child: " + getPos());
                 }
                 count += page.getRowCount();
+                index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE, index.getTable() + "." + index.getName(), count, Integer.MAX_VALUE);
             }
             rowCount = count;
         }

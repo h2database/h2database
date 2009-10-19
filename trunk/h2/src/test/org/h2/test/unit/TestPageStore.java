@@ -15,12 +15,15 @@ import java.sql.Statement;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 
 /**
  * Test the page store.
  */
-public class TestPageStore extends TestBase {
+public class TestPageStore extends TestBase implements DatabaseEventListener {
+
+    static StringBuilder eventBuffer = new StringBuilder();
 
     /**
      * Run just this test.
@@ -33,6 +36,8 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testLargeDatabaseFastOpen();
+        testUniqueIndexReopen();
         testExistingOld();
         testLargeRows();
         testRecoverDropIndex();
@@ -44,6 +49,56 @@ public class TestPageStore extends TestBase {
         testCreateIndexLater();
         testFuzzOperations();
     }
+
+    private void testLargeDatabaseFastOpen() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        String url = "pageStore";
+        conn = getConnection(url);
+        conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        conn.createStatement().execute("create unique index idx_test_name on test(name)");
+        conn.createStatement().execute("INSERT INTO TEST SELECT X, X || space(10) FROM SYSTEM_RANGE(1, 1000)");
+        conn.close();
+        conn = getConnection(url);
+        conn.createStatement().execute("DELETE FROM TEST WHERE ID=1");
+        conn.createStatement().execute("CHECKPOINT");
+        conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
+        eventBuffer.setLength(0);
+        conn = getConnection(url + ";DATABASE_EVENT_LISTENER='" + getClass().getName() + "'");
+        assertEquals("init;opened;", eventBuffer.toString());
+        conn.close();
+    }
+
+    private void testUniqueIndexReopen() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        String url = "pageStore";
+        conn = getConnection(url);
+        conn.createStatement().execute("CREATE TABLE test(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        conn.createStatement().execute("create unique index idx_test_name on test(name)");
+        conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        conn.close();
+        conn = getConnection(url);
+        try {
+            conn.createStatement().execute("INSERT INTO TEST VALUES(2, 'Hello')");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        conn.close();
+    }
+
 
     private void testExistingOld() throws SQLException {
         if (config.memory) {
@@ -357,6 +412,38 @@ public class TestPageStore extends TestBase {
 
     private void log(String m) {
         trace("   " + m);
+    }
+
+    public void closingDatabase() {
+        event("closing");
+    }
+
+    public void diskSpaceIsLow(long stillAvailable) {
+        event("diskSpaceIsLow " + stillAvailable);
+    }
+
+    public void exceptionThrown(SQLException e, String sql) {
+        event("exceptionThrown " + e + " " + sql);
+    }
+
+    public void init(String url) {
+        event("init");
+    }
+
+    public void opened() {
+        event("opened");
+    }
+
+    public void setProgress(int state, String name, int x, int max) {
+        if (name.startsWith("SYS:SYS_ID")) {
+            // ignore
+            return;
+        }
+        event("setProgress " + state + " " + name + " " + x + " " + max);
+    }
+
+    private void event(String s) {
+        eventBuffer.append(s).append(';');
     }
 
 }

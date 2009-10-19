@@ -112,4 +112,8 @@ public class PageDelegateIndex extends PageIndex {
         return mainIndex.getRowCountApproximation();
     }
 
+    public void writeRowCount() {
+        // ignore
+    }
+
 }

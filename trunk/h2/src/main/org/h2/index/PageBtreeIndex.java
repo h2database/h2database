@@ -18,6 +18,7 @@ import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
+import org.h2.util.MathUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
@@ -100,6 +101,7 @@ public class PageBtreeIndex extends PageIndex {
             store.update(newRoot);
             root = newRoot;
         }
+        invalidateRowCount();
         rowCount++;
     }
 
@@ -217,6 +219,7 @@ public class PageBtreeIndex extends PageIndex {
         } else {
             PageBtree root = getPage(rootPageId);
             root.remove(row);
+            invalidateRowCount();
             rowCount--;
         }
     }
@@ -275,14 +278,16 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     public long getRowCount(Session session) {
-        return tableData.getRowCount(session);
+        return rowCount;
     }
 
-    public void close(Session session) {
+    public void close(Session session) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
-        // TODO write the row count
+        // can not close the index because it might get used afterwards,
+        // for example after running recovery
+        writeRowCount();
     }
 
     /**
@@ -361,6 +366,16 @@ public class PageBtreeIndex extends PageIndex {
         this.rootPageId = newPos;
         store.addMeta(this, session);
         store.addIndex(this);
+    }
+
+    private void invalidateRowCount() throws SQLException {
+        PageBtree root = getPage(rootPageId);
+        root.setRowCountStored(PageData.UNKNOWN_ROWCOUNT);
+    }
+
+    public void writeRowCount() throws SQLException {
+        PageBtree root = getPage(rootPageId);
+        root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
     }
 
 }

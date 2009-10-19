@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
@@ -28,8 +27,8 @@ import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.index.NonUniqueHashIndex;
 import org.h2.index.PageBtreeIndex;
-import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageDataIndex;
+import org.h2.index.PageDelegateIndex;
 import org.h2.index.RowIndex;
 import org.h2.index.ScanIndex;
 import org.h2.index.TreeIndex;
@@ -39,7 +38,6 @@ import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.store.DataPage;
-import org.h2.store.PageStore;
 import org.h2.store.Record;
 import org.h2.store.RecordReader;
 import org.h2.util.MathUtils;
@@ -156,12 +154,11 @@ public class TableData extends Table implements RecordReader {
 
     private void checkRowCount(Session session, Index index, int offset) {
         if (SysProperties.CHECK && !database.isMultiVersion()) {
-            if (database.isPageStoreEnabled() && !PageStore.STORE_BTREE_ROWCOUNT) {
-                return;
-            }
-            long rc = index.getRowCount(session);
-            if (rc != rowCount + offset) {
-                Message.throwInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());
+            if (!(index instanceof PageDelegateIndex)) {
+                long rc = index.getRowCount(session);
+                if (rc != rowCount + offset) {
+                    Message.throwInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());
+                }
             }
         }
     }

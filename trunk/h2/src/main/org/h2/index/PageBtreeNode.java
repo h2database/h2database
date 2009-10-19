@@ -7,6 +7,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
@@ -41,7 +42,7 @@ public class PageBtreeNode extends PageBtree {
      */
     private int[] childPageIds;
 
-    // private int rowCountStored = UNKNOWN_ROWCOUNT;
+    private int rowCountStored = UNKNOWN_ROWCOUNT;
 
     private int rowCount = UNKNOWN_ROWCOUNT;
 
@@ -93,11 +94,8 @@ public class PageBtreeNode extends PageBtree {
                     "page:" + getPos() + " expected index:" + index.getId() +
                     "got:" + indexId);
         }
-        rowCount = data.readInt();
+        rowCount = rowCountStored = data.readInt();
         entryCount = data.readShortInt();
-        if (!PageStore.STORE_BTREE_ROWCOUNT) {
-            rowCount = UNKNOWN_ROWCOUNT;
-        }
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
         rows = PageStore.newSearchRows(entryCount);
@@ -213,9 +211,17 @@ public class PageBtreeNode extends PageBtree {
         return -1;
     }
 
-    private void updateRowCount(int offset) {
-        if (PageStore.STORE_BTREE_ROWCOUNT) {
+    private void updateRowCount(int offset) throws SQLException {
+        if (rowCount != UNKNOWN_ROWCOUNT) {
             rowCount += offset;
+        }
+        if (rowCountStored != UNKNOWN_ROWCOUNT) {
+            rowCountStored = UNKNOWN_ROWCOUNT;
+            index.getPageStore().logUndo(this, data);
+            if (written) {
+                writeHead();
+            }
+            index.getPageStore().update(this);
         }
     }
 
@@ -350,14 +356,23 @@ public class PageBtreeNode extends PageBtree {
             for (int child : childPageIds) {
                 PageBtree page = index.getPage(child);
                 count += page.getRowCount();
+                index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE, index.getName(), count, Integer.MAX_VALUE);
             }
             rowCount = count;
         }
         return rowCount;
     }
 
-    void setRowCountStored(int rowCount) {
+    void setRowCountStored(int rowCount) throws SQLException {
         this.rowCount = rowCount;
+        if (rowCountStored != rowCount) {
+            rowCountStored = rowCount;
+            index.getPageStore().logUndo(this, data);
+            if (written) {
+                writeHead();
+            }
+            index.getPageStore().update(this);
+        }
     }
 
     private void check() {
@@ -384,7 +399,7 @@ public class PageBtreeNode extends PageBtree {
         data.writeShortInt(0);
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
-        data.writeInt(rowCount);
+        data.writeInt(rowCountStored);
         data.writeShortInt(entryCount);
     }
 
@@ -510,6 +525,8 @@ public class PageBtreeNode extends PageBtree {
         store.logUndo(this, data);
         PageBtreeNode p2 = PageBtreeNode.create(index, newPos, parentPageId);
         readAllRows();
+        p2.rowCountStored = rowCountStored;
+        p2.rowCount = rowCount;
         p2.childPageIds = childPageIds;
         p2.rows = rows;
         p2.entryCount = entryCount;

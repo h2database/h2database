@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 import org.h2.util.ByteUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
@@ -147,7 +148,7 @@ public class ValueUuid extends Value {
         }
         ValueUuid v = (ValueUuid) o;
         if (high == v.high) {
-            return (low == v.low) ? 0 : (low > v.low ? 1 : -1);
+            return MathUtils.compare(low, v.low);
         }
         return high > v.high ? 1 : -1;
     }

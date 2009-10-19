@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
+import org.h2.util.MathUtils;
 
 /**
  * Implementation of the BIGINT data type.
@@ -51,9 +52,9 @@ public class ValueLong extends Value {
         ValueLong other = (ValueLong) v;
         if (SysProperties.OVERFLOW_EXCEPTIONS) {
             long result = value + other.value;
-            int sv = value == 0 ? 0 : (value < 0 ? -1 : 1);
-            int so = other.value == 0 ? 0 : (other.value < 0 ? -1 : 1);
-            int sr = result == 0 ? 0 : (result < 0 ? -1 : 1);
+            int sv = Long.signum(value);
+            int so = Long.signum(other.value);
+            int sr = Long.signum(result);
             // if the operands have different signs overflow can not occur
             // if the operands have the same sign,
             // and the result has a different sign, then it is an overflow
@@ -67,7 +68,7 @@ public class ValueLong extends Value {
     }
 
     public int getSignum() {
-        return value == 0 ? 0 : (value < 0 ? -1 : 1);
+        return Long.signum(value);
     }
 
     public Value negate() throws SQLException {
@@ -86,8 +87,8 @@ public class ValueLong extends Value {
     public Value subtract(Value v) throws SQLException {
         ValueLong other = (ValueLong) v;
         if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            int sv = value == 0 ? 0 : (value < 0 ? -1 : 1);
-            int so = other.value == 0 ? 0 : (other.value < 0 ? -1 : 1);
+            int sv = Long.signum(value);
+            int so = Long.signum(other.value);
             // if the operands have the same sign, then overflow can not occur
             // if the second operand is 0, then overflow can not occur
             if (sv == so || so == 0) {
@@ -152,10 +153,7 @@ public class ValueLong extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueLong v = (ValueLong) o;
-        if (value == v.value) {
-            return 0;
-        }
-        return value > v.value ? 1 : -1;
+        return MathUtils.compare(value, v.value);
     }
 
     public String getString() {

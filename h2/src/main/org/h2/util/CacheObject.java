@@ -22,9 +22,7 @@ public abstract class CacheObject {
      */
     static class CacheComparator implements Comparator<CacheObject> {
         public int compare(CacheObject a, CacheObject b) {
-            int pa = a.getPos();
-            int pb = b.getPos();
-            return pa == pb ? 0 : (pa < pb ? -1 : 1);
+            return MathUtils.compare(a.getPos(), b.getPos());
         }
     }
 

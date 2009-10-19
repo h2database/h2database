@@ -205,4 +205,28 @@ public class MathUtils {
         return (reverse((int) (x >>> 32L)) & 0xffffffffL) ^ (((long) reverse((int) x)) << 32L);
     }
 
+    /**
+     * Compare two values. Returns -1 if the first value is smaller, 1 if bigger,
+     * and 0 if equal.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return the result
+     */
+    public static int compare(int a, int b) {
+        return a == b ? 0 : a < b ? -1 : 1;
+    }
+
+    /**
+     * Compare two values. Returns -1 if the first value is smaller, 1 if bigger,
+     * and 0 if equal.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return the result
+     */
+    public static int compare(long a, long b) {
+        return a == b ? 0 : a < b ? -1 : 1;
+    }
+
 }

@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
+import org.h2.util.MathUtils;
 
 /**
  * Implementation of the INT data type.
@@ -80,7 +81,7 @@ public class ValueInt extends Value {
     }
 
     public int getSignum() {
-        return value == 0 ? 0 : (value < 0 ? -1 : 1);
+        return Integer.signum(value);
     }
 
     public Value negate() throws SQLException {
@@ -132,10 +133,7 @@ public class ValueInt extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueInt v = (ValueInt) o;
-        if (value == v.value) {
-            return 0;
-        }
-        return value > v.value ? 1 : -1;
+        return MathUtils.compare(value, v.value);
     }
 
     public String getString() {

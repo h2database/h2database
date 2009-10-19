@@ -550,8 +550,7 @@ public class WebServer implements Service {
         }
         Collections.sort(settings, new Comparator<ConnectionInfo>() {
             public int compare(ConnectionInfo o1, ConnectionInfo o2) {
-                int c = o2.lastAccess - o1.lastAccess;
-                return c < 0 ? -1 : c > 0 ? 1 : 0;
+                return MathUtils.compare(o2.lastAccess, o1.lastAccess);
             }
         }
         );

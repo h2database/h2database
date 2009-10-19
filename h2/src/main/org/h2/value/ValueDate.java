@@ -65,8 +65,7 @@ public class ValueDate extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueDate v = (ValueDate) o;
-        int c = value.compareTo(v.value);
-        return c == 0 ? 0 : (c < 0 ? -1 : 1);
+        return Integer.signum(value.compareTo(v.value));
     }
 
     public String getString() {

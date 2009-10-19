@@ -111,6 +111,8 @@ public class Engine {
             String lockMethodName = ci.getProperty("FILE_LOCK", null);
             int fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
             if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+                // In serialized mode, database instance sharing is not possible
+                ci.setProperty("OPEN_NEW", "TRUE");
                 try {
                     backup = (ConnectionInfo) ci.clone();
                 } catch (CloneNotSupportedException e) {

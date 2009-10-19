@@ -33,8 +33,12 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
-        println("testCache()");
-        testCache();
+        println("testWrongDatabaseInstanceOnReconnect");
+        testWrongDatabaseInstanceOnReconnect();
+        println("testCache(false)");
+        testCache(false);
+        println("testCache(true)");
+        testCache(true);
         println("testBigDatabase(false)");
         testBigDatabase(false);
         println("testBigDatabase(true)");
@@ -368,27 +372,48 @@ public class TestFileLockSerialized extends TestBase {
      *
      * @throws Exception
      */
-    private void testCache() throws Exception {
+    private void testCache(boolean reconnectClearCache) throws Exception {
         deleteDb("fileLockSerialized");
+
+        String urlShared = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
+
+        Connection connShared1 = DriverManager.getConnection(urlShared);
+        Statement statement1   = connShared1.createStatement();
+        Connection connShared2 = DriverManager.getConnection(urlShared);
+        Statement statement2   = connShared2.createStatement();
+
+        statement1.execute("create table test1(id int)");
+        statement1.execute("insert into test1 values(1)");
+
+        ResultSet rs = statement1.executeQuery("select id from test1");
+        rs.close();
+        rs = statement2.executeQuery("select id from test1");
+        rs.close();
+
+        statement1.execute("update test1 set id=2");
+        Thread.sleep(500);
+
+        rs = statement2.executeQuery("select id from test1");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        rs.close();
+
+        connShared1.close();
+        connShared2.close();
+        deleteDb("fileLockSerialized");
+    }
+
+    private void testWrongDatabaseInstanceOnReconnect() throws Exception {
+        deleteDb("fileLockSerialized");
+
         String urlShared = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
         String urlForNew = urlShared + ";OPEN_NEW=TRUE";
 
         Connection connShared1 = DriverManager.getConnection(urlShared);
+        Statement statement1   = connShared1.createStatement();
         Connection connShared2 = DriverManager.getConnection(urlShared);
         Connection connNew     = DriverManager.getConnection(urlForNew);
-        connShared1.createStatement().execute("create table test(id int)");
-        connShared1.createStatement().execute("insert into test values(1)");
-        ResultSet rs = connShared1.createStatement().executeQuery("select id from test");
-        rs.close();
-
-        connNew.createStatement().execute("update test set id=2");
-        Thread.sleep(500);
-
-        rs = connShared1.createStatement().executeQuery("select id from test");
-        assertTrue(rs.next());
-        assertEquals(2, rs.getInt(1));
-
-        rs.close();
+        statement1.execute("create table test1(id int)");
         connShared1.close();
         connShared2.close();
         connNew.close();

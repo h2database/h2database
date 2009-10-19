@@ -567,12 +567,6 @@ public class SysProperties {
     public static final int RECONNECT_CHECK_DELAY = getIntSetting("h2.reconnectCheckDelay", 200);
 
     /**
-     * System property <code>h2.reconnectClearCache</code> (default: false).<br />
-     * Clear the database cache after re-connecting.
-     */
-    public static final boolean RECONNECT_CLEAR_CACHE = getBooleanSetting("h2.reconnectClearCache", false);
-
-    /**
      * System property <code>h2.redoBufferSize</code> (default: 262144).<br />
      * Size of the redo buffer (used at startup when recovering).
      */

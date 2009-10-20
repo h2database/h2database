@@ -72,7 +72,7 @@ import org.h2.value.ValueString;
  * The format of page 1 and 2 is:
  * <ul>
  * <li>CRC32 of the remaining data: int (0-3)</li>
- * <li>write counter (incremented each time something is written): long (4-11)</li>
+ * <li>write counter (incremented on each write): long (4-11)</li>
  * <li>log trunk key: int (12-15)</li>
  * <li>log trunk page (0 for none): int (16-19)</li>
  * <li>log data page (0 for none): int (20-23)</li>

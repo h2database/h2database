@@ -38,6 +38,7 @@ public class CreateTable extends SchemaCommand {
     private boolean onCommitTruncate;
     private Query asQuery;
     private String comment;
+    private boolean sortedInsertMode;
 
     public CreateTable(Session session, Schema schema) {
         super(session, schema);
@@ -166,6 +167,7 @@ public class CreateTable extends SchemaCommand {
                     session.setUndoLogEnabled(false);
                     Insert insert = null;
                     insert = new Insert(session);
+                    insert.setSortedInsertMode(sortedInsertMode);
                     insert.setQuery(asQuery);
                     insert.setTable(table);
                     insert.prepare();
@@ -256,6 +258,10 @@ public class CreateTable extends SchemaCommand {
 
     public void setPersistData(boolean persistData) {
         data.persistData = persistData;
+    }
+
+    public void setSortedInsertMode(boolean sortedInsertMode) {
+        this.sortedInsertMode = sortedInsertMode;
     }
 
 }

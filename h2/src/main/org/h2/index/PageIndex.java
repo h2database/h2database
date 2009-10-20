@@ -18,6 +18,8 @@ public abstract class PageIndex extends BaseIndex {
      */
     protected int rootPageId;
 
+    private boolean sortedInsertMode;
+
     public int getRootPageId() {
         return rootPageId;
     }
@@ -30,5 +32,13 @@ public abstract class PageIndex extends BaseIndex {
      * Write back the row count if it has changed.
      */
     public abstract void writeRowCount() throws SQLException;
+
+    public void setSortedInsertMode(boolean sortedInsertMode) {
+        this.sortedInsertMode = sortedInsertMode;
+    }
+
+    boolean isSortedInsertMode() {
+        return sortedInsertMode;
+    }
 
 }

@@ -398,8 +398,7 @@ public class Select extends Query {
             }
             sortColumns.add(exprCol.getColumn());
         }
-        Column[] sortCols = new Column[sortColumns.size()];
-        sortColumns.toArray(sortCols);
+        Column[] sortCols = sortColumns.toArray(new Column[sortColumns.size()]);
         int[] sortTypes = sort.getSortTypes();
         if (sortCols.length == 0) {
             // sort just on constants - can use scan index
@@ -792,8 +791,7 @@ public class Select extends Query {
     }
 
     private double preparePlan() throws SQLException {
-        TableFilter[] topArray = new TableFilter[topFilters.size()];
-        topFilters.toArray(topArray);
+        TableFilter[] topArray = topFilters.toArray(new TableFilter[topFilters.size()]);
         for (TableFilter t : topArray) {
             t.setFullCondition(condition);
         }
@@ -846,8 +844,7 @@ public class Select extends Query {
         // can not use the field sqlStatement because the parameter
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
-        Expression[] exprList = new Expression[expressions.size()];
-        expressions.toArray(exprList);
+        Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
         StatementBuilder buff = new StatementBuilder("SELECT ");
         if (distinct) {
             buff.append("DISTINCT ");

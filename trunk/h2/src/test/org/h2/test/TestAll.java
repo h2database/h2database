@@ -297,10 +297,12 @@ java org.h2.test.TestAll timer
 
 /*
 
-check if sources.jar is not in installer and zip, but in h2web
+-sources.jar
+check if sources.jar is not in installer and zip, but in maven
+
+google app engine
 
 documentation: rolling review at history.html
-toArray?
 
 mvcc merge problem
 
@@ -311,11 +313,7 @@ optimization for X IN(..) and OR:
 add more test cases, code coverage 100%
 document in optimizations.sql
 
-out of memory in tests: analyze heap dump
-
 -------------
-
-integrate the short documentation, but where?
 
 remove old TODO, move to roadmap
 

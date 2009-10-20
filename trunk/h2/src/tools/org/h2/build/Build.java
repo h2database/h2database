@@ -303,14 +303,6 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Create a jar file that contains the source code.
-     */
-    public void jarSources() {
-        FileList files = files("src/main").keep("*.java");
-        jar("docs/h2-" + getVersion() + "-sources.jar", files, "src/main");
-    }
-
-    /**
      * Create the h2client.jar. This only contains the remote JDBC
      * implementation.
      */
@@ -435,6 +427,43 @@ public class Build extends BuildBase {
      * a new H2 version is made.
      */
     public void mavenDeployCentral() {
+
+        // generate and deploy h2*-sources.jar file
+        FileList files = files("src/main").keep("*.java");
+        jar("docs/h2-" + getVersion() + "-sources.jar", files, "src/main");
+        // the option -DgeneratePom=false doesn't work with some versions of
+        // Maven because of bug http://jira.codehaus.org/browse/MDEPLOY-84
+        // as a workaround we generate the pom, but overwrite it later on
+        // (that's why the regular jar is created at the very end)
+        execScript("mvn", args(
+                "deploy:deploy-file",
+                "-Dfile=docs/h2-" + getVersion() + "-sources.jar",
+                "-Durl=file:///data/h2database/m2-repo",
+                "-Dpackaging=jar",
+                "-Dclassifier=sources",
+                "-Dversion=" + getVersion(),
+                "-DartifactId=h2",
+                "-DgroupId=com.h2database"
+                // ,"-DgeneratePom=false"
+                ));
+
+        // generate and deploy the h2*-javadoc.jar file
+        javadocImpl();
+        files = files("docs/javadocImpl2");
+        jar("docs/h2-" + getVersion() + "-javadoc.jar", files, "docs/javadocImpl2");
+        execScript("mvn", args(
+                "deploy:deploy-file",
+                "-Dfile=docs/h2-" + getVersion() + "-javadoc.jar",
+                "-Durl=file:///data/h2database/m2-repo",
+                "-Dpackaging=jar",
+                "-Dclassifier=javadoc",
+                "-Dversion=" + getVersion(),
+                "-DartifactId=h2",
+                "-DgroupId=com.h2database"
+                // ,"-DgeneratePom=false"
+                ));
+
+        // generate and deploy the h2*.jar file
         jar();
         String pom = new String(readFile(new File("src/installer/pom-template.xml")));
         pom = replaceAll(pom, "@version@", getVersion());
@@ -448,7 +477,6 @@ public class Build extends BuildBase {
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
                 "-DgroupId=com.h2database"));
-        int todoDeploySources;
     }
 
     /**

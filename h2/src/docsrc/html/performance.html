@@ -384,14 +384,14 @@ following profiling data (results vary):
 
 <h3>Keep Connections Open or Use a Connection Pool</h3>
 <p>
-If your application opens and closes connections a lot (for example, for each request), 
+If your application opens and closes connections a lot (for example, for each request),
 you should consider using a  <a href="tutorial.html#connection_pool">connection pool</a>.
 Opening a connection using <code>DriverManager.getConnection</code> is specially slow
 if the database is closed. By default the database is closed if the last connection is closed.
 </p><p>
-If you open and close connections a lot but don't want to use a connection pool, 
-consider keeping a 'sentinel' connection open for as long as the application runs, 
-or use delayed database closing. See also 
+If you open and close connections a lot but don't want to use a connection pool,
+consider keeping a 'sentinel' connection open for as long as the application runs,
+or use delayed database closing. See also
 <a href="features.html#closing_a_database">Closing a database</a>.
 </p>
 
@@ -528,6 +528,20 @@ Each data type has different storage and performance characteristics:
 </li><li><code>SMALLINT/TINYINT/BOOLEAN</code> are not significantly smaller or faster
     to work with than <code>INTEGER</code> in most modes.
 </li></ul>
+
+<h3>Sorted Insert Optimization</h3>
+<p>
+To reduce disk space usage and speed up table creation, an
+optimization for sorted inserts is available. When used, b-tree pages
+are split at the insertion point. To use this optimization, add <code>SORTED</code>
+before the <code>SELECT</code> statement:
+</p>
+<pre>
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR) AS
+    SORTED SELECT X, SPACE(100) FROM SYSTEM_RANGE(1, 100);
+INSERT INTO TEST
+    SORTED SELECT X, SPACE(100) FROM SYSTEM_RANGE(101, 200);
+</pre>
 
 <h2 id="fast_import">Fast Database Import</h2>
 <p>

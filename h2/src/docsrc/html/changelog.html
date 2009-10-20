@@ -18,10 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Page store: opening a large database was slow if it was not closed before.
-</li><li>Page store: new write and read counters in the meta data table. Use 
+<ul><li>New sorted insert optimization (see Performance / Database Performance Tuning).
+</li><li>Issue 116: The files h2*-sources.jar and h2*-javadoc.jar are
+    now in the Maven repository.
+</li><li>Page store: opening a large database was slow if it was not closed before.
+</li><li>Page store: new write and read counters in the meta data table. Use
     SELECT * FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN(
-    'info.FILE_WRITE_TOTAL', 'info.FILE_WRITE', 'info.FILE_READ', 
+    'info.FILE_WRITE_TOTAL', 'info.FILE_WRITE', 'info.FILE_READ',
     'info.CACHE_MAX_SIZE', 'info.CACHE_SIZE')
 </li><li>The SQL syntax is documented using (railroad) diagrams.
     The diagrams are HTML.

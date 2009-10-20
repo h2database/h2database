@@ -314,8 +314,7 @@ public class SelectUnion extends Query {
             Message.throwInternalError("type=" + unionType);
         }
         buff.append('(').append(StringUtils.unEnclose(right.getPlanSQL())).append(')');
-        Expression[] exprList = new Expression[expressions.size()];
-        expressions.toArray(exprList);
+        Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
         if (sort != null) {
             buff.append(" ORDER BY ").append(sort.getSQL(exprList, exprList.length));
         }

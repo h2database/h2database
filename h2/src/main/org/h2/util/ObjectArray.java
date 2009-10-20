@@ -224,9 +224,11 @@ public class ObjectArray<T> implements Iterable<T> {
      * Convert this list to an array. The target array must be big enough.
      *
      * @param array the target array
+     * @return the array
      */
-    public void toArray(Object[] array) {
+    public T[] toArray(T[] array) {
         ObjectUtils.arrayCopy(data, array, size);
+        return array;
     }
 
     /**

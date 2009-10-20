@@ -11,10 +11,12 @@ import java.sql.SQLException;
 import org.h2.command.Command;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
+import org.h2.index.PageIndex;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
@@ -35,6 +37,7 @@ public class Insert extends Prepared {
     private Column[] columns;
     private ObjectArray<Expression[]> list = ObjectArray.newInstance();
     private Query query;
+    private boolean sortedInsertMode;
 
     public Insert(Session session) {
         super(session);
@@ -69,6 +72,22 @@ public class Insert extends Prepared {
     }
 
     public int update() throws SQLException {
+        Database db = session.getDatabase();
+        PageIndex index = null;
+        if (sortedInsertMode && db.isPageStoreEnabled() && db.isPersistent()) {
+            index = (PageIndex) table.getScanIndex(session);
+            index.setSortedInsertMode(true);
+        }
+        try {
+            return insertRows();
+        } finally {
+            if (index != null) {
+                index.setSortedInsertMode(false);
+            }
+        }
+    }
+
+    private int insertRows() throws SQLException {
         int count;
         session.getUser().checkRight(table, Right.INSERT);
         setCurrentRowNumber(0);
@@ -208,6 +227,10 @@ public class Insert extends Prepared {
 
     public LocalResult queryMeta() {
         return null;
+    }
+
+    public void setSortedInsertMode(boolean sortedInsertMode) {
+        this.sortedInsertMode = sortedInsertMode;
     }
 
 }

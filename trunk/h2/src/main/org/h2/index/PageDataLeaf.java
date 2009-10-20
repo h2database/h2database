@@ -156,6 +156,9 @@ public class PageDataLeaf extends PageData {
                     // required, otherwise the index doesn't work correctly
                     return entryCount / 2;
                 }
+                if (index.isSortedInsertMode()) {
+                    return x < 2 ? 1 : x > entryCount - 1 ? entryCount - 1 : x;
+                }
                 // split near the insertion point to better fill pages
                 // split in half would be:
                 // return entryCount / 2;

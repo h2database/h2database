@@ -723,9 +723,7 @@ public class Parser {
             }
         } while (readIf(","));
         read(")");
-        IndexColumn[] cols = new IndexColumn[columns.size()];
-        columns.toArray(cols);
-        return cols;
+        return columns.toArray(new IndexColumn[columns.size()]);
     }
 
     private String[] parseColumnList() throws SQLException {
@@ -734,9 +732,7 @@ public class Parser {
             String columnName = readColumnIdentifier();
             columns.add(columnName);
         } while (readIfMore());
-        String[] cols = new String[columns.size()];
-        columns.toArray(cols);
-        return cols;
+        return columns.toArray(new String[columns.size()]);
     }
 
     private Column[] parseColumnList(Table table) throws SQLException {
@@ -751,9 +747,7 @@ public class Parser {
                 columns.add(column);
             } while (readIfMore());
         }
-        Column[] cols = new Column[columns.size()];
-        columns.toArray(cols);
-        return cols;
+        return columns.toArray(new Column[columns.size()]);
     }
 
     private boolean readIfMore() throws SQLException {
@@ -872,9 +866,7 @@ public class Parser {
                         }
                     } while (readIfMore());
                 }
-                Expression[] expr = new Expression[values.size()];
-                values.toArray(expr);
-                command.addRow(expr);
+                command.addRow(values.toArray(new Expression[values.size()]));
             } while (readIf(","));
         } else {
             command.setQuery(parseSelect());
@@ -888,6 +880,9 @@ public class Parser {
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
+        if (readIf("SORTED")) {
+            command.setSortedInsertMode(true);
+        }
         if (readIf("(")) {
             if (isToken("SELECT") || isToken("FROM")) {
                 command.setQuery(parseSelect());
@@ -914,9 +909,7 @@ public class Parser {
                         }
                     } while (readIfMore());
                 }
-                Expression[] expr = new Expression[values.size()];
-                values.toArray(expr);
-                command.addRow(expr);
+                command.addRow(values.toArray(new Expression[values.size()]));
             } while (readIf(","));
         } else {
             command.setQuery(parseSelect());
@@ -4635,6 +4628,9 @@ public class Parser {
         command.setTableName(tableName);
         command.setComment(readCommentIf());
         if (readIf("AS")) {
+            if (readIf("SORTED")) {
+                command.setSortedInsertMode(true);
+            }
             command.setQuery(parseSelect());
         } else {
             read("(");
@@ -4710,6 +4706,9 @@ public class Parser {
                 } while (readIfMore());
             }
             if (readIf("AS")) {
+                if (readIf("SORTED")) {
+                    command.setSortedInsertMode(true);
+                }
                 command.setQuery(parseSelect());
             }
         }

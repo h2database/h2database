@@ -55,7 +55,7 @@ ShutdownHandler {
 //## AWT begin ##
     Frame frame;
     private Font font;
-    private Image icon16, icon24;
+    private Image icon16, icon22, icon24;
     private Button startBrowser;
 //## AWT end ##
     private Server web, tcp, pg;
@@ -181,7 +181,8 @@ ShutdownHandler {
             }
             try {
                 icon16 = loadImage("/org/h2/res/h2.png");
-                icon24 = loadImage("/org/h2/res/h2b.png");
+                icon22 = loadImage("/org/h2/res/h2-22.png");
+                icon24 = loadImage("/org/h2/res/h2-24.png");
                 if (!createTrayIcon()) {
                     showWindow(true);
                 }
@@ -289,9 +290,14 @@ ShutdownHandler {
             Dimension d = (Dimension) Class.forName("java.awt.SystemTray").
                 getMethod("getTrayIconSize").
                 invoke(tray);
-
-            Image icon = (d.width >= 24 && d.height >= 24) ? icon24 : icon16;
-
+            Image icon;
+            if (d.width >= 24 && d.height >= 24) {
+                icon = icon24;
+            } else if (d.width >= 22 && d.height >= 22) {
+                icon = icon22;
+            } else {
+                icon = icon16;
+            }
             // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
             Object trayIcon = Class.forName("java.awt.TrayIcon").
                 getConstructor(Image.class, String.class, PopupMenu.class).

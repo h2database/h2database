@@ -17,13 +17,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.zip.CRC32;
+import org.h2.Driver;
 import org.h2.command.Parser;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
@@ -68,6 +73,8 @@ import org.h2.value.ValueLong;
  * @h2.resource
  */
 public class Recover extends Tool implements DataHandler {
+
+    private static final String SUFFIX_UNCOMMITTED = ".uncommitted.txt";
 
     private String databaseName;
     private int block;
@@ -480,20 +487,21 @@ public class Recover extends Tool implements DataHandler {
         lobFilesInDirectories = FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
     }
 
-    private void dumpLog(String fileName, boolean sessionState) {
+    private void dumpLog(String fileName, boolean onlySetSessionState) {
         PrintWriter writer = null;
         FileStore store = null;
+        boolean containsUncommitted = false;
         try {
-            if (sessionState) {
+            if (onlySetSessionState) {
                 sessionCommit = New.hashMap();
             }
             setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_LOG_FILE.length()));
-            if (!sessionState) {
+            if (!onlySetSessionState) {
                 writer = getWriter(fileName, ".txt");
             }
             store = FileStore.open(null, fileName, "r");
             long length = store.length();
-            if (!sessionState) {
+            if (!onlySetSessionState) {
                 writer.println("// length: " + length);
             }
             int offset = FileStore.HEADER_LENGTH;
@@ -506,7 +514,7 @@ public class Recover extends Tool implements DataHandler {
             s.reset();
             if (length < FileStore.HEADER_LENGTH + len) {
                 // this is an empty file
-                if (!sessionState) {
+                if (!onlySetSessionState) {
                     writer.println("// empty file");
                 }
                 return;
@@ -517,7 +525,7 @@ public class Recover extends Tool implements DataHandler {
             int firstUncommittedPos = s.readInt();
             int firstUnwrittenPos = s.readInt();
             int max = (int) (length / blockSize);
-            if (!sessionState) {
+            if (!onlySetSessionState) {
                 writer.println("// id: " + id);
                 writer.println("// firstUncommittedPos: " + firstUncommittedPos);
                 writer.println("// firstUnwrittenPos: " + firstUnwrittenPos);
@@ -549,7 +557,7 @@ public class Recover extends Tool implements DataHandler {
                 // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
                 blocks = MathUtils.convertLongToInt(Math.abs(s.readInt()));
                 if (blocks == 0) {
-                    if (!sessionState) {
+                    if (!onlySetSessionState) {
                         writer.println("// [" + pos + "] blocks: " + blocks + " (end)");
                     }
                     break;
@@ -557,12 +565,14 @@ public class Recover extends Tool implements DataHandler {
                 char type = (char) s.readByte();
                 int sessionId = s.readInt();
                 if (type == 'P') {
+                    containsUncommitted = true;
                     String transaction = s.readString();
-                    if (!sessionState) {
+                    if (!onlySetSessionState) {
                         writer.println("//   prepared session: " + sessionId + " tx: " + transaction);
                     }
                 } else if (type == 'C') {
-                    if (!sessionState) {
+                    containsUncommitted = true;
+                    if (!onlySetSessionState) {
                         writer.println("//   commit session: " + sessionId);
                     } else {
                         sessionCommit.put(sessionId, pos);
@@ -582,14 +592,15 @@ public class Recover extends Tool implements DataHandler {
                         if (sumLength > 0) {
                             s.read(summary, 0, sumLength);
                         }
-                        if (!sessionState) {
+                        if (!onlySetSessionState) {
                             writer.println("//   summary session: "+sessionId+" fileType: " + fileType + " sumLength: " + sumLength);
                             dumpSummary(writer, summary);
                         }
                         break;
                     }
                     case 'T':
-                        if (!sessionState) {
+                        containsUncommitted = true;
+                        if (!onlySetSessionState) {
                             writer.println("//   truncate session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
                             if (sessionCommit.get(sessionId) >= pos) {
                                 setStorage(storageId);
@@ -598,7 +609,8 @@ public class Recover extends Tool implements DataHandler {
                         }
                         break;
                     case 'I':
-                        if (!sessionState) {
+                        containsUncommitted = true;
+                        if (!onlySetSessionState) {
                             writer.println("//   insert session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
                             if (storageId >= 0) {
                                 if (sessionCommit.get(sessionId) >= pos) {
@@ -609,7 +621,8 @@ public class Recover extends Tool implements DataHandler {
                         }
                         break;
                     case 'D':
-                        if (!sessionState) {
+                        containsUncommitted = true;
+                        if (!onlySetSessionState) {
                             writer.println("//   delete session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
                             if (storageId >= 0) {
                                 if (sessionCommit.get(sessionId) >= pos) {
@@ -620,15 +633,25 @@ public class Recover extends Tool implements DataHandler {
                         }
                         break;
                     default:
-                        if (!sessionState) {
+                        containsUncommitted = true;
+                        if (!onlySetSessionState) {
                             writer.println("//   type?: "+type+" session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
                         }
                         break;
                     }
                 }
             }
-            if (!sessionState) {
+            if (!onlySetSessionState) {
                 writer.close();
+                if (containsUncommitted) {
+                    String db = fileName.substring(0, fileName.length() - Constants.SUFFIX_LOG_FILE.length());
+                    int idx = db.lastIndexOf('.');
+                    if (idx >= 0) {
+                        db = db.substring(0, idx);
+                        writer = getWriter(db + ".db", SUFFIX_UNCOMMITTED);
+                        writer.close();
+                    }
+                }
             }
         } catch (Throwable e) {
             writeError(writer, e);
@@ -1800,6 +1823,100 @@ public class Recover extends Tool implements DataHandler {
      */
     public Trace getTrace() {
         return null;
+    }
+
+    /**
+     * Delete all files that were created by the recover tool.
+     *
+     * @param dir the directory
+     * @param db the database name
+     */
+    public static void deleteRecoverFiles(String dir, String db) throws SQLException {
+        ArrayList<String> files = getRecoverFiles(dir, db);
+        for (String s : files) {
+            FileUtils.delete(s);
+        }
+    }
+
+    private static ArrayList<String> getRecoverFiles(String dir, String db) throws SQLException {
+        if (dir == null || dir.equals("")) {
+            dir = ".";
+        }
+        dir = FileUtils.normalize(dir);
+        ArrayList<String> files = New.arrayList();
+        String start = FileUtils.normalize(dir + "/" + db);
+        String[] list = FileUtils.listFiles(dir);
+        for (int i = 0; list != null && i < list.length; i++) {
+            String f = list[i];
+            boolean ok = false;
+            if (f.endsWith(".data.sql")) {
+                ok = true;
+            } else if (f.endsWith(SUFFIX_UNCOMMITTED)) {
+                ok = true;
+            } else if (f.endsWith(".index.txt")) {
+                ok = true;
+            } else if (f.endsWith(".log.txt")) {
+                ok = true;
+            } else if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
+                if (start == null || FileUtils.fileStartsWith(f, start + ".")) {
+                    files.addAll(getRecoverFiles(f, null));
+                }
+            } else if (f.endsWith(".lob.comp.txt")) {
+                ok = true;
+            } else if (f.endsWith(".lob.db.txt")) {
+                ok = true;
+            } else if (f.endsWith(".h2.sql")) {
+                ok = true;
+            }
+            if (ok) {
+                if (db == null || FileUtils.fileStartsWith(f, start + ".")) {
+                    String fileName = f;
+                    files.add(fileName);
+                }
+            }
+        }
+        return files;
+    }
+
+    /**
+     * Try to convert a database to the page store format.
+     *
+     * @param dir the directory
+     * @param db the database name
+     * @throws SQLException if conversion fails
+     */
+    public static void convert(String dir, String db) throws SQLException {
+        Recover.execute(dir, db);
+        if (FileUtils.exists(dir + "/" + db + SUFFIX_UNCOMMITTED)) {
+            Recover.deleteRecoverFiles(dir, db);
+            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1,
+                    "- database cannot be converted to the page store format " +
+                    "because it was not closed normally. " +
+                    "Open and close the database with an older version " +
+                    "of H2 before converting.");
+        }
+        FileUtils.delete(dir + "/" + db + ".backup.zip");
+        Backup.execute(dir + "/" + db + ".backup.zip", dir, db, true);
+        DeleteDbFiles.execute(dir, db, true);
+        String randomUser = UUID.randomUUID().toString().toUpperCase();
+        Properties prop = new Properties();
+        prop.setProperty("user", randomUser);
+        prop.setProperty("password", "");
+        Connection conn = Driver.load().connect("jdbc:h2:file:" + dir + "/" + db, prop);
+        InputStream in = null;
+        try {
+            in = FileUtils.openFileInputStream(dir + "/" + db + ".data.sql");
+            in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
+            Reader reader = new InputStreamReader(in);
+            RunScript.execute(conn, reader);
+            conn.createStatement().execute("DROP USER \"" + randomUser + "\"");
+            conn.close();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, dir + "/" + db);
+        } finally {
+            IOUtils.closeSilently(in);
+        }
+        Recover.deleteRecoverFiles(dir, db);
     }
 
 }

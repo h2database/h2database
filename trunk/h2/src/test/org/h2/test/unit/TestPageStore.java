@@ -36,6 +36,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testAutoConvert();
         testLargeDatabaseFastOpen();
         testUniqueIndexReopen();
         testExistingOld();
@@ -48,6 +49,33 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testAutoConvert() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore;PAGE_STORE=FALSE");
+        conn.createStatement().execute("create table test(id int, data clob)");
+        conn.createStatement().execute("insert into test select x, space(10000) from system_range(1, 2)");
+        conn.createStatement().execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
+        try {
+            getConnection("pageStore;PAGE_STORE=TRUE");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        conn = getConnection("pageStore");
+        conn.close();
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        conn.close();
     }
 
     private void testLargeDatabaseFastOpen() throws SQLException {

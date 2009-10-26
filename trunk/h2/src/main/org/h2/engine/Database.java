@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
@@ -55,6 +54,7 @@ import org.h2.table.TableData;
 import org.h2.table.TableLinkConnection;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Recover;
 import org.h2.tools.Server;
 import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
@@ -173,6 +173,8 @@ public class Database implements DataHandler {
     private volatile boolean checkpointRunning;
 
     private int cacheSize;
+
+    private boolean compactFully;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = CompareMode.getInstance(null, 0);
@@ -550,10 +552,17 @@ public class Database implements DataHandler {
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
-            String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
-            boolean existsPage = FileUtils.exists(pageFileName);
             String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
             boolean existsData = FileUtils.exists(dataFileName);
+            String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
+            boolean existsPage = FileUtils.exists(pageFileName);
+            if (usePageStoreSet && usePageStore && existsData && !existsPage) {
+                String dir = FileUtils.getParent(databaseName);
+                String db = FileUtils.getFileName(databaseName);
+                Recover.convert(dir, db);
+                existsData = FileUtils.exists(dataFileName);
+                existsPage = FileUtils.exists(pageFileName);
+            }
             if (!usePageStoreSet) {
                 // if the URL flag is not set
                 if (existsData && !existsPage) {
@@ -1278,7 +1287,7 @@ public class Database implements DataHandler {
                 try {
                     pageStore.checkpoint();
                     if (!readOnly) {
-                        pageStore.trim();
+                        pageStore.compact(compactFully);
                     }
                 } catch (Throwable e) {
                     // TODO don't ignore exceptions
@@ -2478,6 +2487,10 @@ public class Database implements DataHandler {
      */
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
+    }
+
+    public void setCompactFully(boolean compactFully) {
+        this.compactFully = compactFully;
     }
 
 }

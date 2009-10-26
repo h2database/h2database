@@ -86,9 +86,14 @@ public class TransactionCommand extends Prepared {
     public static final int SHUTDOWN_IMMEDIATELY = 13;
 
     /**
+     * The type of a SHUTDOWN COMPACT statement.
+     */
+    public static final int SHUTDOWN_COMPACT = 14;
+
+    /**
      * The type of a BEGIN {WORK|TRANSACTION} statement.
      */
-    public static final int BEGIN = 14;
+    public static final int BEGIN = 15;
 
     private int type;
     private String savepointName;
@@ -149,9 +154,13 @@ public class TransactionCommand extends Prepared {
             session.getUser().checkAdmin();
             session.getDatabase().shutdownImmediately();
             break;
-        case SHUTDOWN: {
+        case SHUTDOWN:
+        case SHUTDOWN_COMPACT: {
             session.getUser().checkAdmin();
             session.commit(false);
+            if (type == SHUTDOWN_COMPACT) {
+                session.getDatabase().setCompactFully(true);
+            }
             // close the database, but don't update the persistent setting
             session.getDatabase().setCloseDelay(0);
             Database db = session.getDatabase();

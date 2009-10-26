@@ -113,6 +113,8 @@ public class PageStore implements CacheWriter {
     // remove Database.objectIds
     // remove TableData.checkRowCount
     // remove Row.setPos
+    // remove database URL option RECOVER=1 option
+    // remove old database URL options and documentation
 
     /**
      * The smallest possible page size.
@@ -142,9 +144,6 @@ public class PageStore implements CacheWriter {
     private static final int META_TYPE_SCAN_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
-
-    private static final int MAX_COMPACT_TIME = 2000;
-    private static final int MAX_COMPACT_COUNT = Integer.MAX_VALUE;
 
     private static final SearchRow[] EMPTY_SEARCH_ROW = new SearchRow[0];
 
@@ -352,8 +351,10 @@ public class PageStore implements CacheWriter {
 
     /**
      * Shrink the file so there are no empty pages at the end.
+     *
+     * @param fully if the database should be fully compressed
      */
-    public void trim() throws SQLException {
+    public void compact(boolean fully) throws SQLException {
         if (!SysProperties.PAGE_STORE_TRIM) {
             return;
         }
@@ -378,8 +379,12 @@ public class PageStore implements CacheWriter {
             recoveryRunning = false;
         }
         long start = System.currentTimeMillis();
-        int maxCompactTime = MAX_COMPACT_TIME;
-        int maxMove = MAX_COMPACT_COUNT;
+        int maxCompactTime = SysProperties.MAX_COMPACT_TIME;
+        int maxMove = SysProperties.MAX_COMPACT_COUNT;
+        if (fully) {
+            maxCompactTime = Integer.MAX_VALUE;
+            maxMove = Integer.MAX_VALUE;
+        }
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x--, j++) {
             compact(x);
             long now = System.currentTimeMillis();

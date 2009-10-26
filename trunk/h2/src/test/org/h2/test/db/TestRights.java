@@ -13,6 +13,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.FileUtils;
 
@@ -33,12 +34,37 @@ public class TestRights extends TestBase {
     }
 
     public void test() throws SQLException {
+        testDropOwnUser();
         testGetTables();
         testDropTempTables();
         // testLowerCaseUser();
         testSchemaRenameUser();
         testAccessRights();
         deleteDb("rights");
+    }
+
+    private void testDropOwnUser() throws SQLException {
+        deleteDb("rights");
+        String user = getUser().toUpperCase();
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        try {
+            stat.execute("DROP USER " + user);
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.CANNOT_DROP_CURRENT_USER, e.getErrorCode());
+        }
+        stat.execute("CREATE USER TEST PASSWORD 'TEST' ADMIN");
+        stat.execute("DROP USER " + user);
+        conn.close();
+        if (!config.memory) {
+            try {
+                getConnection("rights");
+                fail();
+            } catch (SQLException e) {
+                assertKnownException(e);
+            }
+        }
     }
 
 //    public void testLowerCaseUser() throws SQLException {

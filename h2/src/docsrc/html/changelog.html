@@ -18,7 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New sorted insert optimization (see Performance / Database Performance Tuning).
+<ul><li>If the database URL ends with ;PAGE_STORE=TRUE and a database in
+    the old format exists, it is automatically converted to the new page store format
+    if possible. A backup of the database is created first. Automatic conversion is not supported
+    if the database was not closed normally (if it contains uncommitted transactions).
+</li><li>Dropping the current user is now allowed if another admin user exists.
+</li><li>Values of type BINARY or BLOB could not be converted to the data type OTHER.
+</li><li>SHUTDOWN COMPACT now fully compacts the database.
+</li><li>New system properties h2.maxCompactCount and h2.maxCompactTime
+    to allow changing the default behavior (at most 2 seconds compacting when closing the database).
+</li><li>New sorted insert optimization (see Performance / Database Performance Tuning).
 </li><li>Issue 116: The files h2*-sources.jar and h2*-javadoc.jar are
     now in the Maven repository.
 </li><li>Page store: opening a large database was slow if it was not closed before.

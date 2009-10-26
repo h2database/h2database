@@ -1,0 +1,15 @@
+CREATE FUNCTION name ( argName ] type [ { DEFAULT | = } defaultExpression ] [, ...] ] )
+[ RETURNS type ]
+{ LANGUAGE languageName | IMMUTABLE | STABLE
+| VOLATILE | CALLED ON NULL INPUT | RETURNS NULL ON NULL INPUT
+| STRICT | COST executionCost | ROWS resultRows
+
+IMMUTABLE cannot modify the database and always returns the same result
+
+STABLE cannot modify the database and within a single table scan it will consistently
+return the same result
+
+VOLATILE value can change
+
+CALLED ON NULL INPUT
+RETURNS NULL ON NULL INPUT or STRICT

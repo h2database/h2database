@@ -32,9 +32,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <ul>
 <li>Bugfixes
 </li><li>Support large updates (use the transaction log for rollback instead of persistent UndoLog.file).
-</li><li>Shutdown compact
 </li><li>More tests with MULTI_THREADED=1
-</li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>Optimization: result set caching (like MySQL)
 </li><li>Server side cursors
 </li><li>Procedural language / script language (Java, Javascript)
@@ -53,6 +51,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
 </li><li>Use triggers for metadata tables; use for PostgreSQL catalog
 </li><li>Test very large databases and LOBs (up to 256 GB)
+</li><li>Support alter table add column if table has views defined
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
@@ -89,7 +88,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
 </li><li>Comparison: pluggable sort order: natural sort
 </li><li>Count index range query (count(*) where id between 10 and 20)
-</li><li>Support alter table add column if table has views defined
 </li><li>Recursive Queries (see details)
 </li><li>Eclipse plugin
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
@@ -140,6 +138,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
 </li><li>Clustering: reads should be randomly distributed or to a designated database on RAM
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master
+</li><li>File system that writes to two file systems (replication, replicating file system)
 </li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
     ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
@@ -147,7 +146,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>JAMon (proxy jdbc driver)
 </li><li>Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
 </li><li>Console: autocomplete Ctrl+Space inserts template
-</li><li>Simplify translation ('Donate a translation')
 </li><li>Option to encrypt .trace.db file
 </li><li>Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
 </li><li>Functions with unknown return or parameter data types: serialize / deserialize
@@ -261,7 +259,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
 </li><li>DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
-</li><li>File system that writes to two file systems (replicating file system)
 </li><li>File system with a background writer thread; test if this is faster
 </li><li>Better document the source code
 </li><li>Support select * from dual a left join dual b on b.x=(select max(x) from dual)
@@ -464,6 +461,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 132: Use Java enum trigger type.
 </li><li>Issue 134: IBM DB2 compatibility: session global variables.
 </li><li>FTL_SET_OPTION(keyString, valueString) with key stopWords at first.
+</li><li>Pluggable access control mechanism.
 </li></ul>
 
 <h2>Not Planned</h2>

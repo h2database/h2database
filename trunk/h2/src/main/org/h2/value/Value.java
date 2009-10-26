@@ -699,7 +699,7 @@ public abstract class Value {
             switch(getType()) {
             case BYTES:
             case BLOB:
-                return ValueBytes.getNoCopy(getBytesNoCopy());
+                return ValueJavaObject.getNoCopy(getBytesNoCopy());
             }
             break;
         }

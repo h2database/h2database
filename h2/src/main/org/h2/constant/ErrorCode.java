@@ -534,7 +534,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90019</code> is thrown when
-     * trying to drop the current user.
+     * trying to drop the current user, if there are no other admin users.
      * Example:
      * <pre>
      * DROP USER SA;

@@ -46,7 +46,15 @@ public class DropUser extends DefineCommand {
             }
         } else {
             if (user == session.getUser()) {
-                throw Message.getSQLException(ErrorCode.CANNOT_DROP_CURRENT_USER);
+                int adminUserCount = 0;
+                for (User u : db.getAllUsers()) {
+                    if (u.isAdmin()) {
+                        adminUserCount++;
+                    }
+                }
+                if (adminUserCount == 1) {
+                    throw Message.getSQLException(ErrorCode.CANNOT_DROP_CURRENT_USER);
+                }
             }
             user.checkOwnsNoSchemas();
             db.removeDatabaseObject(session, user);

@@ -1349,21 +1349,20 @@ SET WRITE_DELAY 2000
 "
 
 "Commands (Other)","SHUTDOWN","
-SHUTDOWN [ IMMEDIATELY | COMPACT | SCRIPT ]
+SHUTDOWN [ IMMEDIATELY | COMPACT ]
 ","
-This statement is closes all open connections to the database and closes the
-database. This command usually does not need to be used, as the database is
+This statement closes all open connections to the database and closes the
+database. This command is usually not required, as the database is
 closed automatically when the last connection to it is closed.
 
-If no option is used, then all connections are closed. If the IMMEDIATELY option
-is used, the database files are closed as if the hard drive stops working,
-without rollback of the open transactions; otherwise any open transaction are
-rolled back before closing the connection. COMPACT and SCRIPT are only supported
-for compatibility and have no effect.
+If no option is used, then the database is closed normally.
+All connections are closed, open transactions are rolled back.
+COMPACT fully compacts the database.
+IMMEDIATELY closes the database files without any cleanup.
 
 Admin rights are required to execute this command.
 ","
-SHUTDOWN
+SHUTDOWN COMPACT
 "
 
 "Other Grammar","Alias","

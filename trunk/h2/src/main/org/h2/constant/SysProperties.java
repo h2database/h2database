@@ -312,6 +312,19 @@ public class SysProperties {
     public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
 
     /**
+     * System property <code>h2.maxCompactCount</code>
+     * (default: Integer.MAX_VALUE).<br />
+     * The maximum number of pages to move when closing a database.
+     */
+    public static final int MAX_COMPACT_COUNT = getIntSetting("h2.maxCompactCount", Integer.MAX_VALUE);
+
+    /**
+     * System property <code>h2.maxCompactTime</code> (default: 1000).<br />
+     * The maximum time in milliseconds used to compact a database when closing.
+     */
+    public static final int MAX_COMPACT_TIME = getIntSetting("h2.maxCompactTime", 1000);
+
+    /**
      * System property <code>h2.maxFileRetry</code> (default: 16).<br />
      * Number of times to retry file delete and rename. in Windows, files can't
      * be deleted if they are open. Waiting a bit can help (sometimes the

@@ -27,6 +27,7 @@ import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -808,7 +809,8 @@ public class TestLob extends TestBase {
     private void testJavaObject() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");
-        conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA OTHER)");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA OTHER)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, ?)");
         prep.setObject(1, new TestLobObject("abc"));
         prep.execute();
@@ -821,6 +823,16 @@ public class TestLob extends TestBase {
         assertEquals("abc", a.data);
         assertEquals("abc", b.data);
         assertFalse(rs.next());
+
+        conn.createStatement().execute("drop table test");
+        stat.execute("create table test(value other)");
+        prep = conn.prepareStatement("insert into test values(?)");
+        prep.setObject(1, ObjectUtils.serialize(""));
+        prep.execute();
+        rs = stat.executeQuery("select value from test");
+        while (rs.next()) {
+            assertEquals("", (String) rs.getObject("value"));
+        }
         conn.close();
     }
 

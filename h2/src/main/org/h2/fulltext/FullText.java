@@ -8,6 +8,7 @@ package org.h2.fulltext;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StreamTokenizer;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -22,7 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
-
 import org.h2.api.CloseListener;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
@@ -601,6 +601,38 @@ public class FullText {
      *
      * @param setting the fulltext settings
      * @param set the hash set
+     * @param reader the reader
+     */
+    static void addWords(FullTextSettings setting, HashSet<String> set, Reader reader) throws SQLException {
+        StreamTokenizer tokenizer = new StreamTokenizer(reader);
+        tokenizer.resetSyntax();
+        tokenizer.wordChars(' ' + 1, 255);
+        for (char ch : " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]".toCharArray()) {
+            tokenizer.whitespaceChars(ch, ch);
+        }
+        try {
+            while (true) {
+                int token = tokenizer.nextToken();
+                if (token == StreamTokenizer.TT_EOF) {
+                    break;
+                } else if (token == StreamTokenizer.TT_WORD) {
+                    String word = tokenizer.sval;
+                    word = setting.convertWord(word);
+                    if (word != null) {
+                        set.add(word);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw Message.convertIOException(e, "Tokenizer error");
+        }
+    }
+
+        /**
+     * Add all words in the given text to the hash set.
+     *
+     * @param setting the fulltext settings
+     * @param set the hash set
      * @param text the text
      */
     static void addWords(FullTextSettings setting, HashSet<String> set, String text) {
@@ -871,8 +903,20 @@ public class FullText {
             HashSet<String> words = New.hashSet();
             for (int i = 0; i < index.indexColumns.length; i++) {
                 int idx = index.indexColumns[i];
-                String data = asString(row[idx], columnTypes[idx]);
-                addWords(setting, words, data);
+                int type = columnTypes[idx];
+                Object data = row[idx];
+                if (type == Types.CLOB && data != null) {
+                    Reader reader;
+                    if (data instanceof Reader) {
+                        reader = (Reader) data;
+                    } else {
+                        reader = ((Clob) data).getCharacterStream();
+                    }
+                    addWords(setting, words, reader);
+                } else {
+                    String string = asString(data, type);
+                    addWords(setting, words, string);
+                }
             }
             HashMap<String, Integer> allWords = setting.getWordList();
             int[] wordIds = new int[words.size()];

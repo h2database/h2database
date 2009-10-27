@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>If the database URL ends with ;PAGE_STORE=TRUE and a database in
+<ul><li>The native fulltext search now supports streaming CLOB data.
+</li><li>If the database URL ends with ;PAGE_STORE=TRUE and a database in
     the old format exists, it is automatically converted to the new page store format
     if possible. A backup of the database is created first. Automatic conversion is not supported
     if the database was not closed normally (if it contains uncommitted transactions).

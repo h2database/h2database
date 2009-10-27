@@ -40,7 +40,12 @@ function openLink() {
     }
     var ref = page.substr(pos);
     link = decodeURIComponent(ref);
-    el = document.getElementById(link).parentNode.parentNode;
+    el = document.getElementById(link);
+    if (el.nodeName.toLowerCase() == 'h4') {
+        // constant
+        return true;
+    }
+    el = el.parentNode.parentNode;
     on(el.id);
     window.scrollTo(0, el.offsetTop);
     return true;

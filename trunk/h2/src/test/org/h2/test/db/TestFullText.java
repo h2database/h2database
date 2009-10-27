@@ -6,13 +6,13 @@
  */
 package org.h2.test.db;
 
+import java.io.Reader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.StringTokenizer;
-
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
@@ -36,6 +36,7 @@ public class TestFullText extends TestBase {
         if (config.memory) {
             return;
         }
+        testStreamLob();
         test(false, "VARCHAR");
         test(false, "CLOB");
         testPerformance(false);
@@ -56,6 +57,38 @@ public class TestFullText extends TestBase {
         }
         deleteDb("fullText");
         deleteDb("fullTextReopen");
+    }
+
+    private void testStreamLob() throws SQLException {
+        deleteDb("fullText");
+        Connection conn = getConnection("fullText");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB)");
+        FullText.createIndex(conn, "PUBLIC", "TEST", null);
+        stat.execute("insert into test values(0, 'Hello World!')");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(1, ?)");
+        final int length = 1024 * 1024;
+        prep.setCharacterStream(1, new Reader() {
+            int remaining = length;
+            public void close() {
+                // ignore
+            }
+            public int read(char[] buff, int off, int len) {
+                if (remaining >= len) {
+                    remaining -= len;
+                    return len;
+                }
+                remaining = -1;
+                return -1;
+            }
+        }, length);
+        prep.execute();
+        ResultSet rs = stat.executeQuery("SELECT * FROM FT_SEARCH('World', 0, 0)");
+        assertTrue(rs.next());
+        FullText.dropAll(conn);
+        conn.close();
+        deleteDb("fullText");
     }
 
     private void testCreateDrop() throws SQLException {

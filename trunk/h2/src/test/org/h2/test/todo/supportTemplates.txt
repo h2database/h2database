@@ -46,6 +46,64 @@ Please provide any additional information below.
 
 -----------------
 
+ClassCastException
+
+There is a known problem in version 1.2.120 that can cause a ClassCastException. Did you use version 1.2.120 with this database? If not, I have a few more questions:
+
+- Could you send the full stack trace of the exception including message text?
+- What is your database URL?
+- Did you use multiple connections?
+- A workarounds is: use the tool org.h2.tools.Recover to create
+    the SQL script file, and then re-create the database using this script.
+    Does it work when you do this?
+- With which version of H2 was this database created?
+    You can find it out using:
+    select * from information_schema.settings where name='CREATE_BUILD'
+    or have a look in the SQL script created by the recover tool.
+- Do you use any settings or special features (for example, the setting
+    LOG=0, or two phase commit, linked tables, cache settings)?
+- Is the application multi-threaded?
+- What operating system, file system, and virtual machine
+    (java -version) do you use?
+- Is it (or was it at some point) a networked file system?
+- How big is the database (file sizes)?
+- Is the database usually closed normally, or is process terminated
+    forcefully or the computer switched off?
+- Is it possible to reproduce this problem using a fresh database
+    (sometimes, or always)?
+- Are there any other exceptions (maybe in the .trace.db file)?
+    Could you send them please?
+- Do you still have any .trace.db files, and if yes could you send them?
+- Could you send the .h2.db file where this exception occurs?
+
+-----------------
+
+
+Hi,
+
+I have a few questions:
+
+- The database URL?
+- With which version of H2 was this database created?
+    You can find it out using:
+    select * from information_schema.settings where name='CREATE_BUILD'
+- Did you use multiple connections?
+- Do you use any settings or special features (for example, the setting
+    LOG=0, or two phase commit, linked tables, cache settings)?
+- Is the application multi-threaded?
+- What operating system, file system, and virtual machine
+    (java -version) do you use?
+- How big is the database (file sizes)?
+- Is the database usually closed normally, or is process terminated
+    forcefully or the computer switched off?
+- Are there any other exceptions (maybe in the .trace.db file)?
+    Could you send them please?
+- Do you still have any .trace.db files, and if yes could you send them?
+- Could you send the .h2.db file where this exception occurs?
+
+
+
+
 Corrupted database
 
 I am sorry to say that, but it looks like a corruption problem. I am very interested in analyzing and solving this problem. Corruption problems have top priority for me. I have a few questions:

@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Implementation-Title: ${title}
+Implementation-URL: http://www.h2database.com
+Implementation-Version: ${version}
+Build-Jdk: ${buildJdk}
+Created-By: ${createdBy}
+${mainClassTag}
+Bundle-Activator: org.h2.util.DbDriverActivator
+Bundle-ManifestVersion: 2
+Bundle-Name: H2 Database Engine
+Bundle-SymbolicName: org.h2
+Bundle-Vendor: H2 Group
+Bundle-Version: ${version}
+DynamicImport-Package: *
+Export-Package: org.h2,org.h2.api,org.h2.fulltext,org.h2.jdbcx,org.h2.tools,org.h2.util

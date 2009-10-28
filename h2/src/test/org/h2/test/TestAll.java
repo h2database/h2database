@@ -297,6 +297,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+automate release
+docs/javadocImpl file?
+
 -sources.jar
 check if sources.jar is not in installer and zip, but in maven
 

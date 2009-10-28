@@ -13,6 +13,42 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(72,
+'New version available: 1.2.122 (2009-10-28)', '2009-10-28 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>This is a beta version.
+</li><li>The native fulltext search now supports streaming CLOB data.
+</li><li>Page store: opening a large database was slow if it was not closed before.
+</li><li>Page store: new write and read counters in the meta data table.
+</li><li>If a database in the old format exists, it is now used.
+</li><li>If the database URL ends with ;PAGE_STORE=TRUE and a database in
+    the old format exists, it is automatically converted to the new page store format.
+</li><li>SHUTDOWN COMPACT now fully compacts the database.
+</li><li>New system property h2.pageStoreTrim to disable shrinking the database.
+</li><li>New system properties h2.maxCompactCount and h2.maxCompactTime.
+</li><li>Dropping the current user is now allowed if another admin user exists.
+</li><li>New sorted insert optimization (see Performance / Database Performance Tuning).
+</li><li>The files h2*-sources.jar and h2*-javadoc.jar are now in the Maven repository.
+</li><li>The SQL syntax is documented using (railroad) diagrams.
+</li><li>The documentation is no longer available in Japanese.
+</li><li>Better support GaeVFS (Google App Engine Virtual File System)
+    thanks to Thanks to Vince Bonfanti.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Values of type BINARY or BLOB could not be converted to the data type OTHER.
+</li><li>Certain queries were not sorted if subselect queries were involved.
+</li><li>More bugs in the server-less multi-connection mode have been fixed.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(71,
 'New version available: 1.2.121 (2009-10-11)', '2009-10-11 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -399,45 +435,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>When converting CLOB to BINARY, each character resulted in one byte.
 </li><li>Bugs in the server-less multi-connection mode have been fixed.
 </li><li>Column names could not be named "UNIQUE" (with the quotes).
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(58,
-'New version available: 1.1.108 (2009-02-28)', '2009-02-28 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Support for multiple read-write connections without starting a server.
-</li><li>MySQL compatibility for CREATE TABLE is improved.
-</li><li>The exception message of failed INSERT statements now includes all values.
-</li><li>The DbStarter now closes all connections to the configured database.
-</li><li>Improved exception message when connecting to a just started server fails.
-</li><li>Connection.isValid is a bit faster.
-</li><li>H2 Console: the autocomplete feature has been improved a bit.
-</li><li>When restarting a web application in Tomcat, an exception was thrown sometimes.
-    The root cause of the problem is now documented in the FAQ.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>When the shutdown hook closed the database, the last log file
-    was deleted too early. This could cause uncommitted changes to be persisted.
-</li><li>The database file locking mechanism didn't work correctly on Mac OS.
-</li><li>Recovery did not work if there were more than 255 lobs stored as files.
-</li><li>If opening a database failed with an out of memory exception, some files were not closed.
-</li><li>The WebServlet did not close the database when un-deploying the web application.
-</li><li>JdbcConnectionPool: it was possible to set a negative connection pool size.
-</li><li>Fulltext search did not support table names with a backslash.
-</li><li>A bug in the internal IntArray was fixed.
-</li><li>The H2 Console web application (war file) now supports all Unicode characters.
-</li><li>DATEADD does no longer require that the argument is a timestamp.
-</li><li>Some built-in functions reported the wrong precision, scale, and display size.
-</li><li>Optimizer: the expected runtime calculation was incorrect. The fixed calculation
-    should give slightly better query plans when using many joins.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

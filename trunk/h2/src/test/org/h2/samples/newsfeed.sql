@@ -15,38 +15,15 @@ CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARC
 
 INSERT INTO ITEM VALUES(72,
 'New version available: 1.2.122 (2009-10-28)', '2009-10-28 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
 (You may have to click 'Refresh').
 <br />
-<b>Changes and new functionality:</b>
-<ul><li>This is a beta version.
-</li><li>The native fulltext search now supports streaming CLOB data.
-</li><li>Page store: opening a large database was slow if it was not closed before.
-</li><li>Page store: new write and read counters in the meta data table.
-</li><li>If a database in the old format exists, it is now used.
-</li><li>If the database URL ends with ;PAGE_STORE=TRUE and a database in
-    the old format exists, it is automatically converted to the new page store format.
-</li><li>SHUTDOWN COMPACT now fully compacts the database.
-</li><li>New system property h2.pageStoreTrim to disable shrinking the database.
-</li><li>New system properties h2.maxCompactCount and h2.maxCompactTime.
-</li><li>Dropping the current user is now allowed if another admin user exists.
-</li><li>New sorted insert optimization (see Performance / Database Performance Tuning).
-</li><li>The files h2*-sources.jar and h2*-javadoc.jar are now in the Maven repository.
-</li><li>The SQL syntax is documented using (railroad) diagrams.
-</li><li>The documentation is no longer available in Japanese.
-</li><li>Better support GaeVFS (Google App Engine Virtual File System)
-    thanks to Thanks to Vince Bonfanti.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Values of type BINARY or BLOB could not be converted to the data type OTHER.
-</li><li>Certain queries were not sorted if subselect queries were involved.
-</li><li>More bugs in the server-less multi-connection mode have been fixed.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
 <br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
 $$);
 
 INSERT INTO ITEM VALUES(71,
@@ -408,33 +385,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Some internal caches did not use the LRU mechanism.
 </li><li>DatabaseMetaData.getSQLKeywords now returns the correct list.
 </li><li>More bugs in the server-less multi-connection mode have been fixed.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(59,
-'New version available: 1.1.109 (2009-03-14)', '2009-03-14 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>New experimental NIO storage (faster on Mac OS
-    but slower on Windows). Thanks a lot to Jan Kotek!
-</li><li>User defined functions can now be deterministic.
-</li><li>New system function TRANSACTION_ID().
-</li><li>Bit functions and MOD now use BIGINT.
-</li><li>The optimization for IN(...) is now only used if it helps.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Could not use a linked table multiple times in the same query.
-</li><li>Multiple nested queries with parameters did not always work.
-</li><li>When converting CLOB to BINARY, each character resulted in one byte.
-</li><li>Bugs in the server-less multi-connection mode have been fixed.
-</li><li>Column names could not be named "UNIQUE" (with the quotes).
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

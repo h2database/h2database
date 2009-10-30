@@ -35,6 +35,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Optimization: result set caching (like MySQL)
 </li><li>Server side cursors
+</li><li>MVCC: support concurrent MERGE
 </li><li>Procedural language / script language (Java, Javascript)
 </li></ul>
 
@@ -386,6 +387,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Functions: support hashcode(value); cryptographic and fast
 </li><li>Serialized file lock: support long running queries.
 </li><li>Network: use 127.0.0.1 if other addresses don't work.
+</li><li>Pluggable network protocol (currently  Socket/ServerSocket over TCP/IP) - see also TransportServer with master slave replication.
 </li><li>Select for update in mvcc mode: only lock the selected records.
 </li><li>Support reading JCR data: one table per node type; query table; cache option
 </li><li>OSGi: create a sample application, test, document.

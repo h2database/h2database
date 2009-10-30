@@ -16,8 +16,28 @@ JaQu
 <!-- } -->
 
 <h1>JaQu</h1>
+<a href="#what_is_jaqu">
+    What is JaQu</a><br />
+<a href="#differences">
+    Differences to Other Data Access Tools</a><br />
+<a href="#current_state">
+    Current State</a><br />
+<a href="#building_jaqu">
+    Building the JaQu Library</a><br />
+<a href="#requirements">
+    Requirements</a><br />
+<a href="#example_code">
+    Example Code</a><br />
+<a href="#configuration">
+    Configuration</a><br />
+<a href="#natural_syntax">
+    Natural Syntax</a><br />
+<a href="#other_ideas">
+    Other Ideas</a><br />
+<a href="#similar_projects">
+    Similar Projects</a><br />
 
-<h2>What is JaQu</h2>
+<h2 id="what_is_jaqu">What is JaQu</h2>
 <p>
 JaQu stands for Java Query and allows to access databases using pure Java.
 JaQu provides a fluent interface (or internal DSL) for building SQL statements.
@@ -38,7 +58,7 @@ SELECT * FROM PRODUCTS P
 WHERE P.UNITS_IN_STOCK = 0
 </pre>
 
-<h2>Advantages and Differences to Other Data Access Tools</h2>
+<h2 id="differences">Differences to Other Data Access Tools</h2>
 <p>
 Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java,
 auto-complete in the IDE and Javadoc and are supported. Type checking is performed by the compiler.
@@ -66,7 +86,7 @@ Most people use Java in their application. Mixing Java and another language (for
 in the same application is complicated: you would need to split the application and database code.
 </p>
 
-<h2>Current State</h2>
+<h2 id="current_state">Current State</h2>
 <p>
 Currently, JaQu is only tested with the H2 database. The API may change in future versions.
 JaQu is not part of the h2 jar file, however the source code is included in H2, under:
@@ -75,19 +95,19 @@ JaQu is not part of the h2 jar file, however the source code is included in H2, 
 </li><li><code>src/tools/org/h2/jaqu/*</code> (framework)
 </li></ul>
 
-<h2>Building the JaQu library</h2>
+<h2 id="building_jaqu">Building the JaQu Library</h2>
 <p>
 To create the JaQu jar file, run: <code>build jarJaqu</code>. This will create the file <code>bin/h2jaqu.jar</code>.
 </p>
 
-<h2>Requirements</h2>
+<h2 id="requirements">Requirements</h2>
 <p>
 JaQu requires Java 1.5. Annotations are not need.
 Currently, JaQu is only tested with the H2 database engine, however in theory it should
 work with any database that supports the JDBC API.
 </p>
 
-<h2>Example Code</h2>
+<h2 id="example_code">Example Code</h2>
 <pre>
 package org.h2.test.jaqu;
 import java.math.BigDecimal;
@@ -222,7 +242,7 @@ public class Test {
 }
 </pre>
 
-<h2>Configuration</h2>
+<h2 id="configuration">Configuration</h2>
 <p>
 JaQu does not require any configuration when using the default mapping.
 To define table indices, or if you want to map a class to a table with a different name,
@@ -256,7 +276,7 @@ This is not possible using annotations.
 Unlike XML mapping configuration, the configuration is integrated in the class itself.
 </p>
 
-<h2>Natural Syntax</h2>
+<h2 id="natural_syntax">Natural Syntax</h2>
 <p>The plan is to support more natural (pure Java) syntax in conditions.
 To do that, the condition class is de-compiled to a SQL condition.
 A proof of concept decompiler is included (but it doesn't work yet).
@@ -275,7 +295,7 @@ long count = db.from(co).
         } }).selectCount();
 </pre>
 
-<h2>Other Ideas</h2>
+<h2 id="other_ideas">Other Ideas</h2>
 <p>
 This project has just been started, and nothing is fixed yet.
 Some ideas for what to implement are:
@@ -286,8 +306,9 @@ Some ideas for what to implement are:
 </li><li>Use PreparedStatements and cache them.
 </li></ul>
 
-<h2>Related Projects</h2>
+<h2 id="similar_projects">Similar Projects</h2>
 <p class="notranslate">
+<a href="http://www.cementframework.org">Cement Framework</a><br />
 <a href="http://code.google.com/p/dreamsource-orm">Dreamsource ORM</a><br />
 <a href="http://incubator.apache.org/empire-db/empiredb/empiredb.htm">Empire-db</a><br />
 <a href="http://www.jequel.de">JEQUEL: Java Embedded QUEry Language</a><br />
@@ -297,7 +318,7 @@ Some ideas for what to implement are:
 <a href="http://svn.quaere.codehaus.org/browse/~raw,r=76/quaere/trunk/Quaere/src/test/java/org/quaere/alias/test/SamplesTest.java">Quaere (Alias implementation)</a><br />
 <a href="http://quaere.codehaus.org/">Quaere</a><br />
 <a href="http://source.mysema.com/display/querydsl/Querydsl">Querydsl</a><br />
-<a href="https://squill.dev.java.net">Squill</a><br />
+<a href="http://squill.dev.java.net">Squill</a><br />
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

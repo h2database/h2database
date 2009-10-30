@@ -37,7 +37,7 @@ import com.sun.javadoc.Type;
 public class Doclet {
 
     private static final boolean INTERFACES_ONLY = Boolean.getBoolean("h2.interfacesOnly");
-    private String destDir = System.getProperty("h2.destDir", "docs/javadoc");
+    private String destDir = System.getProperty("h2.javadocDestDir", "docs/javadoc");
     private int errorCount;
     private HashSet<String> errors = new HashSet<String>();
 

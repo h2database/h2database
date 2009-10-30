@@ -23,7 +23,7 @@ import com.sun.javadoc.Tag;
  */
 public class ResourceDoclet {
 
-    private String destFile = System.getProperty("h2.destDir", "src/main/org/h2/res/javadoc.properties");
+    private String destFile = System.getProperty("h2.javadocResourceFile", "src/main/org/h2/res/javadoc.properties");
 
     private SortedProperties resources = new SortedProperties();
 

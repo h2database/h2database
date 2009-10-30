@@ -393,7 +393,7 @@ public class Build extends BuildBase {
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
         System.setProperty("h2.interfacesOnly", "false");
-        System.setProperty("h2.destDir", "docs/javadocImpl");
+        System.setProperty("h2.javadocDestDir", "docs/javadocImpl");
         javadoc("-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools",
                 "-classpath", System.getProperty("java.home") + "/../lib/tools.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +

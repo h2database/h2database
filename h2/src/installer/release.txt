@@ -1,41 +1,22 @@
-Change version and build number in Constants.java
-If the minor version changes, change sourceError.html and source.html
-Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
-Update the changelog (add new version)
-Update the newsfeed
-Documentation: check if all Javadoc files are in the index
-Check that there is no TODO in the docs
-Check code coverage
-Run regression test with JDK 1.4 and 1.5
-Use latest versions of other dbs
-Change version(s) in performance.html
-Run ./buildRelease.sh
+Update Constants.java - change version and build number
+Update changelog.html - add new version, remove oldest
+Update newsfeed.sql - add new version, remove oldest
+Minor version change: change sourceError.html and source.html
+Network protocol change: increase TCP_DRIVER_VERSION (old clients must be compatible!)
+Benchmark: use latest versions of other dbs, change version(s) in performance.html
+Run ./buildRelease.sh / buildRelease.bat
 
-Test with Hibernate
-Run FindBugs
-buildRelease.bat
-Check docs, versions and links in main, downloads, build numbers
-Check if missing javadocs
-Test installer
-Check in the PDF file:
-- footer
-- front page
-- orphan control
-- check images
-- table of contents
-Test Console
-Test all languages
 Scan for viruses
+Test installer, H2 Console (test new languages)
+Check docs, versions and links in main, downloads, build numbers
+Check the PDF file size
+
 Upload to SourceForge
+Upload to ftp://h2database.com
+Upload to http://code.google.com/p/h2database/downloads/list
 svn commit
 svn copy: /svn/trunk /svn/tags/version-1.1.x; Version 1.1.x (yyyy-mm-dd)
-Upload to h2database.com, http://code.google.com/p/h2database/downloads/list
 Newsletter: prepare (always to BCC)
-Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com;
-Remove contacts in GMail
+Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
 Add to freshmeat
-Change version: http://en.wikipedia.org/wiki/H2_%28DBMS%29
-Change version: http://ja.wikipedia.org/wiki/H2_Database
-Change version: http://es.wikipedia.org/wiki/H2
-Change version: http://www.heise.de/software/
 Close bugs: http://code.google.com/p/h2database/issues/list

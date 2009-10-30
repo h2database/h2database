@@ -64,6 +64,9 @@ public class WebServlet extends HttpServlet {
             return address.isLoopbackAddress();
         } catch (UnknownHostException e) {
             return false;
+        } catch (NoClassDefFoundError e) {
+            // Google App Engine does not allow java.net.InetAddress
+            return false;
         }
     }
 
@@ -106,7 +109,7 @@ public class WebServlet extends HttpServlet {
         if (sessionId != null) {
             session = server.getSession(sessionId);
         }
-        WebThread app = new WebThread(null, server);
+        WebApp app = new WebApp(server);
         app.setSession(session, attributes);
         String ifModifiedSince = req.getHeader("if-modified-since");
 

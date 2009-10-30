@@ -845,6 +845,11 @@ public class Parser {
         Table table = readTableOrView();
         command.setTable(table);
         if (readIf("(")) {
+            if (isToken("SELECT") || isToken("FROM")) {
+                command.setQuery(parseSelect());
+                read(")");
+                return command;
+            }
             Column[] columns = parseColumnList(table);
             command.setColumns(columns);
         }

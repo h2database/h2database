@@ -289,7 +289,11 @@ public class WebServer implements Service {
     }
 
     private void updateURL() {
-        url = (ssl ? "https" : "http") + "://" + NetUtils.getLocalAddress() + ":" + port;
+        try {
+            url = (ssl ? "https" : "http") + "://" + NetUtils.getLocalAddress() + ":" + port;
+        } catch (NoClassDefFoundError e) {
+            // Google App Engine does not allow java.net.InetAddress
+        }
     }
 
     public void start() throws SQLException {

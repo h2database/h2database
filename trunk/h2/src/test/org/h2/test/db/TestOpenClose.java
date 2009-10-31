@@ -136,7 +136,10 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn.createStatement().execute("drop table employee if exists");
         conn.createStatement().execute("create table employee(id int primary key, name varchar, salary int)");
         conn.close();
-        int len = getSize(200, 1000);
+        // previously using getSize(200, 1000);
+        // but for Ubuntu, the default ulimit is 1024, 
+        // which breaks the test
+        int len = getSize(10, 50);
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {
             threads[i] = new Thread() {

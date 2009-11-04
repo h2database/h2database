@@ -961,8 +961,7 @@ public abstract class Table extends SchemaObjectBase {
         } else {
             v = defaultExpr.getValue(session);
         }
-        int type = column.getType();
-        return  v.convertTo(type);
+        return  column.convert(v);
     }
 
 }

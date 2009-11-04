@@ -116,7 +116,7 @@ public class Merge extends Prepared {
                     if (e != null) {
                         // e can be null (DEFAULT)
                         try {
-                            Value v = e.getValue(session).convertTo(c.getType());
+                            Value v = c.convert(e.getValue(session));
                             newRow.setValue(index, v);
                         } catch (SQLException ex) {
                             throw setRow(ex, count, getSQL(expr));
@@ -140,7 +140,7 @@ public class Merge extends Prepared {
                     Column c = columns[j];
                     int index = c.getColumnId();
                     try {
-                        Value v = r[j].convertTo(c.getType());
+                        Value v = c.convert(r[j]);
                         newRow.setValue(index, v);
                     } catch (SQLException ex) {
                         throw setRow(ex, count, getSQL(r));

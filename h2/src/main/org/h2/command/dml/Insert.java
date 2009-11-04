@@ -105,7 +105,7 @@ public class Insert extends Prepared {
                         // e can be null (DEFAULT)
                         e = e.optimize(session);
                         try {
-                            Value v = e.getValue(session).convertTo(c.getType());
+                            Value v = c.convert(e.getValue(session));
                             newRow.setValue(index, v);
                         } catch (SQLException ex) {
                             throw setRow(ex, x, getSQL(expr));
@@ -136,7 +136,7 @@ public class Insert extends Prepared {
                     Column c = columns[j];
                     int index = c.getColumnId();
                     try {
-                        Value v = r[j].convertTo(c.getType());
+                        Value v = c.convert(r[j]);
                         newRow.setValue(index, v);
                     } catch (SQLException ex) {
                         throw setRow(ex, count, getSQL(r));

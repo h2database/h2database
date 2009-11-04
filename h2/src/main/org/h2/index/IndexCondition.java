@@ -128,10 +128,9 @@ public class IndexCondition {
      */
     public Value[] getCurrentValueList(Session session) throws SQLException {
         HashSet<Value> valueSet = new HashSet<Value>();
-        int dataType = column.getType();
         for (Expression e : expressionList) {
             Value v = e.getValue(session);
-            v = v.convertTo(dataType);
+            v = column.convert(v);
             valueSet.add(v);
         }
         Value[] array = new Value[valueSet.size()];

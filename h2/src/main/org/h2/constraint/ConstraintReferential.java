@@ -321,7 +321,7 @@ public class ConstraintReferential extends Constraint {
             Value v = newRow.getValue(idx);
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
-            check.setValue(refIdx, v.convertTo(refCol.getType()));
+            check.setValue(refIdx, refCol.convert(v));
         }
         if (!found(session, refIndex, check, null)) {
             throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
@@ -367,9 +367,8 @@ public class ConstraintReferential extends Constraint {
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
             Column col = columns[i].column;
-            int idx = col.getColumnId();
-            Value v = oldRow.getValue(refIdx).convertTo(col.getType());
-            check.setValue(idx, v);
+            Value v = col.convert(oldRow.getValue(refIdx));
+            check.setValue(col.getColumnId(), v);
         }
         // exclude the row only for self-referencing constraints
         Row excluding = (refTable == table) ? oldRow : null;

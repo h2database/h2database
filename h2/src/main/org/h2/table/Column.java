@@ -137,6 +137,23 @@ public class Column {
         return newColumn;
     }
 
+    /**
+     * Convert a value to this column's type.
+     *
+     * @param v the value
+     * @return the value
+     */
+    public Value convert(Value v) throws SQLException {
+        try {
+            return v.convertTo(type);
+        } catch (SQLException e) {
+            if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
+                e = Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, v.getSQL() + " (" + getCreateSQL() + ")");
+            }
+            throw e;
+        }
+    }
+
     boolean getComputed() {
         return isComputed;
     }

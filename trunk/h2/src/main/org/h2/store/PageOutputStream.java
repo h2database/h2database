@@ -67,15 +67,12 @@ public class PageOutputStream extends OutputStream {
             int pageSize = store.getPageSize();
             int capacityPerPage = PageStreamData.getCapacity(pageSize);
             int pages = PageStreamTrunk.getPagesAddressed(pageSize);
-            // allocate x data pages
-            int pagesToAllocate = pages;
-            int totalCapacity = pages * capacityPerPage;
-            while (totalCapacity < minBuffer) {
-                pagesToAllocate += pagesToAllocate;
-                totalCapacity += totalCapacity;
-            }
-            // allocate the next trunk page as well
-            pagesToAllocate++;
+            int pagesToAllocate = 0, totalCapacity = 0;
+            do {
+                // allocate x data pages plus one trunk page
+                pagesToAllocate += pages + 1;
+                totalCapacity += pages * capacityPerPage;
+            } while (totalCapacity < minBuffer);
             int firstPageToUse = atEnd ? trunkPageId : 0;
             store.allocatePages(reservedPages, pagesToAllocate, exclude, firstPageToUse);
             reserved += totalCapacity;

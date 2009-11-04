@@ -170,7 +170,7 @@ java org.h2.test.TestAll timer
     /**
      * If the test should run with the page store flag.
      */
-    public boolean pageStore;
+    public boolean pageStore = true;
 
     /**
      * If the test should run with many rows.
@@ -296,6 +296,9 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+
+testConcurrentMerge
+sort > tools
 
 google app engine
 

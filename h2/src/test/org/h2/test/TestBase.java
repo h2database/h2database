@@ -262,7 +262,7 @@ public abstract class TestBase {
         if (config.cipher != null) {
             url += ";CIPHER=" + config.cipher;
         }
-        if (!config.pageStore) {
+        if (!config.pageStore && url.indexOf("PAGE_STORE=") < 0) {
             url += ";PAGE_STORE=FALSE";
         }
         return "jdbc:h2:" + url;

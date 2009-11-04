@@ -14,7 +14,6 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Map.Entry;
-
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.MemoryUtils;
@@ -76,7 +75,7 @@ public class Message {
         return getSQLException(errorCode, new String[] { p1 });
     }
 
-    private static String translate(String key, String... param) {
+    private static String translate(String key, String... params) {
         String message = null;
         if (MESSAGES != null) {
             // Tomcat sets final static fields to null sometimes
@@ -85,8 +84,14 @@ public class Message {
         if (message == null) {
             message = "(Message " + key + " not found)";
         }
-        if (param != null) {
-            Object[] o = param;
+        if (params != null) {
+            for (int i = 0; i < params.length; i++) {
+                String s = params[i];
+                if (s != null && s.length() > 0) {
+                    params[i] = StringUtils.quoteIdentifier(s);
+                }
+            }
+            Object[] o = params;
             message = MessageFormat.format(message, o);
         }
         return message;

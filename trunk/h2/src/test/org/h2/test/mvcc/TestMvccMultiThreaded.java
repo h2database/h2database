@@ -9,6 +9,7 @@ package org.h2.test.mvcc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Random;
 
 import org.h2.test.TestBase;
 
@@ -27,18 +28,64 @@ public class TestMvccMultiThreaded extends TestBase {
     }
 
     public void test() throws Exception {
-        if (!config.mvcc) {
-            return;
+        // testConcurrentMerge();
+        testConcurrentUpdate("");
+        // not supported currently
+        // testConcurrentUpdate(";MULTI_THREADED=TRUE");
+    }
+
+    private void testConcurrentMerge() throws Exception {
+        deleteDb("mvccMultiThreaded");
+        int len = 10;
+        final Connection[] connList = new Connection[len];
+        for (int i = 0; i < len; i++) {
+            Connection conn = getConnection("mvccMultiThreaded;MVCC=TRUE");
+            connList[i] = conn;
         }
-        if (config.mvcc) {
-            // not supported at this time
-            return;
+        Connection conn = connList[0];
+        conn.createStatement().execute("create table test(id int primary key, value int)");
+        final SQLException[] ex = new SQLException[1];
+        Thread[] threads = new Thread[len];
+        final boolean[] stop = new boolean[1];
+        for (int i = 0; i < len; i++) {
+            final Connection c = connList[i];
+            c.setAutoCommit(false);
+            threads[i] = new Thread() {
+                public void run() {
+                    Random random = new Random();
+                    while (!stop[0]) {
+                        try {
+                            int k = random.nextInt(100);
+                            c.createStatement().execute("merge into test values(" + k + ", " + k + ")");
+                            c.commit();
+                        } catch (SQLException e) {
+                            ex[0] = e;
+                        }
+                    }
+                }
+            };
+            threads[i].start();
         }
+        Thread.sleep(1000);
+        stop[0] = true;
+        for (int i = 0; i < len; i++) {
+            threads[i].join();
+        }
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        for (int i = 0; i < len; i++) {
+            connList[i].close();
+        }
+        deleteDb("mvccMultiThreaded");
+    }
+
+    private void testConcurrentUpdate(String suffix) throws Exception {
         deleteDb("mvccMultiThreaded");
         int len = 2;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
-            connList[i] = getConnection("mvccMultiThreaded;MULTI_THREADED=TRUE");
+            connList[i] = getConnection("mvccMultiThreaded;MVCC=TRUE" + suffix);
         }
         Connection conn = connList[0];
         conn.createStatement().execute("create table test(id int primary key, value int)");

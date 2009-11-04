@@ -15,7 +15,7 @@ Can not reproduce:
 
 Hi,
 
-Sorry I can not reproduce this problem. Could you post a simple, standalone test case that reproduces the problem? It would be great if the test case does not have any dependencies except the H2 jar file (that is, a simple SQL script that can be run in the H2 Console, or a Java class uses the JDBC API and is run using a static main method). Please include any initialization code (CREATE TABLE, INSERT and so on) in the Java class or in a .sql script file.
+Sorry I can not reproduce this problem. Could you post a simple, standalone test case that reproduces the problem? It would be great if the test case does not have any dependencies except the H2 jar file (that is, a simple SQL script that can be run in the H2 Console, or a Java class uses the JDBC API and is run using a static main method). If the test case does have dependencies it would help a lot if you upload them somewhere (for example Rapidshare.com). Please include any initialization code (CREATE TABLE, INSERT and so on) in the Java class or in a .sql script file.
 
 Regards,
 Thomas

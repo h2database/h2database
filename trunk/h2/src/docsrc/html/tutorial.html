@@ -30,6 +30,8 @@ Tutorial
     Using Hibernate</a><br />
 <a href="#using_toplink">
     Using TopLink and Glassfish</a><br />
+<a href="#using_eclipselink">
+    Using EclipseLink</a><br />
 <a href="#web_applications">
     Using Databases in Web Applications</a><br />
 <a href="#csv">
@@ -378,6 +380,13 @@ To enable it, change the following setting in persistence.xml:
 </pre>
 <p>
 In old versions of Glassfish, the property name is <code>toplink.platform.class.name</code>.
+</p>
+
+<h2 id="using_eclipselink">Using EclipseLink</h2>
+<p>
+To use H2 in EclipseLink, use the platform class <code>org.eclipse.persistence.platform.database.H2Platform</code>.
+If this platform is not available in your version of EclipseLink, you can use the OraclePlatform instead in many case.
+See also <a href="http://wiki.eclipse.org/EclipseLink/Development/Incubator/Extensions/H2Platform">H2Platform</a>.
 </p>
 
 <h2 id="web_applications">Using Databases in Web Applications</h2>

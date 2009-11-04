@@ -885,6 +885,8 @@ is 16384 (16 MB). The value is rounded to the next higher power of two.
 Depending on the virtual machine, the actual memory required may be higher.
 
 This setting is persistent and affects all connections as there is only one cache per database.
+This setting only affects the database engine (the server in a client/server environment).
+
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.

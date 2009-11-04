@@ -54,6 +54,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support alter table add column if table has views defined
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
+</li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger.
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Support mixed clustering mode (one embedded, others in server mode)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
@@ -61,6 +62,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Migrate database tool (also from other database engines)
+</li><li>Automatic collection of statistics (auto ANALYZE)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
 </li><li>Rebuild index functionality to shrink index size and improve performance
@@ -100,7 +102,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
 </li><li>Drop with restrict (currently cascade is the default)
 </li><li>JSON parser and functions
-</li><li>Automatic collection of statistics (auto ANALYZE)
 </li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
 </li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare)
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements.
@@ -244,7 +245,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Access rights: finer grained access control (grant access for specific functions)
 </li><li>Support N'text'
 </li><li>Pure SQL triggers (example: update parent table if the child table is changed).
-</li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 </li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
 </li><li>Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Support compatibility for jdbc:hsqldb:res:
@@ -465,6 +465,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Pluggable access control mechanism.
 </li><li>Fulltext search (Lucene): support streaming CLOB data.
 </li><li>Document/example how to create and read an encrypted script file.
+</li><li>Check state of https://issues.apache.org/jira/browse/OPENJPA-1367 (H2 does support cross joins).
+</li><li>Fulltext search (Lucene): only prefix column names with _ if they already start with _. Instead of DATA / QUERY / modified use _DATA, _QUERY, _MODIFIED if possible.
+</li><li>Support a way to create or read compressed encrypted script files using an API.
 </li></ul>
 
 <h2>Not Planned</h2>

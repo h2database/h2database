@@ -48,11 +48,19 @@ class WebThread extends WebApp implements Runnable {
         thread = new Thread(this, "H2 Console thread");
     }
 
-    public void start() {
+    /**
+     * Start the thread.
+     */
+    void start() {
         thread.start();
     }
 
-    public void join(int millis) throws InterruptedException {
+    /**
+     * Wait until the thread is stopped.
+     *
+     * @param millis the maximum number of milliseconds to wait
+     */
+    void join(int millis) throws InterruptedException {
         thread.join(millis);
     }
 
@@ -277,33 +285,14 @@ class WebThread extends WebApp implements Runnable {
         return super.adminShutdown();
     }
 
-    protected String login() {
-        final String driver = attributes.getProperty("driver", "");
-        final String url = attributes.getProperty("url", "");
-        final String user = attributes.getProperty("user", "");
-        final String password = attributes.getProperty("password", "");
-        session.put("autoCommit", "checked");
-        session.put("autoComplete", "1");
-        session.put("maxrows", "1000");
-        boolean thread = false;
-        if (socket != null && url.startsWith("jdbc:h2:") && !url.startsWith("jdbc:h2:tcp:")
-                && !url.startsWith("jdbc:h2:ssl:") && !url.startsWith("jdbc:h2:mem:")) {
-            thread = true;
-        }
-        if (!thread) {
-            boolean isH2 = url.startsWith("jdbc:h2:");
-            try {
-                Connection conn = server.getConnection(driver, url, user, password, this);
-                session.setConnection(conn);
-                session.put("url", url);
-                session.put("user", user);
-                session.remove("error");
-                settingSave();
-                return "frame.jsp";
-            } catch (Exception e) {
-                session.put("error", getLoginError(e, isH2));
-                return "login.jsp";
-            }
+    protected boolean loginAsync(final String driver, final String url, final String user, final String password) {
+        if (socket == null
+                || !url.startsWith("jdbc:h2:")
+                || url.startsWith("jdbc:h2:tcp:")
+                || url.startsWith("jdbc:h2:ssl:")
+                || url.startsWith("jdbc:h2:mem:")) {
+            // async login only possible for H2 embedded
+            return false;
         }
 
         /**
@@ -422,7 +411,7 @@ class WebThread extends WebApp implements Runnable {
         } catch (IOException e) {
             // ignore
         }
-        return "";
+        return true;
     }
 
     private boolean allow() {

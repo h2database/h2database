@@ -293,45 +293,46 @@ public class ObjectArray<T> implements Iterable<T> {
      * @param l the first element (left)
      * @param r the last element (right)
      */
-    private void sort(Comparator<T> comp, int l, int r) {
-        int i, j;
-        while (r - l > 10) {
+    private void sort(Comparator<T> comp, int left, int right) {
+        T[] d = data;
+        while (right - left > 12) {
             // randomized pivot to avoid worst case
-            i = RandomUtils.nextInt(r - l - 4) + l + 2;
-            if (comp.compare(get(l), get(r)) > 0) {
-                swap(l, r);
+            int i = RandomUtils.nextInt(right - left - 4) + left + 2;
+            // d[left]: smallest, d[i]: highest, d[right]: median
+            if (comp.compare(d[left], d[i]) > 0) {
+                swap(left, i);
             }
-            if (comp.compare(get(i), get(l)) < 0) {
-                swap(l, i);
-            } else if (comp.compare(get(i), get(r)) > 0) {
-                swap(i, r);
+            if (comp.compare(d[left], d[right]) > 0) {
+                swap(left, right);
             }
-            j = r - 1;
-            swap(i, j);
-            T p = get(j);
-            i = l;
+            if (comp.compare(d[right], d[i]) > 0) {
+                swap(right, i);
+            }
+            T p = d[right];
+            i = left - 1;
+            int j = right;
             while (true) {
                 do {
                     ++i;
-                } while (comp.compare(get(i), p) < 0);
+                } while (comp.compare(d[i], p) < 0);
                 do {
                     --j;
-                } while (comp.compare(get(j), p) > 0);
+                } while (comp.compare(d[j], p) > 0);
                 if (i >= j) {
                     break;
                 }
                 swap(i, j);
             }
-            swap(i, r - 1);
-            sort(comp, l, i - 1);
-            l = i + 1;
+            swap(i, right);
+            sort(comp, left, i - 1);
+            left = i + 1;
         }
-        for (i = l + 1; i <= r; i++) {
-            T t = get(i);
-            for (j = i - 1; j >= l && (comp.compare(get(j), t) > 0); j--) {
-                set(j + 1, get(j));
+        for (int j, i = left + 1; i <= right; i++) {
+            T t = data[i];
+            for (j = i - 1; j >= left && (comp.compare(data[j], t) > 0); j--) {
+                data[j + 1] = data[j];
             }
-            set(j + 1, t);
+            data[j + 1] = t;
         }
     }
 
@@ -357,16 +358,6 @@ public class ObjectArray<T> implements Iterable<T> {
     public Iterator<T> iterator() {
         return new ObjectArrayIterator();
     }
-
-//    public void sortInsertion(Comparator comp) {
-//        for (int i = 1, j; i < size(); i++) {
-//            Object t = get(i);
-//            for (j = i - 1; j >= 0 && (comp.compare(get(j), t) < 0); j--) {
-//                set(j + 1, get(j));
-//            }
-//            set(j + 1, t);
-//        }
-//    }
 
     public String toString() {
         StatementBuilder buff = new StatementBuilder("{");

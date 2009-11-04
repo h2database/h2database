@@ -18,6 +18,7 @@ public interface BlockCipher {
 
     /**
      * Set the encryption key used for encrypting and decrypting.
+     * The key needs to be 16 bytes long.
      *
      * @param key the key
      */

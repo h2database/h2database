@@ -36,6 +36,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testLargeInserts();
         testAutoConvert();
         testLargeDatabaseFastOpen();
         testUniqueIndexReopen();
@@ -49,6 +50,20 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testLargeInserts() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(data varchar)");
+        stat.execute("insert into test values(space(1024 * 1024))");
+        stat.execute("insert into test values(space(1024 * 1024))");
+        conn.close();
     }
 
     private void testAutoConvert() throws SQLException {
@@ -142,11 +157,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         conn = DriverManager.getConnection(url);
         conn.createStatement().execute("select * from test");
         conn.close();
+        // the database is automatically converted
         conn = DriverManager.getConnection(url + ";PAGE_STORE=TRUE");
-        conn.createStatement().execute("create table test(id int) as select 2");
-        conn.close();
-        conn = DriverManager.getConnection(url);
-        this.assertResult("2", conn.createStatement(), "select * from test");
+        assertResult("1", conn.createStatement(), "select * from test");
         conn.close();
     }
 

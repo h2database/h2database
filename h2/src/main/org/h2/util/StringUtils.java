@@ -94,7 +94,7 @@ public class StringUtils {
     }
 
     /**
-     * Convert a string to the Java literal using the correct escape sequences.
+     * Convert a string to a Java literal using the correct escape sequences.
      * The literal is not enclosed in double quotes. The result can be used in
      * properties files or in Java source code.
      *
@@ -257,7 +257,7 @@ public class StringUtils {
 
     /**
      * Convert a string to the Java literal and enclose it with double quotes.
-     * Null will result in 'null'.
+     * Null will result in "null" (without double quotes).
      *
      * @param s the text to convert
      * @return the Java representation

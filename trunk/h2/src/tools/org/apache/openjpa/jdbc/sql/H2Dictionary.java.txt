@@ -30,9 +30,8 @@ public class H2Dictionary extends DBDictionary {
         autoAssignTypeName = "INTEGER";
         nextSequenceQuery = "CALL NEXT VALUE FOR {0}";
 
-        // CROSS JOIN is currently not supported
-        crossJoinClause = "JOIN";
-        requiresConditionForCrossJoin = true;
+        crossJoinClause = "CROSS JOIN";
+        requiresConditionForCrossJoin = false;
         stringLengthFunction = "LENGTH({0})";
         trimLeadingFunction = "LTRIM({0})";
         trimTrailingFunction = "RTRIM({0})";

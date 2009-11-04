@@ -385,6 +385,11 @@ public class WebApp implements DatabaseEventListener {
         return "helpTranslate.jsp";
     }
 
+    /**
+     * Stop the application and the server.
+     *
+     * @return the page to display
+     */
     protected String adminShutdown() {
         server.shutdown();
         return "admin.jsp";
@@ -813,15 +818,17 @@ public class WebApp implements DatabaseEventListener {
         return getStackTrace(0, e, isH2);
     }
 
-    protected String login() {
-        final String driver = attributes.getProperty("driver", "");
-        final String url = attributes.getProperty("url", "");
-        final String user = attributes.getProperty("user", "");
-        final String password = attributes.getProperty("password", "");
+    private String login() {
+        String driver = attributes.getProperty("driver", "");
+        String url = attributes.getProperty("url", "");
+        String user = attributes.getProperty("user", "");
+        String password = attributes.getProperty("password", "");
         session.put("autoCommit", "checked");
         session.put("autoComplete", "1");
         session.put("maxrows", "1000");
-
+        if (loginAsync(driver, url, user, password)) {
+            return "";
+        }
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
             Connection conn = server.getConnection(driver, url, user, password, this);
@@ -835,6 +842,19 @@ public class WebApp implements DatabaseEventListener {
             session.put("error", getLoginError(e, isH2));
             return "login.jsp";
         }
+    }
+
+    /**
+     * Login in a separate thread if possible.
+     *
+     * @param driver the driver class
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @return false if asynchronous login is not possible
+     */
+    protected boolean loginAsync(String driver, String url, String user, String password) {
+        return false;
     }
 
     private String logout() {

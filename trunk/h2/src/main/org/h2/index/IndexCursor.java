@@ -75,8 +75,6 @@ public class IndexCursor implements Cursor {
                 break;
             }
             Column column = condition.getColumn();
-            int type = column.getType();
-            int id = column.getColumnId();
             if (condition.getCompareType() == Comparison.IN_LIST) {
                 this.inColumn = column;
                 inList = condition.getCurrentValueList(session);
@@ -87,9 +85,10 @@ public class IndexCursor implements Cursor {
                 inResult = condition.getCurrentResult(session);
                 return;
             } else {
-                Value v = condition.getCurrentValue(session).convertTo(type);
+                Value v = column.convert(condition.getCurrentValue(session));
                 boolean isStart = condition.isStart();
                 boolean isEnd = condition.isEnd();
+                int id = column.getColumnId();
                 IndexColumn idxCol = indexColumns[id];
                 if (idxCol != null && (idxCol.sortType & SortOrder.DESCENDING) != 0) {
                     // if the index column is sorted the other way, we swap end and start
@@ -179,7 +178,7 @@ public class IndexCursor implements Cursor {
         } else if (inResult != null) {
             while (inResult.next()) {
                 Value v = inResult.currentRow()[0];
-                v = v.convertTo(inColumn.getType());
+                v = inColumn.convert(v);
                 if (inResultTested.add(v)) {
                     find(v);
                     break;
@@ -189,7 +188,7 @@ public class IndexCursor implements Cursor {
     }
 
     private void find(Value v) throws SQLException {
-        v = v.convertTo(inColumn.getType());
+        v = inColumn.convert(v);
         int id = inColumn.getColumnId();
         if (start == null) {
             start = table.getTemplateRow();

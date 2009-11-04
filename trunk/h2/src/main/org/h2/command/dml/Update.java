@@ -99,7 +99,7 @@ public class Update extends Prepared {
                             newValue = table.getDefaultValue(session, column);
                         } else {
                             Column column = table.getColumn(i);
-                            newValue = newExpr.getValue(session).convertTo(column.getType());
+                            newValue = column.convert(newExpr.getValue(session));
                         }
                         newRow.setValue(i, newValue);
                     }

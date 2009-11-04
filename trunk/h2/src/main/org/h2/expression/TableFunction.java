@@ -110,7 +110,7 @@ public class TableFunction extends Function {
                     } else {
                         Column c = columnList[j];
                         v = l[row];
-                        v = v.convertTo(c.getType());
+                        v = c.convert(v);
                         v = v.convertPrecision(c.getPrecision());
                         v = v.convertScale(true, c.getScale());
                     }

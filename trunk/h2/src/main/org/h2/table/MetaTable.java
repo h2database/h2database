@@ -1686,7 +1686,7 @@ public class MetaTable extends Table {
             String s = strings[i];
             Value v = (s == null) ? (Value) ValueNull.INSTANCE : ValueString.get(s);
             Column col = columns[i];
-            v = v.convertTo(col.getType());
+            v = col.convert(v);
             values[i] = v;
         }
         Row row = new Row(values, 0);

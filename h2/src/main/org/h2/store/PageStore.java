@@ -66,8 +66,8 @@ import org.h2.value.ValueString;
  * <ul>
  * <li>0-47: file header (3 time "-- H2 0.5/B -- \n")</li>
  * <li>48-51: page size in bytes (512 - 32768, must be a power of 2)</li>
- * <li>52: write version (if not 0 the file is opened in read-only mode)</li>
- * <li>53: read version (if not 0 opening the file fails)</li>
+ * <li>52: write version (read-only if larger than 1)</li>
+ * <li>53: read version (opening fails if larger than 1)</li>
  * </ul>
  * The format of page 1 and 2 is:
  * <ul>
@@ -138,8 +138,8 @@ public class PageStore implements CacheWriter {
 
     private static final int INCREMENT_PAGES = 128;
 
-    private static final int READ_VERSION = 0;
-    private static final int WRITE_VERSION = 0;
+    private static final int READ_VERSION = 1;
+    private static final int WRITE_VERSION = 1;
 
     private static final int META_TYPE_SCAN_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
@@ -559,10 +559,10 @@ public class PageStore implements CacheWriter {
         setPageSize(page.readInt());
         int writeVersion = page.readByte();
         int readVersion = page.readByte();
-        if (readVersion != 0) {
+        if (readVersion > READ_VERSION) {
             throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, fileName);
         }
-        if (writeVersion != 0) {
+        if (writeVersion > WRITE_VERSION) {
             close();
             database.setReadOnly(true);
             accessMode = "r";

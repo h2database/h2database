@@ -297,6 +297,10 @@ java org.h2.test.TestAll timer
 
 /*
 
+Describe workaround?
+System.setProperty("h2.maxCompactCount", "0");
+
+Increase write file format version
 testConcurrentMerge
 sort > tools
 

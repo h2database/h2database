@@ -18,7 +18,20 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved error messages: identifiers and values are now quoted.
+<ul><li>Page store: new databases can not be opened with older versions.
+</li><li>Page store: updating large rows (rows with more than 2000 bytes of data)
+    could corrupt the database.
+</li><li>When using multi-threaded kernel mode, setting disabling locking (LOCK_MODE=0)
+    will now throw an exception. At this time this combination will result in corruption when
+    multiple threads try to update the same table.
+</li><li>The fulltext search methods and fields are now protected instead of private,
+    to make the classes more easily extensible.
+</li><li>The Lucene fulltext search now also returns the score.
+</li><li> New function SCOPE_IDENTITY() to avoid problems when inserting
+    rows in a trigger.
+</li><li>Statement.getGeneratedKeys() returned the wrong value if a trigger
+    changed the identity value after inserting the row.
+</li><li>Improved error messages: identifiers and values are now quoted.
 </li><li>Improved error message when casting a value failed:
     the column name and type is included in the message.
 </li><li>Page store: inserting very large rows failed with ArrayIndexOutOfBoundsException.

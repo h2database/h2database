@@ -36,6 +36,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testLargeUpdates();
         testLargeInserts();
         testAutoConvert();
         testLargeDatabaseFastOpen();
@@ -50,6 +51,36 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testLargeUpdates() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        Statement stat = conn.createStatement();
+        int size = 1500;
+        stat.execute("call rand(1)");
+        stat.execute("create table test(id int primary key, data varchar, test int) as " +
+                "select x, '', 123 from system_range(1, " + size + ")");
+        Random random = new Random(1);
+        PreparedStatement prep = conn.prepareStatement(
+                "update test set data=space(?) where id=?");
+        for (int i = 0; i < 2500; i++) {
+            int id = random.nextInt(size);
+            int newSize = random.nextInt(6000);
+            prep.setInt(1, newSize);
+            prep.setInt(2, id);
+            prep.execute();
+        }
+        conn.close();
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from test where test<>123");
+        assertFalse(rs.next());
+        conn.close();
     }
 
     private void testLargeInserts() throws SQLException {
@@ -142,7 +173,6 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         conn.close();
     }
 
-
     private void testExistingOld() throws SQLException {
         if (config.memory) {
             return;
@@ -191,7 +221,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
                 stat.execute("create index idx_test" + i + " on test" + i + "(name)");
                 insert[i] = conn.prepareStatement("insert into test" + i + " values(?, ? || space(?))");
                 deleteMany[i] = conn.prepareStatement("delete from test" + i + " where id between ? and ?");
-                updateMany[i] = conn.prepareStatement("update test" + i + " set name=? || space(?) where id between ? and ?");
+                updateMany[i] = conn.prepareStatement("update test" + i
+                        + " set name=? || space(?) where id between ? and ?");
             }
             Random random = new Random(seed);
             for (int i = 0; i < 1000; i++) {
@@ -279,12 +310,12 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         conn = getConnection("pageStore");
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
-        stat.execute("insert into test values(" + Integer.MIN_VALUE+ "), (" + Integer.MAX_VALUE + ")");
+        stat.execute("insert into test values(" + Integer.MIN_VALUE + "), (" + Integer.MAX_VALUE + ")");
         stat.execute("alter table test drop primary key");
         conn.close();
         conn = getConnection("pageStore");
         stat = conn.createStatement();
-        stat.execute("insert into test values(" + Integer.MIN_VALUE+ "), (" + Integer.MAX_VALUE + ")");
+        stat.execute("insert into test values(" + Integer.MIN_VALUE + "), (" + Integer.MAX_VALUE + ")");
         conn.close();
     }
 
@@ -405,11 +436,11 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         for (int i = 0; i < len; i++) {
             int op = random.nextInt(3);
             Integer x = new Integer(random.nextInt(100));
-            switch(op) {
+            switch (op) {
             case 0:
                 if (!rows.contains(x)) {
                     log("insert into test(id) values(" + x + ");");
-                    stat.execute("INSERT INTO TEST(ID) VALUES("+ x + ");");
+                    stat.execute("INSERT INTO TEST(ID) VALUES(" + x + ");");
                     rows.add(x);
                 }
                 break;

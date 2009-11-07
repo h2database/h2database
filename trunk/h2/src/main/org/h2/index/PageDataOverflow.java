@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.store.Data;
@@ -228,16 +229,19 @@ public class PageDataOverflow extends Page {
         }
         if (p instanceof PageDataOverflow) {
             PageDataOverflow p1 = (PageDataOverflow) p;
-            p1.setNext(newPos);
+            p1.setNext(getPos(), newPos);
         } else {
             PageDataLeaf p1 = (PageDataLeaf) p;
-            p1.setOverflow(newPos);
+            p1.setOverflow(getPos(), newPos);
         }
         store.update(p);
         store.free(getPos(), true);
     }
 
-    private void setNext(int nextPage) throws SQLException {
+    private void setNext(int old, int nextPage) throws SQLException {
+        if (SysProperties.CHECK && old != this.nextPage) {
+            Message.throwInternalError("move " + this + " " + nextPage);
+        }
         store.logUndo(this, data);
         this.nextPage = nextPage;
         data.setInt(START_NEXT_OVERFLOW, nextPage);

@@ -262,6 +262,7 @@ public class PageDataLeaf extends PageData {
         if (entryCount < 0) {
             Message.throwInternalError();
         }
+        freeChildren();
         firstOverflowPageId = 0;
         overflowRowSize = 0;
         rowRef = null;
@@ -274,6 +275,8 @@ public class PageDataLeaf extends PageData {
         System.arraycopy(rows, 0, newRows, 0, i);
         int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[i];
+        int clearStart = offsets[entryCount];
+        Arrays.fill(data.getBytes(), clearStart, clearStart + rowLength, (byte) 0);
         for (int j = i; j < entryCount; j++) {
             newOffsets[j] = offsets[j + 1] + rowLength;
         }
@@ -461,9 +464,6 @@ public class PageDataLeaf extends PageData {
         if (written) {
             return;
         }
-        if (SysProperties.CHECK && firstOverflowPageId != 0 && rows[0] == null) {
-            Message.throwInternalError(toString());
-        }
         readAllRows();
         writeHead();
         if (firstOverflowPageId != 0) {
@@ -520,7 +520,16 @@ public class PageDataLeaf extends PageData {
         }
     }
 
-    void setOverflow(int overflow) throws SQLException {
+    /**
+     * Set the overflow page id.
+     *
+     * @param old the old overflow page id
+     * @param overflow the new overflow page id
+     */
+    void setOverflow(int old, int overflow) throws SQLException {
+        if (SysProperties.CHECK && old != firstOverflowPageId) {
+            Message.throwInternalError("move " + this + " " + firstOverflowPageId);
+        }
         index.getPageStore().logUndo(this, data);
         firstOverflowPageId = overflow;
         if (written) {

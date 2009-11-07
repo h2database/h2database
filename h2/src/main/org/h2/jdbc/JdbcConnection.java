@@ -1390,7 +1390,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     ResultInterface getGeneratedKeys() throws SQLException {
-        getGeneratedKeys = prepareCommand("CALL IDENTITY()", getGeneratedKeys);
+        getGeneratedKeys = prepareCommand("CALL SCOPE_IDENTITY()", getGeneratedKeys);
         return getGeneratedKeys.executeQuery(0, false);
     }
 

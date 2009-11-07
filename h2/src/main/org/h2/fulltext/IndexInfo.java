@@ -9,35 +9,35 @@ package org.h2.fulltext;
 /**
  * The settings of one full text search index.
  */
-class IndexInfo {
+public class IndexInfo {
 
     /**
      * The index id.
      */
-    int id;
+    protected int id;
 
     /**
      * The schema name.
      */
-    String schema;
+    protected String schema;
 
     /**
      * The table name.
      */
-    String table;
+    protected String table;
 
     /**
      * The column indexes of the key columns.
      */
-    int[] keys;
+    protected int[] keys;
 
     /**
      * The column indexes of the index columns.
      */
-    int[] indexColumns;
+    protected int[] indexColumns;
 
     /**
      * The column names.
      */
-    String[] columns;
+    protected String[] columns;
 }

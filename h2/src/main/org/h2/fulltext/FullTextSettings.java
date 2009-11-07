@@ -19,25 +19,60 @@ import org.h2.util.SoftHashMap;
 /**
  * The global settings of a full text search.
  */
-class FullTextSettings {
+public class FullTextSettings {
 
-    private static final HashMap<String, FullTextSettings> SETTINGS = New.hashMap();
+    /**
+     * The settings of open indexes.
+     */
+    protected static final HashMap<String, FullTextSettings> SETTINGS = New.hashMap();
 
-    private boolean initialized;
-    private HashSet<String> ignoreList = New.hashSet();
-    private HashMap<String, Integer> words = New.hashMap();
-    private HashMap<Integer, IndexInfo> indexes = New.hashMap();
-    private SoftHashMap<String, PreparedStatement> cache = new SoftHashMap<String, PreparedStatement>();
+    /**
+     * Whether this instance has been initialized.
+     */
+    protected boolean initialized;
 
-    private FullTextSettings() {
+    /**
+     * The set of words not to index (stop words).
+     */
+    protected HashSet<String> ignoreList = New.hashSet();
+
+    /**
+     * The set of words / terms.
+     */
+    protected HashMap<String, Integer> words = New.hashMap();
+
+    /**
+     * The set of indexes in this database.
+     */
+    protected HashMap<Integer, IndexInfo> indexes = New.hashMap();
+
+    /**
+     * The prepared statement cache.
+     */
+    protected SoftHashMap<String, PreparedStatement> cache = new SoftHashMap<String, PreparedStatement>();
+
+    /**
+     * Create a new instance.
+     */
+    protected FullTextSettings() {
         // don't allow construction
     }
 
-    HashSet<String> getIgnoreList() {
+    /**
+     * Get the ignore list.
+     *
+     * @return the ignore list
+     */
+    protected HashSet<String> getIgnoreList() {
         return ignoreList;
     }
 
-    HashMap<String, Integer> getWordList() {
+    /**
+     * Get the word list.
+     *
+     * @return the word list
+     */
+    protected HashMap<String, Integer> getWordList() {
         return words;
     }
 
@@ -47,7 +82,7 @@ class FullTextSettings {
      * @param indexId the index id
      * @return the index info
      */
-    IndexInfo getIndexInfo(int indexId) {
+    protected IndexInfo getIndexInfo(int indexId) {
         return indexes.get(indexId);
     }
 
@@ -56,7 +91,7 @@ class FullTextSettings {
      *
      * @param index the index
      */
-    void addIndexInfo(IndexInfo index) {
+    protected void addIndexInfo(IndexInfo index) {
         indexes.put(index.id, index);
     }
 
@@ -67,7 +102,7 @@ class FullTextSettings {
      * @param word the word to convert and check
      * @return the uppercase version of the word or null
      */
-    String convertWord(String word) {
+    protected String convertWord(String word) {
         // TODO this is locale specific, document
         word = word.toUpperCase();
         if (ignoreList.contains(word)) {
@@ -82,7 +117,7 @@ class FullTextSettings {
      * @param conn the connection
      * @return the settings
      */
-    static FullTextSettings getInstance(Connection conn) throws SQLException {
+    protected static FullTextSettings getInstance(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
         FullTextSettings setting = SETTINGS.get(path);
         if (setting == null) {
@@ -92,7 +127,13 @@ class FullTextSettings {
         return setting;
     }
 
-    private static String getIndexPath(Connection conn) throws SQLException {
+    /**
+     * Get the file system path.
+     *
+     * @param conn the connection
+     * @return the file system path
+     */
+    protected static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("CALL IFNULL(DATABASE_PATH(), 'MEM:' || DATABASE())");
         rs.next();
@@ -111,7 +152,7 @@ class FullTextSettings {
      * @param sql the statement
      * @return the prepared statement
      */
-    synchronized PreparedStatement prepare(Connection conn, String sql) throws SQLException {
+    protected synchronized PreparedStatement prepare(Connection conn, String sql) throws SQLException {
         PreparedStatement prep = cache.get(sql);
         if (prep != null && prep.getConnection().isClosed()) {
             prep = null;
@@ -126,7 +167,7 @@ class FullTextSettings {
     /**
      * Remove all indexes from the settings.
      */
-    void removeAllIndexes() {
+    protected void removeAllIndexes() {
         indexes.clear();
     }
 
@@ -135,15 +176,25 @@ class FullTextSettings {
      *
      * @param index the index to remove
      */
-    void removeIndexInfo(IndexInfo index) {
+    protected void removeIndexInfo(IndexInfo index) {
         indexes.remove(index.id);
     }
 
-    void setInitialized(boolean b) {
+    /**
+     * Set the initialized flag.
+     *
+     * @param b the new value
+     */
+    protected void setInitialized(boolean b) {
         this.initialized = b;
     }
 
-    boolean isInitialized() {
+    /**
+     * Get the initialized flag.
+     *
+     * @return whether this instance is initialized
+     */
+    protected boolean isInitialized() {
         return initialized;
     }
 

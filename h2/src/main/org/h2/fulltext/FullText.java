@@ -49,35 +49,40 @@ import org.h2.value.DataType;
  */
 public class FullText {
 
-    private static final String TRIGGER_PREFIX = "FT_";
-    private static final String SCHEMA = "FT";
-    private static final String SELECT_MAP_BY_WORD_ID = "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?";
-    private static final String SELECT_ROW_BY_ID = "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?";
+    /**
+     * A column name of the result set returned by the searchData method.
+     */
+    protected static final String FIELD_SCHEMA = "SCHEMA";
 
     /**
      * A column name of the result set returned by the searchData method.
      */
-    private static final String FIELD_SCHEMA = "SCHEMA";
+    protected static final String FIELD_TABLE = "TABLE";
 
     /**
      * A column name of the result set returned by the searchData method.
      */
-    private static final String FIELD_TABLE = "TABLE";
+    protected static final String FIELD_COLUMNS = "COLUMNS";
 
     /**
      * A column name of the result set returned by the searchData method.
      */
-    private static final String FIELD_COLUMNS = "COLUMNS";
-
-    /**
-     * A column name of the result set returned by the searchData method.
-     */
-    private static final String FIELD_KEYS = "KEYS";
+    protected static final String FIELD_KEYS = "KEYS";
 
     /**
      * The column name of the result set returned by the search method.
      */
-    private static final String FIELD_QUERY = "QUERY";
+    protected static final String FIELD_QUERY = "QUERY";
+
+    /**
+     * The hit score.
+     */
+    protected static final String FIELD_SCORE = "SCORE";
+
+    private static final String TRIGGER_PREFIX = "FT_";
+    private static final String SCHEMA = "FT";
+    private static final String SELECT_MAP_BY_WORD_ID = "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?";
+    private static final String SELECT_ROW_BY_ID = "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?";
 
     /**
      * Initializes full text search functionality for this database. This adds
@@ -247,6 +252,8 @@ public class FullText {
      * <ul><li>QUERY (varchar): the query to use to get the data.
      * The query does not include 'SELECT * FROM '. Example:
      * PUBLIC.TEST WHERE ID = 1
+     * </li><li>SCORE (float) the relevance score. This value is always 1.0
+     * for the native fulltext search.
      * </li></ul>
      *
      * @param conn the connection
@@ -269,6 +276,9 @@ public class FullText {
      * <li>COLUMNS (array of varchar): comma separated list of quoted column
      * names. The column names are quoted if necessary. Example: (ID) </li>
      * <li>KEYS (array of values): comma separated list of values. Example: (1)
+     * </li>
+     * <li>SCORE (float) the relevance score. This value is always 1.0
+     * for the native fulltext search.
      * </li>
      * </ul>
      *
@@ -377,6 +387,7 @@ public class FullText {
         } else {
             result.addColumn(FullText.FIELD_QUERY, Types.VARCHAR, 0, 0);
         }
+        result.addColumn(FullText.FIELD_SCORE, Types.FLOAT, 0, 0);
         return result;
     }
 
@@ -501,7 +512,17 @@ public class FullText {
         }
     }
 
-    private static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
+    /**
+     * Do the search.
+     *
+     * @param conn the database connection
+     * @param text the query
+     * @param limit the limit
+     * @param offset the offset
+     * @param data whether the raw data should be returned
+     * @return the result set
+     */
+    protected static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
         SimpleResultSet result = createResultSet(data);
         if (conn.getMetaData().getURL().startsWith("jdbc:columnlist:")) {
             // this is just to query the result set columns
@@ -559,12 +580,13 @@ public class FullText {
                             index.schema,
                             index.table,
                             columnData[0],
-                            columnData[1]);
+                            columnData[1],
+                            1.0);
                 } else {
                     String query = StringUtils.quoteIdentifier(index.schema) +
                         "." + StringUtils.quoteIdentifier(index.table) +
                         " WHERE " + key;
-                    result.addRow(query);
+                    result.addRow(query, 1.0);
                 }
                 rowCount++;
                 if (limit > 0 && rowCount >= limit) {
@@ -603,7 +625,7 @@ public class FullText {
      * @param set the hash set
      * @param reader the reader
      */
-    static void addWords(FullTextSettings setting, HashSet<String> set, Reader reader) throws SQLException {
+    protected static void addWords(FullTextSettings setting, HashSet<String> set, Reader reader) throws SQLException {
         StreamTokenizer tokenizer = new StreamTokenizer(reader);
         tokenizer.resetSyntax();
         tokenizer.wordChars(' ' + 1, 255);
@@ -628,14 +650,14 @@ public class FullText {
         }
     }
 
-        /**
+    /**
      * Add all words in the given text to the hash set.
      *
      * @param setting the fulltext settings
      * @param set the hash set
      * @param text the text
      */
-    static void addWords(FullTextSettings setting, HashSet<String> set, String text) {
+    protected static void addWords(FullTextSettings setting, HashSet<String> set, String text) {
         StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
         while (tokenizer.hasMoreTokens()) {
             String word = tokenizer.nextToken();
@@ -646,7 +668,14 @@ public class FullText {
         }
     }
 
-    private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
+    /**
+     * Create the trigger.
+     *
+     * @param conn the database connection
+     * @param schema the schema name
+     * @param table the table name
+     */
+    protected static void createTrigger(Connection conn, String schema, String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
 
@@ -669,7 +698,14 @@ public class FullText {
         }
     }
 
-    private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
+    /**
+     * Add the existing data to the index.
+     *
+     * @param conn the database connection
+     * @param schema the schema name
+     * @param table the table name
+     */
+    protected static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
         FullText.FullTextTrigger existing = new FullText.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
         String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table);
@@ -720,7 +756,7 @@ public class FullText {
      * @param indexColumns the indexed columns
      * @return true if the indexed columns don't match
      */
-    static boolean hasChanged(Object[] oldRow, Object[] newRow, int[] indexColumns) {
+    protected static boolean hasChanged(Object[] oldRow, Object[] newRow, int[] indexColumns) {
         for (int c : indexColumns) {
             Object o = oldRow[c], n = newRow[c];
             if (o == null) {
@@ -739,12 +775,12 @@ public class FullText {
      */
     public static class FullTextTrigger implements Trigger, CloseListener {
 
-        private FullTextSettings setting;
-        private IndexInfo index;
-        private int[] columnTypes;
-        private PreparedStatement prepInsertWord, prepInsertRow, prepInsertMap;
-        private PreparedStatement prepDeleteRow, prepDeleteMap;
-        private PreparedStatement prepSelectRow;
+        protected FullTextSettings setting;
+        protected IndexInfo index;
+        protected int[] columnTypes;
+        protected PreparedStatement prepInsertWord, prepInsertRow, prepInsertMap;
+        protected PreparedStatement prepDeleteRow, prepDeleteMap;
+        protected PreparedStatement prepSelectRow;
 
         /**
          * INTERNAL
@@ -859,7 +895,13 @@ public class FullText {
             setting.removeIndexInfo(index);
         }
 
-        private void insert(FullTextSettings setting, Object[] row) throws SQLException {
+        /**
+         * Add a row to the index.
+         *
+         * @param setting the setting
+         * @param row the row
+         */
+        protected void insert(FullTextSettings setting, Object[] row) throws SQLException {
             String key = getKey(row);
             int hash = key.hashCode();
             prepInsertRow.setInt(1, hash);
@@ -877,7 +919,13 @@ public class FullText {
             }
         }
 
-        private void delete(FullTextSettings setting, Object[] row) throws SQLException {
+        /**
+         * Delete a row from the index.
+         *
+         * @param setting the setting
+         * @param row the row
+         */
+        protected void delete(FullTextSettings setting, Object[] row) throws SQLException {
             String key = getKey(row);
             int hash = key.hashCode();
             prepSelectRow.setInt(1, hash);

@@ -53,7 +53,7 @@ public class FullTextLucene extends FullText {
     /**
      * Whether the text content should be stored in the Lucene index.
      */
-    static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
+    protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
 
     //## Java 1.4 begin ##
     private static final HashMap<String, IndexModifier> INDEX_MODIFIERS = New.hashMap();
@@ -169,6 +169,7 @@ public class FullTextLucene extends FullText {
      * <ul><li>QUERY (varchar): the query to use to get the data.
      * The query does not include 'SELECT * FROM '. Example:
      * PUBLIC.TEST WHERE ID = 1
+     * </li><li>SCORE (float) the relevance score as returned by Lucene.
      * </li></ul>
      *
      * @param conn the connection
@@ -193,6 +194,7 @@ public class FullTextLucene extends FullText {
      * <li>COLUMNS (array of varchar): comma separated list of quoted column
      * names. The column names are quoted if necessary. Example: (ID) </li>
      * <li>KEYS (array of values): comma separated list of values. Example: (1)
+     * </li><li>SCORE (float) the relevance score as returned by Lucene.
      * </li>
      * </ul>
      *
@@ -213,13 +215,20 @@ public class FullTextLucene extends FullText {
      * @param e the original exception
      * @return the converted SQL exception
      */
-    static SQLException convertException(Exception e) {
+    protected static SQLException convertException(Exception e) {
         SQLException e2 = new SQLException("FULLTEXT", "Error while indexing document");
         e2.initCause(e);
         return e2;
     }
 
-    private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
+    /**
+     * Create the trigger.
+     *
+     * @param conn the database connection
+     * @param schema the schema name
+     * @param table the table name
+     */
+    protected static void createTrigger(Connection conn, String schema, String table) throws SQLException {
         Statement stat = conn.createStatement();
         String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
@@ -241,7 +250,7 @@ public class FullTextLucene extends FullText {
      * @param conn the connection
      * @return the index modifier
      */
-    static IndexModifier getIndexModifier(Connection conn) throws SQLException {
+    protected static IndexModifier getIndexModifier(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
         IndexModifier indexer;
         synchronized (INDEX_MODIFIERS) {
@@ -266,7 +275,7 @@ public class FullTextLucene extends FullText {
      * @param conn the database connection
      * @return the path
      */
-    static String getIndexPath(Connection conn) throws SQLException {
+    protected static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");
         rs.next();
@@ -278,7 +287,14 @@ public class FullTextLucene extends FullText {
         return path;
     }
 
-    private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
+    /**
+     * Add the existing data to the index.
+     *
+     * @param conn the database connection
+     * @param schema the schema name
+     * @param table the table name
+     */
+    protected static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
         FullTextLucene.FullTextTrigger existing = new FullTextLucene.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
         String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table);
@@ -308,7 +324,7 @@ public class FullTextLucene extends FullText {
      * @param indexModifier the index modifier
      * @param indexPath the index path
      */
-    static void removeIndexModifier(IndexModifier indexModifier, String indexPath) throws SQLException {
+    protected static void removeIndexModifier(IndexModifier indexModifier, String indexPath) throws SQLException {
         synchronized (INDEX_MODIFIERS) {
             try {
                 INDEX_MODIFIERS.remove(indexPath);
@@ -320,7 +336,17 @@ public class FullTextLucene extends FullText {
         }
     }
 
-    private static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
+    /**
+     * Do the search.
+     *
+     * @param conn the database connection
+     * @param text the query
+     * @param limit the limit
+     * @param offset the offset
+     * @param data whether the raw data should be returned
+     * @return the result set
+     */
+    protected static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
         SimpleResultSet result = createResultSet(data);
         if (conn.getMetaData().getURL().startsWith("jdbc:columnlist:")) {
             // this is just to query the result set columns
@@ -345,6 +371,7 @@ public class FullTextLucene extends FullText {
             }
             for (int i = 0; i < limit && i + offset < max; i++) {
                 Document doc = hits.doc(i + offset);
+                float score = hits.score(i + offset);
                 String q = doc.get(FIELD_QUERY);
                 if (data) {
                     int idx = q.indexOf(" WHERE ");
@@ -361,9 +388,10 @@ public class FullTextLucene extends FullText {
                             schemaName,
                             tableName,
                             columnData[0],
-                            columnData[1]);
+                            columnData[1],
+                            score);
                 } else {
-                    result.addRow(q);
+                    result.addRow(q, score);
                 }
             }
             // TODO keep it open if possible
@@ -385,14 +413,14 @@ public class FullTextLucene extends FullText {
     {
 
         //## Java 1.4 begin ##
-        private String schema;
-        private String table;
-        private int[] keys;
-        private int[] indexColumns;
-        private String[] columns;
-        private int[] columnTypes;
-        private String indexPath;
-        private IndexModifier indexModifier;
+        protected String schema;
+        protected String table;
+        protected int[] keys;
+        protected int[] indexColumns;
+        protected String[] columns;
+        protected int[] columnTypes;
+        protected String indexPath;
+        protected IndexModifier indexModifier;
         //## Java 1.4 end ##
 
         /**
@@ -504,7 +532,12 @@ public class FullTextLucene extends FullText {
             // ignore
         }
 
-        private void insert(Object[] row) throws SQLException {
+        /**
+         * Add a row to the index.
+         *
+         * @param row the row
+         */
+        protected void insert(Object[] row) throws SQLException {
             String query = getQuery(row);
             Document doc = new Document();
             doc.add(new Field(FIELD_QUERY, query, Field.Store.YES, Field.Index.UN_TOKENIZED));
@@ -528,7 +561,12 @@ public class FullTextLucene extends FullText {
             }
         }
 
-        private void delete(Object[] row) throws SQLException {
+        /**
+         * Delete a row from the index.
+         *
+         * @param row the row
+         */
+        protected void delete(Object[] row) throws SQLException {
             String query = getQuery(row);
             try {
                 Term term = new Term(FIELD_QUERY, query);

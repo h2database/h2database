@@ -1997,6 +1997,7 @@ public class Database implements DataHandler {
                 // currently the combination of LOCK_MODE=0 and MULTI_THREADED is not supported
                 throw Message.getSQLException(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "LOCK_MODE=0 & MULTI_THREADED");
             }
+            break;
         case Constants.LOCK_MODE_READ_COMMITTED:
         case Constants.LOCK_MODE_TABLE:
         case Constants.LOCK_MODE_TABLE_GC:

@@ -44,12 +44,13 @@ INSERT INTO TEST VALUES(1, 'Hello')
 "
 
 "Commands (DML)","UPDATE","
-UPDATE tableName SET { columnName= { DEFAULT | expression } } [,...]
+UPDATE tableName [ [ AS ] newTableAlias ] SET { columnName= { DEFAULT | expression } } [,...]
 [ WHERE expression ]
 ","
 Updates data in a table.
 ","
-UPDATE TEST SET NAME='Hi' WHERE ID=1
+UPDATE TEST SET NAME='Hi' WHERE ID=1;
+UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 "
 
 "Commands (DML)","DELETE","
@@ -1034,7 +1035,7 @@ SET IGNORECASE TRUE
 SET LOCK_MODE int
 ","
 Sets the lock mode. The values 0, 1, 2, and 3 are supported. The default is 3
-(READ_COMMITTED).
+(READ_COMMITTED). This setting affects all connections.
 
 The value 0 means no locking (should only be used for testing; also known as
 READ_UNCOMMITTED). Please note that using SET LOCK_MODE 0 while at the same time
@@ -3229,6 +3230,8 @@ CALL GREATEST(1, 2, 3);
 IDENTITY()
 ","
 Returns the last inserted identity value for this session.
+This value changes whenever a new sequence number was generated,
+even within a trigger or Java function. See also SCOPE_IDENTITY().
 This method returns a long.
 ","
 CALL IDENTITY();
@@ -3349,6 +3352,16 @@ SCHEMA()
 Returns the name of the default  schema for this session.
 ","
 CALL SCHEMA()
+"
+
+"Functions (System)","SCOPE_IDENTITY","
+SCOPE_IDENTITY()
+","
+Returns the last inserted identity value for this session for the current scope.
+Changes within triggers and Java functions are ignored. See also IDENTITY().
+This method returns a long.
+","
+CALL SCOPE_IDENTITY();
 "
 
 "Functions (System)","SESSION_ID","

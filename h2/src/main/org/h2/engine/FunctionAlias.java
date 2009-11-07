@@ -292,6 +292,7 @@ public class FunctionAlias extends DbObjectBase {
                 }
             }
             boolean old = session.getAutoCommit();
+            Value identity = session.getScopeIdentity();
             try {
                 session.setAutoCommit(false);
                 try {
@@ -306,6 +307,7 @@ public class FunctionAlias extends DbObjectBase {
                     throw Message.convert(e);
                 }
             } finally {
+                session.setScopeIdentity(identity);
                 session.setAutoCommit(old);
             }
         }

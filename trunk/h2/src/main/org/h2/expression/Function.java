@@ -91,8 +91,8 @@ public class Function extends Expression implements FunctionCall {
             CURRENT_TIMESTAMP = 119, EXTRACT = 120, FORMATDATETIME = 121, PARSEDATETIME = 122,
             ISO_YEAR = 123, ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
 
-    public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152, IDENTITY = 153, AUTOCOMMIT = 154,
-            READONLY = 155, DATABASE_PATH = 156, LOCK_TIMEOUT = 157;
+    public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152, IDENTITY = 153, SCOPE_IDENTITY = 154,
+            AUTOCOMMIT = 155, READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158;
 
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203, COALESCE = 204, NULLIF = 205,
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
@@ -286,6 +286,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("USER", USER, 0, Value.STRING);
         addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER, 0, Value.STRING);
         addFunctionNotDeterministic("IDENTITY", IDENTITY, 0, Value.LONG);
+        addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY, 0, Value.LONG);
         addFunctionNotDeterministic("IDENTITY_VAL_LOCAL", IDENTITY, 0, Value.LONG);
         addFunctionNotDeterministic("LAST_INSERT_ID", IDENTITY, 0, Value.LONG);
         addFunctionNotDeterministic("LASTVAL", IDENTITY, 0, Value.LONG);
@@ -687,6 +688,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         case IDENTITY:
             result = session.getLastIdentity();
+            break;
+        case SCOPE_IDENTITY:
+            result = session.getScopeIdentity();
             break;
         case AUTOCOMMIT:
             result = ValueBoolean.get(session.getAutoCommit());

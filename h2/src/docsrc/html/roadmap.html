@@ -54,7 +54,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support alter table add column if table has views defined
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
-</li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger.
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Support mixed clustering mode (one embedded, others in server mode)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
@@ -62,7 +61,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Migrate database tool (also from other database engines)
-</li><li>Automatic collection of statistics (auto ANALYZE)
+</li><li>Automatic collection of statistics (auto ANALYZE; AUTOVACUUM). See http://www.postgresql.org/docs/current/static/routine-vacuuming.html#AUTOVACUUM
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
 </li><li>Rebuild index functionality to shrink index size and improve performance
@@ -76,9 +75,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
 </li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after
 </li><li>Implement, test, document XAConnection and so on
-</li><li>Pluggable data type (for compression, validation, conversion, encryption)
+</li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption)
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
-</li><li>Improve recovery: improve code for log recovery problems (less try/catch)
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document
 </li><li>Make DDL (Data Definition) operations transactional
 </li><li>RANK() and DENSE_RANK(), Partition using OVER()
@@ -155,7 +153,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Auto-Update feature for database, .jar file
 </li><li>ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp
 </li><li>Partial indexing (see PostgreSQL)
-</li><li>The build should fail if the test fails
 </li><li>Add GUI to build a custom version (embedded, fulltext,...) using build flags
 </li><li>http://rubyforge.org/projects/hypersonic/
 </li><li>Add comparator (x === y) : (x = y or (x is null and y is null))
@@ -194,7 +191,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Public interface for functions (not public static)
 </li><li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
-</li><li>Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
+</li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index
 </li><li>Use LinkedList instead of ArrayList where applicable
 </li><li>Support % operator (modulo)
@@ -254,7 +251,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
 </li><li>Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
-</li><li>Store dates as 'local'. Existing files use GMT. Use escape syntax for compatibility.
 </li><li>Support data type INTERVAL
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
@@ -279,7 +275,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
 </li><li>Javadoc: document design patterns used
-</li><li>Write an article about SQLInjection (h2\src\docsrc\html\images\SQLInjection.txt)
+</li><li>Write an article about SQLInjection (h2/src/docsrc/html/images/SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 </li><li>Improve LOB in directories performance
 </li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
@@ -294,7 +290,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Recovery should work with encrypted databases
 </li><li>Corruption: new error code, add help
 </li><li>Space reuse: after init, scan all storages and free those that don't belong to a live database object
-</li><li>SysProperties: change everything to H2_...
 </li><li>Use FilterIn / FilterOut putStream?
 </li><li>Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 </li><li>Support NOCACHE table option (Oracle)
@@ -331,7 +326,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console: support configuration option for fixed width (monospace) font.
 </li><li>Native fulltext search: support analyzers (specially for Chinese, Japanese).
 </li><li>Automatically compact databases from time to time (as a background process).
-</li><li>Support SCOPE_IDENTITY().
 </li><li>Support GRANT SELECT, UPDATE ON *.
 </li><li>Test Eclipse DTP.
 </li><li>H2 Console: autocomplete: keep the previous setting
@@ -348,14 +342,13 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Auto-server: add option to define the IP address range or list.
-</li><li>Index creation only using deterministic functions.
+</li><li>Index creation using deterministic functions.
 </li><li>Use http://recaptcha.net somehow to secure the Google Group.
 </li><li>Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
-</li><li>Change the default for NULL || 'x' to return NULL
 </li><li>ANALYZE: use a bloom filter for each indexed column to estimate count of distinct values.
 </li><li>ANALYZE: for unique indexes that allow null, count the number of null.
 </li><li>AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
-</li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and seems to be buggy.
+</li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and buggy.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system.
 </li><li>Fulltext search: lazy result generation using SimpleRowSource.

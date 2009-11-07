@@ -18,7 +18,7 @@ INSERT INTO tableName [ ( columnName [,...] ) ]
 ","
 Inserts a new row / new rows into a table."
 "Commands (DML)","UPDATE","
-UPDATE tableName SET { columnName= { DEFAULT | expression } } [,...]
+UPDATE tableName [ [ AS ] newTableAlias ] SET { columnName= { DEFAULT | expression } } [,...]
 [ WHERE expression ]
 ","
 Updates data in a table."
@@ -1304,6 +1304,10 @@ Returns the number of the current row."
 SCHEMA()
 ","
 Returns the name of the default  schema for this session."
+"Functions (System)","SCOPE_IDENTITY","
+SCOPE_IDENTITY()
+","
+Returns the last inserted identity value for this session for the current scope."
 "Functions (System)","SESSION_ID","
 SESSION_ID()
 ","

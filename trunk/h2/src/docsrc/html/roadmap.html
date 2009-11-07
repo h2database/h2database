@@ -81,6 +81,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Make DDL (Data Definition) operations transactional
 </li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter
+</li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
+    ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Suggestion: include Jetty as Servlet Container (like LAMP)
 </li><li>Trace shipping to server
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
@@ -138,8 +140,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Clustering: reads should be randomly distributed or to a designated database on RAM
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master
 </li><li>File system that writes to two file systems (replication, replicating file system)
-</li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
-    ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle)
 </li><li>JAMon (proxy jdbc driver)

@@ -61,7 +61,6 @@ public class FullTextLucene extends FullText {
     private static final String SCHEMA = "FTL";
     private static final String FIELD_DATA = "DATA";
     private static final String FIELD_COLUMN_PREFIX = "_";
-    private static final String FIELD_QUERY = "QUERY";
     //## Java 1.4 end ##
 
     /**

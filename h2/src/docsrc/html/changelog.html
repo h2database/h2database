@@ -18,9 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.123 (2009-11-08)</h2>
 <ul><li>Page store: new databases can not be opened with older versions.
 </li><li>Page store: updating large rows (rows with more than 2000 bytes of data)
     could corrupt the database.
+</li><li>Page store: inserting very large rows failed with ArrayIndexOutOfBoundsException.
 </li><li>When using multi-threaded kernel mode, setting disabling locking (LOCK_MODE=0)
     will now throw an exception. At this time this combination will result in corruption when
     multiple threads try to update the same table.
@@ -34,7 +39,6 @@ Change Log
 </li><li>Improved error messages: identifiers and values are now quoted.
 </li><li>Improved error message when casting a value failed:
     the column name and type is included in the message.
-</li><li>Page store: inserting very large rows failed with ArrayIndexOutOfBoundsException.
 </li><li>Improved support for GAE for Java thanks to Vince Bonfanti.
 </li></ul>
 
@@ -553,99 +557,6 @@ Change Log
     (used to rollback after out of memory) is now global and no longer allocated for each database separately.
 </li><li>New system property h2.browser to set the browser to use.
 </li><li>To start the browser, java.awt.Desktop.browse is now used if available.
-</li></ul>
-
-<h2>Version 1.1.102 (2008-10-24)</h2>
-<ul><li>The French translation of the H2 Console has been improved by Olivier Parent.
-    Thanks a lot!
-</li><li>There was a memory leak when creating and dropping tables and
-    indexes in a loop (persistent database only).
-</li><li>SET LOG 2 was not effective if executed after opening the database.
-</li><li>Translating the H2 Console is now simpler.
-</li><li>Common exception (error code 23*) are no longer written to the .trace.db file by default.
-</li><li>In-memory databases don't write LOBs to files any longer.
-</li><li>Self referencing constraints didn't restrict deleting rows that reference
-    itself if there is another row that references it.
-</li><li>ResultSetMetaData.getColumnName now returns the alias name except for columns.
-</li><li>Temporary files are now deleted when the database is closed, even
-    if they were not garbage collected so far.
-</li></ul>
-
-<h2>Version 1.1.101 (2008-10-17)</h2>
-<ul><li>Errors with code 42000 - 42999 are no longer written to the trace file by default.
-</li><li>Queries with more than 10 tables are now faster.
-</li><li>Opening a connection with AUTO_SERVER=TRUE is now fast
-    when the database is already open in another process  (less than 0.01 seconds
-    instead of 2 seconds).
-</li><li>IF [NOT] EXISTS is supported for named constraints in
-    ALTER TABLE ... ADD/DROP CONSTRAINT.
-</li><li>The error messages have been translated to Spanish by Dario V. Fassi.
-    Thanks a lot!
-</li><li>Linked tables: the automatic connection sharing didn't work. Actually the
-    system property h2.shareLinkedConnections was working in the opposite direction:
-    it was disabled when set to true. Now it works as expected.
-</li><li>Opening large database is now faster.
-</li><li>New system property h2.socketConnectTimeout, the timeout in milliseconds
-    to connect to a server. The default is 2000 (2 seconds).
-</li><li>The wrong parameters were bound to subqueries with parameters, specially
-    when using IN(SELECT ...) and IN(...).
-</li><li>Unset parameters were not detected when the query was re-compiled.
-</li><li>New functions ISO_YEAR, ISO_WEEK, ISO_DAY_OF_WEEK.
-    Thanks a lot to Robert Rathsack for implementing those!
-</li><li>The date functions DAYOFYEAR, DAYOFMONTH, DAYOFWEEK are now called
-    DAY_OF_YEAR, DAY_OF_MONTH, DAY_OF_WEEK (the old names still work).
-</li><li>An out of memory error while deleting or updating many rows could
-    result in a strange exception.
-</li><li>Linked tables: compatibility with MS SQL Server has been improved.
-</li><li>Renaming tables that have foreign keys with cascade didn't work correctly.
-</li><li>The auto-reconnect feature didn't work when using the auto-server mode. Fixed.
-</li><li>Fulltext search: new method FT_DROP_INDEX.
-</li><li>The optimization to group using an index didn't work in some cases in version 1.1
-    (see also system property h2.optimizeGroupSorted).
-</li><li>OSGi meta data is included in the manifest file.
-    An OSGi BundleActivator is included: it loads the database driver when starting the bundle,
-    and unloads it when stopping the bundle.
-</li><li>The default value for MAX_MEMORY_UNDO is now 50000.
-</li><li>For alias columns, ResultSetMetaData.getTableName() and getColumnName() now
-        return the real table and column name in the default mode.
-</li><li>In SQL scripts created with SCRIPT TO, schemas are now only created if they don't exist yet.
-</li><li>After re-connecting to a database, the database event listener (if set) is informed about it.
-</li><li>Local temporary tables now support indexes. Thanks a lot to Matt Roy!
-</li><li>RUNSCRIPT no longer uses a temporary file.
-</li><li>New system table INFORMATION_SCHEMA.SESSION_STATE containing the
-    SQL statements that make up the session state. The list currently contains
-    variables (SET @..) and local temporary tables (without data).
-</li><li>After an automatic re-connect, part of the session state stays (the part
-    that is stored in the SESSION_STATE table).
-</li><li>The build didn't work if the directory temp didn't exist before.
-</li><li>New system property h2.maxReconnect (default 3) to limit the number of re-connects
-    for the same SQL statement (this is usually only important for SHUTDOWN).
-</li><li>WHERE .. IN (SELECT ...) could throw a NullPointerException.
-</li><li>Improved Glassfish / Toplink support in H2Platform
-    thanks to Marcio Borges from Brazil. Thanks a lot!
-</li></ul>
-
-<h2>Version 1.1.100 (2008-10-04)</h2>
-<ul><li>In version 1.1, the following system properties are now enabled by default:
-    h2.lobFilesInDirectories, h2.optimizeGroupSorted, h2.optimizeInJoin, h2.shareLinkedConnections
-</li><li>The H2 Console tool now works with the JDBC-ODBC bridge.
-</li><li>The H2 Console tool now supports command line options to start things separately.
-</li><li>Large objects did not work for in-memory databases in server mode in Linux.
-</li><li>Connections from a local address other than 'localhost' were not allowed if remote
-    connections were disabled. This was always a problem, but only got visible in the last release
-    because the server no longer connects to 'localhost' if networked.
-</li><li>The h2console.war can now be built using the Java build.
-</li><li>By default, databases are shared in the same process. For read-only databases
-    this causes unnecessary synchronization, but safes memory. If you want that each connection
-    opens its own database, append ;OPEN_NEW=TRUE to the database URL.
-</li><li>New auto-reconnect feature will cause the JDBC driver to reconnect to
-    the database if the connection is lost. To enable, append ;AUTO_RECONNECT=TRUE to the database URL.
-    This is specially helpful when using AUTO_SERVER. AUTO_SERVER automatically uses auto-reconnect.
-</li><li>CreateCluster: the property 'serverlist' is now called 'serverList'.
-</li><li>The ConvertTraceFile tool could not parse some files because the trace
-    mechanism did not encode prepared statement parameters.
-</li><li>Databases names can now be one character long
-    (the minimum size used to be 2 characters).
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

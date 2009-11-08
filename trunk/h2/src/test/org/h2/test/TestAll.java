@@ -297,18 +297,10 @@ java org.h2.test.TestAll timer
 
 /*
 
-Describe workaround?
-System.setProperty("h2.maxCompactCount", "0");
-
-Increase write file format version
-testConcurrentMerge
-sort > tools
-
+mvcc merge problem (testConcurrentMerge)
+http://www.apache.org/dev/contrib-email-tips.html
 google app engine
-
 documentation: rolling review at history.html
-
-mvcc merge problem
 
 System.setProperty("h2.optimizeInList", "true");
 System.setProperty("h2.optimizeOr", "true");

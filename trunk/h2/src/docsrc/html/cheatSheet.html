@@ -160,8 +160,8 @@ conn.close();
 <h2><a href="tutorial.html#connection_pool">Connection Pool</a></h2>
 <pre>
 import org.h2.jdbcx.JdbcConnectionPool;
-DataSource cp = JdbcConnectionPool.
-    create("jdbc:h2:~/test");
+JdbcConnectionPool cp = JdbcConnectionPool.
+    create("jdbc:h2:~/test", "sa", "sa");
 Connection conn = cp.getConnection();
 conn.close(); cp.dispose();
 </pre>

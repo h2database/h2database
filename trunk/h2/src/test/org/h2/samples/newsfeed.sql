@@ -13,6 +13,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(73,
+'New version available: 1.2.123 (2009-11-08)', '2009-11-08 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(72,
 'New version available: 1.2.122 (2009-10-28)', '2009-10-28 12:00:00',
 $$A new version of H2 is available for
@@ -345,46 +358,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>The built-in connection pool did not roll back transactions and
     enable autocommit enabled after closing a connection.
 </li><li>Sometimes a StackOverflow occurred when checking for deadlock.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(60,
-'New version available: 1.1.110 (2009-04-03)', '2009-04-03 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Improved OSGi support.
-</li><li>Support for non-persistent tables in regular databases.
-    Thanks a lot to Sergi Vladykin for the patch!
-</li><li>Creating a JdbcConnectionPool has been simplified a bit.
-</li><li>Improved Javadoc navigation (similar to Scaladoc).
-</li><li>The API of the tools changed a bit.
-</li><li>The FTP server is no longer included in the h2*.jar file.
-</li><li>Linked tables to SQLite database can now be created.
-</li><li>CREATE TABLE: improved compatibility with other databases.
-</li><li>Improved error message for unsupported features.
-</li><li>H2 Console: the browser setting now supports arguments.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>The built-in JdbcConnectionPool is now about 70 times faster.
-</li><li>The H2 Console no longer trims the password.
-</li><li>ResultSet.findColumn now also checks for column names, not only labels.
-</li><li>Nested IN(IN(...)) didn't work.
-</li><li>NIO storage: the nio: prefix was using memory mapped files.
-</li><li>Deterministic user defined functions did not work.
-</li><li>JdbcConnectionPool.setLoginTimeout with 0 was broken.
-</li><li>The data type of a SUBSTRING method was wrong.
-</li><li>H2 Console: auto-complete of identifiers did not work correctly.
-</li><li>DISTINCT and GROUP BY on a CLOB column was broken.
-</li><li>Some internal caches did not use the LRU mechanism.
-</li><li>DatabaseMetaData.getSQLKeywords now returns the correct list.
-</li><li>More bugs in the server-less multi-connection mode have been fixed.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

@@ -297,7 +297,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-mvcc merge problem (testConcurrentMerge)
 http://www.apache.org/dev/contrib-email-tips.html
 google app engine
 documentation: rolling review at history.html

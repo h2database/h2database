@@ -215,9 +215,9 @@ public abstract class Command implements CommandInterface {
                             }
                             try {
                                 if (sync == database) {
-                                    database.wait(100);
+                                    database.wait(10);
                                 } else {
-                                    Thread.sleep(100);
+                                    Thread.sleep(10);
                                 }
                             } catch (InterruptedException e1) {
                                 // ignore

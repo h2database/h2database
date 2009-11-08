@@ -173,14 +173,21 @@ public class Merge extends Prepared {
         }
         int count = update.update();
         if (count == 0) {
-            table.fireBefore(session);
-            table.validateConvertUpdateSequence(session, row);
-            table.fireBeforeRow(session, null, row);
-            table.lock(session, true, false);
-            table.addRow(session, row);
-            session.log(table, UndoLogRecord.INSERT, row);
-            table.fireAfter(session);
-            table.fireAfterRow(session, null, row);
+            try {
+                table.fireBefore(session);
+                table.validateConvertUpdateSequence(session, row);
+                table.fireBeforeRow(session, null, row);
+                table.lock(session, true, false);
+                table.addRow(session, row);
+                session.log(table, UndoLogRecord.INSERT, row);
+                table.fireAfter(session);
+                table.fireAfterRow(session, null, row);
+            } catch (SQLException e) {
+                if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
+                    // concurrent merge or insert
+                    throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+                }
+            }
         } else if (count != 1) {
             throw Message.getSQLException(ErrorCode.DUPLICATE_KEY_1, table.getSQL());
         }

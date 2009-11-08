@@ -9,8 +9,6 @@ package org.h2.test.mvcc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Random;
-
 import org.h2.test.TestBase;
 
 /**
@@ -28,7 +26,7 @@ public class TestMvccMultiThreaded extends TestBase {
     }
 
     public void test() throws Exception {
-        // testConcurrentMerge();
+         testConcurrentMerge();
         testConcurrentUpdate("");
         // not supported currently
         // testConcurrentUpdate(";MULTI_THREADED=TRUE");
@@ -36,14 +34,14 @@ public class TestMvccMultiThreaded extends TestBase {
 
     private void testConcurrentMerge() throws Exception {
         deleteDb("mvccMultiThreaded");
-        int len = 10;
+        int len = 3;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
-            Connection conn = getConnection("mvccMultiThreaded;MVCC=TRUE");
+            Connection conn = getConnection("mvccMultiThreaded;MVCC=TRUE;LOCK_TIMEOUT=1000");
             connList[i] = conn;
         }
         Connection conn = connList[0];
-        conn.createStatement().execute("create table test(id int primary key, value int)");
+        conn.createStatement().execute("create table test(id int primary key, name varchar)");
         final SQLException[] ex = new SQLException[1];
         Thread[] threads = new Thread[len];
         final boolean[] stop = new boolean[1];
@@ -52,11 +50,9 @@ public class TestMvccMultiThreaded extends TestBase {
             c.setAutoCommit(false);
             threads[i] = new Thread() {
                 public void run() {
-                    Random random = new Random();
                     while (!stop[0]) {
                         try {
-                            int k = random.nextInt(100);
-                            c.createStatement().execute("merge into test values(" + k + ", " + k + ")");
+                            c.createStatement().execute("merge into test values(1, 'x')");
                             c.commit();
                         } catch (SQLException e) {
                             ex[0] = e;

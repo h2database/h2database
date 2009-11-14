@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.zip.CRC32;
 import org.h2.Driver;
 import org.h2.command.Parser;
+import org.h2.compress.CompressLZF;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -1001,6 +1002,7 @@ public class Recover extends Tool implements DataHandler {
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey, logFirstTrunkPage, logFirstDataPage, pageSize)
         );
+        CompressLZF compress = new CompressLZF();
         while (true) {
             int x = in.read();
             if (x < 0) {
@@ -1011,12 +1013,51 @@ public class Recover extends Tool implements DataHandler {
             } else if (x == PageLog.UNDO) {
                 int pageId = in.readVarInt();
                 int size = in.readVarInt();
+                byte[] data = new byte[pageSize];
                 if (size == 0) {
-                    in.readFully(new byte[pageSize], 0, pageSize);
+                    in.readFully(data, 0, pageSize);
                 } else {
-                    in.readFully(new byte[size], 0, size);
+                    byte[] compressBuffer = new byte[size];
+                    in.readFully(compressBuffer, 0, size);
+                    compress.expand(compressBuffer, 0, size, data, 0, pageSize);
                 }
-                writer.println("-- undo page " + pageId);
+                String typeName = "";
+                int type = data[0];
+                boolean last = (type & Page.FLAG_LAST) != 0;
+                type &= ~Page.FLAG_LAST;
+                switch (type) {
+                case Page.TYPE_EMPTY:
+                    typeName = "empty";
+                    break;
+                case Page.TYPE_DATA_LEAF:
+                    typeName = "data leaf " + (last ? "(last)" : "");
+                    break;
+                case Page.TYPE_DATA_NODE:
+                    typeName = "data node " + (last ? "(last)" : "");
+                    break;
+                case Page.TYPE_DATA_OVERFLOW:
+                    typeName = "data overflow " + (last ? "(last)" : "");
+                    break;
+                case Page.TYPE_BTREE_LEAF:
+                    typeName = "b-tree leaf " + (last ? "(last)" : "");
+                    break;
+                case Page.TYPE_BTREE_NODE:
+                    typeName = "b-tree node " + (last ? "(last)" : "");
+                    break;
+                case Page.TYPE_FREE_LIST:
+                    typeName = "free list " + (last ? "(last)" : "");
+                    break;
+                case Page.TYPE_STREAM_TRUNK:
+                    typeName = "log trunk";
+                    break;
+                case Page.TYPE_STREAM_DATA:
+                    typeName = "log data";
+                    break;
+                default:
+                    typeName = "ERROR: unknown type " + type;
+                    break;
+                }
+                writer.println("-- undo page " + pageId + " " + typeName);
             } else if (x == PageLog.ADD) {
                 int sessionId = in.readVarInt();
                 setStorage(in.readVarInt());
@@ -1347,6 +1388,7 @@ public class Recover extends Tool implements DataHandler {
         long next = 0;
         if (!last) {
             next = s.readInt();
+            writer.println("--   next: " + next);
         }
         int empty = pageSize;
         for (int i = 0; i < entryCount; i++) {

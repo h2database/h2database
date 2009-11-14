@@ -85,7 +85,7 @@ public class TestLob extends TestBase {
         stat.execute("set MAX_LENGTH_INPLACE_LOB 1");
         PreparedStatement prep = conn.prepareCall("insert into test values('0000')");
         // long start = System.currentTimeMillis();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 2000; i++) {
             // if (i % 1000 == 0) {
             //     long now = System.currentTimeMillis();
             //     System.out.println(i + " " + (now - start));

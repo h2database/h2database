@@ -461,7 +461,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
      */
     public void checkClosed() throws SQLException {
         if (isClosed()) {
-            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "session closed");
         }
     }
 
@@ -524,6 +524,10 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             transferList = null;
         } else if (status == STATUS_OK_STATE_CHANGED) {
             sessionStateChanged = true;
+        } else if (status == STATUS_OK) {
+            // ok
+        } else {
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "unexpected status " + status);
         }
     }
 

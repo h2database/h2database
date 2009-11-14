@@ -10,6 +10,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -19,6 +21,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Random;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
@@ -55,6 +58,7 @@ public class TestTools extends TestBase {
             return;
         }
         org.h2.Driver.load();
+        testWrongServer();
         deleteDb("utils");
         testDeleteFiles();
         testScriptRunscriptLob();
@@ -69,6 +73,33 @@ public class TestTools extends TestBase {
         testBackupRestore();
         testRecover();
         deleteDb("utils");
+    }
+
+    private void testWrongServer() throws Exception {
+        final ServerSocket serverSocket = new ServerSocket(9001);
+        Thread thread = new Thread() {
+            public void run() {
+                try {
+                    Socket socket = serverSocket.accept();
+                    byte[] data = new byte[1024];
+                    data[0] = 'x';
+                    socket.getOutputStream().write(data);
+                    socket.close();
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+        };
+        thread.start();
+        try {
+            Connection conn = getConnection("jdbc:h2:tcp://localhost:9001/test");
+            conn.close();
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
+        }
+        serverSocket.close();
+        thread.join();
     }
 
     private void testDeleteFiles() throws SQLException {

@@ -27,7 +27,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
@@ -361,22 +360,22 @@ public class Transfer {
             break;
         case Value.BLOB: {
             long length = v.getPrecision();
-            if (SysProperties.CHECK && length < 0) {
-                Message.throwInternalError("length: " + length);
+            if (length < 0) {
+                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
             }
             writeLong(length);
             InputStream in = v.getInputStream();
             long written = IOUtils.copyAndCloseInput(in, out);
-            if (SysProperties.CHECK && written != length) {
-                Message.throwInternalError("length:" + length + " written:" + written);
+            if (written != length) {
+                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length:" + length + " written:" + written);
             }
             writeInt(LOB_MAGIC);
             break;
         }
         case Value.CLOB: {
             long length = v.getPrecision();
-            if (SysProperties.CHECK && length < 0) {
-                Message.throwInternalError("length: " + length);
+            if (length < 0) {
+                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
             }
             writeLong(length);
             Reader reader = v.getReader();
@@ -390,8 +389,8 @@ public class Transfer {
             };
             Writer writer = new BufferedWriter(new OutputStreamWriter(out2, Constants.UTF8));
             long written = IOUtils.copyAndCloseInput(reader, writer);
-            if (SysProperties.CHECK && written != length) {
-                Message.throwInternalError("length:" + length + " written:" + written);
+            if (written != length) {
+                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length:" + length + " written:" + written);
             }
             writer.flush();
             writeInt(LOB_MAGIC);
@@ -430,7 +429,7 @@ public class Transfer {
             break;
         }
         default:
-            Message.throwInternalError("type=" + type);
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }
 
@@ -484,16 +483,18 @@ public class Transfer {
         case Value.BLOB: {
             long length = readLong();
             ValueLob v = ValueLob.createBlob(in, length, session.getDataHandler());
-            if (readInt() != LOB_MAGIC) {
-                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
+            int magic = readInt();
+            if (magic != LOB_MAGIC) {
+                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
             }
             return v;
         }
         case Value.CLOB: {
             long length = readLong();
             ValueLob v = ValueLob.createClob(new ExactUTF8InputStreamReader(in), length, session.getDataHandler());
-            if (readInt() != LOB_MAGIC) {
-                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
+            int magic = readInt();
+            if (magic != LOB_MAGIC) {
+                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
             }
             return v;
         }
@@ -524,7 +525,7 @@ public class Transfer {
             return ValueResultSet.get(rs);
         }
         default:
-            throw Message.throwInternalError("type="+type);
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }
 

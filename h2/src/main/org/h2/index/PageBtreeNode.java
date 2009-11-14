@@ -300,7 +300,7 @@ public class PageBtreeNode extends PageBtree {
     }
 
     PageBtreeLeaf getLastLeaf() throws SQLException {
-        int child = childPageIds[entryCount - 1];
+        int child = childPageIds[entryCount];
         return index.getPage(child).getLastLeaf();
     }
 

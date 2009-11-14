@@ -46,9 +46,20 @@ public class TestFileLock extends TestBase implements Runnable {
     }
 
     public void test() throws Exception {
+        testFutureModificationDate();
         testSimple();
         test(false);
         test(true);
+    }
+
+    private void testFutureModificationDate() throws Exception {
+        File f = new File(FILE);
+        f.delete();
+        f.createNewFile();
+        f.setLastModified(System.currentTimeMillis() + 10000);
+        FileLock lock = new FileLock(new TraceSystem(null, false), FILE, Constants.LOCK_SLEEP);
+        lock.lock(FileLock.LOCK_FILE);
+        lock.unlock();
     }
 
     private void testSimple() throws SQLException {

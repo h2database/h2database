@@ -410,7 +410,7 @@ public class Session extends SessionWithState {
      */
     public Command prepareLocal(String sql) throws SQLException {
         if (closed) {
-            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "session closed");
         }
         Parser parser = new Parser(this);
         return parser.prepareCommand(sql);

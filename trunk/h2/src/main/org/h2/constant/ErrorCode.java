@@ -1044,10 +1044,11 @@ public class ErrorCode {
     /**
      * The error with code <code>90067</code> is thrown when
      * the connection to the database is lost. A possible reason
-     * is that the connection has been closed due to a shutdown,
-     * or that the server is stopped.
+     * is that the database connection has been closed due to a shutdown,
+     * or that the server is stopped. Other causes could be:
+     * the server is not an H2 server, or the network connection is broken.
      */
-    public static final int CONNECTION_BROKEN = 90067;
+    public static final int CONNECTION_BROKEN_1 = 90067;
 
     /**
      * The error with code <code>90068</code> is thrown when the given

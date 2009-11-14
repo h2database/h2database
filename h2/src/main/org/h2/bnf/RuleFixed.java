@@ -21,6 +21,7 @@ public class RuleFixed implements Rule {
     static final int ANY_WORD = 7;
     static final int ANY_EXCEPT_2_DOLLAR = 8;
     static final int HEX_START = 10, CONCAT = 11, AZ_UNDERSCORE = 12, AF = 13, DIGIT = 14;
+    static final int OPEN_BRACKET = 15, CLOSE_BRACKET = 16;
 
     private final int type;
 
@@ -54,6 +55,10 @@ public class RuleFixed implements Rule {
             return "F";
         case DIGIT:
             return "0";
+        case OPEN_BRACKET:
+            return "[";
+        case CLOSE_BRACKET:
+            return "]";
         default:
             throw new AssertionError("type="+type);
         }
@@ -89,6 +94,10 @@ public class RuleFixed implements Rule {
             return "A-F";
         case DIGIT:
             return "0-9";
+        case OPEN_BRACKET:
+            return "[";
+        case CLOSE_BRACKET:
+            return "]";
         default:
             throw new AssertionError("type="+type);
         }
@@ -126,6 +135,10 @@ public class RuleFixed implements Rule {
             return "" + (char) ('A' + r.nextInt('F' - 'A'));
         case DIGIT:
             return "" + (char) ('0' + r.nextInt(10));
+        case OPEN_BRACKET:
+            return "[";
+        case CLOSE_BRACKET:
+            return "]";
         default:
             throw new AssertionError("type="+type);
         }
@@ -247,6 +260,12 @@ public class RuleFixed implements Rule {
                 s = s.substring(1);
             }
             break;
+        case OPEN_BRACKET:
+            s = s.substring(1);
+            break;
+        case CLOSE_BRACKET:
+            s = s.substring(1);
+            break;
         default:
             throw new AssertionError("type=" + type);
         }
@@ -325,6 +344,12 @@ public class RuleFixed implements Rule {
             if (query.length() == 0) {
                 sentence.add("digit", "1", Sentence.KEYWORD);
             }
+            break;
+        case OPEN_BRACKET:
+            sentence.add("[", "[", Sentence.KEYWORD);
+            break;
+        case CLOSE_BRACKET:
+            sentence.add("]", "]", Sentence.KEYWORD);
             break;
         default:
             throw new AssertionError("type="+type);

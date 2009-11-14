@@ -8,10 +8,12 @@ package org.h2.store.fs;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.sql.SQLException;
 
@@ -224,7 +226,7 @@ public class FileSystemDisk extends FileSystem {
     public boolean isReadOnly(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);
-        return f.exists() && !f.canWrite();
+        return f.exists() && !canWriteInternal(f);
     }
 
     public String normalize(String fileName) throws SQLException {
@@ -266,7 +268,32 @@ public class FileSystemDisk extends FileSystem {
 
     public boolean canWrite(String fileName) {
         fileName = translateFileName(fileName);
-        return new File(fileName).canWrite();
+        return canWriteInternal(new File(fileName));
+    }
+    
+    private boolean canWriteInternal(File file) {
+        if (file.canWrite()) {
+            // Does not respect windows user permissions,
+            // so we must try to open it rw
+            RandomAccessFile randomAccessFile = null;
+            try {
+                randomAccessFile = new RandomAccessFile(file, "rw");
+            } catch (FileNotFoundException e) {
+                return false;
+            } finally {
+                if (randomAccessFile != null) {
+                    try {
+                        randomAccessFile.close();
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void copy(String original, String copy) throws SQLException {

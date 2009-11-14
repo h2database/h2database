@@ -26,9 +26,11 @@ import java.util.Random;
 import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
+import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
+import org.h2.value.ValueLob;
 
 /**
  * Tests LOB and CLOB data types.
@@ -45,6 +47,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testAddLobRestart();
         testLobServerMemory();
         if (config.memory) {
             return;
@@ -72,6 +75,27 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
+    }
+
+    private void testAddLobRestart() throws SQLException {
+        DeleteDbFiles.execute("memFS:", "lob", true);
+        Connection conn = org.h2.Driver.load().connect("jdbc:h2:memFS:lob", null);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(d blob)");
+        stat.execute("set MAX_LENGTH_INPLACE_LOB 1");
+        PreparedStatement prep = conn.prepareCall("insert into test values('0000')");
+        // long start = System.currentTimeMillis();
+        for (int i = 0; i < 10000; i++) {
+            // if (i % 1000 == 0) {
+            //     long now = System.currentTimeMillis();
+            //     System.out.println(i + " " + (now - start));
+            //     start = now;
+            // }
+            prep.execute();
+            ValueLob.resetDirCounter();
+        }
+        conn.close();
+        DeleteDbFiles.execute("memFS:", "lob", true);
     }
 
     private void testLobUpdateMany() throws SQLException {

@@ -28,6 +28,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
+import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
@@ -252,11 +253,12 @@ public class ValueLob extends Value {
     private int getNewObjectId(DataHandler handler) throws SQLException {
         String path = handler.getDatabasePath();
         int objectId = 0;
+        int lobsPerDir = SysProperties.LOB_FILES_PER_DIRECTORY;
         while (true) {
             String dir = getFileNamePrefix(path, objectId);
             String[] list = getFileList(handler, dir);
             int fileCount = 0;
-            boolean[] used = new boolean[SysProperties.LOB_FILES_PER_DIRECTORY];
+            boolean[] used = new boolean[lobsPerDir];
             for (String name : list) {
                 if (name.endsWith(Constants.SUFFIX_DB_FILE)) {
                     name = FileUtils.getFileName(name);
@@ -269,13 +271,13 @@ public class ValueLob extends Value {
                     }
                     if (id > 0) {
                         fileCount++;
-                        used[id % SysProperties.LOB_FILES_PER_DIRECTORY] = true;
+                        used[id % lobsPerDir] = true;
                     }
                 }
             }
             int fileId = -1;
-            if (fileCount < SysProperties.LOB_FILES_PER_DIRECTORY) {
-                for (int i = 1; i < SysProperties.LOB_FILES_PER_DIRECTORY; i++) {
+            if (fileCount < lobsPerDir) {
+                for (int i = 1; i < lobsPerDir; i++) {
                     if (!used[i]) {
                         fileId = i;
                         break;
@@ -287,24 +289,30 @@ public class ValueLob extends Value {
                 invalidateFileList(handler, dir);
                 break;
             }
-            if (objectId > Integer.MAX_VALUE / SysProperties.LOB_FILES_PER_DIRECTORY) {
+            if (objectId > Integer.MAX_VALUE / lobsPerDir) {
                 // this directory path is full: start from zero
-                // (this can happen only theoretically,
-                // for example if the random number generator is broken)
                 objectId = 0;
+                dirCounter = RandomUtils.nextInt(lobsPerDir - 1) * lobsPerDir;
             } else {
                 // calculate the directory
                 // start with 1 (otherwise we don't know the number of directories)
                 // it doesn't really matter what directory is used, it might as well be random
                 // (but that would generate more directories):
-                // int dirId = RandomUtils.nextInt(
-                //         SysProperties.LOB_FILES_PER_DIRECTORY - 1) + 1;
-                int dirId = (dirCounter++ / (SysProperties.LOB_FILES_PER_DIRECTORY - 1)) + 1;
-                objectId = objectId * SysProperties.LOB_FILES_PER_DIRECTORY;
-                objectId += dirId * SysProperties.LOB_FILES_PER_DIRECTORY;
+                // int dirId = RandomUtils.nextInt(lobsPerDir - 1) + 1;
+                int dirId = (dirCounter++ / (lobsPerDir - 1)) + 1;
+                objectId = objectId * lobsPerDir;
+                objectId += dirId * lobsPerDir;
             }
         }
         return objectId;
+    }
+
+    /**
+     * Reset the directory counter as if the process was stopped. This method is
+     * for debugging only (to simulate stopping a process).
+     */
+    public static void resetDirCounter() {
+        dirCounter = 0;
     }
 
     private void invalidateFileList(DataHandler handler, String dir) {

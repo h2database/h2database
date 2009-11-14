@@ -65,6 +65,7 @@ import org.h2.util.NetUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.CompareMode;
@@ -165,16 +166,14 @@ public class Database implements DataHandler {
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
     private PageStore pageStore;
     private boolean usePageStoreSet, usePageStore;
-
     private Properties reconnectLastLock;
     private volatile long reconnectCheckNext;
     private volatile boolean reconnectChangePending;
     private volatile boolean checkpointAllowed;
     private volatile boolean checkpointRunning;
-
     private int cacheSize;
-
     private boolean compactFully;
+    private SourceCompiler compiler;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = CompareMode.getInstance(null, 0);
@@ -2496,6 +2495,13 @@ public class Database implements DataHandler {
 
     public void setCompactFully(boolean compactFully) {
         this.compactFully = compactFully;
+    }
+
+    public SourceCompiler getCompiler() {
+        if (compiler == null) {
+            compiler = new SourceCompiler();
+        }
+        return compiler;
     }
 
 }

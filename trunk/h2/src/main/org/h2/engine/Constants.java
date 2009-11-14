@@ -491,6 +491,11 @@ public class Constants {
      */
     public static final boolean BLOB_SEARCH = false;
 
+    /**
+     * The package name of user defined classes.
+     */
+    public static final String USER_PACKAGE = "org.h2.dynamic";
+
     private Constants() {
         // utility class
     }

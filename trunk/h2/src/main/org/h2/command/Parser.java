@@ -3772,8 +3772,12 @@ public class Parser {
         command.setAliasName(name);
         command.setIfNotExists(ifNotExists);
         command.setDeterministic(readIf("DETERMINISTIC"));
-        read("FOR");
-        command.setJavaClassMethod(readUniqueIdentifier());
+        if (readIf("AS")) {
+            command.setSource(readString());
+        } else {
+            read("FOR");
+            command.setJavaClassMethod(readUniqueIdentifier());
+        }
         return command;
     }
 

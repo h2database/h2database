@@ -129,6 +129,8 @@ public class Bnf {
         addFixedRule("@az_@", RuleFixed.AZ_UNDERSCORE);
         addFixedRule("@af@", RuleFixed.AF);
         addFixedRule("@digit@", RuleFixed.DIGIT);
+        addFixedRule("@open_bracket@", RuleFixed.OPEN_BRACKET);
+        addFixedRule("@close_bracket@", RuleFixed.CLOSE_BRACKET);
     }
 
     /**
@@ -315,6 +317,8 @@ public class Bnf {
         syntax = StringUtils.replaceAll(syntax, "a-f", "@af@");
         syntax = StringUtils.replaceAll(syntax, "A-F", "@af@");
         syntax = StringUtils.replaceAll(syntax, "0-9", "@digit@");
+        syntax = StringUtils.replaceAll(syntax, "'['", "@openBracket@");
+        syntax = StringUtils.replaceAll(syntax, "']'", "@closeBracket@");
         StringTokenizer tokenizer = getTokenizer(syntax);
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();

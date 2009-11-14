@@ -21,6 +21,7 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.ClassUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -36,20 +37,37 @@ public class FunctionAlias extends DbObjectBase {
 
     private String className;
     private String methodName;
+    private String source;
     private JavaMethod[] javaMethods;
     private boolean deterministic;
 
-    public FunctionAlias(Database db, int id, String name, String javaClassMethod, boolean force) throws SQLException {
+    private FunctionAlias(Database db, int id, String name) {
         initDbObjectBase(db, id, name, Trace.FUNCTION);
+    }
+
+    public static FunctionAlias newInstance(Database db, int id, String name, String javaClassMethod, boolean force) throws SQLException {
+        FunctionAlias alias = new FunctionAlias(db, id, name);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
         if (lastDot < 0) {
             throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, javaClassMethod);
         }
-        className = javaClassMethod.substring(0, lastDot);
-        methodName = javaClassMethod.substring(lastDot + 1);
+        alias.className = javaClassMethod.substring(0, lastDot);
+        alias.methodName = javaClassMethod.substring(lastDot + 1);
+        alias.init(force);
+        return alias;
+    }
+
+    public static FunctionAlias newInstanceFromSource(Database db, int id, String name, String source, boolean force) throws SQLException {
+        FunctionAlias alias = new FunctionAlias(db, id, name);
+        alias.source = source;
+        alias.init(force);
+        return alias;
+    }
+
+    private void init(boolean force) throws SQLException {
         try {
-            // at least try to load the class, otherwise the data type is not
+            // at least try to compile the class, otherwise the data type is not
             // initialized if it could be
             load();
         } catch (SQLException e) {
@@ -63,6 +81,29 @@ public class FunctionAlias extends DbObjectBase {
         if (javaMethods != null) {
             return;
         }
+        if (source != null) {
+            loadFromSource();
+        } else {
+            loadClass();
+        }
+    }
+
+    private void loadFromSource() throws SQLException {
+        SourceCompiler compiler = database.getCompiler();
+        String className = Constants.USER_PACKAGE + "." + getName();
+        compiler.setSource(className, source);
+        try {
+            Method m = compiler.getMethod(className);
+            JavaMethod method = new JavaMethod(m, 0);
+            javaMethods = new JavaMethod[] {
+                    method
+            };
+        } catch (Exception e) {
+            throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, e, source);
+        }
+    }
+
+    private void loadClass() throws SQLException {
         Class< ? > javaClass = ClassUtils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
         ObjectArray<JavaMethod> list = ObjectArray.newInstance();

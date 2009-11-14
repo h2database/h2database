@@ -25,6 +25,7 @@ public class CreateFunctionAlias extends DefineCommand {
     private boolean deterministic;
     private boolean ifNotExists;
     private boolean force;
+    private String source;
 
     public CreateFunctionAlias(Session session) {
         super(session);
@@ -40,7 +41,12 @@ public class CreateFunctionAlias extends DefineCommand {
             }
         } else {
             int id = getObjectId(false, true);
-            FunctionAlias functionAlias = new FunctionAlias(db, id, aliasName, javaClassMethod, force);
+            FunctionAlias functionAlias;
+            if (javaClassMethod != null) {
+                functionAlias = FunctionAlias.newInstance(db, id, aliasName, javaClassMethod, force);
+            } else {
+                functionAlias = FunctionAlias.newInstanceFromSource(db, id, aliasName, source, force);
+            }
             functionAlias.setDeterministic(deterministic);
             db.addDatabaseObject(session, functionAlias);
         }
@@ -65,6 +71,10 @@ public class CreateFunctionAlias extends DefineCommand {
 
     public void setDeterministic(boolean deterministic) {
         this.deterministic = deterministic;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
 }

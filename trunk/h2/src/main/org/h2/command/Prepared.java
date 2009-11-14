@@ -102,7 +102,7 @@ public abstract class Prepared {
     public boolean needRecompile() throws SQLException {
         Database db = session.getDatabase();
         if (db == null) {
-            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "database closed");
         }
         // TODO parser: currently, compiling every create/drop/... twice!
         // because needRecompile return true even for the first execution

@@ -10,12 +10,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Iterator;
-
+import java.util.TreeMap;
 import org.h2.message.Message;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 
@@ -26,7 +24,7 @@ import org.h2.util.RandomUtils;
 public class FileSystemMemory extends FileSystem {
 
     private static final FileSystemMemory INSTANCE = new FileSystemMemory();
-    private static final HashMap<String, FileObjectMemory> MEMORY_FILES = New.hashMap();
+    private static final TreeMap<String, FileObjectMemory> MEMORY_FILES = new TreeMap<String, FileObjectMemory>();
 
     private FileSystemMemory() {
         // don't allow construction
@@ -96,9 +94,11 @@ public class FileSystemMemory extends FileSystem {
     public String[] listFiles(String path) {
         ObjectArray<String> list = ObjectArray.newInstance();
         synchronized (MEMORY_FILES) {
-            for (String name : MEMORY_FILES.keySet()) {
+            for (String name : MEMORY_FILES.tailMap(path).keySet()) {
                 if (name.startsWith(path)) {
                     list.add(name);
+                } else {
+                    break;
                 }
             }
             String[] array = new String[list.size()];
@@ -110,11 +110,13 @@ public class FileSystemMemory extends FileSystem {
     public void deleteRecursive(String fileName, boolean tryOnly) {
         fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
-            Iterator<String> it = MEMORY_FILES.keySet().iterator();
+            Iterator<String> it = MEMORY_FILES.tailMap(fileName).keySet().iterator();
             while (it.hasNext()) {
                 String name = it.next();
                 if (name.startsWith(fileName)) {
                     it.remove();
+                } else {
+                    break;
                 }
             }
         }
@@ -143,7 +145,8 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public boolean isDirectory(String fileName) {
-        // TODO in memory file system currently doesn't support directories
+        // TODO in memory file system currently
+        // does not really support directories
         return false;
     }
 
@@ -180,8 +183,8 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public String getFileName(String name) {
-        // TODO directories are not supported
-        return name;
+        int idx = Math.max(name.indexOf(':'), name.lastIndexOf('/'));
+        return idx < 0 ? name : name.substring(idx + 1);
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {

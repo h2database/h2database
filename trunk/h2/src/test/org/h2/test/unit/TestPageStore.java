@@ -36,6 +36,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testReverseIndex();
         testLargeUpdates();
         testLargeInserts();
         testAutoConvert();
@@ -51,6 +52,27 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testReverseIndex() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn = getConnection("pageStore");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(x int, y varchar default space(200))");
+        for (int i = 30; i < 100; i++) {
+            stat.execute("insert into test(x) select null from system_range(1, " + i + ")");
+            stat.execute("insert into test(x) select x from system_range(1, " + i + ")");
+            stat.execute("create index idx on test(x desc, y)");
+            ResultSet rs = stat.executeQuery("select min(x) from test");
+            rs.next();
+            assertEquals(1, rs.getInt(1));
+            stat.execute("drop index idx");
+            stat.execute("truncate table test");
+        }
+        conn.close();
     }
 
     private void testLargeUpdates() throws SQLException {

@@ -48,6 +48,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testSource();
         testDynamicArgumentAndReturn();
         testUUID();
         testDeterministic();
@@ -58,6 +59,18 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         deleteDb("functions");
+    }
+
+    private void testSource() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("create force alias sayHi as 'String test(String name) { return \"Hello \" + name; }'");
+        rs = stat.executeQuery("call sayHi('Joe')");
+        rs.next();
+        assertEquals("Hello Joe", rs.getString(1));
+        stat.execute("drop alias sayHi");
+        conn.close();
     }
 
     private void testDynamicArgumentAndReturn() throws SQLException {

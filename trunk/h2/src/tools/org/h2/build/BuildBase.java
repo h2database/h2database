@@ -728,12 +728,12 @@ public class BuildBase {
         int result;
         PrintStream old = System.err;
         try {
+            Class< ? > clazz = Class.forName("com.sun.tools.javac.Main");
             if (quiet) {
                 System.setErr(filter(System.err, new String[] {
                         "Note:"
                 }));
             }
-            Class< ? > clazz = Class.forName("com.sun.tools.javac.Main");
             Method compile = clazz.getMethod("compile", new Class< ? >[] { String[].class });
             Object instance = clazz.newInstance();
             result = (Integer) invoke(compile, instance, new Object[] { array });

@@ -686,7 +686,7 @@ public class SysProperties {
 
     /**
      * System property <code>h2.webMaxValueLength</code> (default: 10000).<br />
-     * The H2 Console will abbreviate result values larger than this size.
+     * The H2 Console will abbreviate (truncate) result values larger than this size.
      */
     public static final int WEB_MAX_VALUE_LENGTH = getIntSetting("h2.webMaxValueLength", 10000);
 

@@ -65,7 +65,7 @@ public class PageDataNode extends PageData {
      */
     static PageDataNode create(PageDataIndex index, int pageId, int parentPageId) throws SQLException {
         PageDataNode p = new PageDataNode(index, pageId, index.getPageStore().createData());
-        index.getPageStore().logUndo(p, p.data);
+        index.getPageStore().logUndo(p, null);
         p.parentPageId = parentPageId;
         p.writeHead();
         // 4 bytes for the rightmost child page id
@@ -326,6 +326,7 @@ public class PageDataNode extends PageData {
 
     public void write(DataPage buff) throws SQLException {
         write();
+        index.getPageStore().checkUndo(getPos());
         index.getPageStore().writePage(getPos(), data);
     }
 

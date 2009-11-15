@@ -74,7 +74,7 @@ public class PageBtreeNode extends PageBtree {
      */
     static PageBtreeNode create(PageBtreeIndex index, int pageId, int parentPageId) throws SQLException {
         PageBtreeNode p = new PageBtreeNode(index, pageId, index.getPageStore().createData());
-        index.getPageStore().logUndo(p, p.data);
+        index.getPageStore().logUndo(p, null);
         p.parentPageId = parentPageId;
         p.writeHead();
         // 4 bytes for the rightmost child page id
@@ -390,6 +390,7 @@ public class PageBtreeNode extends PageBtree {
     public void write(DataPage buff) throws SQLException {
         check();
         write();
+        index.getPageStore().checkUndo(getPos());
         index.getPageStore().writePage(getPos(), data);
     }
 

@@ -189,6 +189,7 @@ public abstract class PageBtree extends Page {
         written = false;
         index.getPageStore().removeRecord(getPos());
         setPos(id);
+        index.getPageStore().logUndo(this, null);
         remapChildren();
     }
 

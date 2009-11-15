@@ -61,7 +61,7 @@ public class PageBtreeLeaf extends PageBtree {
      */
     static PageBtreeLeaf create(PageBtreeIndex index, int pageId, int parentPageId) throws SQLException {
         PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, index.getPageStore().createData());
-        index.getPageStore().logUndo(p, p.data);
+        index.getPageStore().logUndo(p, null);
         p.parentPageId = parentPageId;
         p.writeHead();
         p.start = p.data.length();
@@ -240,6 +240,7 @@ public class PageBtreeLeaf extends PageBtree {
 
     public void write(DataPage buff) throws SQLException {
         write();
+        index.getPageStore().checkUndo(getPos());
         index.getPageStore().writePage(getPos(), data);
     }
 

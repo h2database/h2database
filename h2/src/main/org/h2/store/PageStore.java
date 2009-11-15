@@ -119,7 +119,7 @@ public class PageStore implements CacheWriter {
     /**
      * The smallest possible page size.
      */
-    public static final int PAGE_SIZE_MIN = 128;
+    public static final int PAGE_SIZE_MIN = 64;
 
     /**
      * The biggest possible page size.
@@ -130,6 +130,7 @@ public class PageStore implements CacheWriter {
      * The default page size.
      */
     public static final int PAGE_SIZE_DEFAULT = 2 * 1024;
+    //    public static final int PAGE_SIZE_DEFAULT = 64;
 
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
@@ -484,7 +485,7 @@ public class PageStore implements CacheWriter {
             int indexId = data.readVarInt();
             PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
             if (index == null) {
-                Message.throwInternalError("index not found " + indexId);
+                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
             }
             p = PageDataLeaf.read(index, data, pageId);
             break;
@@ -493,7 +494,7 @@ public class PageStore implements CacheWriter {
             int indexId = data.readVarInt();
             PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
             if (index == null) {
-                Message.throwInternalError("index not found " + indexId);
+                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
             }
             p = PageDataNode.read(index, data, pageId);
             break;
@@ -506,7 +507,7 @@ public class PageStore implements CacheWriter {
             int indexId = data.readVarInt();
             PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
             if (index == null) {
-                Message.throwInternalError("index not found " + indexId);
+                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
             }
             p = PageBtreeLeaf.read(index, data, pageId);
             break;
@@ -515,7 +516,7 @@ public class PageStore implements CacheWriter {
             int indexId = data.readVarInt();
             PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
             if (index == null) {
-                Message.throwInternalError("index not found " + indexId);
+                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
             }
             p = PageBtreeNode.read(index, data, pageId);
             break;
@@ -931,10 +932,8 @@ public class PageStore implements CacheWriter {
      */
     void readPage(int pos, Data page) throws SQLException {
         synchronized (database) {
-            if (pos >= pageCount) {
+            if (pos < 0 || pos >= pageCount) {
                 throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);
-            } else if (pos < 0) {
-                throw Message.throwInternalError("negative offset: " + pos);
             }
             file.seek((long) pos << pageSizeShift);
             file.readFully(page.getBytes(), 0, pageSize);
@@ -1036,6 +1035,7 @@ public class PageStore implements CacheWriter {
             }
             openIndex.close(systemSession);
         }
+        allocatePage(PAGE_ID_META_ROOT);
         recoveryRunning = false;
         reservedPages = null;
         writeIndexRowCounts();
@@ -1546,6 +1546,18 @@ public class PageStore implements CacheWriter {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Check if the undo entry for the given page has been written.
+     *
+     * @param pageId the page id
+     */
+    public void checkUndo(int pageId) throws SQLException {
+        if (SysProperties.CHECK && !recoveryRunning) {
+            // ensure the undo entry is already written
+            // log.addUndo(pageId, null);
+        }
     }
 
 }

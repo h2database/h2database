@@ -10,6 +10,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import org.h2.constant.ErrorCode;
 import org.h2.message.Trace;
 import org.h2.util.BitField;
 
@@ -90,7 +91,10 @@ public class PageInputStream extends InputStream {
         int next;
         while (true) {
             if (trunk == null) {
-                trunk = (PageStreamTrunk) store.getPage(trunkNext);
+                Page p = store.getPage(trunkNext);
+                if (p instanceof PageStreamTrunk) {
+                    trunk = (PageStreamTrunk) p;
+                }
                 logKey++;
                 if (trunk == null) {
                     throw new EOFException();
@@ -113,7 +117,11 @@ public class PageInputStream extends InputStream {
             trace.debug("pageIn.readPage " + next);
         }
         dataPage = -1;
-        data = (PageStreamData) store.getPage(next);
+        data = null;
+        Page p = store.getPage(next);
+        if (p instanceof PageStreamData) {
+            data = (PageStreamData) p;
+        }
         if (data == null) {
             throw new EOFException();
         } else if (data.getLogKey() != logKey) {
@@ -131,10 +139,21 @@ public class PageInputStream extends InputStream {
     BitField allocateAllPages() throws SQLException {
         BitField pages = new BitField();
         int trunkPage = trunkNext;
-        while (trunkPage != 0) {
+        while (trunkPage != 0 && trunkPage < store.getPageCount()) {
             pages.set(trunkPage);
             store.allocatePage(trunkPage);
-            PageStreamTrunk t = (PageStreamTrunk) store.getPage(trunkPage);
+            PageStreamTrunk t = null;
+            try {
+                Page p = store.getPage(trunkPage);
+                if (p instanceof PageStreamTrunk) {
+                    t = (PageStreamTrunk) p;
+                }
+            } catch (SQLException e) {
+                if (e.getErrorCode() != ErrorCode.FILE_CORRUPTED_1) {
+                    // wrong checksum means end of stream
+                    throw e;
+                }
+            }
             if (t == null) {
                 break;
             }

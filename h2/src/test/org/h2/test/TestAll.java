@@ -506,7 +506,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMultiDimension().runTest(this);
         new TestMultiThread().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
-//        new TestOpenClose().runTest(this);
+        new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
         new TestOutOfMemory().runTest(this);
         new TestPowerOff().runTest(this);
@@ -607,7 +607,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStreams().runTest(this);
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
-//        new TestTools().runTest(this);
+        new TestTools().runTest(this);
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);
         new TestValueMemory().runTest(this);

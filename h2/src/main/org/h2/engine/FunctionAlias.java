@@ -45,6 +45,16 @@ public class FunctionAlias extends DbObjectBase {
         initDbObjectBase(db, id, name, Trace.FUNCTION);
     }
 
+    /**
+     * Create a new alias based on a method name.
+     *
+     * @param db the database
+     * @param id the id
+     * @param name the name
+     * @param javaClassMethod the class and method name
+     * @param force create the object even if the class or method does not exist
+     * @return the database object
+     */
     public static FunctionAlias newInstance(Database db, int id, String name, String javaClassMethod, boolean force) throws SQLException {
         FunctionAlias alias = new FunctionAlias(db, id, name);
         int paren = javaClassMethod.indexOf('(');
@@ -58,6 +68,16 @@ public class FunctionAlias extends DbObjectBase {
         return alias;
     }
 
+    /**
+     * Create a new alias based on source code.
+     *
+     * @param db the database
+     * @param id the id
+     * @param name the name
+     * @param source the source code
+     * @param force create the object even if the class or method does not exist
+     * @return the database object
+     */
     public static FunctionAlias newInstanceFromSource(Database db, int id, String name, String source, boolean force) throws SQLException {
         FunctionAlias alias = new FunctionAlias(db, id, name);
         alias.source = source;

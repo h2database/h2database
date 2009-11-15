@@ -365,7 +365,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
             System.setProperty(SysProperties.H2_PAGE_STORE, "false");
             test.pageStore = false;
-//            test.runTests();
+            test.runTests();
             TestPerformance.main("-init", "-db", "1");
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");

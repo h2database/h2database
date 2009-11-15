@@ -60,6 +60,7 @@ There is a known problem in version 1.2.120 that can cause a ClassCastException.
     You can find it out using:
     select * from information_schema.settings where name='CREATE_BUILD'
     or have a look in the SQL script created by the recover tool.
+- Did the application run out of memory (once, or multiple times)?
 - Do you use any settings or special features (for example, the setting
     LOG=0, or two phase commit, linked tables, cache settings)?
 - Is the application multi-threaded?
@@ -87,6 +88,7 @@ I have a few questions:
 - With which version of H2 was this database created?
     You can find it out using:
     select * from information_schema.settings where name='CREATE_BUILD'
+- Did the application run out of memory (once, or multiple times)?
 - Did you use multiple connections?
 - Do you use any settings or special features (for example, the setting
     LOG=0, or two phase commit, linked tables, cache settings)?
@@ -126,6 +128,7 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - With which version of H2 was this database created?
     You can find it out using:
     select * from information_schema.settings where name='CREATE_BUILD'
+- Did the application run out of memory (once, or multiple times)?
 - Do you use any settings or special features (for example, the setting
     LOG=0, or two phase commit, linked tables, cache settings)?
 - Is the application multi-threaded?

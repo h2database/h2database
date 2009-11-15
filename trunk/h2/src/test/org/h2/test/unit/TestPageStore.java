@@ -36,6 +36,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testUpdateOverflow();
+        testTruncateReconnect();
         testReverseIndex();
         testLargeUpdates();
         testLargeInserts();
@@ -52,6 +54,45 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testTruncateReconnect() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        conn.createStatement().execute("create table test(id int primary key, name varchar)");
+        conn.createStatement().execute("insert into test(id) select x from system_range(1, 390)");
+        conn.createStatement().execute("checkpoint");
+        conn.createStatement().execute("shutdown immediately");
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        conn.createStatement().execute("truncate table test");
+        conn.createStatement().execute("insert into test(id) select x from system_range(1, 390)");
+        conn.createStatement().execute("shutdown immediately");
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        conn.close();
+    }
+
+    private void testUpdateOverflow() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        conn.createStatement().execute("create table test(id int primary key, name varchar)");
+        conn.createStatement().execute("insert into test values(0, space(3000))");
+        conn.createStatement().execute("checkpoint");
+        conn.createStatement().execute("shutdown immediately");
+
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        conn.createStatement().execute("update test set id = 1");
+        conn.createStatement().execute("shutdown immediately");
+
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        conn.close();
     }
 
     private void testReverseIndex() throws SQLException {

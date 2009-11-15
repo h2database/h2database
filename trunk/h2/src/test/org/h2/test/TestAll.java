@@ -297,6 +297,15 @@ java org.h2.test.TestAll timer
 
 /*
 
+remove PageStore.checkUndo
+verify logUndo is correct
+test with page size 64
+check auto-build
+DoubleTrace.java
+Compiler documentation
+ConvertTraceFile: remove newlines and duplicate spaces from output in statistics
+
+check memory usage when inserting a lot of rows
 http://www.apache.org/dev/contrib-email-tips.html
 google app engine
 documentation: rolling review at history.html
@@ -356,7 +365,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
             System.setProperty(SysProperties.H2_PAGE_STORE, "false");
             test.pageStore = false;
-            test.runTests();
+//            test.runTests();
             TestPerformance.main("-init", "-db", "1");
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
@@ -497,7 +506,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMultiDimension().runTest(this);
         new TestMultiThread().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
-        new TestOpenClose().runTest(this);
+//        new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
         new TestOutOfMemory().runTest(this);
         new TestPowerOff().runTest(this);
@@ -598,7 +607,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStreams().runTest(this);
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
-        new TestTools().runTest(this);
+//        new TestTools().runTest(this);
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);
         new TestValueMemory().runTest(this);

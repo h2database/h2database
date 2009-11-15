@@ -274,7 +274,8 @@ public class FileSystemDisk extends FileSystem {
     private boolean canWriteInternal(File file) {
         if (file.canWrite()) {
             // Does not respect windows user permissions,
-            // so we must try to open it rw
+            // so we must try to open it mode "rw".
+            // See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4420020
             RandomAccessFile randomAccessFile = null;
             try {
                 randomAccessFile = new RandomAccessFile(file, "rw");

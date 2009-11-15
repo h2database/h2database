@@ -19,6 +19,7 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
+import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -198,7 +199,11 @@ public class PageDataIndex extends PageIndex implements RowIndex {
      * @return the page
      */
     PageData getPage(int id, int parent) throws SQLException {
-        PageData p = (PageData) store.getPage(id);
+        Page pd = store.getPage(id);
+        if (pd != null && !(pd instanceof PageData)) {
+            System.out.println("test");
+        }
+        PageData p = (PageData) pd;
         if (p == null) {
             PageDataLeaf empty = PageDataLeaf.create(this, id, parent);
             // could have been created before, but never committed

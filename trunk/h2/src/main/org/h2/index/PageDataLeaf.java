@@ -83,7 +83,7 @@ public class PageDataLeaf extends PageData {
      */
     static PageDataLeaf create(PageDataIndex index, int pageId, int parentPageId) throws SQLException {
         PageDataLeaf p = new PageDataLeaf(index, pageId, index.getPageStore().createData());
-        index.getPageStore().logUndo(p, p.data);
+        index.getPageStore().logUndo(p, null);
         p.parentPageId = parentPageId;
         p.columnCount = index.getTable().getColumns().length;
         p.writeHead();
@@ -320,6 +320,10 @@ public class PageDataLeaf extends PageData {
                 int next = firstOverflowPageId;
                 do {
                     PageDataOverflow page = index.getPageOverflow(next);
+if (page == null) {
+    page = index.getPageOverflow(next);
+    System.out.println("stop!");
+}
                     next = page.readInto(buff);
                 } while (next != 0);
                 overflowRowSize = pageSize + buff.length();
@@ -429,6 +433,7 @@ public class PageDataLeaf extends PageData {
 
     public void write(DataPage buff) throws SQLException {
         write();
+        index.getPageStore().checkUndo(getPos());
         index.getPageStore().writePage(getPos(), data);
         data.truncate(index.getPageStore().getPageSize());
     }

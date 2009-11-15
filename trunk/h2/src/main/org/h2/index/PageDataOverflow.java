@@ -110,7 +110,7 @@ public class PageDataOverflow extends Page {
     static PageDataOverflow create(PageStore store, int page, int type, int parentPageId, int next, Data all, int offset, int size) throws SQLException {
         Data data = store.createData();
         PageDataOverflow p = new PageDataOverflow(store, page, data);
-        store.logUndo(p, data);
+        store.logUndo(p, null);
         data.writeByte((byte) type);
         data.writeShortInt(0);
         data.writeInt(parentPageId);
@@ -180,6 +180,7 @@ public class PageDataOverflow extends Page {
 
     public void write(DataPage buff) throws SQLException {
         write();
+        store.checkUndo(getPos());
         store.writePage(getPos(), data);
     }
 

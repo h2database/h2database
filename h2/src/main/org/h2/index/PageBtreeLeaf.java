@@ -222,8 +222,9 @@ public class PageBtreeLeaf extends PageBtree {
         return null;
     }
 
-    void freeChildren() {
-        // nothing to do
+    void freeRecursive() throws SQLException {
+        index.getPageStore().logUndo(this, data);
+        index.getPageStore().free(getPos());
     }
 
     int getRowCount() {
@@ -240,7 +241,6 @@ public class PageBtreeLeaf extends PageBtree {
 
     public void write(DataPage buff) throws SQLException {
         write();
-        index.getPageStore().checkUndo(getPos());
         index.getPageStore().writePage(getPos(), data);
     }
 
@@ -340,7 +340,7 @@ public class PageBtreeLeaf extends PageBtree {
             PageBtreeNode p = (PageBtreeNode) store.getPage(parentPageId);
             p.moveChild(getPos(), newPos);
         }
-        store.free(getPos(), true);
+        store.free(getPos());
     }
 
 }

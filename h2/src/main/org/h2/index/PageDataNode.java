@@ -259,7 +259,7 @@ public class PageDataNode extends PageData {
             return false;
         }
         // this child is now empty
-        index.getPageStore().free(page.getPos(), true);
+        index.getPageStore().free(page.getPos());
         if (entryCount < 1) {
             // no more children - this page is empty as well
             return true;
@@ -269,12 +269,11 @@ public class PageDataNode extends PageData {
         return false;
     }
 
-    void freeChildren() throws SQLException {
-        for (int i = 0; i <= entryCount; i++) {
-            int childPageId = childPageIds[i];
-            PageData child = index.getPage(childPageId, getPos());
-            index.getPageStore().free(childPageId, false);
-            child.freeChildren();
+    void freeRecursive() throws SQLException {
+        index.getPageStore().logUndo(this, data);
+        index.getPageStore().free(getPos());
+        for (int childPageId : childPageIds) {
+            index.getPage(childPageId, getPos()).freeRecursive();
         }
     }
 
@@ -326,7 +325,6 @@ public class PageDataNode extends PageData {
 
     public void write(DataPage buff) throws SQLException {
         write();
-        index.getPageStore().checkUndo(getPos());
         index.getPageStore().writePage(getPos(), data);
     }
 
@@ -409,7 +407,7 @@ public class PageDataNode extends PageData {
             p.setParentPageId(newPos);
             store.update(p);
         }
-        store.free(getPos(), true);
+        store.free(getPos());
     }
 
     /**

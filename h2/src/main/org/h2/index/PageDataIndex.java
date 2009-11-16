@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.log.UndoLogRecord;
@@ -188,7 +189,11 @@ public class PageDataIndex extends PageIndex implements RowIndex {
      * @return the page
      */
     PageDataOverflow getPageOverflow(int id) throws SQLException {
-        return (PageDataOverflow) store.getPage(id);
+        Page p = store.getPage(id);
+        if (p instanceof PageDataOverflow) {
+            return (PageDataOverflow) p;
+        }
+        throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, p.toString());
     }
 
     /**
@@ -317,7 +322,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             trace.debug(this + " remove");
         }
         removeAllRows();
-        store.free(rootPageId, true);
+        store.free(rootPageId);
         store.removeMeta(this, session);
     }
 
@@ -338,8 +343,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
 
     private void removeAllRows() throws SQLException {
         PageData root = getPage(rootPageId, 0);
-        store.logUndo(root, root.data);
-        root.freeChildren();
+        root.freeRecursive();
         root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
         store.removeRecord(rootPageId);
         store.update(root);

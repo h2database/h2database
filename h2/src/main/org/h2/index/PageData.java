@@ -198,9 +198,9 @@ abstract class PageData extends Page {
     abstract boolean remove(long key) throws SQLException;
 
     /**
-     * Free up all child pages.
+     * Free this page and all child pages.
      */
-    abstract void freeChildren() throws SQLException;
+    abstract void freeRecursive() throws SQLException;
 
     /**
      * Get the row for the given key.

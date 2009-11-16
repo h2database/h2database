@@ -234,9 +234,9 @@ public abstract class PageBtree extends Page {
     abstract SearchRow remove(SearchRow row) throws SQLException;
 
     /**
-     * Free up all child pages.
+     * Free this page and all child pages.
      */
-    abstract void freeChildren() throws SQLException;
+    abstract void freeRecursive() throws SQLException;
 
     /**
      * Ensure all rows are read in memory.

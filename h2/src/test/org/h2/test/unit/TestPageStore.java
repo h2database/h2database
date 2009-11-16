@@ -36,6 +36,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testDuplicateKey();
         testUpdateOverflow();
         testTruncateReconnect();
         testReverseIndex();
@@ -54,6 +55,22 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testDuplicateKey() throws SQLException {
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(0, space(3000))");
+        try {
+            stat.execute("insert into test values(0, space(3000))");
+        } catch (SQLException e) {
+            // ignore
+        }
+        stat.execute("select * from test");
+        conn.close();
     }
 
     private void testTruncateReconnect() throws SQLException {

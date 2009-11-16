@@ -66,6 +66,18 @@ public class TestCrashAPI extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    public void test() throws SQLException {
+        if (config.mvcc || config.networked || config.logMode == 0) {
+            return;
+        }
+        int len = getSize(2, 6);
+        for (int i = 0; i < len; i++) {
+            int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
+            testCase(seed);
+            deleteDb();
+        }
+    }
+
     private void deleteDb() {
         try {
             deleteDb(baseDir + "/" + DIR, null);
@@ -416,18 +428,6 @@ public class TestCrashAPI extends TestBase {
         } finally {
             baseDir = oldBaseDir;
             System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + old);
-        }
-    }
-
-    public void test() throws SQLException {
-        if (config.mvcc || config.networked || config.logMode == 0) {
-            return;
-        }
-        int len = getSize(2, 6);
-        for (int i = 0; i < len; i++) {
-            int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
-            testCase(seed);
-            deleteDb();
         }
     }
 

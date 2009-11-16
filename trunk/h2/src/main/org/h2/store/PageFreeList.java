@@ -110,7 +110,7 @@ public class PageFreeList extends Page {
 
     int getLastUsed() {
         int last = used.getLastSetBit();
-        return last == -1 ? -1 : last + getPos();
+        return last == 0 ? -1 : last + getPos();
     }
 
     /**

@@ -827,7 +827,6 @@ public class PageLog {
         if (writeBuffer.length() == 0) {
             return writeBuffer;
         }
-//new Error("recurse").printStackTrace();
         return store.createData();
     }
 

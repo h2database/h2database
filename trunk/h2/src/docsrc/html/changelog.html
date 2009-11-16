@@ -18,11 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Page store: opening a database sometimes failed if large rows where updated,
+<ul><li>Page store: after a duplicate key exception, an ArrayIndexOutOfBoundsException
+    could be thrown (only for very large rows).
+</li><li>Page store: the recover tool sometimes generated a script file that contained
+    duplicate data.
+</li><li>Page store: sometimes opening a read-only database failed.
+</li><li>Page store: opening a database sometimes failed if large rows where updated,
     or if a table was truncated before.
-</li><li>Page store: when using a very small page size (128 bytes), writing a large
-    row could result in an endless recursion. This is only a theoretical problem, as the
-    page size is 2 KB.
+</li><li>Page store: when using a very small page size (128 bytes or smaller), 
+    writing a large row could result in an endless recursion. This is only a theoretical problem, 
+        as the page size is 2 KB.
 </li><li>Page store: getting the min value from a descending index 
     with NULL entries could return the wrong result.
 </li><li>The JDBC client did not detect that it was not talking to an H2 server.

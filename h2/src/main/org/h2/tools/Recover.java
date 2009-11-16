@@ -353,7 +353,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- ERROR: " + error + " block: " + block + " blockCount: " + blockCount + " storageId: "
                 + storageId + " recordLength: " + recordLength + " valueId: " + valueId);
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
+        for (int i = 0; i < data.length && i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = data[i] & 0xff;
             if (x >= ' ' && x < 128) {
                 sb.append((char) x);
@@ -363,7 +363,7 @@ public class Recover extends Tool implements DataHandler {
         }
         writer.println("-- dump: " + sb.toString());
         sb = new StringBuilder();
-        for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
+        for (int i = 0; i < data.length && i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = data[i] & 0xff;
             sb.append(' ');
             if (x < 16) {
@@ -918,11 +918,10 @@ public class Recover extends Tool implements DataHandler {
                     pageTypeCount[type]++;
                     int parentPageId = s.readInt();
                     setStorage(s.readVarInt());
-                    // row count
-                    s.readInt();
+                    int rowCount = s.readInt();
                     int entries = s.readShortInt();
                     writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " parent: " + parentPageId +
-                            " entries: " + entries);
+                            " entries: " + entries + " rowCount: " + rowCount);
                     dumpPageDataNode(writer, s, page, entries);
                     break;
                 }

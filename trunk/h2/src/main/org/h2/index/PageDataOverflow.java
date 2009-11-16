@@ -180,7 +180,6 @@ public class PageDataOverflow extends Page {
 
     public void write(DataPage buff) throws SQLException {
         write();
-        store.checkUndo(getPos());
         store.writePage(getPos(), data);
     }
 
@@ -236,7 +235,7 @@ public class PageDataOverflow extends Page {
             p1.setOverflow(getPos(), newPos);
         }
         store.update(p);
-        store.free(getPos(), true);
+        store.free(getPos());
     }
 
     private void setNext(int old, int nextPage) throws SQLException {
@@ -246,6 +245,11 @@ public class PageDataOverflow extends Page {
         store.logUndo(this, data);
         this.nextPage = nextPage;
         data.setInt(START_NEXT_OVERFLOW, nextPage);
+    }
+
+    void free() throws SQLException {
+        store.logUndo(this, data);
+        store.free(getPos());
     }
 
 }

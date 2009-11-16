@@ -143,6 +143,14 @@ public class PageDataLeaf extends PageData {
         return size;
     }
 
+    private int findInsertionPoint(long key) throws SQLException {
+        int x = find(key);
+        if (x < keys.length && keys[x] == key) {
+            throw index.getDuplicateKeyException();
+        }
+        return x;
+    }
+
     int addRowTry(Row row) throws SQLException {
         index.getPageStore().logUndo(this, data);
         int rowLength = getRowLength(row);
@@ -150,7 +158,7 @@ public class PageDataLeaf extends PageData {
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         int keyOffsetPairLen = 2 + data.getVarLongLen(row.getKey());
         if (entryCount > 0 && last - rowLength < start + keyOffsetPairLen) {
-            int x = find(row.getKey());
+            int x = findInsertionPoint(row.getKey());
             if (entryCount > 1) {
                 if (entryCount < 5) {
                     // required, otherwise the index doesn't work correctly
@@ -177,10 +185,7 @@ public class PageDataLeaf extends PageData {
             x = 0;
         } else {
             readAllRows();
-            x = find(row.getKey());
-            if (x < keys.length && keys[x] == row.getKey()) {
-                throw index.getDuplicateKeyException();
-            }
+            x = findInsertionPoint(row.getKey());
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(keys, 0, newKeys, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
@@ -262,7 +267,7 @@ public class PageDataLeaf extends PageData {
         if (entryCount < 0) {
             Message.throwInternalError();
         }
-        freeChildren();
+        freeOverflow();
         firstOverflowPageId = 0;
         overflowRowSize = 0;
         rowRef = null;
@@ -320,10 +325,6 @@ public class PageDataLeaf extends PageData {
                 int next = firstOverflowPageId;
                 do {
                     PageDataOverflow page = index.getPageOverflow(next);
-if (page == null) {
-    page = index.getPageOverflow(next);
-    System.out.println("stop!");
-}
                     next = page.readInto(buff);
                 } while (next != 0);
                 overflowRowSize = pageSize + buff.length();
@@ -394,7 +395,7 @@ if (page == null) {
         }
         index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {
-            freeChildren();
+            freeRecursive();
             return true;
         }
         removeRow(i);
@@ -402,13 +403,18 @@ if (page == null) {
         return false;
     }
 
-    void freeChildren() throws SQLException {
+    void freeRecursive() throws SQLException {
+        index.getPageStore().logUndo(this, data);
+        index.getPageStore().free(getPos());
+        freeOverflow();
+    }
+
+    void freeOverflow() throws SQLException {
         if (firstOverflowPageId != 0) {
-            PageStore store = index.getPageStore();
             int next = firstOverflowPageId;
             do {
                 PageDataOverflow page = index.getPageOverflow(next);
-                store.free(next, false);
+                page.free();
                 next = page.getNextOverflow();
             } while (next != 0);
         }
@@ -433,7 +439,6 @@ if (page == null) {
 
     public void write(DataPage buff) throws SQLException {
         write();
-        index.getPageStore().checkUndo(getPos());
         index.getPageStore().writePage(getPos(), data);
         data.truncate(index.getPageStore().getPageSize());
     }
@@ -516,7 +521,7 @@ if (page == null) {
         p2.write();
         p2.data.truncate(index.getPageStore().getPageSize());
         store.update(p2);
-        store.free(getPos(), true);
+        store.free(getPos());
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {

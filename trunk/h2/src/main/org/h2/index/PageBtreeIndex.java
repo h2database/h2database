@@ -229,7 +229,7 @@ public class PageBtreeIndex extends PageIndex {
             trace.debug("remove");
         }
         removeAllRows();
-        store.free(rootPageId, true);
+        store.free(rootPageId);
         store.removeMeta(this, session);
     }
 
@@ -246,8 +246,7 @@ public class PageBtreeIndex extends PageIndex {
 
     private void removeAllRows() throws SQLException {
         PageBtree root = getPage(rootPageId);
-        store.logUndo(root, root.data);
-        root.freeChildren();
+        root.freeRecursive();
         root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
         store.removeRecord(rootPageId);
         store.update(root);

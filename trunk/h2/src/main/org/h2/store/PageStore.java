@@ -393,6 +393,7 @@ public class PageStore implements CacheWriter {
                 break;
             }
         }
+        writeIndexRowCounts();
         writeBack();
         // truncate the log
         recoveryRunning = true;
@@ -868,12 +869,21 @@ public class PageStore implements CacheWriter {
     }
 
     /**
+     * Add a page to the free list. The undo log entry must have been written.
+     *
+     * @param pageId the page id
+     */
+    public void free(int pageId) throws SQLException {
+        free(pageId, true);
+    }
+
+    /**
      * Add a page to the free list.
      *
      * @param pageId the page id
      * @param undo if the undo record must have been written
      */
-    public void free(int pageId, boolean undo) throws SQLException {
+    void free(int pageId, boolean undo) throws SQLException {
         if (trace.isDebugEnabled()) {
             // trace.debug("freePage " + pageId);
         }
@@ -1036,9 +1046,9 @@ public class PageStore implements CacheWriter {
             openIndex.close(systemSession);
         }
         allocatePage(PAGE_ID_META_ROOT);
+        writeIndexRowCounts();
         recoveryRunning = false;
         reservedPages = null;
-        writeIndexRowCounts();
         writeBack();
         // clear the cache because it contains pages with closed indexes
         cache.clear();
@@ -1546,18 +1556,6 @@ public class PageStore implements CacheWriter {
             return false;
         }
         return true;
-    }
-
-    /**
-     * Check if the undo entry for the given page has been written.
-     *
-     * @param pageId the page id
-     */
-    public void checkUndo(int pageId) throws SQLException {
-        if (SysProperties.CHECK && !recoveryRunning) {
-            // ensure the undo entry is already written
-            // log.addUndo(pageId, null);
-        }
     }
 
 }

@@ -305,7 +305,9 @@ public class JdbcConnection extends TraceObject implements Connection {
                 synchronized (session) {
                     if (!session.isClosed()) {
                         try {
-                            rollbackInternal();
+                            if (!session.isReconnectNeeded(true))  {
+                                rollbackInternal();
+                            }
                             commit = closeAndSetNull(commit);
                             rollback = closeAndSetNull(rollback);
                             setAutoCommitTrue = closeAndSetNull(setAutoCommitTrue);

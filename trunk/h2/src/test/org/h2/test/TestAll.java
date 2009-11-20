@@ -298,7 +298,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-Compiler documentation
 test with small freeList pages, page size 64
 test if compact always works as expected
 implement node row counts (disabled by default)

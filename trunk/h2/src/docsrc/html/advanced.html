@@ -325,6 +325,18 @@ database that failed, then restart the server that was stopped,
 and re-run the <code>CreateCluster</code> tool.
 </li></ul>
 
+<h3>Detect Which Cluster Instances are Running</h3>
+<p>
+To find out which cluster nodes are currently running, execute the following SQL statement:
+</p>
+<pre>
+SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='CLUSTER'
+</pre>
+<p>
+If the result is <code>''</code> (two single quotes), then the cluster mode is disabled. Otherwise, the list of
+servers is returned, enclosed in single quote. Example: <code>'server1:9191,server2:9191'</code>.
+</p>
+
 <h3>Clustering Algorithm and Limitations</h3>
 <p>
 Read-only queries are only executed against the first cluster node, but all other statements are

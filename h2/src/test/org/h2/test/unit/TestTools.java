@@ -214,8 +214,9 @@ public class TestTools extends TestBase {
         prep.setString(2, "Hello \\'Joe\n\\'");
         prep.setBigDecimal(3, new BigDecimal("10.20"));
         prep.executeUpdate();
-        stat.execute("create table test2(id int primary key, a real, b double, c bigint, " +
-                "d smallint, e boolean, f binary, g date, h time, i timestamp)");
+        stat.execute("create table test2(id int primary key,\n" +
+                "a real, b double, c bigint,\n" +
+                "d smallint, e boolean, f binary, g date, h time, i timestamp)", Statement.NO_GENERATED_KEYS);
         prep = conn.prepareStatement("insert into test2 values(1, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         prep.setFloat(1, Float.MIN_VALUE);
         prep.setDouble(2, Double.MIN_VALUE);
@@ -226,7 +227,7 @@ public class TestTools extends TestBase {
         prep.setDate(7, java.sql.Date.valueOf("2007-12-31"));
         prep.setTime(8, java.sql.Time.valueOf("23:59:59"));
         prep.setTimestamp(9, java.sql.Timestamp.valueOf("2007-12-31 23:59:59"));
-        prep.execute();
+        prep.executeUpdate();
         conn.close();
 
         ConvertTraceFile.main("-traceFile", baseDir + "/toolsConvertTraceFile.trace.db", "-javaClass", baseDir + "/Test", "-script", baseDir + "/test.sql");

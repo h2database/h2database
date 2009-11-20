@@ -193,11 +193,15 @@ public class ConvertTraceFile extends Tool {
                     append(padNumberLeft(stat.executeCount, 8)).
                     append(padNumberLeft(stat.resultCount, 8)).
                     append(' ').
-                    append(stat.sql);
+                    append(removeNewlines(stat.sql));
                 scriptWriter.println(buff.toString());
             }
         }
         scriptWriter.close();
+    }
+
+    private String removeNewlines(String s) {
+        return s == null ? s : s.replace('\r', ' ').replace('\n', ' ');
     }
 
     private String padNumberLeft(long number, int digits) {

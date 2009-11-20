@@ -558,6 +558,12 @@ public class SysProperties {
     public static final boolean PAGE_STORE_TRIM = getBooleanSetting("h2.pageStoreTrim", true);
 
     /**
+     * System property <code>h2.pageStoreInternalCount</code> (default: false).<br />
+     * Update the row counts on a node level.
+     */
+    public static final boolean PAGE_STORE_INTERNAL_COUNT = getBooleanSetting("h2.pageStoreInternalCount", false);
+
+    /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
      * Default client encoding for PG server. It is used if the client does not
      * sends his encoding.

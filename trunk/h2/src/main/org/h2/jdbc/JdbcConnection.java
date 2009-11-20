@@ -305,6 +305,8 @@ public class JdbcConnection extends TraceObject implements Connection {
                 synchronized (session) {
                     if (!session.isClosed()) {
                         try {
+                            // roll back unless that would require to re-connect
+                            // (the transaction can't be rolled back when re-connecting)
                             if (!session.isReconnectNeeded(true))  {
                                 rollbackInternal();
                             }

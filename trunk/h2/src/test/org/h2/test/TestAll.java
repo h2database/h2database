@@ -233,6 +233,11 @@ java org.h2.test.TestAll timer
     public boolean googleAppEngine;
 
     /**
+     * If a small cache and a low number for MAX_MEMORY_ROWS should be used.
+     */
+    public boolean diskResult;
+
+    /**
      * If the transaction log files should be kept small (that is, log files
      * should be switched early).
      */
@@ -247,11 +252,6 @@ java org.h2.test.TestAll timer
      * If MAX_MEMORY_UNDO=3 should be used.
      */
     boolean diskUndo;
-
-    /**
-     * If a small cache and a low number for MAX_MEMORY_ROWS should be used.
-     */
-    boolean diskResult;
 
     /**
      * If TRACE_LEVEL_SYSTEM_OUT should be set to 2 (for debugging only).
@@ -295,15 +295,14 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
+
 /*
 
-remove PageStore.checkUndo
-verify logUndo is correct
-test with page size 64
-check auto-build
-DoubleTrace.java
 Compiler documentation
-ConvertTraceFile: remove newlines and duplicate spaces from output in statistics
+test with small freeList pages, page size 64
+test if compact always works as expected
+implement node row counts (disabled by default)
+check auto-build
 
 check memory usage when inserting a lot of rows
 http://www.apache.org/dev/contrib-email-tips.html
@@ -356,8 +355,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         } else {
             System.setProperty(SysProperties.H2_PAGE_STORE, "true");
             test.pageStore = true;
-            test.runTests();
-            TestPerformance.main("-init", "-db", "1");
+//            test.runTests();
+//            TestPerformance.main("-init", "-db", "1");
 //            Recover.execute("data", null);
 //            RunScript.execute("jdbc:h2:data/test2",
 //                 "sa1", "sa1", "data/test.h2.sql", null, false);

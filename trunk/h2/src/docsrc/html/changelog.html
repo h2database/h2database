@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.124 (2009-11-20)</h2>
 <ul><li>Clustering: there is now a way to detect which cluster instances are running.
 </li><li>ConvertTraceFile: the SQL statement statistics are better formatted (newline are removed).
 </li><li>The file lock thread is now stopped when the database is closed.
@@ -554,30 +558,6 @@ Change Log
     property h2.returnLobObjects (true by default for version 1.1).
 </li><li>The interface CloseListener has a new method 'remove' that is called when the trigger is dropped.
 </li><li>Fulltext search: there was a memory leak when creating and dropping fulltext indexes in a loop.
-</li></ul>
-
-<h2>Version 1.1.103 (2008-11-07)</h2>
-<ul><li>Could not order by a formula when the formula was in the group by list
-    but not in the select list.
-</li><li>Date values that match the daylight saving time end were not allowed in
-    times zones were the daylight saving time ends at midnight, for years larger than 2037.
-    Example: timezone Brasilia, date 2042-10-12. This is a problem of Java, however a
-    workaround is implemented in H2 that solves most problems (except the problems of
-    java.util.Date itself).
-</li><li>ALTER TABLE used a lot of memory when using multi-version concurrency.
-</li><li>Referential integrity for in-memory databases didn't work in some cases in version 1.1.102.
-</li><li>New column INFORMATION_SCHEMA.COLUMNS.SEQUENCE_NAME to get the name
-    of the sequence for auto-increment columns.
-</li><li>Aliases for built-in data types (such as MEDIUMBLOB which is an alias for BLOB)
-    can now be re-mapped to another data type using CREATE DOMAIN. However
-    main built-in data types (such as INTEGER) can not be re-mapped.
-</li><li>The Japanese translation has been completed by Masahiro Ikemoto.
-    Thanks a lot!
-</li><li>Improved PostgreSQL compatibility for NEXTVAL and CURRVAL.
-</li><li>Less heap memory is needed when multiple databases are open at the same time: the memory reserve
-    (used to rollback after out of memory) is now global and no longer allocated for each database separately.
-</li><li>New system property h2.browser to set the browser to use.
-</li><li>To start the browser, java.awt.Desktop.browse is now used if available.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

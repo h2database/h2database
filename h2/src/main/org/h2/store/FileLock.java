@@ -159,10 +159,18 @@ public class FileLock {
             }
         } catch (Exception e) {
             trace.debug("unlock", e);
+        } finally {
+            fileName = null;
+            socket = null;
+            locked = false;
         }
-        fileName = null;
-        socket = null;
-        locked = false;
+        try {
+            if (watchdog != null) {
+                watchdog.interrupt();
+            }
+        } catch (Exception e) {
+            trace.debug("unlock", e);
+        }
     }
 
     /**
@@ -346,6 +354,10 @@ public class FileLock {
                             }
                             Thread.sleep(sleep);
                         } catch (OutOfMemoryError e) {
+                            // ignore
+                        } catch (InterruptedException e) {
+                            // ignore
+                        } catch (NullPointerException e) {
                             // ignore
                         } catch (Exception e) {
                             trace.debug("watchdog", e);

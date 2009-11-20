@@ -398,9 +398,6 @@ public class Recover extends Tool implements DataHandler {
         } catch (Throwable e) {
             // this is usually not a problem, because we try both compressed and
             // uncompressed
-            if (trace) {
-                traceError(fileName, e);
-            }
         } finally {
             IOUtils.closeSilently(fileOut);
             IOUtils.closeSilently(in);
@@ -979,6 +976,7 @@ public class Recover extends Tool implements DataHandler {
             } catch (EOFException e) {
                 // ignore
             }
+            writer.println("---- Statistics ----------");
             writer.println("-- page count: " + pageCount + " empty: " + emptyPages + " free: " + free);
             writer.println("-- page data head: " + pageDataHead + " empty: " + pageDataEmpty + " rows: " + pageDataRows);
             for (int i = 0; i < pageTypeCount.length; i++) {
@@ -1001,6 +999,7 @@ public class Recover extends Tool implements DataHandler {
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey, logFirstTrunkPage, logFirstDataPage, pageSize)
         );
+        writer.println("---- Transaction log ----------");
         CompressLZF compress = new CompressLZF();
         while (true) {
             int x = in.read();
@@ -1653,7 +1652,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void writeSchema(PrintWriter writer) {
-        writer.println("----------- schema -----------");
+        writer.println("---- Schema ----------");
         MetaRecord.sort(schema);
         for (MetaRecord m : schema) {
             String sql = m.getSQL();

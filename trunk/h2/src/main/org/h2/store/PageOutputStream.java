@@ -202,4 +202,19 @@ public class PageOutputStream extends OutputStream {
         return trunk.getLogKey();
     }
 
+    /**
+     * Free up all reserved pages.
+     */
+    void freeReserved() throws SQLException {
+        if (reservedPages.size() > 0) {
+            int[] array = new int[reservedPages.size()];
+            reservedPages.toArray(array);
+            reservedPages = new IntArray();
+            reserved = 0;
+            for (int p : array) {
+                store.free(p);
+            }
+        }
+    }
+
 }

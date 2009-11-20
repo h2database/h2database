@@ -215,26 +215,31 @@ public class PageDataOverflow extends Page {
     }
 
     public void moveTo(Session session, int newPos) throws SQLException {
+        // load the pages into the cache, to ensure old pages
+        // are written
+        Page parent = store.getPage(parentPageId);
+        if (parent == null) {
+            throw Message.throwInternalError();
+        }
+        PageDataOverflow next = null;
+        if (nextPage != 0) {
+            next = (PageDataOverflow) store.getPage(nextPage);
+        }
         store.logUndo(this, data);
         PageDataOverflow p2 = PageDataOverflow.create(store, newPos, type, parentPageId, nextPage, data, start, size);
         store.update(p2);
-        if (nextPage != 0) {
-            PageDataOverflow p3 = (PageDataOverflow) store.getPage(nextPage);
-            p3.setParentPageId(newPos);
-            store.update(p3);
+        if (next != null) {
+            next.setParentPageId(newPos);
+            store.update(next);
         }
-        Page p = store.getPage(parentPageId);
-        if (p == null) {
-            throw Message.throwInternalError();
-        }
-        if (p instanceof PageDataOverflow) {
-            PageDataOverflow p1 = (PageDataOverflow) p;
+        if (parent instanceof PageDataOverflow) {
+            PageDataOverflow p1 = (PageDataOverflow) parent;
             p1.setNext(getPos(), newPos);
         } else {
-            PageDataLeaf p1 = (PageDataLeaf) p;
+            PageDataLeaf p1 = (PageDataLeaf) parent;
             p1.setOverflow(getPos(), newPos);
         }
-        store.update(p);
+        store.update(parent);
         store.free(getPos());
     }
 
@@ -247,9 +252,16 @@ public class PageDataOverflow extends Page {
         data.setInt(START_NEXT_OVERFLOW, nextPage);
     }
 
+    /**
+     * Free this page.
+     */
     void free() throws SQLException {
         store.logUndo(this, data);
         store.free(getPos());
+    }
+
+    public boolean canRemove() {
+        return super.canRemove();
     }
 
 }

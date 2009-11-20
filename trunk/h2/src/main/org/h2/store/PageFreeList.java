@@ -77,7 +77,9 @@ public class PageFreeList extends Page {
         while (true) {
             int free = used.nextClearBit(start);
             if (free >= pageCount) {
-                full = true;
+                if (start == 0) {
+                    full = true;
+                }
                 return -1;
             }
             if (exclude != null && exclude.get(free + getPos())) {
@@ -208,6 +210,10 @@ public class PageFreeList extends Page {
 
     public String toString() {
         return "page [" + getPos() + "] freeList" + (full ? "full" : "");
+    }
+
+    public boolean canRemove() {
+        return false;
     }
 
 }

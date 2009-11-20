@@ -10,7 +10,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import org.h2.constant.ErrorCode;
 import org.h2.message.Trace;
 import org.h2.util.BitField;
 
@@ -21,7 +20,8 @@ public class PageInputStream extends InputStream {
 
     private PageStore store;
     private final Trace trace;
-    private int trunkNext;
+    private int firstTrunkPage;
+    private PageStreamTrunk.Iterator it;
     private int dataPage;
     private PageStreamTrunk trunk;
     private PageStreamData data;
@@ -30,12 +30,13 @@ public class PageInputStream extends InputStream {
     private byte[] buffer = new byte[1];
     private int logKey;
 
-    PageInputStream(PageStore store, int logKey, int trunkPage, int dataPage) {
+    PageInputStream(PageStore store, int logKey, int firstTrunkPage, int dataPage) {
         this.store = store;
         this.trace = store.getTrace();
-        // minus one, because we increment before reading the trunk page
+        // minus one because we increment before comparing
         this.logKey = logKey - 1;
-        this.trunkNext = trunkPage;
+        this.firstTrunkPage = firstTrunkPage;
+        it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
         this.dataPage = dataPage;
     }
 
@@ -80,29 +81,20 @@ public class PageInputStream extends InputStream {
         }
     }
 
-    private void fillBuffer() throws SQLException, EOFException {
+    private void fillBuffer() throws SQLException {
         if (remaining > 0 || endOfFile) {
-            return;
-        }
-        if (trunkNext == 0) {
-            endOfFile = true;
             return;
         }
         int next;
         while (true) {
             if (trunk == null) {
-                Page p = store.getPage(trunkNext);
-                if (p instanceof PageStreamTrunk) {
-                    trunk = (PageStreamTrunk) p;
-                }
+                trunk = it.next();
                 logKey++;
-                if (trunk == null) {
-                    throw new EOFException();
-                } else if (trunk.getLogKey() != logKey) {
-                    throw new EOFException();
+                if (trunk == null || trunk.getLogKey() != logKey) {
+                    endOfFile = true;
+                    return;
                 }
                 trunk.resetIndex();
-                trunkNext = trunk.getNextTrunk();
             }
             if (trunk != null) {
                 next = trunk.getNextPageData();
@@ -122,10 +114,9 @@ public class PageInputStream extends InputStream {
         if (p instanceof PageStreamData) {
             data = (PageStreamData) p;
         }
-        if (data == null) {
-            throw new EOFException();
-        } else if (data.getLogKey() != logKey) {
-            throw new EOFException();
+        if (data == null || data.getLogKey() != logKey) {
+            endOfFile = true;
+            return;
         }
         data.initRead();
         remaining = data.getRemaining();
@@ -138,25 +129,18 @@ public class PageInputStream extends InputStream {
      */
     BitField allocateAllPages() throws SQLException {
         BitField pages = new BitField();
-        int trunkPage = trunkNext;
-        while (trunkPage != 0 && trunkPage < store.getPageCount()) {
-            pages.set(trunkPage);
-            store.allocatePage(trunkPage);
-            PageStreamTrunk t = null;
-            try {
-                Page p = store.getPage(trunkPage);
-                if (p instanceof PageStreamTrunk) {
-                    t = (PageStreamTrunk) p;
-                }
-            } catch (SQLException e) {
-                if (e.getErrorCode() != ErrorCode.FILE_CORRUPTED_1) {
-                    // wrong checksum means end of stream
-                    throw e;
-                }
+        int key = logKey;
+        PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
+        while (true) {
+            PageStreamTrunk t = it.next();
+            key++;
+            if (it.canDelete()) {
+                store.allocatePage(it.getCurrentPageId());
             }
-            if (t == null) {
+            if (t == null || t.getLogKey() != key) {
                 break;
             }
+            pages.set(t.getPos());
             t.resetIndex();
             while (true) {
                 int n = t.getNextPageData();
@@ -166,7 +150,6 @@ public class PageInputStream extends InputStream {
                 pages.set(n);
                 store.allocatePage(n);
             }
-            trunkPage = t.getNextTrunk();
         }
         return pages;
     }

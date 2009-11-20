@@ -7,6 +7,7 @@
 package org.h2.store;
 
 import java.sql.SQLException;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 
 /**
@@ -26,10 +27,18 @@ public class PageStreamTrunk extends Page {
 
     private static final int DATA_START = 17;
 
+    /**
+     * The previous stream trunk.
+     */
+    int parent;
+
+    /**
+     * The next stream trunk.
+     */
+    int nextTrunk;
+
     private final PageStore store;
-    private int parent;
     private int logKey;
-    private int nextTrunk;
     private int[] pageIds;
     private int pageCount;
     private Data data;
@@ -113,10 +122,6 @@ public class PageStreamTrunk extends Page {
             return -1;
         }
         return pageIds[index++];
-    }
-
-    int getNextTrunk() {
-        return nextTrunk;
     }
 
     public int getByteCount(DataPage dummy) {
@@ -210,6 +215,88 @@ public class PageStreamTrunk extends Page {
 
     int getLogKey() {
         return logKey;
+    }
+
+    public int getNextTrunk() {
+        return nextTrunk;
+    }
+
+    /**
+     * An iterator over page stream trunk pages.
+     */
+    static class Iterator {
+
+        private PageStore store;
+        private int first;
+        private int next;
+        private int previous;
+        private boolean canDelete;
+        private int current;
+
+        Iterator(PageStore store, int first) {
+            this.store = store;
+            this.next = first;
+        }
+
+        int getCurrentPageId() {
+            return current;
+        }
+
+        /**
+         * Get the next trunk page or null if no next trunk page.
+         *
+         * @return the next trunk page or null
+         */
+        PageStreamTrunk next() throws SQLException {
+            canDelete = false;
+            if (first == 0) {
+                first = next;
+            } else if (first == next) {
+                return null;
+            }
+            if (next == 0 || next >= store.getPageCount()) {
+                return null;
+            }
+            Page p;
+            current = next;
+            try {
+                p = store.getPage(next);
+            } catch (SQLException e) {
+                if (e.getErrorCode() != ErrorCode.FILE_CORRUPTED_1) {
+                    // wrong checksum means end of stream
+                    throw e;
+                }
+                return null;
+            }
+            if (p == null || p instanceof PageStreamTrunk || p instanceof PageStreamData) {
+                canDelete = true;
+            }
+            if (!(p instanceof PageStreamTrunk)) {
+                return null;
+            }
+            PageStreamTrunk t = (PageStreamTrunk) p;
+            if (previous > 0 && t.parent != previous) {
+                return null;
+            }
+            previous = next;
+            next = t.nextTrunk;
+            return t;
+        }
+
+        /**
+         * Check if the current page can be deleted. It can if it's empty, a
+         * stream trunk, or a stream data page.
+         *
+         * @return true if it can be deleted
+         */
+        boolean canDelete() {
+            return canDelete;
+        }
+
+    }
+
+    public boolean canRemove() {
+        return true;
     }
 
 }

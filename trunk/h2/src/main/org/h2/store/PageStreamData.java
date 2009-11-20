@@ -169,4 +169,8 @@ public class PageStreamData extends Page {
         return "[" + getPos() + "] stream data pos:" + data.length() + " remaining:" + remaining;
     }
 
+    public boolean canRemove() {
+        return true;
+    }
+
 }

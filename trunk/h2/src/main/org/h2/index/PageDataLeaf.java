@@ -198,6 +198,7 @@ public class PageDataLeaf extends PageData {
             }
         }
         written = false;
+        changeCount = index.getPageStore().getChangeCount();
         last = x == 0 ? pageSize : offsets[x - 1];
         offset = last - rowLength;
         entryCount++;
@@ -258,6 +259,7 @@ public class PageDataLeaf extends PageData {
     private void removeRow(int i) throws SQLException {
         index.getPageStore().logUndo(this, data);
         written = false;
+        changeCount = index.getPageStore().getChangeCount();
         readAllRows();
         Row r = rows[i];
         if (r != null) {
@@ -409,7 +411,7 @@ public class PageDataLeaf extends PageData {
         freeOverflow();
     }
 
-    void freeOverflow() throws SQLException {
+    private void freeOverflow() throws SQLException {
         if (firstOverflowPageId != 0) {
             int next = firstOverflowPageId;
             do {
@@ -503,6 +505,11 @@ public class PageDataLeaf extends PageData {
 
     public void moveTo(Session session, int newPos) throws SQLException {
         PageStore store = index.getPageStore();
+        // load the pages into the cache, to ensure old pages
+        // are written
+        if (parentPageId != ROOT) {
+            store.getPage(parentPageId);
+        }
         store.logUndo(this, data);
         PageDataLeaf p2 = PageDataLeaf.create(index, newPos, parentPageId);
         readAllRows();
@@ -543,6 +550,7 @@ public class PageDataLeaf extends PageData {
         index.getPageStore().logUndo(this, data);
         firstOverflowPageId = overflow;
         if (written) {
+            changeCount = index.getPageStore().getChangeCount();
             writeHead();
             data.writeInt(firstOverflowPageId);
         }

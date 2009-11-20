@@ -74,6 +74,14 @@ public class PageBtreeIndex extends PageIndex {
         }
         // safe memory
         SearchRow newRow = getSearchRow(row);
+        try {
+            addRow(newRow);
+        } finally {
+            store.incrementChangeCount();
+        }
+    }
+
+    private void addRow(SearchRow newRow) throws SQLException {
         while (true) {
             PageBtree root = getPage(rootPageId);
             int splitPoint = root.addRowTry(newRow);
@@ -217,10 +225,14 @@ public class PageBtreeIndex extends PageIndex {
         if (rowCount == 1) {
             removeAllRows();
         } else {
-            PageBtree root = getPage(rootPageId);
-            root.remove(row);
-            invalidateRowCount();
-            rowCount--;
+            try {
+                PageBtree root = getPage(rootPageId);
+                root.remove(row);
+                invalidateRowCount();
+                rowCount--;
+            } finally {
+                store.incrementChangeCount();
+            }
         }
     }
 
@@ -245,12 +257,16 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     private void removeAllRows() throws SQLException {
-        PageBtree root = getPage(rootPageId);
-        root.freeRecursive();
-        root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
-        store.removeRecord(rootPageId);
-        store.update(root);
-        rowCount = 0;
+        try {
+            PageBtree root = getPage(rootPageId);
+            root.freeRecursive();
+            root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
+            store.removeRecord(rootPageId);
+            store.update(root);
+            rowCount = 0;
+        } finally {
+            store.incrementChangeCount();
+        }
     }
 
     public void checkRename() {
@@ -286,7 +302,11 @@ public class PageBtreeIndex extends PageIndex {
         }
         // can not close the index because it might get used afterwards,
         // for example after running recovery
-        writeRowCount();
+        try {
+            writeRowCount();
+        } finally {
+            store.incrementChangeCount();
+        }
     }
 
     /**
@@ -295,13 +315,19 @@ public class PageBtreeIndex extends PageIndex {
      * @param data the data
      * @param offset the offset
      * @param onlyPosition whether only the position of the row is stored
+     * @param needData whether the row data is required
      * @return the row
      */
-    SearchRow readRow(Data data, int offset, boolean onlyPosition) throws SQLException {
+    SearchRow readRow(Data data, int offset, boolean onlyPosition, boolean needData) throws SQLException {
         data.setPos(offset);
         long key = data.readVarLong();
         if (onlyPosition) {
-            return tableData.getRow(null, key);
+            if (needData) {
+                return tableData.getRow(null, key);
+            }
+            SearchRow row = table.getTemplateSimpleRow(true);
+            row.setKey(key);
+            return row;
         }
         SearchRow row = table.getTemplateSimpleRow(columns.length == 1);
         row.setKey(key);
@@ -310,6 +336,16 @@ public class PageBtreeIndex extends PageIndex {
             row.setValue(idx, data.readValue());
         }
         return row;
+    }
+
+    /**
+     * Get the complete row from the data index.
+     *
+     * @param key the key
+     * @return the row
+     */
+    SearchRow readRow(long key) throws SQLException {
+        return tableData.getRow(null, key);
     }
 
     /**
@@ -375,6 +411,16 @@ public class PageBtreeIndex extends PageIndex {
     public void writeRowCount() throws SQLException {
         PageBtree root = getPage(rootPageId);
         root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
+    }
+
+    /**
+     * Check whether the given row contains data.
+     *
+     * @param row the row
+     * @return true if it contains data
+     */
+    boolean hasData(SearchRow row) {
+        return row.getValue(columns[0].getColumnId()) != null;
     }
 
 }

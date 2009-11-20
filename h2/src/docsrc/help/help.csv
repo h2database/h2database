@@ -191,6 +191,7 @@ ALTER TABLE tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table. If NOCHECK is specified, existing rows are not
 checked for consistency (the default is to check consistency for existing rows).
+The required indexes are automatically created if they don't exist yet.
 It is not possible to disable checking for unique constraints.
 This command commits an open transaction.
 ","
@@ -1443,13 +1444,15 @@ columnName dataType { DEFAULT expression | AS computedColumnExpression } [ [ NOT
 [ SELECTIVITY selectivity ] [ PRIMARY KEY [ HASH ] | UNIQUE ]
 ","
 Default expressions are used if no explicit value was used when adding a row.
+The computed column expression is evaluated and assigned whenever the row changes.
 
 Identity and auto-increment columns are columns with a sequence as the
 default. The column declared as the identity columns is implicitly the
 primary key column of this table (unlike auto-increment columns).
 ","
-CREATE TABLE(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
-CREATE TABLE(ID BIGINT IDENTITY);
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
+CREATE TABLE TEST(ID BIGINT IDENTITY);
+CREATE TABLE TEST(QUANTITY INT, PRICE DECIMAL, AMOUNT DECIMAL AS QUANTITY*PRICE);
 "
 
 "Other Grammar","Comments","

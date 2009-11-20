@@ -482,6 +482,16 @@ add the following configuration to your <code>web.xml</code>:
 &lt;servlet&gt;
     &lt;servlet-name&gt;H2Console&lt;/servlet-name&gt;
     &lt;servlet-class&gt;org.h2.server.web.WebServlet&lt;/servlet-class&gt;
+    &lt;!--
+    &lt;init-param&gt;
+        &lt;param-name&gt;webAllowOthers&lt;/param-name&gt;
+        &lt;param-value&gt;&lt;/param-value&gt;
+    &lt;/init-param&gt;
+    &lt;init-param&gt;
+        &lt;param-name&gt;trace&lt;/param-name&gt;
+        &lt;param-value&gt;&lt;/param-value&gt;
+    &lt;/init-param&gt;
+    --&gt;
     &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
 &lt;/servlet&gt;
 &lt;servlet-mapping&gt;

@@ -238,8 +238,9 @@ public class CacheLRU implements Cache {
         removeFromLinkedList(rec);
         if (SysProperties.CHECK) {
             rec.chained = null;
-            if (find(pos) != null) {
-                Message.throwInternalError("not removed!");
+            CacheObject o = find(pos);
+            if (o != null) {
+                Message.throwInternalError("not removed: " + o);
             }
         }
     }

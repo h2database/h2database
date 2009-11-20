@@ -1288,7 +1288,14 @@ public class Database implements DataHandler {
                     if (!readOnly) {
                         pageStore.compact(compactFully);
                     }
-                } catch (Throwable e) {
+                } catch (SQLException e) {
+                    if (e.getErrorCode() != ErrorCode.SIMULATED_POWER_OFF){
+                        // e.printStackTrace();
+                        // TODO don't ignore exceptions
+                    }
+                    traceSystem.getTrace(Trace.DATABASE).error("close", e);
+                } catch (Throwable e){
+                    // e.printStackTrace();
                     // TODO don't ignore exceptions
                     traceSystem.getTrace(Trace.DATABASE).error("close", e);
                 }

@@ -26,7 +26,7 @@ public class TestMvccMultiThreaded extends TestBase {
     }
 
     public void test() throws Exception {
-         testConcurrentMerge();
+        testConcurrentMerge();
         testConcurrentUpdate("");
         // not supported currently
         // testConcurrentUpdate(";MULTI_THREADED=TRUE");

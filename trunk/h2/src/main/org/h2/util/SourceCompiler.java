@@ -29,7 +29,14 @@ public class SourceCompiler {
 
     private static final Class< ? > JAVAC_SUN;
 
+    /**
+     * The class name to source code map.
+     */
     HashMap<String, String> sources = New.hashMap();
+
+    /**
+     * The class name to byte code map.
+     */
     HashMap<String, Class< ? >> compiled = New.hashMap();
 
     private String compileDir = System.getProperty("java.io.tmpdir");
@@ -42,7 +49,7 @@ public class SourceCompiler {
             clazz = null;
         }
         JAVAC_SUN = clazz;
-   }
+    }
 
     /**
      * Set the source code for the specified class.

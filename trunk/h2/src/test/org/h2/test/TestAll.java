@@ -354,8 +354,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         } else {
             System.setProperty(SysProperties.H2_PAGE_STORE, "true");
             test.pageStore = true;
-//            test.runTests();
-//            TestPerformance.main("-init", "-db", "1");
+            test.runTests();
+            TestPerformance.main("-init", "-db", "1");
 //            Recover.execute("data", null);
 //            RunScript.execute("jdbc:h2:data/test2",
 //                 "sa1", "sa1", "data/test.h2.sql", null, false);

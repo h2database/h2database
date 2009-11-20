@@ -270,30 +270,28 @@ public class FileSystemDisk extends FileSystem {
         fileName = translateFileName(fileName);
         return canWriteInternal(new File(fileName));
     }
-    
+
     private boolean canWriteInternal(File file) {
-        if (file.canWrite()) {
-            // Does not respect windows user permissions,
-            // so we must try to open it mode "rw".
-            // See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4420020
-            RandomAccessFile randomAccessFile = null;
-            try {
-                randomAccessFile = new RandomAccessFile(file, "rw");
-            } catch (FileNotFoundException e) {
-                return false;
-            } finally {
-                if (randomAccessFile != null) {
-                    try {
-                        randomAccessFile.close();
-                    } catch (Exception e) {
-                        // ignore
-                    }
+        if (!file.canWrite()) {
+            return false;
+        }
+        // File.canWrite() does not respect windows user permissions,
+        // so we must try to open it using the mode "rw".
+        // See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4420020
+        RandomAccessFile r = null;
+        try {
+            r = new RandomAccessFile(file, "rw");
+            return true;
+        } catch (FileNotFoundException e) {
+            return false;
+        } finally {
+            if (r != null) {
+                try {
+                    r.close();
+                } catch (IOException e) {
+                    // ignore
                 }
             }
-
-            return true;
-        } else {
-            return false;
         }
     }
 

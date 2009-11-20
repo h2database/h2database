@@ -19,7 +19,7 @@ CREATE FUNCTION add(integer, integer) RETURNS integer
     LANGUAGE SQL
     IMMUTABLE
     RETURNS NULL ON NULL INPUT;
-    
+
 CREATE OR REPLACE FUNCTION increment(i integer) RETURNS integer AS $$
         BEGIN
                 RETURN i + 1;
@@ -27,6 +27,6 @@ CREATE OR REPLACE FUNCTION increment(i integer) RETURNS integer AS $$
 $$ LANGUAGE ...;
 
 create alias newFunctionAliasName [ DETERMINISTIC ]
-as 
+as
 FOR classAndMethodName
 

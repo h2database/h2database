@@ -153,12 +153,12 @@ public class SourceCompiler {
             String importCode = "import java.util.*;\n" +
                 "import java.math.*;\n" +
                 "import java.sql.*;\n";
-            if (packageName != null) {
-                importCode = "package " + packageName + ";\n" + importCode;
-            }
             if (endImport >= 0) {
                 importCode = source.substring(0, endImport);
                 source = source.substring("@CODE".length() + endImport);
+            }
+            if (packageName != null) {
+                out.println("package " + packageName + ";");
             }
             out.println(importCode);
             out.println("public class "+ className +" {\n" +

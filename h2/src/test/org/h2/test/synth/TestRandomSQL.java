@@ -150,7 +150,7 @@ public class TestRandomSQL extends TestBase {
                     Thread.yield();
                     if (rand.indexOf("TRACE_LEVEL_") < 0 && rand.indexOf("COLLATION") < 0
                             && rand.indexOf("SCRIPT ") < 0 && rand.indexOf("CSVWRITE") < 0
-                            && rand.indexOf("BACKUP") < 0) {
+                            && rand.indexOf("BACKUP") < 0 && rand.indexOf("DB_CLOSE_DELAY") < 0) {
                         if (showSQL) {
                             System.out.println(i + "  " + rand);
                         }

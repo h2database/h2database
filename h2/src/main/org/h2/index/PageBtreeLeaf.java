@@ -126,6 +126,8 @@ public class PageBtreeLeaf extends PageBtree {
             }
         }
         index.getPageStore().logUndo(this, data);
+        readAllRows();
+        changeCount = index.getPageStore().getChangeCount();
         written = false;
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];
@@ -134,7 +136,6 @@ public class PageBtreeLeaf extends PageBtree {
         if (entryCount == 0) {
             x = 0;
         } else {
-            readAllRows();
             x = find(row, false, true, true);
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
@@ -161,6 +162,7 @@ public class PageBtreeLeaf extends PageBtree {
         index.getPageStore().logUndo(this, data);
         entryCount--;
         written = false;
+        changeCount = index.getPageStore().getChangeCount();
         if (entryCount <= 0) {
             Message.throwInternalError();
         }

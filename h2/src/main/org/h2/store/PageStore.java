@@ -83,8 +83,12 @@ import org.h2.value.ValueString;
 public class PageStore implements CacheWriter {
 
     // TODO test running out of disk space (using a special file system)
+    // TODO test with recovery being the default method
+    // TODO test reservedPages does not grow unbound
 
     // TODO utf-x: test if it's faster
+    // TODO corrupt pages should be freed once in a while
+    // TODO node row counts are incorrect (not splitting row counts)
     // TODO after opening the database, delay writing until required
     // TODO optimization: try to avoid allocating a byte array per page
     // TODO optimization: check if calling Data.getValueLen slows things down
@@ -130,7 +134,7 @@ public class PageStore implements CacheWriter {
      * The default page size.
      */
     public static final int PAGE_SIZE_DEFAULT = 2 * 1024;
-    //    public static final int PAGE_SIZE_DEFAULT = 64;
+    // public static final int PAGE_SIZE_DEFAULT = 64;
 
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
@@ -139,8 +143,8 @@ public class PageStore implements CacheWriter {
 
     private static final int INCREMENT_PAGES = 128;
 
-    private static final int READ_VERSION = 1;
-    private static final int WRITE_VERSION = 1;
+    private static final int READ_VERSION = 2;
+    private static final int WRITE_VERSION = 2;
 
     private static final int META_TYPE_SCAN_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
@@ -195,6 +199,15 @@ public class PageStore implements CacheWriter {
     private BitField freed = new BitField();
 
     private ObjectArray<PageFreeList> freeLists = ObjectArray.newInstance();
+
+    /**
+     * The change count is something like a "micro-transaction-id".
+     * It is used to ensure that changed pages are not written to the file
+     * before the the current operation is not finished. This is only a problem
+     * when using a very small cache size. The value starts at 1 so that
+     * pages with change count 0 can be evicted from the cache.
+     */
+    private int changeCount = 1;
 
     /**
      * Create a new page store object.
@@ -341,6 +354,9 @@ public class PageStore implements CacheWriter {
                 if (isUsed(i)) {
                     freed.clear(i);
                 } else if (!freed.get(i)) {
+                    if (trace.isDebugEnabled()) {
+                        trace.debug("free " + i);
+                    }
                     freed.set(i);
                     file.seek((long) i << pageSizeShift);
                     file.write(empty, 0, pageSize);
@@ -445,7 +461,11 @@ public class PageStore implements CacheWriter {
             if (p != null) {
                 trace.debug("move " + p.getPos() + " to " + free);
                 long logSection = log.getLogSectionId(), logPos = log.getLogPos();
-                p.moveTo(systemSession, free);
+                try {
+                    p.moveTo(systemSession, free);
+                } finally {
+                    changeCount++;
+                }
                 if (log.getLogSectionId() == logSection || log.getLogPos() != logPos) {
                     commit(systemSession);
                 }
@@ -717,9 +737,9 @@ public class PageStore implements CacheWriter {
     public void logUndo(Record record, Data old) throws SQLException {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
-                if (!record.isChanged()) {
-                    trace.debug("logUndo " + record.toString());
-                }
+                // if (!record.isChanged()) {
+                //     trace.debug("logUndo " + record.toString());
+                // }
             }
             checkOpen();
             database.checkWritingAllowed();
@@ -837,23 +857,23 @@ public class PageStore implements CacheWriter {
     }
 
     private int allocatePage(BitField exclude, int first) throws SQLException {
-        int pos;
+        int page;
         synchronized (database) {
             // TODO could remember the first possible free list page
             for (int i = 0;; i++) {
                 PageFreeList list = getFreeList(i);
-                pos = list.allocate(exclude, first);
-                if (pos >= 0) {
+                page = list.allocate(exclude, first);
+                if (page >= 0) {
                     break;
                 }
             }
-            if (pos >= pageCount) {
+            if (page >= pageCount) {
                 increaseFileSize(INCREMENT_PAGES);
             }
             if (trace.isDebugEnabled()) {
                 // trace.debug("allocatePage " + pos);
             }
-            return pos;
+            return page;
         }
     }
 
@@ -980,6 +1000,13 @@ public class PageStore implements CacheWriter {
             Message.throwInternalError("write to page " + pageId);
         }
         byte[] bytes = data.getBytes();
+        if (SysProperties.CHECK) {
+            boolean shouldBeFreeList = (pageId - PAGE_ID_FREE_LIST_ROOT) % freeListPagesPerList == 0;
+            boolean isFreeList = bytes[0] == Page.TYPE_FREE_LIST;
+            if (bytes[0] != 0 && shouldBeFreeList != isFreeList) {
+                throw Message.throwInternalError();
+            }
+        }
         checksumSet(bytes, pageId);
         synchronized (database) {
             file.seek((long) pageId << pageSizeShift);
@@ -1556,6 +1583,22 @@ public class PageStore implements CacheWriter {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Increment the change count. To be done after the operation has finished.
+     */
+    public void incrementChangeCount() {
+        changeCount++;
+    }
+
+    /**
+     * Get the current change count. The first value is 1
+     *
+     * @return the change count
+     */
+    public int getChangeCount() {
+        return changeCount;
     }
 
 }

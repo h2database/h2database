@@ -29,9 +29,10 @@ import org.h2.util.MemoryUtils;
  * <li>count of all children (-1 if not known): int</li>
  * <li>entry count: short</li>
  * <li>rightmost child page id: int</li>
- * <li>entries (child page id: int, offset: short) The row contains the largest
- * key of the respective child, meaning row[0] contains the largest key of
- * child[0].
+ * <li>entries (child page id: int, offset: short)</li>
+ * </ul>
+ * The row contains the largest key of the respective child,
+ * meaning row[0] contains the largest key of child[0].
  */
 public class PageBtreeNode extends PageBtree {
 
@@ -79,6 +80,9 @@ public class PageBtreeNode extends PageBtree {
         p.writeHead();
         // 4 bytes for the rightmost child page id
         p.start = p.data.length() + 4;
+        if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+            p.rowCount = 0;
+        }
         return p;
     }
 
@@ -117,7 +121,7 @@ public class PageBtreeNode extends PageBtree {
      * @return the split point of this page, or -1 if no split is required
      */
     private int addChildTry(SearchRow row) throws SQLException {
-        if (entryCount < 2) {
+        if (entryCount < 3) {
             return -1;
         }
         int rowLength = index.getRowSize(data, row, onlyPosition);
@@ -181,8 +185,14 @@ public class PageBtreeNode extends PageBtree {
         offsets = newOffsets;
         rows = newRows;
         childPageIds = newChildPageIds;
+        if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+            if (rowCount != UNKNOWN_ROWCOUNT) {
+                rowCount += offset;
+            }
+        }
         entryCount++;
         written = false;
+        changeCount = index.getPageStore().getChangeCount();
     }
 
     int addRowTry(SearchRow row) throws SQLException {
@@ -208,6 +218,7 @@ public class PageBtreeNode extends PageBtree {
         }
         updateRowCount(1);
         written = false;
+        changeCount = index.getPageStore().getChangeCount();
         return -1;
     }
 
@@ -236,7 +247,7 @@ public class PageBtreeNode extends PageBtree {
         int firstChild = childPageIds[splitPoint];
         readAllRows();
         for (int i = splitPoint; i < entryCount;) {
-            p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], rows[splitPoint]);
+            p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], getRow(splitPoint));
             removeChild(splitPoint);
         }
         int lastChild = childPageIds[splitPoint - 1];
@@ -271,7 +282,9 @@ public class PageBtreeNode extends PageBtree {
         rows = new SearchRow[0];
         offsets = MemoryUtils.EMPTY_INT_ARRAY;
         addChild(0, page2.getPos(), pivot);
-        rowCount = page1.getRowCount() + page2.getRowCount();
+        if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+            rowCount = page1.getRowCount() + page2.getRowCount();
+        }
         check();
     }
 
@@ -313,6 +326,7 @@ public class PageBtreeNode extends PageBtree {
         index.getPageStore().logUndo(this, data);
         updateRowCount(-1);
         written = false;
+        changeCount = index.getPageStore().getChangeCount();
         if (last == null) {
             // the last row didn't change - nothing to do
             return null;
@@ -364,11 +378,15 @@ public class PageBtreeNode extends PageBtree {
     }
 
     void setRowCountStored(int rowCount) throws SQLException {
+        if (rowCount < 0 && SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+            return;
+        }
         this.rowCount = rowCount;
         if (rowCountStored != rowCount) {
             rowCountStored = rowCount;
             index.getPageStore().logUndo(this, data);
             if (written) {
+                changeCount = index.getPageStore().getChangeCount();
                 writeHead();
             }
             index.getPageStore().update(this);
@@ -422,6 +440,7 @@ public class PageBtreeNode extends PageBtree {
 
     void freeRecursive() throws SQLException {
         index.getPageStore().logUndo(this, data);
+        index.getPageStore().free(getPos());
         for (int childPageId : childPageIds) {
             index.getPage(childPageId).freeRecursive();
         }
@@ -430,7 +449,11 @@ public class PageBtreeNode extends PageBtree {
     private void removeChild(int i) throws SQLException {
         readAllRows();
         entryCount--;
+        if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+            updateRowCount(-index.getPage(childPageIds[i]).getRowCount());
+        }
         written = false;
+        changeCount = index.getPageStore().getChangeCount();
         if (entryCount < 0) {
             Message.throwInternalError();
         }
@@ -536,8 +559,12 @@ public class PageBtreeNode extends PageBtree {
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {
-            PageBtreeNode p = (PageBtreeNode) store.getPage(parentPageId);
-            p.moveChild(getPos(), newPos);
+            Page p = store.getPage(parentPageId);
+            if (!(p instanceof PageBtreeNode)) {
+                throw Message.throwInternalError();
+            }
+            PageBtreeNode n = (PageBtreeNode) p;
+            n.moveChild(getPos(), newPos);
         }
         for (int childPageId : childPageIds) {
             PageBtree p = index.getPage(childPageId);
@@ -558,6 +585,7 @@ public class PageBtreeNode extends PageBtree {
             if (childPageIds[i] == oldPos) {
                 index.getPageStore().logUndo(this, data);
                 written = false;
+                changeCount = index.getPageStore().getChangeCount();
                 childPageIds[i] = newPos;
                 index.getPageStore().update(this);
                 return;

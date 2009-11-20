@@ -136,6 +136,8 @@ public class PageDataIndex extends PageIndex implements RowIndex {
                     row.setKey(row.getKey() + add);
                 }
                 add++;
+            } finally {
+                store.incrementChangeCount();
             }
         }
         lastKey = Math.max(lastKey, row.getKey() + 1);
@@ -205,9 +207,6 @@ public class PageDataIndex extends PageIndex implements RowIndex {
      */
     PageData getPage(int id, int parent) throws SQLException {
         Page pd = store.getPage(id);
-        if (pd != null && !(pd instanceof PageData)) {
-            System.out.println("test");
-        }
         PageData p = (PageData) pd;
         if (p == null) {
             PageDataLeaf empty = PageDataLeaf.create(this, id, parent);
@@ -296,11 +295,15 @@ public class PageDataIndex extends PageIndex implements RowIndex {
         if (rowCount == 1) {
             removeAllRows();
         } else {
-            long key = row.getKey();
-            PageData root = getPage(rootPageId, 0);
-            root.remove(key);
-            invalidateRowCount();
-            rowCount--;
+            try {
+                long key = row.getKey();
+                PageData root = getPage(rootPageId, 0);
+                root.remove(key);
+                invalidateRowCount();
+                rowCount--;
+            } finally {
+                store.incrementChangeCount();
+            }
         }
         if (database.isMultiVersion()) {
             // if storage is null, the delete flag is not yet set
@@ -342,13 +345,17 @@ public class PageDataIndex extends PageIndex implements RowIndex {
     }
 
     private void removeAllRows() throws SQLException {
-        PageData root = getPage(rootPageId, 0);
-        root.freeRecursive();
-        root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
-        store.removeRecord(rootPageId);
-        store.update(root);
-        rowCount = 0;
-        lastKey = 0;
+        try {
+            PageData root = getPage(rootPageId, 0);
+            root.freeRecursive();
+            root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
+            store.removeRecord(rootPageId);
+            store.update(root);
+            rowCount = 0;
+            lastKey = 0;
+        } finally {
+            store.incrementChangeCount();
+        }
     }
 
     public void checkRename() throws SQLException {
@@ -493,8 +500,12 @@ public class PageDataIndex extends PageIndex implements RowIndex {
     }
 
     public void writeRowCount() throws SQLException {
-        PageData root = getPage(rootPageId, 0);
-        root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
+        try {
+            PageData root = getPage(rootPageId, 0);
+            root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
+        } finally {
+            store.incrementChangeCount();
+        }
     }
 
 }

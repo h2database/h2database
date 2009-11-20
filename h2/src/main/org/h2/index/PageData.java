@@ -178,6 +178,7 @@ abstract class PageData extends Page {
         index.getPageStore().logUndo(this, data);
         parentPageId = id;
         if (written) {
+            changeCount = index.getPageStore().getChangeCount();
             data.setInt(START_PARENT, parentPageId);
         }
     }
@@ -222,6 +223,13 @@ abstract class PageData extends Page {
 
     int getParentPageId() {
         return parentPageId;
+    }
+
+    public boolean canRemove() {
+        if (changeCount >= index.getPageStore().getChangeCount()) {
+            return false;
+        }
+        return super.canRemove();
     }
 
 }

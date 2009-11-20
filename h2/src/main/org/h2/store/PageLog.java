@@ -192,22 +192,16 @@ public class PageLog {
      * Free up all pages allocated by the log.
      */
     void free() throws SQLException {
+        if (pageOut != null) {
+            pageOut.freeReserved();
+        }
+        PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
         while (firstTrunkPage != 0 && firstTrunkPage < store.getPageCount()) {
-            PageStreamTrunk t = null;
-            try {
-                Page p = store.getPage(firstTrunkPage);
-                if (p instanceof PageStreamTrunk) {
-                    t = (PageStreamTrunk) p;
-                }
-            } catch (SQLException e) {
-                if (e.getErrorCode() != ErrorCode.FILE_CORRUPTED_1) {
-                    // wrong checksum means end of stream
-                    throw e;
-                }
-            }
+            PageStreamTrunk t = it.next();
             if (t == null) {
-                store.free(firstTrunkPage, false);
-                // EOF
+                if (it.canDelete()) {
+                    store.free(firstTrunkPage, false);
+                }
                 break;
             }
             t.free();
@@ -370,6 +364,12 @@ public class PageLog {
                         break;
                     }
                 }
+            }
+        } catch (SQLException e) {
+            if (e.getErrorCode() == ErrorCode.FILE_CORRUPTED_1) {
+                trace.debug("log recovery stopped: " + e.toString());
+            } else {
+                throw e;
             }
         } catch (EOFException e) {
             trace.debug("log recovery stopped: " + e.toString());

@@ -14,6 +14,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.DateTimeUtils;
@@ -45,6 +46,8 @@ import org.h2.value.ValueUuid;
  * A data page is a byte buffer that contains persistent data of a page.
  */
 public class Data extends DataPage {
+
+    private static final int TEST_OFFSET = 0;
 
     private static final int INT_0_15 = 32;
     private static final int LONG_0_7 = 48;
@@ -334,11 +337,14 @@ public class Data extends DataPage {
      * @param v the value
      */
     public void writeValue(Value v) throws SQLException {
+        int start = pos;
+        if (TEST_OFFSET > 0) {
+            pos += TEST_OFFSET;
+        }
         if (v == ValueNull.INSTANCE) {
             data[pos++] = 0;
             return;
         }
-        int start = pos;
         int type = v.getType();
         switch (type) {
         case Value.BOOLEAN:
@@ -539,6 +545,9 @@ public class Data extends DataPage {
      * @return the value
      */
     public Value readValue() throws SQLException {
+        if (TEST_OFFSET > 0) {
+            pos+=TEST_OFFSET;
+        }
         int type = data[pos++] & 255;
         switch (type) {
         case Value.NULL:
@@ -667,7 +676,7 @@ public class Data extends DataPage {
             } else if (type >= STRING_0_31 && type < STRING_0_31 + 32) {
                 return ValueString.get(readString(type - STRING_0_31));
             }
-            throw Message.throwInternalError("type=" + type);
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
     }
 
@@ -678,6 +687,10 @@ public class Data extends DataPage {
      * @return the number of bytes required to store this value
      */
     public int getValueLen(Value v) throws SQLException {
+        return getValueLen2(v) + TEST_OFFSET;
+    }
+
+    private int getValueLen2(Value v) throws SQLException {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }

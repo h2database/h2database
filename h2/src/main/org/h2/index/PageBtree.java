@@ -166,7 +166,10 @@ public abstract class PageBtree extends Page {
     SearchRow getRow(int at) throws SQLException {
         SearchRow row = rows[at];
         if (row == null) {
-            row = index.readRow(data, offsets[at], onlyPosition);
+            row = index.readRow(data, offsets[at], onlyPosition, true);
+            rows[at] = row;
+        } else if (!index.hasData(row)) {
+            row = index.readRow(row.getKey());
             rows[at] = row;
         }
         return row;
@@ -186,6 +189,7 @@ public abstract class PageBtree extends Page {
      * @param id the new page id
      */
     void setPageId(int id) throws SQLException {
+        changeCount = index.getPageStore().getChangeCount();
         written = false;
         index.getPageStore().removeRecord(getPos());
         setPos(id);
@@ -214,6 +218,7 @@ public abstract class PageBtree extends Page {
      */
     void setParentPageId(int id) throws SQLException {
         index.getPageStore().logUndo(this, data);
+        changeCount = index.getPageStore().getChangeCount();
         written = false;
         parentPageId = id;
     }
@@ -243,7 +248,11 @@ public abstract class PageBtree extends Page {
      */
     protected void readAllRows() throws SQLException {
         for (int i = 0; i < entryCount; i++) {
-            getRow(i);
+            SearchRow row = rows[i];
+            if (row == null) {
+                row = index.readRow(data, offsets[i], onlyPosition, false);
+                rows[i] = row;
+            }
         }
     }
 
@@ -255,6 +264,13 @@ public abstract class PageBtree extends Page {
     public int getMemorySize() {
         // four times the byte array size
         return index.getPageStore().getPageSize();
+    }
+
+    public boolean canRemove() {
+        if (changeCount >= index.getPageStore().getChangeCount()) {
+            return false;
+        }
+        return super.canRemove();
     }
 
 }

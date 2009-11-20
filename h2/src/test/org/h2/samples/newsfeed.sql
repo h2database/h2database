@@ -13,6 +13,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(74,
+'New version available: 1.2.124 (2009-11-20)', '2009-11-20 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(73,
 'New version available: 1.2.123 (2009-11-08)', '2009-11-08 12:00:00',
 $$A new version of H2 is available for
@@ -335,29 +348,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>GROUP BY queries with a self-join were wrong sometimes.
 </li><li>Bugs in the server-less multi-connection mode have been fixed.
 </li><li>JdbcPreparedStatement.toString() could fail.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(61,
-'New version available: 1.1.111 (2009-04-10)', '2009-04-10 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>In-memory databases can now run inside the Google App Engine.
-</li><li>The Shell tool no longer truncates results with only one column.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Queries that are ordered by an indexed column returned no rows in certain cases.
-</li><li>The wrong exception was thrown when using unquoted text for some SQL statements.
-</li><li>The built-in connection pool did not roll back transactions and
-    enable autocommit enabled after closing a connection.
-</li><li>Sometimes a StackOverflow occurred when checking for deadlock.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

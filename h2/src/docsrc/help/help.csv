@@ -375,16 +375,24 @@ CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 
 "Commands (DDL)","CREATE ALIAS","
 CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
-FOR classAndMethodName
+{ FOR classAndMethodName | AS sourceCodeString }
 ","
-Creates a new function alias. The method name must be the full qualified class
-and method name, and may optionally include the parameter classes as in
+Creates a new function alias. Deterministic functions must always return the
+same value for the same parameters. The result of such functions is cached if possible.
+
+The method name must be the full qualified class and method name,
+and may optionally include the parameter classes as in
 ""java.lang.Integer.parseInt(java.lang.String, int)""). The class and the method
 must both be public, and the method must be static. The class must be available
 in the classpath of the database engine (when using the server mode,
 it must be in the classpath of the server).
 
-Deterministic functions always return the same value for the same parameters.
+When defining a function alias with source code, the Sun javac is compiler
+is used if the tools.jar is in the classpath. If not, javac is run as a separate process.
+Only the source code is stored in the database; the class is compiled each time
+the database is re-opened. Source code is usually passed
+as dollar quoted text to avoid escaping problems.
+
 If the first parameter of the Java function is a java.sql.Connection, then a
 connection to the database is provided. This connection must not be closed.
 If the class contains multiple methods with the given name but different
@@ -397,6 +405,8 @@ CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt"";
 CREATE ALIAS GET_SYSTEM_PROPERTY FOR ""java.lang.System.getProperty"";
 CALL GET_SYSTEM_PROPERTY('java.class.path');
 CALL GET_SYSTEM_PROPERTY('com.acme.test', 'true');
+CREATE ALIAS REVERSE AS $$ String reverse(String s) { return new StringBuilder(s).reverse().toString(); } $$;
+CALL REVERSE('Test');
 "
 
 "Commands (DDL)","CREATE CONSTANT","

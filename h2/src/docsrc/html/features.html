@@ -1489,8 +1489,16 @@ The settings in the URL override the settings passed as a separate parameter.
 In addition to the built-in functions, this database supports user-defined Java functions.
 In this database, Java functions can be used as stored procedures as well.
 A function must be declared (registered) before it can be used.
+A functions can be defined using source code, or as a reference to
+a compiled class that is available in the classpath.
+</p>
+
+<h3>Referencing a Compiled Method</h3>
+<p>
+When referencing a method, the class must already be compiled and
+included in the classpath where the database is running.
 Only static Java methods are supported; both the class and the method must be public.
-Example Java method:
+Example Java class:
 </p>
 <pre>
 package acme;
@@ -1502,14 +1510,61 @@ public class Function {
 }
 </pre>
 <p>
-The Java function must be registered in the database by calling <code>CREATE ALIAS</code>:
+The Java function must be registered in the database by calling <code>CREATE ALIAS ... FOR</code>:
 </p>
 <pre>
-CREATE ALIAS IS_PRIME FOR "acme.Function.isPrime"
+CREATE ALIAS IS_PRIME FOR "acme.Function.isPrime";
 </pre>
 <p>
 For a complete sample application, see <code>src/test/org/h2/samples/Function.java</code>.
 </p>
+
+<h3>Declaring Functions as Source Code</h3>
+<p>
+When defining a function alias with source code, the database tries to compile
+the source code using the Sun Java compiler (the class <code>com.sun.tools.javac.Main</code>)
+if the <code>tools.jar</code> is in the classpath. If not, <code>javac</code> is run as a separate
+process. Only the source code is stored in the database; the class is compiled each time
+the database is re-opened. Source code is usually passed
+as dollar quoted text to avoid escaping problems, however single quotes
+can be used as well. Example:
+</p>
+<pre>
+CREATE ALIAS NEXT_PRIME AS $$
+String nextPrime(String value) {
+    return new BigInteger(value).nextProbablePrime().toString();
+}
+$$;
+</pre>
+<p>
+The method name (<code>nextPrime</code> in the example above) is ignored.
+By default, the three packages <code>java.util, java.math, java.sql</code> are imported.
+If different import statements are required, they must be declared at the beginning
+and separated with the tag <code>@CODE</code>:
+</p>
+<pre>
+CREATE ALIAS IP_ADDRESS AS $$
+import java.net.*;
+@CODE
+String ipAddress(String host) throws Exception {
+    return InetAddress.getByName(host).getHostAddress();
+}
+$$;
+</pre>
+<p>
+The following template is used to create a complete Java class:
+</p>
+<pre>
+package org.h2.dynamic;
+&lt; import statements before the tag @CODE; if not set:
+import java.util.*;
+import java.math.*;
+import java.sql.*;
+&gt;
+public class &lt;aliasName&gt; {
+    public static &lt;sourceCode&gt;
+}
+</pre>
 
 <h3>Function Data Type Mapping</h3>
 <p>
@@ -1536,13 +1591,13 @@ When calling the method from within the SQL statement, this connection parameter
 does not need to be (can not be) specified.
 </p>
 
-<h3>Functions throwing an Exception</h3>
+<h3>Functions Throwing an Exception</h3>
 <p>
 If a function throws an exception, then the current statement is rolled back
 and the exception is thrown to the application.
 </p>
 
-<h3>Functions returning a Result Set</h3>
+<h3>Functions Returning a Result Set</h3>
 <p>
 Functions may returns a result set. Such a function can be called with the <code>CALL</code> statement:
 </p>

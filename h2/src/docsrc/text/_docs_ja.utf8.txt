@@ -284,7 +284,7 @@ CreateClusterツールを使用する
 #To restore the cluster, you first need to delete the database that failed, then restart the server that was stopped, and re-run the <code>CreateCluster</code> tool. 
 
 @advanced_1095_h3
-#Detect Which Cluster Instances are Running #クラスタリングアルゴリズムと制限
+#Detect Which Cluster Instances are Running
 
 @advanced_1096_p
 # To find out which cluster nodes are currently running, execute the following SQL statement: 
@@ -461,13 +461,13 @@ test
 # relative or absolute path are not supported in the database name. 
 
 @advanced_1154_td
-# By default, the database is stored in the current working directory  #Server
+# By default, the database is stored in the current working directory 
 
 @advanced_1155_td
-# where the Server is started except when the -baseDir setting is used.  #localhost
+# where the Server is started except when the -baseDir setting is used. 
 
 @advanced_1156_td
-# The name must be at least 3 characters.  #サーバー名、またはIPアドレス
+# The name must be at least 3 characters. 
 
 @advanced_1157_td
 Server
@@ -839,7 +839,7 @@ ZERO() 関数を使用する
 # File encryption slows down the performance of the database engine. Compared to unencrypted mode, database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode). 
 
 @advanced_1280_h3
-#Wrong Password / User Name Delay #HTTPS 接続
+#Wrong Password / User Name Delay
 
 @advanced_1281_p
 # To protect against remote brute force password attacks, the delay after each unsuccessful login gets double as long. Use the system properties <code>h2.delayWrongPasswordMin</code> and <code>h2.delayWrongPasswordMax</code> to change the minimum (the default is 250 milliseconds) or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only applies for those using the wrong password. Normally there is no delay for a user that knows the correct password, with one exception: after using the wrong password, there is a delay of up to (randomly distributed) the same delay as for a wrong password. This is to protect against parallel brute force attacks, so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required to protect against parallel attacks. 
@@ -1010,31 +1010,31 @@ SSL/TLS 接続
 AES-128
 
 @advanced_1337_td
-#A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a> #Digest
+#A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
 @advanced_1338_td
 Birthday Paradox
 
 @advanced_1339_td
-#Describes the higher than expected probability that two persons in a room have the same birthday. Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a> #GCJ
+#Describes the higher than expected probability that two persons in a room have the same birthday. Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
 @advanced_1340_td
 Digest
 
 @advanced_1341_td
-#Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a> #HTTPS
+#Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
 @advanced_1342_td
 GCJ
 
 @advanced_1343_td
-#Compiler for Java. <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a> #Modes of Operation
+#Compiler for Java. <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a>
 
 @advanced_1344_td
 HTTPS
 
 @advanced_1345_td
-#A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a> #Salt
+#A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
 @advanced_1346_td
 Modes of Operation
@@ -1046,25 +1046,25 @@ Modes of Operation
 Salt
 
 @advanced_1349_td
-#Random number to increase the security of passwords. See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a> #SQLインジェクション
+#Random number to increase the security of passwords. See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
 @advanced_1350_td
 SHA-256
 
 @advanced_1351_td
-#A cryptographic one-way hash function. See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a> #Watermark Attack (透かし攻撃)
+#A cryptographic one-way hash function. See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
 @advanced_1352_td
 SQLインジェクション
 
 @advanced_1353_td
-#A security vulnerability where an application embeds SQL statements or expressions in user input. See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a> #SSL/TLS
+#A security vulnerability where an application embeds SQL statements or expressions in user input. See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
 @advanced_1354_td
 Watermark Attack (透かし攻撃)
 
 @advanced_1355_td
-#Security problem of certain encryption programs where the existence of certain data can be proven without decrypting. For more information, search in the internet for 'watermark attack cryptoloop' #XTEA
+#Security problem of certain encryption programs where the existence of certain data can be proven without decrypting. For more information, search in the internet for 'watermark attack cryptoloop'
 
 @advanced_1356_td
 SSL/TLS
@@ -4439,84 +4439,102 @@ computed column / ベースインデックスの機能
 ユーザー定義の関数とストアドプロシージャ
 
 @features_1582_p
-# In addition to the built-in functions, this database supports user-defined Java functions. In this database, Java functions can be used as stored procedures as well. A function must be declared (registered) before it can be used. Only static Java methods are supported; both the class and the method must be public. Example Java method: 
+# In addition to the built-in functions, this database supports user-defined Java functions. In this database, Java functions can be used as stored procedures as well. A function must be declared (registered) before it can be used. A functions can be defined using source code, or as a reference to a compiled class that is available in the classpath. 
 
-@features_1583_p
-# The Java function must be registered in the database by calling <code>CREATE ALIAS</code>: 
+@features_1583_h3
+#Referencing a Compiled Method
 
 @features_1584_p
-# For a complete sample application, see <code>src/test/org/h2/samples/Function.java</code>. 
+# When referencing a method, the class must already be compiled and included in the classpath where the database is running. Only static Java methods are supported; both the class and the method must be public. Example Java class: 
 
-@features_1585_h3
-データタイプマッピング関数
+@features_1585_p
+# The Java function must be registered in the database by calling <code>CREATE ALIAS ... FOR</code>: 
 
 @features_1586_p
-# Functions that accept non-nullable parameters such as <code>int</code> will not be called if one of those parameters is <code>NULL</code>. Instead, the result of the function is <code>NULL</code>. If the function should be called if a parameter is <code>NULL</code>, you need to use <code>java.lang.Integer</code> instead. 
+# For a complete sample application, see <code>src/test/org/h2/samples/Function.java</code>. 
 
-@features_1587_p
-# SQL types are mapped to Java classes and vice-versa as in the JDBC API. For details, see <a href="datatypes.html">Data Types</a>. There are two special cases: <code>java.lang.Object</code> is mapped to <code>OTHER</code> (a serialized object). Therefore, <code>java.lang.Object</code> can not be used to match all SQL types (matching all SQL types is not supported). The second special case is <code>Object[]</code>: arrays of any class are mapped to <code>ARRAY</code>. 
+@features_1587_h3
+#Declaring Functions as Source Code
 
-@features_1588_h3
-接続を必要とする関数
+@features_1588_p
+# When defining a function alias with source code, the database tries to compile the source code using the Sun Java compiler (the class <code>com.sun.tools.javac.Main</code>) if the <code>tools.jar</code> is in the classpath. If not, <code>javac</code> is run as a separate process. Only the source code is stored in the database; the class is compiled each time the database is re-opened. Source code is usually passed as dollar quoted text to avoid escaping problems, however single quotes can be used as well. Example: 
 
 @features_1589_p
-# If the first parameter of a Java function is a <code>java.sql.Connection</code>, then the connection to database is provided. This connection does not need to be closed before returning. When calling the method from within the SQL statement, this connection parameter does not need to be (can not be) specified. 
+# The method name (<code>nextPrime</code> in the example above) is ignored. By default, the three packages <code>java.util, java.math, java.sql</code> are imported. If different import statements are required, they must be declared at the beginning and separated with the tag <code>@CODE</code>: 
 
-@features_1590_h3
-例外を投げる関数
+@features_1590_p
+# The following template is used to create a complete Java class: 
 
-@features_1591_p
-# If a function throws an exception, then the current statement is rolled back and the exception is thrown to the application. 
+@features_1591_h3
+データタイプマッピング関数
 
-@features_1592_h3
-Result Setを返す関数
+@features_1592_p
+# Functions that accept non-nullable parameters such as <code>int</code> will not be called if one of those parameters is <code>NULL</code>. Instead, the result of the function is <code>NULL</code>. If the function should be called if a parameter is <code>NULL</code>, you need to use <code>java.lang.Integer</code> instead. 
 
 @features_1593_p
-# Functions may returns a result set. Such a function can be called with the <code>CALL</code> statement: 
+# SQL types are mapped to Java classes and vice-versa as in the JDBC API. For details, see <a href="datatypes.html">Data Types</a>. There are two special cases: <code>java.lang.Object</code> is mapped to <code>OTHER</code> (a serialized object). Therefore, <code>java.lang.Object</code> can not be used to match all SQL types (matching all SQL types is not supported). The second special case is <code>Object[]</code>: arrays of any class are mapped to <code>ARRAY</code>. 
 
 @features_1594_h3
-SimpleResultSetを使用する
+接続を必要とする関数
 
 @features_1595_p
-# A function can create a result set using the <code>SimpleResultSet</code> tool: 
+# If the first parameter of a Java function is a <code>java.sql.Connection</code>, then the connection to database is provided. This connection does not need to be closed before returning. When calling the method from within the SQL statement, this connection parameter does not need to be (can not be) specified. 
 
 @features_1596_h3
-関数をテーブルとして使用する
+#Functions Throwing an Exception
 
 @features_1597_p
-# A function that returns a result set can be used like a table. However, in this case the function is called at least twice: first while parsing the statement to collect the column names (with parameters set to <code>null</code> where not known at compile time). And then, while executing the statement to get the data (maybe multiple times if this is a join). If the function is called just to get the column list, the URL of the connection passed to the function is <code>jdbc:columnlist:connection</code>. Otherwise, the URL of the connection is <code>jdbc:default:connection</code>. 
+# If a function throws an exception, then the current statement is rolled back and the exception is thrown to the application. 
 
-@features_1598_h2
-トリガー
+@features_1598_h3
+#Functions Returning a Result Set
 
 @features_1599_p
-# This database supports Java triggers that are called before or after a row is updated, inserted or deleted. Triggers can be used for complex consistency checks, or to update related data in the database. It is also possible to use triggers to simulate materialized views. For a complete sample application, see <code>src/test/org/h2/samples/TriggerSample.java</code>. A Java trigger must implement the interface <code>org.h2.api.Trigger</code>. The trigger class must be available in the classpath of the database engine (when using the server mode, it must be in the classpath of the server). 
+# Functions may returns a result set. Such a function can be called with the <code>CALL</code> statement: 
 
-@features_1600_p
-# The connection can be used to query or update data in other tables. The trigger then needs to be defined in the database: 
+@features_1600_h3
+SimpleResultSetを使用する
 
 @features_1601_p
-# The trigger can be used to veto a change by throwing a <code>SQLException</code>. 
+# A function can create a result set using the <code>SimpleResultSet</code> tool: 
 
-@features_1602_h2
-データベースをコンパクトにする
+@features_1602_h3
+関数をテーブルとして使用する
 
 @features_1603_p
-# Empty space in the database file is re-used automatically. To re-build the indexes, the simplest way is to delete the <code>.index.db</code> file while the database is closed. However in some situations (for example after deleting a lot of data in a database), one sometimes wants to shrink the size of the database (compact a database). Here is a sample function to do this: 
+# A function that returns a result set can be used like a table. However, in this case the function is called at least twice: first while parsing the statement to collect the column names (with parameters set to <code>null</code> where not known at compile time). And then, while executing the statement to get the data (maybe multiple times if this is a join). If the function is called just to get the column list, the URL of the connection passed to the function is <code>jdbc:columnlist:connection</code>. Otherwise, the URL of the connection is <code>jdbc:default:connection</code>. 
 
-@features_1604_p
-# See also the sample application <code>org.h2.samples.Compact</code>. The commands <code>SCRIPT / RUNSCRIPT</code> can be used as well to create a backup of a database and re-build the database from the script. 
+@features_1604_h2
+トリガー
 
-@features_1605_h2
-キャッシュの設定
+@features_1605_p
+# This database supports Java triggers that are called before or after a row is updated, inserted or deleted. Triggers can be used for complex consistency checks, or to update related data in the database. It is also possible to use triggers to simulate materialized views. For a complete sample application, see <code>src/test/org/h2/samples/TriggerSample.java</code>. A Java trigger must implement the interface <code>org.h2.api.Trigger</code>. The trigger class must be available in the classpath of the database engine (when using the server mode, it must be in the classpath of the server). 
 
 @features_1606_p
-# The database keeps most frequently used data and index pages in the main memory. The amount of memory used for caching can be changed using the setting <code>CACHE_SIZE</code>. This setting can be set in the database connection URL (<code>jdbc:h2:~/test;CACHE_SIZE=131072</code>), or it can be changed at runtime using <code>SET CACHE_SIZE size</code>. 
+# The connection can be used to query or update data in other tables. The trigger then needs to be defined in the database: 
 
 @features_1607_p
+# The trigger can be used to veto a change by throwing a <code>SQLException</code>. 
+
+@features_1608_h2
+データベースをコンパクトにする
+
+@features_1609_p
+# Empty space in the database file is re-used automatically. To re-build the indexes, the simplest way is to delete the <code>.index.db</code> file while the database is closed. However in some situations (for example after deleting a lot of data in a database), one sometimes wants to shrink the size of the database (compact a database). Here is a sample function to do this: 
+
+@features_1610_p
+# See also the sample application <code>org.h2.samples.Compact</code>. The commands <code>SCRIPT / RUNSCRIPT</code> can be used as well to create a backup of a database and re-build the database from the script. 
+
+@features_1611_h2
+キャッシュの設定
+
+@features_1612_p
+# The database keeps most frequently used data and index pages in the main memory. The amount of memory used for caching can be changed using the setting <code>CACHE_SIZE</code>. This setting can be set in the database connection URL (<code>jdbc:h2:~/test;CACHE_SIZE=131072</code>), or it can be changed at runtime using <code>SET CACHE_SIZE size</code>. 
+
+@features_1613_p
 # Also supported is a second level soft reference cache. Rows in this cache are only garbage collected on low memory. By default the second level cache is disabled. To enable it, use the prefix <code>SOFT_</code>. Example: <code>jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code>. 
 
-@features_1608_p
+@features_1614_p
 # To get information about page reads and writes, and the current caching algorithm in use, call <code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS</code>. The number of pages read / written is listed for the data and index file. 
 
 @fragments_1000_b

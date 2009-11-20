@@ -56,7 +56,7 @@ public class TestCluster extends TestBase {
             prep.setString(2, "Data" + i);
             prep.executeUpdate();
         }
-        check(conn, len);
+        check(conn, len, "''");
         conn.close();
 
         CreateCluster.main("-urlSource", urlNode1, "-urlTarget",
@@ -81,13 +81,13 @@ public class TestCluster extends TestBase {
 
         // test regular cluster connection
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191,localhost:9192/test", user, password);
-        check(conn, len);
+        check(conn, len, "'localhost:9191,localhost:9192'");
         conn.close();
 
         // test if only one server is available at the beginning
         n2.stop();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191,localhost:9192/test", user, password);
-        check(conn, len);
+        check(conn, len, "''");
         conn.close();
 
         // disable the cluster
@@ -115,13 +115,13 @@ public class TestCluster extends TestBase {
 
         n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "9191", "-baseDir", baseDir + "/node1").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191/test;CLUSTER=''", user, password);
-        check(conn, len);
+        check(conn, len, "''");
         conn.close();
         n1.stop();
 
         n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "9192", "-baseDir", baseDir + "/node2").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test;CLUSTER=''", user, password);
-        check(conn, len);
+        check(conn, len, "''");
         conn.createStatement().execute("SELECT * FROM A");
         conn.close();
         n2.stop();
@@ -133,7 +133,7 @@ public class TestCluster extends TestBase {
         DeleteDbFiles.main("-dir", baseDir + "/node2", "-quiet");
     }
 
-    private void check(Connection conn, int len) throws SQLException {
+    private void check(Connection conn, int len, String expectedCluster) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST WHERE ID=?");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
@@ -142,6 +142,11 @@ public class TestCluster extends TestBase {
             assertEquals("Data" + i, rs.getString(2));
             assertFalse(rs.next());
         }
+        ResultSet rs = conn.createStatement().executeQuery(
+                "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='CLUSTER'");
+        rs.next();
+        String cluster = rs.getString(1);
+        assertEquals(expectedCluster, cluster);
     }
 
 }

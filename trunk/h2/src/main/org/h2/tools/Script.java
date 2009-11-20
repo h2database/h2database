@@ -6,14 +6,13 @@
  */
 package org.h2.tools;
 
+import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -131,6 +130,18 @@ public class Script extends Tool {
     }
 
     /**
+     * Backs up a database to a stream. The stream is not closed.
+     *
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @param out the output stream
+     */
+    public static void execute(String url, String user, String password, OutputStream out) throws SQLException {
+        new Script().process(url, user, password, out);
+    }
+
+    /**
      * Backs up a database to a SQL script file.
      *
      * @param url the database URL
@@ -139,25 +150,40 @@ public class Script extends Tool {
      * @param fileName the script file
      */
     void process(String url, String user, String password, String fileName) throws SQLException {
+        OutputStream out = null;
+        try {
+            out = FileUtils.openFileOutputStream(fileName, false);
+            process(url, user, password, out);
+        } finally {
+            IOUtils.closeSilently(out);
+        }
+    }
+
+    /**
+     * Backs up a database to a stream. The stream is not closed.
+     *
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @param out the output stream
+     */
+    void process(String url, String user, String password, OutputStream out) throws SQLException {
         Connection conn = null;
         Statement stat = null;
-        Writer fileWriter = null;
         try {
             org.h2.Driver.load();
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
-            fileWriter = IOUtils.getWriter(FileUtils.openFileOutputStream(fileName, false));
-            PrintWriter writer = new PrintWriter(fileWriter);
+            PrintWriter writer = new PrintWriter(IOUtils.getWriter(out));
             ResultSet rs = stat.executeQuery("SCRIPT");
             while (rs.next()) {
                 String s = rs.getString(1);
                 writer.println(s);
             }
-            writer.close();
+            writer.flush();
         } finally {
             JdbcUtils.closeSilently(stat);
             JdbcUtils.closeSilently(conn);
-            IOUtils.closeSilently(fileWriter);
         }
     }
 

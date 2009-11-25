@@ -48,16 +48,16 @@ http://www.h2database.com/html/roadmap.html
 The development of H2 was started in May 2004,
 but it was first published on December 14th 2005.
 The main author of H2, Thomas Mueller, is also the original developer of Hypersonic SQL.
-In 2001, he joined PointBase Inc. where he created PointBase Micro.
-At that point, he had to discontinue Hypersonic SQL, but then the HSQLDB Group was formed
+In 2001, he joined PointBase Inc. where he wrote PointBase Micro, a commercial Java SQL database.
+At that point, he had to discontinue Hypersonic SQL. The HSQLDB Group was formed
 to continued to work on the Hypersonic SQL codebase.
-The name H2 stands for Hypersonic 2; however H2 does not share any code with
+The name H2 stands for Hypersonic 2, however H2 does not share code with
 Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </p>
 
 <h2 id="why_java">Why Java</h2>
 <p>
-A few reasons using a Java database are:
+The main reasons to use a Java database are:
 </p>
 <ul>
 <li>Very simple to integrate in Java applications
@@ -67,31 +67,28 @@ A few reasons using a Java database are:
 </li><li>Unicode support
 </li></ul>
 <p>
-Some people think that Java is still too slow for low level operations,
-but this is not the case (not any more). In general, the code can be written a lot faster
-than using C or C++. Like that, it is possible to concentrate on improving the algorithms
-(that make the application faster) rather than porting the code and dealing with low
-level stuff (such as memory management or dealing with threads).
-Garbage collection is now probably faster than manual memory management.
+Some think Java is too slow for low level operations,
+but this is no longer true. Garbage collection for example is 
+now faster than manual memory management. 
 </p><p>
-A lot of features are already built in (for example Unicode, network libraries).
-It is very easy to write secure code because buffer overflows can not occur.
-Some features such as the reflection mechanism can be used for randomized testing.
+Developing Java code is faster than C or C++ code. When using Java, 
+most time can be spent on improving the algorithms instead of 
+porting the code to different platforms or doing memory management. 
+Features such as Unicode and network libraries are already built-in.
+In Java, writing secure code is easier because buffer overflows can not occur.
+Features such as reflection can be used for randomized testing.
 </p><p>
-Java is also future proof: a lot of companies support Java,
-and it is now open source.
+Java is future proof: a lot of companies support Java. Java is now open source.
 </p><p>
-This software does not rely on many Java libraries or other software, to
-increase the portability and ease of use, and for performance reasons. For example,
-the encryption algorithms and many library functions are implemented in the database
-instead of using the existing libraries. Libraries that are not available in open source
-Java implementations (such as Swing) are not used or only used for specific features.
+To increase the portability and ease of use, this software depends on 
+very few libraries. Features that are not available in open source
+Java implementations (such as Swing) are not used, or only used for optional features.
 </p>
 
 <h2 id="supporters">Supporters</h2>
 <p>
-Many thanks for those who helped by finding and reporting bugs, gave valuable feedback,
-spread the word and have translated this project. Also many thanks to the donors who contributed
+Many thanks for those who reported bugs, gave valuable feedback,
+spread the word, and translated this project. Also many thanks to the donors who contributed
 via PayPal:
 </p>
 <ul><li><a href="http://www.netsuxxess.de">NetSuxxess GmbH, Germany</a>

@@ -65,10 +65,18 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        stat.execute("create force alias sayHi as 'String test(String name) { return \"Hello \" + name; }'");
+        stat.execute("create force alias sayHi as 'String test(String name) {\nreturn \"Hello \" + name;\n}'");
         rs = stat.executeQuery("call sayHi('Joe')");
         rs.next();
         assertEquals("Hello Joe", rs.getString(1));
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("functions");
+            stat = conn.createStatement();
+            rs = stat.executeQuery("call sayHi('Joe')");
+            rs.next();
+            assertEquals("Hello Joe", rs.getString(1));
+        }
         stat.execute("drop alias sayHi");
         conn.close();
     }

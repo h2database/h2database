@@ -33,7 +33,7 @@ public class RailroadImages {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) {
+    public static void main(String... args) {
         new RailroadImages().run("docs/html/images");
     }
 

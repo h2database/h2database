@@ -12,19 +12,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Automated Build' ,
     'http://www.h2database.com/html/build.html#automated', 'H2 Database Automated Build', 'en-us', NOW(), NOW(), 'Thomas Mueller');
 
 SELECT XMLSTARTDOC() ||
-    XMLNODE('feed', XMLATTR('version', '0.3') || XMLATTR('xmlns', 'http://purl.org/atom/ns#') || XMLATTR('xml:lang', C.LANGUAGE),
-        XMLNODE('title', XMLATTR('type', 'text/plain') || XMLATTR('mode', 'escaped'), C.TITLE) ||
+    XMLNODE('feed', XMLATTR('xmlns', 'http://www.w3.org/2005/Atom') || XMLATTR('xml:lang', C.LANGUAGE),
+        XMLNODE('title', XMLATTR('type', 'text'), C.TITLE) ||
+        XMLNODE('id', NULL, XMLTEXT(C.LINK)) ||
         XMLNODE('author', NULL, XMLNODE('name', NULL, C.AUTHOR)) ||
-        XMLNODE('link', XMLATTR('rel', 'alternate') || XMLATTR('type', 'text/html') || XMLATTR('href', C.LINK), NULL) ||
-        XMLNODE('modified', NULL, FORMATDATETIME(C.LAST, 'yyyy-MM-dd''T''HH:mm:ss.SSS', 'en', 'GMT')) ||
+        XMLNODE('link', XMLATTR('rel', 'self') || XMLATTR('href', 'http://www.h2database.com/automated/news.xml'), NULL) ||
+        XMLNODE('updated', NULL, FORMATDATETIME(C.LAST, 'yyyy-MM-dd''T''HH:mm:ss''Z''', 'en', 'GMT')) ||
         GROUP_CONCAT(
             XMLNODE('entry', NULL,
-                XMLNODE('title', XMLATTR('type', 'text/plain') || XMLATTR('mode', 'escaped'), I.TITLE) ||
+                XMLNODE('title', XMLATTR('type', 'text'), I.TITLE) ||
                 XMLNODE('link', XMLATTR('rel', 'alternate') || XMLATTR('type', 'text/html') || XMLATTR('href', C.LINK), NULL) ||
                 XMLNODE('id', NULL, XMLTEXT(C.LINK || '/' || I.ID)) ||
-                XMLNODE('issued', NULL, FORMATDATETIME(I.ISSUED, 'yyyy-MM-dd''T''HH:mm:ss.SSS', 'en', 'GMT')) ||
-                XMLNODE('modified', NULL, FORMATDATETIME(I.ISSUED, 'yyyy-MM-dd''T''HH:mm:ss.SSS', 'en', 'GMT')) ||
-                XMLNODE('content', XMLATTR('type', 'text/html') || XMLATTR('mode', 'escaped'), XMLCDATA(I.DESC))
+                XMLNODE('updated', NULL, FORMATDATETIME(I.ISSUED, 'yyyy-MM-dd''T''HH:mm:ss''Z''', 'en', 'GMT')) ||
+                XMLNODE('content', XMLATTR('type', 'html'), XMLCDATA(I.DESC))
             )
         ORDER BY I.ID DESC SEPARATOR '')
     ) CONTENT

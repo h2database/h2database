@@ -1136,7 +1136,7 @@ public class Session extends SessionWithState {
         newSession.sessionState = sessionState;
         newSession.recreateSessionState();
         if (write) {
-            while (!database.beforeWriting()) {
+            while (!newSession.database.beforeWriting()) {
                 // wait until we are allowed to write
             }
         }

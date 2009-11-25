@@ -290,7 +290,8 @@ public class MetaTable extends Table {
                     "COLUMN_COUNT INT",
                     "RETURNS_RESULT SMALLINT",
                     "REMARKS",
-                    "ID INT"
+                    "ID INT",
+                    "SOURCE"
             );
             break;
         case FUNCTION_COLUMNS:
@@ -1085,7 +1086,9 @@ public class MetaTable extends Table {
                             // REMARKS
                             replaceNullWithEmpty(alias.getComment()),
                             // ID
-                            "" + alias.getId()
+                            "" + alias.getId(),
+                            // SOURCE
+                            alias.getSource()
                     );
                 }
             }

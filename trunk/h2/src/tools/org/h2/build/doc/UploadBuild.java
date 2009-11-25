@@ -113,7 +113,7 @@ public class UploadBuild {
         String content = rs.getString("content");
         conn.close();
         ftp.store("/httpdocs/automated/history.sql", new ByteArrayInputStream(buildSql.getBytes()));
-        ftp.store("/httpdocs/automated/newsfeed.xml", new ByteArrayInputStream(content.getBytes()));
+        ftp.store("/httpdocs/automated/news.xml", new ByteArrayInputStream(content.getBytes()));
         ftp.store("/httpdocs/html/testOutput.html", new ByteArrayInputStream(testOutput.getBytes()));
         ftp.store("/httpdocs/coverage/overview.html", new FileInputStream("coverage/overview.html"));
         String jarFileName = "bin/h2-" + Constants.getVersion() + ".jar";

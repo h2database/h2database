@@ -23,6 +23,7 @@ import org.h2.util.ClassUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -185,7 +186,11 @@ public class FunctionAlias extends DbObjectBase {
         if (deterministic) {
             buff.append(" DETERMINISTIC");
         }
-        buff.append(" FOR ").append(Parser.quoteIdentifier(className + "." + methodName));
+        if (source != null) {
+            buff.append(" AS ").append(StringUtils.quoteStringSQL(source));
+        } else {
+            buff.append(" FOR ").append(Parser.quoteIdentifier(className + "." + methodName));
+        }
         return buff.toString();
     }
 
@@ -410,6 +415,10 @@ public class FunctionAlias extends DbObjectBase {
 
     public boolean isDeterministic() {
         return deterministic;
+    }
+
+    public String getSource() {
+        return source;
     }
 
 }

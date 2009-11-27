@@ -1703,14 +1703,15 @@ insert into test values(1, 'abc' || space(20));
 
 script nopasswords nosettings blocksize 10;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------------
+> --------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
 > CALL SYSTEM_COMBINE_BLOB(-1);
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR "org.h2.command.dml.ScriptCommand.combineBlob";
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR "org.h2.command.dml.ScriptCommand.combineClob";
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     DATA CLOB );
-> CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT, PART INT, CDATA VARCHAR, BDATA BINARY, PRIMARY KEY(ID, PART));
+> CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART);
+> CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA BINARY);
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > DROP ALIAS IF EXISTS SYSTEM_COMBINE_BLOB;
 > DROP ALIAS IF EXISTS SYSTEM_COMBINE_CLOB;
@@ -1719,7 +1720,7 @@ script nopasswords nosettings blocksize 10;
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 0, 'abc       ', NULL);
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 1, '          ', NULL);
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 2, '   ', NULL);
-> rows: 15
+> rows: 16
 
 drop table test;
 > ok

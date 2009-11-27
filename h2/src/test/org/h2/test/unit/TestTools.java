@@ -518,6 +518,11 @@ public class TestTools extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
     }
 
 }

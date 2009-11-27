@@ -76,6 +76,7 @@ public class TestXA extends TestBase {
         Connection c = xa.getConnection();
         assertTrue(!c.getAutoCommit());
         c.close();
+        xa.close();
     }
 
     private void testXA(boolean useOneDatabase) {

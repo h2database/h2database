@@ -213,6 +213,12 @@ public class TestFileLockSerialized extends TestBase {
         printResult(stat2, "select * from test");
 
         conn2.close();
+
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
     }
 
     private void testConcurrentReadWrite() throws Exception {

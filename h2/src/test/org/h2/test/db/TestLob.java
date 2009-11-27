@@ -325,7 +325,7 @@ public class TestLob extends TestBase {
                     trace("shutdown immediately");
                     conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
                     trace("shutdown done");
-                    conn = reconnect(null);
+                    conn = reconnect(conn);
                     conn.setAutoCommit(false);
                     sp = null;
                 }
@@ -355,7 +355,7 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("DELETE FROM TEST");
         conn.createStatement().execute("CHECKPOINT");
         conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
-        conn = reconnect(null);
+        conn = reconnect(conn);
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
         rs.getInt(1);
@@ -403,8 +403,7 @@ public class TestLob extends TestBase {
         Statement stat0 = conn0.createStatement();
         stat0.executeUpdate("drop table CLOB_ENTITY if exists");
         stat0.getWarnings();
-        stat0
-                .executeUpdate("create table CLOB_ENTITY (ID bigint not null, DATA clob, CLOB_DATA clob, primary key (ID))");
+        stat0.executeUpdate("create table CLOB_ENTITY (ID bigint not null, DATA clob, CLOB_DATA clob, primary key (ID))");
         stat0.getWarnings();
         stat0.close();
         conn0.getWarnings();
@@ -651,7 +650,11 @@ public class TestLob extends TestBase {
     private Connection reconnect(Connection conn) throws SQLException {
         long time = System.currentTimeMillis();
         if (conn != null) {
-            conn.close();
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                // ignore
+            }
         }
         conn = getConnection("lob");
         trace("re-connect=" + (System.currentTimeMillis() - time));

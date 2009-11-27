@@ -40,6 +40,8 @@ public class AliasMapTest extends TestBase {
             .orderBy(p.productId).select();
 
         assertEquals("[]", products.toString());
+
+        db.close();
     }
 }
 

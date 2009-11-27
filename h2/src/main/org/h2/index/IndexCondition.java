@@ -17,7 +17,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
@@ -155,7 +155,7 @@ public class IndexCondition {
      * @param session the session
      * @return the result
      */
-    public LocalResult getCurrentResult(Session session) throws SQLException {
+    public ResultInterface getCurrentResult(Session session) throws SQLException {
         return expressionQuery.query(0);
     }
 

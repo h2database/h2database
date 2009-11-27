@@ -19,6 +19,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -92,7 +93,7 @@ public class SelectUnion extends Query {
         return values;
     }
 
-    public LocalResult queryMeta() throws SQLException {
+    public ResultInterface queryMeta() throws SQLException {
         ObjectArray<Expression> leftExpressions = left.getExpressions();
         int columnCount = left.getColumnCount();
         LocalResult result = new LocalResult(session, leftExpressions, columnCount);
@@ -131,8 +132,8 @@ public class SelectUnion extends Query {
         default:
             Message.throwInternalError("type=" + unionType);
         }
-        LocalResult l = left.query(0);
-        LocalResult r = right.query(0);
+        ResultInterface l = left.query(0);
+        ResultInterface r = right.query(0);
         l.reset();
         r.reset();
         switch (unionType) {
@@ -330,7 +331,7 @@ public class SelectUnion extends Query {
         return buff.toString();
     }
 
-    public LocalResult query(int limit) throws SQLException {
+    public ResultInterface query(int limit) throws SQLException {
         // union doesn't always know the parameter list of the left and right queries
         return queryWithoutCache(limit);
     }

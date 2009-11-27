@@ -7,7 +7,6 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
-
 import org.h2.command.dml.Query;
 import org.h2.command.dml.Select;
 import org.h2.constant.ErrorCode;
@@ -17,7 +16,7 @@ import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
@@ -46,7 +45,7 @@ public class ConditionInSelect extends Condition {
 
     public Value getValue(Session session) throws SQLException {
         query.setSession(session);
-        LocalResult rows = query.query(0);
+        ResultInterface rows = query.query(0);
         session.addTemporaryResult(rows);
         boolean hasNull = false;
         boolean result = all;

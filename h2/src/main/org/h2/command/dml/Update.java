@@ -7,7 +7,6 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
@@ -16,7 +15,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.table.Column;
@@ -177,7 +176,7 @@ public class Update extends Prepared {
         return true;
     }
 
-    public LocalResult queryMeta() {
+    public ResultInterface queryMeta() {
         return null;
     }
 

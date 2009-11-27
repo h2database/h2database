@@ -13,6 +13,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
@@ -124,7 +125,7 @@ public class TableFunction extends Function {
         return vr;
     }
 
-    private SimpleResultSet getSimpleResultSet(LocalResult rs,  int maxrows) throws SQLException {
+    private SimpleResultSet getSimpleResultSet(ResultInterface rs,  int maxrows) throws SQLException {
         int columnCount = rs.getVisibleColumnCount();
         SimpleResultSet simple = new SimpleResultSet();
         for (int i = 0; i < columnCount; i++) {

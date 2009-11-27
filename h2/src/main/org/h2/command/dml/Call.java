@@ -8,13 +8,13 @@ package org.h2.command.dml;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
@@ -33,7 +33,7 @@ public class Call extends Prepared {
         super(session);
     }
 
-    public LocalResult queryMeta() throws SQLException {
+    public ResultInterface queryMeta() throws SQLException {
         LocalResult result = new LocalResult(session, expressions, 1);
         result.done();
         return result;
@@ -56,7 +56,7 @@ public class Call extends Prepared {
         }
     }
 
-    public LocalResult query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) throws SQLException {
         setCurrentRowNumber(1);
         Value v = value.getValue(session);
         if (v.getType() == Value.RESULT_SET) {

@@ -7,10 +7,9 @@
 package org.h2.command;
 
 import java.sql.SQLException;
-
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
@@ -74,12 +73,12 @@ public class CommandContainer extends Command {
         return updateCount;
     }
 
-    public LocalResult query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) throws SQLException {
         recompileIfRequired();
         // TODO query time: should keep lock time separate from running time
         start();
         prepared.checkParameters();
-        LocalResult result = prepared.query(maxrows);
+        ResultInterface result = prepared.query(maxrows);
         prepared.trace(startTime, result.getRowCount());
         return result;
     }
@@ -88,7 +87,7 @@ public class CommandContainer extends Command {
         return prepared.isReadOnly();
     }
 
-    public LocalResult queryMeta() throws SQLException {
+    public ResultInterface queryMeta() throws SQLException {
         return prepared.queryMeta();
     }
 

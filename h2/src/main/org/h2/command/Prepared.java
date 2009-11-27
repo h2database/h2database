@@ -7,7 +7,6 @@
 package org.h2.command;
 
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
@@ -17,7 +16,7 @@ import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -81,9 +80,9 @@ public abstract class Prepared {
     /**
      * Get an empty result set containing the meta data.
      *
-     * @return an empty result set
+     * @return the result set
      */
-    public abstract LocalResult queryMeta() throws SQLException;
+    public abstract ResultInterface queryMeta() throws SQLException;
 
     /**
      * Check if this command is read only.
@@ -202,7 +201,7 @@ public abstract class Prepared {
      * @return the result set
      * @throws SQLException if it is not a query
      */
-    public LocalResult query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) throws SQLException {
         throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
 

@@ -7,7 +7,6 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
-
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -21,7 +20,7 @@ import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
@@ -412,7 +411,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private void checkNoNullValues() throws SQLException {
         String sql = "SELECT COUNT(*) FROM " + table.getSQL() + " WHERE " + oldColumn.getSQL() + " IS NULL";
         Prepared command = session.prepare(sql);
-        LocalResult result = command.query(0);
+        ResultInterface result = command.query(0);
         result.next();
         if (result.currentRow()[0].getInt() > 0) {
             throw Message.getSQLException(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, oldColumn.getSQL());

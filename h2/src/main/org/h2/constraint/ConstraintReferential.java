@@ -7,7 +7,6 @@
 package org.h2.constraint;
 
 import java.sql.SQLException;
-
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -17,7 +16,7 @@ import org.h2.expression.Parameter;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
@@ -627,7 +626,7 @@ public class ConstraintReferential extends Constraint {
         }
         buff.append(')');
         String sql = buff.toString();
-        LocalResult r = session.prepare(sql).query(1);
+        ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {
             throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
                     getShortDescription());

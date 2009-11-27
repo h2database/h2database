@@ -7,13 +7,12 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.engine.Procedure;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.util.ObjectArray;
 
 /**
@@ -64,7 +63,7 @@ public class ExecuteProcedure extends Prepared {
         return prepared.update();
     }
 
-    public final LocalResult query(int limit) throws SQLException {
+    public ResultInterface query(int limit) throws SQLException {
         setParameters();
         Prepared prepared = procedure.getPrepared();
         return prepared.query(limit);
@@ -74,7 +73,7 @@ public class ExecuteProcedure extends Prepared {
         return true;
     }
 
-    public LocalResult queryMeta() throws SQLException {
+    public ResultInterface queryMeta() throws SQLException {
         Prepared prepared = procedure.getPrepared();
         return prepared.queryMeta();
     }

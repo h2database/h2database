@@ -46,7 +46,7 @@ public class TestPowerOff extends TestBase {
         if (config.memory || config.logMode == 0) {
             return;
         }
-        if (config.big) {
+        if (config.big || config.googleAppEngine) {
             dir = baseDir;
         } else {
             dir = "memFS:";

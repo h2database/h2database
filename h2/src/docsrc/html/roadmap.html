@@ -47,13 +47,14 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Full outer joins
 </li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
 </li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
+</li><li>Support mixed clustering mode (one embedded, others in server mode)
 </li><li>Use triggers for metadata tables; use for PostgreSQL catalog
 </li><li>Test very large databases and LOBs (up to 256 GB)
 </li><li>Support alter table add column if table has views defined
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
-</li><li>Support mixed clustering mode (one embedded, others in server mode)
+</li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
@@ -76,7 +77,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption)
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document
-</li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM
 </li><li>Make DDL (Data Definition) operations transactional
 </li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter

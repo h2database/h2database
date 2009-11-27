@@ -129,7 +129,7 @@ public class TestFile extends TestBase implements DataHandler {
             mem.close();
             file.close();
         }
-        FileUtils.delete("inmemory:test");
+        FileUtils.delete(prefix + "test");
         FileUtils.delete("~/testFile");
     }
 

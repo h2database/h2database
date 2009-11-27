@@ -37,7 +37,9 @@ public class TestReadOnly extends TestBase {
             return;
         }
         testReadOnlyDbCreate();
-        testReadOnlyFiles(true);
+        if (!config.googleAppEngine) {
+            testReadOnlyFiles(true);
+        }
         if (!config.deleteIndex) {
             testReadOnlyFiles(false);
         }

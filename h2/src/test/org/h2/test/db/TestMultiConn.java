@@ -129,7 +129,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
     }
 
     private void testConcurrentOpen() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.googleAppEngine) {
             return;
         }
         deleteDb("multiConn");

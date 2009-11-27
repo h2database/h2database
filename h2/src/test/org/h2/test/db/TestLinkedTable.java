@@ -586,7 +586,7 @@ public class TestLinkedTable extends TestBase {
     }
 
     private void testLinkedTableInReadOnlyDb() throws SQLException {
-        if (config.memory || config.networked) {
+        if (config.memory || config.networked || config.googleAppEngine) {
             return;
         }
 

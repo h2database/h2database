@@ -8,7 +8,6 @@ package org.h2.test.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
-import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -27,6 +26,7 @@ import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
@@ -114,10 +114,10 @@ public class TestLob extends TestBase {
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("create table test(data clob) as select space(100000) from dual");
-        assertEquals(1, new File(baseDir + "/lob.lobs.db").listFiles().length);
+        assertEquals(1, FileUtils.listFiles(baseDir + "/lob.lobs.db").length);
         stat.execute("delete from test");
         conn.close();
-        assertEquals(0, new File(baseDir + "/lob.lobs.db").listFiles().length);
+        assertEquals(0, FileUtils.listFiles(baseDir + "/lob.lobs.db").length);
     }
 
     private void testLobServerMemory() throws SQLException {

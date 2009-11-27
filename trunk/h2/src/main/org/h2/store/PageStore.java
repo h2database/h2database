@@ -130,12 +130,6 @@ public class PageStore implements CacheWriter {
      */
     public static final int PAGE_SIZE_MAX = 32768;
 
-    /**
-     * The default page size.
-     */
-    public static final int PAGE_SIZE_DEFAULT = 2 * 1024;
-    // public static final int PAGE_SIZE_DEFAULT = 64;
-
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
 
@@ -277,7 +271,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void openNew() throws SQLException {
-        setPageSize(PAGE_SIZE_DEFAULT);
+        setPageSize(SysProperties.PAGE_SIZE);
         freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
         file = database.openFile(fileName, accessMode, false);
         recoveryRunning = true;
@@ -1467,7 +1461,7 @@ public class PageStore implements CacheWriter {
 
     private void checkOpen() throws SQLException {
         if (file == null) {
-            throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
+            throw Message.getSQLException(ErrorCode.DATABASE_IS_CLOSED);
         }
     }
 

@@ -1398,11 +1398,12 @@ public class ErrorCode {
     public static final int DATABASE_IS_READ_ONLY = 90097;
 
     /**
-     * The error with code <code>90098</code> is thrown when the
-     * self-destruction counter has reached zero. This counter is only used for
-     * recovery testing, and not set in normal operation.
+     * The error with code <code>90098</code> is thrown when the database has
+     * been closed, for example because the system ran out of memory or because
+     * the self-destruction counter has reached zero. This counter is only used
+     * for recovery testing, and not set in normal operation.
      */
-    public static final int SIMULATED_POWER_OFF = 90098;
+    public static final int DATABASE_IS_CLOSED = 90098;
 
     /**
      * The error with code <code>90099</code> is thrown when an error occurred

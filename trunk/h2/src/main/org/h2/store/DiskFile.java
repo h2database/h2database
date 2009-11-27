@@ -553,7 +553,7 @@ public class DiskFile implements CacheWriter {
     Record getRecord(Session session, int pos, RecordReader reader, int storageId) throws SQLException {
         synchronized (database) {
             if (file == null) {
-                throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
+                throw Message.getSQLException(ErrorCode.DATABASE_IS_CLOSED);
             }
             Record record = (Record) cache.get(pos);
             if (record != null) {
@@ -604,7 +604,7 @@ public class DiskFile implements CacheWriter {
         reuseSpace();
         synchronized (database) {
             if (file == null) {
-                throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
+                throw Message.getSQLException(ErrorCode.DATABASE_IS_CLOSED);
             }
             blockCount = getPage(blockCount + BLOCKS_PER_PAGE - 1) * BLOCKS_PER_PAGE;
             int lastPage = getPage(fileBlockCount);

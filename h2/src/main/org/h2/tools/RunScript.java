@@ -55,6 +55,8 @@ public class RunScript extends Tool {
      * <td>Show the statements and the results of queries</td></tr>
      * <tr><td>[-checkResults]</td>
      * <td>Check if the query results match the expected results</td></tr>
+     * <tr><td>[-continueOnError]</td>
+     * <td>Continue even if the script contains errors</td></tr>
      * <tr><td>[-options ...]</td>
      * <td>RUNSCRIPT options (embedded H2; -*Results not supported)</td></tr>
      * </table>

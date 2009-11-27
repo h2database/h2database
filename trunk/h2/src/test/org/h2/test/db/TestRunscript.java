@@ -29,6 +29,7 @@ public class TestRunscript extends TestBase implements Trigger {
     }
 
     public void test() throws SQLException {
+        testClobPrimaryKey();
         test(false);
         test(true);
         deleteDb("runscript");
@@ -42,6 +43,25 @@ public class TestRunscript extends TestBase implements Trigger {
      */
     public static int test(int a) {
         return Math.abs(a);
+    }
+
+    private void testClobPrimaryKey() throws SQLException {
+        deleteDb("runscript");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("runscript");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int not null, data clob) as select 1, space(4100)");
+        // the primary key for SYSTEM_LOB_STREAM used to be named like this
+        stat.execute("create primary key primary_key_e on test(id)");
+        stat.execute("script to '" + baseDir + "/backup.sql'");
+        conn.close();
+        deleteDb("runscript");
+        conn = getConnection("runscript");
+        stat = conn.createStatement();
+        stat.execute("runscript from '" + baseDir + "/backup.sql'");
+        conn.close();
+        deleteDb("runscriptRestore");
     }
 
     private void test(boolean password) throws SQLException {

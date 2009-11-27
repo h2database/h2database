@@ -295,18 +295,21 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-
 /*
 
+file lock serialized with counter
+
+// System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64
 test if compact always works as expected
-implement node row counts (disabled by default)
-check auto-build
 
 check memory usage when inserting a lot of rows
+
 http://www.apache.org/dev/contrib-email-tips.html
+
 google app engine
-documentation: rolling review at history.html
+
+documentation: rolling review at jaqu.html
 
 System.setProperty("h2.optimizeInList", "true");
 System.setProperty("h2.optimizeOr", "true");

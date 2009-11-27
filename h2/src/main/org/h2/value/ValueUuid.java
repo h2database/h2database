@@ -90,20 +90,23 @@ public class ValueUuid extends Value {
      * @return the UUID
      */
     public static ValueUuid get(String s) {
-        long high = 0, low = 0;
-        int i = 0;
-        for (int j = 0; i < s.length() && j < 16; i++) {
-            char ch = s.charAt(i);
-            if (ch != '-') {
-                high = (high << 4) | Character.digit(ch, 16);
-                j++;
+        long low = 0, high = 0;
+        for (int i = 0, j = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c >= '0' && c <= '9') {
+                low = (low << 4) | (c - '0');
+            } else if (c >= 'a' && c <= 'f') {
+                low = (low << 4) | (c - 'a' + 0xa);
+            } else if (c == '-') {
+                continue;
+            } else if (c >= 'A' && c <= 'F') {
+                low = (low << 4) | (c - 'A' + 0xa);
+            } else {
+                continue;
             }
-        }
-        for (int j = 0; i < s.length() && j < 16; i++) {
-            char ch = s.charAt(i);
-            if (ch != '-') {
-                low = (low << 4) | Character.digit(ch, 16);
-                j++;
+            if (j++ == 15) {
+                high = low;
+                low = 0;
             }
         }
         return (ValueUuid) Value.cache(new ValueUuid(high, low));

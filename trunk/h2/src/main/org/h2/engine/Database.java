@@ -169,8 +169,9 @@ public class Database implements DataHandler {
     private Properties reconnectLastLock;
     private volatile long reconnectCheckNext;
     private volatile boolean reconnectChangePending;
-    private volatile boolean checkpointAllowed;
+    private volatile int checkpointAllowed;
     private volatile boolean checkpointRunning;
+    private final Object reconnectSync = new Object();
     private int cacheSize;
     private boolean compactFully;
     private SourceCompiler compiler;
@@ -467,7 +468,7 @@ public class Database implements DataHandler {
             }
         }
         Engine.getInstance().close(databaseName);
-        throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
+        throw Message.getSQLException(ErrorCode.DATABASE_IS_CLOSED);
     }
 
     /**
@@ -719,6 +720,7 @@ public class Database implements DataHandler {
         }
         systemSession.commit(true);
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
+        afterWriting();
     }
 
     public Schema getMainSchema() {
@@ -1289,7 +1291,7 @@ public class Database implements DataHandler {
                         pageStore.compact(compactFully);
                     }
                 } catch (SQLException e) {
-                    if (e.getErrorCode() != ErrorCode.SIMULATED_POWER_OFF){
+                    if (e.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED){
                         // e.printStackTrace();
                         // TODO don't ignore exceptions
                     }
@@ -2388,23 +2390,26 @@ public class Database implements DataHandler {
         if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly || !reconnectChangePending || closing) {
             return;
         }
-        // to avoid race conditions, we already set it here
-        // (overlap with checkpointAllowed)
-        checkpointRunning = true;
-        if (!checkpointAllowed) {
-            checkpointRunning = false;
-            return;
-        }
-
         long now = System.currentTimeMillis();
         if (now > reconnectCheckNext + SysProperties.RECONNECT_CHECK_DELAY) {
+            if (SysProperties.CHECK && checkpointAllowed < 0) {
+                Message.throwInternalError();
+            }
+            synchronized (reconnectSync) {
+                if (checkpointAllowed > 0) {
+                    return;
+                }
+                checkpointRunning = true;
+            }
             synchronized (this) {
                 getTrace().debug("checkpoint start");
                 flushIndexes(0);
                 checkpoint();
                 reconnectModified(false);
-                checkpointRunning = false;
                 getTrace().debug("checkpoint end");
+            }
+            synchronized (reconnectSync) {
+                checkpointRunning = false;
             }
         }
     }
@@ -2462,33 +2467,44 @@ public class Database implements DataHandler {
      *          false if another connection was faster
      */
     public boolean beforeWriting() {
-        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
-            // to avoid race conditions, we already set it here
-            // (overlap with checkpointRunning)
-            checkpointAllowed = false;
-            while (checkpointRunning) {
-                try {
-                    Thread.sleep(10 + (int) (Math.random() * 10));
-                } catch (Exception e) {
-                    // ignore
-                }
-            }
-            boolean writingAllowed = reconnectModified(true);
-            if (!writingAllowed) {
-                // make sure the next call to isReconnectNeeded() returns yes
-                reconnectCheckNext = System.currentTimeMillis() - 1;
-                reconnectLastLock = null;
-            }
-            return writingAllowed;
+        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+            return true;
         }
-        return true;
+        while (checkpointRunning) {
+            try {
+                Thread.sleep(10 + (int) (Math.random() * 10));
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        synchronized (reconnectSync) {
+            if (reconnectModified(true)) {
+                checkpointAllowed++;
+                if (SysProperties.CHECK && checkpointAllowed > 20) {
+                    throw Message.throwInternalError();
+                }
+                return true;
+            }
+        }
+        // make sure the next call to isReconnectNeeded() returns true
+        reconnectCheckNext = System.currentTimeMillis() - 1;
+        reconnectLastLock = null;
+        return false;
     }
 
     /**
      * This method is called after updates are finished.
      */
     public void afterWriting() {
-        checkpointAllowed = true;
+        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+            return;
+        }
+        synchronized (reconnectSync) {
+            checkpointAllowed--;
+        }
+        if (SysProperties.CHECK && checkpointAllowed < 0) {
+            throw Message.throwInternalError();
+        }
     }
 
     /**

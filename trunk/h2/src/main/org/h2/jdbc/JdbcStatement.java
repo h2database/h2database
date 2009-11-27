@@ -114,19 +114,23 @@ public class JdbcStatement extends TraceObject implements Statement {
 
     private int executeUpdateInternal(String sql) throws SQLException {
         checkClosedForWrite();
-        closeOldResultSet();
-        sql = conn.translateSQL(sql, escapeProcessing);
-        CommandInterface command = conn.prepareCommand(sql, fetchSize);
-        synchronized (session) {
-            setExecutingStatement(command);
-            try {
-                updateCount = command.executeUpdate();
-            } finally {
-                setExecutingStatement(null);
+        try {
+            closeOldResultSet();
+            sql = conn.translateSQL(sql, escapeProcessing);
+            CommandInterface command = conn.prepareCommand(sql, fetchSize);
+            synchronized (session) {
+                setExecutingStatement(command);
+                try {
+                    updateCount = command.executeUpdate();
+                } finally {
+                    setExecutingStatement(null);
+                }
             }
+            command.close();
+            return updateCount;
+        } finally {
+            afterWriting();
         }
-        command.close();
-        return updateCount;
     }
 
     /**
@@ -153,29 +157,33 @@ public class JdbcStatement extends TraceObject implements Statement {
     private boolean executeInternal(String sql) throws SQLException {
         int id = getNextId(TraceObject.RESULT_SET);
         checkClosedForWrite();
-        closeOldResultSet();
-        sql = conn.translateSQL(sql, escapeProcessing);
-        CommandInterface command = conn.prepareCommand(sql, fetchSize);
-        boolean returnsResultSet;
-        synchronized (session) {
-            setExecutingStatement(command);
-            try {
-                if (command.isQuery()) {
-                    returnsResultSet = true;
-                    boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
-                    boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
-                    ResultInterface result = command.executeQuery(maxRows, scrollable);
-                    resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
-                } else {
-                    returnsResultSet = false;
-                    updateCount = command.executeUpdate();
+        try {
+            closeOldResultSet();
+            sql = conn.translateSQL(sql, escapeProcessing);
+            CommandInterface command = conn.prepareCommand(sql, fetchSize);
+            boolean returnsResultSet;
+            synchronized (session) {
+                setExecutingStatement(command);
+                try {
+                    if (command.isQuery()) {
+                        returnsResultSet = true;
+                        boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
+                        boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
+                        ResultInterface result = command.executeQuery(maxRows, scrollable);
+                        resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
+                    } else {
+                        returnsResultSet = false;
+                        updateCount = command.executeUpdate();
+                    }
+                } finally {
+                    setExecutingStatement(null);
                 }
-            } finally {
-                setExecutingStatement(null);
             }
+            command.close();
+            return returnsResultSet;
+        } finally {
+            afterWriting();
         }
-        command.close();
-        return returnsResultSet;
     }
 
     /**
@@ -607,29 +615,33 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("executeBatch");
             checkClosedForWrite();
-            if (batchCommands == null) {
-                // TODO batch: check what other database do if no commands are set
-                batchCommands = ObjectArray.newInstance();
-            }
-            int[] result = new int[batchCommands.size()];
-            boolean error = false;
-            for (int i = 0; i < batchCommands.size(); i++) {
-                String sql = batchCommands.get(i);
-                try {
-                    result[i] = executeUpdateInternal(sql);
-                } catch (SQLException e) {
-                    logAndConvert(e);
-                    //## Java 1.4 begin ##
-                    result[i] = Statement.EXECUTE_FAILED;
-                    //## Java 1.4 end ##
-                    error = true;
+            try {
+                if (batchCommands == null) {
+                    // TODO batch: check what other database do if no commands are set
+                    batchCommands = ObjectArray.newInstance();
                 }
+                int[] result = new int[batchCommands.size()];
+                boolean error = false;
+                for (int i = 0; i < batchCommands.size(); i++) {
+                    String sql = batchCommands.get(i);
+                    try {
+                        result[i] = executeUpdateInternal(sql);
+                    } catch (SQLException e) {
+                        logAndConvert(e);
+                        //## Java 1.4 begin ##
+                        result[i] = Statement.EXECUTE_FAILED;
+                        //## Java 1.4 end ##
+                        error = true;
+                    }
+                }
+                batchCommands = null;
+                if (error) {
+                    throw new BatchUpdateException(result);
+                }
+                return result;
+            } finally {
+                afterWriting();
             }
-            batchCommands = null;
-            if (error) {
-                throw new BatchUpdateException(result);
-            }
-            return result;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -881,6 +893,15 @@ public class JdbcStatement extends TraceObject implements Statement {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Called after each write operation.
+     */
+    void afterWriting() {
+        if (conn != null) {
+            conn.afterWriting();
+        }
     }
 
     /**

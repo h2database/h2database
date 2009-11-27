@@ -28,7 +28,7 @@ import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
@@ -93,7 +93,7 @@ public class Session extends SessionWithState {
     private long sessionStart = System.currentTimeMillis();
     private long currentCommandStart;
     private HashMap<String, Value> variables;
-    private HashSet<LocalResult> temporaryResults;
+    private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout = SysProperties.getMaxQueryTimeout();
     private int lastUncommittedDelete;
     private boolean commitOrRollbackDisabled;
@@ -1059,7 +1059,7 @@ public class Session extends SessionWithState {
      *
      * @param result the temporary result set
      */
-    public void addTemporaryResult(LocalResult result) {
+    public void addTemporaryResult(ResultInterface result) {
         if (!result.needToClose()) {
             return;
         }
@@ -1078,7 +1078,7 @@ public class Session extends SessionWithState {
      */
     public void closeTemporaryResults() {
         if (temporaryResults != null) {
-            for (LocalResult result : temporaryResults) {
+            for (ResultInterface result : temporaryResults) {
                 result.close();
             }
             temporaryResults = null;
@@ -1127,6 +1127,10 @@ public class Session extends SessionWithState {
                 return false;
             }
         }
+    }
+
+    public void afterWriting() {
+        database.afterWriting();
     }
 
     public SessionInterface reconnect(boolean write) throws SQLException {

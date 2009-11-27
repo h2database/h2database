@@ -30,6 +30,7 @@ import org.h2.Driver;
 import org.h2.command.Parser;
 import org.h2.compress.CompressLZF;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
@@ -833,7 +834,7 @@ public class Recover extends Tool implements DataHandler {
                     " writeVersion: " + writeVersion +
                     " readVersion: " + readVersion);
             if (pageSize < PageStore.PAGE_SIZE_MIN || pageSize > PageStore.PAGE_SIZE_MAX) {
-                pageSize = PageStore.PAGE_SIZE_DEFAULT;
+                pageSize = SysProperties.PAGE_SIZE;
                 writer.println("-- ERROR: page size; using " + pageSize);
             }
             int pageCount = (int) (length / pageSize);

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
+import org.h2.util.FileUtils;
 
 /**
  * Tests the database transaction log file.
@@ -75,10 +76,10 @@ public class TestLogFile extends TestBase {
         deleteDb("logfile");
     }
 
-    private void checkLogSize() {
-        for (String name : new File(getTestDir("")).list()) {
+    private void checkLogSize() throws SQLException {
+        for (String name : FileUtils.listFiles(getTestDir(""))) {
             if (name.startsWith("logfile") && name.endsWith(".log.db")) {
-                long length = new File(name).length();
+                long length = FileUtils.length(name);
                 assertSmaller(length, MAX_LOG_SIZE * 1024 * 1024 * 2);
             }
         }

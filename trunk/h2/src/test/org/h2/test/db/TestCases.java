@@ -271,7 +271,7 @@ public class TestCases extends TestBase {
     }
 
     private void testUpperCaseLowerCaseDatabase() throws SQLException {
-        if (File.separatorChar != '\\') {
+        if (File.separatorChar != '\\' || config.googleAppEngine) {
             return;
         }
         deleteDb("cases");
@@ -633,7 +633,7 @@ public class TestCases extends TestBase {
     }
 
     private void testDoubleRecovery() throws SQLException {
-        if (config.networked) {
+        if (config.networked || config.googleAppEngine) {
             return;
         }
         trace("testDoubleRecovery");

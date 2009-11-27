@@ -7,8 +7,7 @@
 package org.h2.test.db;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.RandomAccessFile;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,6 +17,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
 import org.h2.util.FileUtils;
@@ -81,16 +82,18 @@ public class TestCsv extends TestBase {
     private void testNull() throws Exception {
         deleteDb("csv");
 
-        File f = new File(baseDir + "/testNull.csv");
-        FileUtils.delete(f.getAbsolutePath());
-
-        RandomAccessFile file = new RandomAccessFile(f, "rw");
+        String fileName = baseDir + "/testNull.csv";
+        FileSystem fs = FileSystem.getInstance(fileName);
+        fs.delete(fileName);
+        
+        FileObject file = fs.openFileObject(fileName, "rw");
         String csvContent = "\"A\",\"B\",\"C\",\"D\"\n\\N,\"\",\"\\N\",";
-        file.write(csvContent.getBytes("UTF-8"));
+        byte[] b = csvContent.getBytes("UTF-8");
+        file.write(b, 0, b.length);
         file.close();
         Csv csv = Csv.getInstance();
         csv.setNullString("\\N");
-        ResultSet rs = csv.read(f.getPath(), null, "UTF8");
+        ResultSet rs = csv.read(file.getName(), null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(4, meta.getColumnCount());
         assertEquals("A", meta.getColumnLabel(1));
@@ -108,15 +111,15 @@ public class TestCsv extends TestBase {
 
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('" + f.getPath() + "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', 'UTF8', ',', '\"', NULL, '\\N', '\n')");
-        FileReader reader = new FileReader(f);
+        stat.execute("call csvwrite('" + file.getName() + "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', 'UTF8', ',', '\"', NULL, '\\N', '\n')");
+        InputStreamReader reader = new InputStreamReader(fs.openFileInputStream(fileName));
         // on read, an empty string is treated like null,
         // but on write a null is always written with the nullString
         String data = IOUtils.readStringAndClose(reader, -1);
         assertEquals(csvContent + "\\N", data.trim());
         conn.close();
 
-        FileUtils.delete(f.getAbsolutePath());
+        fs.delete(fileName);
     }
 
     private void testRandomData() throws SQLException {
@@ -166,16 +169,16 @@ public class TestCsv extends TestBase {
     }
 
     private void testEmptyFieldDelimiter() throws Exception {
-        File f = new File(baseDir + "/test.csv");
-        f.delete();
+        String fileName = baseDir + "/test.csv";
+        FileUtils.delete(fileName);
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('"+baseDir+"/test.csv', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
-        FileReader reader = new FileReader(baseDir + "/test.csv");
+        stat.execute("call csvwrite('"+fileName+"', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
+        InputStreamReader reader = new InputStreamReader(FileUtils.openFileInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
         text = StringUtils.replaceAll(text, "\n", " ");
         assertEquals("ID|NAME 1|Hello", text);
-        ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, null, '|', '')");
+        ResultSet rs = stat.executeQuery("select * from csvread('" + fileName + "', null, null, '|', '')");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
         assertEquals("ID", meta.getColumnLabel(1));
@@ -185,18 +188,21 @@ public class TestCsv extends TestBase {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
         conn.close();
-        FileUtils.delete(baseDir + "/test.csv");
+        FileUtils.delete(fileName);
     }
 
     private void testFieldDelimiter() throws Exception {
-        File f = new File(baseDir + "/test.csv");
-        f.delete();
-        RandomAccessFile file = new RandomAccessFile(f, "rw");
-        file.write("'A'; 'B'\n\'It\\'s nice\'; '\nHello\\*\n'".getBytes());
+        String fileName = baseDir + "/test.csv";
+        String fileName2 = baseDir + "/test2.csv";
+        FileSystem fs = FileSystem.getInstance(fileName);
+        fs.delete(fileName);
+        FileObject file = fs.openFileObject(fileName, "rw");
+        byte[] b = "'A'; 'B'\n\'It\\'s nice\'; '\nHello\\*\n'".getBytes();
+        file.write(b, 0, b.length);
         file.close();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, null, ';', '''', '\\')");
+        ResultSet rs = stat.executeQuery("select * from csvread('" + fileName + "', null, null, ';', '''', '\\')");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
         assertEquals("A", meta.getColumnLabel(1));
@@ -205,8 +211,8 @@ public class TestCsv extends TestBase {
         assertEquals("It's nice", rs.getString(1));
         assertEquals("\nHello*\n", rs.getString(2));
         assertFalse(rs.next());
-        stat.execute("call csvwrite('" + baseDir + "/test2.csv', 'select * from csvread(''" + baseDir + "/test.csv'', null, null, '';'', '''''''', ''\\'')', null, '+', '*', '#')");
-        rs = stat.executeQuery("select * from csvread('" + baseDir + "/test2.csv', null, null, '+', '*', '#')");
+        stat.execute("call csvwrite('" + fileName2 + "', 'select * from csvread(''" + fileName + "'', null, null, '';'', '''''''', ''\\'')', null, '+', '*', '#')");
+        rs = stat.executeQuery("select * from csvread('" + fileName2 + "', null, null, '+', '*', '#')");
         meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
         assertEquals("A", meta.getColumnLabel(1));
@@ -216,8 +222,8 @@ public class TestCsv extends TestBase {
         assertEquals("\nHello*\n", rs.getString(2));
         assertFalse(rs.next());
         conn.close();
-        FileUtils.delete(baseDir + "/test.csv");
-        FileUtils.delete(baseDir + "/test2.csv");
+        fs.delete(fileName);
+        fs.delete(fileName2);
     }
 
     private void testPipe() throws SQLException {
@@ -262,12 +268,14 @@ public class TestCsv extends TestBase {
     }
 
     private void testRead() throws Exception {
-        File f = new File(baseDir + "/test.csv");
-        f.delete();
-        RandomAccessFile file = new RandomAccessFile(f, "rw");
-        file.write("a,b,c,d\n201,-2,0,18\n, \"abc\"\"\" ,,\"\"\n 1 ,2 , 3, 4 \n5, 6, 7, 8".getBytes());
+        String fileName = baseDir + "/test.csv";
+        FileSystem fs = FileSystem.getInstance(fileName);
+        fs.delete(fileName);
+        FileObject file = fs.openFileObject(fileName, "rw");
+        byte[] b = "a,b,c,d\n201,-2,0,18\n, \"abc\"\"\" ,,\"\"\n 1 ,2 , 3, 4 \n5, 6, 7, 8".getBytes();
+        file.write(b, 0, b.length);
         file.close();
-        ResultSet rs = Csv.getInstance().read(baseDir + "/test.csv", null, "UTF8");
+        ResultSet rs = Csv.getInstance().read(fileName, null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(4, meta.getColumnCount());
         assertEquals("a", meta.getColumnLabel(1));
@@ -303,7 +311,7 @@ public class TestCsv extends TestBase {
         // 201,2,0,18
         // 201,2,0,18
         // 201,2,0,18
-        FileUtils.delete(baseDir + "/test.csv");
+        fs.delete(fileName);
     }
 
     private void testWriteRead() throws SQLException {

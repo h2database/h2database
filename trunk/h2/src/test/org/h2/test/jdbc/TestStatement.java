@@ -6,7 +6,6 @@
  */
 package org.h2.test.jdbc;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +14,8 @@ import java.sql.Statement;
 
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcStatement;
+import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 
 /**
@@ -33,7 +34,7 @@ public class TestStatement extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
         deleteDb("statement");
         conn = getConnection("statement");
         testTraceError();
@@ -50,12 +51,13 @@ public class TestStatement extends TestBase {
         deleteDb("statement");
     }
 
-    private void testTraceError() throws SQLException {
+    private void testTraceError() throws Exception {
         if (config.memory || config.networked || config.traceLevelFile != 0) {
             return;
         }
         Statement stat = conn.createStatement();
-        File trace = new File(baseDir + "/statement.trace.db");
+        String fileName = baseDir + "/statement.trace.db";
+        FileObject trace = FileSystem.getInstance(fileName).openFileObject(fileName, "r");
         stat.execute("DROP TABLE TEST IF EXISTS");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         stat.execute("INSERT INTO TEST VALUES(1)");

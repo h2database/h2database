@@ -7,10 +7,9 @@
 package org.h2.test.db;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -27,6 +26,7 @@ import java.util.UUID;
 import org.h2.api.AggregateFunction;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 
@@ -224,26 +224,26 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     private void testFileRead() throws Exception {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        File f = new File(baseDir + "/test.txt");
+        String fileName = baseDir + "/test.txt";
         Properties prop = System.getProperties();
-        FileOutputStream out = new FileOutputStream(f);
+        OutputStream out = FileUtils.openFileOutputStream(fileName, false);
         prop.store(out, "");
         out.close();
-        ResultSet rs = stat.executeQuery("SELECT LENGTH(FILE_READ('" + baseDir + "/test.txt')) LEN");
+        ResultSet rs = stat.executeQuery("SELECT LENGTH(FILE_READ('" + fileName + "')) LEN");
         rs.next();
-        assertEquals(f.length(), rs.getInt(1));
-        rs = stat.executeQuery("SELECT FILE_READ('" + baseDir + "/test.txt') PROP");
+        assertEquals(FileUtils.length(fileName), rs.getInt(1));
+        rs = stat.executeQuery("SELECT FILE_READ('" + fileName + "') PROP");
         rs.next();
         Properties p2 = new Properties();
         p2.load(rs.getBinaryStream(1));
         assertEquals(prop.size(), p2.size());
-        rs = stat.executeQuery("SELECT FILE_READ('" + baseDir + "/test.txt', NULL) PROP");
+        rs = stat.executeQuery("SELECT FILE_READ('" + fileName + "', NULL) PROP");
         rs.next();
         String ps = rs.getString(1);
-        FileReader r = new FileReader(f);
+        InputStreamReader r = new InputStreamReader(FileUtils.openFileInputStream(fileName));
         String ps2 = IOUtils.readStringAndClose(r, -1);
         assertEquals(ps, ps2);
-        f.delete();
+        FileUtils.delete(fileName);
         conn.close();
     }
 

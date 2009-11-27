@@ -31,8 +31,8 @@ public class TestEncryptedDb extends TestBase {
         if (config.memory || config.cipher != null) {
             return;
         }
-        deleteDb("exclusive");
-        Connection conn = getConnection("exclusive;CIPHER=AES", "sa", "123 123");
+        deleteDb("encrypted");
+        Connection conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("CHECKPOINT");
@@ -46,13 +46,13 @@ public class TestEncryptedDb extends TestBase {
         }
 
         try {
-            getConnection("exclusive;CIPHER=AES", "sa", "1234 1234");
+            getConnection("encrypted;CIPHER=AES", "sa", "1234 1234");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
 
-        conn = getConnection("exclusive;CIPHER=AES", "sa", "123 123");
+        conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123");
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
@@ -60,7 +60,7 @@ public class TestEncryptedDb extends TestBase {
         assertFalse(rs.next());
 
         conn.close();
-        deleteDb("exclusive");
+        deleteDb("encrypted");
     }
 
 }

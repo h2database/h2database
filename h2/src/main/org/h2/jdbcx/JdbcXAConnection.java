@@ -52,8 +52,12 @@ implements XAConnection, XAResource
 
     private JdbcDataSourceFactory factory;
     private String url, user;
+
+    // This connection is kept open as long as the XAConnection is alive
     private JdbcConnection physicalConn;
-    private PooledJdbcConnection handleConn;
+
+    // This connection is replaced whenever getConnection is called
+    private volatile PooledJdbcConnection handleConn;
     private ArrayList<ConnectionEventListener> listeners = New.arrayList();
     private Xid currentTransaction;
     private int currentTransactionId;
@@ -95,9 +99,10 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     public void close() throws SQLException {
         debugCodeCall("close");
-        if (handleConn != null) {
+        PooledJdbcConnection lastHandle = handleConn;
+        if (lastHandle != null) {
             listeners.clear();
-            handleConn.close();
+            lastHandle.close();
         }
         if (physicalConn != null) {
             try {
@@ -119,8 +124,9 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
-        if (handleConn != null) {
-            handleConn.close();
+        PooledJdbcConnection lastHandle = handleConn;
+        if (lastHandle != null) {
+            lastHandle.close();
         }
         handleConn = new PooledJdbcConnection(physicalConn);
         return handleConn;

@@ -50,6 +50,7 @@ public class TestConnectionPool extends TestBase {
 
         Connection conn2 = man.getConnection();
         assertTrue(conn2.getAutoCommit());
+        conn2.close();
 
         man.dispose();
     }

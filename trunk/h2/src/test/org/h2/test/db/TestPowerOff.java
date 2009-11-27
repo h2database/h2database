@@ -189,6 +189,11 @@ public class TestPowerOff extends TestBase {
             }
             assertTrue(deleted);
         }
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
         conn = getConnection(url);
         conn.close();
     }
@@ -215,6 +220,11 @@ public class TestPowerOff extends TestBase {
         }
 
         ((JdbcConnection) conn).setPowerOffCount(0);
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
         conn = getConnection(url);
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
@@ -290,7 +300,7 @@ public class TestPowerOff extends TestBase {
             }
             conn.close();
         } catch (SQLException e) {
-            if (e.getSQLState().equals("" + ErrorCode.SIMULATED_POWER_OFF)) {
+            if (e.getSQLState().equals("" + ErrorCode.DATABASE_IS_CLOSED)) {
                 // this is ok
             } else {
                 throw e;

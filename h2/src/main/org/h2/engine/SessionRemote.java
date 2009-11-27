@@ -661,4 +661,8 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         return this;
     }
 
+    public void afterWriting() {
+        // nothing to do
+    }
+
 }

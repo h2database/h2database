@@ -89,4 +89,10 @@ public interface SessionInterface {
      */
     SessionInterface reconnect(boolean write) throws SQLException;
 
+    /**
+     * Called after writing has ended. It needs to be called after
+     * isReconnectNeeded(true) returned false.
+     */
+    void afterWriting();
+
 }

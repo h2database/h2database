@@ -541,6 +541,12 @@ public class SysProperties {
     public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
 
     /**
+     * System property <code>h2.pageSize</code> (default: 2048).<br />
+     * The page size to use for new databases.
+     */
+    public static final int PAGE_SIZE = getIntSetting("h2.pageSize", 2048);
+
+    /**
      * System property <code>h2.pageStore</code>.<br />
      * Use the 'page store' database file format for new databases.
      * <p>

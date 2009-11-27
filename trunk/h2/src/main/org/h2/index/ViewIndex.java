@@ -13,7 +13,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.expression.Parameter;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
@@ -189,7 +189,7 @@ public class ViewIndex extends BaseIndex {
                 }
             }
         }
-        LocalResult result = query.query(0);
+        ResultInterface result = query.query(0);
         return new ViewCursor(table, result);
     }
 

@@ -8,7 +8,7 @@ package org.h2.command.dml;
 
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 
 /**
  * Represents an empty statement or a statement that has no effect.
@@ -39,7 +39,7 @@ public class NoOperation extends Prepared {
         return true;
     }
 
-    public LocalResult queryMeta() {
+    public ResultInterface queryMeta() {
         return null;
     }
 

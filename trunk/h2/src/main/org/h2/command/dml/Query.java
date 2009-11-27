@@ -21,6 +21,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
@@ -214,7 +215,7 @@ public abstract class Query extends Prepared {
         return params;
     }
 
-    public LocalResult query(int limit) throws SQLException {
+    public ResultInterface query(int limit) throws SQLException {
         if (!session.getDatabase().getOptimizeReuseResults()) {
             return queryWithoutCache(limit);
         }

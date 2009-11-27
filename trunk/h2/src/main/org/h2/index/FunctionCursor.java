@@ -7,9 +7,8 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.value.Value;
@@ -19,11 +18,11 @@ import org.h2.value.Value;
  */
 public class FunctionCursor implements Cursor {
 
-    private LocalResult result;
+    private ResultInterface result;
     private Value[] values;
     private Row row;
 
-    FunctionCursor(LocalResult result) {
+    FunctionCursor(ResultInterface result) {
         this.result = result;
     }
 

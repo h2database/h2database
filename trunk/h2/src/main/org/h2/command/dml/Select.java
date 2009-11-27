@@ -28,6 +28,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
@@ -515,7 +516,7 @@ public class Select extends Query {
         result.addRow(row);
     }
 
-    public LocalResult queryMeta() throws SQLException {
+    public ResultInterface queryMeta() throws SQLException {
         LocalResult result = new LocalResult(session, expressions, visibleColumnCount);
         result.done();
         return result;

@@ -367,11 +367,6 @@ public class LocalResult implements ResultInterface {
         }
     }
 
-    /**
-     * Check if this result set is buffered using a temporary file.
-     *
-     * @return true if it is
-     */
     public boolean needToClose() {
         return disk != null;
     }

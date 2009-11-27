@@ -7,7 +7,6 @@
 package org.h2.command;
 
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -16,7 +15,6 @@ import org.h2.expression.ParameterInterface;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
-import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
@@ -88,7 +86,7 @@ public abstract class Command implements CommandInterface {
      *
      * @return an empty result set
      */
-    public abstract LocalResult queryMeta() throws SQLException;
+    public abstract ResultInterface queryMeta() throws SQLException;
 
     /**
      * Execute an updating statement, if this is possible.
@@ -107,30 +105,23 @@ public abstract class Command implements CommandInterface {
      * @return the local result set
      * @throws SQLException if the command is not a query
      */
-    public LocalResult query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) throws SQLException {
         throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
-    }
-
-    public final LocalResult getMetaDataLocal() throws SQLException {
-        return queryMeta();
     }
 
     public final ResultInterface getMetaData() throws SQLException {
         return queryMeta();
     }
 
-    public ResultInterface executeQuery(int maxrows, boolean scrollable) throws SQLException {
-        return executeQueryLocal(maxrows);
-    }
-
     /**
-     * Execute a query and return a local result set.
+     * Execute a query and return the result.
      * This method prepares everything and calls {@link #query(int)} finally.
      *
      * @param maxrows the maximum number of rows to return
-     * @return the local result set
+     * @param scrollable if the result set must be scrollable (ignored)
+     * @return the result set
      */
-    public LocalResult executeQueryLocal(int maxrows) throws SQLException {
+    public ResultInterface executeQuery(int maxrows, boolean scrollable) throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
@@ -190,7 +181,6 @@ public abstract class Command implements CommandInterface {
                 trace.info("slow query: " + time);
             }
         }
-        session.getDatabase().afterWriting();
     }
 
     public int executeUpdate() throws SQLException {
@@ -199,6 +189,8 @@ public abstract class Command implements CommandInterface {
         MemoryUtils.allocateReserveMemory();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
+        boolean callStop = true;
+        session.getDatabase().beforeWriting();
         synchronized (sync) {
             int rollback = session.getLogId();
             session.setCurrentCommand(this, startTime);
@@ -238,25 +230,25 @@ public abstract class Command implements CommandInterface {
                 if (e.getErrorCode() == ErrorCode.DEADLOCK_1) {
                     session.rollback();
                 } else if (e.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
-                    // try to rollback, saving memory
-                    try {
-                        session.rollbackTo(rollback, true);
-                    } catch (SQLException e2) {
-                        if (e2.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
-                            // if rollback didn't work, there is a serious problem:
-                            // the transaction may be applied partially
-                            // in this case we need to panic:
-                            // close the database
-                            session.getDatabase().shutdownImmediately();
-                        }
-                        throw e2;
-                    }
+                    // there is a serious problem:
+                    // the transaction may be applied partially
+                    // in this case we need to panic:
+                    // close the database
+                    callStop = false;
+                    session.getDatabase().shutdownImmediately();
+                    throw e;
                 } else {
                     session.rollbackTo(rollback, false);
                 }
                 throw e;
             } finally {
-                stop();
+                try {
+                    if (callStop) {
+                        stop();
+                    }
+                } finally {
+                    session.getDatabase().afterWriting();
+                }
             }
         }
     }

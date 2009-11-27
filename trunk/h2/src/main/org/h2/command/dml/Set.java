@@ -8,7 +8,6 @@ package org.h2.command.dml;
 
 import java.sql.SQLException;
 import java.text.Collator;
-
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
 import org.h2.constant.ErrorCode;
@@ -19,7 +18,7 @@ import org.h2.engine.Setting;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
@@ -370,7 +369,7 @@ public class Set extends Prepared {
         return false;
     }
 
-    public LocalResult queryMeta() {
+    public ResultInterface queryMeta() {
         return null;
     }
 

@@ -11,7 +11,7 @@ import java.util.HashSet;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -37,7 +37,7 @@ public class IndexCursor implements Cursor {
     private Column inColumn;
     private int inListIndex;
     private Value[] inList;
-    private LocalResult inResult;
+    private ResultInterface inResult;
     private HashSet<Value> inResultTested;
 
     public void setIndex(Index index) {

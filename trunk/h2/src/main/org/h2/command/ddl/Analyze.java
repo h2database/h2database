@@ -11,7 +11,7 @@ import org.h2.command.Prepared;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableData;
@@ -50,7 +50,7 @@ public class Analyze extends DefineCommand {
             }
             String sql = buff.toString();
             Prepared command = session.prepare(sql);
-            LocalResult result = command.query(0);
+            ResultInterface result = command.query(0);
             result.next();
             for (int j = 0; j < columns.length; j++) {
                 int selectivity = result.currentRow()[j].getInt();

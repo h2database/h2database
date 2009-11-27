@@ -7,7 +7,6 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
-
 import org.h2.command.Command;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -18,7 +17,7 @@ import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
@@ -127,7 +126,7 @@ public class Merge extends Prepared {
                 count++;
             }
         } else {
-            LocalResult rows = query.query(0);
+            ResultInterface rows = query.query(0);
             count = 0;
             table.fireBefore(session);
             table.lock(session, true, false);
@@ -269,7 +268,7 @@ public class Merge extends Prepared {
         return true;
     }
 
-    public LocalResult queryMeta() {
+    public ResultInterface queryMeta() {
         return null;
     }
 

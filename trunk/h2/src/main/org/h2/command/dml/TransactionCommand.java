@@ -7,13 +7,12 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 
 /**
  * Represents a transactional statement.
@@ -207,7 +206,7 @@ public class TransactionCommand extends Prepared {
         this.transactionName = string;
     }
 
-    public LocalResult queryMeta() {
+    public ResultInterface queryMeta() {
         return null;
     }
 

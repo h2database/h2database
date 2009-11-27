@@ -7,9 +7,8 @@
 package org.h2.command;
 
 import java.sql.SQLException;
-
 import org.h2.expression.ParameterInterface;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.util.ObjectArray;
 
 /**
@@ -45,8 +44,8 @@ public class CommandList extends Command {
         return updateCount;
     }
 
-    public LocalResult query(int maxrows) throws SQLException {
-        LocalResult result = command.query(maxrows);
+    public ResultInterface query(int maxrows) throws SQLException {
+        ResultInterface result = command.query(maxrows);
         executeRemaining();
         return result;
     }
@@ -63,7 +62,7 @@ public class CommandList extends Command {
         return false;
     }
 
-    public LocalResult queryMeta() throws SQLException {
+    public ResultInterface queryMeta() throws SQLException {
         return command.queryMeta();
     }
 

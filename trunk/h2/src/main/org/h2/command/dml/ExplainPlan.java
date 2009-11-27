@@ -7,12 +7,12 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
@@ -38,11 +38,11 @@ public class ExplainPlan extends Prepared {
         command.prepare();
     }
 
-    public LocalResult queryMeta() throws SQLException {
+    public ResultInterface queryMeta() throws SQLException {
         return query(-1);
     }
 
-    public LocalResult query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) throws SQLException {
         Column column = new Column("PLAN", Value.STRING);
         ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), column);
         Expression[] expressions = new Expression[] {

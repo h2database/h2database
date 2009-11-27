@@ -14,7 +14,7 @@ import org.h2.command.Prepared;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.util.ScriptReader;
 
 /**
@@ -73,7 +73,7 @@ public class RunScriptCommand extends ScriptBase {
         this.charset = charset;
     }
 
-    public LocalResult queryMeta() {
+    public ResultInterface queryMeta() {
         return null;
     }
 

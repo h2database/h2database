@@ -7,13 +7,12 @@
 package org.h2.constraint;
 
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -117,7 +116,7 @@ public class ConstraintCheck extends Constraint {
             return;
         }
         String sql = "SELECT 1 FROM " + filter.getTable().getSQL() + " WHERE NOT(" + expr.getSQL() + ")";
-        LocalResult r = session.prepare(sql).query(1);
+        ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {
             throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());
         }

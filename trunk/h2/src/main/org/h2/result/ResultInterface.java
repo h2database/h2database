@@ -60,6 +60,14 @@ public interface ResultInterface {
     int getRowCount();
 
     /**
+     * Check if this result set should be closed, for example because it is
+     * buffered using a temporary file.
+     *
+     * @return true if close should be called.
+     */
+    boolean needToClose();
+
+    /**
      * Close the result and delete any temporary files
      */
     void close();

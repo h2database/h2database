@@ -7,12 +7,11 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
-
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -33,7 +32,7 @@ public class Subquery extends Expression {
 
     public Value getValue(Session session) throws SQLException {
         query.setSession(session);
-        LocalResult result = query.query(2);
+        ResultInterface result = query.query(2);
         try {
             int rowcount = result.getRowCount();
             if (rowcount > 1) {

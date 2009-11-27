@@ -248,4 +248,8 @@ public class ResultRemote implements ResultInterface {
         this.fetchSize = fetchSize;
     }
 
+    public boolean needToClose() {
+        return true;
+    }
+
 }

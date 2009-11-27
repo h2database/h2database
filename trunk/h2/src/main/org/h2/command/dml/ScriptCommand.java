@@ -36,6 +36,7 @@ import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
@@ -103,7 +104,7 @@ public class ScriptCommand extends ScriptBase {
         this.drop = drop;
     }
 
-    public LocalResult queryMeta() throws SQLException {
+    public ResultInterface queryMeta() throws SQLException {
         LocalResult r = createResult();
         r.done();
         return r;
@@ -115,7 +116,7 @@ public class ScriptCommand extends ScriptBase {
         return new LocalResult(session, expressions, 1);
     }
 
-    public LocalResult query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) throws SQLException {
         session.getUser().checkAdmin();
         reset();
         try {
@@ -318,7 +319,8 @@ public class ScriptCommand extends ScriptBase {
 
     private int writeLobStream(ValueLob v) throws IOException, SQLException {
         if (!tempLobTableCreated) {
-            add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT, PART INT, CDATA VARCHAR, BDATA BINARY, PRIMARY KEY(ID, PART))", true);
+            add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA BINARY)", true);
+            add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART)", true);
             add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR \"" + this.getClass().getName() + ".combineClob\"", true);
             add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR \"" + this.getClass().getName() + ".combineBlob\"", true);
             tempLobTableCreated = true;

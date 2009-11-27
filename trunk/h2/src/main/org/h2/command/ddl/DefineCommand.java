@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 
 /**
  * This class represents a non-transaction statement, for example a CREATE or
@@ -33,7 +33,7 @@ public abstract class DefineCommand extends Prepared {
         return false;
     }
 
-    public LocalResult queryMeta() {
+    public ResultInterface queryMeta() {
         return null;
     }
 

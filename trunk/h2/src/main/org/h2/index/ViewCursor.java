@@ -7,9 +7,8 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Table;
@@ -22,10 +21,10 @@ import org.h2.value.ValueNull;
 public class ViewCursor implements Cursor {
 
     private Table table;
-    private LocalResult result;
+    private ResultInterface result;
     private Row current;
 
-    ViewCursor(Table table, LocalResult result) {
+    ViewCursor(Table table, ResultInterface result) {
         this.table = table;
         this.result = result;
     }

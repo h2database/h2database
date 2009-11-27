@@ -23,7 +23,7 @@ import org.h2.expression.Expression;
 import org.h2.log.LogFile;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.store.DiskFile;
 import org.h2.store.FileLister;
 import org.h2.store.PageStore;
@@ -179,7 +179,7 @@ public class BackupCommand extends Prepared {
         return false;
     }
 
-    public LocalResult queryMeta() {
+    public ResultInterface queryMeta() {
         return null;
     }
 

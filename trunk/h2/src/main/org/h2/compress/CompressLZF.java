@@ -40,7 +40,6 @@ package org.h2.compress;
 public class CompressLZF implements Compressor {
 
     private static final int HASH_SIZE = 1 << 14;
-    private static final int[] EMPTY = new int[HASH_SIZE];
     private static final int MAX_LITERAL = 1 << 5;
     private static final int MAX_OFF = 1 << 13;
     private static final int MAX_REF = (1 << 8) + (1 << 3);
@@ -72,68 +71,76 @@ public class CompressLZF implements Compressor {
         int inPos = 0;
         if (cachedHashTable == null) {
             cachedHashTable = new int[HASH_SIZE];
-        } else {
-            System.arraycopy(EMPTY, 0, cachedHashTable, 0, HASH_SIZE);
         }
         int[] hashTab = cachedHashTable;
         int literals = 0;
-        int hash = first(in, inPos);
-        while (true) {
-            if (inPos < inLen - 4) {
-                hash = next(hash, in, inPos);
-                int off = hash(hash);
-                int ref = hashTab[off];
-                hashTab[off] = inPos;
-                off = inPos - ref - 1;
-                if (off < MAX_OFF && ref > 0 && in[ref + 2] == in[inPos + 2] && in[ref + 1] == in[inPos + 1] && in[ref] == in[inPos]) {
-                    int maxLen = inLen - inPos - 2;
-                    maxLen = maxLen > MAX_REF ? MAX_REF : maxLen;
-                    int len = 3;
-                    while (len < maxLen && in[ref + len] == in[inPos + len]) {
-                        len++;
-                    }
-                    len -= 2;
-                    if (literals != 0) {
-                        out[outPos++] = (byte) (literals - 1);
-                        literals = -literals;
-                        do {
-                            out[outPos++] = in[inPos + literals++];
-                        } while (literals != 0);
-                    }
-                    if (len < 7) {
-                        out[outPos++] = (byte) ((off >> 8) + (len << 5));
-                    } else {
-                        out[outPos++] = (byte) ((off >> 8) + (7 << 5));
-                        out[outPos++] = (byte) (len - 7);
-                    }
-                    out[outPos++] = (byte) off;
-                    inPos += len;
-                    hash = first(in, inPos);
-                    hash = next(hash, in, inPos);
-                    hashTab[hash(hash)] = inPos++;
-                    hash = next(hash, in, inPos);
-                    hashTab[hash(hash)] = inPos++;
-                    continue;
+        outPos++;
+        int hash = first(in, 0);
+        while (inPos < inLen - 4) {
+            byte p2 = in[inPos + 2];
+            // next
+            hash = (hash << 8) + (p2 & 255);
+            int off = hash(hash);
+            int ref = hashTab[off];
+            hashTab[off] = inPos;
+            if (ref < inPos
+                        && ref > 0
+                        && (off = inPos - ref - 1) < MAX_OFF
+                        && in[ref + 2] == p2
+                        && in[ref + 1] == (byte) (hash >> 8)
+                        && in[ref] == (byte) (hash >> 16)) {
+                // match
+                int maxLen = inLen - inPos - 2;
+                if (maxLen > MAX_REF) {
+                    maxLen = MAX_REF;
                 }
-            } else if (inPos == inLen) {
-                break;
-            }
-            inPos++;
-            literals++;
-            if (literals == MAX_LITERAL) {
-                out[outPos++] = (byte) (literals - 1);
-                literals = -literals;
-                do {
-                    out[outPos++] = in[inPos + literals++];
-                } while (literals != 0);
+                if (literals == 0) {
+                    outPos--;
+                } else {
+                    out[outPos - literals - 1] = (byte) (literals - 1);
+                    literals = 0;
+                }
+                int len = 3;
+                while (len < maxLen && in[ref + len] == in[inPos + len]) {
+                    len++;
+                }
+                len -= 2;
+                if (len < 7) {
+                    out[outPos++] = (byte) ((off >> 8) + (len << 5));
+                } else {
+                    out[outPos++] = (byte) ((off >> 8) + (7 << 5));
+                    out[outPos++] = (byte) (len - 7);
+                }
+                out[outPos++] = (byte) off;
+                outPos++;
+                inPos += len;
+                hash = first(in, inPos);
+                hash = next(hash, in, inPos);
+                hashTab[hash(hash)] = inPos++;
+                hash = next(hash, in, inPos);
+                hashTab[hash(hash)] = inPos++;
+            } else {
+                out[outPos++] = in[inPos++];
+                literals++;
+                if (literals == MAX_LITERAL) {
+                    out[outPos - literals - 1] = (byte) (literals - 1);
+                    literals = 0;
+                    outPos++;
+                }
             }
         }
-        if (literals != 0) {
-            out[outPos++] = (byte) (literals - 1);
-            literals = -literals;
-            do {
-                out[outPos++] = in[inPos + literals++];
-            } while (literals != 0);
+        while (inPos < inLen) {
+            out[outPos++] = in[inPos++];
+            literals++;
+            if (literals == MAX_LITERAL) {
+                out[outPos - literals - 1] = (byte) (literals - 1);
+                literals = 0;
+                outPos++;
+            }
+        }
+        out[outPos - literals - 1] = (byte) (literals - 1);
+        if (literals == 0) {
+            outPos--;
         }
         return outPos;
     }

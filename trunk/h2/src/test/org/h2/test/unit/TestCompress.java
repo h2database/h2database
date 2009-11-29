@@ -6,9 +6,16 @@
  */
 package org.h2.test.unit;
 
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Random;
-
+import org.h2.compress.CompressLZF;
+import org.h2.compress.Compressor;
+import org.h2.constant.SysProperties;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.CompressTool;
 
@@ -16,6 +23,8 @@ import org.h2.tools.CompressTool;
  * Data compression tests.
  */
 public class TestCompress extends TestBase {
+
+    private boolean testPerformance;
 
     /**
      * Run just this test.
@@ -26,7 +35,10 @@ public class TestCompress extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
+        if (testPerformance) {
+            testDatabase();
+        }
         if (config.big) {
             for (int i = 0; i < 100; i++) {
                 test(i);
@@ -41,6 +53,62 @@ public class TestCompress extends TestBase {
             test(50);
             test(200);
         }
+        test(4000000);
+        testVariableEnd();
+    }
+
+    private void testVariableEnd() throws Exception {
+        CompressTool utils = CompressTool.getInstance();
+        StringBuilder buff = new StringBuilder();
+        for (int i = 0; i < 90; i++) {
+            buff.append('0');
+        }
+        String prefix = buff.toString();
+        for (int i = 0; i < 100; i++) {
+            buff = new StringBuilder(prefix);
+            for (int j = 0; j < i; j++) {
+                buff.append((char) ('1' + j));
+            }
+            String test = buff.toString();
+            byte[] in = test.getBytes();
+            assertEquals(in, utils.expand(utils.compress(in, "LZF")));
+        }
+    }
+
+    private void testDatabase() throws Exception {
+        deleteDb("memFS:compress");
+        Connection conn = getConnection("memFS:compress");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select table_name from information_schema.tables");
+        Statement stat2 = conn.createStatement();
+        while (rs.next()) {
+            String table = rs.getString(1);
+            if (!"COLLATIONS".equals(table)) {
+                stat2.execute("create table " + table + " as select * from information_schema." + table);
+            }
+        }
+        conn.close();
+        Compressor compress = new CompressLZF();
+        int pageSize = SysProperties.PAGE_SIZE;
+        byte[] buff = new byte[pageSize];
+        byte[] test = new byte[2 * pageSize];
+        compress.compress(buff, pageSize, test, 0);
+        for (int j = 0; j < 4; j++) {
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < 100; i++) {
+                InputStream in = FileSystem.getInstance("memFS:").openFileInputStream("memFS:compress.h2.db");
+                while (true) {
+                    int len = in.read(buff);
+                    if (len < 0) {
+                        break;
+                    }
+                    compress.compress(buff, pageSize, test, 0);
+                }
+                in.close();
+            }
+            System.out.println(System.currentTimeMillis() - start);
+        }
     }
 
     private void test(int len) throws SQLException {
@@ -52,13 +120,13 @@ public class TestCompress extends TestBase {
                 // leave empty
                 break;
             case 1: {
-                for (int x = 0; x < len; x++) {
-                    buff[x] = (byte) (x & 10);
-                }
+                r.nextBytes(buff);
                 break;
             }
             case 2: {
-                r.nextBytes(buff);
+                for (int x = 0; x < len; x++) {
+                    buff[x] = (byte) (x & 10);
+                }
                 break;
             }
             case 3: {
@@ -77,9 +145,13 @@ public class TestCompress extends TestBase {
                 }
             }
             CompressTool utils = CompressTool.getInstance();
-            for (String a : new String[] { "LZF", "Deflate", "No" }) {
+            for (String a : new String[] { "LZF", "No", "Deflate" }) {
+                long start = System.currentTimeMillis();
                 byte[] out = utils.compress(buff, a);
                 byte[] test = utils.expand(out);
+                if (testPerformance) {
+                    System.out.println("p:" + pattern + " len: " + out.length + " time: " + (System.currentTimeMillis() - start) + " " + a);
+                }
                 assertEquals(buff.length, test.length);
                 assertEquals(buff, test);
             }

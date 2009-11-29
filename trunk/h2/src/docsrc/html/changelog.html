@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The compression algorithm "LZF" is now about 33% faster than before when compressing small block 
+<ul><li>The CompressTool was not multithreading safe. Because of this, the following database
+    operations where also not multithreading safe (even when using different databases): the SCRIPT command
+    (only when using compression), the COMPRESS function, and storing CLOB or BLOB data (only when compression is enabled).
+</li><li>The compression algorithm "LZF" is now about 33% faster than before when compressing small block 
     (around 2 KB). It is much faster than Deflate, but the compression ratio is lower.
 </li><li>Compressing large blocks of data didn't work when using the "Deflate" compression algorithm.
     Compressing a lot of data could run out of heap memory.

@@ -59,14 +59,15 @@ public class CompressDeflate implements Compressor {
         deflater.finish();
         int compressed = deflater.deflate(out, outPos, out.length - outPos);
         while (compressed == 0) {
-            // the compressed data is 0, meaning compression didn't work
+            // the compressed length is 0, meaning compression didn't work
             // (sounds like a JDK bug)
             // try again, using the default strategy and compression level
             strategy = Deflater.DEFAULT_STRATEGY;
             level = Deflater.DEFAULT_COMPRESSION;
             return compress(in, inLen, out, outPos);
         }
-        return compressed;
+        deflater.end();
+        return outPos + compressed;
     }
 
     public int getAlgorithm() {
@@ -78,7 +79,10 @@ public class CompressDeflate implements Compressor {
         decompresser.setInput(in, inPos, inLen);
         decompresser.finished();
         try {
-            decompresser.inflate(out, outPos, outLen);
+            int len = decompresser.inflate(out, outPos, outLen);
+            if (len != outLen) {
+                throw new DataFormatException(len + " " + outLen);
+            }
         } catch (DataFormatException e) {
             throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, e);
         }

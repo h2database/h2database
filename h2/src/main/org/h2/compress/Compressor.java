@@ -42,7 +42,7 @@ public interface Compressor {
      * @param inLen the number of bytes to compress
      * @param out the output area
      * @param outPos the offset at the output array
-     * @return the size of the compressed data
+     * @return the end position
      */
     int compress(byte[] in, int inLen, byte[] out, int outPos);
 

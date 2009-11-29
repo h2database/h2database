@@ -35,7 +35,6 @@ import org.h2.util.StringUtils;
  */
 public class CompressTool {
 
-    private static final CompressTool INSTANCE = new CompressTool();
     private static final int MAX_BUFFER_SIZE = 3 * Constants.IO_BUFFER_SIZE_COMPRESS;
     private byte[] cachedBuffer;
 
@@ -54,12 +53,14 @@ public class CompressTool {
     }
 
     /**
-     * Get the singleton.
+     * Get a new instance. Each instance uses a separate buffer, so multiple
+     * instances can be used concurrently. However each instance alone is not
+     * multithreading safe.
      *
-     * @return the singleton
+     * @return a new instance
      */
     public static CompressTool getInstance() {
-        return INSTANCE;
+        return new CompressTool();
     }
 
     /**
@@ -87,7 +88,7 @@ public class CompressTool {
     /**
      * INTERNAL
      */
-    public synchronized int compress(byte[] in, int len, Compressor compress, byte[] out) {
+    public int compress(byte[] in, int len, Compressor compress, byte[] out) {
         int newLen = 0;
         out[0] = (byte) compress.getAlgorithm();
         int start = 1 + writeInt(out, 1, len);

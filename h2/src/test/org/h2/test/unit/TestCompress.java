@@ -36,6 +36,7 @@ public class TestCompress extends TestBase {
     }
 
     public void test() throws Exception {
+        testMultiThreaded();
         if (testPerformance) {
             testDatabase();
         }
@@ -55,6 +56,44 @@ public class TestCompress extends TestBase {
         }
         test(4000000);
         testVariableEnd();
+    }
+
+    private void testMultiThreaded() throws Exception {
+        Thread[] threads = new Thread[3];
+        final boolean[] stop = new boolean[1];
+        final Exception[] ex = new Exception[1];
+        for (int i = 0; i < threads.length; i++) {
+            Thread t = new Thread() {
+                public void run() {
+                    CompressTool tool = CompressTool.getInstance();
+                    byte[] buff = new byte[1024];
+                    Random r = new Random();
+                    while (!stop[0]) {
+                        r.nextBytes(buff);
+                        try {
+                            byte[] test = tool.expand(tool.compress(buff, "LZF"));
+                            assertEquals(buff, test);
+                        } catch (Exception e) {
+                            ex[0] = e;
+                        }
+                    }
+                }
+            };
+            threads[i] = t;
+            t.start();
+        }
+        try {
+            Thread.sleep(1000);
+            stop[0] = true;
+            for (Thread t : threads) {
+                t.join();
+            }
+        } catch (InterruptedException e) {
+            // ignore
+        }
+        if (ex[0] != null) {
+            throw ex[0];
+        }
     }
 
     private void testVariableEnd() throws Exception {

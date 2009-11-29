@@ -518,7 +518,7 @@ public abstract class TestBase {
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
      */
-    protected void assertEquals(byte[] expected, byte[] actual) {
+    public void assertEquals(byte[] expected, byte[] actual) {
         assertEquals(expected.length, actual.length);
         for (int i = 0; i < expected.length; i++) {
             if (expected[i] != actual[i]) {

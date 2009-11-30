@@ -39,6 +39,7 @@ public class TestOptimizations extends TestBase {
 
     public void test() throws Exception {
         testNestedInSelectAndLike();
+        testNestedInSelect();
         testInSelectJoin();
         testMinMaxNullOptimization();
         if (config.networked) {
@@ -56,6 +57,26 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testNestedInSelect() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+
+        stat.execute("create table test(id int primary key, name varchar) as select 1, 'Hello'");
+        stat.execute("select * from (select * from test) where id=1 and name in('Hello', 'World')");
+
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int, name varchar) as select 1, 'Hello'");
+        stat.execute("create index idx2 on test(id, name)");
+        rs = stat.executeQuery("select count(*) from test where id=1 and name in('Hello', 'x')");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+
+        conn.close();
     }
 
     private void testNestedInSelectAndLike() throws SQLException {

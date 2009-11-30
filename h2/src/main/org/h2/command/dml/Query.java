@@ -177,6 +177,11 @@ public abstract class Query extends Prepared {
      */
     public abstract void updateAggregate(Session s) throws SQLException;
 
+    /**
+     * Call the before triggers on all tables.
+     */
+    public abstract void fireBeforeSelectTriggers() throws SQLException;
+
     public boolean isQuery() {
         return true;
     }
@@ -216,6 +221,7 @@ public abstract class Query extends Prepared {
     }
 
     public ResultInterface query(int limit) throws SQLException {
+        fireBeforeSelectTriggers();
         if (!session.getDatabase().getOptimizeReuseResults()) {
             return queryWithoutCache(limit);
         }

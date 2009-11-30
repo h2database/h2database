@@ -49,7 +49,7 @@ public class IndexCursor implements Cursor {
         if (idxCols != null) {
             for (int i = 0; i < columns.length; i++) {
                 int idx = index.getColumnIndex(columns[i]);
-                if (idx >= 0) {
+                if (idx == 0) {
                     indexColumns[i] = idxCols[idx];
                 }
             }
@@ -79,11 +79,9 @@ public class IndexCursor implements Cursor {
                 this.inColumn = column;
                 inList = condition.getCurrentValueList(session);
                 inListIndex = 0;
-                return;
             } else if (condition.getCompareType() == Comparison.IN_QUERY) {
                 this.inColumn = column;
                 inResult = condition.getCurrentResult(session);
-                return;
             } else {
                 Value v = column.convert(condition.getCurrentValue(session));
                 boolean isStart = condition.isStart();
@@ -103,7 +101,17 @@ public class IndexCursor implements Cursor {
                 if (isEnd) {
                     end = getSearchRow(end, id, v, false);
                 }
+                if (isStart && isEnd) {
+                    // an X=? condition will produce less rows than
+                    // an X IN(..) condition
+                    inColumn = null;
+                    inList = null;
+                    inResult = null;
+                }
             }
+        }
+        if (inColumn != null) {
+            return;
         }
         if (!alwaysFalse) {
             cursor = index.find(session, start, end);

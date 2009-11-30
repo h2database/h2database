@@ -718,29 +718,16 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Fire the before update triggers for this table.
+     * Fire the triggers for this table.
      *
      * @param session the session
+     * @param type the trigger type
+     * @param beforeAction whether 'before' triggers should be called
      */
-    public void fireBefore(Session session) throws SQLException {
-        // TODO trigger: for sql server compatibility,
-        // should send list of rows, not just 'the event'
-        fire(session, true);
-    }
-
-    /**
-     * Fire the after update triggers for this table.
-     *
-     * @param session the session
-     */
-    public void fireAfter(Session session) throws SQLException {
-        fire(session, false);
-    }
-
-    private void fire(Session session, boolean beforeAction) throws SQLException {
+    public void fire(Session session, int type, boolean beforeAction) throws SQLException {
         if (triggers != null) {
             for (TriggerObject trigger : triggers) {
-                trigger.fire(session, beforeAction);
+                trigger.fire(session, type, beforeAction);
             }
         }
     }

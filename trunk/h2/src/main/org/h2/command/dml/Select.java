@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import org.h2.api.Trigger;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -789,6 +790,12 @@ public class Select extends Query {
             set.add(filter.getTable());
         }
         return set;
+    }
+
+    public void fireBeforeSelectTriggers() throws SQLException {
+        for (TableFilter filter : filters) {
+            filter.getTable().fire(session, Trigger.SELECT, true);
+        }
     }
 
     private double preparePlan() throws SQLException {

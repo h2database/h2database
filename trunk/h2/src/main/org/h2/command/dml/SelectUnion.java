@@ -353,4 +353,9 @@ public class SelectUnion extends Query {
         return null;
     }
 
+    public void fireBeforeSelectTriggers() throws SQLException {
+        left.fireBeforeSelectTriggers();
+        right.fireBeforeSelectTriggers();
+    }
+
 }

@@ -20,6 +20,7 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.table.Table;
 import org.h2.util.ClassUtils;
+import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -96,15 +97,19 @@ public class TriggerObject extends SchemaObjectBase {
      * or after any rows have been processed, once for each statement.
      *
      * @param session the session
+     * @param type the trigger type
      * @param beforeAction if this method is called before applying the changes
      */
-    public void fire(Session session, boolean beforeAction) throws SQLException {
-        if (rowBased || before != beforeAction) {
+    public void fire(Session session, int type, boolean beforeAction) throws SQLException {
+        if (rowBased || before != beforeAction || (typeMask & type) == 0) {
             return;
         }
         load(session);
         Connection c2 = session.createConnection(false);
-        boolean old = session.setCommitOrRollbackDisabled(true);
+        boolean old = false;
+        if (type != Trigger.SELECT) {
+            old = session.setCommitOrRollbackDisabled(true);
+        }
         Value identity = session.getScopeIdentity();
         try {
             triggerCallback.fire(c2, null, null);
@@ -113,7 +118,9 @@ public class TriggerObject extends SchemaObjectBase {
                             triggerClassName, e.toString());
         } finally {
             session.setScopeIdentity(identity);
-            session.setCommitOrRollbackDisabled(old);
+            if (type != Trigger.SELECT) {
+                session.setCommitOrRollbackDisabled(old);
+            }
         }
     }
 
@@ -256,21 +263,22 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     public String getTypeNameList() {
-        StringBuilder buff = new StringBuilder();
+        StatementBuilder buff = new StatementBuilder();
         if ((typeMask & Trigger.INSERT) != 0) {
+            buff.appendExceptFirst(", ");
             buff.append("INSERT");
         }
         if ((typeMask & Trigger.UPDATE) != 0) {
-            if (buff.length() > 0) {
-                buff.append(", ");
-            }
+            buff.appendExceptFirst(", ");
             buff.append("UPDATE");
         }
         if ((typeMask & Trigger.DELETE) != 0) {
-            if (buff.length() > 0) {
-                buff.append(", ");
-            }
+            buff.appendExceptFirst(", ");
             buff.append("DELETE");
+        }
+        if ((typeMask & Trigger.SELECT) != 0) {
+            buff.appendExceptFirst(", ");
+            buff.append("SELECT");
         }
         return buff.toString();
     }

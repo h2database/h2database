@@ -3707,6 +3707,8 @@ public class Parser {
                 typeMask |= Trigger.UPDATE;
             } else if (readIf("DELETE")) {
                 typeMask |= Trigger.DELETE;
+            } else if (readIf("SELECT")) {
+                typeMask |= Trigger.SELECT;
             } else {
                 throw getSyntaxError();
             }

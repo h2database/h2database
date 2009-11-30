@@ -30,6 +30,11 @@ public interface Trigger {
     int DELETE = 4;
 
     /**
+     * The trigger is called for SELECT statements.
+     */
+    int SELECT = 8;
+
+    /**
      * This method is called by the database engine once when initializing the
      * trigger.
      *

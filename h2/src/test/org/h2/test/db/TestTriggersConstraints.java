@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -36,10 +37,63 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     public void test() throws SQLException {
         deleteDb("trigger");
+        testTriggerBeforeSelect();
         testTriggerAlterTable();
         testTriggers();
         testConstraints();
         deleteDb("trigger");
+    }
+
+    private void testTriggerBeforeSelect() throws SQLException {
+        Connection conn;
+        Statement stat;
+        conn = getConnection("trigger");
+        stat = conn.createStatement();
+        stat.execute("drop table if exists meta_tables");
+        stat.execute("create table meta_tables(name varchar)");
+        stat.execute("create trigger meta_tables_sel before select on meta_tables call \"" + TestSelect.class.getName() + "\"");
+        ResultSet rs;
+        rs = stat.executeQuery("select * from meta_tables");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        stat.execute("create table test(id int)");
+        rs = stat.executeQuery("select * from meta_tables");
+        assertTrue(rs.next());
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        conn.close();
+        if (!config.memory) {
+            conn = getConnection("trigger");
+            stat = conn.createStatement();
+            stat.execute("create table test2(id int)");
+            rs = stat.executeQuery("select * from meta_tables");
+            assertTrue(rs.next());
+            assertTrue(rs.next());
+            assertTrue(rs.next());
+            assertFalse(rs.next());
+            conn.close();
+        }
+    }
+
+    /**
+     * A test trigger implementation.
+     */
+    public static class TestSelect implements Trigger {
+
+        PreparedStatement prepMeta;
+
+        public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
+                int type) throws SQLException {
+            prepMeta = conn.prepareStatement("insert into meta_tables " +
+                    "select table_name from information_schema.tables " +
+                    "where table_schema='PUBLIC'");
+        }
+
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+            conn.createStatement().execute("delete from meta_tables");
+            prepMeta.execute();
+        }
+
     }
 
     /**

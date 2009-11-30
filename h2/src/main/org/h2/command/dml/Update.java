@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import org.h2.api.Trigger;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
@@ -77,7 +78,7 @@ public class Update extends Prepared {
         try {
             Table table = tableFilter.getTable();
             session.getUser().checkRight(table, Right.UPDATE);
-            table.fireBefore(session);
+            table.fire(session, Trigger.UPDATE, true);
             table.lock(session, true, false);
             int columnCount = table.getColumns().length;
             // get the old rows, compute the new rows
@@ -128,7 +129,7 @@ public class Update extends Prepared {
                     table.fireAfterRow(session, o, n);
                 }
             }
-            table.fireAfter(session);
+            table.fire(session, Trigger.UPDATE, false);
             return count;
         } finally {
             rows.close();

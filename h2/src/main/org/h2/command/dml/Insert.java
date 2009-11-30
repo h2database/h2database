@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -90,6 +91,7 @@ public class Insert extends Prepared {
         int count;
         session.getUser().checkRight(table, Right.INSERT);
         setCurrentRowNumber(0);
+        table.fire(session, Trigger.INSERT, true);
         if (list.size() > 0) {
             count = 0;
             for (int x = 0; x < list.size(); x++) {
@@ -111,20 +113,17 @@ public class Insert extends Prepared {
                         }
                     }
                 }
-                table.fireBefore(session);
                 table.validateConvertUpdateSequence(session, newRow);
                 table.fireBeforeRow(session, null, newRow);
                 table.lock(session, true, false);
                 table.addRow(session, newRow);
                 session.log(table, UndoLogRecord.INSERT, newRow);
-                table.fireAfter(session);
                 table.fireAfterRow(session, null, newRow);
                 count++;
             }
         } else {
             ResultInterface rows = query.query(0);
             count = 0;
-            table.fireBefore(session);
             table.lock(session, true, false);
             while (rows.next()) {
                 count++;
@@ -148,8 +147,8 @@ public class Insert extends Prepared {
                 table.fireAfterRow(session, null, newRow);
             }
             rows.close();
-            table.fireAfter(session);
         }
+        table.fire(session, Trigger.INSERT, false);
         return count;
     }
 

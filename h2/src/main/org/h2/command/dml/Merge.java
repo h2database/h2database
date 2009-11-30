@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -128,7 +129,7 @@ public class Merge extends Prepared {
         } else {
             ResultInterface rows = query.query(0);
             count = 0;
-            table.fireBefore(session);
+            table.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
             table.lock(session, true, false);
             while (rows.next()) {
                 count++;
@@ -148,7 +149,7 @@ public class Merge extends Prepared {
                 merge(newRow);
             }
             rows.close();
-            table.fireAfter(session);
+            table.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
         }
         return count;
     }
@@ -173,13 +174,11 @@ public class Merge extends Prepared {
         int count = update.update();
         if (count == 0) {
             try {
-                table.fireBefore(session);
                 table.validateConvertUpdateSequence(session, row);
                 table.fireBeforeRow(session, null, row);
                 table.lock(session, true, false);
                 table.addRow(session, row);
                 session.log(table, UndoLogRecord.INSERT, row);
-                table.fireAfter(session);
                 table.fireAfterRow(session, null, row);
             } catch (SQLException e) {
                 if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {

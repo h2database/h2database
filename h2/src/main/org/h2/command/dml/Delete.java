@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import org.h2.api.Trigger;
 import org.h2.command.Prepared;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -46,7 +47,7 @@ public class Delete extends Prepared {
         tableFilter.reset();
         Table table = tableFilter.getTable();
         session.getUser().checkRight(table, Right.DELETE);
-        table.fireBefore(session);
+        table.fire(session, Trigger.DELETE, true);
         table.lock(session, true, false);
         RowList rows = new RowList(session);
         try {
@@ -76,7 +77,7 @@ public class Delete extends Prepared {
                     table.fireAfterRow(session, row, null);
                 }
             }
-            table.fireAfter(session);
+            table.fire(session, Trigger.DELETE, false);
             return rows.size();
         } finally {
             rows.close();

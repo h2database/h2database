@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The CompressTool was not multithreading safe. Because of this, the following database
+<ul><li>Trigger that are called before a select statement are now supported.
+    This allows to create tables that work like materialized views.
+</li><li>Non-row based triggers were called even if the action didn't match the 
+    declared action (INSERT triggers were also called when deleting rows). 
+    This has been changed. The MERGE statement calls both INSERT and DELETE triggers.
+</li><li>Statements with IN(..) conditions could produce the wrong result or a data conversion error (since version 1.2.120).
+    Examples: index on id, name, condition: id=1 and name in('Hello', 'x'); index on id, query:
+    select * from (select * from test) where id=1 and name in('Hello', 'World').
+</li><li>The CompressTool was not multithreading safe. Because of this, the following database
     operations where also not multithreading safe (even when using different databases): the SCRIPT command
     (only when using compression), the COMPRESS function, and storing CLOB or BLOB data (only when compression is enabled).
 </li><li>The compression algorithm "LZF" is now about 33% faster than before when compressing small block 

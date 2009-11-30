@@ -6,12 +6,13 @@ Tips for email contributors
 
 * Bugs: include the complete error message and stack trace, including the root cause stack traces.
 
-* Sending source code: to avoid formatting problems, consider using a public web clipboard
-http://pastebin.com
-http://cl1p.net
-http://www.mysticpaste.com/new
+* 
+Sending source code: to avoid formatting problems, consider using a public web clipboard such as
+http://pastebin.com http://cl1p.net or http://www.mysticpaste.com/new
 
 * For large attachments, use a public...
+
+Rapidshare.com
 
 * Issue tracking versus emails:
     You don't need to create issue reports, sending an email to the group is enough.

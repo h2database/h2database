@@ -45,10 +45,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Full outer joins
-</li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
-</li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
 </li><li>Support mixed clustering mode (one embedded, others in server mode)
-</li><li>Use triggers for metadata tables; use for PostgreSQL catalog
+</li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Test very large databases and LOBs (up to 256 GB)
 </li><li>Support alter table add column if table has views defined
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
@@ -466,6 +464,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Recover tool: stream blob / clob data (problem: currently using varchar data type).
 </li><li>Move away from system properties where possible.
 </li><li>Database file lock: detect hibernate / standby / very slow threads (compare system time).
+</li><li>An index on (id, name) should be used for a query: select * from t where s=? order by i
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 
 /**
@@ -30,6 +29,7 @@ public class TestTempTables extends TestBase {
     public void test() throws SQLException {
         deleteDb("tempTables");
         Connection c1 = getConnection("tempTables");
+        testAlter(c1);
         Connection c2 = getConnection("tempTables");
         testConstraints(c1, c2);
         testTables(c1, c2);
@@ -37,6 +37,23 @@ public class TestTempTables extends TestBase {
         c1.close();
         c2.close();
         deleteDb("tempTables");
+    }
+
+    private void testAlter(Connection conn) throws SQLException {
+        Statement stat;
+        stat = conn.createStatement();
+        stat.execute("create temporary table test(id varchar)");
+        stat.execute("create index idx1 on test(id)");
+        stat.execute("drop index idx1");
+        stat.execute("create index idx1 on test(id)");
+        stat.execute("insert into test select x from system_range(1, 10)");
+        try {
+            stat.execute("alter table test add column x int");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        stat.execute("drop table test");
     }
 
     private void testConstraints(Connection conn1, Connection conn2) throws SQLException {

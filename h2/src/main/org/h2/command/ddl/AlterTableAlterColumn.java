@@ -213,6 +213,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }
 
     private void copyData() throws SQLException {
+        if (table.isTemporary()) {
+            throw Message.getUnsupportedException("TEMP TABLE");
+        }
         Database db = session.getDatabase();
         String tempName = db.getTempTableName(session.getId());
         Column[] columns = table.getColumns();

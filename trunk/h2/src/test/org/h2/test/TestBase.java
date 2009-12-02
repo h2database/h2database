@@ -38,6 +38,12 @@ public abstract class TestBase {
      * The base directory to write test databases.
      */
     protected static String baseDir = getTestDir("");
+
+    /**
+     * An id used to create unique file names.
+     */
+    protected static int uniqueId;
+
     private static final String BASE_TEST_DIR = "data";
 
     /**

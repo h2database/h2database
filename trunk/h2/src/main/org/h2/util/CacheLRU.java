@@ -61,6 +61,7 @@ public class CacheLRU implements Cache {
         }
         Cache cache;
         if ("TQ".equals(cacheType)) {
+            // for backward compatibility - actually using LRU not TQ
             cache = new CacheLRU(writer, cacheSize);
         } else if (CacheLRU.TYPE_NAME.equals(cacheType)) {
             cache = new CacheLRU(writer, cacheSize);

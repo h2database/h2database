@@ -297,7 +297,11 @@ java org.h2.test.TestAll timer
 
 /*
 
-file lock serialized with counter
+TestClob - delete temp files
+
+Document Shell tool
+
+Add link to http://groups.google.com/group/h2-cn
 
 // System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64

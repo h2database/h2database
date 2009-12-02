@@ -9,6 +9,7 @@ package org.h2.result;
 import java.sql.SQLException;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.BtreeIndex;
 import org.h2.index.Cursor;
@@ -51,7 +52,6 @@ public class ResultTempTable implements ResultExternal {
         data.headPos = Index.EMPTY_HEAD;
         data.session = session;
         table = schema.createTable(data);
-        session.addLocalTempTable(table);
         int indexId = session.getDatabase().allocateObjectId(true, false);
         IndexColumn indexColumn = new IndexColumn();
         indexColumn.column = column;
@@ -65,7 +65,6 @@ public class ResultTempTable implements ResultExternal {
             index = new BtreeIndex(session, table, indexId, data.tableName, indexCols, indexType, Index.EMPTY_HEAD);
         }
         index.setTemporary(true);
-        session.addLocalTempTableIndex(index);
         table.getIndexes().add(index);
     }
 
@@ -102,9 +101,28 @@ public class ResultTempTable implements ResultExternal {
     }
 
     public void close() {
+        if (table == null) {
+            return;
+        }
         try {
-            if (table != null) {
-                session.removeLocalTempTable(table);
+            table.truncate(session);
+            Database database = session.getDatabase();
+            synchronized (database) {
+                Session sysSession = database.getSystemSession();
+                if (!database.isSysTableLocked()) {
+                    // this session may not lock the sys table (except if it already has locked it)
+                    // because it must be committed immediately
+                    // otherwise other threads can not access the sys table.
+                    // if the table is not removed now, it will be when the database
+                    // is opened the next time
+                    // (the table is truncated, so this is just one record)
+                    synchronized (sysSession) {
+                        index.removeChildrenAndResources(sysSession);
+                        table.removeChildrenAndResources(sysSession);
+                        // the transaction must be committed immediately
+                        sysSession.commit(false);
+                    }
+                }
             }
         } catch (SQLException e) {
             throw Message.convertToInternal(e);

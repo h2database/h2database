@@ -280,7 +280,7 @@ public class PageLog {
                     } else if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log redo + table:" + tableId + " " + row);
+                                trace.debug("log redo + table:" + tableId + " s:" + sessionId + " " + row);
                             }
                             store.redo(pos, tableId, row, true);
                         } else {

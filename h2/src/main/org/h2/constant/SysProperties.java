@@ -238,6 +238,7 @@ public class SysProperties {
      * the wrong user name or password. This slows down brute force attacks. The
      * delay is reset to this value after a successful login. Unsuccessful
      * logins will double the time until DELAY_WRONG_PASSWORD_MAX.
+     * To disable the delay, set this system property to 0.
      */
     public static final int DELAY_WRONG_PASSWORD_MIN = getIntSetting("h2.delayWrongPasswordMin", 250);
 

@@ -35,6 +35,8 @@ import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.db.TestScript;
 import org.h2.test.synth.sql.RandomGen;
+import org.h2.tools.Backup;
+import org.h2.util.FileUtils;
 import org.h2.util.New;
 import org.h2.util.RandomUtils;
 
@@ -108,7 +110,8 @@ public class TestCrashAPI extends TestBase {
         // config.logMode = 2;
         // }
 
-        String url = getURL(DIR + "/crashApi" + seed, true) + add;
+        String dbName = "crashApi" + seed;
+        String url = getURL(DIR + "/" + dbName, true) + add;
 
 //        int test;
 //        url += ";DB_CLOSE_ON_EXIT=FALSE";
@@ -117,7 +120,19 @@ public class TestCrashAPI extends TestBase {
 
         Connection conn = null;
         // System.gc();
-        conn = DriverManager.getConnection(url, "sa", getPassword(""));
+        String fileName = "temp/backup/db-" + uniqueId++ + ".zip";
+        Backup.execute(fileName, baseDir + "/" + DIR, dbName, true);
+        try {
+            conn = DriverManager.getConnection(url, "sa", getPassword(""));
+            // delete the backup if opening was successful
+            FileUtils.delete(fileName);
+        } catch (SQLException e) {
+            if (e.getErrorCode() == ErrorCode.WRONG_USER_OR_PASSWORD) {
+                // delete if the password changed
+                FileUtils.delete(fileName);
+            }
+            throw e;
+        }
         int len = random.getInt(50);
         int start = random.getInt(statements.size() - len);
         int end = start + len;

@@ -51,7 +51,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat = conn.createStatement();
         stat.execute("drop table if exists meta_tables");
         stat.execute("create table meta_tables(name varchar)");
-        stat.execute("create trigger meta_tables_sel before select on meta_tables call \"" + TestSelect.class.getName() + "\"");
+        stat.execute("create trigger meta_tables_select before select on meta_tables call \"" + TestSelect.class.getName() + "\"");
         ResultSet rs;
         rs = stat.executeQuery("select * from meta_tables");
         assertTrue(rs.next());

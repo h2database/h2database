@@ -1351,6 +1351,10 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
+    /**
+     * INTERNAL.
+     * Called after executing a command that could have written something.
+     */
     protected void afterWriting() {
         session.afterWriting();
     }

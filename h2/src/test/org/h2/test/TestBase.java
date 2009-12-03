@@ -40,6 +40,11 @@ public abstract class TestBase {
     protected static String baseDir = getTestDir("");
 
     /**
+     * The temporary directory.
+     */
+    protected static final String TEMP_DIR = "data/temp";
+
+    /**
      * An id used to create unique file names.
      */
     protected static int uniqueId;
@@ -97,6 +102,7 @@ public abstract class TestBase {
      */
     public TestBase init(TestAll conf) throws Exception {
         baseDir = getTestDir("");
+        System.setProperty("java.io.tmpdir", TEMP_DIR);
         this.config = conf;
         return this;
     }

@@ -65,7 +65,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        stat.execute("create force alias sayHi as 'String test(String name) {\nreturn \"Hello \" + name;\n}'");
+        stat.execute("create force alias sayHi as 'String test(String name) {\n" +
+                "return \"Hello \" + name;\n}'");
         rs = stat.executeQuery("call sayHi('Joe')");
         rs.next();
         assertEquals("Hello Joe", rs.getString(1));

@@ -1,4 +1,36 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table a(a int) as select 1;
+> ok
+
+create table b(b int) as select 1;
+> ok
+
+create table c(c int) as select x from system_range(1, 2);
+> ok
+
+select * from a inner join b on a=b right outer join c on c=a;
+> C A    B
+> - ---- ----
+> 1 1    1
+> 2 null null
+> rows: 2
+
+select * from c left outer join (a inner join b on b=a) on c=a;
+> C A    B
+> - ---- ----
+> 1 1    1
+> 2 null null
+> rows: 2
+
+select * from c left outer join a on c=a inner join b on b=a;
+> C A B
+> - - -
+> 1 1 1
+> rows: 1
+
+drop table a, b, c;
+> ok
+
 create table test(a int, b int) as select x, x from system_range(1, 100);
 > ok
 

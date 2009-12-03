@@ -33,10 +33,12 @@ public class ResultRemote implements ResultInterface {
     private int rowId, rowCount, rowOffset;
     private ObjectArray<Value[]> result;
     private ObjectArray<Value> lobValues;
+    private final Trace trace;
 
     public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int fetchSize)
             throws IOException, SQLException {
         this.session = session;
+        trace = session.getTrace();
         this.transfer = transfer;
         this.id = id;
         this.columns = new ResultColumn[columnCount];
@@ -150,7 +152,7 @@ public class ResultRemote implements ResultInterface {
                 transfer.writeInt(SessionRemote.RESULT_CLOSE).writeInt(id);
             }
         } catch (IOException e) {
-            session.getTrace().error("close", e);
+            trace.error("close", e);
         } finally {
             transfer = null;
             session = null;
@@ -158,12 +160,6 @@ public class ResultRemote implements ResultInterface {
     }
 
     public void close() {
-        if (session == null) {
-            return;
-        }
-        result = null;
-        Trace trace = session.getTrace();
-        sendClose();
         if (lobValues != null) {
             for (Value v : lobValues) {
                 try {
@@ -174,6 +170,8 @@ public class ResultRemote implements ResultInterface {
             }
             lobValues = null;
         }
+        result = null;
+        sendClose();
     }
 
     private void remapIfOld() throws SQLException {

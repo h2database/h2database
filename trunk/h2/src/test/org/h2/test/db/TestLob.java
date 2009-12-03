@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.FileUtils;
@@ -47,6 +49,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testTempFilesDeleted();
         testAddLobRestart();
         testLobServerMemory();
         if (config.memory) {
@@ -75,6 +78,32 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
+    }
+
+    private void testTempFilesDeleted() throws Exception {
+        String[] list;
+        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, false);
+        FileUtils.mkdirs(new File(TEMP_DIR));
+        list = FileUtils.listFiles(TEMP_DIR);
+        if (list.length > 0) {
+            fail("Unexpected temp file: " + list[0]);
+        }
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat;
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name text)");
+        stat.execute("insert into test values(1, space(100000))");
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        rs.getCharacterStream("name").close();
+        rs.close();
+        conn.close();
+        list = FileUtils.listFiles(TEMP_DIR);
+        if (list.length > 0) {
+            fail("Unexpected temp file: " + list[0]);
+        }
     }
 
     private void testAddLobRestart() throws SQLException {

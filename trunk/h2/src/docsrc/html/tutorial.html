@@ -40,6 +40,8 @@ Tutorial
     Upgrade, Backup, and Restore</a><br />
 <a href="#command_line_tools">
     Command Line Tools</a><br />
+<a href="shell_tool">
+    The Shell Tool</a><br />
 <a href="#open_office">
     Using OpenOffice Base</a><br />
 <a href="#web_start">
@@ -376,7 +378,7 @@ To enable it, change the following setting in persistence.xml:
 <pre>
 &lt;property
     name="toplink.target-database"
-    value="oracle.toplink.essentials.platform.database.H2Platform"/>
+    value="oracle.toplink.essentials.platform.database.H2Platform"/&gt;
 </pre>
 <p>
 In old versions of Glassfish, the property name is <code>toplink.platform.class.name</code>.
@@ -428,9 +430,9 @@ add the following snippet to your web.xml file (between the
 <code>context-param</code> and the <code>filter</code> section):
 </p>
 <pre>
-&lt;listener>
-    &lt;listener-class>org.h2.server.web.DbStarter&lt;/listener-class>
-&lt;/listener>
+&lt;listener&gt;
+    &lt;listener-class&gt;org.h2.server.web.DbStarter&lt;/listener-class&gt;
+&lt;/listener&gt;
 </pre>
 <p>
 For details on how to access the database, see the file <code>DbStarter.java</code>.
@@ -450,22 +452,22 @@ These options need to be placed between the <code>description</code> tag
 and the <code>listener</code> / <code>filter</code> tags:
 </p>
 <pre>
-&lt;context-param>
-    &lt;param-name>db.url&lt;/param-name>
-    &lt;param-value>jdbc:h2:~/test&lt;/param-value>
-&lt;/context-param>
-&lt;context-param>
-    &lt;param-name>db.user&lt;/param-name>
-    &lt;param-value>sa&lt;/param-value>
-&lt;/context-param>
-&lt;context-param>
-    &lt;param-name>db.password&lt;/param-name>
-    &lt;param-value>sa&lt;/param-value>
-&lt;/context-param>
-&lt;context-param>
-    &lt;param-name>db.tcpServer&lt;/param-name>
-    &lt;param-value>-tcpAllowOthers&lt;/param-value>
-&lt;/context-param>
+&lt;context-param&gt;
+    &lt;param-name&gt;db.url&lt;/param-name&gt;
+    &lt;param-value&gt;jdbc:h2:~/test&lt;/param-value&gt;
+&lt;/context-param&gt;
+&lt;context-param&gt;
+    &lt;param-name&gt;db.user&lt;/param-name&gt;
+    &lt;param-value&gt;sa&lt;/param-value&gt;
+&lt;/context-param&gt;
+&lt;context-param&gt;
+    &lt;param-name&gt;db.password&lt;/param-name&gt;
+    &lt;param-value&gt;sa&lt;/param-value&gt;
+&lt;/context-param&gt;
+&lt;context-param&gt;
+    &lt;param-name&gt;db.tcpServer&lt;/param-name&gt;
+    &lt;param-value&gt;-tcpAllowOthers&lt;/param-value&gt;
+&lt;/context-param&gt;
 </pre>
 <p>
 When the web application is stopped, the database connection will be closed automatically.
@@ -675,6 +677,40 @@ The tools can also be called from an application by calling the main or another 
 For details, see the Javadoc documentation.
 </p>
 
+<h2 id="shell_tool">The Shell Tool</h2>
+<p>
+The Shell tool is a simple interactive command line tool. To start it, type:
+</p>
+<pre>
+java -cp h2*.jar org.h2.tools.Shell
+</pre>
+<p>
+You will be prompted for a database URL, JDBC driver, user name, and password.
+The connection setting can also be set as command line parameters.
+After connecting, you will get the list of options. 
+The built-in commands don't need to end with a semicolon, but
+SQL statements are only executed if the line ends with a semicolon <code>;</code>.
+This allows to enter multi-line statements:
+</p>
+<pre>
+sql&gt; select * from test
+...&gt; where id = 0;
+</pre>
+<p>
+By default, results are printed as a table. For results with many column, consinder using the list mode:
+</p>
+<pre>
+sql&gt; list
+Result list mode is now on
+sql&gt; select * from test;                 
+ID  : 1
+NAME: Hello
+
+ID  : 2
+NAME: World
+(2 rows, 0 ms)
+</pre>
+
 <h2 id="open_office">Using OpenOffice Base</h2>
 <p>
 OpenOffice.org Base supports database access over the JDBC API. To connect to a H2 database
@@ -731,9 +767,9 @@ access denied (<code>java.io.FilePermission ... read</code>).
 Example permission tags:
 </p>
 <pre>
-&lt;security>
-    &lt;all-permissions/>
-&lt;/security>
+&lt;security&gt;
+    &lt;all-permissions/&gt;
+&lt;/security&gt;
 </pre>
 
 <h2 id="connection_pool">Using a Connection Pool</h2>

@@ -768,7 +768,7 @@ The two methods are 'file method' and 'socket methods'.
 </p>
 <p>
 The file locking protocols have the following limitation: if a shared file system is used,
-and the machine with the lock owner is sent to sleep (standby or hibernate), 
+and the machine with the lock owner is sent to sleep (standby or hibernate),
 another machine may take over. If the machine that originally held the lock
 wakes up, the database may become corrupt. If this situation can occur,
 the application must ensure the database is closed when the application

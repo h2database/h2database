@@ -414,6 +414,14 @@ public class TableFilter implements ColumnResolver {
         if (join == null) {
             this.join = filter;
             filter.outerJoin = outer;
+            if (outer) {
+                // convert all inner joins on the right hand side to outer joins
+                TableFilter f = filter.join;
+                while (f != null) {
+                    f.outerJoin = true;
+                    f = f.join;
+                }
+            }
             if (on != null) {
                 filter.mapAndAddFilter(on);
             }

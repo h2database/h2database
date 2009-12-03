@@ -85,7 +85,7 @@ public class TestCsv extends TestBase {
         String fileName = baseDir + "/testNull.csv";
         FileSystem fs = FileSystem.getInstance(fileName);
         fs.delete(fileName);
-        
+
         FileObject file = fs.openFileObject(fileName, "rw");
         String csvContent = "\"A\",\"B\",\"C\",\"D\"\n\\N,\"\",\"\\N\",";
         byte[] b = csvContent.getBytes("UTF-8");

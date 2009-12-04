@@ -1320,11 +1320,16 @@ public class Database implements DataHandler {
             systemSession = null;
         }
         if (lock != null) {
-            if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
-                // must not delete the .lock file if we wrote something,
+            if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+                // wait before deleting the .lock file,
                 // otherwise other connections can not detect that
-                lock.unlock();
+                try {
+                    Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
+                } catch (InterruptedException e) {
+                    traceSystem.getTrace(Trace.DATABASE).error("close", e);
+                }
             }
+            lock.unlock();
             lock = null;
         }
     }

@@ -49,6 +49,8 @@ public class TestCases extends TestBase {
         if (config.memory || config.logMode == 0) {
             return;
         }
+        testDeleteAndDropTableWithLobs(true);
+        testDeleteAndDropTableWithLobs(false);
         testEmptyBtreeIndex();
         testReservedKeywordReconnect();
         testSpecialSQL();
@@ -905,6 +907,33 @@ public class TestCases extends TestBase {
         assertEquals(3, rs.getInt(1));
 
         conn.close();
+    }
+
+    private void testDeleteAndDropTableWithLobs(boolean useDrop) throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(id int, content BLOB)");
+        stat.execute("set MAX_LENGTH_INPLACE_LOB 1");
+
+        PreparedStatement prepared = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
+        byte[] blobContent = "BLOB_CONTENT".getBytes();
+        prepared.setInt(1, 1);
+        prepared.setBytes(2, blobContent);
+        prepared.execute();
+
+        if (useDrop) {
+            stat.execute("DROP TABLE TEST");
+        } else {
+            stat.execute("DELETE FROM TEST");
+        }
+
+        conn.close();
+
+        File[] files = new File(baseDir + "/cases.lobs.db").listFiles();
+        if (files != null && files.length > 0) {
+            fail("Lob file was not deleted");
+        }
     }
 
 }

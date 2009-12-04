@@ -40,7 +40,7 @@ Tutorial
     Upgrade, Backup, and Restore</a><br />
 <a href="#command_line_tools">
     Command Line Tools</a><br />
-<a href="shell_tool">
+<a href="#shell_tool">
     The Shell Tool</a><br />
 <a href="#open_office">
     Using OpenOffice Base</a><br />
@@ -685,9 +685,9 @@ The Shell tool is a simple interactive command line tool. To start it, type:
 java -cp h2*.jar org.h2.tools.Shell
 </pre>
 <p>
-You will be prompted for a database URL, JDBC driver, user name, and password.
+You will be asked for a database URL, JDBC driver, user name, and password.
 The connection setting can also be set as command line parameters.
-After connecting, you will get the list of options. 
+After connecting, you will get the list of options.
 The built-in commands don't need to end with a semicolon, but
 SQL statements are only executed if the line ends with a semicolon <code>;</code>.
 This allows to enter multi-line statements:
@@ -697,12 +697,12 @@ sql&gt; select * from test
 ...&gt; where id = 0;
 </pre>
 <p>
-By default, results are printed as a table. For results with many column, consinder using the list mode:
+By default, results are printed as a table. For results with many column, consider using the list mode:
 </p>
 <pre>
 sql&gt; list
 Result list mode is now on
-sql&gt; select * from test;                 
+sql&gt; select * from test;
 ID  : 1
 NAME: Hello
 

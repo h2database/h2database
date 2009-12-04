@@ -542,7 +542,7 @@ classes are not supported.  The class must be available in the classpath of the
 database engine (when using the server mode, it must be in the classpath of the server).
 
 Before triggers are called after data conversion is made, default values are set,
-null and length constraint checks have been made; 
+null and length constraint checks have been made;
 but before other constraints have been checked.
 
 The MERGE statement will call both INSERT and UPDATE triggers.

@@ -53,6 +53,7 @@ Change Log
 </li><li>The database is now closed after an out of memory exception, because
     the database could get corrupt otherwise.
 </li><li>Better error message if both AUTO_SERVER and SERIALIZED parameters are set to TRUE.
+</li><li>Drop table did not delete lob files in old file store (not PAGE_STORE).
 </li></ul>
 
 <h2>Version 1.2.124 (2009-11-20)</h2>

@@ -15,6 +15,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
+import org.h2.value.ValueLob;
 
 /**
  * This class represents the statement
@@ -26,6 +27,7 @@ public class DropTable extends SchemaCommand {
     private String tableName;
     private Table table;
     private DropTable next;
+    private int dropTableId;
 
     public DropTable(Session session, Schema schema) {
         super(session, schema);
@@ -62,6 +64,7 @@ public class DropTable extends SchemaCommand {
                 throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
             }
         } else {
+            dropTableId = table.getId();
             session.getUser().checkRight(table, Right.ALL);
             if (!table.canDrop()) {
                 throw Message.getSQLException(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
@@ -77,10 +80,12 @@ public class DropTable extends SchemaCommand {
         // need to get the table again, because it may be dropped already
         // meanwhile (dependent object, or same object)
         table = getSchema().findTableOrView(session, tableName);
+
         if (table != null) {
             table.setModified();
             Database db = session.getDatabase();
             db.removeSchemaObject(session, table);
+            ValueLob.removeAllForTable(db, dropTableId);
         }
         if (next != null) {
             next.executeDrop();

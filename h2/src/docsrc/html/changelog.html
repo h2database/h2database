@@ -52,6 +52,7 @@ Change Log
 </li><li>The newsfeeds are now Atom 1.0 standard compliant.
 </li><li>The database is now closed after an out of memory exception, because
     the database could get corrupt otherwise.
+</li><li>Better error message if both AUTO_SERVER and SERIALIZED parameters are set to TRUE.
 </li></ul>
 
 <h2>Version 1.2.124 (2009-11-20)</h2>
@@ -73,7 +74,7 @@ Change Log
 </li><li>Page store: improved auto-recovery after power failure.
 </li><li>The JDBC client did not detect that it was not talking to an H2 server. This could result in strange exceptions when trying to connect to another kind of server.
 </li><li>User defined functions can be created with source code. Example: CREATE ALIAS HI AS 'String hi() { return "Hello"; }'
-</li><li>Database file lock: the exception "lock file modified in the future" is longer thrown; instead, opening the file will be delayed by 2 seconds.
+</li><li>Database file lock: the exception "lock file modified in the future" is no longer thrown; instead, opening the file will be delayed by 2 seconds.
 </li><li>Inserting LOBs got slower each time the process was restarted. It could loop endlessly after about 1000 process restarts.
 </li><li>Issue 117: Multi-version concurrency: concurrent MERGE statements now work.
 </li><li>Improved read-only database detection.

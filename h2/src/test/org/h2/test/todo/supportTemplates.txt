@@ -6,7 +6,7 @@ Tips for email contributors
 
 * Bugs: include the complete error message and stack trace, including the root cause stack traces.
 
-* 
+*
 Sending source code: to avoid formatting problems, consider using a public web clipboard such as
 http://pastebin.com http://cl1p.net or http://www.mysticpaste.com/new
 

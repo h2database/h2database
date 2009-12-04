@@ -599,8 +599,9 @@ public class Database implements DataHandler {
             traceSystem.getTrace(Trace.DATABASE)
                     .info("opening " + databaseName + " (build " + Constants.BUILD_ID + ")");
             if (autoServerMode) {
-                if (readOnly || fileLockMethod == FileLock.LOCK_NO) {
-                    throw Message.getUnsupportedException("autoServerMode && (readOnly || fileLockMethod == NO)");
+                if (readOnly || fileLockMethod == FileLock.LOCK_NO || fileLockMethod == FileLock.LOCK_SERIALIZED) {
+                    throw Message.getUnsupportedException("autoServerMode && (readOnly || fileLockMethod == NO" +
+                            " || fileLockMethod == SERIALIZED)");
                 }
             }
             if (!readOnly && fileLockMethod != FileLock.LOCK_NO) {

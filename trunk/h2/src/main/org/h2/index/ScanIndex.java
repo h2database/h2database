@@ -80,6 +80,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         }
         tableData.setRowCount(0);
         rowCount = 0;
+        rowCountDiff = 0;
         if (database.isMultiVersion()) {
             sessionRowCount.clear();
         }

@@ -36,10 +36,10 @@ public class TestCompress extends TestBase {
     }
 
     public void test() throws Exception {
-        testMultiThreaded();
         if (testPerformance) {
             testDatabase();
         }
+        testMultiThreaded();
         if (config.big) {
             for (int i = 0; i < 100; i++) {
                 test(i);
@@ -135,14 +135,15 @@ public class TestCompress extends TestBase {
         compress.compress(buff, pageSize, test, 0);
         for (int j = 0; j < 4; j++) {
             long start = System.currentTimeMillis();
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 1000; i++) {
                 InputStream in = FileSystem.getInstance("memFS:").openFileInputStream("memFS:compress.h2.db");
+                int total = 0;
                 while (true) {
                     int len = in.read(buff);
                     if (len < 0) {
                         break;
                     }
-                    compress.compress(buff, pageSize, test, 0);
+                    total += compress.compress(buff, pageSize, test, 0);
                 }
                 in.close();
             }

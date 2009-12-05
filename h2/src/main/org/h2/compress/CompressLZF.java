@@ -63,8 +63,7 @@ public class CompressLZF implements Compressor {
     }
 
     private int hash(int h) {
-        // or 57321
-        return ((h * 184117) >> 9) & (HASH_SIZE - 1);
+      return ((h * 2777) >> 9) & (HASH_SIZE - 1);
     }
 
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {

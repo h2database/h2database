@@ -61,7 +61,7 @@ public class TestFullText extends TestBase {
         deleteDb("fullTextReopen");
     }
 
-    public void testMultiThreaded() throws Exception {
+    private void testMultiThreaded() throws Exception {
         deleteDb("fullText");
         final boolean[] stop = new boolean[1];
         final Exception[] exception = new Exception[1];

@@ -55,6 +55,7 @@ public class TestKillRestart extends TestBase {
                     Thread.sleep(100);
                     printTime("killing: " + i);
                     p.destroy();
+                    p.waitFor();
                     break;
                 } else if (s.startsWith("#Fail")) {
                     fail("Failed: " + s);

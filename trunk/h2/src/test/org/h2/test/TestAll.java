@@ -297,11 +297,16 @@ java org.h2.test.TestAll timer
 
 /*
 
-TestClob - delete temp files
+memory usage:
+drop table test;
+create table test(username varchar, city varchar);
+create index test_user on test(username);
+create index test_city on test(city);
+insert into test select x || ' user', (x / 20) || ' city' from system_range(1, 500000);
+
+reserveMemory no longer needed
 
 Document Shell tool
-
-Add link to http://groups.google.com/group/h2-cn
 
 // System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64

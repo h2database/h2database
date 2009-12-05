@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Right outer joins on tables that were already 'inner joined' was processed incorrectly.
+<ul><li>The shell tool now has a very simple statement history.
+</li><li>The zip file system implementation now supports the '~' home directory prefix.
+    Example database URL: jdbc:h2:zip:~/test.zip!/test
+</li><li>Right outer joins on tables that were already 'inner joined' was processed incorrectly.
 </li><li>Temporary files from LOB objects were not deleted early enough when using the server mode.
 </li><li>Trying to alter a temporary table threw a strange exception.
     It is still not possible to do that, but the exception message is better now.
@@ -38,6 +41,7 @@ Change Log
     (only when using compression), the COMPRESS function, and storing CLOB or BLOB data (only when compression is enabled).
 </li><li>The compression algorithm "LZF" is now about 33% faster than before when compressing small block
     (around 2 KB). It is much faster than Deflate, but the compression ratio is lower.
+    Some of the optimizations are from Sam Van Oort, thanks a lot!
 </li><li>Compressing large blocks of data didn't work when using the "Deflate" compression algorithm.
     Compressing a lot of data could run out of heap memory.
 </li><li>The test cases don't access the file system directly, this simplifies GAE for Java testing.

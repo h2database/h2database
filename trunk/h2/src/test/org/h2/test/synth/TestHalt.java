@@ -249,6 +249,7 @@ public abstract class TestHalt extends TestBase {
             }
             controllerWaitAfterAppStart();
             p.destroy();
+            p.waitFor();
             try {
                 traceOperation("backing up " + sequenceId);
                 Backup.execute(baseDir + "/haltSeq" + sequenceId + ".zip", baseDir, null, true);

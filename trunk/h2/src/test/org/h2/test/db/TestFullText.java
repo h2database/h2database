@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Random;
 import java.util.StringTokenizer;
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileSystem;
@@ -31,11 +32,12 @@ public class TestFullText extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
         testCreateDrop();
         if (config.memory) {
             return;
         }
+        testMultiThreaded();
         testStreamLob();
         test(false, "VARCHAR");
         test(false, "CLOB");
@@ -57,6 +59,61 @@ public class TestFullText extends TestBase {
         }
         deleteDb("fullText");
         deleteDb("fullTextReopen");
+    }
+
+    public void testMultiThreaded() throws Exception {
+        deleteDb("fullText");
+        final boolean[] stop = new boolean[1];
+        final Exception[] exception = new Exception[1];
+        int len = 2;
+        Thread[] threads = new Thread[len];
+        for (int i = 0; i < len; i++) {
+            // final Connection conn = getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
+            final Connection conn = getConnection("fullText");
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
+            stat.execute("CALL FT_INIT()");
+            stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
+            stat.execute("CALL FT_INIT()");
+            final String tableName = "TEST" + i;
+            stat.execute("CREATE TABLE " + tableName + "(ID INT PRIMARY KEY, DATA VARCHAR)");
+            FullText.createIndex(conn, "PUBLIC", tableName, null);
+            threads[i] = new Thread() {
+                public void run() {
+                    try {
+                        PreparedStatement prep = conn.prepareStatement("INSERT INTO " + tableName + " VALUES(?, ?)");
+                        Random random = new Random();
+                        int x = 0;
+                        while (!stop[0]) {
+                            StringBuilder buff = new StringBuilder();
+                            for (int j = 0; j < 1000; j++) {
+                                buff.append(" " + random.nextInt(10000));
+                                buff.append(" x" + j);
+                            }
+                            prep.setInt(1, x);
+                            prep.setString(2, buff.toString());
+                            prep.execute();
+                            x++;
+                        }
+                        conn.close();
+                    } catch (SQLException e) {
+                        exception[0] = e;
+                    }
+                }
+            };
+        }
+        for (Thread t : threads) {
+            t.start();
+        }
+        Thread.sleep(1000);
+        stop[0] = true;
+        for (Thread t : threads) {
+            t.join();
+        }
+        if (exception[0] != null) {
+            throw exception[0];
+        }
+
     }
 
     private void testStreamLob() throws SQLException {

@@ -405,6 +405,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support INTERVAL data type (see Oracle and others).
 </li><li>Combine Server and Console tool (only keep Server).
 </li><li>Store the Lucene index in the database itself.
+</li><li>Support standard MERGE statement: http://en.wikipedia.org/wiki/Merge_%28SQL%29
 </li><li>Oracle compatibility: support DECODE(x, ...).
 </li><li>Console: Start Browser: if ip number changed, try localhost instead.
 </li><li>MVCC: compare concurrent update behavior with PostgreSQL and Oracle.
@@ -417,7 +418,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>CACHE_SIZE: automatically use a fraction of Runtime.maxMemory - maybe automatically the second level cache.
 </li><li>Support date/time/timestamp as documented in http://en.wikipedia.org/wiki/ISO_8601
 </li><li>PostgreSQL compatibility: when in PG mode, treat BYTEA data like PG.
-</li><li>Support standard MERGE statement: http://en.wikipedia.org/wiki/Merge_%28SQL%29
 </li><li>MySQL compatibility: REPLACE http://dev.mysql.com/doc/refman/6.0/en/replace.html
 </li><li>Support =ANY(array) as in PostgreSQL.
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
@@ -465,6 +465,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Move away from system properties where possible.
 </li><li>Database file lock: detect hibernate / standby / very slow threads (compare system time).
 </li><li>An index on (id, name) should be used for a query: select * from t where s=? order by i
+</li><li>Automatic detection of redundant indexes.
 </li></ul>
 
 <h2>Not Planned</h2>

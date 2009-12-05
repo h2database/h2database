@@ -70,6 +70,7 @@ public class TestKillRestartMulti extends TestBase {
                     Thread.sleep(sleep);
                     printTime("killing: " + i);
                     p.destroy();
+                    p.waitFor();
                     break;
                 } else if (s.startsWith("#Info")) {
                     // System.out.println("info: " + s);

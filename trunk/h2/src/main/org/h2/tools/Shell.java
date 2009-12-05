@@ -19,6 +19,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
@@ -26,6 +27,7 @@ import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.JdbcDriverUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.Tool;
 
@@ -34,6 +36,8 @@ import org.h2.util.Tool;
  * @h2.resource
  */
 public class Shell extends Tool {
+
+    private static final int HISTORY_COUNT = 20;
 
     private PrintStream err = System.err;
     private InputStream in = System.in;
@@ -44,6 +48,7 @@ public class Shell extends Tool {
     private int maxColumnSize = 100;
     // Windows: '\u00b3';
     private char boxVertical = '|';
+    private ArrayList<String> history = New.arrayList();
 
     /**
      * Options are case sensitive. Supported options are:
@@ -138,6 +143,7 @@ public class Shell extends Tool {
         println("maxwidth       Set maximum column width (default is 100)");
         println("show           List all tables");
         println("describe       Describe a table");
+        println("history        Show the last 20 statements");
         println("quit or exit   Close the connection and exit");
         println("");
     }
@@ -185,6 +191,17 @@ public class Shell extends Tool {
                 } else if ("LIST".equals(upper)) {
                     listMode = !listMode;
                     println("Result list mode is now " + (listMode ? "on" : "off"));
+                } else if ("HISTORY".equals(upper)) {
+                    for (int i = 0; i < history.size(); i++) {
+                        String s = history.get(i);
+                        s = s.replace('\n', ' ').replace('\r', ' ');
+                        println("#" + (1 + i) + ": " + s);
+                    }
+                    if (history.size() > 0) {
+                        println("To re-run a statement, type the number and press and enter");
+                    } else {
+                        println("No history");
+                    }
                 } else if (upper.startsWith("DESCRIBE")) {
                     String tableName = upper.substring("DESCRIBE".length()).trim();
                     if (tableName.length() == 0) {
@@ -247,12 +264,31 @@ public class Shell extends Tool {
                     }
                     println("Maximum column width is now " + maxColumnSize);
                 } else {
+                    boolean addToHistory = true;
                     if (statement == null) {
-                        statement = line;
+                        if (isNumber(line)) {
+                            int pos = Integer.parseInt(line);
+                            if (pos == 0 || pos > history.size()) {
+                                println("Not found");
+                            } else {
+                                statement = history.get(pos - 1);
+                                addToHistory = false;
+                                println(statement);
+                                end = true;
+                            }
+                        } else {
+                            statement = line;
+                        }
                     } else {
                         statement += "\n" + line;
                     }
                     if (end) {
+                        if (addToHistory) {
+                            history.add(0, statement);
+                            if (history.size() >= HISTORY_COUNT) {
+                                history.remove(HISTORY_COUNT);
+                            }
+                        }
                         execute(statement);
                         statement = null;
                     }
@@ -278,6 +314,15 @@ public class Shell extends Tool {
                 e.printStackTrace(err);
             }
         }
+    }
+
+    private boolean isNumber(String s) {
+        for (char c : s.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void connect() throws IOException, SQLException {

@@ -16,6 +16,7 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.New;
 
@@ -228,6 +229,10 @@ public class FileSystemZip extends FileSystem {
         int idx = fileName.indexOf('!');
         if (idx >= 0) {
             fileName = fileName.substring(0, idx);
+        }
+        if (fileName.startsWith("~")) {
+            String userDir = SysProperties.USER_HOME;
+            fileName = userDir + fileName.substring(1);
         }
         return fileName;
     }

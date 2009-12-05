@@ -255,6 +255,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Better document the source code
 </li><li>Support select * from dual a left join dual b on b.x=(select max(x) from dual)
 </li><li>Optimization: don't lock when the database is read-only
+</li><li>Issue 146: Support merge join.
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Support COSH, SINH, and TANH functions
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
@@ -288,7 +289,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Space reuse: after init, scan all storages and free those that don't belong to a live database object
 </li><li>Use FilterIn / FilterOut putStream?
 </li><li>Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
-</li><li>Support NOCACHE table option (Oracle)
+</li><li>Support NOCACHE table option (Oracle).
 </li><li>Support table partitioning.
 </li><li>Index usage for UPDATE ... WHERE .. IN (SELECT...)
 </li><li>Add regular javadocs (using the default doclet, but another css) to the homepage.
@@ -314,7 +315,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
 </li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
-</li><li>Support merge join.
 </li><li>H2 Console: in-place autocomplete.
 </li><li>Support large databases: split LOB (BLOB, CLOB) to multiple directories / disks (similar to tablespaces).
 </li><li>Support to assign a primary key index a user defined name.

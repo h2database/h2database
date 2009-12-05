@@ -59,8 +59,10 @@ public class FullTextLucene extends FullText {
     private static final HashMap<String, IndexModifier> INDEX_MODIFIERS = New.hashMap();
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
-    private static final String FIELD_DATA = "DATA";
-    private static final String FIELD_COLUMN_PREFIX = "_";
+    private static final String LUCENE_FIELD_DATA = "_DATA";
+    private static final String LUCENE_FIELD_QUERY = "_QUERY";
+    private static final String LUCENE_FIELD_MODIFIED = "_modified";
+    private static final String LUCENE_FIELD_COLUMN_PREFIX = "_";
     //## Java 1.4 end ##
 
     /**
@@ -361,7 +363,7 @@ public class FullTextLucene extends FullText {
             IndexReader reader = IndexReader.open(path);
             Analyzer analyzer = new StandardAnalyzer();
             Searcher searcher = new IndexSearcher(reader);
-            QueryParser parser = new QueryParser(FIELD_DATA, analyzer);
+            QueryParser parser = new QueryParser(LUCENE_FIELD_DATA, analyzer);
             Query query = parser.parse(text);
             Hits hits = searcher.search(query);
             int max = hits.length();
@@ -371,7 +373,7 @@ public class FullTextLucene extends FullText {
             for (int i = 0; i < limit && i + offset < max; i++) {
                 Document doc = hits.doc(i + offset);
                 float score = hits.score(i + offset);
-                String q = doc.get(FIELD_QUERY);
+                String q = doc.get(LUCENE_FIELD_QUERY);
                 if (data) {
                     int idx = q.indexOf(" WHERE ");
                     JdbcConnection c = (JdbcConnection) conn;
@@ -539,19 +541,24 @@ public class FullTextLucene extends FullText {
         protected void insert(Object[] row) throws SQLException {
             String query = getQuery(row);
             Document doc = new Document();
-            doc.add(new Field(FIELD_QUERY, query, Field.Store.YES, Field.Index.UN_TOKENIZED));
+            doc.add(new Field(LUCENE_FIELD_QUERY, query, Field.Store.YES, Field.Index.UN_TOKENIZED));
             long time = System.currentTimeMillis();
-            doc.add(new Field("modified", DateTools.timeToString(time, DateTools.Resolution.SECOND), Field.Store.YES, Field.Index.UN_TOKENIZED));
+            doc.add(new Field(LUCENE_FIELD_MODIFIED, DateTools.timeToString(time, DateTools.Resolution.SECOND), Field.Store.YES, Field.Index.UN_TOKENIZED));
             StatementBuilder buff = new StatementBuilder();
             for (int index : indexColumns) {
                 String columnName = columns[index];
                 String data = asString(row[index], columnTypes[index]);
-                doc.add(new Field(FIELD_COLUMN_PREFIX + columnName, data, Field.Store.NO, Field.Index.TOKENIZED));
+                // column names that start with _ must be escaped to avoid conflicts
+                // with internal field names (_DATA, _QUERY, _modified)
+                if (columnName.startsWith(LUCENE_FIELD_COLUMN_PREFIX)) {
+                    columnName = LUCENE_FIELD_COLUMN_PREFIX + columnName;
+                }
+                doc.add(new Field(columnName, data, Field.Store.NO, Field.Index.TOKENIZED));
                 buff.appendExceptFirst(" ");
                 buff.append(data);
             }
             Field.Store storeText = STORE_DOCUMENT_TEXT_IN_INDEX ? Field.Store.YES : Field.Store.NO;
-            doc.add(new Field(FIELD_DATA, buff.toString(), storeText,
+            doc.add(new Field(LUCENE_FIELD_DATA, buff.toString(), storeText,
                     Field.Index.TOKENIZED));
             try {
                 indexModifier.addDocument(doc);
@@ -568,7 +575,7 @@ public class FullTextLucene extends FullText {
         protected void delete(Object[] row) throws SQLException {
             String query = getQuery(row);
             try {
-                Term term = new Term(FIELD_QUERY, query);
+                Term term = new Term(LUCENE_FIELD_QUERY, query);
                 indexModifier.deleteDocuments(term);
             } catch (IOException e) {
                 throw convertException(e);

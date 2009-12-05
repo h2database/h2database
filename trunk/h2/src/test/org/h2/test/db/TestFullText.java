@@ -68,7 +68,8 @@ public class TestFullText extends TestBase {
         int len = 2;
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {
-            // final Connection conn = getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
+            // final Connection conn =
+            // getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
             final Connection conn = getConnection("fullText");
             Statement stat = conn.createStatement();
             stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
@@ -307,6 +308,14 @@ public class TestFullText extends TestBase {
         rs.next();
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=1", rs.getString(1));
         assertFalse(rs.next());
+
+        if (lucene) {
+            rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('NAME:Hallo', 0, 0)");
+            rs.next();
+            assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=2", rs.getString(1));
+            assertFalse(rs.next());
+        }
+
         conn.close();
 
         conn = getConnection("fullText");

@@ -70,11 +70,6 @@ public class FullText {
     protected static final String FIELD_KEYS = "KEYS";
 
     /**
-     * The column name of the result set returned by the search method.
-     */
-    protected static final String FIELD_QUERY = "QUERY";
-
-    /**
      * The hit score.
      */
     protected static final String FIELD_SCORE = "SCORE";
@@ -83,6 +78,11 @@ public class FullText {
     private static final String SCHEMA = "FT";
     private static final String SELECT_MAP_BY_WORD_ID = "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?";
     private static final String SELECT_ROW_BY_ID = "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?";
+
+    /**
+     * The column name of the result set returned by the search method.
+     */
+    private static final String FIELD_QUERY = "QUERY";
 
     /**
      * Initializes full text search functionality for this database. This adds

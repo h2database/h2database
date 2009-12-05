@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The shell tool now has a very simple statement history.
+<ul><li>Lucene fulltext search: the Lucene field names now match the table column names,
+    except if the column names start with _ (in which case another _ is prepended).
+    Unfortunately this change means existing fulltext indexes need to be re-built.
+</li><li>The shell tool now has a very simple statement history.
 </li><li>The zip file system implementation now supports the '~' home directory prefix.
     Example database URL: jdbc:h2:zip:~/test.zip!/test
 </li><li>Right outer joins on tables that were already 'inner joined' was processed incorrectly.

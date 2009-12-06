@@ -88,6 +88,7 @@ public class TestShell extends TestBase {
         read("maxwidth");
         read("show");
         read("describe");
+        read("history");
         read("quit or exit");
         read("");
         testOut.println("create table test(id int primary key, name varchar)\n;");

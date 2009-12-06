@@ -13,6 +13,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(75,
+'New version available: 1.2.125 (2009-12-06)', '2009-12-06 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(74,
 'New version available: 1.2.124 (2009-11-20)', '2009-11-20 12:00:00',
 $$A new version of H2 is available for
@@ -323,31 +336,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Identifiers with a digit and then a dollar sign didn't work.
 </li><li>Shell tool: the built-in commands didn't work with a semicolon.
 </li><li>Benchmark: the number of executed statements was incorrect.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(62,
-'New version available: 1.1.112 (2009-05-01)', '2009-05-01 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>MERGE now returns 0 as the generated on update.
-</li><li>A file system implementation can now be registered.
-</li><li>The database file system is no longer included.
-</li><li>EclipseLink: added H2Platform.supportsIdentity().
-</li><li>Connection pool: the login timeout is now 5 minutes.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Opening large databases could become slow.
-</li><li>GROUP BY queries with a self-join were wrong sometimes.
-</li><li>Bugs in the server-less multi-connection mode have been fixed.
-</li><li>JdbcPreparedStatement.toString() could fail.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

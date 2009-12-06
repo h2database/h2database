@@ -6,6 +6,7 @@
  */
 package org.h2.test.synth;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
@@ -25,17 +26,22 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.store.FileLister;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.db.TestScript;
 import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
+import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Restore;
 import org.h2.util.FileUtils;
 import org.h2.util.New;
 import org.h2.util.RandomUtils;
@@ -45,6 +51,8 @@ import org.h2.util.RandomUtils;
  * This is sometimes called 'Fuzz Testing'.
  */
 public class TestCrashAPI extends TestBase {
+
+    private static final boolean RECOVER_ALL = false;
 
     private static final Class< ? >[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,
             ResultSet.class, ResultSetMetaData.class, Savepoint.class,
@@ -68,7 +76,46 @@ public class TestCrashAPI extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    private void recoverAll() throws SQLException {
+        org.h2.Driver.load();
+        File[] files = new File("temp/backup").listFiles();
+        Arrays.sort(files, new Comparator<File>() {
+            public int compare(File o1, File o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        for (File f : files) {
+            if (!f.getName().startsWith("db-")) {
+                continue;
+            }
+            DeleteDbFiles.execute("data", null, true);
+            try {
+                Restore.execute(f.getAbsolutePath(), "data", null, true);
+            } catch (Exception e) {
+                System.out.println(f.getName() + " restore error " + e);
+                // ignore
+            }
+            ArrayList<String> dbFiles = FileLister.getDatabaseFiles("data", null, false);
+            for (String name: dbFiles) {
+                if (!name.endsWith(".h2.db")) {
+                    continue;
+                }
+                name = name.substring(0, name.length() - 6);
+                try {
+                    DriverManager.getConnection("jdbc:h2:data/" + name, "sa", "").close();
+                    System.out.println(f.getName() + " OK");
+                } catch (SQLException e) {
+                    System.out.println(f.getName() + " " + e);
+                }
+            }
+        }
+    }
+
     public void test() throws SQLException {
+        if (RECOVER_ALL) {
+            recoverAll();
+            return;
+        }
         if (config.mvcc || config.networked || config.logMode == 0) {
             return;
         }

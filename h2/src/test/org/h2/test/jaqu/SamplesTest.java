@@ -17,14 +17,8 @@ import org.h2.jaqu.Filter;
 import org.h2.test.TestBase;
 
 /**
- * <p>
  * This is the implementation of the 101 LINQ Samples as described in
  * http://msdn2.microsoft.com/en-us/vcsharp/aa336760.aspx
- * </p><p>Why should you use JaQu?
- * Type checking,
- * autocomplete,
- * no separate SQL scripts,
- * no more SQL injection.</p>
  */
 public class SamplesTest extends TestBase {
 
@@ -326,6 +320,23 @@ public class SamplesTest extends TestBase {
 
     private void testComplexObject() {
         ComplexObject co = new ComplexObject();
+        String sql = db.from(co).
+            where(co.id).is(1).
+            and(co.amount).is(1L).
+            and(co.birthday).smaller(new java.util.Date()).
+            and(co.created).smaller(java.sql.Timestamp.valueOf("2005-05-05 05:05:05")).
+            and(co.name).is("hello").
+            and(co.time).smaller(java.sql.Time.valueOf("23:23:23")).
+            and(co.value).is(new BigDecimal("1")).getSQL();
+        assertEquals("SELECT * FROM ComplexObject " +
+                "WHERE id = ? " +
+                "AND amount = ? " +
+                "AND birthday < ? " +
+                "AND created < ? " +
+                "AND name = ? " +
+                "AND time < ? " +
+                "AND value = ?", sql);
+
         long count = db.from(co).
             where(co.id).is(1).
             and(co.amount).is(1L).
@@ -342,22 +353,29 @@ public class SamplesTest extends TestBase {
         testComplexObject2(1, "hello");
     }
 
-private void testComplexObject2(final int x, final String name) {
-    final ComplexObject co = new ComplexObject();
-    long count = db.from(co).
-        where(new Filter() { public boolean where() {
+    private void testComplexObject2(final int x, final String name) {
+        final ComplexObject co = new ComplexObject();
+
+        String sql = db.from(co).
+            where(new Filter() { public boolean where() {
+                    return co.id == x
+                    && co.name.equals(name)
+                    && co.name.equals("hello");
+            } }).getSQL();
+        assertEquals("SELECT * FROM ComplexObject " +
+                "WHERE id=? " +
+                "AND ?=name " +
+                "AND 'hello'=name", sql);
+
+        long count = db.from(co).
+            where(new Filter() { public boolean where() {
                 return co.id == x
                 && co.name.equals(name)
-                && co.value == new BigDecimal("1")
-                && co.amount == 1L
-                && co.birthday.before(new java.util.Date())
-                && co.created.before(java.sql.Timestamp.valueOf("2005-05-05 05:05:05"))
-                && co.time.before(java.sql.Time.valueOf("23:23:23"));
-        } }).selectCount();
-        // TODO should return only one object
-        assertEquals(2, count);
-    }
+                && co.name.equals("hello");
+            } }).selectCount();
 
+        assertEquals(1, count);
+    }
 //## Java 1.5 end ##
 
     /**

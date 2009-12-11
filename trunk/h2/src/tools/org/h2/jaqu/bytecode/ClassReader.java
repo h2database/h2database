@@ -4,16 +4,19 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.jaqu.util;
+package org.h2.jaqu.bytecode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
+import org.h2.jaqu.Token;
 
 /**
- * This class converts a method to a SQL expression by interpreting
+ * This class converts a method to a SQL Token by interpreting
  * (decompiling) the bytecode of the class.
  */
 public class ClassReader {
@@ -22,19 +25,18 @@ public class ClassReader {
 
     private byte[] data;
     private int pos;
-    private int[] cpType;
-    private String[] cpString;
-    private int[] cpInt;
+    private Constant[] constantPool;
     private int startByteCode;
     private String methodName;
 
     private String convertMethodName;
-    private String result;
-    private Stack<String> stack = new Stack<String>();
-    private ArrayList<String> variables = new ArrayList<String>();
+    private Token result;
+    private Stack<Token> stack = new Stack<Token>();
+    private ArrayList<Token> variables = new ArrayList<Token>();
     private boolean end;
     private boolean condition;
     private int nextPc;
+    private Map<String, Object> fieldMap = new HashMap<String, Object>();
 
     private void debug(String s) {
         if (DEBUG) {
@@ -42,7 +44,8 @@ public class ClassReader {
         }
     }
 
-    public String decompile(Object instance, String methodName) {
+    public Token decompile(Object instance, Map<String, Object> fieldMap, String methodName) {
+        this.fieldMap = fieldMap;
         this.convertMethodName = methodName;
         Class< ? > clazz = instance.getClass();
         String className = clazz.getName();
@@ -67,89 +70,79 @@ public class ClassReader {
         int majorVersion = readShort();
         debug("version: " + majorVersion + "." + minorVersion);
         int constantPoolCount = readShort();
-        cpString = new String[constantPoolCount];
-        cpInt = new int[constantPoolCount];
-        cpType = new int[constantPoolCount];
+        constantPool = new Constant[constantPoolCount];
         for (int i = 1; i < constantPoolCount; i++) {
-            int tag = readByte();
-            cpType[i] = tag;
-            switch(tag) {
+            int type = readByte();
+            switch(type) {
             case 1:
-                cpString[i] = readString();
+                constantPool[i] = ConstantString.get(readString());
                 break;
             case 3: {
                 int x = readInt();
-                cpString[i] = String.valueOf(x);
+                constantPool[i] = ConstantNumber.get(x);
                 break;
             }
             case 4: {
                 int x = readInt();
-                cpString[i] = Float.toString(Float.intBitsToFloat(x));
-                cpInt[i] = x;
+                constantPool[i] = ConstantNumber.get("" + Float.intBitsToFloat(x), x, Constant.Type.FLOAT);
                 break;
             }
             case 5: {
                 long x = readLong();
-                cpString[i] = String.valueOf(x);
+                constantPool[i] = ConstantNumber.get(x);
                 i++;
                 break;
             }
             case 6: {
                 long x = readLong();
-                cpString[i] = String.valueOf(Double.longBitsToDouble(x));
+                constantPool[i] = ConstantNumber.get("" + Double.longBitsToDouble(x), x, Constant.Type.DOUBLE);
                 i++;
                 break;
             }
             case 7: {
                 int x = readShort();
-                cpString[i] = "class";
-                cpInt[i] = x;
+                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.CLASS_REF);
                 break;
             }
             case 8: {
                 int x = readShort();
-                cpString[i] = "string";
-                cpInt[i] = x;
+                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.STRING_REF);
                 break;
             }
             case 9: {
                 int x = readInt();
-                cpString[i] = "field";
-                cpInt[i] = x;
+                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.FIELD_REF);
                 break;
             }
             case 10: {
                 int x = readInt();
-                cpString[i] = "method";
-                cpInt[i] = x;
+                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.METHOD_REF);
                 break;
             }
             case 11: {
                 int x = readInt();
-                cpString[i] = "interface method";
-                cpInt[i] = x;
+                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.INTERFACE_METHOD_REF);
                 break;
             }
             case 12: {
                 int x = readInt();
-                cpString[i] = "name and type";
-                cpInt[i] = x;
+                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.NAME_AND_TYPE);
                 break;
             }
             default:
-                throw new RuntimeException("Unsupported constant pool tag: " + tag);
+                throw new RuntimeException("Unsupported constant pool tag: " + type);
             }
         }
         int accessFlags = readShort();
         debug("access flags: " + accessFlags);
         int classRef = readShort();
-        debug("class: " + cpString[cpInt[classRef]]);
+        debug("class: " + constantPool[constantPool[classRef].intValue()]);
         int superClassRef = readShort();
-        debug(" extends " + cpString[cpInt[superClassRef]]);
+        debug(" extends " + constantPool[constantPool[superClassRef].intValue()]);
         int interfaceCount = readShort();
         for (int i = 0; i < interfaceCount; i++) {
             int interfaceRef = readShort();
-            debug(" implements " + cpString[cpInt[interfaceRef]]);
+            debug(" implements " + constantPool[constantPool[interfaceRef].intValue()]);
         }
         int fieldCount = readShort();
         for (int i = 0; i < fieldCount; i++) {
@@ -167,7 +160,7 @@ public class ClassReader {
         int accessFlags = readShort();
         int nameIndex = readShort();
         int descIndex = readShort();
-        debug("    " + cpString[descIndex] + " " + cpString[nameIndex] + " " + accessFlags);
+        debug("    " + constantPool[descIndex] + " " + constantPool[nameIndex] + " " + accessFlags);
         readAttributes();
     }
 
@@ -175,8 +168,8 @@ public class ClassReader {
         int accessFlags = readShort();
         int nameIndex = readShort();
         int descIndex = readShort();
-        String desc = cpString[descIndex];
-        methodName = cpString[nameIndex];
+        String desc = constantPool[descIndex].toString();
+        methodName = constantPool[nameIndex].toString();
         debug("    " + desc + " " + methodName + " " + accessFlags);
         readAttributes();
     }
@@ -185,7 +178,7 @@ public class ClassReader {
         int attributeCount = readShort();
         for (int i = 0; i < attributeCount; i++) {
             int attributeNameIndex = readShort();
-            String attributeName = cpString[attributeNameIndex];
+            String attributeName = constantPool[attributeNameIndex].toString();
             debug("        attribute " + attributeName);
             int attributeLength = readInt();
             int end = pos + attributeLength;
@@ -230,38 +223,38 @@ public class ClassReader {
         readAttributes();
     }
 
-    private String getResult() {
+    private Token getResult() {
         while (true) {
             readByteCode();
             if (end) {
                 return stack.pop();
             }
             if (condition) {
-                String c = stack.pop();
-                Stack<String> currentStack = new Stack<String>();
+                Token c = stack.pop();
+                Stack<Token> currentStack = new Stack<Token>();
                 currentStack.addAll(stack);
-                ArrayList<String> currentVariables = new ArrayList<String>();
+                ArrayList<Token> currentVariables = new ArrayList<Token>();
                 currentVariables.addAll(variables);
                 int branch = nextPc;
-                String a = getResult();
+                Token a = getResult();
                 stack = currentStack;
                 variables = currentVariables;
                 pos = branch + startByteCode;
-                String b = getResult();
+                Token b = getResult();
                 if (a.equals("0") && b.equals("1")) {
                     return c;
                 } else if (a.equals("1") && b.equals("0")) {
-                    return "NOT(" +c + ")";
+                    return Not.get(c);
                 } else if (b.equals("0")) {
-                    return "NOT(" + c + ") AND (" + a + ")";
+                    return And.get(Not.get(c), a);
                 } else if (a.equals("0")) {
-                    return "(" + c + ") AND (" + b + ")";
+                    return And.get(c, b);
                 } else if (b.equals("1")) {
-                    return "(" + c + ") OR (" + a + ")";
+                    return Or.get(c, a);
                 } else if (a.equals("1")) {
-                    return "NOT(" + c + ") AND (" + b + ")";
+                    return And.get(Not.get(c), b);
                 }
-                return "(" + c + ") ? (" + b + ") : (" + a + ")";
+                return CaseWhen.get(c, b, a);
             }
             if (nextPc != 0) {
                 pos = nextPc + startByteCode;
@@ -282,90 +275,90 @@ public class ClassReader {
             break;
         case 1:
             op = "aconst_null";
-            stack.push("null");
+            stack.push(Null.INSTANCE);
             break;
         case 2:
             op = "iconst_m1";
-            stack.push("-1");
+            stack.push(ConstantNumber.get("-1"));
             break;
         case 3:
             op = "iconst_0";
-            stack.push("0");
+            stack.push(ConstantNumber.get("0"));
             break;
         case 4:
             op = "iconst_1";
-            stack.push("1");
+            stack.push(ConstantNumber.get("1"));
             break;
         case 5:
             op = "iconst_2";
-            stack.push("2");
+            stack.push(ConstantNumber.get("2"));
             break;
         case 6:
             op = "iconst_3";
-            stack.push("3");
+            stack.push(ConstantNumber.get("3"));
             break;
         case 7:
             op = "iconst_4";
-            stack.push("4");
+            stack.push(ConstantNumber.get("4"));
             break;
         case 8:
             op = "iconst_5";
-            stack.push("5");
+            stack.push(ConstantNumber.get("5"));
             break;
         case 9:
             op = "lconst_0";
-            stack.push("0");
+            stack.push(ConstantNumber.get("0"));
             break;
         case 10:
             op = "lconst_1";
-            stack.push("1");
+            stack.push(ConstantNumber.get("1"));
             break;
         case 11:
             op = "fconst_0";
-            stack.push("0.0");
+            stack.push(ConstantNumber.get("0.0"));
             break;
         case 12:
             op = "fconst_1";
-            stack.push("1.0");
+            stack.push(ConstantNumber.get("1.0"));
             break;
         case 13:
             op = "fconst_2";
-            stack.push("2.0");
+            stack.push(ConstantNumber.get("2.0"));
             break;
         case 14:
             op = "dconst_0";
-            stack.push("0.0");
+            stack.push(ConstantNumber.get("0.0"));
             break;
         case 15:
             op = "dconst_1";
-            stack.push("1.0");
+            stack.push(ConstantNumber.get("1.0"));
             break;
         case 16: {
             int x = (byte) readByte();
             op = "bipush " + x;
-            stack.push("" + x);
+            stack.push(ConstantNumber.get(x));
             break;
         }
         case 17: {
             int x = (short) readShort();
             op = "sipush " + x;
-            stack.push("" + x);
+            stack.push(ConstantNumber.get(x));
             break;
         }
         case 18: {
-            String s = getConstant(readByte());
+            Token s = getConstant(readByte());
             op = "ldc " + s;
             stack.push(s);
             break;
         }
         case 19: {
-            String s = getConstant(readShort());
+            Token s = getConstant(readShort());
             op = "ldc_w " + s;
             stack.push(s);
             break;
         }
         case 20: {
-            String s = getConstant(readShort());
+            Token s = getConstant(readShort());
             op = "ldc2_w " + s;
             stack.push(s);
             break;
@@ -481,59 +474,59 @@ public class ClassReader {
             stack.push(getVariable(3));
             break;
         case 46: {
-            String index = stack.pop();
-            String ref = stack.pop();
+            Token index = stack.pop();
+            Token ref = stack.pop();
             op = "iaload";
-            stack.push(ref + "[" + index + "]");
+            stack.push(ArrayGet.get(ref, index));
             break;
         }
         case 47: {
-            String index = stack.pop();
-            String ref = stack.pop();
+            Token index = stack.pop();
+            Token ref = stack.pop();
             op = "laload";
-            stack.push(ref + "[" + index + "]");
+            stack.push(ArrayGet.get(ref, index));
             break;
         }
         case 48: {
-            String index = stack.pop();
-            String ref = stack.pop();
+            Token index = stack.pop();
+            Token ref = stack.pop();
             op = "faload";
-            stack.push(ref + "[" + index + "]");
+            stack.push(ArrayGet.get(ref, index));
             break;
         }
         case 49: {
-            String index = stack.pop();
-            String ref = stack.pop();
+            Token index = stack.pop();
+            Token ref = stack.pop();
             op = "daload";
-            stack.push(ref + "[" + index + "]");
+            stack.push(ArrayGet.get(ref, index));
             break;
         }
         case 50: {
-            String index = stack.pop();
-            String ref = stack.pop();
+            Token index = stack.pop();
+            Token ref = stack.pop();
             op = "aaload";
-            stack.push(ref + "[" + index + "]");
+            stack.push(ArrayGet.get(ref, index));
             break;
         }
         case 51: {
-            String index = stack.pop();
-            String ref = stack.pop();
+            Token index = stack.pop();
+            Token ref = stack.pop();
             op = "baload";
-            stack.push(ref + "[" + index + "]");
+            stack.push(ArrayGet.get(ref, index));
             break;
         }
         case 52: {
-            String index = stack.pop();
-            String ref = stack.pop();
+            Token index = stack.pop();
+            Token ref = stack.pop();
             op = "caload";
-            stack.push(ref + "[" + index + "]");
+            stack.push(ArrayGet.get(ref, index));
             break;
         }
         case 53: {
-            String index = stack.pop();
-            String ref = stack.pop();
+            Token index = stack.pop();
+            Token ref = stack.pop();
             op = "saload";
-            stack.push(ref + "[" + index + "]");
+            stack.push(ArrayGet.get(ref, index));
             break;
         }
         case 54: {
@@ -694,15 +687,15 @@ public class ClassReader {
             break;
         case 89: {
             op = "dup";
-            String x = stack.pop();
+            Token x = stack.pop();
             stack.push(x);
             stack.push(x);
             break;
         }
         case 90: {
             op = "dup_x1";
-            String a = stack.pop();
-            String b = stack.pop();
+            Token a = stack.pop();
+            Token b = stack.pop();
             stack.push(a);
             stack.push(b);
             stack.push(a);
@@ -711,9 +704,9 @@ public class ClassReader {
         case 91: {
             // TODO currently we don't know the stack types
             op = "dup_x2";
-            String a = stack.pop();
-            String b = stack.pop();
-            String c = stack.pop();
+            Token a = stack.pop();
+            Token b = stack.pop();
+            Token c = stack.pop();
             stack.push(a);
             stack.push(c);
             stack.push(b);
@@ -723,8 +716,8 @@ public class ClassReader {
         case 92: {
             // TODO currently we don't know the stack types
             op = "dup2";
-            String a = stack.pop();
-            String b = stack.pop();
+            Token a = stack.pop();
+            Token b = stack.pop();
             stack.push(b);
             stack.push(a);
             stack.push(b);
@@ -734,9 +727,9 @@ public class ClassReader {
         case 93: {
             // TODO currently we don't know the stack types
             op = "dup2_x1";
-            String a = stack.pop();
-            String b = stack.pop();
-            String c = stack.pop();
+            Token a = stack.pop();
+            Token b = stack.pop();
+            Token c = stack.pop();
             stack.push(b);
             stack.push(a);
             stack.push(c);
@@ -747,10 +740,10 @@ public class ClassReader {
         case 94: {
             // TODO currently we don't know the stack types
             op = "dup2_x2";
-            String a = stack.pop();
-            String b = stack.pop();
-            String c = stack.pop();
-            String d = stack.pop();
+            Token a = stack.pop();
+            Token b = stack.pop();
+            Token c = stack.pop();
+            Token d = stack.pop();
             stack.push(b);
             stack.push(a);
             stack.push(d);
@@ -761,410 +754,410 @@ public class ClassReader {
         }
         case 95: {
             op = "swap";
-            String a = stack.pop();
-            String b = stack.pop();
+            Token a = stack.pop();
+            Token b = stack.pop();
             stack.push(a);
             stack.push(b);
             break;
         }
         case 96: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "iadd";
-            stack.push("(" + a + " + " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.ADD, b));
             break;
         }
         case 97: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "ladd";
-            stack.push("(" + a + " + " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.ADD, b));
             break;
         }
         case 98: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "fadd";
-            stack.push("(" + a + " + " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.ADD, b));
             break;
         }
         case 99: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "dadd";
-            stack.push("(" + a + " + " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.ADD, b));
             break;
         }
         case 100: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "isub";
-            stack.push("(" + a + " - " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.SUBTRACT, b));
             break;
         }
         case 101: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "lsub";
-            stack.push("(" + a + " - " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.SUBTRACT, b));
             break;
         }
         case 102: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "fsub";
-            stack.push("(" + a + " - " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.SUBTRACT, b));
             break;
         }
         case 103: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "dsub";
-            stack.push("(" + a + " - " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.SUBTRACT, b));
             break;
         }
         case 104: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "imul";
-            stack.push("(" + a + " * " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.MULTIPLY, b));
             break;
         }
         case 105: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "lmul";
-            stack.push("(" + a + " * " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.MULTIPLY, b));
             break;
         }
         case 106: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "fmul";
-            stack.push("(" + a + " * " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.MULTIPLY, b));
             break;
         }
         case 107: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "dmul";
-            stack.push("(" + a + " * " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.MULTIPLY, b));
             break;
         }
         case 108: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "idiv";
-            stack.push("(" + a + " / " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.DIVIDE, b));
             break;
         }
         case 109: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "ldiv";
-            stack.push("(" + a + " / " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.DIVIDE, b));
             break;
         }
         case 110: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "fdiv";
-            stack.push("(" + a + " / " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.DIVIDE, b));
             break;
         }
         case 111: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "ddiv";
-            stack.push("(" + a + " / " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.DIVIDE, b));
             break;
         }
         case 112: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "irem";
-            stack.push("(" + a + " % " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.MOD, b));
             break;
         }
         case 113: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "lrem";
-            stack.push("(" + a + " % " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.MOD, b));
             break;
         }
         case 114: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "frem";
-            stack.push("(" + a + " % " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.MOD, b));
             break;
         }
         case 115: {
-            String b = stack.pop();
-            String a = stack.pop();
+            Token b = stack.pop();
+            Token a = stack.pop();
             op = "drem";
-            stack.push("(" + a + " % " + b + ")");
+            stack.push(Operation.get(a, Operation.Type.MOD, b));
             break;
         }
-        case 116:
-            op = "ineg";
-            break;
-        case 117:
-            op = "lneg";
-            break;
-        case 118:
-            op = "fneg";
-            break;
-        case 119:
-            op = "dneg";
-            break;
-        case 120:
-            op = "ishl";
-            break;
-        case 121:
-            op = "lshl";
-            break;
-        case 122:
-            op = "ishr";
-            break;
-        case 123:
-            op = "lshr";
-            break;
-        case 124:
-            op = "iushr";
-            break;
-        case 125:
-            op = "lushr";
-            break;
-        case 126:
-            op = "iand";
-            break;
-        case 127:
-            op = "land";
-            break;
-        case 128:
-            op = "ior";
-            break;
-        case 129:
-            op = "lor";
-            break;
-        case 130:
-            op = "ixor";
-            break;
-        case 131:
-            op = "lxor";
-            break;
-        case 132: {
-            int var = readByte();
-            int off = (byte) readByte();
-            op = "iinc " + var + " " + off;
-            break;
-        }
-        case 133:
-            op = "i2l";
-            break;
-        case 134:
-            op = "i2f";
-            break;
-        case 135:
-            op = "i2d";
-            break;
-        case 136:
-            op = "l2i";
-            break;
-        case 137:
-            op = "l2f";
-            break;
-        case 138:
-            op = "l2d";
-            break;
-        case 139:
-            op = "f2i";
-            break;
-        case 140:
-            op = "f2l";
-            break;
-        case 141:
-            op = "f2d";
-            break;
-        case 142:
-            op = "d2i";
-            break;
-        case 143:
-            op = "d2l";
-            break;
-        case 144:
-            op = "d2f";
-            break;
-        case 145:
-            op = "i2b";
-            break;
-        case 146:
-            op = "i2c";
-            break;
-        case 147:
-            op = "i2s";
-            break;
+//        case 116:
+//            op = "ineg";
+//            break;
+//        case 117:
+//            op = "lneg";
+//            break;
+//        case 118:
+//            op = "fneg";
+//            break;
+//        case 119:
+//            op = "dneg";
+//            break;
+//        case 120:
+//            op = "ishl";
+//            break;
+//        case 121:
+//            op = "lshl";
+//            break;
+//        case 122:
+//            op = "ishr";
+//            break;
+//        case 123:
+//            op = "lshr";
+//            break;
+//        case 124:
+//            op = "iushr";
+//            break;
+//        case 125:
+//            op = "lushr";
+//            break;
+//        case 126:
+//            op = "iand";
+//            break;
+//        case 127:
+//            op = "land";
+//            break;
+//        case 128:
+//            op = "ior";
+//            break;
+//        case 129:
+//            op = "lor";
+//            break;
+//        case 130:
+//            op = "ixor";
+//            break;
+//        case 131:
+//            op = "lxor";
+//            break;
+//        case 132: {
+//            int var = readByte();
+//            int off = (byte) readByte();
+//            op = "iinc " + var + " " + off;
+//            break;
+//        }
+//        case 133:
+//            op = "i2l";
+//            break;
+//        case 134:
+//            op = "i2f";
+//            break;
+//        case 135:
+//            op = "i2d";
+//            break;
+//        case 136:
+//            op = "l2i";
+//            break;
+//        case 137:
+//            op = "l2f";
+//            break;
+//        case 138:
+//            op = "l2d";
+//            break;
+//        case 139:
+//            op = "f2i";
+//            break;
+//        case 140:
+//            op = "f2l";
+//            break;
+//        case 141:
+//            op = "f2d";
+//            break;
+//        case 142:
+//            op = "d2i";
+//            break;
+//        case 143:
+//            op = "d2l";
+//            break;
+//        case 144:
+//            op = "d2f";
+//            break;
+//        case 145:
+//            op = "i2b";
+//            break;
+//        case 146:
+//            op = "i2c";
+//            break;
+//        case 147:
+//            op = "i2s";
+//            break;
         case 148: {
-            String b = stack.pop(), a = stack.pop();
-            stack.push("SIGN(" + a + " - " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(new Function("SIGN", Operation.get(a, Operation.Type.SUBTRACT, b)));
             op = "lcmp";
             break;
         }
-        case 149:
-            op = "fcmpl";
-            break;
-        case 150:
-            op = "fcmpg";
-            break;
-        case 151:
-            op = "dcmpl";
-            break;
-        case 152:
-            op = "dcmpg";
-            break;
+//        case 149:
+//            op = "fcmpl";
+//            break;
+//        case 150:
+//            op = "fcmpg";
+//            break;
+//        case 151:
+//            op = "dcmpl";
+//            break;
+//        case 152:
+//            op = "dcmpg";
+//            break;
         case 153:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push("(" + stack.pop() + " = 0)");
+            stack.push(Operation.get(stack.pop(), Operation.Type.EQUALS, ConstantNumber.get(0)));
             op = "ifeq " + nextPc;
             break;
         case 154:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push("(" + stack.pop() + " <> 0)");
+            stack.push(Operation.get(stack.pop(), Operation.Type.NOT_EQUALS, ConstantNumber.get(0)));
             op = "ifne " + nextPc;
             break;
         case 155:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push("(" + stack.pop() + " < 0)");
+            stack.push(Operation.get(stack.pop(), Operation.Type.SMALLER, ConstantNumber.get(0)));
             op = "iflt " + nextPc;
             break;
         case 156:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push("(" + stack.pop() + " >= 0)");
+            stack.push(Operation.get(stack.pop(), Operation.Type.BIGGER_EQUALS, ConstantNumber.get(0)));
             op = "ifge " + nextPc;
             break;
         case 157:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push("(" + stack.pop() + " > 0)");
+            stack.push(Operation.get(stack.pop(), Operation.Type.BIGGER, ConstantNumber.get(0)));
             op = "ifgt " + nextPc;
             break;
         case 158:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push("(" + stack.pop() + "<= 0)");
+            stack.push(Operation.get(stack.pop(), Operation.Type.SMALLER_EQUALS, ConstantNumber.get(0)));
             op = "ifle " + nextPc;
             break;
         case 159: {
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            String b = stack.pop(), a = stack.pop();
-            stack.push("(" + a + " = " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(Operation.get(a, Operation.Type.EQUALS, b));
             op = "if_icmpeq " + nextPc;
             break;
         }
         case 160: {
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            String b = stack.pop(), a = stack.pop();
-            stack.push("(" + a + " <> " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(Operation.get(a, Operation.Type.NOT_EQUALS, b));
             op = "if_icmpne " + nextPc;
             break;
         }
         case 161: {
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            String b = stack.pop(), a = stack.pop();
-            stack.push("(" + a + " < " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(Operation.get(a, Operation.Type.SMALLER, b));
             op = "if_icmplt " + nextPc;
             break;
         }
         case 162: {
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            String b = stack.pop(), a = stack.pop();
-            stack.push("(" + a + " >= " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(Operation.get(a, Operation.Type.BIGGER_EQUALS, b));
             op = "if_icmpge " + nextPc;
             break;
         }
         case 163: {
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            String b = stack.pop(), a = stack.pop();
-            stack.push("(" + a + " > " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(Operation.get(a, Operation.Type.BIGGER, b));
             op = "if_icmpgt " + nextPc;
             break;
         }
         case 164: {
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            String b = stack.pop(), a = stack.pop();
-            stack.push("(" + a + " <= " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(Operation.get(a, Operation.Type.SMALLER_EQUALS, b));
             op = "if_icmple " + nextPc;
             break;
         }
         case 165: {
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            String b = stack.pop(), a = stack.pop();
-            stack.push("(" + a + " = " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(Operation.get(a, Operation.Type.EQUALS, b));
             op = "if_acmpeq " + nextPc;
             break;
         }
         case 166: {
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            String b = stack.pop(), a = stack.pop();
-            stack.push("(" + a + " <> " + b + ")");
+            Token b = stack.pop(), a = stack.pop();
+            stack.push(Operation.get(a, Operation.Type.NOT_EQUALS, b));
             op = "if_acmpne " + nextPc;
             break;
         }
-        case 167:
-            nextPc = getAbsolutePos(pos, readShort());
-            op = "goto " + nextPc;
-            break;
-        case 168:
-            // TODO not supported yet
-            op = "jsr " + getAbsolutePos(pos, readShort());
-            break;
-        case 169:
-            // TODO not supported yet
-            op = "ret " + readByte();
-            break;
-        case 170: {
-            int start = pos;
-            pos += 4 - ((pos - startByteCode) & 3);
-            int def = readInt();
-            int low = readInt(), high = readInt();
-            int n = high - low + 1;
-            op = "tableswitch default:" + getAbsolutePos(start, def);
-            StringBuilder buff = new StringBuilder();
-            for (int i = 0; i < n; i++) {
-                buff.append(' ').append(low++).append(":").append(getAbsolutePos(start, readInt()));
-            }
-            op += buff.toString();
-            // pos += n * 4;
-            break;
-        }
-        case 171: {
-            int start = pos;
-            pos += 4 - ((pos - startByteCode) & 3);
-            int def = readInt();
-            int n = readInt();
-            op = "lookupswitch default:" + getAbsolutePos(start, def);
-            StringBuilder buff = new StringBuilder();
-            for (int i = 0; i < n; i++) {
-                buff.append(' ').append(readInt()).append(":").append(getAbsolutePos(start, readInt()));
-            }
-            op += buff.toString();
-            // pos += n * 8;
-            break;
-        }
+//        case 167:
+//            nextPc = getAbsolutePos(pos, readShort());
+//            op = "goto " + nextPc;
+//            break;
+//        case 168:
+//            // TODO not supported yet
+//            op = "jsr " + getAbsolutePos(pos, readShort());
+//            break;
+//        case 169:
+//            // TODO not supported yet
+//            op = "ret " + readByte();
+//            break;
+//        case 170: {
+//            int start = pos;
+//            pos += 4 - ((pos - startByteCode) & 3);
+//            int def = readInt();
+//            int low = readInt(), high = readInt();
+//            int n = high - low + 1;
+//            op = "tableswitch default:" + getAbsolutePos(start, def);
+//            StringBuilder buff = new StringBuilder();
+//            for (int i = 0; i < n; i++) {
+//                buff.append(' ').append(low++).append(":").append(getAbsolutePos(start, readInt()));
+//            }
+//            op += buff.toString();
+//            // pos += n * 4;
+//            break;
+//        }
+//        case 171: {
+//            int start = pos;
+//            pos += 4 - ((pos - startByteCode) & 3);
+//            int def = readInt();
+//            int n = readInt();
+//            op = "lookupswitch default:" + getAbsolutePos(start, def);
+//            StringBuilder buff = new StringBuilder();
+//            for (int i = 0; i < n; i++) {
+//                buff.append(' ').append(readInt()).append(":").append(getAbsolutePos(start, readInt()));
+//            }
+//            op += buff.toString();
+//            // pos += n * 8;
+//            break;
+//        }
         case 172:
             op = "ireturn";
             end = true;
@@ -1191,33 +1184,33 @@ public class ClassReader {
             stack.push(null);
             end = true;
             break;
-        case 178:
-            op = "getstatic " + getField(readShort());
-            break;
-        case 179:
-            op = "putstatic " + getField(readShort());
-            break;
+//        case 178:
+//            op = "getstatic " + getField(readShort());
+//            break;
+//        case 179:
+//            op = "putstatic " + getField(readShort());
+//            break;
         case 180: {
             String field = getField(readShort());
-            String p = stack.pop();
-            p = p + "." + field.substring(Math.max(field.lastIndexOf('$'), field.lastIndexOf('.')) + 1, field.indexOf(' '));
-            if (p.startsWith("this.")) {
-                p = p.substring(5);
+            Token p = stack.pop();
+            String s = p + "." + field.substring(field.lastIndexOf('.') + 1, field.indexOf(' '));
+            if (s.startsWith("this.")) {
+                s = s.substring(5);
             }
-            stack.push(p);
+            stack.push(Variable.get(s, fieldMap.get(s)));
             op = "getfield " + field;
             break;
         }
-        case 181:
-            op = "putfield " + getField(readShort());
-            break;
+//        case 181:
+//            op = "putfield " + getField(readShort());
+//            break;
         case 182: {
             String method = getMethod(readShort());
             op = "invokevirtual " + method;
             if (method.equals("java/lang/String.equals (Ljava/lang/Object;)Z")) {
-                String a = stack.pop();
-                String b = stack.pop();
-                stack.push("(" + a + " = " + b + ")");
+                Token a = stack.pop();
+                Token b = stack.pop();
+                stack.push(Operation.get(a, Operation.Type.EQUALS, b));
             } else if (method.equals("java/lang/Integer.intValue ()I")) {
                 // ignore
             } else if (method.equals("java/lang/Long.longValue ()J")) {
@@ -1225,112 +1218,116 @@ public class ClassReader {
             }
             break;
         }
-        case 183:
-            op = "invokespecial " + getMethod(readShort());
+        case 183: {
+            String methodName = getMethod(readShort());
+            op = "invokespecial " + methodName;
             break;
+        }
         case 184:
             op = "invokestatic " + getMethod(readShort());
             break;
-        case 185: {
-            int methodRef = readShort();
-            readByte();
-            readByte();
-            op = "invokeinterface " + getMethod(methodRef);
+//        case 185: {
+//            int methodRef = readShort();
+//            readByte();
+//            readByte();
+//            op = "invokeinterface " + getMethod(methodRef);
+//            break;
+//        }
+        case 187: {
+            String className = constantPool[constantPool[readShort()].intValue()].toString();
+            op = "new " + className;
             break;
         }
-        case 187:
-            op = "new " + cpString[cpInt[readShort()]];
-            break;
-        case 188:
-            op = "newarray " + readByte();
-            break;
-        case 189:
-            op = "anewarray " + cpString[readShort()];
-            break;
-        case 190:
-            op = "arraylength";
-            break;
-        case 191:
-            op = "athrow";
-            break;
-        case 192:
-            op = "checkcast " + cpString[readShort()];
-            break;
-        case 193:
-            op = "instanceof " + cpString[readShort()];
-            break;
-        case 194:
-            op = "monitorenter";
-            break;
-        case 195:
-            op = "monitorexit";
-            break;
-        case 196: {
-            opCode = readByte();
-            switch (opCode) {
-            case 21:
-                op = "wide iload " + readShort();
-                break;
-            case 22:
-                op = "wide lload " + readShort();
-                break;
-            case 23:
-                op = "wide fload " + readShort();
-                break;
-            case 24:
-                op = "wide dload " + readShort();
-                break;
-            case 25:
-                op = "wide aload " + readShort();
-                break;
-            case 54:
-                op = "wide istore " + readShort();
-                break;
-            case 55:
-                op = "wide lstore " + readShort();
-                break;
-            case 56:
-                op = "wide fstore " + readShort();
-                break;
-            case 57:
-                op = "wide dstore " + readShort();
-                break;
-            case 58:
-                op = "wide astore " + readShort();
-                break;
-            case 132: {
-                int var = readShort();
-                int off = (short) readShort();
-                op = "wide iinc " + var + " " + off;
-                break;
-            }
-            case 169:
-                op = "wide ret " + readShort();
-                break;
-            default:
-                throw new RuntimeException("Unsupported wide opCode " + opCode);
-            }
-            break;
-        }
-        case 197:
-            op = "multianewarray " + cpString[readShort()] + " " + readByte();
-            break;
-        case 198: {
-            condition = true;
-            nextPc = getAbsolutePos(pos, readShort());
-            String a = stack.pop();
-            stack.push("(" + a + " IS NULL)");
-            op = "ifnull " + nextPc;
-            break;
-        }
-        case 199: {
-            condition = true;
-            nextPc = getAbsolutePos(pos, readShort());
-            String a = stack.pop();
-            stack.push("(" + a + " IS NOT NULL)");
-            op = "ifnonnull " + nextPc;
-            break;
-        }
+//        case 188:
+//            op = "newarray " + readByte();
+//            break;
+//        case 189:
+//            op = "anewarray " + cpString[readShort()];
+//            break;
+//        case 190:
+//            op = "arraylength";
+//            break;
+//        case 191:
+//            op = "athrow";
+//            break;
+//        case 192:
+//            op = "checkcast " + cpString[readShort()];
+//            break;
+//        case 193:
+//            op = "instanceof " + cpString[readShort()];
+//            break;
+//        case 194:
+//            op = "monitorenter";
+//            break;
+//        case 195:
+//            op = "monitorexit";
+//            break;
+//        case 196: {
+//            opCode = readByte();
+//            switch (opCode) {
+//            case 21:
+//                op = "wide iload " + readShort();
+//                break;
+//            case 22:
+//                op = "wide lload " + readShort();
+//                break;
+//            case 23:
+//                op = "wide fload " + readShort();
+//                break;
+//            case 24:
+//                op = "wide dload " + readShort();
+//                break;
+//            case 25:
+//                op = "wide aload " + readShort();
+//                break;
+//            case 54:
+//                op = "wide istore " + readShort();
+//                break;
+//            case 55:
+//                op = "wide lstore " + readShort();
+//                break;
+//            case 56:
+//                op = "wide fstore " + readShort();
+//                break;
+//            case 57:
+//                op = "wide dstore " + readShort();
+//                break;
+//            case 58:
+//                op = "wide astore " + readShort();
+//                break;
+//            case 132: {
+//                int var = readShort();
+//                int off = (short) readShort();
+//                op = "wide iinc " + var + " " + off;
+//                break;
+//            }
+//            case 169:
+//                op = "wide ret " + readShort();
+//                break;
+//            default:
+//                throw new RuntimeException("Unsupported wide opCode " + opCode);
+//            }
+//            break;
+//        }
+//        case 197:
+//            op = "multianewarray " + cpString[readShort()] + " " + readByte();
+//            break;
+//        case 198: {
+//            condition = true;
+//            nextPc = getAbsolutePos(pos, readShort());
+//            Token a = stack.pop();
+//            stack.push("(" + a + " IS NULL)");
+//            op = "ifnull " + nextPc;
+//            break;
+//        }
+//        case 199: {
+//            condition = true;
+//            nextPc = getAbsolutePos(pos, readShort());
+//            Token a = stack.pop();
+//            stack.push("(" + a + " IS NOT NULL)");
+//            op = "ifnonnull " + nextPc;
+//            break;
+//        }
         case 200:
             op = "goto_w " + getAbsolutePos(pos, readInt());
             break;
@@ -1343,57 +1340,49 @@ public class ClassReader {
         debug("    " + startPos + ": " + op);
     }
 
-    private void setVariable(int x, String value) {
+    private void setVariable(int x, Token value) {
         while (x >= variables.size()) {
-            variables.add("p" + variables.size());
+            variables.add(Variable.get("p" + variables.size(), null));
         }
         variables.set(x, value);
     }
 
-    private String getVariable(int x) {
+    private Token getVariable(int x) {
         if (x == 0) {
-            return "this";
+            return Variable.THIS;
         }
         while (x >= variables.size()) {
-            variables.add("p" + variables.size());
+            variables.add(Variable.get("p" + variables.size(), null));
         }
         return variables.get(x);
     }
 
     private String getField(int fieldRef) {
-        int field = cpInt[fieldRef];
+        int field = constantPool[fieldRef].intValue();
         int classIndex = field >>> 16;
-        int nameAndType = cpInt[field & 0xffff];
-        String className = cpString[cpInt[classIndex]] + "." + cpString[nameAndType >>> 16] + " " + cpString[nameAndType & 0xffff];
+        int nameAndType = constantPool[field & 0xffff].intValue();
+        String className = constantPool[constantPool[classIndex].intValue()] + "." + constantPool[nameAndType >>> 16] + " " + constantPool[nameAndType & 0xffff];
         return className;
     }
 
     private String getMethod(int methodRef) {
-        int method = cpInt[methodRef];
+        int method = constantPool[methodRef].intValue();
         int classIndex = method >>> 16;
-        int nameAndType = cpInt[method & 0xffff];
-        String className = cpString[cpInt[classIndex]] + "." + cpString[nameAndType >>> 16] + " " + cpString[nameAndType & 0xffff];
+        int nameAndType = constantPool[method & 0xffff].intValue();
+        String className = constantPool[constantPool[classIndex].intValue()] + "." + constantPool[nameAndType >>> 16] + " " + constantPool[nameAndType & 0xffff];
         return className;
     }
 
-    private String getConstant(int constantRef) {
-        switch (cpType[constantRef]) {
-        case 3:
-            // int
-            return cpString[constantRef];
-        case 4:
-            // float
-            return cpString[constantRef];
-        case 5:
-            // long
-            return cpString[constantRef];
-        case 6:
-            // double
-            return cpString[constantRef];
-        case 8:
-            // string
-            // TODO escape
-            return "\"" + cpString[cpInt[constantRef]] + "\"";
+    private Constant getConstant(int constantRef) {
+        Constant c = constantPool[constantRef];
+        switch (c.getType()) {
+        case INT:
+        case FLOAT:
+        case DOUBLE:
+        case LONG:
+            return c;
+        case STRING_REF:
+            return constantPool[c.intValue()];
         default:
             throw new RuntimeException("Not a constant: " + constantRef);
         }

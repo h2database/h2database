@@ -94,6 +94,10 @@ class TableDefinition<T> {
         tableName = clazz.getSimpleName();
     }
 
+    List<FieldDefinition> getFields() {
+        return fields;
+    }
+
     void setTableName(String tableName) {
         this.tableName = tableName;
     }

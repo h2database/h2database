@@ -93,8 +93,24 @@ public class TestCases extends TestBase {
     }
 
     private void testLargeRollback() throws SQLException {
+        Connection conn;
+        Statement stat;
+
         deleteDb("cases");
-        Connection conn = getConnection("cases");
+        conn = getConnection("cases");
+        stat = conn.createStatement();
+        stat.execute("set max_operation_memory 1");
+        stat.execute("create table test(id int)");
+        stat.execute("insert into test values(1), (2)");
+        stat.execute("create index idx on test(id)");
+        conn.setAutoCommit(false);
+        stat.execute("update test set id = id where id=2");
+        stat.execute("update test set id = id");
+        conn.rollback();
+        conn.close();
+
+        deleteDb("cases");
+        conn = getConnection("cases");
         conn.createStatement().execute("set MAX_MEMORY_UNDO 1");
         conn.createStatement().execute("create table test(id number primary key)");
         conn.createStatement().execute("insert into test(id) select x from system_range(1, 2)");

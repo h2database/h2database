@@ -37,6 +37,7 @@ public class PageBtreeIndex extends PageIndex {
     public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, indexName, columns, indexType);
+        // int test;
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
         if (!database.isPersistent() || id < 0) {
@@ -70,7 +71,7 @@ public class PageBtreeIndex extends PageIndex {
 
     public void add(Session session, Row row) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("add " + row.getKey());
+            trace.debug(getName() + " add " + row);
         }
         // safe memory
         SearchRow newRow = getSearchRow(row);
@@ -210,7 +211,7 @@ public class PageBtreeIndex extends PageIndex {
 
     public void remove(Session session, Row row) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("remove " + row.getKey());
+            trace.debug(getName() + " remove " + row);
         }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {

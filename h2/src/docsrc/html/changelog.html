@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>JaQu: the decompiler has been improved, and a few test cases already work. It is still incomplete however.
+<ul><li>Page store: a rollback of a relatively large transaction could fail with an ArrayIndexOutOfBoundsException
+    or a 'row not found' exception in the PageBtreeIndex in some cases.
+</li><li>JaQu: the decompiler has been improved, and a few test cases already work. It is still incomplete however.
 </li><li>LIKE: any letter is now allowed after the escape character (which is still '\' by default).
     Previously, an exception was thrown (unlike other databases) if it was not the escape character, '_' or '%'.
     If the escape character appears at the end of the pattern, the result is  it is ignored (like PostgreSQL and MS SQL Server).

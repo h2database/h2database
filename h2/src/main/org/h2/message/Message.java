@@ -16,7 +16,6 @@ import java.util.Properties;
 import java.util.Map.Entry;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
-import org.h2.util.MemoryUtils;
 import org.h2.util.Resources;
 import org.h2.util.StringUtils;
 
@@ -299,10 +298,7 @@ public class Message {
      */
     public static SQLException convertThrowable(Throwable e) {
         if (e instanceof OutOfMemoryError) {
-            if (MemoryUtils.freeReserveMemory()) {
-                return getSQLException(ErrorCode.OUT_OF_MEMORY, e);
-            }
-            throw (OutOfMemoryError) e;
+            return getSQLException(ErrorCode.OUT_OF_MEMORY, e);
         } else if (e instanceof StackOverflowError || e instanceof LinkageError) {
             return getSQLException(ErrorCode.GENERAL_ERROR_1, e, e.toString());
         } else if (e instanceof Error) {

@@ -31,9 +31,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <h2>Priority 1</h2>
 <ul>
 <li>Bugfixes
-</li><li>Support large updates (use the transaction log for rollback).
+</li><li>Support large inserts and updates (use the transaction log for rollback).
 </li><li>More tests with MULTI_THREADED=1
-</li><li>Optimization: result set caching (like MySQL)
+</li><li>Optimization: result set caching (like MySQL); option to disable
 </li><li>Server side cursors
 </li></ul>
 
@@ -306,6 +306,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
 </li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular b-tree index solves the problem).
 </li><li>Oracle compatibility: support NLS_DATE_FORMAT.
+</li><li>H2 Console: support CLOB/BLOB download using a link.
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
 </li><li>Support OUT parameters in user-defined procedures.
@@ -434,6 +435,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     if the file system is on a remote share (see Google Group 'Lock file modification time is in the future').
 </li><li>Document internal features such as BELONGS_TO_TABLE, NULL_TO_DEFAULT, SEQUENCE.
 </li><li>Issue 107: Prefer using the ORDER BY index if LIMIT is used.
+</li><li>An index on (id, name) should be used for a query: select * from t where s=? order by i
 </li><li>Support reading sequences using DatabaseMetaData.getTables(null, null, null, new String[]{"SEQUENCE"}).
     See PostgreSQL.
 </li><li>Add option to enable TCP_NODELAY using Socket.setTcpNoDelay(true).
@@ -459,12 +461,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support a way to create or read compressed encrypted script files using an API.
 </li><li>Scripting language support (Javascript).
 </li><li>The network client should better detect if the server is not an H2 server and fail early.
-</li><li>H2 Console: support CLOB/BLOB download using a link.
 </li><li>H2 Console: support CLOB/BLOB upload.
 </li><li>Recover tool: stream blob / clob data (problem: currently using varchar data type).
 </li><li>Move away from system properties where possible.
 </li><li>Database file lock: detect hibernate / standby / very slow threads (compare system time).
-</li><li>An index on (id, name) should be used for a query: select * from t where s=? order by i
 </li><li>Automatic detection of redundant indexes.
 </li></ul>
 

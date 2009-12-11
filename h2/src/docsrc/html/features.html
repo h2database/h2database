@@ -1321,6 +1321,10 @@ There are two ways an application can find out whether database is read-only:
 by calling <code>Connection.isReadOnly()</code>
 or by executing the SQL statement <code>CALL READONLY()</code>.
 </p>
+<p>
+Using the <a href="#custom_access_mode">Custom Access Mode</a> <code>r</code>
+the database can also be opened in read-only mode, even if the database file is not read only.
+</p>
 
 <h2 id="database_in_zip">Read Only Databases in Zip or Jar File</h2>
 <p>
@@ -1729,9 +1733,11 @@ The amount of memory used for caching can be changed using the setting
 (<code>jdbc:h2:~/test;CACHE_SIZE=131072</code>), or it can be changed at runtime using
 <code>SET CACHE_SIZE size</code>.
 </p><p>
-Also supported is a second level soft reference cache. Rows in this cache are only garbage collected
+Also included is an experimental second level soft reference cache. Rows in this cache are only garbage collected
 on low memory. By default the second level cache is disabled. To enable it,
 use the prefix <code>SOFT_</code>. Example: <code>jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code>.
+The cache might not actually improve performance. If you plan to use it, 
+please run your own test cases first.
 </p><p>
 To get information about page reads and writes, and the current caching algorithm in use,
 call <code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS</code>. The number of pages read / written

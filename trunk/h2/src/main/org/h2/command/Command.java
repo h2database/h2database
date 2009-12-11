@@ -16,7 +16,6 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
-import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
 
 /**
@@ -186,7 +185,6 @@ public abstract class Command implements CommandInterface {
     public int executeUpdate() throws SQLException {
         long start = startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        MemoryUtils.allocateReserveMemory();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;

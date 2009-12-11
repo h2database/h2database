@@ -60,7 +60,6 @@ import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
-import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
@@ -224,7 +223,6 @@ public class Database implements DataHandler {
 
     private void openDatabase(int traceLevelFile, int traceLevelSystemOut, boolean closeAtVmShutdown) throws SQLException {
         try {
-            MemoryUtils.allocateReserveMemory();
             open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
                 try {
@@ -242,7 +240,6 @@ public class Database implements DataHandler {
             }
         } catch (Throwable e) {
             if (e instanceof OutOfMemoryError) {
-                MemoryUtils.freeReserveMemory();
                 e.fillInStackTrace();
             }
             if (traceSystem != null) {

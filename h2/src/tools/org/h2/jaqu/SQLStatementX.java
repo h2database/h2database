@@ -17,13 +17,13 @@ import java.util.ArrayList;
  * This class represents a parameterized SQL statement.
  */
 //## Java 1.5 begin ##
-public class SQLStatement {
+public class SQLStatementX {
     private Db db;
     private StringBuilder buff = new StringBuilder();
     private String sql;
     private ArrayList<Object> params = new ArrayList<Object>();
 
-    SQLStatement(Db db) {
+    SQLStatementX(Db db) {
         this.db = db;
     }
 
@@ -32,7 +32,7 @@ public class SQLStatement {
         buff = new StringBuilder(sql);
     }
 
-    SQLStatement appendSQL(String s) {
+    public SQLStatementX appendSQL(String s) {
         buff.append(s);
         sql = null;
         return this;
@@ -45,7 +45,7 @@ public class SQLStatement {
         return sql;
     }
 
-    SQLStatement addParameter(Object o) {
+    SQLStatementX addParameter(Object o) {
         params.add(o);
         return this;
     }

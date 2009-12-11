@@ -108,6 +108,7 @@ public class ChangeFileEncryption extends Tool {
     /**
      * Changes the password for a database.
      * The passwords must be supplied as char arrays and are cleaned in this method.
+     * The database must be closed before calling this method.
      *
      * @param dir the directory (. for the current directory)
      * @param db the database name (null for all databases)

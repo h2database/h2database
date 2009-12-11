@@ -17,7 +17,6 @@ import org.h2.index.IndexCondition;
 import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -45,6 +44,7 @@ public class CompareLike extends Condition {
     private int patternLength;
     private boolean ignoreCase;
     private boolean fastCompare;
+    private boolean invalidPattern;
 
     public CompareLike(CompareMode compareMode, Expression left, Expression right, Expression escape, boolean regexp) {
         this.compareMode = compareMode;
@@ -98,6 +98,9 @@ public class CompareLike extends Condition {
             }
             String p = r.getString();
             initPattern(p, getEscapeChar(e));
+            if (invalidPattern) {
+                return ValueExpression.getNull();
+            }
             if ("%".equals(p)) {
                 // optimization for X LIKE '%': convert to X IS NOT NULL
                 return new Comparison(session, Comparison.IS_NOT_NULL, left, null).optimize(session);
@@ -113,7 +116,7 @@ public class CompareLike extends Condition {
         return this;
     }
 
-    private Character getEscapeChar(Value e) {
+    private Character getEscapeChar(Value e) throws SQLException {
         if (e == null) {
             return SysProperties.DEFAULT_ESCAPE_CHAR;
         }
@@ -123,6 +126,8 @@ public class CompareLike extends Condition {
             esc = SysProperties.DEFAULT_ESCAPE_CHAR;
         } else if (es.length() == 0) {
             esc = null;
+        } else if (es.length() > 1) {
+            throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, es);
         } else {
             esc = es.charAt(0);
         }
@@ -159,6 +164,9 @@ public class CompareLike extends Condition {
             Message.throwInternalError();
         }
         initPattern(p, getEscapeChar(e));
+        if (invalidPattern) {
+            return;
+        }
         if (patternLength <= 0 || types[0] != MATCH) {
             // can't use an index
             return;
@@ -178,8 +186,8 @@ public class CompareLike extends Condition {
             filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL, l, ValueExpression
                     .get(ValueString.get(begin))));
         } else {
-            // TODO check if this is correct according to Unicode rules (code
-            // points)
+            // TODO check if this is correct according to Unicode rules
+            // (code points)
             String end;
             if (begin.length() > 0) {
                 filter.addIndexCondition(IndexCondition.get(Comparison.BIGGER_EQUAL, l, ValueExpression.get(ValueString
@@ -215,6 +223,9 @@ public class CompareLike extends Condition {
                 return ValueNull.INSTANCE;
             }
             initPattern(p, getEscapeChar(e));
+        }
+        if (invalidPattern) {
+            return ValueNull.INSTANCE;
         }
         String value = l.getString();
         boolean result;
@@ -272,6 +283,9 @@ public class CompareLike extends Condition {
      */
     public boolean test(String testPattern, String value, char escapeChar) throws SQLException {
         initPattern(testPattern, escapeChar);
+        if (invalidPattern) {
+            return false;
+        }
         return compareAt(value, 0, 0, value.length(), pattern, types);
     }
 
@@ -307,12 +321,10 @@ public class CompareLike extends Condition {
             int type;
             if (escape != null && escape == c) {
                 if (i >= len - 1) {
-                    throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
+                    invalidPattern = true;
+                    return;
                 }
                 c = p.charAt(++i);
-                if (c != '_' && c != '%' && c != escape) {
-                    throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
-                }
                 type = MATCH;
                 lastAny = false;
             } else if (c == '%') {

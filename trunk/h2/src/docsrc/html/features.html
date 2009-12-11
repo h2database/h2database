@@ -1329,16 +1329,14 @@ the database can also be opened in read-only mode, even if the database file is 
 <h2 id="database_in_zip">Read Only Databases in Zip or Jar File</h2>
 <p>
 To create a read-only database in a zip file, first create a regular persistent database, and then create a backup.
-If you are using a database named <code>test</code>, an easy way to do that is using the
-<code>Backup</code> tool or the <code>BACKUP</code> SQL statement:
+The database must not have pending changes, that means you need to close all connections to the database first.
+If you are using a database named <code>test</code>, an easy way to create a zip file is using the
+<code>Backup</code> tool. You can start the tool from the command line, or from within the
+H2 Console (Tools - Backup). Please note that the database must be closed when the backup
+is created. Therefore, the SQL statement <code>BACKUP TO</code> can not be used.
 </p>
-<pre>
-BACKUP TO 'data.zip'
-</pre>
 <p>
-The database must not have pending changes, that means you need to close all connections to the
-database, open one single connection, and then execute the statement. Afterwards, you can log out,
-and directly open the database in the zip file using the following database URL:
+When the zip file is created, you can open the database in the zip file using the following database URL:
 </p>
 <pre>
 jdbc:h2:zip:~/data.zip!/test

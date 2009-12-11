@@ -1,3 +1,14 @@
+create table test(name varchar(255)) as select 'Hello+World+';
+select count(*) from test where name like 'Hello++World++' escape '+';
+> 1;
+select count(*) from test where name like '+H+e+l+l+o++World++' escape '+';
+> 1;
+select count(*) from test where name like 'Hello+World++' escape '+';
+> 0;
+select count(*) from test where name like 'Hello++World+' escape '+';
+> 0;
+drop table test;
+
 select count(*) from system_range(1, 1);
 > 1;
 select count(*) from system_range(1, -1);

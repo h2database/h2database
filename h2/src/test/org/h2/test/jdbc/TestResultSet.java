@@ -786,13 +786,20 @@ public class TestResultSet extends TestBase {
         Calendar regular = Calendar.getInstance();
         Calendar other = null;
         // search a locale that has a _different_ raw offset
+        long testTime = java.sql.Date.valueOf("2001-02-03").getTime();
         for (String s : TimeZone.getAvailableIDs()) {
             TimeZone zone = TimeZone.getTimeZone(s);
-            if (regular.getTimeZone().getRawOffset() != zone.getRawOffset()) {
-                other = Calendar.getInstance(zone);
-                break;
+            long rawOffsetDiff = regular.getTimeZone().getRawOffset() - zone.getRawOffset();
+            // must not be the same timezone, and must not be 1 day apart
+            // (as for Pacific/Auckland and Etc/GMT+12)
+            if (rawOffsetDiff != 0 && rawOffsetDiff != 1000 * 60 * 60 * 24) {
+                if (regular.getTimeZone().getOffset(testTime) != zone.getOffset(testTime)) {
+                    other = Calendar.getInstance(zone);
+                    break;
+                }
             }
         }
+
         trace("regular offset = " + regular.getTimeZone().getRawOffset() + " other = "
                 + other.getTimeZone().getRawOffset());
 
@@ -827,8 +834,10 @@ public class TestResultSet extends TestBase {
         prep.execute();
 
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        assertResultSetMeta(rs, 4, new String[] { "ID", "D", "T", "TS" }, new int[] { Types.INTEGER, Types.DATE,
-                Types.TIME, Types.TIMESTAMP }, new int[] { 10, 8, 6, 23 }, new int[] { 0, 0, 0, 10 });
+        assertResultSetMeta(rs, 4,
+                new String[] { "ID", "D", "T", "TS" },
+                new int[] { Types.INTEGER, Types.DATE, Types.TIME, Types.TIMESTAMP },
+                new int[] { 10, 8, 6, 23 }, new int[] { 0, 0, 0, 10 });
 
         rs.next();
         assertEquals(0, rs.getInt(1));

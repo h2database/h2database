@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -83,18 +84,22 @@ public class UndoLogRecord {
      * @param session the session
      */
     public void undo(Session session) throws SQLException {
+        Database db = session.getDatabase();
         switch (operation) {
         case INSERT:
             if (state == IN_MEMORY_INVALID) {
-                Index index = table.getUniqueIndex();
-                Cursor cursor = index.find(session, row, row);
-                cursor.next();
-                // can not just set the position, because the row
-                // may already be in the cache
-                row = cursor.get();
+                if (!db.isPageStoreEnabled()) {
+                    Index index = table.getUniqueIndex();
+                    row.setPos(0);
+                    Cursor cursor = index.find(session, row, row);
+                    cursor.next();
+                    // can not just set the position, because the row
+                    // may already be in the cache
+                    row = cursor.get();
+                }
                 state = IN_MEMORY;
             }
-            if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF) {
+            if (db.getLockMode() == Constants.LOCK_MODE_OFF) {
                 if (row.isDeleted()) {
                     // it might have been deleted by another thread
                     return;
@@ -115,7 +120,9 @@ public class UndoLogRecord {
             break;
         case DELETE:
             try {
-                row.setKey(0);
+                if (!db.isPageStoreEnabled()) {
+                    row.setKey(0);
+                }
                 table.addRow(session, row);
                 // reset session id, otherwise other session think
                 // that this row was inserted by this session
@@ -155,6 +162,7 @@ public class UndoLogRecord {
         buff.writeInt(0);
         buff.writeInt(operation);
         buff.writeByte(row.isDeleted() ? (byte) 1 : (byte) 0);
+        buff.writeLong(row.getKey());
         buff.writeInt(row.getSessionId());
         buff.writeInt(row.getColumnCount());
         for (int i = 0; i < row.getColumnCount(); i++) {
@@ -193,6 +201,7 @@ public class UndoLogRecord {
             }
         }
         boolean deleted = buff.readByte() == 1;
+        long key = buff.readLong();
         int sessionId = buff.readInt();
         int columnCount = buff.readInt();
         Value[] values = new Value[columnCount];
@@ -200,6 +209,7 @@ public class UndoLogRecord {
             values[i] = buff.readValue();
         }
         row = new Row(values, 0);
+        row.setKey(key);
         row.setDeleted(deleted);
         row.setSessionId(sessionId);
         state = IN_MEMORY_INVALID;

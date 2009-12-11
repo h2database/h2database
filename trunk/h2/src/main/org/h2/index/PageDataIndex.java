@@ -50,7 +50,10 @@ public class PageDataIndex extends PageIndex implements RowIndex {
     private int memorySizePerPage;
 
     public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
+int test;
+//        initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
+
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
@@ -116,6 +119,9 @@ public class PageDataIndex extends PageIndex implements RowIndex {
         }
         // when using auto-generated values, it's possible that multiple
         // tries are required (specially if there was originally a primary key)
+        if (trace.isDebugEnabled()) {
+            trace.debug(getName() + " add " + row);
+        }
         long add = 0;
         while (true) {
             try {
@@ -291,6 +297,9 @@ public class PageDataIndex extends PageIndex implements RowIndex {
                     session.unlinkAtCommit((ValueLob) v);
                 }
             }
+        }
+        if (trace.isDebugEnabled()) {
+            trace.debug(getName() + " remove " + row);
         }
         if (rowCount == 1) {
             removeAllRows();

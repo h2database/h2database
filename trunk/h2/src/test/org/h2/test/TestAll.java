@@ -120,6 +120,7 @@ import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestOverflow;
+import org.h2.test.unit.TestPageStore;
 import org.h2.test.unit.TestPattern;
 import org.h2.test.unit.TestPgServer;
 import org.h2.test.unit.TestReader;
@@ -297,23 +298,25 @@ java org.h2.test.TestAll timer
 
 /*
 
-memory usage:
+script: create primary key before inserting data
+
+readonly database: throw exception if lock file exists
+
 drop table test;
-create table test(username varchar, city varchar);
-create index test_user on test(username);
-create index test_city on test(city);
-insert into test select x || ' user', (x / 20) ||
-' city' from system_range(1, 500000);
+create table test(id int) as select x from system_range(1, 10);
+insert into test select null from system_range(1, 2000);
+create index idx_id on test(id);
+analyze;
+select * from test t1, test t2 where t1.id = t2.id;
 
-reserveMemory no longer needed
+console: blob: write 'binary' and '(... bytes)'
+504b0304000000... (binary, 3015712 bytes)
 
-Document Shell tool
+outer join bug
 
 // System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64
 test if compact always works as expected
-
-check memory usage when inserting a lot of rows
 
 http://www.apache.org/dev/contrib-email-tips.html
 
@@ -606,6 +609,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMathUtils().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);
+        new TestPageStore().runTest(this);
         new TestPattern().runTest(this);
         new TestPgServer().runTest(this);
         new TestReader().runTest(this);

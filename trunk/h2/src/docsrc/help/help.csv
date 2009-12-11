@@ -1514,6 +1514,9 @@ and % (any characters). The database uses an index when comparing with LIKE
 except if the operand starts with a wildcard. To search for the characters % and
 _, the characters need to be escaped. The default escape character is \ (backslash).
 To select no escape character, use ESCAPE '' (empty string).
+At most one escape character is allowed.
+Each character that follows the escape character in the pattern needs to match exactly.
+Patterns that end with an escape character are invalid and the expression returns NULL.
 
 When comparing with REGEXP, regular expression matching is used.
 See Java Matcher.find for details.
@@ -3177,6 +3180,7 @@ parsed as NULL. All columns of type VARCHAR.
 This function can be used like a table: SELECT * FROM CSVREAD(...).
 Instead of a file, an URL may be used, for example
 jar:file:///c:/temp/example.zip!/org/example/nested.zip.
+
 Admin rights are required to execute this command.
 ","
 CALL CSVREAD('test.csv');

@@ -11,12 +11,15 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
-import org.h2.jaqu.util.ClassReader;
+import org.h2.jaqu.bytecode.ClassReader;
 import org.h2.jaqu.util.Utils;
-
 import org.h2.util.JdbcUtils;
+import org.h2.util.New;
+//## Java 1.5 end ##
+
 /**
  * This class represents a query.
  *
@@ -177,18 +180,28 @@ public class Query<T> {
     }
 
     public <A> QueryWhere<T> where(Filter filter) {
-        // TODO decompile the filter and add conditions accordingly
+        HashMap<String, Object> fieldMap = New.hashMap();
         for (Field f : filter.getClass().getDeclaredFields()) {
             f.setAccessible(true);
-            // try {
-            //     System.out.println(f.getName() + "=" + f.get(filter));
-            // } catch (Exception e) {
-            //     // convert
-            // }
+            try {
+                Object obj = f.get(filter);
+                if (obj == from.getAlias()) {
+                    List<TableDefinition.FieldDefinition> fields = from.getAliasDefinition().getFields();
+                    String name = f.getName();
+                    for (TableDefinition.FieldDefinition field : fields) {
+                        String n = name + "." + field.field.getName();
+                        Object o = field.field.get(obj);
+                        fieldMap.put(n, o);
+                    }
+                }
+                fieldMap.put(f.getName(), f.get(filter));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
-        // String filterQuery =
-        new ClassReader().decompile(filter, "where");
-        // System.out.println(filterQuery);
+        Token filterCode = new ClassReader().decompile(filter, fieldMap, "where");
+        // String filterQuery = filterCode.toString();
+        conditions.add(filterCode);
         return new QueryWhere<T>(this);
     }
 
@@ -227,7 +240,13 @@ public class Query<T> {
         return this;
     }
 
-    void appendSQL(SQLStatement stat, Object x) {
+    /**
+     * INTERNAL
+     *
+     * @param stat the statement
+     * @param x the alias object
+     */
+    public void appendSQL(SQLStatement stat, Object x) {
         if (x == Function.count()) {
             stat.appendSQL("COUNT(*)");
             return;

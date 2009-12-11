@@ -29,14 +29,20 @@ class SelectTable <T> {
     private TableDefinition<T> aliasDef;
     private boolean outerJoin;
     private ArrayList<Token> joinConditions = Utils.newArrayList();
+    private T alias;
 
     @SuppressWarnings("unchecked")
     SelectTable(Db db, Query<T> query, T alias, boolean outerJoin) {
+        this.alias = alias;
         this.query = query;
         this.outerJoin = outerJoin;
         aliasDef = (TableDefinition<T>) db.getTableDefinition(alias.getClass());
         clazz = ClassUtils.getClass(alias);
         as = "T" + asCounter++;
+    }
+
+    T getAlias() {
+        return alias;
     }
 
     T newObject() {

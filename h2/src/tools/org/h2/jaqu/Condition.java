@@ -27,6 +27,7 @@ class Condition<A> implements Token {
         stat.appendSQL(" ");
         stat.appendSQL(compareType.getString());
         if (compareType.hasRightExpression()) {
+            stat.appendSQL(" ");
             query.appendSQL(stat, y);
         }
     }

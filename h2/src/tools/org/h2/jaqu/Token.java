@@ -9,7 +9,7 @@ package org.h2.jaqu;
 /**
  * Classes implementing this interface can be used as a token in a statement.
  */
-interface Token {
+public interface Token {
     /**
      * Append the SQL to the given statement using the given query.
      *

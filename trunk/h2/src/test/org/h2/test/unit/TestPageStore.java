@@ -36,6 +36,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        if (!config.pageStore) {
+            return;
+        }
         testDuplicateKey();
         testUpdateOverflow();
         testTruncateReconnect();

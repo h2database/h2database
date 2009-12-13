@@ -1117,10 +1117,10 @@ public class ClassReader {
             op = "if_acmpne " + nextPc;
             break;
         }
-//        case 167:
-//            nextPc = getAbsolutePos(pos, readShort());
-//            op = "goto " + nextPc;
-//            break;
+        case 167:
+            nextPc = getAbsolutePos(pos, readShort());
+            op = "goto " + nextPc;
+            break;
 //        case 168:
 //            // TODO not supported yet
 //            op = "jsr " + getAbsolutePos(pos, readShort());

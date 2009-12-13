@@ -90,7 +90,6 @@ public class UndoLogRecord {
             if (state == IN_MEMORY_INVALID) {
                 if (!db.isPageStoreEnabled()) {
                     Index index = table.getUniqueIndex();
-                    row.setPos(0);
                     Cursor cursor = index.find(session, row, row);
                     cursor.next();
                     // can not just set the position, because the row

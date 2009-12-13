@@ -139,7 +139,7 @@ public class TestMemoryUsage extends TestBase {
         System.gc();
         System.gc();
         int used = MemoryUtils.getMemoryUsed();
-        if ((used - start) > 7500) {
+        if ((used - start) > getSize(7500, 12000)) {
             fail("Used: " + (used - start));
         }
         stat.execute("drop table test");

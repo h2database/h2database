@@ -2458,7 +2458,10 @@ public class Database implements DataHandler {
             if (pageStore != null) {
                 pageStore.checkpoint();
             }
-            getLog().checkpoint();
+            LogSystem log = getLog();
+            if (log != null) {
+                log.checkpoint();
+            }
         }
         getTempFileDeleter().deleteUnused();
     }

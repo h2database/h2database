@@ -466,6 +466,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Move away from system properties where possible.
 </li><li>Database file lock: detect hibernate / standby / very slow threads (compare system time).
 </li><li>Automatic detection of redundant indexes.
+</li><li>If the database URL ends with ";INIT=&lt;url&gt;" then the SQL script from the given file or URL is executed (the user name must have admin rights). Example URL: jdbc:h2:mem:test;INIT=~/init.sql
 </li></ul>
 
 <h2>Not Planned</h2>

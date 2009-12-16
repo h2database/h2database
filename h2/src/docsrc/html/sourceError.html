@@ -7,7 +7,7 @@ Initial Developer: H2 Group
 -->
 <html><head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<title>Online Error Analyzer</title>
+<title>Error Analyzer</title>
 <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <style type="text/css">
 body {
@@ -188,7 +188,7 @@ function sizeTextArea() {
 </head>
 <body style="margin:20px" onresize="sizeTextArea();" onload="sizeTextArea();" >
 
-<h1>Online Error Analyzer</h1>
+<h1>Error Analyzer</h1>
 <b><a href="../html/main.html">Home</a></b><br />
 <h2>
     <a href="javascript:select('input')" id = "inputTab">Input</a>&nbsp;
@@ -197,7 +197,7 @@ function sizeTextArea() {
 </h2>
 <hr/>
 <div id = "input">
-    <p>Fill in the error message and stack trace and click on 'Details' or 'Source Code': </p>
+    <p>Paste the error message and stack trace below and click on 'Details' or 'Source Code': </p>
     <textarea id = "error" cols="100" style="width: 100%; overflow: auto;" rows="20"
         onChange="convert()"
         onSelect="convert()"

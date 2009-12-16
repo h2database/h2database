@@ -159,9 +159,16 @@ public class Csv implements SimpleRowSource {
      * Reads from the CSV file and returns a result set. The rows in the result
      * set are created on demand, that means the file is kept open until all
      * rows are read or the result set is closed.
+     * <br />
+     * If the columns are read from the CSV file, then the following rules are
+     * used: columns names that start with a letter or '_', and only
+     * contain letters, '_', and digits, are considered case insensitive
+     * and are converted to uppercase. Other column names are considered
+     * case sensitive (that means they need to be quoted when accessed).
      *
      * @param inputFileName the file name
-     * @param colNames or null if the column names should be read from the CSV file
+     * @param colNames or null if the column names should be read from the CSV
+     *            file
      * @param charset the charset or null to use UTF-8
      * @return the result set
      * @throws SQLException
@@ -313,9 +320,15 @@ public class Csv implements SimpleRowSource {
                         break;
                     }
                 } else {
-                    list.add("COLUMN" + list.size());
+                    v = "COLUMN" + list.size();
+                    list.add(v);
                 }
             } else {
+                if (v.length() == 0) {
+                    v = "COLUMN" + list.size();
+                } else if (isSimpleColumnName(v)) {
+                    v = v.toUpperCase();
+                }
                 list.add(v);
                 if (endOfLine) {
                     break;
@@ -324,6 +337,25 @@ public class Csv implements SimpleRowSource {
         }
         columnNames = new String[list.size()];
         list.toArray(columnNames);
+    }
+
+    private boolean isSimpleColumnName(String columnName) {
+        for (int i = 0; i < columnName.length(); i++) {
+            char ch = columnName.charAt(i);
+            if (i == 0) {
+                if (ch != '_' && !Character.isLetter(ch)) {
+                    return false;
+                }
+            } else {
+                if (ch != '_' && !Character.isLetterOrDigit(ch)) {
+                    return false;
+                }
+            }
+        }
+        if (columnName.length() == 0) {
+            return false;
+        }
+        return true;
     }
 
     private void pushBack() {

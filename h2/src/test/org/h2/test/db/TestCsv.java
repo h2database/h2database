@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.io.File;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,7 +17,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
@@ -45,6 +45,7 @@ public class TestCsv extends TestBase {
     }
 
     public void test() throws Exception {
+        testColumnNames();
         testSpaceSeparated();
         testNull();
         testRandomData();
@@ -55,6 +56,15 @@ public class TestCsv extends TestBase {
         testRead();
         testPipe();
         deleteDb("csv");
+    }
+
+    private void testColumnNames() throws Exception {
+        ResultSet rs;
+        rs = Csv.getInstance().read(new StringReader("Id,First Name,2x,_x2\n1,2,3"), null);
+        assertEquals("ID", rs.getMetaData().getColumnName(1));
+        assertEquals("First Name", rs.getMetaData().getColumnName(2));
+        assertEquals("2x", rs.getMetaData().getColumnName(3));
+        assertEquals("_X2", rs.getMetaData().getColumnName(4));
     }
 
     private void testSpaceSeparated() throws SQLException {
@@ -278,10 +288,10 @@ public class TestCsv extends TestBase {
         ResultSet rs = Csv.getInstance().read(fileName, null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(4, meta.getColumnCount());
-        assertEquals("a", meta.getColumnLabel(1));
-        assertEquals("b", meta.getColumnLabel(2));
-        assertEquals("c", meta.getColumnLabel(3));
-        assertEquals("d", meta.getColumnLabel(4));
+        assertEquals("A", meta.getColumnLabel(1));
+        assertEquals("B", meta.getColumnLabel(2));
+        assertEquals("C", meta.getColumnLabel(3));
+        assertEquals("D", meta.getColumnLabel(4));
         assertTrue(rs.next());
         assertEquals("201", rs.getString(1));
         assertEquals("-2", rs.getString(2));

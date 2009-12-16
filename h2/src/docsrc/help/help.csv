@@ -3168,10 +3168,12 @@ Returns the result set of reading the CSV (comma separated values) file.
 For each parameter, NULL means the default value should be used.
 
 If the column names are specified (a list of column names separated with the
-fieldSeparator), those are used they are read from the file, otherwise
-(or if they are set to NULL) the first line of the file is interpreted as the column names.
-Column names are case sensitive, that means you need to use quoted identifiers
-unless the column names are capitalized (see below).
+fieldSeparator), those are used, otherwise (or if they are set to NULL) the first line of 
+the file is interpreted as the column names.
+In that case, column names that contain no special characters (only letters, '_',
+and digits; similar to the rule for Java identifiers) are considered case insensitive.
+Other column names are case sensitive, that means you need to use quoted identifiers
+(see below).
 
 The default charset is the default value for this system, and the default field separator
 is a comma. Missing unquoted values as well as data that matches nullString is

@@ -206,6 +206,14 @@ public class ScriptCommand extends ScriptBase {
                 }
                 String tableType = table.getTableType();
                 add(sql, false);
+                ObjectArray<Constraint> constraints = table.getConstraints();
+                if (constraints != null) {
+                    for (Constraint constraint : constraints) {
+                        if (Constraint.PRIMARY_KEY.equals(constraint.getConstraintType())) {
+                            add(constraint.getCreateSQLWithoutIndexes(), false);
+                        }
+                    }
+                }
                 if (Table.TABLE.equals(tableType)) {
                     if (table.canGetRowCount()) {
                         String rowcount = "-- " + table.getRowCountApproximation() + " +/- SELECT COUNT(*) FROM "
@@ -291,7 +299,9 @@ public class ScriptCommand extends ScriptBase {
             });
             for (SchemaObject obj : constraints) {
                 Constraint constraint = (Constraint) obj;
-                add(constraint.getCreateSQLWithoutIndexes(), false);
+                if (!Constraint.PRIMARY_KEY.equals(constraint.getConstraintType())) {
+                    add(constraint.getCreateSQLWithoutIndexes(), false);
+                }
             }
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.TRIGGER)) {
                 TriggerObject trigger = (TriggerObject) obj;

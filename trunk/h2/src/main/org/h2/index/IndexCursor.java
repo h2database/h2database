@@ -20,9 +20,10 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
- * The filter used to walk through an index. This class filters supports IN(..)
+ * The filter used to walk through an index. This class supports IN(..)
  * and IN(SELECT ...) optimizations.
  */
 public class IndexCursor implements Cursor {
@@ -102,6 +103,10 @@ public class IndexCursor implements Cursor {
                     end = getSearchRow(end, id, v, false);
                 }
                 if (isStart && isEnd) {
+                    if (v == ValueNull.INSTANCE) {
+                        // join on a column=NULL is always false
+                        alwaysFalse = true;
+                    }
                     // an X=? condition will produce less rows than
                     // an X IN(..) condition
                     inColumn = null;

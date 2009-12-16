@@ -8,6 +8,22 @@ package org.h2.constant;
 
 /**
  * This class defines the error codes used for SQL exceptions.
+ * Error messages are formatted as follows:
+ * <pre>
+ * { error message (possibly translated; may include quoted data) }
+ * { error message in English if different }
+ * { SQL statement if applicable }
+ * { [ error code - build number ] }
+ * </pre>
+ * Example:
+ * <pre>
+ * Syntax error in SQL statement "SELECT * FORM[*] TEST ";
+ * SQL statement: select * form test [42000-125]
+ * </pre>
+ * The [*] marks the position of the syntax error
+ * (FORM instead of FROM in this case).
+ * The error code is 42000, and the build number is 125,
+ * meaning version 1.2.125.
  */
 public class ErrorCode {
 

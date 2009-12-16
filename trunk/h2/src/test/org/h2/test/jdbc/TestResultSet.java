@@ -790,8 +790,8 @@ public class TestResultSet extends TestBase {
         for (String s : TimeZone.getAvailableIDs()) {
             TimeZone zone = TimeZone.getTimeZone(s);
             long rawOffsetDiff = regular.getTimeZone().getRawOffset() - zone.getRawOffset();
-            // must not be the same timezone, and must not be 1 day apart
-            // (as for Pacific/Auckland and Etc/GMT+12)
+            // must not be the same timezone (not 0 h and not 24 h difference
+            // as for Pacific/Auckland and Etc/GMT+12)
             if (rawOffsetDiff != 0 && rawOffsetDiff != 1000 * 60 * 60 * 24) {
                 if (regular.getTimeZone().getOffset(testTime) != zone.getOffset(testTime)) {
                     other = Calendar.getInstance(zone);

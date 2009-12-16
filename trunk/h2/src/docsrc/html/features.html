@@ -899,20 +899,14 @@ The initial lock timeout (that is the timeout used for new connections) can be s
 
 <h2 id="database_file_layout">Database File Layout</h2>
 <p>
-There are a number of files created for persistent databases. Unlike some other databases,
-not every table and/or index is stored in its own file. Instead, usually only the following files are created:
-a data file, an index file, a log file, and a database lock file (exists only while the database is in use).
-In addition to that, a file is created for each large object (CLOB/BLOB) larger than a certain size,
-and temporary files for large result sets.
-If the database trace option is enabled, trace files are created.
-The following files can be created by the database:
+The following files are created for persistent databases:
 </p>
 <table><tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
 <tr><td class="notranslate">
     test.h2.db
 </td><td>
-    Database file.<br />
-    Contains the data and index data for all tables.<br />
+    Database file (H2 version 1.2.x).<br />
+    Contains the transaction log, indexes, and data for all tables.<br />
     Format: <code>&lt;database&gt;.h2.db</code>
 </td><td>
     1 per database
@@ -920,7 +914,7 @@ The following files can be created by the database:
 <tr><td class="notranslate">
     test.data.db
 </td><td>
-    Data file.<br />
+    Data file (H2 version 1.1.x).<br />
     Contains the data for all tables.<br />
     Format: <code>&lt;database&gt;.data.db</code>
 </td><td>
@@ -929,8 +923,8 @@ The following files can be created by the database:
 <tr><td class="notranslate">
     test.index.db
 </td><td>
-    Index file.<br />
-    Contains the data for all (b tree) indexes.<br />
+    Index file (H2 version 1.1.x).<br />
+    Contains the data for all (b-tree) indexes.<br />
     Format: <code>&lt;database&gt;.index.db</code>
 </td><td>
     1 per database
@@ -938,7 +932,7 @@ The following files can be created by the database:
 <tr><td class="notranslate">
     test.0.log.db
 </td><td>
-    Transaction log file.<br />
+    Transaction log file (H2 version 1.1.x).<br />
     The transaction log is used for recovery.<br />
     Format: <code>&lt;database&gt;.&lt;id&gt;.log.db</code>
 </td><td>
@@ -948,7 +942,7 @@ The following files can be created by the database:
     test.lock.db
 </td><td>
     Database lock file.<br />
-    Exists only while the database is open.<br />
+    Automatically (re-)created while the database is in use.<br />
     Format: <code>&lt;database&gt;.lock.db</code>
 </td><td>
     1 per database
@@ -956,21 +950,21 @@ The following files can be created by the database:
 <tr><td class="notranslate">
     test.trace.db
 </td><td>
-    Trace file.<br />
+    Trace file (if the trace option is enabled).<br />
     Contains trace information.<br />
     Format: <code>&lt;database&gt;.trace.db</code><br />
-    If the file is too big, it is renamed to <code>&lt;database&gt;.trace.db.old</code>
+    Renamed to <code>&lt;database&gt;.trace.db.old</code> is too big.
 </td><td>
-    1 per database
+    0 or 1 per database
 </td></tr>
 <tr><td class="notranslate">
-    test.lobs.db/1.t15.lob.db
+    test.lobs.db/*
 </td><td>
-    Large object.<br />
-    Contains the data for BLOB or CLOB values.<br />
+    Directory containing one file for each<br />
+    BLOB or CLOB value larger than a certain size.<br />
     Format: <code>&lt;id&gt;.t&lt;tableId&gt;.lob.db</code>
 </td><td>
-    1 per value
+    1 per large object
 </td></tr>
 <tr><td class="notranslate">
     test.123.temp.db
@@ -1734,7 +1728,7 @@ The amount of memory used for caching can be changed using the setting
 Also included is an experimental second level soft reference cache. Rows in this cache are only garbage collected
 on low memory. By default the second level cache is disabled. To enable it,
 use the prefix <code>SOFT_</code>. Example: <code>jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code>.
-The cache might not actually improve performance. If you plan to use it, 
+The cache might not actually improve performance. If you plan to use it,
 please run your own test cases first.
 </p><p>
 To get information about page reads and writes, and the current caching algorithm in use,

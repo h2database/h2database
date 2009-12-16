@@ -298,19 +298,20 @@ java org.h2.test.TestAll timer
 
 /*
 
-script: create primary key before inserting data
+change client version (identity_scope problem)
+
+add performance analysis tool to H2 Console
+
+template for test case.
 
 readonly database: throw exception if lock file exists
 
-drop table test;
-create table test(id int) as select x from system_range(1, 10);
-insert into test select null from system_range(1, 2000);
-create index idx_id on test(id);
-analyze;
-select * from test t1, test t2 where t1.id = t2.id;
-
 console: blob: write 'binary' and '(... bytes)'
 504b0304000000... (binary, 3015712 bytes)
+DROP TABLE IF EXISTS TEST;
+CREATE TABLE TEST(ID INT PRIMARY KEY, data blob);
+INSERT INTO TEST VALUES(1, SECURE_RAND(100000));
+SELECT * FROM TEST ORDER BY ID;
 
 outer join bug
 

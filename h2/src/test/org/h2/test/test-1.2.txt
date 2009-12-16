@@ -37,14 +37,14 @@ create table test(a int, b int) as select x, x from system_range(1, 100);
 -- the table t1 should be processed first
 explain select * from test t2, test t1 where t1.a=1 and t1.b = t2.b;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T2.A, T2.B, T1.A, T1.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T2.A, T2.B, T1.A, T1.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST_DATA */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
 > rows: 1
 
 explain select * from test t1, test t2 where t1.a=1 and t1.b = t2.b;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.A, T1.B, T2.A, T2.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.A, T1.B, T2.A, T2.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST_DATA */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
 > rows: 1
 
 drop table test;
@@ -555,8 +555,8 @@ insert into t2 select x from system_range(1, 1000);
 
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2_TABLE_SCAN ++/) */ WHERE T1.ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */)
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2_DATA ++/) */ WHERE T1.ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2_DATA */)
 > rows: 1
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
@@ -617,8 +617,8 @@ update test set b = default where a = 2;
 
 explain update test set b = default where a = 2;
 > PLAN
-> ---------------------------------------------------------------------------
-> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET B = DEFAULT WHERE A = 2
+> ---------------------------------------------------------------------
+> UPDATE PUBLIC.TEST /* PUBLIC.TEST_DATA */ SET B = DEFAULT WHERE A = 2
 > rows: 1
 
 select * from test;
@@ -912,8 +912,8 @@ explain select * from (select dir_num, count(*) as cnt from multi_pages  t, b_ho
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num) as x
 where cnt < 1000 order by dir_num asc;
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT X.DIR_NUM, X.CNT FROM (SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES_TABLE_SCAN */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES_TABLE_SCAN ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= CAST(?1 AS BIGINT): CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT X.DIR_NUM, X.CNT FROM (SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES_DATA */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES_DATA ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= CAST(?1 AS BIGINT): CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
 > rows (ordered): 1
 
 select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
@@ -966,8 +966,8 @@ explain select * from test where id = 1;
 
 EXPLAIN SELECT * FROM TEST WHERE ID = (SELECT MAX(ID) FROM TEST);
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ /++ direct lookup ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ /* direct lookup */)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST_DATA ++/ /++ direct lookup ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ /* direct lookup */)
 > rows: 1
 
 drop table test;
@@ -987,8 +987,8 @@ explain select * from test where id = 3;
 
 explain select * from test where id = 255;
 > PLAN
-> -------------------------------------------------------------------------------
-> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN: FALSE */ WHERE FALSE
+> -------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST_DATA: FALSE */ WHERE FALSE
 > rows: 1
 
 drop table test;
@@ -1308,8 +1308,8 @@ select * from test where name = -1 and name = id;
 
 explain select * from test where name = -1 and name = id;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ WHERE (NAME = '-1') AND (CAST(NAME AS INTEGER) = ID)
+> ----------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ WHERE (NAME = '-1') AND (CAST(NAME AS INTEGER) = ID)
 > rows: 1
 
 DROP TABLE TEST;
@@ -1397,8 +1397,8 @@ create table test(id int);
 
 explain select id+1 a from test group by id+1;
 > PLAN
-> ----------------------------------------------------------------------------------
-> SELECT (ID + 1) AS A FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ GROUP BY ID + 1
+> ----------------------------------------------------------------------------
+> SELECT (ID + 1) AS A FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ GROUP BY ID + 1
 > rows: 1
 
 drop table test;
@@ -1686,8 +1686,8 @@ CREATE TABLE TESTB(ID IDENTITY);
 
 explain SELECT TESTA.ID A, TESTB.ID B FROM TESTA, TESTB ORDER BY TESTA.ID, TESTB.ID;
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TESTA.ID AS A, TESTB.ID AS B FROM PUBLIC.TESTA /* PUBLIC.TESTA_TABLE_SCAN */ INNER JOIN PUBLIC.TESTB /* PUBLIC.TESTB_TABLE_SCAN */ ON 1=1 ORDER BY 1, 2
+> --------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TESTA.ID AS A, TESTB.ID AS B FROM PUBLIC.TESTA /* PUBLIC.TESTA_DATA */ INNER JOIN PUBLIC.TESTB /* PUBLIC.TESTB_DATA */ ON 1=1 ORDER BY 1, 2
 > rows (ordered): 1
 
 DROP TABLE IF EXISTS TESTA, TESTB;
@@ -1926,14 +1926,14 @@ create table test(id int, name varchar);
 
 explain select * from test;
 > PLAN
-> ---------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM TEST_SCHEMA.TEST /* TEST_SCHEMA.TEST_TABLE_SCAN */
+> ---------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM TEST_SCHEMA.TEST /* TEST_SCHEMA.TEST_DATA */
 > rows: 1
 
 explain select * from public.test;
 > PLAN
-> ------------------------------------------------------------
-> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+> ------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
 > rows: 1
 
 drop schema TEST_SCHEMA;
@@ -2415,8 +2415,8 @@ insert into x values(0), (1), (10);
 > update count: 3
 
 SELECT t1.ID, (SELECT t1.id || ':' || AVG(t2.ID) FROM X t2) FROM X t1;
-> ID SELECT ((T1.ID || ':') || AVG(T2.ID)) FROM PUBLIC.X T2 /* PUBLIC.X_TABLE_SCAN */
-> -- --------------------------------------------------------------------------------
+> ID SELECT ((T1.ID || ':') || AVG(T2.ID)) FROM PUBLIC.X T2 /* PUBLIC.X_DATA */
+> -- --------------------------------------------------------------------------
 > 0  0:3
 > 1  1:3
 > 10 10:3
@@ -2446,11 +2446,11 @@ select * from test order by id;
 > rows (ordered): 3
 
 select rownum, (select count(*) from test), rownum from test;
-> ROWNUM() SELECT COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ /* direct lookup */ ROWNUM()
-> -------- --------------------------------------------------------------------------------- --------
-> 1        3                                                                                 1
-> 2        3                                                                                 2
-> 3        3                                                                                 3
+> ROWNUM() SELECT COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ /* direct lookup */ ROWNUM()
+> -------- --------------------------------------------------------------------------- --------
+> 1        3                                                                           1
+> 2        3                                                                           2
+> 3        3                                                                           3
 > rows: 3
 
 delete from test t0 where rownum<2;
@@ -2551,8 +2551,8 @@ select * from test2 where name like 'HELLO';
 
 explain plan for select * from test2, test where test2.name = test.name;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2_TABLE_SCAN */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2_DATA */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST_DATA */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
 > rows: 1
 
 select * from test2, test where test2.name = test.name;
@@ -2564,8 +2564,8 @@ select * from test2, test where test2.name = test.name;
 
 explain plan for select * from test, test2 where test2.name = test.name;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2_TABLE_SCAN */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2_DATA */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST_DATA */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
 > rows: 1
 
 select * from test, test2 where test2.name = test.name;
@@ -2580,8 +2580,8 @@ create index idx_test2_name on test2(name);
 
 explain plan for select * from test2, test where test2.name = test.name;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255)) */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255)) */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
 > rows: 1
 
 select * from test2, test where test2.name = test.name;
@@ -2593,8 +2593,8 @@ select * from test2, test where test2.name = test.name;
 
 explain plan for select * from test, test2 where test2.name = test.name;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255)) */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255)) */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
 > rows: 1
 
 select * from test, test2 where test2.name = test.name;
@@ -2658,8 +2658,8 @@ INSERT INTO TEST VALUES(1, 'Hello');
 
 explain select t0.id, t1.id from test t0, test t1 order by t0.id, t1.id;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T0.ID, T1.ID FROM PUBLIC.TEST T0 /* PUBLIC.TEST_TABLE_SCAN */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1 ORDER BY 1, 2
+> ------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T0.ID, T1.ID FROM PUBLIC.TEST T0 /* PUBLIC.TEST_DATA */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ ON 1=1 ORDER BY 1, 2
 > rows (ordered): 1
 
 INSERT INTO TEST VALUES(2, 'World');
@@ -2685,8 +2685,8 @@ where exists (select 1 from test t4 where t2.id=t4.id);
 
 explain select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID)
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID)
 > rows: 1
 
 select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
@@ -2698,8 +2698,8 @@ select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 
 explain select * from test t1 where id in(id, id+1);
 > PLAN
-> ------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ WHERE ID IN(ID, (ID + 1))
+> ------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ WHERE ID IN(ID, (ID + 1))
 > rows: 1
 
 select * from test t1 where id in(id, id+1);
@@ -2711,8 +2711,8 @@ select * from test t1 where id in(id, id+1);
 
 explain select * from test t1 where id in(id);
 > PLAN
-> ------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ WHERE ID = ID
+> ------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ WHERE ID = ID
 > rows: 1
 
 select * from test t1 where id in(id);
@@ -2724,8 +2724,8 @@ select * from test t1 where id in(id);
 
 explain select * from test t1 where id in(select id from test);
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/) */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST_DATA ++/) */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */)
 > rows: 1
 
 select * from test t1 where id in(select id from test);
@@ -2737,8 +2737,8 @@ select * from test t1 where id in(select id from test);
 
 explain select * from test t1 where id in(1, select max(id) from test);
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ /++ direct lookup ++/)) */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ /* direct lookup */))
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST_DATA ++/ /++ direct lookup ++/)) */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ /* direct lookup */))
 > rows: 1
 
 select * from test t1 where id in(1, select max(id) from test);
@@ -2750,8 +2750,8 @@ select * from test t1 where id in(1, select max(id) from test);
 
 explain select * from test t1 where id in(1, select max(id) from test t2 where t1.id=t2.id);
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID))
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID))
 > rows: 1
 
 select * from test t1 where id in(1, select max(id) from test t2 where t1.id=t2.id);
@@ -2851,8 +2851,8 @@ explain select * from one natural join two left join two three on
 one.id=three.id left join one four on two.id=four.id where three.val
 is null or three.val>=DATE'2006-07-01';
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT ONE.ID, TWO.VAL, THREE.ID, THREE.VAL, FOUR.ID FROM PUBLIC.ONE /* PUBLIC.ONE_TABLE_SCAN */ INNER JOIN PUBLIC.TWO /* PUBLIC.PRIMARY_KEY_14: ID = PUBLIC.ONE.ID AND ID = PUBLIC.ONE.ID */ ON 1=1 /* WHERE PUBLIC.ONE.ID = PUBLIC.TWO.ID */ LEFT OUTER JOIN PUBLIC.TWO THREE /* PUBLIC.PRIMARY_KEY_14: ID = ONE.ID */ ON ONE.ID = THREE.ID LEFT OUTER JOIN PUBLIC.ONE FOUR /* PUBLIC.PRIMARY_KEY_1: ID = TWO.ID */ ON TWO.ID = FOUR.ID WHERE (PUBLIC.ONE.ID = PUBLIC.TWO.ID) AND ((THREE.VAL IS NULL) OR (THREE.VAL >= DATE '2006-07-01'))
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT ONE.ID, TWO.VAL, THREE.ID, THREE.VAL, FOUR.ID FROM PUBLIC.ONE /* PUBLIC.ONE_DATA */ INNER JOIN PUBLIC.TWO /* PUBLIC.PRIMARY_KEY_14: ID = PUBLIC.ONE.ID AND ID = PUBLIC.ONE.ID */ ON 1=1 /* WHERE PUBLIC.ONE.ID = PUBLIC.TWO.ID */ LEFT OUTER JOIN PUBLIC.TWO THREE /* PUBLIC.PRIMARY_KEY_14: ID = ONE.ID */ ON ONE.ID = THREE.ID LEFT OUTER JOIN PUBLIC.ONE FOUR /* PUBLIC.PRIMARY_KEY_1: ID = TWO.ID */ ON TWO.ID = FOUR.ID WHERE (PUBLIC.ONE.ID = PUBLIC.TWO.ID) AND ((THREE.VAL IS NULL) OR (THREE.VAL >= DATE '2006-07-01'))
 > rows: 1
 
 -- Query #4: same as #3, but the joins have been manually re-ordered
@@ -2920,8 +2920,8 @@ inner join test2 on test1.id=test2.id left
 outer join test3 on test2.id=test3.id
 where test3.id is null;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST1 /* PUBLIC.TEST1_TABLE_SCAN */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.PRIMARY_KEY_4C: ID = TEST1.ID AND ID = TEST1.ID */ ON 1=1 /* WHERE TEST1.ID = TEST2.ID */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST1 /* PUBLIC.TEST1_DATA */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.PRIMARY_KEY_4C: ID = TEST1.ID AND ID = TEST1.ID */ ON 1=1 /* WHERE TEST1.ID = TEST2.ID */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 > rows: 1
 
 insert into test1 select x from system_range(2, 1000);
@@ -2940,8 +2940,8 @@ inner join test2 on test1.id=test2.id
 left outer join test3 on test2.id=test3.id
 where test3.id is null;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2_TABLE_SCAN */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2_DATA */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 > rows: 1
 
 SELECT TEST1.ID, TEST2.ID, TEST3.ID
@@ -3193,8 +3193,8 @@ select count(*) from test where id = ((select id from test), 1);
 > exception
 
 select (select id from test where 1=0) from test;
-> SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN: FALSE */ WHERE FALSE
-> --------------------------------------------------------------------------
+> SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST_DATA: FALSE */ WHERE FALSE
+> --------------------------------------------------------------------
 > null
 > null
 > rows: 2
@@ -3405,8 +3405,8 @@ create table test(id int primary key);
 
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT A.ID, C.ID, B.ID FROM PUBLIC.TEST A /* PUBLIC.TEST_TABLE_SCAN */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID INNER JOIN PUBLIC.TEST B /* PUBLIC.TEST_TABLE_SCAN */ ON 1=1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT A.ID, C.ID, B.ID FROM PUBLIC.TEST A /* PUBLIC.TEST_DATA */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID INNER JOIN PUBLIC.TEST B /* PUBLIC.TEST_DATA */ ON 1=1
 > rows: 1
 
 SELECT T.ID FROM TEST "T";
@@ -4609,14 +4609,14 @@ update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id
 
 explain update test set (id, name)=(id+1, name || 'Hi');
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------
-> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
+> --------------------------------------------------------------------------------------------------------------------------------------------
+> UPDATE PUBLIC.TEST /* PUBLIC.TEST_DATA */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
 > rows: 1
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> UPDATE PUBLIC.TEST /* PUBLIC.TEST_DATA */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
 > rows: 1
 
 select * from test;
@@ -4793,8 +4793,8 @@ EXPLAIN SELECT COUNT(*) FROM PARENT, CHILD A, CHILD B, CHILD C, CHILD D, CHILD E
 WHERE AID=A.ID AND BID=B.ID AND CID=C.ID
 AND DID=D.ID AND EID=E.ID AND FID=F.ID AND GID=G.ID AND HID=H.ID;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT COUNT(*) FROM PUBLIC.PARENT /* PUBLIC.PARENT_TABLE_SCAN */ INNER JOIN PUBLIC.CHILD A /* PUBLIC.PRIMARY_KEY_3: ID = AID */ ON 1=1 /* WHERE AID = A.ID */ INNER JOIN PUBLIC.CHILD B /* PUBLIC.PRIMARY_KEY_3: ID = BID */ ON 1=1 /* WHERE BID = B.ID */ INNER JOIN PUBLIC.CHILD C /* PUBLIC.PRIMARY_KEY_3: ID = CID */ ON 1=1 /* WHERE CID = C.ID */ INNER JOIN PUBLIC.CHILD D /* PUBLIC.PRIMARY_KEY_3: ID = DID */ ON 1=1 /* WHERE DID = D.ID */ INNER JOIN PUBLIC.CHILD E /* PUBLIC.PRIMARY_KEY_3: ID = EID */ ON 1=1 /* WHERE EID = E.ID */ INNER JOIN PUBLIC.CHILD F /* PUBLIC.PRIMARY_KEY_3: ID = FID */ ON 1=1 /* WHERE FID = F.ID */ INNER JOIN PUBLIC.CHILD G /* PUBLIC.PRIMARY_KEY_3: ID = GID */ ON 1=1 /* WHERE GID = G.ID */ INNER JOIN PUBLIC.CHILD H /* PUBLIC.PRIMARY_KEY_3: ID = HID */ ON 1=1 WHERE (HID = H.ID) AND ((GID = G.ID) AND ((FID = F.ID) AND ((EID = E.ID) AND ((DID = D.ID) AND ((CID = C.ID) AND ((AID = A.ID) AND (BID = B.ID)))))))
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT COUNT(*) FROM PUBLIC.PARENT /* PUBLIC.PARENT_DATA */ INNER JOIN PUBLIC.CHILD A /* PUBLIC.PRIMARY_KEY_3: ID = AID */ ON 1=1 /* WHERE AID = A.ID */ INNER JOIN PUBLIC.CHILD B /* PUBLIC.PRIMARY_KEY_3: ID = BID */ ON 1=1 /* WHERE BID = B.ID */ INNER JOIN PUBLIC.CHILD C /* PUBLIC.PRIMARY_KEY_3: ID = CID */ ON 1=1 /* WHERE CID = C.ID */ INNER JOIN PUBLIC.CHILD D /* PUBLIC.PRIMARY_KEY_3: ID = DID */ ON 1=1 /* WHERE DID = D.ID */ INNER JOIN PUBLIC.CHILD E /* PUBLIC.PRIMARY_KEY_3: ID = EID */ ON 1=1 /* WHERE EID = E.ID */ INNER JOIN PUBLIC.CHILD F /* PUBLIC.PRIMARY_KEY_3: ID = FID */ ON 1=1 /* WHERE FID = F.ID */ INNER JOIN PUBLIC.CHILD G /* PUBLIC.PRIMARY_KEY_3: ID = GID */ ON 1=1 /* WHERE GID = G.ID */ INNER JOIN PUBLIC.CHILD H /* PUBLIC.PRIMARY_KEY_3: ID = HID */ ON 1=1 WHERE (HID = H.ID) AND ((GID = G.ID) AND ((FID = F.ID) AND ((EID = E.ID) AND ((DID = D.ID) AND ((CID = C.ID) AND ((AID = A.ID) AND (BID = B.ID)))))))
 > rows: 1
 
 CREATE TABLE FAMILY(ID INT PRIMARY KEY, PARENTID INT);
@@ -5360,8 +5360,8 @@ SELECT * FROM (SELECT ID FROM TEST GROUP BY ID);
 
 EXPLAIN SELECT * FROM TEST UNION ALL SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */)UNION ALL (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) ORDER BY 1 LIMIT 2 OFFSET 1
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */)UNION ALL (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */) ORDER BY 1 LIMIT 2 OFFSET 1
 > rows (ordered): 1
 
 EXPLAIN DELETE FROM TEST WHERE ID=1;
@@ -5413,8 +5413,8 @@ SELECT * FROM TEST2COL WHERE B=0;
 
 EXPLAIN SELECT * FROM TEST2COL WHERE B=0;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------
-> SELECT TEST2COL.A, TEST2COL.B, TEST2COL.C FROM PUBLIC.TEST2COL /* PUBLIC.TEST2COL_TABLE_SCAN */ WHERE B = 0
+> -----------------------------------------------------------------------------------------------------
+> SELECT TEST2COL.A, TEST2COL.B, TEST2COL.C FROM PUBLIC.TEST2COL /* PUBLIC.TEST2COL_DATA */ WHERE B = 0
 > rows: 1
 
 DROP TABLE TEST2COL;
@@ -5556,26 +5556,26 @@ EXPLAIN INSERT INTO TEST VALUES(1, 'Test'), (2, 'World');
 
 EXPLAIN INSERT INTO TEST SELECT DISTINCT ID+1, NAME FROM TEST;
 > PLAN
-> --------------------------------------------------------------------------------------------------------------
-> INSERT INTO PUBLIC.TEST(ID, NAME) SELECT DISTINCT (ID + 1), NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+> --------------------------------------------------------------------------------------------------------
+> INSERT INTO PUBLIC.TEST(ID, NAME) SELECT DISTINCT (ID + 1), NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
 > rows: 1
 
 EXPLAIN SELECT DISTINCT ID + 1, NAME FROM TEST;
 > PLAN
-> ----------------------------------------------------------------------------
-> SELECT DISTINCT (ID + 1), NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+> ----------------------------------------------------------------------
+> SELECT DISTINCT (ID + 1), NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
 > rows: 1
 
 EXPLAIN SELECT * FROM TEST WHERE 1=0;
 > PLAN
-> ------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN: FALSE */ WHERE FALSE
+> ------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA: FALSE */ WHERE FALSE
 > rows: 1
 
 EXPLAIN SELECT TOP 1 * FROM TEST FOR UPDATE;
 > PLAN
-> ------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ LIMIT 1 FOR UPDATE
+> ------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ LIMIT 1 FOR UPDATE
 > rows: 1
 
 EXPLAIN SELECT COUNT(NAME) FROM TEST WHERE ID=1;
@@ -5586,8 +5586,8 @@ EXPLAIN SELECT COUNT(NAME) FROM TEST WHERE ID=1;
 
 EXPLAIN SELECT * FROM TEST WHERE (ID>=1 AND ID<=2)  OR (ID>0 AND ID<3) AND (ID<>6) ORDER BY NAME NULLS FIRST, 1 NULLS LAST, (1+1) DESC;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ WHERE ((ID >= 1) AND (ID <= 2)) OR ((ID <> 6) AND ((ID > 0) AND (ID < 3))) ORDER BY 2 NULLS FIRST, 1 NULLS LAST, =2 DESC
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ WHERE ((ID >= 1) AND (ID <= 2)) OR ((ID <> 6) AND ((ID > 0) AND (ID < 3))) ORDER BY 2 NULLS FIRST, 1 NULLS LAST, =2 DESC
 > rows (ordered): 1
 
 EXPLAIN SELECT * FROM TEST WHERE ID=1 GROUP BY NAME, ID;
@@ -5598,20 +5598,20 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1 GROUP BY NAME, ID;
 
 EXPLAIN PLAN FOR UPDATE TEST SET NAME='Hello', ID=1 WHERE NAME LIKE 'T%' ESCAPE 'x';
 > PLAN
-> ----------------------------------------------------------------------------------------------------------
-> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET ID = 1, NAME = 'Hello' WHERE NAME LIKE 'T%' ESCAPE 'x'
+> ----------------------------------------------------------------------------------------------------
+> UPDATE PUBLIC.TEST /* PUBLIC.TEST_DATA */ SET ID = 1, NAME = 'Hello' WHERE NAME LIKE 'T%' ESCAPE 'x'
 > rows: 1
 
 EXPLAIN PLAN FOR DELETE FROM TEST;
 > PLAN
-> ----------------------------------------------------
-> DELETE FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+> ----------------------------------------------
+> DELETE FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT NAME, COUNT(*) FROM TEST GROUP BY NAME HAVING COUNT(*) > 1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------
-> SELECT NAME, COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ GROUP BY NAME HAVING COUNT(*) > 1
+> -----------------------------------------------------------------------------------------------
+> SELECT NAME, COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */ GROUP BY NAME HAVING COUNT(*) > 1
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 inner join test t2 on t1.id=t2.id and t2.name is not null where t1.id=1;
@@ -5634,8 +5634,8 @@ EXPLAIN PLAN FOR SELECT * FROM test t1 left outer join test t2 on t1.id=t2.id an
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE EXISTS(SELECT * FROM TEST T2 WHERE T1.ID-1 = T2.ID);
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ WHERE EXISTS(SELECT T2.ID, T2.NAME FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = (T1.ID - 1) */ WHERE (T1.ID - 1) = T2.ID)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ WHERE EXISTS(SELECT T2.ID, T2.NAME FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = (T1.ID - 1) */ WHERE (T1.ID - 1) = T2.ID)
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
@@ -5646,26 +5646,26 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/) */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST_DATA ++/) */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */)
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ WHERE NOT (ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */))
+> -------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ WHERE NOT (ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */))
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;
 > PLAN
-> -----------------------------------------------------------------------------
-> SELECT CAST(ID AS VARCHAR(255)) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+> -----------------------------------------------------------------------
+> SELECT CAST(ID AS VARCHAR(255)) FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT LEFT(NAME, 2) FROM TEST;
 > PLAN
-> ------------------------------------------------------------------
-> SELECT LEFT(NAME, 2) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+> ------------------------------------------------------------
+> SELECT LEFT(NAME, 2) FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM SYSTEM_RANGE(1, 20);
@@ -5751,8 +5751,8 @@ SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN ORDER BY ID, NAME FOR UP
 
 EXPLAIN SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN ORDER BY ID, NAME FOR UPDATE;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ FOR UPDATE)UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ FOR UPDATE) ORDER BY 1, 2 FOR UPDATE
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ FOR UPDATE)UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ FOR UPDATE) ORDER BY 1, 2 FOR UPDATE
 > rows (ordered): 1
 
 SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASSES;
@@ -5771,8 +5771,8 @@ SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASS
 
 EXPLAIN SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASSES;
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT 'Child', ID, NAME FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */)UNION (SELECT 'Class', ID, NAME FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_TABLE_SCAN */)
+> --------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT 'Child', ID, NAME FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */)UNION (SELECT 'Class', ID, NAME FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_DATA */)
 > rows: 1
 
 SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
@@ -5785,14 +5785,14 @@ SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 
 EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */)EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ WHERE CLASS = 0)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */)EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ WHERE CLASS = 0)
 > rows: 1
 
 EXPLAIN SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */)INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_TABLE_SCAN */)
+> ---------------------------------------------------------------------------------------------------------------------------------
+> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */)INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_DATA */)
 > rows: 1
 
 SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
@@ -5805,8 +5805,8 @@ SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 
 EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */)EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ WHERE CLASS = 0)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */)EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ WHERE CLASS = 0)
 > rows: 1
 
 SELECT * FROM CHILDREN CH, CLASSES CL WHERE CH.CLASS = CL.ID;
@@ -6034,8 +6034,8 @@ CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 
 SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
 > TABLE_NAME SQL
-> ---------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> TEST_ALL   CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AS AID, A.NAME AS A_NAME, B.ID AS BID, B.NAME AS B_NAME FROM PUBLIC.TEST_A A /* PUBLIC.TEST_A_TABLE_SCAN */ INNER JOIN PUBLIC.TEST_B B /* PUBLIC.PRIMARY_KEY_93: ID = A.ID */ ON 1=1 WHERE A.ID = B.ID
+> ---------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> TEST_ALL   CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AS AID, A.NAME AS A_NAME, B.ID AS BID, B.NAME AS B_NAME FROM PUBLIC.TEST_A A /* PUBLIC.TEST_A_DATA */ INNER JOIN PUBLIC.TEST_B B /* PUBLIC.PRIMARY_KEY_93: ID = A.ID */ ON 1=1 WHERE A.ID = B.ID
 > TEST_A_SUB CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT TEST_A.ID, TEST_A.NAME FROM PUBLIC.TEST_A /* PUBLIC.PRIMARY_KEY_9: ID < 2 */ WHERE ID < 2
 > rows: 2
 
@@ -6263,8 +6263,8 @@ select * from t1 natural join t2;
 
 explain select * from t1 natural join t2;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */ INNER JOIN PUBLIC.T1 /* PUBLIC.T1_TABLE_SCAN */ ON 1=1 WHERE (PUBLIC.T1.ID = PUBLIC.T2.ID) AND (PUBLIC.T1.NAME = PUBLIC.T2.NAME)
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.T2 /* PUBLIC.T2_DATA */ INNER JOIN PUBLIC.T1 /* PUBLIC.T1_DATA */ ON 1=1 WHERE (PUBLIC.T1.ID = PUBLIC.T2.ID) AND (PUBLIC.T1.NAME = PUBLIC.T2.NAME)
 > rows: 1
 
 drop table t1;
@@ -6300,8 +6300,8 @@ select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE
 
 explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT C.CUSTOMERID, C.CUSTOMER_NAME, I.INVOICEID, I.INVOICE_TEXT, L.LINE_ID, L.LINE_TEXT FROM PUBLIC.INVOICE I /* PUBLIC.INVOICE_TABLE_SCAN */ INNER JOIN PUBLIC.INVOICE_LINE L /* PUBLIC.INVOICE_LINE_TABLE_SCAN */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN PUBLIC.CUSTOMER C /* PUBLIC.CUSTOMER_TABLE_SCAN */ ON 1=1 WHERE (PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID) AND ((PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID))
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT C.CUSTOMERID, C.CUSTOMER_NAME, I.INVOICEID, I.INVOICE_TEXT, L.LINE_ID, L.LINE_TEXT FROM PUBLIC.INVOICE I /* PUBLIC.INVOICE_DATA */ INNER JOIN PUBLIC.INVOICE_LINE L /* PUBLIC.INVOICE_LINE_DATA */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN PUBLIC.CUSTOMER C /* PUBLIC.CUSTOMER_DATA */ ON 1=1 WHERE (PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID) AND ((PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID))
 > rows: 1
 
 drop table customer;

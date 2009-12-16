@@ -50,9 +50,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
     private int memorySizePerPage;
 
     public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
-int test;
-//        initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
-        initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
+        initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
 
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);

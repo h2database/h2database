@@ -1138,7 +1138,9 @@ public class ClassReader {
 //            op = "tableswitch default:" + getAbsolutePos(start, def);
 //            StringBuilder buff = new StringBuilder();
 //            for (int i = 0; i < n; i++) {
-//                buff.append(' ').append(low++).append(":").append(getAbsolutePos(start, readInt()));
+//                buff.append(' ').append(low++).
+//                    append(":").
+//                    append(getAbsolutePos(start, readInt()));
 //            }
 //            op += buff.toString();
 //            // pos += n * 4;
@@ -1152,7 +1154,10 @@ public class ClassReader {
 //            op = "lookupswitch default:" + getAbsolutePos(start, def);
 //            StringBuilder buff = new StringBuilder();
 //            for (int i = 0; i < n; i++) {
-//                buff.append(' ').append(readInt()).append(":").append(getAbsolutePos(start, readInt()));
+//                buff.append(' ').
+//                    append(readInt()).
+//                    append(":").
+//                    append(getAbsolutePos(start, readInt()));
 //            }
 //            op += buff.toString();
 //            // pos += n * 8;
@@ -1305,7 +1310,8 @@ public class ClassReader {
 //                op = "wide ret " + readShort();
 //                break;
 //            default:
-//                throw new RuntimeException("Unsupported wide opCode " + opCode);
+//                throw new RuntimeException(
+//                        "Unsupported wide opCode " + opCode);
 //            }
 //            break;
 //        }

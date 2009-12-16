@@ -145,7 +145,7 @@ public class TableFilter implements ColumnResolver {
                         break;
                     }
                     int id = condition.getColumn().getColumnId();
-                    masks[id] |= condition.getMask();
+                    masks[id] |= condition.getMask(indexConditions.size());
                 }
             }
             item = table.getBestPlanItem(session, masks);

@@ -211,15 +211,23 @@ public class IndexCondition {
     /**
      * Get the comparison bit mask.
      *
+     * @param conditionCount the number of index conditions
      * @return the mask
      */
-    public int getMask() {
+    public int getMask(int conditionCount) {
         switch (compareType) {
         case Comparison.FALSE:
             return ALWAYS_FALSE;
         case Comparison.EQUAL:
+            return EQUALITY;
         case Comparison.IN_LIST:
         case Comparison.IN_QUERY:
+            if (conditionCount > 1) {
+                // if there are more conditions, don't use the index on IN(..)
+                // IN(..) can not be combined with other conditions,
+                // otherwise the query returns the wrong result
+                return 0;
+            }
             return EQUALITY;
         case Comparison.BIGGER_EQUAL:
         case Comparison.BIGGER:

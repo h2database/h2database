@@ -3168,7 +3168,7 @@ Returns the result set of reading the CSV (comma separated values) file.
 For each parameter, NULL means the default value should be used.
 
 If the column names are specified (a list of column names separated with the
-fieldSeparator), those are used, otherwise (or if they are set to NULL) the first line of 
+fieldSeparator), those are used, otherwise (or if they are set to NULL) the first line of
 the file is interpreted as the column names.
 In that case, column names that contain no special characters (only letters, '_',
 and digits; similar to the rule for Java identifiers) are considered case insensitive.

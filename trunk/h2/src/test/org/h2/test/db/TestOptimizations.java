@@ -38,6 +38,7 @@ public class TestOptimizations extends TestBase {
     }
 
     public void test() throws Exception {
+        testNestedIn();
         testNestedInSelectAndLike();
         testNestedInSelect();
         testInSelectJoin();
@@ -57,6 +58,32 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testNestedIn() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+
+        stat.execute("create table accounts(id integer primary key, status varchar(255), tag varchar(255))");
+        stat.execute("insert into accounts values (31, 'X', 'A')");
+        stat.execute("create table parent(id int)");
+        stat.execute("insert into parent values(31)");
+        stat.execute("create view test_view as select a.status, a.tag from accounts a, parent t where a.id = t.id");
+        rs = stat.executeQuery("select * from test_view where status='X' and tag in ('A','B')");
+        assertTrue(rs.next());
+        rs = stat.executeQuery("select * from (select a.status, a.tag from accounts a, parent t where a.id = t.id) x where status='X' and tag in ('A','B')");
+        assertTrue(rs.next());
+
+        stat.execute("create table test(id int primary key, name varchar(255))");
+        stat.execute("create unique index idx_name on test(name, id)");
+        stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
+        rs = stat.executeQuery("select * from (select * from test) where id=1 and name in('Hello', 'World')");
+        assertTrue(rs.next());
+        stat.execute("drop table test");
+
+        conn.close();
     }
 
     private void testNestedInSelect() throws SQLException {

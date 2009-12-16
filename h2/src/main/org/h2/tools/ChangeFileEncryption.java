@@ -20,6 +20,7 @@ import org.h2.util.Tool;
  * Allows changing the database file encryption password or algorithm.
  * <br />
  * This tool can not be used to change a password of a user.
+ * The database must be closed before using this tool.
  * @h2.resource
  */
 public class ChangeFileEncryption extends Tool {
@@ -137,12 +138,14 @@ public class ChangeFileEncryption extends Tool {
         change.decrypt = getFileEncryptionKey(decryptPassword);
         change.encrypt = getFileEncryptionKey(encryptPassword);
 
-        // first, test only if the file can be renamed
-        // (to find errors with locked files early)
-        ArrayList<String> files = FileLister.getDatabaseFiles(dir, db, false);
+        ArrayList<String> files = FileLister.getDatabaseFiles(dir, db, true);
+        FileLister.tryUnlockDatabase(files, "encryption");
+        files = FileLister.getDatabaseFiles(dir, db, false);
         if (files.size() == 0 && !quiet) {
             printNoDatabaseFilesFound(dir, db);
         }
+        // first, test only if the file can be renamed
+        // (to find errors with locked files early)
         for (String fileName : files) {
             String temp = dir + "/temp.db";
             FileUtils.delete(temp);

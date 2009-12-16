@@ -452,6 +452,12 @@ public class TestTools extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
         assertFalse(rs.next());
+        try {
+            Backup.main("-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
         conn.close();
         DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
     }
@@ -473,6 +479,13 @@ public class TestTools extends TestBase {
                 baseDir + "/utils;CIPHER=AES", "sa", "def 123");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
+        try {
+            args = new String[] { "-dir", baseDir, "-db", "utils", "-cipher", "AES", "-decrypt", "def", "-quiet" };
+            ChangeFileEncryption.main(args);
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
         conn.close();
         args = new String[] { "-dir", baseDir, "-db", "utils", "-quiet" };
         DeleteDbFiles.main(args);

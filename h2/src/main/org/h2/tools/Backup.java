@@ -24,6 +24,8 @@ import org.h2.util.Tool;
 
 /**
  * Creates a backup of a database.
+ * <br />
+ * The database must be closed before using this tool.
  * @h2.resource
  */
 public class Backup extends Tool {
@@ -90,6 +92,7 @@ public class Backup extends Tool {
 
     private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         ArrayList<String> list = FileLister.getDatabaseFiles(directory, db, true);
+        FileLister.tryUnlockDatabase(list, "backup");
         if (list.size() == 0) {
             if (!quiet) {
                 printNoDatabaseFilesFound(directory, db);

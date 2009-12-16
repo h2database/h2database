@@ -8,7 +8,10 @@ package org.h2.store;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.message.Message;
+import org.h2.message.TraceSystem;
 import org.h2.util.FileUtils;
 import org.h2.util.New;
 
@@ -38,13 +41,36 @@ public class FileLister {
     }
 
     /**
+     * Try to lock the database, and then unlock it. If this worked, the
+     * .lock.db file will be removed.
+     *
+     * @param files the database files to check
+     * @param message the text to include in the error message
+     * @throws SQLException if it failed
+     */
+    public static void tryUnlockDatabase(ArrayList<String> files, String message) throws SQLException {
+        for (String fileName : files) {
+            if (fileName.endsWith(Constants.SUFFIX_LOCK_FILE)) {
+                FileLock lock = new FileLock(new TraceSystem(null, false), fileName, Constants.LOCK_SLEEP);
+                try {
+                    lock.lock(FileLock.LOCK_FILE);
+                    lock.unlock();
+                } catch (SQLException e) {
+                    throw Message.getSQLException(
+                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, message);
+                }
+            }
+        }
+    }
+
+    /**
      * Get the list of database files.
      *
      * @param dir the directory (null for the current directory)
      * @param db the database name (null for all databases)
-     * @param all  if true, files such as the lock, trace, hash index, and lob
-     *            files are included. If false, only data, index and log files
-     *            are returned
+     * @param all  if true, files such as the lock, trace, and lob
+     *            files are included. If false, only data, index, log,
+     *            and lob files are returned
      * @return the list of files
      */
     public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) throws SQLException {

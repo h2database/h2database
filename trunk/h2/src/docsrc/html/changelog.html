@@ -25,6 +25,8 @@ Change Log
 </li><li>Optimization index conditions of the form 'column=NULL' (which is always false; unlike 'column IS NULL').
 </li><li>Script command and tool: the primary key constraint is now listed before inserting the data.
     This will result in a smaller database when using the page store.
+</li><li>Statements with IN(SELECT..) conditions could produce the wrong result.
+    Example: index on id, name; query: select * from test where id between 1 and 3 and name in (select 'World').
 </li><li>Statements with IN(..) conditions could produce the wrong result when using views or nested select statements.
     Example: index on id; index on name; query: select * from (select * from test) where id=1 and name in('a', 'b').
     select * from (select * from test) where id=1 and name in('Hello', 'World').

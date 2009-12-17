@@ -77,12 +77,16 @@ public class IndexCursor implements Cursor {
             }
             Column column = condition.getColumn();
             if (condition.getCompareType() == Comparison.IN_LIST) {
-                this.inColumn = column;
-                inList = condition.getCurrentValueList(session);
-                inListIndex = 0;
+                if (start == null && end == null) {
+                    this.inColumn = column;
+                    inList = condition.getCurrentValueList(session);
+                    inListIndex = 0;
+                }
             } else if (condition.getCompareType() == Comparison.IN_QUERY) {
-                this.inColumn = column;
-                inResult = condition.getCurrentResult(session);
+                if (start == null && end == null) {
+                    this.inColumn = column;
+                    inResult = condition.getCurrentResult(session);
+                }
             } else {
                 Value v = column.convert(condition.getCurrentValue(session));
                 boolean isStart = condition.isStart();
@@ -102,16 +106,18 @@ public class IndexCursor implements Cursor {
                 if (isEnd) {
                     end = getSearchRow(end, id, v, false);
                 }
-                if (isStart && isEnd) {
-                    if (v == ValueNull.INSTANCE) {
-                        // join on a column=NULL is always false
-                        alwaysFalse = true;
-                    }
+                if (isStart || isEnd) {
                     // an X=? condition will produce less rows than
                     // an X IN(..) condition
                     inColumn = null;
                     inList = null;
                     inResult = null;
+                }
+                if (isStart && isEnd) {
+                    if (v == ValueNull.INSTANCE) {
+                        // join on a column=NULL is always false
+                        alwaysFalse = true;
+                    }
                 }
             }
         }

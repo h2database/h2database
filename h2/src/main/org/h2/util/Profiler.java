@@ -18,7 +18,7 @@ import org.h2.engine.Constants;
  */
 public class Profiler implements Runnable {
     private static final int MAX_ELEMENTS = 1000;
-    private int interval = 10;
+    private int interval = 50;
     private int depth = 16;
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
     private String[] ignoreThreads = StringUtils.arraySplit(
@@ -48,54 +48,62 @@ public class Profiler implements Runnable {
 
     public void run() {
         while (!stop) {
-            if (interval > 0) {
-                try {
-                    Thread.sleep(interval);
-                } catch (Exception e) {
-                    // ignore
+            try {
+                tick();
+            } catch (Throwable t) {
+                break;
+            }
+        }
+    }
+
+    private void tick() {
+        if (interval > 0) {
+            try {
+                Thread.sleep(interval);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
+        for (Map.Entry<Thread, StackTraceElement[]> entry : map.entrySet()) {
+            Thread t = entry.getKey();
+            if (t.getState() != Thread.State.RUNNABLE) {
+                continue;
+            }
+            StackTraceElement[] dump = entry.getValue();
+            if (dump.length == 0) {
+                continue;
+            }
+            boolean ignoreThis = false;
+            for (String ig : ignoreThreads) {
+                if (ig.length() > 0 && dump[0].toString().startsWith(ig)) {
+                    ignoreThis = true;
+                    break;
                 }
             }
-            Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
-            for (Map.Entry<Thread, StackTraceElement[]> entry : map.entrySet()) {
-                Thread t = entry.getKey();
-                if (t.getState() != Thread.State.RUNNABLE) {
-                    continue;
-                }
-                StackTraceElement[] dump = entry.getValue();
-                if (dump.length == 0) {
-                    continue;
-                }
-                boolean ignoreThis = false;
-                for (String ig : ignoreThreads) {
-                    if (ig.length() > 0 && dump[0].toString().startsWith(ig)) {
+            if (ignoreThis) {
+                continue;
+            }
+            StringBuilder buff = new StringBuilder();
+            // simple recursive calls are ignored
+            String last = null;
+            for (int j = 0, i = 0; i < dump.length && j < depth; i++) {
+                String el = dump[i].toString();
+                ignoreThis = false;
+                for (String ig : ignoreLines) {
+                    if (ig.length() > 0 && el.startsWith(ig)) {
                         ignoreThis = true;
                         break;
                     }
                 }
-                if (ignoreThis) {
-                    continue;
+                if (!ignoreThis && !el.equals(last)) {
+                    last = el;
+                    buff.append("at ").append(el).append('\n');
+                    j++;
                 }
-                StringBuilder buff = new StringBuilder();
-                // simple recursive calls are ignored
-                String last = null;
-                for (int j = 0, i = 0; i < dump.length && j < depth; i++) {
-                    String el = dump[i].toString();
-                    ignoreThis = false;
-                    for (String ig : ignoreLines) {
-                        if (ig.length() > 0 && el.startsWith(ig)) {
-                            ignoreThis = true;
-                            break;
-                        }
-                    }
-                    if (!ignoreThis && !el.equals(last)) {
-                        last = el;
-                        buff.append("at ").append(el).append('\n');
-                        j++;
-                    }
-                }
-                if (buff.length() > 0) {
-                    increment(buff.toString());
-                }
+            }
+            if (buff.length() > 0) {
+                increment(buff.toString());
             }
         }
     }

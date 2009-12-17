@@ -7,16 +7,10 @@
 package org.h2.server.web;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.Method;
-import java.security.SecureClassLoader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ParameterMetaData;
@@ -56,6 +50,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
+import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
 import org.h2.util.StatementBuilder;
@@ -78,6 +73,8 @@ public class WebApp implements DatabaseEventListener {
     protected boolean cache;
     protected boolean stop;
     protected String headerLanguage;
+
+    protected Profiler profiler;
 
     WebApp(WebServer server) {
         this.server = server;
@@ -794,9 +791,19 @@ public class WebApp implements DatabaseEventListener {
         session.put("user", user);
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
+            Profiler profiler = new Profiler();
+            profiler.startCollecting();
             Connection conn = server.getConnection(driver, url, user, password, this);
             JdbcUtils.closeSilently(conn);
-            session.put("error", "${text.login.testSuccessful}");
+            profiler.stopCollecting();
+
+            String success = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
+                "${text.login.testSuccessful}</a>" +
+                "<span style=\"display: none;\" id=\"prof\"><br />" +
+                PageParser.escapeHtml(profiler.getTop(1)) +
+                "</span>";
+            session.put("error", success);
+            // session.put("error", "${text.login.testSuccessful}");
             return "login.jsp";
         } catch (Exception e) {
             session.put("error", getLoginError(e, isH2));
@@ -884,17 +891,7 @@ public class WebApp implements DatabaseEventListener {
         try {
             Connection conn = session.getConnection();
             String result;
-            if (sql.startsWith("@JAVA")) {
-                if (server.getAllowScript()) {
-                    try {
-                        result = executeJava(sql.substring("@JAVA".length()));
-                    } catch (Throwable t) {
-                        result = getStackTrace(0, t, false);
-                    }
-                } else {
-                    result = "Executing Java code is not allowed, use command line parameter -webScript";
-                }
-            } else if ("@AUTOCOMMIT TRUE".equals(sql)) {
+            if ("@AUTOCOMMIT TRUE".equals(sql)) {
                 conn.setAutoCommit(true);
                 result = "${text.result.autoCommitOn}";
             } else if ("@AUTOCOMMIT FALSE".equals(sql)) {
@@ -940,79 +937,6 @@ public class WebApp implements DatabaseEventListener {
             session.put("result", getStackTrace(0, e, session.getContents().isH2));
         }
         return "result.jsp";
-    }
-
-    /**
-     * This class allows to load Java code dynamically.
-     */
-    static class DynamicClassLoader extends SecureClassLoader {
-
-        private String name;
-        private byte[] data;
-        private Class< ? > clazz;
-
-        DynamicClassLoader(String name, byte[] data) {
-            super(DynamicClassLoader.class.getClassLoader());
-            this.name = name;
-            this.data = data;
-        }
-
-        public Class< ? > loadClass(String className) throws ClassNotFoundException {
-            return findClass(className);
-        }
-
-        public Class< ? > findClass(String className) throws ClassNotFoundException {
-            if (className.equals(name)) {
-                if (clazz == null) {
-                    clazz = defineClass(className, data, 0, data.length);
-                }
-                return clazz;
-            }
-            try {
-                return findSystemClass(className);
-            } catch (Exception e) {
-                // ignore
-            }
-            return super.findClass(className);
-        }
-    }
-
-    private String executeJava(String code) throws Exception {
-        File javaFile = new File("Java.java");
-        File classFile = new File("Java.class");
-        try {
-            PrintWriter out = new PrintWriter(new FileWriter(javaFile));
-            classFile.delete();
-            int endImport = code.indexOf("@CODE");
-            String importCode = "import java.util.*; import java.math.*; import java.sql.*;";
-            if (endImport >= 0) {
-                importCode = code.substring(0, endImport);
-                code = code.substring("@CODE".length() + endImport);
-            }
-            out.println(importCode);
-            out.println("public class Java { public static Object run() throws Throwable {" + code + "}}");
-            out.close();
-            Class< ? > javacClass = Class.forName("com.sun.tools.javac.Main");
-            Method compile = javacClass.getMethod("compile", String[].class);
-            Object javac = javacClass.newInstance();
-            compile.invoke(javac, new Object[] { new String[]{"Java.java"}});
-            byte[] data = new byte[(int) classFile.length()];
-            DataInputStream in = new DataInputStream(new FileInputStream(classFile));
-            in.readFully(data);
-            in.close();
-            DynamicClassLoader cl = new DynamicClassLoader("Java", data);
-            Class< ? > clazz = cl.loadClass("Java");
-            Method[] methods = clazz.getMethods();
-            for (Method m : methods) {
-                if (m.getName().equals("run")) {
-                    return "" + m.invoke(null);
-                }
-            }
-            return null;
-        } finally {
-            javaFile.delete();
-            classFile.delete();
-        }
     }
 
     private String editResult() {
@@ -1255,6 +1179,21 @@ public class WebApp implements DatabaseEventListener {
             String[] p = split(sql);
             return meta.getAttributes(p[1], p[2], p[3], p[4]);
 //## Java 1.4 end ##
+        } else if (sql.startsWith("@PROF_START")) {
+            if (profiler != null) {
+                profiler.stopCollecting();
+            }
+            profiler = new Profiler();
+            profiler.startCollecting();
+        } else if (sql.startsWith("@PROF_STOP")) {
+            if (profiler != null) {
+                profiler.stopCollecting();
+                SimpleResultSet rs = new SimpleResultSet();
+                rs.addColumn("Top Stack Trace(s)", Types.VARCHAR, 0, 0);
+                rs.addRow(profiler.getTop(1));
+                profiler = null;
+                return rs;
+            }
         }
         return null;
     }

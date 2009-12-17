@@ -38,6 +38,7 @@ public class TestOptimizations extends TestBase {
     }
 
     public void test() throws Exception {
+        testInAndBetween();
         testNestedIn();
         testNestedInSelectAndLike();
         testNestedInSelect();
@@ -58,6 +59,22 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testInAndBetween() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("create table test(id int, name varchar)");
+        stat.execute("create index idx_name on test(id, name)");
+        stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
+        rs = stat.executeQuery("select * from test where id between 1 and 3 and name in ('World')");
+        assertTrue(rs.next());
+        rs = stat.executeQuery("select * from test where id between 1 and 3 and name in (select 'World')");
+        assertTrue(rs.next());
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testNestedIn() throws SQLException {

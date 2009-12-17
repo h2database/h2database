@@ -14,6 +14,7 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
+import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -137,15 +138,17 @@ public class PageBtreeIndex extends PageIndex {
      * @return the page
      */
     PageBtree getPage(int id) throws SQLException {
-        PageBtree p = (PageBtree) store.getPage(id);
+        Page p = store.getPage(id);
         if (p == null) {
             PageBtreeLeaf empty = PageBtreeLeaf.create(this, id, PageBtree.ROOT);
             // could have been created before, but never committed
             store.logUndo(empty, null);
             store.update(empty);
             return empty;
+        } else if (!(p instanceof PageBtree)) {
+            throw Message.throwInternalError("" + p);
         }
-        return p;
+        return (PageBtree) p;
     }
 
     public boolean canGetFirstOrLast() {

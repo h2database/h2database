@@ -22,7 +22,7 @@ SELECT COUNT(*) FROM TEST;
 -- Display the query plan - 'direct lookup' means the index is used
 EXPLAIN SELECT COUNT(*) FROM TEST;
 --> SELECT COUNT(*)
--->    FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+-->    FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
 -->    /* direct lookup */
 ;
 
@@ -90,7 +90,7 @@ SELECT MIN(VALUE), MAX(VALUE) FROM TEST;
 -- Display the query plan - 'direct lookup' means it's optimized
 EXPLAIN SELECT MIN(VALUE), MAX(VALUE) FROM TEST;
 --> SELECT MIN(VALUE), MAX(VALUE)
--->    FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+-->    FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
 -->    /* direct lookup */
 ;
 

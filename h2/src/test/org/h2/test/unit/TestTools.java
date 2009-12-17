@@ -453,7 +453,7 @@ public class TestTools extends TestBase {
         assertTrue(rs.next());
         assertFalse(rs.next());
         try {
-            Backup.main("-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet");
+            Backup.main("-file", fileName, "-dir", baseDir, "-db", "utils");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

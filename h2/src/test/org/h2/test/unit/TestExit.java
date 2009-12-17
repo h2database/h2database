@@ -14,6 +14,7 @@ import java.sql.SQLException;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.test.utils.SelfDestructor;
 
 /**
  * Tests the flag db_close_on_exit.

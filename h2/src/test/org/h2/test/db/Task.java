@@ -9,7 +9,7 @@ package org.h2.test.db;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import org.h2.test.unit.SelfDestructor;
+import org.h2.test.utils.SelfDestructor;
 
 /**
  * A task that can be run as a separate process.

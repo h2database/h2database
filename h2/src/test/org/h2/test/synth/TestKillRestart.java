@@ -14,7 +14,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
 import org.h2.test.TestBase;
-import org.h2.test.unit.SelfDestructor;
+import org.h2.test.utils.SelfDestructor;
 
 /**
  * Standalone recovery test. A new process is started and then killed while it

@@ -17,7 +17,7 @@ import java.util.Random;
 
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
-import org.h2.test.unit.SelfDestructor;
+import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
 import org.h2.util.FileUtils;
 import org.h2.util.New;

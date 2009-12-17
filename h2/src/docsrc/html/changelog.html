@@ -18,8 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The ChangeFileEncryption and Backup tools will now fail with an exception
-    if the database is still in use.
+<ul><li>The ChangeFileEncryption tool will now fail with an exception
+    if the database is still in use. The Backup tool will also fail except when running in quiet mode.
 </li><li>CSVREAD: when reading the column names from the CSV file, column names that contain
     no special characters are considered case insensitive now.
 </li><li>Optimization index conditions of the form 'column=NULL' (which is always false; unlike 'column IS NULL').

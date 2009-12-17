@@ -166,9 +166,10 @@ public class TestCrashAPI extends TestBase {
 //      url += ";TRACE_LEVEL_FILE=3";
 
         Connection conn = null;
-        // System.gc();
         String fileName = "temp/backup/db-" + uniqueId++ + ".zip";
         Backup.execute(fileName, baseDir + "/" + DIR, dbName, true);
+        // close databases earlier
+        System.gc();
         try {
             conn = DriverManager.getConnection(url, "sa", getPassword(""));
             // delete the backup if opening was successful

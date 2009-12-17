@@ -1373,7 +1373,7 @@ Centralリポジトリの利用
 #Next Version (unreleased)
 
 @changelog_1002_li
-#The ChangeFileEncryption and Backup tools will now fail with an exception if the database is still in use. 
+#The ChangeFileEncryption tool will now fail with an exception if the database is still in use. The Backup tool will also fail except when running in quiet mode. 
 
 @changelog_1003_li
 #CSVREAD: when reading the column names from the CSV file, column names that contain no special characters are considered case insensitive now. 

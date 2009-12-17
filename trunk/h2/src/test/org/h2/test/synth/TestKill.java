@@ -14,7 +14,7 @@ import java.sql.Statement;
 import java.util.Random;
 
 import org.h2.test.TestBase;
-import org.h2.test.unit.SelfDestructor;
+import org.h2.test.utils.SelfDestructor;
 
 /**
  * A random recovery test. This test starts a process that executes random

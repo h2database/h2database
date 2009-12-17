@@ -4,10 +4,11 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.unit;
+package org.h2.test.utils;
 
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
+import java.util.Map;
 
 /**
  * This is a self-destructor class to kill a long running process automatically
@@ -49,20 +50,23 @@ public class SelfDestructor extends Thread {
                     String time = new Timestamp(System.currentTimeMillis()).toString();
                     System.out.println(time + " Killing the process after " + minutes + " minute(s)");
                     try {
-                        int activeCount = Thread.activeCount();
-                        Thread[] threads = new Thread[activeCount + 100];
-                        int len = Thread.enumerate(threads);
-                        for (int i = 0; i < len; i++) {
-                            Thread t = threads[i];
-                            String threadName = "Thread #" + i + ": " + t.getName();
-                            System.out.println(threadName);
+                        Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
+                        for (Map.Entry<Thread, StackTraceElement[]> en : map.entrySet()) {
+                            System.out.println(en.getKey());
+                            for (StackTraceElement el : en.getValue()) {
+                                System.out.println("  " + el);
+                            }
                         }
+                        System.out.println();
                         System.out.flush();
                         try {
                             Thread.sleep(1000);
                         } catch (Exception e) {
                             // ignore
                         }
+                        int activeCount = Thread.activeCount();
+                        Thread[] threads = new Thread[activeCount + 100];
+                        int len = Thread.enumerate(threads);
                         Method stop = Thread.class.getMethod("stop", Throwable.class);
                         for (int i = 0; i < len; i++) {
                             Thread t = threads[i];

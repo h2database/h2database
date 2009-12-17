@@ -16,7 +16,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import org.h2.test.unit.SelfDestructor;
+import org.h2.test.utils.SelfDestructor;
 import org.h2.util.StringUtils;
 
 /**

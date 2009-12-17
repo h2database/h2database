@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
-import org.h2.test.unit.SelfDestructor;
+import org.h2.test.utils.SelfDestructor;
 
 /**
  * Test application for TestKill.

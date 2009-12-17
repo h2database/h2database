@@ -20,7 +20,7 @@ import java.util.Random;
 
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
-import org.h2.test.unit.SelfDestructor;
+import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;

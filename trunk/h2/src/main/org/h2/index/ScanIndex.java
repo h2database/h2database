@@ -45,7 +45,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
     private long rowCount;
 
     public ScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType) {
-        initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
+        initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
         if (database.isMultiVersion()) {
             sessionRowCount = New.hashMap();
         }

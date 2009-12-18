@@ -1915,7 +1915,7 @@ TIME
 ","
 The format is hh:mm:ss.
 
-Mapped to java.sql.Time.
+Mapped to java.sql.Time. When converted to a java.sql.Date, the date is set to 1970-01-01.
 ","
 TIME
 "
@@ -1925,7 +1925,8 @@ DATE
 ","
 The format is yyyy-MM-dd.
 
-Mapped to java.sql.Date
+Mapped to java.sql.Date, with the time set to 00:00:00 
+(or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
 ","
 DATE
 "

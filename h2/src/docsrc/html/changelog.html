@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.126 (2009-12-18)</h2>
 <ul><li>The ChangeFileEncryption tool will now fail with an exception
     if the database is still in use. The Backup tool will also fail except when running in quiet mode.
 </li><li>CSVREAD: when reading the column names from the CSV file, column names that contain
@@ -584,45 +588,6 @@ Change Log
 </li><li>JaQu: the maximum length of a column can now be defined using maxLength.
     For an example, see Product.java (maxLength(category, 255)).
 </li><li>R&#305;dvan A&#287;ar has completed the Turkish translation of the H2 Console. Thanks a lot!
-</li></ul>
-
-<h2>Version 1.1.104 (2008-11-28)</h2>
-<ul><li>If a query that was used like a table contained group by and was ordered by an expression that
-    is not in the column list, an exception was thrown.
-</li><li>JaQu: tables are now auto-created when running a query.
-</li><li>The optimizer had problems with function tables (for example CSVREAD and FTL_SEARCH).
-    A new system property h2.estimatedFunctionTableRows (default 1000) defines how many rows
-    can be expected in the table.
-</li><li>The function SUM could overflow when using large values. It returns now a data type that is safe.
-</li><li>The function AVG could overflow when using large values. Fixed.
-</li><li>The emergency reserve file has been removed. It didn't provide an appropriate
-    solution for the problem. It is still possible for an application to detect and deal with
-    the low disk space problem (deleting temporary files for example)
-    using DatabaseEventListener.diskSpaceIsLow, but this method is now always called
-    with stillAvailable=0.
-</li><li>Build: JAVA_HOME is now automatically detected on Mac OS X.
-</li><li>Testing for local connections was very slow on some systems.
-</li><li>The cache memory usage calculation is more conservative.
-</li><li>Allocating space got slower and slower the larger the database.
-</li><li>ALTER TABLE ALTER COLUMN could throw the wrong exception in the last version
-    (Table not found).
-</li><li>Updatable result sets: the key columns can now be updated.
-</li><li>The H2DatabaseProvider for ActiveObjects is now included in the tools section.
-</li><li>The H2Platform for Oracle Toplink Essential has been improved a bit.
-</li><li>The Windows service to start H2 didn't work in version 1.1.
-</li><li>File systems with a maximum file size (for example FAT) are now supported using
-    the file prefix 'split:'. In this case the files are split in parts of 1 GB.
-    Example URL: jdbc:h2:split:~/db/test. If you want to split into parts of 1 MB, use
-    jdbc:h2:split:20:~/db/test (the part size is 1 &lt;&lt; x, the default is 30 meaning 1 GB).
-</li><li>The database now tries to detect if the classloader or virtual machine has
-    almost shut down by checking if static final variables are set to null.
-    This should help reduce exceptions when stopping the web application.
-</li><li>Compatibility for MS SQL Server DATEDIFF(YYYY, .., ..)
-</li><li>ResultSet.getObject for CLOB or BLOB will return a java.sql.Clob / java.sql.Blob object instead of
-    a java.io.Reader / java.io.InputStream as in version 1.0. This behavior can be changed using the system
-    property h2.returnLobObjects (true by default for version 1.1).
-</li><li>The interface CloseListener has a new method 'remove' that is called when the trigger is dropped.
-</li><li>Fulltext search: there was a memory leak when creating and dropping fulltext indexes in a loop.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

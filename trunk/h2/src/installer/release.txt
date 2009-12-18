@@ -2,7 +2,7 @@ Update Constants.java - change version and build number
 Update changelog.html - add new version, remove oldest
 Update newsfeed.sql - add new version, remove oldest
 Minor version change: change sourceError.html and source.html
-Network protocol change: increase TCP_DRIVER_VERSION (old clients must be compatible!)
+Network protocol change: verify TCP_PROTOCOL_VERSION_* (old clients must be compatible!)
 Benchmark: use latest versions of other dbs, change version(s) in performance.html
 Run ./buildRelease.sh / buildRelease.bat
 

@@ -22,7 +22,7 @@ public class Profiler implements Runnable {
     private int depth = 16;
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
     private String[] ignoreThreads = StringUtils.arraySplit(
-            "java.net.,java.lang.Thread.", ',', true);
+            "java.net.,java.lang.Thread.,sun.awt.", ',', true);
     private volatile boolean stop;
     private HashMap<String, Integer> counts = new HashMap<String, Integer>();
     private int minCount = 1;
@@ -137,7 +137,7 @@ public class Profiler implements Runnable {
      */
     public String getTop(int max) {
         StringBuilder buff = new StringBuilder();
-        buff.append("Profiler: top stack trace(s) [build-").append(Constants.BUILD_ID).append("]\n");
+        buff.append("Profiler: top ").append(max).append(" stack trace(s) [build-").append(Constants.BUILD_ID).append("]\n");
         @SuppressWarnings("unchecked")
         Map.Entry<String, Integer>[] array = new Map.Entry[counts.size()];
         counts.entrySet().toArray(array);

@@ -6,6 +6,7 @@
  */
 package org.h2.test.unit;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
@@ -14,6 +15,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.List;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.util.SortedProperties;
@@ -33,6 +36,8 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
+        println("testLeftLogFiles");
+        testLeftLogFiles();
         println("testWrongDatabaseInstanceOnReconnect");
         testWrongDatabaseInstanceOnReconnect();
         println("testCache()");
@@ -483,6 +488,45 @@ public class TestFileLockSerialized extends TestBase {
         select.join();
         if (ex[0] != null) {
             throw ex[0];
+        }
+        deleteDb("fileLockSerialized");
+    }
+    
+    private void testLeftLogFiles() throws Exception {
+        deleteDb("fileLockSerialized");
+        
+        // without serialized        
+        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;PAGE_STORE=FALSE";
+        Connection conn = DriverManager.getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("insert into test values(0)");
+        conn.close();
+        List filesWithoutSerialized = Arrays.asList(new File(baseDir).list());        
+        deleteDb("fileLockSerialized");
+        
+        // with serialized
+        url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;PAGE_STORE=FALSE";
+        conn = DriverManager.getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        Thread.sleep(500);
+        stat.execute("insert into test values(0)");
+        conn.close();
+        
+        List filesWithSerialized = Arrays.asList(new File(baseDir).list());
+        if (filesWithoutSerialized.size() !=  filesWithSerialized.size()) {
+            for (int i = 0; i < filesWithoutSerialized.size(); i++) {
+                if (!filesWithSerialized.contains(filesWithoutSerialized.get(i))) {
+                    System.out.println("File left from 'without serialized' mode: " + filesWithoutSerialized.get(i));
+                }
+            }
+            for (int i = 0; i < filesWithSerialized.size(); i++) {
+                if (!filesWithoutSerialized.contains(filesWithSerialized.get(i))) {
+                    System.out.println("File left from 'with serialized' mode: " + filesWithSerialized.get(i));
+                }
+            }
+            fail("With serialized it must create the same files than without serialized");
         }
         deleteDb("fileLockSerialized");
     }

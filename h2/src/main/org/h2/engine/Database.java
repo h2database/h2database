@@ -1902,6 +1902,7 @@ public class Database implements DataHandler {
         if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
             // need to truncate the file, because another process could keep it open
             FileUtils.setLength(fileName, 0);
+            FileUtils.tryDelete(fileName);
         } else {
             if (writer != null) {
                 writer.deleteLogFileLater(fileName);

@@ -793,9 +793,12 @@ public class WebApp implements DatabaseEventListener {
         try {
             Profiler profiler = new Profiler();
             profiler.startCollecting();
-            Connection conn = server.getConnection(driver, url, user, password, this);
-            JdbcUtils.closeSilently(conn);
-            profiler.stopCollecting();
+            try {
+                Connection conn = server.getConnection(driver, url, user, password, this);
+                JdbcUtils.closeSilently(conn);
+            } finally {
+                profiler.stopCollecting();
+            }
 
             String success = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
                 "${text.login.testSuccessful}</a>" +

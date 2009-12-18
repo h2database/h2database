@@ -69,11 +69,9 @@ public class WebApp implements DatabaseEventListener {
     protected String mimeType;
     protected long listenerLastEvent;
     protected int listenerLastState;
-
     protected boolean cache;
     protected boolean stop;
     protected String headerLanguage;
-
     protected Profiler profiler;
 
     WebApp(WebServer server) {
@@ -1635,12 +1633,30 @@ public class WebApp implements DatabaseEventListener {
         if (d == null) {
             return "<i>null</i>";
         } else if (d.length() > SysProperties.WEB_MAX_VALUE_LENGTH) {
-            return "<div style='display: none'>=+</div>" +
-                PageParser.escapeHtml(d.substring(0, 100) + "... (" + d.length() + ")");
+            String s;
+            if (isBinary(rs.getMetaData().getColumnType(columnIndex))) {
+                s = PageParser.escapeHtml(d.substring(0, 100)) + "... (" + (d.length() / 2) + " ${text.result.bytes})";
+            } else {
+                s = PageParser.escapeHtml(d.substring(0, 100)) + "... (" + d.length() + " ${text.result.characters})";
+            }
+            return "<div style='display: none'>=+</div>" + s;
         } else if (d.equals("null") || d.startsWith("= ") || d.startsWith("=+")) {
             return "<div style='display: none'>= </div>" + PageParser.escapeHtml(d);
         }
         return PageParser.escapeHtml(d);
+    }
+
+    private boolean isBinary(int sqlType) {
+        switch (sqlType) {
+        case Types.BINARY:
+        case Types.BLOB:
+        case Types.JAVA_OBJECT:
+        case Types.LONGVARBINARY:
+        case Types.OTHER:
+        case Types.VARBINARY:
+            return true;
+        }
+        return false;
     }
 
     private void unescapeData(String d, ResultSet rs, int columnIndex) throws SQLException {

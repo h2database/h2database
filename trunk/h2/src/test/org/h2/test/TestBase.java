@@ -22,7 +22,6 @@ import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
-
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;

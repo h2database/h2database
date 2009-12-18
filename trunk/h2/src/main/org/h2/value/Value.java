@@ -154,8 +154,8 @@ public abstract class Value {
     public static final int TYPE_COUNT = STRING_FIXED + 1;
 
     private static SoftReference<Value[]> softCache = new SoftReference<Value[]>(null);
-    private static final BigDecimal MAX_LONG_DECIMAL = new BigDecimal("" + Long.MAX_VALUE);
-    private static final BigDecimal MIN_LONG_DECIMAL = new BigDecimal("" + Long.MIN_VALUE);
+    private static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);
+    private static final BigDecimal MIN_LONG_DECIMAL = BigDecimal.valueOf(Long.MIN_VALUE);
 
     /**
      * Get the SQL expression for this value.
@@ -592,15 +592,15 @@ public abstract class Value {
             // convert to string is required for JDK 1.4
             switch (getType()) {
             case BOOLEAN:
-                return ValueDecimal.get(new BigDecimal(getBoolean().booleanValue() ? "1" : "0"));
+                return ValueDecimal.get(BigDecimal.valueOf(getBoolean().booleanValue() ? 1 : 0));
             case BYTE:
-                return ValueDecimal.get(new BigDecimal("" + getByte()));
+                return ValueDecimal.get(BigDecimal.valueOf(getByte()));
             case SHORT:
-                return ValueDecimal.get(new BigDecimal("" + getShort()));
+                return ValueDecimal.get(BigDecimal.valueOf(getShort()));
             case INT:
-                return ValueDecimal.get(new BigDecimal("" + getInt()));
+                return ValueDecimal.get(BigDecimal.valueOf(getInt()));
             case LONG:
-                return ValueDecimal.get(new BigDecimal("" + getLong()));
+                return ValueDecimal.get(BigDecimal.valueOf(getLong()));
             case DOUBLE: {
                 double d = getDouble();
                 if (Double.isInfinite(d) || Double.isNaN(d)) {
@@ -611,7 +611,7 @@ public abstract class Value {
             case FLOAT: {
                 float f = getFloat();
                 if (Float.isInfinite(f) || Float.isNaN(f)) {
-                    throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, ""+f);
+                    throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, "" + f);
                 }
                 return ValueDecimal.get(new BigDecimal(f));
             }

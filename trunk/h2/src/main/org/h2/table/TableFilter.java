@@ -673,7 +673,7 @@ public class TableFilter implements ColumnResolver {
     }
 
     public String toString() {
-        return alias != null ? alias : "" + table;
+        return alias != null ? alias : table.toString();
     }
 
     /**

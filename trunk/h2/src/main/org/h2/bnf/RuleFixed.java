@@ -105,13 +105,13 @@ public class RuleFixed implements Rule {
 
     public String random(Bnf config, int level) {
         Random r = config.getRandom();
-        switch(type) {
+        switch (type) {
         case YMD:
-            return "" + (1800 + r.nextInt(200)) + "-" + (1 + r.nextInt(12)) + "-" + (1 + r.nextInt(31));
+            return (1800 + r.nextInt(200)) + "-" + (1 + r.nextInt(12)) + "-" + (1 + r.nextInt(31));
         case HMS:
-            return ""+(r.nextInt(24))+"-"+(r.nextInt(60))+"-"+(r.nextInt(60));
+            return (r.nextInt(24)) + "-" + (r.nextInt(60)) + "-" + (r.nextInt(60));
         case NANOS:
-            return ""+(r.nextInt(100000)+r.nextInt(10000));
+            return "" + (r.nextInt(100000) + r.nextInt(10000));
         case ANY_UNTIL_EOL:
         case ANY_EXCEPT_SINGLE_QUOTE:
         case ANY_EXCEPT_DOUBLE_QUOTE:

@@ -705,7 +705,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getBigDecimal(" + StringUtils.quoteJavaString(columnLabel)+", "+scale+");");
             }
             if (scale < 0) {
-                throw Message.getInvalidValueException(""+scale, "scale");
+                throw Message.getInvalidValueException("" + scale, "scale");
             }
             BigDecimal bd = get(columnLabel).getBigDecimal();
             return bd == null ? null : MathUtils.setScale(bd, scale);
@@ -727,10 +727,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getBigDecimal(" + columnIndex+", "+scale+");");
+                debugCode("getBigDecimal(" + columnIndex + ", " + scale + ");");
             }
             if (scale < 0) {
-                throw Message.getInvalidValueException(""+scale, "scale");
+                throw Message.getInvalidValueException("" + scale, "scale");
             }
             BigDecimal bd = get(columnIndex).getBigDecimal();
             return bd == null ? null : MathUtils.setScale(bd, scale);

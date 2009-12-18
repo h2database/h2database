@@ -374,7 +374,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("setMaxRows", maxRows);
             checkClosed();
             if (maxRows < 0) {
-                throw Message.getInvalidValueException(""+maxRows, "maxRows");
+                throw Message.getInvalidValueException("" + maxRows, "maxRows");
             }
             this.maxRows = maxRows;
         } catch (Exception e) {
@@ -692,7 +692,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 // nothing to do
                 break;
             default:
-                throw Message.getInvalidValueException(""+current, "current");
+                throw Message.getInvalidValueException("" + current, "current");
             }
             return false;
         } catch (Exception e) {

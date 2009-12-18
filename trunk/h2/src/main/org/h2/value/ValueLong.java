@@ -32,8 +32,8 @@ public class ValueLong extends Value {
 
     private static final int STATIC_SIZE = 100;
     private static final ValueLong[] STATIC_CACHE;
-    private static final BigInteger MIN = new BigInteger("" + Long.MIN_VALUE);
-    private static final BigInteger MAX = new BigInteger("" + Long.MAX_VALUE);
+    private static final BigInteger MIN = BigInteger.valueOf(Long.MIN_VALUE);
+    private static final BigInteger MAX = BigInteger.valueOf(Long.MAX_VALUE);
 
     private final long value;
 
@@ -120,8 +120,8 @@ public class ValueLong extends Value {
             // if(result / value == other.value && result / other.value == value) {
             //    return ValueLong.get(result);
             //}
-            BigInteger bv = new BigInteger("" + value);
-            BigInteger bo = new BigInteger("" + other.value);
+            BigInteger bv = BigInteger.valueOf(value);
+            BigInteger bo = BigInteger.valueOf(other.value);
             BigInteger br = bv.multiply(bo);
             if (br.compareTo(MIN) < 0 || br.compareTo(MAX) > 0) {
                 throw getOverflow();

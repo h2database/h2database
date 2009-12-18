@@ -143,10 +143,10 @@ public class ValueTimestamp extends Value {
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) throws SQLException {
         if (targetScale < 0 || targetScale > DEFAULT_SCALE) {
             // TODO convertScale for Timestamps: may throw an exception?
-            throw Message.getInvalidValueException(""+targetScale, "scale");
+            throw Message.getInvalidValueException("" + targetScale, "scale");
         }
         int nanos = value.getNanos();
-        BigDecimal bd = new BigDecimal("" + nanos);
+        BigDecimal bd = BigDecimal.valueOf(nanos);
         bd = bd.movePointLeft(9);
         bd = MathUtils.setScale(bd, targetScale);
         bd = bd.movePointRight(9);

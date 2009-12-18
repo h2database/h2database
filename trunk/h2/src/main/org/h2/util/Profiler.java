@@ -22,7 +22,13 @@ public class Profiler implements Runnable {
     private int depth = 16;
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
     private String[] ignoreThreads = StringUtils.arraySplit(
-            "java.net.,java.lang.Thread.,sun.awt.", ',', true);
+            "java.lang.Thread.dumpThreads," +
+            "java.net.PlainSocketImpl.socketAccept," +
+            "java.net.SocketInputStream.socketRead0," +
+            "java.lang.UNIXProcess.waitForProcessExit," +
+            "java.lang.Object.wait," +
+            "java.lang.Thread.sleep,"
+            , ',', true);
     private volatile boolean stop;
     private HashMap<String, Integer> counts = new HashMap<String, Integer>();
     private int minCount = 1;

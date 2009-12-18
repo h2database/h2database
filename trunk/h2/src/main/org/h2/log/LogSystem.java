@@ -561,7 +561,7 @@ public class LogSystem {
 
     /**
      * Flush all data to the transaction log files as well as to the data files
-     * and and switch log files.
+     * and switch log files.
      */
     public void checkpoint() throws SQLException {
         if (readOnly || database == null) {

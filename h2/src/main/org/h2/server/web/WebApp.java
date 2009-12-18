@@ -1635,7 +1635,7 @@ public class WebApp implements DatabaseEventListener {
         } else if (d.length() > SysProperties.WEB_MAX_VALUE_LENGTH) {
             String s;
             if (isBinary(rs.getMetaData().getColumnType(columnIndex))) {
-                s = PageParser.escapeHtml(d.substring(0, 100)) + "... (" + (d.length() / 2) + " ${text.result.bytes})";
+                s = PageParser.escapeHtml(d.substring(0, 6)) + "... (" + (d.length() / 2) + " ${text.result.bytes})";
             } else {
                 s = PageParser.escapeHtml(d.substring(0, 100)) + "... (" + d.length() + " ${text.result.characters})";
             }

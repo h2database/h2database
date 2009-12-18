@@ -27,7 +27,8 @@ public class Profiler implements Runnable {
             "java.net.SocketInputStream.socketRead0," +
             "java.lang.UNIXProcess.waitForProcessExit," +
             "java.lang.Object.wait," +
-            "java.lang.Thread.sleep,"
+            "java.lang.Thread.sleep," +
+            "sun.awt.windows.WToolkit.eventLoop,"
             , ',', true);
     private volatile boolean stop;
     private HashMap<String, Integer> counts = new HashMap<String, Integer>();

@@ -1,8 +1,7 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.samples;
 
@@ -13,8 +12,8 @@ import java.sql.Statement;
 import org.h2.tools.DeleteDbFiles;
 
 /**
- * A very simple class that shows how to load the driver,
- * create a database, create a table, and insert some data.
+ * A very simple class that shows how to load the driver, create a database,
+ * create a table, and insert some data.
  */
 public class HelloWorld {
 
@@ -31,7 +30,8 @@ public class HelloWorld {
         Connection conn = DriverManager.getConnection("jdbc:h2:~/test");
         Statement stat = conn.createStatement();
 
-        // this line would initialize the database from the SQL script file 'init.sql'
+        // this line would initialize the database
+        // from the SQL script file 'init.sql'
         // stat.execute("runscript from 'init.sql'");
 
         stat.execute("create table test(id int primary key, name varchar(255))");

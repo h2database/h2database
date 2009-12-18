@@ -800,7 +800,7 @@ public class WebApp implements DatabaseEventListener {
             String success = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
                 "${text.login.testSuccessful}</a>" +
                 "<span style=\"display: none;\" id=\"prof\"><br />" +
-                PageParser.escapeHtml(profiler.getTop(1)) +
+                PageParser.escapeHtml(profiler.getTop(3)) +
                 "</span>";
             session.put("error", success);
             // session.put("error", "${text.login.testSuccessful}");
@@ -1190,7 +1190,7 @@ public class WebApp implements DatabaseEventListener {
                 profiler.stopCollecting();
                 SimpleResultSet rs = new SimpleResultSet();
                 rs.addColumn("Top Stack Trace(s)", Types.VARCHAR, 0, 0);
-                rs.addRow(profiler.getTop(1));
+                rs.addRow(profiler.getTop(3));
                 profiler = null;
                 return rs;
             }

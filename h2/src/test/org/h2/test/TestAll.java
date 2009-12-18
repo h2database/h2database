@@ -298,12 +298,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-change client version (identity_scope problem)
-reject join without "on" (except natural join)
-add performance analysis tool to H2 Console
-
-template for test case.
-
 readonly database: throw exception if lock file exists
 
 console: blob: write 'binary' and '(... bytes)'

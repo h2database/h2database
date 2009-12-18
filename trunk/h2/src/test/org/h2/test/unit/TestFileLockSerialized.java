@@ -33,8 +33,6 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
-        println("testReadOnly");
-        testReadOnlyConnect();
         println("testWrongDatabaseInstanceOnReconnect");
         testWrongDatabaseInstanceOnReconnect();
         println("testCache()");
@@ -61,28 +59,6 @@ public class TestFileLockSerialized extends TestBase {
         testKillWriter();
         println("testConcurrentReadWrite");
         testConcurrentReadWrite();
-    }
-
-    private void testReadOnlyConnect() throws SQLException {
-        deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
-
-        Connection conn = DriverManager.getConnection(url);
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity)");
-        stat.execute("insert into test select x from system_range(1, 10)");
-
-        Connection connReadOnly = DriverManager.getConnection(url + ";ACCESS_MODE_LOG=r;ACCESS_MODE_DATA=r");
-        Statement statReadOnly = connReadOnly.createStatement();
-        assertResult("10", statReadOnly, "select count(*) from test");
-
-        stat.execute("insert into test select x from system_range(11, 20)");
-
-        assertResult("20", statReadOnly, "select count(*) from test");
-        connReadOnly.close();
-
-        conn.close();
-        deleteDb("fileLockSerialized");
     }
 
     private void testThreeMostlyReaders(final boolean write) throws Exception {

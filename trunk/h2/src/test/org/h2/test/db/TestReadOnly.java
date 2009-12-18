@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
@@ -36,6 +37,7 @@ public class TestReadOnly extends TestBase {
         if (config.memory) {
             return;
         }
+        testReadOnlyConnect();
         testReadOnlyDbCreate();
         if (!config.googleAppEngine) {
             testReadOnlyFiles(true);
@@ -74,6 +76,7 @@ public class TestReadOnly extends TestBase {
     }
 
     private void testReadOnlyFiles(boolean setReadOnly) throws Exception {
+        new File(System.getProperty("java.io.tmpdir")).mkdirs();
         File f = File.createTempFile("test", "temp");
         assertTrue(f.canWrite());
         f.setReadOnly();
@@ -152,6 +155,22 @@ public class TestReadOnly extends TestBase {
                 }
             }
         }
+    }
+
+
+    private void testReadOnlyConnect() throws SQLException {
+        deleteDb("readonly");
+        Connection conn = getConnection("readonly;OPEN_NEW=TRUE");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id identity)");
+        stat.execute("insert into test select x from system_range(1, 11)");
+        try {
+            getConnection("readonly;ACCESS_MODE_LOG=r;ACCESS_MODE_DATA=r;OPEN_NEW=TRUE");
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
+        }
+        conn.close();
+        deleteDb("readonly");
     }
 
 }

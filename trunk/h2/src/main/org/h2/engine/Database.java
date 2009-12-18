@@ -601,8 +601,14 @@ public class Database implements DataHandler {
                             " || fileLockMethod == SERIALIZED)");
                 }
             }
+            String lockFileName = databaseName + Constants.SUFFIX_LOCK_FILE;
+            if (readOnly) {
+                if (FileUtils.exists(lockFileName)) {
+                    throw Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, "Lock file exists: " + lockFileName);
+                }
+            }
             if (!readOnly && fileLockMethod != FileLock.LOCK_NO) {
-                lock = new FileLock(traceSystem, databaseName + Constants.SUFFIX_LOCK_FILE, Constants.LOCK_SLEEP);
+                lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
                 lock.lock(fileLockMethod);
                 if (autoServerMode) {
                     startServer(lock.getUniqueId());

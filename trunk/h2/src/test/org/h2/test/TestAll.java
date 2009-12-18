@@ -300,13 +300,6 @@ java org.h2.test.TestAll timer
 
 readonly database: throw exception if lock file exists
 
-console: blob: write 'binary' and '(... bytes)'
-504b0304000000... (binary, 3015712 bytes)
-DROP TABLE IF EXISTS TEST;
-CREATE TABLE TEST(ID INT PRIMARY KEY, data blob);
-INSERT INTO TEST VALUES(1, SECURE_RAND(100000));
-SELECT * FROM TEST ORDER BY ID;
-
 outer join bug
 
 // System.setProperty("h2.pageSize", "64");

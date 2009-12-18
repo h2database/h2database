@@ -56,7 +56,7 @@ public class Right extends DbObjectBase {
     }
 
     public Right(Database db, int id, RightOwner grantee, int grantedRight, Table grantedRightOnTable) {
-        initDbObjectBase(db, id, ""+id, Trace.USER);
+        initDbObjectBase(db, id, "" + id, Trace.USER);
         this.grantee = grantee;
         this.grantedRight = grantedRight;
         this.grantedTable = grantedRightOnTable;

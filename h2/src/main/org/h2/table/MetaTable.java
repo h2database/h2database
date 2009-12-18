@@ -1078,11 +1078,11 @@ public class MetaTable extends Table {
                             // JAVA_METHOD
                             alias.getJavaMethodName(),
                             // DATA_TYPE
-                            ""+DataType.convertTypeToSQLType(method.getDataType()),
+                            "" + DataType.convertTypeToSQLType(method.getDataType()),
                             // COLUMN_COUNT INT
-                            ""+ method.getColumnClasses().length,
+                            "" + method.getColumnClasses().length,
                             // RETURNS_RESULT SMALLINT
-                            ""+ returnsResult,
+                            "" + returnsResult,
                             // REMARKS
                             replaceNullWithEmpty(alias.getComment()),
                             // ID
@@ -1106,11 +1106,11 @@ public class MetaTable extends Table {
                         // JAVA_METHOD
                         "",
                         // DATA_TYPE
-                        ""+DataType.convertTypeToSQLType(Value.NULL),
+                        "" + DataType.convertTypeToSQLType(Value.NULL),
                         // COLUMN_COUNT INT
                         "1",
                         // RETURNS_RESULT SMALLINT
-                        ""+ returnsResult,
+                        "" + returnsResult,
                         // REMARKS
                         replaceNullWithEmpty(agg.getComment()),
                         // ID

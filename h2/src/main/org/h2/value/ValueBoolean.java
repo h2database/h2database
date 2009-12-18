@@ -34,7 +34,7 @@ public class ValueBoolean extends Value {
     private final Boolean value;
 
     private ValueBoolean(boolean value) {
-        this.value = Boolean.valueOf(""+value);
+        this.value = Boolean.valueOf(value);
     }
 
     public int getType() {

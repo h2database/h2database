@@ -25,6 +25,7 @@ public class Profiler implements Runnable {
             "java.lang.Thread.dumpThreads," +
             "java.net.PlainSocketImpl.socketAccept," +
             "java.net.SocketInputStream.socketRead0," +
+            "java.net.SocketOutputStream.socketWrite0," +
             "java.lang.UNIXProcess.waitForProcessExit," +
             "java.lang.Object.wait," +
             "java.lang.Thread.sleep," +

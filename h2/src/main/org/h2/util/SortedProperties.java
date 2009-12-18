@@ -54,7 +54,7 @@ public class SortedProperties extends Properties {
      * @return the value if set, or the default value if not
      */
     public static boolean getBooleanProperty(Properties prop, String key, boolean def) {
-        String value = prop.getProperty(key, ""+def);
+        String value = prop.getProperty(key, "" + def);
         try {
             return Boolean.valueOf(value).booleanValue();
         } catch (Exception e) {
@@ -72,7 +72,7 @@ public class SortedProperties extends Properties {
      * @return the value if set, or the default value if not
      */
     public static int getIntProperty(Properties prop, String key, int def) {
-        String value = prop.getProperty(key, ""+def);
+        String value = prop.getProperty(key, "" + def);
         try {
             return MathUtils.decodeInt(value);
         } catch (Exception e) {

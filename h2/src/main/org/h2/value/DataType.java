@@ -748,7 +748,7 @@ public class DataType {
         case Types.ARRAY:
             return Value.ARRAY;
         default:
-            throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, ""+sqlType);
+            throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, "" + sqlType);
         }
     }
 

@@ -495,18 +495,27 @@ public class TestFileLockSerialized extends TestBase {
     private void testLeftLogFiles() throws Exception {
         deleteDb("fileLockSerialized");
         
-        // without serialized        
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;PAGE_STORE=FALSE";
+        // without serialized
+        String url;
+        if (config.pageStore) {
+            url = "jdbc:h2:" + baseDir + "/fileLockSerialized;PAGE_STORE=TRUE";
+        } else {
+            url = "jdbc:h2:" + baseDir + "/fileLockSerialized;PAGE_STORE=FALSE";
+        }
         Connection conn = DriverManager.getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
         stat.execute("insert into test values(0)");
         conn.close();
-        List filesWithoutSerialized = Arrays.asList(new File(baseDir).list());        
+        List<String> filesWithoutSerialized = Arrays.asList(new File(baseDir).list());
         deleteDb("fileLockSerialized");
         
         // with serialized
-        url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;PAGE_STORE=FALSE";
+        if (config.pageStore) {
+            url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;PAGE_STORE=TRUE";
+        } else {
+            url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;PAGE_STORE=FALSE";
+        }
         conn = DriverManager.getConnection(url);
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
@@ -514,7 +523,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
         
-        List filesWithSerialized = Arrays.asList(new File(baseDir).list());
+        List<String> filesWithSerialized = Arrays.asList(new File(baseDir).list());
         if (filesWithoutSerialized.size() !=  filesWithSerialized.size()) {
             for (int i = 0; i < filesWithoutSerialized.size(); i++) {
                 if (!filesWithSerialized.contains(filesWithoutSerialized.get(i))) {

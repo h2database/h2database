@@ -216,11 +216,11 @@ public class Shell extends Tool {
                         PreparedStatement prep = null;
                         ResultSet rs = null;
                         try {
-                            String sql = "SELECT CAST(COLUMN_NAME AS VARCHAR(32)) \"Column Name\", " +
-                                "CAST(TYPE_NAME AS VARCHAR(14)) \"Type\", " +
-                                "NUMERIC_PRECISION \"Precision\", " +
-                                "CAST(IS_NULLABLE AS VARCHAR(8)) \"Nullable\", " +
-                                "CAST(COLUMN_DEFAULT AS VARCHAR(20)) \"Default\" " +
+                            String sql = "SELECT CAST(COLUMN_NAME AS VARCHAR(32)) AS \"Column Name\", " +
+                                "CAST(TYPE_NAME AS VARCHAR(14)) AS \"Type\", " +
+                                "NUMERIC_PRECISION AS \"Precision\", " +
+                                "CAST(IS_NULLABLE AS VARCHAR(8)) AS \"Nullable\", " +
+                                "CAST(COLUMN_DEFAULT AS VARCHAR(20)) AS \"Default\" " +
                                 "FROM INFORMATION_SCHEMA.COLUMNS " +
                                 "WHERE UPPER(TABLE_NAME)=?";
                             if (schemaName != null) {
@@ -246,7 +246,7 @@ public class Shell extends Tool {
                     ResultSet rs = null;
                     try {
                         rs = stat.executeQuery(
-                                "SELECT CAST(TABLE_SCHEMA AS VARCHAR(32)) \"Schema\", TABLE_NAME \"Table Name\" " +
+                                "SELECT CAST(TABLE_SCHEMA AS VARCHAR(32)) AS \"Schema\", TABLE_NAME AS \"Table Name\" " +
                                 "FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_SCHEMA, TABLE_NAME");
                         printResult(rs, false);
                     } catch (SQLException e) {

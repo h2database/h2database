@@ -276,7 +276,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         }
         databaseName = name.substring(idx + 1);
         String server = name.substring(0, idx);
-        traceSystem = new TraceSystem(null, false);
+        traceSystem = new TraceSystem(null);
         try {
             String traceLevelFile = ci.getProperty(SetTypes.TRACE_LEVEL_FILE, null);
             if (traceLevelFile != null) {

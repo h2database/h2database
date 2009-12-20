@@ -681,7 +681,7 @@ public class Session extends SessionWithState {
             traceModuleName = Trace.JDBC + "[" + id + "]";
         }
         if (closed) {
-            return new TraceSystem(null, false).getTrace(traceModuleName);
+            return new TraceSystem(null).getTrace(traceModuleName);
         }
         return database.getTrace(traceModuleName);
     }

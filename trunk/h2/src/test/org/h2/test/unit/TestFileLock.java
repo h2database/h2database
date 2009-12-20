@@ -57,14 +57,14 @@ public class TestFileLock extends TestBase implements Runnable {
         f.delete();
         f.createNewFile();
         f.setLastModified(System.currentTimeMillis() + 10000);
-        FileLock lock = new FileLock(new TraceSystem(null, false), FILE, Constants.LOCK_SLEEP);
+        FileLock lock = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
         lock.lock(FileLock.LOCK_FILE);
         lock.unlock();
     }
 
     private void testSimple() throws SQLException {
-        FileLock lock1 = new FileLock(new TraceSystem(null, false), FILE, Constants.LOCK_SLEEP);
-        FileLock lock2 = new FileLock(new TraceSystem(null, false), FILE, Constants.LOCK_SLEEP);
+        FileLock lock1 = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
+        FileLock lock2 = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
         lock1.lock(FileLock.LOCK_FILE);
         try {
             lock2.lock(FileLock.LOCK_FILE);
@@ -73,7 +73,7 @@ public class TestFileLock extends TestBase implements Runnable {
             // expected
         }
         lock1.unlock();
-        lock2 = new FileLock(new TraceSystem(null, false), FILE, Constants.LOCK_SLEEP);
+        lock2 = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
         lock2.lock(FileLock.LOCK_FILE);
         lock2.unlock();
     }
@@ -101,7 +101,7 @@ public class TestFileLock extends TestBase implements Runnable {
     public void run() {
         FileLock lock = null;
         while (!stop) {
-            lock = new FileLock(new TraceSystem(null, false), FILE, 100);
+            lock = new FileLock(new TraceSystem(null), FILE, 100);
             try {
                 lock.lock(allowSockets ? FileLock.LOCK_SOCKET : FileLock.LOCK_FILE);
                 base.trace(lock + " locked");

@@ -400,7 +400,7 @@ public abstract class TestBase {
         System.err.println("ERROR: " + s + " " + e.toString() + " ------------------------------");
         e.printStackTrace();
         try {
-            TraceSystem ts = new TraceSystem(null, false);
+            TraceSystem ts = new TraceSystem(null);
             FileLock lock = new FileLock(ts, "error.lock", 1000);
             lock.lock(FileLock.LOCK_FILE);
             FileWriter fw = new FileWriter("error.txt", true);

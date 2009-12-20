@@ -587,9 +587,9 @@ public class Database implements DataHandler {
             }
             boolean exists = existsData || existsPage;
             if (readOnly) {
-                traceSystem = new TraceSystem(null, false);
+                traceSystem = new TraceSystem(null);
             } else {
-                traceSystem = new TraceSystem(databaseName + Constants.SUFFIX_TRACE_FILE, true);
+                traceSystem = new TraceSystem(databaseName + Constants.SUFFIX_TRACE_FILE);
             }
             traceSystem.setLevelFile(traceLevelFile);
             traceSystem.setLevelSystemOut(traceLevelSystemOut);
@@ -656,7 +656,7 @@ public class Database implements DataHandler {
             reserveLobFileObjectIds();
             writer = WriterThread.create(this, writeDelay);
         } else {
-            traceSystem = new TraceSystem(null, false);
+            traceSystem = new TraceSystem(null);
             log = new LogSystem(null, null, false, null, null);
         }
         systemUser = new User(this, 0, Constants.DBA_NAME, true);

@@ -100,20 +100,12 @@ public class TraceSystem implements TraceWriter {
      * Create a new trace system object.
      *
      * @param fileName the file name
-     * @param init if the trace system should be initialized
      */
-    public TraceSystem(String fileName, boolean init) {
+    public TraceSystem(String fileName) {
         this.fileName = fileName;
         updateLevel();
         traces = SmallLRUCache.newInstance(100);
         dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
-        if (fileName != null && init) {
-            try {
-                openWriter();
-            } catch (Exception e) {
-                logWritingError(e);
-            }
-        }
     }
 
     private void updateLevel() {
@@ -323,9 +315,6 @@ public class TraceSystem implements TraceWriter {
                 // ignore
             }
             fileWriter = null;
-        }
-        if (fileName != null && FileUtils.length(fileName) == 0) {
-            FileUtils.tryDelete(fileName);
         }
     }
 

@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Random;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
@@ -18,6 +19,7 @@ import org.h2.constant.SysProperties;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.CompressTool;
+import org.h2.util.New;
 
 /**
  * Data compression tests.
@@ -38,6 +40,7 @@ public class TestCompress extends TestBase {
     public void test() throws Exception {
         if (testPerformance) {
             testDatabase();
+            return;
         }
         testMultiThreaded();
         if (config.big) {
@@ -147,7 +150,32 @@ public class TestCompress extends TestBase {
                 }
                 in.close();
             }
-            System.out.println(System.currentTimeMillis() - start);
+            System.out.println("compress: " + (System.currentTimeMillis() - start) + " ms");
+        }
+
+        for (int j = 0; j < 4; j++) {
+            ArrayList<byte[]> comp = New.arrayList();
+            InputStream in = FileSystem.getInstance("memFS:").openFileInputStream("memFS:compress.h2.db");
+            while (true) {
+                int len = in.read(buff);
+                if (len < 0) {
+                    break;
+                }
+                int b = compress.compress(buff, pageSize, test, 0);
+                byte[] data = new byte[b];
+                System.arraycopy(test, 0, data, 0, b);
+                comp.add(data);
+            }
+            in.close();
+            byte[] result = new byte[pageSize];
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < 1000; i++) {
+                for (int k = 0; k < comp.size(); k++) {
+                    byte[] data = comp.get(k);
+                    compress.expand(data, 0, data.length, result, 0, pageSize);
+                }
+            }
+            System.out.println("expand: " + (System.currentTimeMillis() - start) + " ms");
         }
     }
 

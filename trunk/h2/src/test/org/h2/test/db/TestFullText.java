@@ -57,6 +57,7 @@ public class TestFullText extends TestBase {
             println("Class not found, not tested: " + luceneFullTextClassName);
             // ok
         }
+        FullText.closeAll();
         deleteDb("fullText");
         deleteDb("fullTextReopen");
     }
@@ -187,6 +188,12 @@ public class TestFullText extends TestBase {
         assertTrue(rs.next());
         stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH(NULL, 0, 0)");
         stat.execute("INSERT INTO TEST VALUES(2, NULL)");
+        conn.close();
+
+        FullText.closeAll();
+        conn = getConnection("fullTextReopen");
+        stat = conn.createStatement();
+        stat.execute("INSERT INTO TEST VALUES(3, 'Hello')");
         conn.close();
     }
 

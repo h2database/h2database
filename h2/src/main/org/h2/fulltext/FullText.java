@@ -788,6 +788,9 @@ public class FullText {
         public void init(Connection conn, String schemaName, String triggerName,
                 String tableName, boolean before, int type) throws SQLException {
             setting = FullTextSettings.getInstance(conn);
+            if (!setting.isInitialized()) {
+                FullText.init(conn);
+            }
             ArrayList<String> keyList = New.arrayList();
             DatabaseMetaData meta = conn.getMetaData();
             ResultSet rs = meta.getColumns(null,
@@ -1004,6 +1007,14 @@ public class FullText {
             return buff.toString();
         }
 
+    }
+
+    /**
+     * INTERNAL
+     * Close all fulltext settings, freeing up memory.
+     */
+    public static void closeAll() {
+        FullTextSettings.closeAll();
     }
 
 }

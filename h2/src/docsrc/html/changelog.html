@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The .trace.db file is now only created if required.
+<ul><li>The user home directory prefix (~) is now only expanded when followed by a slash 
+    or backslash, or standing alone.
+</li><li>Native fulltext search: before inserting or deleting data, FT_INIT() had to be called.
+    This is no longer required.
+</li><li>The .trace.db file is now only created if required.
 </li><li>Shell tool: improved PostgreSQL compatibility.
 </li><li>Trying to open a database in read-only mode when a .lock.db file exists will now fail
     with a nice error message.

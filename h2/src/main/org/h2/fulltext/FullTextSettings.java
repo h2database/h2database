@@ -198,4 +198,11 @@ public class FullTextSettings {
         return initialized;
     }
 
+    /**
+     * Close all fulltext settings, freeing up memory.
+     */
+    protected static void closeAll() {
+        SETTINGS.clear();
+    }
+
 }

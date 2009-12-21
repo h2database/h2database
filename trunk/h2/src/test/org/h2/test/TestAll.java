@@ -298,25 +298,17 @@ java org.h2.test.TestAll timer
 
 /*
 
-readonly database: throw exception if lock file exists
-
 outer join bug
 
 // System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64
 test if compact always works as expected
 
-http://www.apache.org/dev/contrib-email-tips.html
-
 google app engine
 
 documentation: rolling review at jaqu.html
 
-System.setProperty("h2.optimizeInList", "true");
-System.setProperty("h2.optimizeOr", "true");
-
 optimization for X IN(..) and OR:
-add more test cases, code coverage 100%
 document in optimizations.sql
 
 -------------

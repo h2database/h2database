@@ -789,20 +789,38 @@ public class WebApp implements DatabaseEventListener {
         session.put("user", user);
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
+            long start = System.currentTimeMillis();
+            String profileOpen = "", profileClose = "";
             Profiler profiler = new Profiler();
             profiler.startCollecting();
+            Connection conn;
             try {
-                Connection conn = server.getConnection(driver, url, user, password, this);
+                conn = server.getConnection(driver, url, user, password, this);
+            } finally {
+                profiler.stopCollecting();
+                profileOpen = profiler.getTop(3);
+            }
+            profiler = new Profiler();
+            profiler.startCollecting();
+            try {
                 JdbcUtils.closeSilently(conn);
             } finally {
                 profiler.stopCollecting();
+                profileClose = profiler.getTop(3);
             }
-
-            String success = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
-                "${text.login.testSuccessful}</a>" +
-                "<span style=\"display: none;\" id=\"prof\"><br />" +
-                PageParser.escapeHtml(profiler.getTop(3)) +
-                "</span>";
+            long time = System.currentTimeMillis() - start;
+            String success;
+            if (time > 1000) {
+                success = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
+                    "${text.login.testSuccessful}</a>" +
+                    "<span style=\"display: none;\" id=\"prof\"><br />" +
+                    PageParser.escapeHtml(profileOpen) +
+                    "<br />" +
+                    PageParser.escapeHtml(profileClose) +
+                    "</span>";
+            } else {
+                success = "${text.login.testSuccessful}";
+            }
             session.put("error", success);
             // session.put("error", "${text.login.testSuccessful}");
             return "login.jsp";

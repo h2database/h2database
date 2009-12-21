@@ -25,8 +25,13 @@ import org.h2.util.Tool;
 /**
  * Creates a backup of a database.
  * <br />
- * The database must be closed before using this tool,
- *  except when running in quiet mode.
+ * This tool copies all database files. The database must be closed before using
+ * this tool. To create a backup while the database is in use, run the BACKUP
+ * SQL statement. In an emergency, for example if the application is not
+ * responding, creating a backup using the Backup tool is possible by using the
+ * quiet mode. However, if the database is changed while the backup is running
+ * in quiet mode, the backup could be corrupt.
+ *
  * @h2.resource
  */
 public class Backup extends Tool {

@@ -57,7 +57,20 @@ public class FileSystemDisk extends FileSystem {
      * @return the native file name
      */
     protected String translateFileName(String fileName) {
-        if (fileName != null && fileName.startsWith("~")) {
+        return expandUserHomeDirectory(fileName);
+    }
+
+    /**
+     * Expand '~' to the user home directory. It is only be expanded if the ~ stands alone, or is followed by / or \.
+     *
+     * @param fileName the file name
+     * @return the native file name
+     */
+    public static String expandUserHomeDirectory(String fileName) {
+        if (fileName == null) {
+            return null;
+        }
+        if (fileName.startsWith("~") && (fileName.length() == 1 || fileName.startsWith("~/") || fileName.startsWith("~\\"))) {
             String userDir = SysProperties.USER_HOME;
             fileName = userDir + fileName.substring(1);
         }

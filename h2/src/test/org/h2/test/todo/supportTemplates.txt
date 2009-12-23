@@ -47,9 +47,7 @@ Please provide any additional information below.
 
 -----------------
 
-ClassCastException
-
-There is a known problem in version 1.2.120 that can cause a ClassCastException. Did you use version 1.2.120 with this database? If not, I have a few more questions:
+This looks like a serious problem. I have a few questions:
 
 - Could you send the full stack trace of the exception including message text?
 - What is your database URL?
@@ -64,11 +62,15 @@ There is a known problem in version 1.2.120 that can cause a ClassCastException.
 - Did the application run out of memory (once, or multiple times)?
 - Do you use any settings or special features (for example, the setting
     LOG=0, or two phase commit, linked tables, cache settings)?
+- Do you use any H2-specific system properties?
 - Is the application multi-threaded?
 - What operating system, file system, and virtual machine
     (java -version) do you use?
+- How did you start the Java process (java -Xmx... and so on)?
+- To you use temporary tables?
 - Is it (or was it at some point) a networked file system?
 - How big is the database (file sizes)?
+- How much heap memory does the Java process have?
 - Is the database usually closed normally, or is process terminated
     forcefully or the computer switched off?
 - Is it possible to reproduce this problem using a fresh database

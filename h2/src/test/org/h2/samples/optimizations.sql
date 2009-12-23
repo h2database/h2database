@@ -198,3 +198,28 @@ EXPLAIN SELECT VALUE FROM TEST ORDER BY VALUE DESC LIMIT 10;
 ;
 
 DROP TABLE TEST;
+
+-------------------------------------------------------------------------------
+-- Optimize IN(..)
+-------------------------------------------------------------------------------
+-- This code snippet shows how IN(...) uses an index (unlike .. OR ..).
+
+-- Initialize the data
+CREATE TABLE TEST(ID INT PRIMARY KEY);
+INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 1000);
+
+-- Query the count
+SELECT * FROM TEST WHERE ID IN(1, 1000);
+--> 1
+--> 1000
+;
+
+-- Display the query plan
+EXPLAIN SELECT * FROM TEST WHERE ID IN(1, 1000);
+--> SELECT TEST.ID
+-->    FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 1000) */
+-->    WHERE ID IN(1, 1000)
+;
+
+DROP TABLE TEST;
+

@@ -78,7 +78,6 @@ public class ConnectionInfo implements Cloneable {
         ArrayList<String> list = SetTypes.getTypes();
         HashSet<String> set = KNOWN_SETTINGS;
         set.addAll(list);
-        // TODO document these settings
         String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
                 "PASSWORD", "RECOVER", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",

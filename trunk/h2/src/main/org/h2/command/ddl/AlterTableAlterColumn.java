@@ -139,9 +139,6 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case CHANGE_TYPE: {
-            // TODO document data type change problems when used with
-            // autoincrement columns.
-            // sequence will be unlinked
             checkNoViews();
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, null);
@@ -366,8 +363,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private void execute(String sql, boolean ddl) throws SQLException {
         Prepared command = session.prepare(sql);
         command.update();
-        if (ddl && session.getDatabase().isMultiVersion()) {
-            // TODO this should work without MVCC, but avoid risks at the moment
+        if (ddl) {
             session.commit(true);
         }
     }

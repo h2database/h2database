@@ -111,7 +111,6 @@ public class Right extends DbObjectBase {
         } else {
             buff.append(getRights()).append(" ON ").append(table.getSQL());
         }
-        // TODO rights: need role 'PUBLIC'
         buff.append(" TO ").append(grantee.getSQL());
         return buff.toString();
     }

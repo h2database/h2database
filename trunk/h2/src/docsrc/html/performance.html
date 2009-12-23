@@ -26,6 +26,8 @@ Performance
     Database Profiling</a><br />
 <a href="#database_performance_tuning">
     Database Performance Tuning</a><br />
+<a href="#built_in_profiler">
+    Using the Built-In Profiler</a><br />
 <a href="#fast_import">
     Fast Database Import</a><br />
 
@@ -541,6 +543,19 @@ CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR) AS
     SORTED SELECT X, SPACE(100) FROM SYSTEM_RANGE(1, 100);
 INSERT INTO TEST
     SORTED SELECT X, SPACE(100) FROM SYSTEM_RANGE(101, 200);
+</pre>
+
+<h2 id="built_in_profiler">Using the Built-In Profiler</h2>
+<p>
+A very simple Java profiler is built-in. To use it, use the following template:
+</p>
+<pre>
+import org.h2.util.Profiler;
+Profiler prof = new Profiler();
+prof.startCollecting();
+// .... some long running process, at least a few seconds
+prof.stopCollecting();
+System.out.println(prof.getTop(3));
 </pre>
 
 <h2 id="fast_import">Fast Database Import</h2>

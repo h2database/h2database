@@ -298,6 +298,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+AlterTableAlterColumn todo
+
 outer join bug
 
 // System.setProperty("h2.pageSize", "64");
@@ -307,9 +309,6 @@ test if compact always works as expected
 google app engine
 
 documentation: rolling review at jaqu.html
-
-optimization for X IN(..) and OR:
-document in optimizations.sql
 
 -------------
 

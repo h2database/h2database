@@ -325,7 +325,6 @@ public class Comparison extends Condition {
 
     public void createIndexConditions(Session session, TableFilter filter) {
         if (right == null) {
-            // TODO index usage: IS [NOT] NULL index usage is possible
             return;
         }
         ExpressionColumn l = null;

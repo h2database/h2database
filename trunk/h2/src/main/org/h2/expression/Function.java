@@ -483,8 +483,6 @@ public class Function extends Expression implements FunctionCall {
             if (v0 != null) {
                 session.getRandom().setSeed(v0.getInt());
             }
-            // TODO function rand: if seed value is set,
-            // return a random value? probably yes
             result = ValueDouble.get(session.getRandom().nextDouble());
             break;
         }
@@ -569,7 +567,6 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(getSoundex(v0.getString()));
             break;
         case SPACE: {
-            // TODO DOS attacks: limit len?
             int len = Math.max(0, v0.getInt());
             char[] chars = new char[len];
             for (int i = len - 1; i >= 0; i--) {

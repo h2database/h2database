@@ -491,10 +491,10 @@ public class TestFileLockSerialized extends TestBase {
         }
         deleteDb("fileLockSerialized");
     }
-    
+
     private void testLeftLogFiles() throws Exception {
         deleteDb("fileLockSerialized");
-        
+
         // without serialized
         String url;
         if (config.pageStore) {
@@ -509,7 +509,7 @@ public class TestFileLockSerialized extends TestBase {
         conn.close();
         List<String> filesWithoutSerialized = Arrays.asList(new File(baseDir).list());
         deleteDb("fileLockSerialized");
-        
+
         // with serialized
         if (config.pageStore) {
             url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;PAGE_STORE=TRUE";
@@ -522,7 +522,7 @@ public class TestFileLockSerialized extends TestBase {
         Thread.sleep(500);
         stat.execute("insert into test values(0)");
         conn.close();
-        
+
         List<String> filesWithSerialized = Arrays.asList(new File(baseDir).list());
         if (filesWithoutSerialized.size() !=  filesWithSerialized.size()) {
             for (int i = 0; i < filesWithoutSerialized.size(); i++) {

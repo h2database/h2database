@@ -1139,8 +1139,6 @@ public class Parser {
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             return command;
-            // TODO role: support role names SELECT | DELETE | INSERT | UPDATE |
-            // ALL? does quoting work?
         } else if (readIf("ALIAS")) {
             boolean ifExists = readIfExists(false);
             DropFunctionAlias command = new DropFunctionAlias(session);
@@ -1666,7 +1664,6 @@ public class Parser {
     }
 
     private Expression readCondition() throws SQLException {
-        // TODO parser: should probably use switch case for performance
         if (readIf("NOT")) {
             return new ConditionNot(readCondition());
         }

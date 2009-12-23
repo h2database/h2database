@@ -61,7 +61,8 @@ public class FileSystemDisk extends FileSystem {
     }
 
     /**
-     * Expand '~' to the user home directory. It is only be expanded if the ~ stands alone, or is followed by / or \.
+     * Expand '~' to the user home directory. It is only be expanded if the ~
+     * stands alone, or is followed by / or \.
      *
      * @param fileName the file name
      * @return the native file name

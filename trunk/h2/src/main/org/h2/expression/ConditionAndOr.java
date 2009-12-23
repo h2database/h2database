@@ -124,10 +124,8 @@ public class ConditionAndOr extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        // TODO NULL: see wikipedia,
+        // NULL handling: see wikipedia,
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
-        // TODO test all optimizations switched off against all on
-        // (including performance)
         left = left.optimize(session);
         right = right.optimize(session);
         int lc = left.getCost(), rc = right.getCost();

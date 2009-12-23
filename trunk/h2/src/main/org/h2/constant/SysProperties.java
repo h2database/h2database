@@ -289,7 +289,7 @@ public class SysProperties {
      * In version 1.1, it is enabled by default.
      * </p>
      */
-    // TODO: when removing this property, also remove
+    // when removing this property, also remove
     // DataHandler.allocateObjectId, createTempFile it
     public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", Constants.VERSION > 1.0);
 

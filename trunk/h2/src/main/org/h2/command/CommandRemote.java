@@ -120,7 +120,6 @@ public class CommandRemote implements CommandInterface {
                 prepareIfRequired();
                 Transfer transfer = transferList.get(i);
                 try {
-                    // TODO cluster: support load balance with values for each server / auto detect
                     session.traceOperation("COMMAND_GET_META_DATA", id);
                     transfer.writeInt(SessionRemote.COMMAND_GET_META_DATA).writeInt(id).writeInt(objectId);
                     session.done(transfer);
@@ -145,8 +144,6 @@ public class CommandRemote implements CommandInterface {
                 prepareIfRequired();
                 Transfer transfer = transferList.get(i);
                 try {
-                    // TODO cluster: support load balance with values for each
-                    // server / auto detect
                     session.traceOperation("COMMAND_EXECUTE_QUERY", id);
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_QUERY).writeInt(id).writeInt(objectId).writeInt(
                             maxRows);

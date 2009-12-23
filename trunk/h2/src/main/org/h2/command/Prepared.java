@@ -103,7 +103,7 @@ public abstract class Prepared {
         if (db == null) {
             throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "database closed");
         }
-        // TODO parser: currently, compiling every create/drop/... twice!
+        // parser: currently, compiling every create/drop/... twice
         // because needRecompile return true even for the first execution
         return SysProperties.RECOMPILE_ALWAYS || prepareAlways || modificationMetaId < db.getModificationMetaId();
     }

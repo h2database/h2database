@@ -286,7 +286,13 @@ public class FileSystemDisk extends FileSystem {
     }
 
     private boolean canWriteInternal(File file) {
-        if (!file.canWrite()) {
+        try {
+            if (!file.canWrite()) {
+                return false;
+            }
+        } catch (Exception e) {
+            // workaround for GAE which throws a
+            // java.security.AccessControlException
             return false;
         }
         // File.canWrite() does not respect windows user permissions,

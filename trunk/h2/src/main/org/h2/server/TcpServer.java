@@ -275,6 +275,8 @@ public class TcpServer implements Service {
                     serverSocket.close();
                 } catch (IOException e) {
                     TraceSystem.traceThrowable(e);
+                } catch (NullPointerException e) {
+                    // ignore
                 }
                 serverSocket = null;
             }

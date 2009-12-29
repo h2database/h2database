@@ -35,8 +35,10 @@ img {
 }
 
 body {
-    margin: 0px;
     max-width: 800px;
+    clear: both;
+    width: 800px;
+    margin: 0 auto;
 }
 
 h1 {

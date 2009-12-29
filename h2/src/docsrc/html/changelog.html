@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The user home directory prefix (~) is now only expanded when followed by a slash
+<ul><li>The shell script h2.sh ignored command line line arguments.
+</li><li>When running H2 in the Google AppEngine for Java, a AccessControlException could be thrown
+    when trying to open a read-only database. Fixed.
+</li><li>The user home directory prefix (~) is now only expanded when followed by a slash
     or backslash, or standing alone.
 </li><li>Native fulltext search: before inserting or deleting data, FT_INIT() had to be called.
     This is no longer required.

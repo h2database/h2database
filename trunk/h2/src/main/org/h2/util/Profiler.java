@@ -36,6 +36,7 @@ public class Profiler implements Runnable {
     private int minCount = 1;
     private int total;
     private Thread thread;
+    private long time;
 
     /**
      * Start collecting profiling data.
@@ -52,9 +53,15 @@ public class Profiler implements Runnable {
      */
     public void stopCollecting() {
         stop = true;
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            // ignore
+        }
     }
 
     public void run() {
+        time = System.currentTimeMillis();
         while (!stop) {
             try {
                 tick();
@@ -62,6 +69,7 @@ public class Profiler implements Runnable {
                 break;
             }
         }
+        time = System.currentTimeMillis() - time;
     }
 
     private void tick() {
@@ -145,7 +153,8 @@ public class Profiler implements Runnable {
      */
     public String getTop(int max) {
         StringBuilder buff = new StringBuilder();
-        buff.append("Profiler: top ").append(max).append(" stack trace(s) [build-").append(Constants.BUILD_ID).append("]\n");
+        buff.append("Profiler: top ").append(max).append(" stack trace(s) of ").append(time).
+            append(" ms [build-").append(Constants.BUILD_ID).append("]\n");
         @SuppressWarnings("unchecked")
         Map.Entry<String, Integer>[] array = new Map.Entry[counts.size()];
         counts.entrySet().toArray(array);
@@ -165,6 +174,7 @@ public class Profiler implements Runnable {
             buff.append(el.getValue()).append('/').append(total).
                 append('\n').append(el.getKey());
         }
+        buff.append('.');
         return buff.toString();
     }
 

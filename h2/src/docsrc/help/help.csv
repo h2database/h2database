@@ -534,7 +534,7 @@ CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 
 "Commands (DDL)","CREATE TRIGGER","
 CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER }
-{ INSERT | UPDATE | DELETE | SELECT } [,...] ON tableName [ FOR EACH ROW ]
+{ INSERT | UPDATE | DELETE | SELECT | ROLLBACK } [,...] ON tableName [ FOR EACH ROW ]
 [ QUEUE int ] [ NOWAIT ] CALL triggeredClassName
 ","
 Creates a new trigger. The trigger class must be public. Nested and inner
@@ -544,6 +544,9 @@ database engine (when using the server mode, it must be in the classpath of the 
 Before triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;
 but before other constraints have been checked.
+
+Only row based AFTER trigger can be called on rollback. 
+Exceptions that occur within such triggers are ignored.
 
 The MERGE statement will call both INSERT and UPDATE triggers.
 Not supported are SELECT triggers with the option FOR EACH ROW,

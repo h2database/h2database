@@ -142,9 +142,9 @@ public class CacheLRU implements Cache {
                     flushed = true;
                     i = 0;
                 } else {
-                    // can't remove any record, because the log is not written yet
+                    // can't remove any record, because the records can not be removed
                     // hopefully this does not happen frequently, but it can happen
-                    writer.getTrace().info("Cannot remove records, cache size too small?");
+                    writer.getTrace().info("Cannot remove records, cache size too small? records:" + recordCount + " memory:" + sizeMemory);
                     break;
                 }
             }

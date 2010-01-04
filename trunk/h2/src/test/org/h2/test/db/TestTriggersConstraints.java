@@ -148,7 +148,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-        // CREATE TRIGGER trigger {BEFORE|AFTER} {INSERT|UPDATE|DELETE} ON table
+        // CREATE TRIGGER trigger {BEFORE|AFTER} {INSERT|UPDATE|DELETE|ROLLBACK} ON table
         // [FOR EACH ROW] [QUEUE n] [NOWAIT] CALL triggeredClass
         stat.execute("CREATE TRIGGER IF NOT EXISTS INS_BEFORE BEFORE INSERT ON TEST FOR EACH ROW NOWAIT CALL \""
                 + getClass().getName() + "\"");
@@ -158,6 +158,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                 + "\"");
         stat.execute("CREATE TRIGGER UPD_BEFORE BEFORE UPDATE ON TEST FOR EACH ROW NOWAIT CALL \""
                 + getClass().getName() + "\"");
+        stat.execute("CREATE TRIGGER INS_AFTER_ROLLBACK AFTER INSERT, ROLLBACK ON TEST FOR EACH ROW NOWAIT CALL \"" + getClass().getName()
+                + "\"");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         ResultSet rs;
         rs = stat.executeQuery("SCRIPT");
@@ -167,7 +169,10 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                 "CREATE FORCE TRIGGER PUBLIC.INS_AFTER AFTER INSERT ON PUBLIC.TEST FOR EACH ROW NOWAIT CALL \""
                         + getClass().getName() + "\";",
                 "CREATE FORCE TRIGGER PUBLIC.UPD_BEFORE BEFORE UPDATE ON PUBLIC.TEST FOR EACH ROW NOWAIT CALL \""
-                        + getClass().getName() + "\";" });
+                        + getClass().getName() + "\";",
+                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER_ROLLBACK AFTER INSERT, ROLLBACK ON PUBLIC.TEST FOR EACH ROW NOWAIT CALL \""
+                        + getClass().getName() + "\";",
+                        });
         while (rs.next()) {
             String sql = rs.getString(1);
             if (sql.startsWith("CREATE TRIGGER")) {
@@ -188,6 +193,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         mustNotCallTrigger = true;
         stat.execute("DROP TRIGGER IF EXISTS INS_BEFORE");
         stat.execute("DROP TRIGGER IF EXISTS INS_BEFORE");
+        stat.execute("DROP TRIGGER IF EXISTS INS_AFTER_ROLLBACK");
         try {
             stat.execute("DROP TRIGGER INS_BEFORE");
             fail();

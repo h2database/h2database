@@ -364,7 +364,7 @@ public class FullText {
         case Types.ARRAY:
         case DataType.TYPE_DATALINK:
         case Types.DISTINCT:
-            throw new SQLException("FULLTEXT", "Unsupported column data type: " + type);
+            throw throwException("Unsupported column data type: " + type);
         default:
             return "";
         }
@@ -462,7 +462,7 @@ public class FullText {
         case Types.ARRAY:
         case DataType.TYPE_DATALINK:
         case Types.DISTINCT:
-            throw new SQLException("FULLTEXT", "Unsupported key data type: " + type);
+            throw throwException("Unsupported key data type: " + type);
         default:
             return "";
         }
@@ -506,7 +506,7 @@ public class FullText {
                 }
             }
             if (found < 0) {
-                throw new SQLException("FULLTEXT", "Column not found: " + key);
+                throw throwException("Column not found: " + key);
             }
             index[i] = found;
         }
@@ -823,7 +823,7 @@ public class FullText {
                 }
             }
             if (keyList.size() == 0) {
-                throw new SQLException("No primary key for table " + tableName);
+                throw throwException("No primary key for table " + tableName);
             }
             ArrayList<String> indexList = New.arrayList();
             PreparedStatement prep = conn.prepareStatement(
@@ -1015,6 +1015,17 @@ public class FullText {
      */
     public static void closeAll() {
         FullTextSettings.closeAll();
+    }
+
+    /**
+     * Throw a SQLException with the given message.
+     *
+     * @param message the message
+     * @return never returns normally
+     * @throws SQLException the exception
+     */
+    protected static SQLException throwException(String message) throws SQLException {
+        throw new SQLException(message, "FULLTEXT");
     }
 
 }

@@ -33,6 +33,8 @@ public class TestFullText extends TestBase {
     }
 
     public void test() throws Exception {
+        testTransaction(false);
+        testTransaction(true);
         testCreateDrop();
         if (config.memory) {
             return;
@@ -60,6 +62,38 @@ public class TestFullText extends TestBase {
         FullText.closeAll();
         deleteDb("fullText");
         deleteDb("fullTextReopen");
+    }
+
+    private void testTransaction(boolean lucene) throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        String prefix = lucene ? "FTL" : "FT";
+        deleteDb("fullTextTransaction");
+        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullTextTransaction", false);
+        Connection conn = getConnection("fullTextTransaction");
+        Statement stat = conn.createStatement();
+        String className = lucene ? "FullTextLucene" : "FullText";
+        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
+        stat.execute("CALL " + prefix + "_INIT()");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
+        stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
+        stat.execute("UPDATE TEST SET NAME=NULL WHERE ID=1");
+        stat.execute("UPDATE TEST SET NAME='Hello World' WHERE ID=1");
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values(2, 'Hello Moon!')");
+        conn.rollback();
+        conn.close();
+        conn = getConnection("fullTextTransaction");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        assertTrue(rs.next());
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Moon', 0, 0)");
+        assertFalse(rs.next());
+        FullText.dropAll(conn);
+        conn.close();
+        deleteDb("fullTextTransaction");
     }
 
     private void testMultiThreaded() throws Exception {
@@ -125,6 +159,10 @@ public class TestFullText extends TestBase {
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB)");
         FullText.createIndex(conn, "PUBLIC", "TEST", null);
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values(1, 'Hello Moon!')");
+        conn.rollback();
+        conn.setAutoCommit(true);
         stat.execute("insert into test values(0, 'Hello World!')");
         PreparedStatement prep = conn.prepareStatement("insert into test values(1, ?)");
         final int length = 1024 * 1024;
@@ -145,6 +183,8 @@ public class TestFullText extends TestBase {
         prep.execute();
         ResultSet rs = stat.executeQuery("SELECT * FROM FT_SEARCH('World', 0, 0)");
         assertTrue(rs.next());
+        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Moon', 0, 0)");
+        assertFalse(rs.next());
         FullText.dropAll(conn);
         conn.close();
         deleteDb("fullText");

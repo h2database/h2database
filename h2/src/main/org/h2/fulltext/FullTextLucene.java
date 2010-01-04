@@ -217,7 +217,7 @@ public class FullTextLucene extends FullText {
      * @return the converted SQL exception
      */
     protected static SQLException convertException(Exception e) {
-        SQLException e2 = new SQLException("FULLTEXT", "Error while indexing document");
+        SQLException e2 = new SQLException("Error while indexing document", "FULLTEXT");
         e2.initCause(e);
         return e2;
     }
@@ -234,8 +234,9 @@ public class FullTextLucene extends FullText {
         String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
         StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
+        // unlike the native fulltext search, the trigger is also called on rollback
         buff.append(trigger).
-            append(" AFTER INSERT, UPDATE, DELETE ON ").
+            append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ").
             append(StringUtils.quoteIdentifier(schema)).
             append('.').
             append(StringUtils.quoteIdentifier(table)).
@@ -282,7 +283,7 @@ public class FullTextLucene extends FullText {
         rs.next();
         String path = rs.getString(1);
         if (path == null) {
-            throw new SQLException("FULLTEXT", "Fulltext search for in-memory databases is not supported.");
+            throw throwException("Fulltext search for in-memory databases is not supported.");
         }
         rs.close();
         return path;
@@ -463,7 +464,7 @@ public class FullTextLucene extends FullText {
                 }
             }
             if (keyList.size() == 0) {
-                throw new SQLException("No primary key for table " + tableName);
+                throw throwException("No primary key for table " + tableName);
             }
             ArrayList<String> indexList = New.arrayList();
             PreparedStatement prep = conn.prepareStatement(

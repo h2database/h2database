@@ -139,7 +139,7 @@ public class FullTextSettings {
         rs.next();
         String path = rs.getString(1);
         if ("MEM:UNNAMED".equals(path)) {
-            throw new SQLException("FULLTEXT", "Fulltext search for private (unnamed) in-memory databases is not supported.");
+            throw FullText.throwException("Fulltext search for private (unnamed) in-memory databases is not supported.");
         }
         rs.close();
         return path;

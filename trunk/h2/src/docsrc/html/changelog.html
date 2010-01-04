@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The shell script h2.sh ignored command line line arguments.
+<ul><li>Fulltext search: exceptions within the fulltext seach package had the wrong SQL state.
+</li><li>The Lucene fulltext search ignored transaction rollback. Fixed using a trigger on rollback.
+</li><li>Trigger can now be called on rollback.
+</li><li>The shell script h2.sh ignored command line line arguments.
 </li><li>When running H2 in the Google AppEngine for Java, a AccessControlException could be thrown
     when trying to open a read-only database. Fixed.
 </li><li>The user home directory prefix (~) is now only expanded when followed by a slash

@@ -38,6 +38,7 @@ public class TriggerObject extends SchemaObjectBase {
     private boolean before;
     private int typeMask;
     private boolean rowBased;
+    private boolean onRollback;
     // TODO trigger: support queue and noWait = false as well
     private int queueSize = DEFAULT_QUEUE_SIZE;
     private boolean noWait;
@@ -147,9 +148,13 @@ public class TriggerObject extends SchemaObjectBase {
      * @param newRow the new row
      * @param beforeAction true if this method is called before the operation is
      *            applied
+     *  @param rollback when the operation occurred within a rollback
      */
-    public void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction) throws SQLException {
+    public void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) throws SQLException {
         if (!rowBased || before != beforeAction) {
+            return;
+        }
+        if (rollback && !onRollback) {
             return;
         }
         load(session);
@@ -201,6 +206,12 @@ public class TriggerObject extends SchemaObjectBase {
                     }
                 }
             }
+        } catch (SQLException e) {
+            if (onRollback) {
+                // ignore
+            } else {
+                throw e;
+            }
         } finally {
             session.setScopeIdentity(identity);
             session.setCommitOrRollbackDisabled(oldDisabled);
@@ -237,6 +248,10 @@ public class TriggerObject extends SchemaObjectBase {
         return noWait;
     }
 
+    public void setOnRollback(boolean onRollback) {
+        this.onRollback = onRollback;
+    }
+
     public String getDropSQL() {
         return null;
     }
@@ -249,7 +264,8 @@ public class TriggerObject extends SchemaObjectBase {
         } else {
             buff.append(" AFTER ");
         }
-        buff.append(getTypeNameList()).append(" ON ").append(table.getSQL());
+        buff.append(getTypeNameList());
+        buff.append(" ON ").append(table.getSQL());
         if (rowBased) {
             buff.append(" FOR EACH ROW");
         }
@@ -279,6 +295,10 @@ public class TriggerObject extends SchemaObjectBase {
         if ((typeMask & Trigger.SELECT) != 0) {
             buff.appendExceptFirst(", ");
             buff.append("SELECT");
+        }
+        if (onRollback) {
+            buff.appendExceptFirst(", ");
+            buff.append("ROLLBACK");
         }
         return buff.toString();
     }

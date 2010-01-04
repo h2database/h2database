@@ -179,7 +179,7 @@ public class Merge extends Prepared {
                 table.lock(session, true, false);
                 table.addRow(session, row);
                 session.log(table, UndoLogRecord.INSERT, row);
-                table.fireAfterRow(session, null, row);
+                table.fireAfterRow(session, null, row, false);
             } catch (SQLException e) {
                 if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                     // concurrent merge or insert

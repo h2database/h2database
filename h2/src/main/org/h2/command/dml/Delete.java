@@ -74,7 +74,7 @@ public class Delete extends Prepared {
             if (table.fireRow()) {
                 for (rows.reset(); rows.hasNext();) {
                     Row row = rows.next();
-                    table.fireAfterRow(session, row, null);
+                    table.fireAfterRow(session, row, null, false);
                 }
             }
             table.fire(session, Trigger.DELETE, false);

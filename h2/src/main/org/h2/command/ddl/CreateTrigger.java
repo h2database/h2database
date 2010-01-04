@@ -33,6 +33,7 @@ public class CreateTrigger extends SchemaCommand {
     private String tableName;
     private String triggerClassName;
     private boolean force;
+    private boolean onRollback;
 
     public CreateTrigger(Session session, Schema schema) {
         super(session, schema);
@@ -91,6 +92,7 @@ public class CreateTrigger extends SchemaCommand {
         trigger.setQueueSize(queueSize);
         trigger.setRowBased(rowBased);
         trigger.setTypeMask(typeMask);
+        trigger.setOnRollback(onRollback);
         trigger.setTriggerClassName(session, triggerClassName, force);
         db.addSchemaObject(session, trigger);
         table.addTrigger(trigger);
@@ -99,6 +101,10 @@ public class CreateTrigger extends SchemaCommand {
 
     public void setForce(boolean force) {
         this.force = force;
+    }
+
+    public void setOnRollback(boolean onRollback) {
+        this.onRollback = onRollback;
     }
 
 }

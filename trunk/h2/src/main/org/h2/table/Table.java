@@ -750,7 +750,7 @@ public abstract class Table extends SchemaObjectBase {
      *  @param newRow the new data or null for a delete
      */
     public void fireBeforeRow(Session session, Row oldRow, Row newRow) throws SQLException {
-        fireRow(session, oldRow, newRow, true);
+        fireRow(session, oldRow, newRow, true, false);
         fireConstraints(session, oldRow, newRow, true);
     }
 
@@ -770,16 +770,19 @@ public abstract class Table extends SchemaObjectBase {
      *  @param session the session
      *  @param oldRow the old data or null for an insert
      *  @param newRow the new data or null for a delete
+     *  @param rollback when the operation occurred within a rollback
      */
-    public void fireAfterRow(Session session, Row oldRow, Row newRow) throws SQLException {
-        fireRow(session, oldRow, newRow, false);
-        fireConstraints(session, oldRow, newRow, false);
+    public void fireAfterRow(Session session, Row oldRow, Row newRow, boolean rollback) throws SQLException {
+        fireRow(session, oldRow, newRow, false, rollback);
+        if (!rollback) {
+            fireConstraints(session, oldRow, newRow, false);
+        }
     }
 
-    private void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction) throws SQLException {
+    private void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) throws SQLException {
         if (triggers != null) {
             for (TriggerObject trigger : triggers) {
-                trigger.fireRow(session, oldRow, newRow, beforeAction);
+                trigger.fireRow(session, oldRow, newRow, beforeAction, rollback);
             }
         }
     }

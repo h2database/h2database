@@ -3697,6 +3697,7 @@ public class Parser {
             isBefore = false;
         }
         int typeMask = 0;
+        boolean onRollback = false;
         do {
             if (readIf("INSERT")) {
                 typeMask |= Trigger.INSERT;
@@ -3706,6 +3707,8 @@ public class Parser {
                 typeMask |= Trigger.DELETE;
             } else if (readIf("SELECT")) {
                 typeMask |= Trigger.SELECT;
+            } else if (readIf("ROLLBACK")) {
+                onRollback = true;
             } else {
                 throw getSyntaxError();
             }
@@ -3718,6 +3721,7 @@ public class Parser {
         command.setTriggerName(triggerName);
         command.setIfNotExists(ifNotExists);
         command.setBefore(isBefore);
+        command.setOnRollback(onRollback);
         command.setTypeMask(typeMask);
         command.setTableName(tableName);
         if (readIf("FOR")) {

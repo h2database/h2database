@@ -126,7 +126,7 @@ public class Update extends Prepared {
                 for (rows.reset(); rows.hasNext();) {
                     Row o = rows.next();
                     Row n = rows.next();
-                    table.fireAfterRow(session, o, n);
+                    table.fireAfterRow(session, o, n, false);
                 }
             }
             table.fire(session, Trigger.UPDATE, false);

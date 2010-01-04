@@ -51,7 +51,12 @@ public interface Trigger {
         throws SQLException;
 
     /**
-     * This method is called for each triggered action.
+     * This method is called for each triggered action. The method is called
+     * immediately when the operation occurred (before it is committed). A
+     * transaction rollback will also rollback the operations that were done
+     * within the trigger, if the operations occurred within the same database.
+     * If the trigger changes state outside the database, a rollback trigger
+     * should be used.
      *
      * @param conn a connection to the database
      * @param oldRow the old row, or null if no old row is available (for

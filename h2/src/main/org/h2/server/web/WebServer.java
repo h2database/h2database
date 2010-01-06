@@ -595,30 +595,30 @@ public class WebServer implements Service {
      * Open a database connection.
      *
      * @param driver the driver class name
-     * @param url the database URL
+     * @param databaseUrl the database URL
      * @param user the user name
      * @param password the password
      * @param listener the database event listener object
      * @return the database connection
      */
-    Connection getConnection(String driver, String url, String user, String password, DatabaseEventListener listener) throws SQLException {
+    Connection getConnection(String driver, String databaseUrl, String user, String password, DatabaseEventListener listener) throws SQLException {
         driver = driver.trim();
-        url = url.trim();
+        databaseUrl = databaseUrl.trim();
         org.h2.Driver.load();
         Properties p = new Properties();
         p.setProperty("user", user.trim());
         // do not trim the password, otherwise an
         // encrypted H2 database with empty user password doesn't work
         p.setProperty("password", password);
-        if (url.startsWith("jdbc:h2:")) {
+        if (databaseUrl.startsWith("jdbc:h2:")) {
             if (ifExists) {
-                url += ";IFEXISTS=TRUE";
+                databaseUrl += ";IFEXISTS=TRUE";
             }
             p.put("DATABASE_EVENT_LISTENER_OBJECT", listener);
             // PostgreSQL would throw a NullPointerException
             // if it is loaded before the H2 driver
             // because it can't deal with non-String objects in the connection Properties
-            return org.h2.Driver.load().connect(url, p);
+            return org.h2.Driver.load().connect(databaseUrl, p);
         }
 //            try {
 //                Driver dr = (Driver) urlClassLoader.
@@ -627,7 +627,7 @@ public class WebServer implements Service {
 //            } catch(ClassNotFoundException e2) {
 //                throw e2;
 //            }
-        return JdbcUtils.getConnection(driver, url, p);
+        return JdbcUtils.getConnection(driver, databaseUrl, p);
     }
 
     /**

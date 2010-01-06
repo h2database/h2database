@@ -43,13 +43,13 @@ public class TcpServerThread implements Runnable {
     private Transfer transfer;
     private Command commit;
     private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
-    private int id;
+    private int threadId;
     private int clientVersion;
     private String sessionId;
 
     TcpServerThread(Socket socket, TcpServer server, int id) {
         this.server = server;
-        this.id = id;
+        this.threadId = id;
         transfer = new Transfer(null);
         transfer.setSocket(socket);
     }
@@ -80,17 +80,17 @@ public class TcpServerThread implements Runnable {
                 String db = transfer.readString();
                 String originalURL = transfer.readString();
                 if (db == null && originalURL == null) {
-                    String sessionId = transfer.readString();
+                    String targetSessionId = transfer.readString();
                     int command = transfer.readInt();
                     stop = true;
                     if (command == SessionRemote.SESSION_CANCEL_STATEMENT) {
                         // cancel a running statement
                         int statementId = transfer.readInt();
-                        server.cancelStatement(sessionId, statementId);
+                        server.cancelStatement(targetSessionId, statementId);
                     } else if (command == SessionRemote.SESSION_CHECK_KEY) {
                         // check if this is the correct server
-                        db = server.checkKeyAndGetDatabaseName(sessionId);
-                        if (!sessionId.equals(db)) {
+                        db = server.checkKeyAndGetDatabaseName(targetSessionId);
+                        if (!targetSessionId.equals(db)) {
                             transfer.writeInt(SessionRemote.STATUS_OK);
                         } else {
                             transfer.writeInt(SessionRemote.STATUS_ERROR);
@@ -126,7 +126,7 @@ public class TcpServerThread implements Runnable {
                     transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
                 }
                 transfer.flush();
-                server.addConnection(id, originalURL, ci.getUserName());
+                server.addConnection(threadId, originalURL, ci.getUserName());
                 trace("Connected");
             } catch (Throwable e) {
                 sendError(e);
@@ -157,7 +157,7 @@ public class TcpServerThread implements Runnable {
             }
             try {
                 session.close();
-                server.removeConnection(id);
+                server.removeConnection(threadId);
             } catch (Exception e) {
                 server.traceError(e);
             } finally {
@@ -398,11 +398,11 @@ public class TcpServerThread implements Runnable {
     /**
      * Cancel a running statement.
      *
-     * @param sessionId the session id
+     * @param targetSessionId the session id
      * @param statementId the statement to cancel
      */
-    void cancelStatement(String sessionId, int statementId) throws SQLException {
-        if (StringUtils.equals(sessionId, this.sessionId)) {
+    void cancelStatement(String targetSessionId, int statementId) throws SQLException {
+        if (StringUtils.equals(targetSessionId, this.sessionId)) {
             Command cmd = (Command) cache.getObject(statementId, false);
             cmd.cancel();
         }

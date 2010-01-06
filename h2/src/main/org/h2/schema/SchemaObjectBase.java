@@ -18,14 +18,14 @@ public abstract class SchemaObjectBase extends DbObjectBase implements SchemaObj
     /**
      * Initialize some attributes of this object.
      *
-     * @param schema the schema
+     * @param newSchema the schema
      * @param id the object id
      * @param name the name
      * @param traceModule the trace module name
      */
-    protected void initSchemaObjectBase(Schema schema, int id, String name, String traceModule) {
-        initDbObjectBase(schema.getDatabase(), id, name, traceModule);
-        this.schema = schema;
+    protected void initSchemaObjectBase(Schema newSchema, int id, String name, String traceModule) {
+        initDbObjectBase(newSchema.getDatabase(), id, name, traceModule);
+        this.schema = newSchema;
     }
 
     public Schema getSchema() {

@@ -256,7 +256,7 @@ public class TriggerObject extends SchemaObjectBase {
         return null;
     }
 
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(Table targetTable, String quotedName) {
         StringBuilder buff = new StringBuilder("CREATE FORCE TRIGGER ");
         buff.append(quotedName);
         if (before) {
@@ -265,7 +265,7 @@ public class TriggerObject extends SchemaObjectBase {
             buff.append(" AFTER ");
         }
         buff.append(getTypeNameList());
-        buff.append(" ON ").append(table.getSQL());
+        buff.append(" ON ").append(targetTable.getSQL());
         if (rowBased) {
             buff.append(" FOR EACH ROW");
         }

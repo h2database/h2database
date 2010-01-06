@@ -790,23 +790,23 @@ public class WebApp implements DatabaseEventListener {
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
             long start = System.currentTimeMillis();
-            String profileOpen = "", profileClose = "";
-            Profiler profiler = new Profiler();
-            profiler.startCollecting();
+            String profOpen = "", profClose = "";
+            Profiler prof = new Profiler();
+            prof.startCollecting();
             Connection conn;
             try {
                 conn = server.getConnection(driver, url, user, password, this);
             } finally {
-                profiler.stopCollecting();
-                profileOpen = profiler.getTop(3);
+                prof.stopCollecting();
+                profOpen = prof.getTop(3);
             }
-            profiler = new Profiler();
-            profiler.startCollecting();
+            prof = new Profiler();
+            prof.startCollecting();
             try {
                 JdbcUtils.closeSilently(conn);
             } finally {
-                profiler.stopCollecting();
-                profileClose = profiler.getTop(3);
+                prof.stopCollecting();
+                profClose = prof.getTop(3);
             }
             long time = System.currentTimeMillis() - start;
             String success;
@@ -814,9 +814,9 @@ public class WebApp implements DatabaseEventListener {
                 success = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
                     "${text.login.testSuccessful}</a>" +
                     "<span style=\"display: none;\" id=\"prof\"><br />" +
-                    PageParser.escapeHtml(profileOpen) +
+                    PageParser.escapeHtml(profOpen) +
                     "<br />" +
-                    PageParser.escapeHtml(profileClose) +
+                    PageParser.escapeHtml(profClose) +
                     "</span>";
             } else {
                 success = "${text.login.testSuccessful}";

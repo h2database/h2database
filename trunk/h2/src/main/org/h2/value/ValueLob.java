@@ -205,10 +205,10 @@ public class ValueLob extends Value {
         return (int) m;
     }
 
-    private void createFromReader(char[] buff, int len, Reader in, long remaining, DataHandler handler) throws SQLException {
+    private void createFromReader(char[] buff, int len, Reader in, long remaining, DataHandler h) throws SQLException {
         try {
-            FileStoreOutputStream out = initLarge(handler);
-            boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
+            FileStoreOutputStream out = initLarge(h);
+            boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
             try {
                 while (true) {
                     precision += len;
@@ -218,7 +218,7 @@ public class ValueLob extends Value {
                     if (remaining <= 0) {
                         break;
                     }
-                    len = getBufferSize(handler, compress, remaining);
+                    len = getBufferSize(h, compress, remaining);
                     len = IOUtils.readFully(in, buff, len);
                     if (len <= 0) {
                         break;
@@ -250,13 +250,13 @@ public class ValueLob extends Value {
         return name;
     }
 
-    private int getNewObjectId(DataHandler handler) throws SQLException {
-        String path = handler.getDatabasePath();
-        int objectId = 0;
+    private int getNewObjectId(DataHandler h) throws SQLException {
+        String path = h.getDatabasePath();
+        int newId = 0;
         int lobsPerDir = SysProperties.LOB_FILES_PER_DIRECTORY;
         while (true) {
-            String dir = getFileNamePrefix(path, objectId);
-            String[] list = getFileList(handler, dir);
+            String dir = getFileNamePrefix(path, newId);
+            String[] list = getFileList(h, dir);
             int fileCount = 0;
             boolean[] used = new boolean[lobsPerDir];
             for (String name : list) {
@@ -285,13 +285,13 @@ public class ValueLob extends Value {
                 }
             }
             if (fileId > 0) {
-                objectId += fileId;
-                invalidateFileList(handler, dir);
+                newId += fileId;
+                invalidateFileList(h, dir);
                 break;
             }
-            if (objectId > Integer.MAX_VALUE / lobsPerDir) {
+            if (newId > Integer.MAX_VALUE / lobsPerDir) {
                 // this directory path is full: start from zero
-                objectId = 0;
+                newId = 0;
                 dirCounter = RandomUtils.nextInt(lobsPerDir - 1) * lobsPerDir;
             } else {
                 // calculate the directory
@@ -300,11 +300,11 @@ public class ValueLob extends Value {
                 // (but that would generate more directories):
                 // int dirId = RandomUtils.nextInt(lobsPerDir - 1) + 1;
                 int dirId = (dirCounter++ / (lobsPerDir - 1)) + 1;
-                objectId = objectId * lobsPerDir;
-                objectId += dirId * lobsPerDir;
+                newId = newId * lobsPerDir;
+                newId += dirId * lobsPerDir;
             }
         }
-        return objectId;
+        return newId;
     }
 
     /**
@@ -315,8 +315,8 @@ public class ValueLob extends Value {
         dirCounter = 0;
     }
 
-    private void invalidateFileList(DataHandler handler, String dir) {
-        SmallLRUCache<String, String[]> cache = handler.getLobFileListCache();
+    private void invalidateFileList(DataHandler h, String dir) {
+        SmallLRUCache<String, String[]> cache = h.getLobFileListCache();
         if (cache != null) {
             synchronized (cache) {
                 cache.remove(dir);
@@ -324,8 +324,8 @@ public class ValueLob extends Value {
         }
     }
 
-    private String[] getFileList(DataHandler handler, String dir) throws SQLException {
-        SmallLRUCache<String, String[]> cache = handler.getLobFileListCache();
+    private String[] getFileList(DataHandler h, String dir) throws SQLException {
+        SmallLRUCache<String, String[]> cache = h.getLobFileListCache();
         String[] list;
         if (cache == null) {
             list = FileUtils.listFiles(dir);
@@ -378,35 +378,35 @@ public class ValueLob extends Value {
         }
     }
 
-    private FileStoreOutputStream initLarge(DataHandler handler) throws SQLException {
-        this.handler = handler;
+    private FileStoreOutputStream initLarge(DataHandler h) throws SQLException {
+        this.handler = h;
         this.tableId = 0;
         this.linked = false;
         this.precision = 0;
         this.small = null;
         this.hash = 0;
-        String compressionAlgorithm = handler.getLobCompressionAlgorithm(type);
+        String compressionAlgorithm = h.getLobCompressionAlgorithm(type);
         this.compression = compressionAlgorithm != null;
-        synchronized (handler) {
-            if (handler.getLobFilesInDirectories()) {
-                objectId = getNewObjectId(handler);
-                fileName = getFileNamePrefix(handler.getDatabasePath(), objectId) + Constants.SUFFIX_TEMP_FILE;
+        synchronized (h) {
+            if (h.getLobFilesInDirectories()) {
+                objectId = getNewObjectId(h);
+                fileName = getFileNamePrefix(h.getDatabasePath(), objectId) + Constants.SUFFIX_TEMP_FILE;
             } else {
-                objectId = handler.allocateObjectId(false, true);
-                fileName = handler.createTempFile();
+                objectId = h.allocateObjectId(false, true);
+                fileName = h.createTempFile();
             }
-            tempFile = handler.openFile(fileName, "rw", false);
+            tempFile = h.openFile(fileName, "rw", false);
             tempFile.autoDelete();
         }
-        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, handler, compressionAlgorithm);
+        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, h, compressionAlgorithm);
         return out;
     }
 
-    private void createFromStream(byte[] buff, int len, InputStream in, long remaining, DataHandler handler)
+    private void createFromStream(byte[] buff, int len, InputStream in, long remaining, DataHandler h)
             throws SQLException {
         try {
-            FileStoreOutputStream out = initLarge(handler);
-            boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
+            FileStoreOutputStream out = initLarge(h);
+            boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
             try {
                 while (true) {
                     precision += len;
@@ -415,7 +415,7 @@ public class ValueLob extends Value {
                     if (remaining <= 0) {
                         break;
                     }
-                    len = getBufferSize(handler, compress, remaining);
+                    len = getBufferSize(h, compress, remaining);
                     len = IOUtils.readFully(in, buff, 0, len);
                     if (len <= 0) {
                         break;
@@ -494,33 +494,33 @@ public class ValueLob extends Value {
         }
     }
 
-    public Value link(DataHandler handler, int tabId) throws SQLException {
+    public Value link(DataHandler h, int tabId) throws SQLException {
         if (fileName == null) {
             this.tableId = tabId;
             return this;
         }
         if (linked) {
             ValueLob copy = ValueLob.copy(this);
-            if (handler.getLobFilesInDirectories()) {
-                copy.objectId = getNewObjectId(handler);
+            if (h.getLobFilesInDirectories()) {
+                copy.objectId = getNewObjectId(h);
             } else {
-                copy.objectId = handler.allocateObjectId(false, true);
+                copy.objectId = h.allocateObjectId(false, true);
             }
             copy.tableId = tabId;
-            String live = getFileName(handler, copy.tableId, copy.objectId);
-            copyFile(handler, fileName, live);
+            String live = getFileName(h, copy.tableId, copy.objectId);
+            copyFileTo(h, fileName, live);
             copy.fileName = live;
             copy.linked = true;
             return copy;
         }
         if (!linked) {
             this.tableId = tabId;
-            String live = getFileName(handler, tableId, objectId);
+            String live = getFileName(h, tableId, objectId);
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
                 tempFile = null;
             }
-            renameFile(handler, fileName, live);
+            renameFile(h, fileName, live);
             fileName = live;
             linked = true;
         }
@@ -723,19 +723,19 @@ public class ValueLob extends Value {
      * Store the lob data to a file if the size of the buffer it larger than the
      * maximum size for an in-place lob.
      *
-     * @param handler the data handler
+     * @param h the data handler
      */
-    public void convertToFileIfRequired(DataHandler handler) throws SQLException {
-        if (Constants.AUTO_CONVERT_LOB_TO_FILES && small != null && small.length > handler.getMaxLengthInplaceLob()) {
-            boolean compress = handler.getLobCompressionAlgorithm(type) != null;
-            int len = getBufferSize(handler, compress, Long.MAX_VALUE);
+    public void convertToFileIfRequired(DataHandler h) throws SQLException {
+        if (Constants.AUTO_CONVERT_LOB_TO_FILES && small != null && small.length > h.getMaxLengthInplaceLob()) {
+            boolean compress = h.getLobCompressionAlgorithm(type) != null;
+            int len = getBufferSize(h, compress, Long.MAX_VALUE);
             int tabId = tableId;
             if (type == Value.BLOB) {
-                createFromStream(MemoryUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, handler);
+                createFromStream(MemoryUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
             } else {
-                createFromReader(new char[len], 0, getReader(), Long.MAX_VALUE, handler);
+                createFromReader(new char[len], 0, getReader(), Long.MAX_VALUE, h);
             }
-            Value v2 = link(handler, tabId);
+            Value v2 = link(h, tabId);
             if (SysProperties.CHECK && v2 != this) {
                 Message.throwInternalError();
             }
@@ -821,9 +821,9 @@ public class ValueLob extends Value {
         }
     }
 
-    private void copyFile(DataHandler handler, String fileName, String live) throws SQLException {
-        synchronized (handler.getLobSyncObject()) {
-            FileSystem.getInstance(fileName).copy(fileName, live);
+    private void copyFileTo(DataHandler h, String sourceFileName, String targetFileName) throws SQLException {
+        synchronized (h.getLobSyncObject()) {
+            FileSystem.getInstance(sourceFileName).copy(sourceFileName, targetFileName);
         }
     }
 

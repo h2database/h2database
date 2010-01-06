@@ -43,11 +43,11 @@ public class ValueByte extends Value {
         return ValueByte.get((byte) (value + other.value));
     }
 
-    private ValueByte checkRange(int value) throws SQLException {
-        if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
+    private ValueByte checkRange(int x) throws SQLException {
+        if (x < Byte.MIN_VALUE || x > Byte.MAX_VALUE) {
             throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.BYTE).name);
         }
-        return ValueByte.get((byte) value);
+        return ValueByte.get((byte) x);
     }
 
     public int getSignum() {

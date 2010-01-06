@@ -476,7 +476,7 @@ public class Shell extends Tool {
         }
     }
 
-    private int printResult(ResultSet rs, boolean listMode) throws SQLException {
+    private int printResult(ResultSet rs, boolean asList) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int longest = 0;
         int len = meta.getColumnCount();
@@ -486,7 +486,7 @@ public class Shell extends Tool {
         for (int i = 0; i < len; i++) {
             String s = meta.getColumnLabel(i + 1);
             int l = s.length();
-            if (!listMode) {
+            if (!asList) {
                 l = Math.max(l, meta.getColumnDisplaySize(i + 1));
                 l = Math.min(maxColumnSize, l);
             }
@@ -499,7 +499,7 @@ public class Shell extends Tool {
             total += l;
         }
         StringBuilder buff = new StringBuilder();
-        if (!listMode) {
+        if (!asList) {
             for (int i = 0; i < len; i++) {
                 if (i > 0) {
                     buff.append(boxVertical);
@@ -519,7 +519,7 @@ public class Shell extends Tool {
         while (rs.next()) {
             rowCount++;
             buff.setLength(0);
-            if (listMode) {
+            if (asList) {
                 if (rowCount > 1) {
                     println("");
                 }
@@ -545,7 +545,7 @@ public class Shell extends Tool {
                     }
                     int m = columnSizes[i];
                     // only truncate if more than once column
-                    if (len > 1 && !listMode && s.length() > m) {
+                    if (len > 1 && !asList && s.length() > m) {
                         s = s.substring(0, m);
                         truncated = true;
                     }
@@ -559,7 +559,7 @@ public class Shell extends Tool {
             }
             println(buff.toString());
         }
-        if (rowCount == 0 && listMode) {
+        if (rowCount == 0 && asList) {
             for (String label : columns) {
                 buff.append(label).append('\n');
             }

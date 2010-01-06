@@ -75,7 +75,7 @@ public class CacheLRU implements Cache {
     }
 
     public void clear() {
-        head.next = head.previous = head;
+        head.cacheNext = head.cachePrevious = head;
         // first set to null - avoiding out of memory
         values = null;
         values = new CacheObject[len];
@@ -94,7 +94,7 @@ public class CacheLRU implements Cache {
             }
         }
         int index = rec.getPos() & mask;
-        rec.chained = values[index];
+        rec.cacheChained = values[index];
         values[index] = rec;
         recordCount++;
         sizeMemory += rec.getMemorySize();
@@ -131,10 +131,10 @@ public class CacheLRU implements Cache {
         int mem = sizeMemory;
         int rc = recordCount;
         boolean flushed = false;
-        CacheObject next = head.next;
+        CacheObject next = head.cacheNext;
         while (mem * 4 > maxSize * 3 && rc > Constants.CACHE_MIN_RECORDS) {
             CacheObject check = next;
-            next = check.next;
+            next = check.cacheNext;
             i++;
             if (i >= recordCount) {
                 if (!flushed) {
@@ -185,7 +185,7 @@ public class CacheLRU implements Cache {
                 CacheObject rec = changed.get(i);
                 remove(rec.getPos());
                 if (SysProperties.CHECK) {
-                    if (rec.next != null) {
+                    if (rec.cacheNext != null) {
                         throw Message.throwInternalError();
                     }
                 }
@@ -197,22 +197,22 @@ public class CacheLRU implements Cache {
         if (SysProperties.CHECK && rec == head) {
             Message.throwInternalError("try to move head");
         }
-        rec.next = head;
-        rec.previous = head.previous;
-        rec.previous.next = rec;
-        head.previous = rec;
+        rec.cacheNext = head;
+        rec.cachePrevious = head.cachePrevious;
+        rec.cachePrevious.cacheNext = rec;
+        head.cachePrevious = rec;
     }
 
     private void removeFromLinkedList(CacheObject rec) {
         if (SysProperties.CHECK && rec == head) {
             Message.throwInternalError("try to remove head");
         }
-        rec.previous.next = rec.next;
-        rec.next.previous = rec.previous;
+        rec.cachePrevious.cacheNext = rec.cacheNext;
+        rec.cacheNext.cachePrevious = rec.cachePrevious;
         // TODO cache: mystery: why is this required? needs more memory if we
         // don't do this
-        rec.next = null;
-        rec.previous = null;
+        rec.cacheNext = null;
+        rec.cachePrevious = null;
     }
 
     public void remove(int pos) {
@@ -222,23 +222,23 @@ public class CacheLRU implements Cache {
             return;
         }
         if (rec.getPos() == pos) {
-            values[index] = rec.chained;
+            values[index] = rec.cacheChained;
         } else {
             CacheObject last;
             do {
                 last = rec;
-                rec = rec.chained;
+                rec = rec.cacheChained;
                 if (rec == null) {
                     return;
                 }
             } while (rec.getPos() != pos);
-            last.chained = rec.chained;
+            last.cacheChained = rec.cacheChained;
         }
         recordCount--;
         sizeMemory -= rec.getMemorySize();
         removeFromLinkedList(rec);
         if (SysProperties.CHECK) {
-            rec.chained = null;
+            rec.cacheChained = null;
             CacheObject o = find(pos);
             if (o != null) {
                 Message.throwInternalError("not removed: " + o);
@@ -249,7 +249,7 @@ public class CacheLRU implements Cache {
     public CacheObject find(int pos) {
         CacheObject rec = values[pos & mask];
         while (rec != null && rec.getPos() != pos) {
-            rec = rec.chained;
+            rec = rec.cacheChained;
         }
         return rec;
     }
@@ -297,12 +297,12 @@ public class CacheLRU implements Cache {
 //            testConsistency();
 //        }
         ObjectArray<CacheObject> list = ObjectArray.newInstance();
-        CacheObject rec = head.next;
+        CacheObject rec = head.cacheNext;
         while (rec != head) {
             if (rec.isChanged()) {
                 list.add(rec);
             }
-            rec = rec.next;
+            rec = rec.cacheNext;
         }
         return list;
     }

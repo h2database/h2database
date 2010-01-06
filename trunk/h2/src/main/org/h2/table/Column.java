@@ -326,16 +326,16 @@ public class Column {
     private void updateSequenceIfRequired(Session session, Value value) throws SQLException {
         if (sequence != null) {
             long current = sequence.getCurrentValue();
-            long increment = sequence.getIncrement();
+            long inc = sequence.getIncrement();
             long now = value.getLong();
             boolean update = false;
-            if (increment > 0 && now > current) {
+            if (inc > 0 && now > current) {
                 update = true;
-            } else if (increment < 0 && now < current) {
+            } else if (inc < 0 && now < current) {
                 update = true;
             }
             if (update) {
-                sequence.setStartValue(now + increment);
+                sequence.setStartValue(now + inc);
                 session.setLastIdentity(ValueLong.get(now));
                 sequence.flush(session);
             }
@@ -370,16 +370,16 @@ public class Column {
                 break;
             }
         }
-        Sequence sequence = new Sequence(schema, id, sequenceName, true);
-        sequence.setStartValue(start);
-        sequence.setIncrement(increment);
+        Sequence seq = new Sequence(schema, id, sequenceName, true);
+        seq.setStartValue(start);
+        seq.setIncrement(increment);
         if (!temporary) {
-            session.getDatabase().addSchemaObject(session, sequence);
+            session.getDatabase().addSchemaObject(session, seq);
         }
         setAutoIncrement(false, 0, 0);
-        SequenceValue seq = new SequenceValue(sequence);
-        setDefaultExpression(session, seq);
-        setSequence(sequence);
+        SequenceValue seqValue = new SequenceValue(seq);
+        setDefaultExpression(session, seqValue);
+        setSequence(seq);
     }
 
     /**

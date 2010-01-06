@@ -200,7 +200,7 @@ public class TableView extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            int headPos, String comment) throws SQLException {
+            int headPos, String indexComment) throws SQLException {
         throw Message.getUnsupportedException("VIEW");
     }
 
@@ -251,6 +251,10 @@ public class TableView extends Table {
             return "(" + querySQL + ")";
         }
         return super.getSQL();
+    }
+
+    public String getQuery() {
+        return querySQL;
     }
 
     public Index getScanIndex(Session session) throws SQLException {

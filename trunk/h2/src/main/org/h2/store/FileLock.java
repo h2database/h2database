@@ -73,7 +73,7 @@ public class FileLock {
     /**
      * The server socket (only used when using the SOCKET mode).
      */
-    volatile ServerSocket socket;
+    volatile ServerSocket serverSocket;
 
     /**
      * The file system.
@@ -154,14 +154,14 @@ public class FileLock {
                     fs.delete(fileName);
                 }
             }
-            if (socket != null) {
-                socket.close();
+            if (serverSocket != null) {
+                serverSocket.close();
             }
         } catch (Exception e) {
             trace.debug("unlock", e);
         } finally {
             fileName = null;
-            socket = null;
+            serverSocket = null;
             locked = false;
         }
         try {
@@ -428,23 +428,23 @@ public class FileLock {
         }
         try {
             // 0 to use any free port
-            socket = NetUtils.createServerSocket(0, false);
-            int port = socket.getLocalPort();
+            serverSocket = NetUtils.createServerSocket(0, false);
+            int port = serverSocket.getLocalPort();
             properties.setProperty("ipAddress", ipAddress);
             properties.setProperty("port", String.valueOf(port));
         } catch (Exception e) {
             trace.debug("lock", e);
-            socket = null;
+            serverSocket = null;
             lockFile();
             return;
         }
         save();
         watchdog = new Thread(new Runnable() {
             public void run() {
-                while (socket != null) {
+                while (serverSocket != null) {
                     try {
                         trace.debug("watchdog accept");
-                        Socket s = socket.accept();
+                        Socket s = serverSocket.accept();
                         s.close();
                     } catch (Exception e) {
                         trace.debug("watchdog", e);

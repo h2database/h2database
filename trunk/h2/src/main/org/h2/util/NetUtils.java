@@ -27,7 +27,7 @@ import org.h2.security.SecureSocketFactory;
 public class NetUtils {
 
     private static final int CACHE_MILLIS = 1000;
-    private static InetAddress bindAddress;
+    private static InetAddress cachedBindAddress;
     private static String cachedLocalAddress;
     private static long cachedLocalAddressTime;
 
@@ -140,11 +140,11 @@ public class NetUtils {
             return null;
         }
         synchronized (NetUtils.class) {
-            if (bindAddress == null) {
-                bindAddress = InetAddress.getByName(host);
+            if (cachedBindAddress == null) {
+                cachedBindAddress = InetAddress.getByName(host);
             }
         }
-        return bindAddress;
+        return cachedBindAddress;
     }
 
     private static ServerSocket createServerSocketTry(int port, boolean ssl) throws SQLException {

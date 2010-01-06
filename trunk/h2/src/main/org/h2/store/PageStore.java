@@ -555,10 +555,10 @@ public class PageStore implements CacheWriter {
         int firstUncommittedSection = log.getLogSectionId();
         for (int i = 0; i < sessions.length; i++) {
             Session session = sessions[i];
-            int log = session.getFirstUncommittedLog();
-            if (log != LogSystem.LOG_WRITTEN) {
-                if (log < firstUncommittedSection) {
-                    firstUncommittedSection = log;
+            int firstUncommitted = session.getFirstUncommittedLog();
+            if (firstUncommitted != LogSystem.LOG_WRITTEN) {
+                if (firstUncommitted < firstUncommittedSection) {
+                    firstUncommittedSection = firstUncommitted;
                 }
             }
         }

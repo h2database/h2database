@@ -73,11 +73,11 @@ public class ValueInt extends Value {
         return ValueInt.get(value + other.value);
     }
 
-    private ValueInt checkRange(long value) throws SQLException {
-        if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
+    private ValueInt checkRange(long x) throws SQLException {
+        if (x < Integer.MIN_VALUE || x > Integer.MAX_VALUE) {
             throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.INT).name);
         }
-        return ValueInt.get((int) value);
+        return ValueInt.get((int) x);
     }
 
     public int getSignum() {

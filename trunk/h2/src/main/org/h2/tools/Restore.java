@@ -174,13 +174,13 @@ public class Restore extends Tool {
                     copy = true;
                 }
                 if (copy) {
-                    OutputStream out = null;
+                    OutputStream o = null;
                     try {
-                        out = FileUtils.openFileOutputStream(directory + File.separator + fileName, false);
-                        IOUtils.copy(zipIn, out);
-                        out.close();
+                        o = FileUtils.openFileOutputStream(directory + File.separator + fileName, false);
+                        IOUtils.copy(zipIn, o);
+                        o.close();
                     } finally {
-                        IOUtils.closeSilently(out);
+                        IOUtils.closeSilently(o);
                     }
                 }
                 zipIn.closeEntry();

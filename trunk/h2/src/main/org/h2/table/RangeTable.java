@@ -78,7 +78,7 @@ public class RangeTable extends Table {
         return false;
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType, int headPos, String comment) throws SQLException {
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType, int headPos, String indexComment) throws SQLException {
         throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 

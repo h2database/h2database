@@ -32,7 +32,7 @@ public class SingleColumnResolver implements ColumnResolver {
         this.value = value;
     }
 
-    public Value getValue(Column column) {
+    public Value getValue(Column col) {
         return value;
     }
 
@@ -56,7 +56,7 @@ public class SingleColumnResolver implements ColumnResolver {
         return null;
     }
 
-    public Expression optimize(ExpressionColumn expressionColumn, Column column) {
+    public Expression optimize(ExpressionColumn expressionColumn, Column col) {
         return expressionColumn;
     }
 

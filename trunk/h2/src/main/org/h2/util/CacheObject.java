@@ -39,18 +39,18 @@ public abstract class CacheObject {
      * The previous element in the LRU linked list. If the previous element is
      * the head, then this element is the most recently used object.
      */
-    public CacheObject previous;
+    public CacheObject cachePrevious;
 
     /**
      * The next element in the LRU linked list. If the next element is the head,
      * then this element is the least recently used object.
      */
-    public CacheObject next;
+    public CacheObject cacheNext;
 
     /**
      * The next element in the hash chain.
      */
-    public CacheObject chained;
+    public CacheObject cacheChained;
 
     /**
      * The cache queue identifier. This field is only used for the 2Q cache
@@ -92,7 +92,7 @@ public abstract class CacheObject {
     }
 
     public void setPos(int pos) {
-        if (SysProperties.CHECK && (previous != null || next != null || chained != null)) {
+        if (SysProperties.CHECK && (cachePrevious != null || cacheNext != null || cacheChained != null)) {
             Message.throwInternalError("setPos too late");
         }
         this.pos = pos;

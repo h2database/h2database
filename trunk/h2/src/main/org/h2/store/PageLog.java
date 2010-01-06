@@ -116,16 +116,14 @@ public class PageLog {
     private static final boolean COMPRESS_UNDO = true;
 
     private final PageStore store;
-    private int pos;
     private Trace trace;
 
     private Data writeBuffer;
     private PageInputStream pageIn;
     private PageOutputStream pageOut;
-    private DataReader in;
     private int firstTrunkPage;
     private int firstDataPage;
-    private Data data;
+    private Data dataBuffer;
     private int logKey;
     private int logSectionId, logPos;
     private int firstSectionId;
@@ -164,7 +162,7 @@ public class PageLog {
 
     PageLog(PageStore store) {
         this.store = store;
-        data = store.createData();
+        dataBuffer = store.createData();
         trace = store.getTrace();
         compress = new CompressLZF();
         compressBuffer = new byte[store.getPageSize() * 2];
@@ -174,17 +172,17 @@ public class PageLog {
      * Open the log for writing. For an existing database, the recovery
      * must be run first.
      *
-     * @param firstTrunkPage the first trunk page
+     * @param newFirstTrunkPage the first trunk page
      * @param atEnd whether only pages at the end of the file should be used
      */
-    void openForWriting(int firstTrunkPage, boolean atEnd) throws SQLException {
-        trace.debug("log openForWriting firstPage:" + firstTrunkPage);
-        this.firstTrunkPage = firstTrunkPage;
+    void openForWriting(int newFirstTrunkPage, boolean atEnd) throws SQLException {
+        trace.debug("log openForWriting firstPage:" + newFirstTrunkPage);
+        this.firstTrunkPage = newFirstTrunkPage;
         logKey++;
-        pageOut = new PageOutputStream(store, firstTrunkPage, undoAll, logKey, atEnd);
+        pageOut = new PageOutputStream(store, newFirstTrunkPage, undoAll, logKey, atEnd);
         pageOut.reserve(1);
         // pageBuffer = new BufferedOutputStream(pageOut, 8 * 1024);
-        store.setLogFirstPage(logKey, firstTrunkPage, pageOut.getCurrentDataPageId());
+        store.setLogFirstPage(logKey, newFirstTrunkPage, pageOut.getCurrentDataPageId());
         writeBuffer = store.createData();
     }
 
@@ -212,14 +210,14 @@ public class PageLog {
     /**
      * Open the log for reading.
      *
-     * @param logKey the first expected log key
-     * @param firstTrunkPage the first trunk page
-     * @param firstDataPage the index of the first data page
+     * @param newLogKey the first expected log key
+     * @param newFirstTrunkPage the first trunk page
+     * @param newFirstDataPage the index of the first data page
      */
-    void openForReading(int logKey, int firstTrunkPage, int firstDataPage) {
-        this.logKey = logKey;
-        this.firstTrunkPage = firstTrunkPage;
-        this.firstDataPage = firstDataPage;
+    void openForReading(int newLogKey, int newFirstTrunkPage, int newFirstDataPage) {
+        this.logKey = newLogKey;
+        this.firstTrunkPage = newFirstTrunkPage;
+        this.firstDataPage = newFirstDataPage;
     }
 
     /**
@@ -241,11 +239,11 @@ public class PageLog {
             return;
         }
         pageIn = new PageInputStream(store, logKey, firstTrunkPage, firstDataPage);
-        in = new DataReader(pageIn);
+        DataReader in = new DataReader(pageIn);
         int logId = 0;
         Data data = store.createData();
         try {
-            pos = 0;
+            int pos = 0;
             while (true) {
                 int x = in.read();
                 if (x < 0) {
@@ -576,6 +574,7 @@ public class PageLog {
             session.addLogPos(logSectionId, logPos);
             row.setLastLog(logSectionId, logPos);
             logPos++;
+            Data data = dataBuffer;
             data.reset();
             int columns = row.getColumnCount();
             data.writeVarInt(columns);
@@ -684,21 +683,21 @@ public class PageLog {
     /**
      * Remove all pages until the given data page.
      *
-     * @param firstTrunkPage the first trunk page
+     * @param trunkPage the first trunk page
      * @param firstDataPageToKeep the first data page to keep
      * @return the trunk page of the data page to keep
      */
-    private int removeUntil(int firstTrunkPage, int firstDataPageToKeep) throws SQLException {
+    private int removeUntil(int trunkPage, int firstDataPageToKeep) throws SQLException {
         trace.debug("log.removeUntil " + firstDataPageToKeep);
         while (true) {
-            Page p = store.getPage(firstTrunkPage);
+            Page p = store.getPage(trunkPage);
             PageStreamTrunk t = (PageStreamTrunk) p;
             logKey = t.getLogKey();
             t.resetIndex();
             if (t.contains(firstDataPageToKeep)) {
                 return t.getPos();
             }
-            firstTrunkPage = t.getNextTrunk();
+            trunkPage = t.getNextTrunk();
             IntArray list = new IntArray();
             list.add(t.getPos());
             while (true) {

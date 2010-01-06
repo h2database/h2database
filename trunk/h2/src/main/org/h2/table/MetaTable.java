@@ -104,7 +104,7 @@ public class MetaTable extends Table {
 
     private final int type;
     private final int indexColumn;
-    private MetaIndex index;
+    private MetaIndex metaIndex;
 
     /**
      * Create a new metadata table.
@@ -513,7 +513,7 @@ public class MetaTable extends Table {
         } else {
             indexColumn = getColumn(indexColumnName).getColumnId();
             IndexColumn[] indexCols = IndexColumn.wrap(new Column[] { cols[indexColumn] });
-            index = new MetaIndex(this, indexCols, false);
+            metaIndex = new MetaIndex(this, indexCols, false);
         }
     }
 
@@ -522,16 +522,16 @@ public class MetaTable extends Table {
         for (int i = 0; i < names.length; i++) {
             String nameType = names[i];
             int idx = nameType.indexOf(' ');
-            int type;
+            int dataType;
             String name;
             if (idx < 0) {
-                type = Value.STRING;
+                dataType = Value.STRING;
                 name = nameType;
             } else {
-                type = DataType.getTypeByName(nameType.substring(idx + 1)).type;
+                dataType = DataType.getTypeByName(nameType.substring(idx + 1)).type;
                 name = nameType.substring(0, idx);
             }
-            cols[i] = new Column(name, type);
+            cols[i] = new Column(name, dataType);
         }
         return cols;
     }
@@ -545,7 +545,7 @@ public class MetaTable extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            int headPos, String comment) throws SQLException {
+            int headPos, String indexComment) throws SQLException {
         throw Message.getUnsupportedException("META");
     }
 
@@ -1017,7 +1017,7 @@ public class MetaTable extends Table {
             for (Right r : database.getAllRights()) {
                 Role role = r.getGrantedRole();
                 DbObject grantee = r.getGrantee();
-                String type = grantee.getType() == DbObject.USER ? "USER" : "ROLE";
+                String rightType = grantee.getType() == DbObject.USER ? "USER" : "ROLE";
                 if (role == null) {
                     Table granted = r.getGrantedTable();
                     String tableName = identifier(granted.getName());
@@ -1028,7 +1028,7 @@ public class MetaTable extends Table {
                             // GRANTEE
                             identifier(grantee.getName()),
                             // GRANTEETYPE
-                            type,
+                            rightType,
                             // GRANTEDROLE
                             "",
                             // RIGHTS
@@ -1045,7 +1045,7 @@ public class MetaTable extends Table {
                             // GRANTEE
                             identifier(grantee.getName()),
                             // GRANTEETYPE
-                            type,
+                            rightType,
                             // GRANTEDROLE
                             identifier(role.getName()),
                             // RIGHTS
@@ -1122,11 +1122,11 @@ public class MetaTable extends Table {
         case FUNCTION_COLUMNS: {
             for (FunctionAlias alias : database.getAllFunctionAliases()) {
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
-                    Class< ? >[] columns = method.getColumnClasses();
-                    for (int k = 0; k < columns.length; k++) {
-                        Class< ? > clazz = columns[k];
-                        int type = DataType.getTypeFromClass(clazz);
-                        DataType dt = DataType.getDataType(type);
+                    Class< ? >[] columnList = method.getColumnClasses();
+                    for (int k = 0; k < columnList.length; k++) {
+                        Class< ? > clazz = columnList[k];
+                        int dataType = DataType.getTypeFromClass(clazz);
+                        DataType dt = DataType.getDataType(dataType);
                         int nullable = clazz.isPrimitive() ? DatabaseMetaData.columnNoNulls
                                 : DatabaseMetaData.columnNullable;
                         add(rows,
@@ -1338,9 +1338,9 @@ public class MetaTable extends Table {
         case CONSTRAINTS: {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
-                String type = constraint.getConstraintType();
+                String constraintType = constraint.getConstraintType();
                 String checkExpression = null;
-                IndexColumn[] columns = null;
+                IndexColumn[] indexColumns = null;
                 Table table = constraint.getTable();
                 Index index = constraint.getUniqueIndex();
                 String uniqueIndexName = null;
@@ -1351,17 +1351,17 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                if (type.equals(Constraint.CHECK)) {
+                if (constraintType.equals(Constraint.CHECK)) {
                     checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL();
-                } else if (type.equals(Constraint.UNIQUE) || type.equals(Constraint.PRIMARY_KEY)) {
-                    columns = ((ConstraintUnique) constraint).getColumns();
-                } else if (type.equals(Constraint.REFERENTIAL)) {
-                    columns = ((ConstraintReferential) constraint).getColumns();
+                } else if (constraintType.equals(Constraint.UNIQUE) || constraintType.equals(Constraint.PRIMARY_KEY)) {
+                    indexColumns = ((ConstraintUnique) constraint).getColumns();
+                } else if (constraintType.equals(Constraint.REFERENTIAL)) {
+                    indexColumns = ((ConstraintReferential) constraint).getColumns();
                 }
                 String columnList = null;
-                if (columns != null) {
+                if (indexColumns != null) {
                     StatementBuilder buff = new StatementBuilder();
-                    for (IndexColumn col : columns) {
+                    for (IndexColumn col : indexColumns) {
                         buff.appendExceptFirst(",");
                         buff.append(col.column.getName());
                     }
@@ -1375,7 +1375,7 @@ public class MetaTable extends Table {
                         // CONSTRAINT_NAME
                         identifier(constraint.getName()),
                         // CONSTRAINT_TYPE
-                        type,
+                        constraintType,
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA
@@ -1731,13 +1731,13 @@ public class MetaTable extends Table {
     }
 
     public ObjectArray<Index> getIndexes() {
-        if (index == null) {
+        if (metaIndex == null) {
             return null;
         }
         ObjectArray <Index>list = ObjectArray.newInstance();
         list.add(new MetaIndex(this, IndexColumn.wrap(columns), true));
         // TODO fixed scan index
-        list.add(index);
+        list.add(metaIndex);
         return list;
     }
 

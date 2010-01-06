@@ -581,9 +581,9 @@ public class Data extends DataPage {
         case Value.DECIMAL: {
             int scale = readVarInt();
             int len = readVarInt();
-            byte[] data = MemoryUtils.newBytes(len);
-            read(data, 0, len);
-            BigInteger b = new BigInteger(data);
+            byte[] buff = MemoryUtils.newBytes(len);
+            read(buff, 0, len);
+            BigInteger b = new BigInteger(buff);
             return ValueDecimal.get(new BigDecimal(b, scale));
         }
         case Value.DATE: {

@@ -148,7 +148,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-        // CREATE TRIGGER trigger {BEFORE|AFTER} {INSERT|UPDATE|DELETE|ROLLBACK} ON table
+        // CREATE TRIGGER trigger {BEFORE|AFTER}
+        // {INSERT|UPDATE|DELETE|ROLLBACK} ON table
         // [FOR EACH ROW] [QUEUE n] [NOWAIT] CALL triggeredClass
         stat.execute("CREATE TRIGGER IF NOT EXISTS INS_BEFORE BEFORE INSERT ON TEST FOR EACH ROW NOWAIT CALL \""
                 + getClass().getName() + "\"");

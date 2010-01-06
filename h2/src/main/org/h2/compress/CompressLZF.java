@@ -28,104 +28,97 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 package org.h2.compress;
 
-import java.sql.SQLException;
-
 /**
- * This class implements the LZF lossless data compression algorithm.
- * LZF is a Lempel-Ziv variant with byte-aligned output, and optimized for speed.
- *
- * <h2>Safety/Use Notes:</h2>
- * <ul><li> Each instance should be used by a single thread only,
- *   due to cached hashtable</li>
- *     <li> May run into problems when data buffers approach Integer.MAX_VALUE
- *       (or, say, 2^31)</li>
- *     <li> For performance reasons, safety checks on expansion omitted</li>
- *     <li> Invalid compressed data can cause ArrayIndexOutOfBoundsException</li>
+ * <p>
+ * This class implements the LZF lossless data compression algorithm. LZF is a
+ * Lempel-Ziv variant with byte-aligned output, and optimized for speed.
+ * </p>
+ * <p>
+ * Safety/Use Notes:
+ * </p>
+ * <ul>
+ * <li>Each instance should be used by a single thread only.</li>
+ * <li>The data buffers must be smaller than 2^31.</li>
+ * <li>For performance reasons, safety checks on expansion are omitted.</li>
+ * <li>Invalid compressed data can cause an ArrayIndexOutOfBoundsException.</li>
  * </ul>
- * <p />
- * <h2>LZF compressed format:</h2>
- * <ul><li>2 modes: literal run, or back-reference to previous data
- *     <ul><li>Literal run: directly copy bytes from input to output</li>
- *         <li>Back-reference: copy previous data to output stream,
- *           with specified offset from location and length</li>
- *     </ul>
- * </li>
- * <li>Back-references are assumed to be at least 3 bytes,
- *   otherwise there is no gain from using a back-reference.</li>
+ * <p>
+ * The LZF compressed format knows literal runs and back-references:
+ * </p>
+ * <ul>
+ * <li>Literal run: directly copy bytes from input to output.</li>
+ * <li>Back-reference: copy previous data to output stream, with specified
+ * offset from location and length. The length is at least 3 bytes.</li>
  * </ul>
- * <h2>Binary format:</h2>
- * <ul><li>First byte -- control byte:
- *    <ul><li>highest 3 bits are back-reference length, or 0 if literal run</li>
- *     <li>lowest 5 bits are either literal run length or
- *       part of offset for back-reference</li>
- *    </ul></li>
- * <li>If literal run:
- *    <ul><li> next bytes are data to copy directly into output</li></ul>
- * </li>
- * <li>If back reference:
- *    <ul><li>If and only if back reference length is 7 (top 3 bits set),
- *      add next byte to back reference length as unsigned byte</li>
- *     <li>In either case, add next byte to offset location
- *       with lowest 5 bits of control byte</li>
- *    </ul></li>
- * </ul>
+ *<p>
+ * The first byte of the compressed stream is the control byte. For literal
+ * runs, the highest three bits of the control byte are not set, the the lower
+ * bits are the literal run length, and the next bytes are data to copy directly
+ * into the output. For back-references, the highest three bits of the control
+ * byte are the back-reference length. If all three bits are set, then the
+ * back-reference length is stored in the next byte. The lower bits of the
+ * control byte combined with the next byte form the offset for the
+ * back-reference.
+ * </p>
  */
 public final class CompressLZF implements Compressor {
 
-    /** Number of entries for main hash table
-     * <br />Size is a trade-off between hash collisions (reduced compression)
-     * and speed (amount that fits in CPU cache) */
+    /**
+     * The number of entries in the hash table. The size is a trade-off between
+     * hash collisions (reduced compression) and speed (amount that fits in CPU
+     * cache).
+     */
     private static final int HASH_SIZE = 1 << 14;
 
-    /** 32: maximum number of literals in a chunk */
+    /**
+     * The maximum number of literals in a chunk (32).
+     */
     private static final int MAX_LITERAL = 1 << 5;
 
-    /** 8192, maximum offset allowed for a back-reference */
+    /**
+     * The maximum offset allowed for a back-reference (8192).
+     */
     private static final int MAX_OFF = 1 << 13;
 
-    /** Maximum back-reference length
-     * == 256 (full byte) + 8 (top 3 bits of byte) + 1 = 264 */
+    /**
+     * The maximum back-reference length (264).
+     */
     private static final int MAX_REF = (1 << 8) + (1 << 3);
 
-    /** Hash table for matching byte sequences -- reused for performance */
+    /**
+     * Hash table for matching byte sequences (reused for performance).
+     */
     private int[] cachedHashTable;
 
-    public void setOptions(String options) throws SQLException {
+    public void setOptions(String options) {
         // nothing to do
     }
 
     /**
-     * Return byte with lower 2 bytes being byte at index, then index+1
+     * Return byte with lower 2 bytes being byte at index, then index+1.
      */
     private static int first(byte[] in, int inPos) {
         return (in[inPos] << 8) | (in[inPos + 1] & 255);
     }
 
     /**
-     * Shift v 1 byte left, add value at index inPos+2
+     * Shift v 1 byte left, add value at index inPos+2.
      */
     private static int next(int v, byte[] in, int inPos) {
         return (v << 8) | (in[inPos + 2] & 255);
     }
 
-    /** Compute address in hash table */
+    /**
+     * Compute the address in the hash table.
+     */
     private static int hash(int h) {
         return ((h * 2777) >> 9) & (HASH_SIZE - 1);
     }
 
-    /**
-     * Compress from one buffer to another
-     * @param in Input buffer
-     * @param inLen Length of bytes to compress from input buffer
-     * @param out Output buffer
-     * @param outPos Starting position in out buffer
-     * @return Number of bytes written to output buffer
-     */
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {
         int inPos = 0;
         if (cachedHashTable == null) {
@@ -154,11 +147,12 @@ public final class CompressLZF implements Compressor {
                     maxLen = MAX_REF;
                 }
                 if (literals == 0) {
-                    // back-to-back back-reference, so no control byte for literal run
+                    // multiple back-references,
+                    // so there is no literal run control byte
                     outPos--;
                 } else {
-                    // set control byte at start of literal run
-                    // to store number of literals
+                    // set the control byte at the start of the literal run
+                    // to store the number of literals
                     out[outPos - literals - 1] = (byte) (literals - 1);
                     literals = 0;
                 }
@@ -174,31 +168,33 @@ public final class CompressLZF implements Compressor {
                     out[outPos++] = (byte) (len - 7);
                 }
                 out[outPos++] = (byte) off;
-                // move one byte forward to allow for control byte on next literal run
+                // move one byte forward to allow for a literal run control byte
                 outPos++;
                 inPos += len;
-                // rebuild the future, and store last couple bytes to hashtable
-                // storing hashes of last bytes in back-reference improves compression ratio
-                // and only reduces speed *slightly*
+                // Rebuild the future, and store the last bytes to the hashtable.
+                // Storing hashes of the last bytes in back-reference improves
+                // the compression ratio and only reduces speed slightly.
                 future = first(in, inPos);
                 future = next(future, in, inPos);
                 hashTab[hash(future)] = inPos++;
                 future = next(future, in, inPos);
                 hashTab[hash(future)] = inPos++;
             } else {
-                // copy byte from input to output as part of literal
+                // copy one byte from input to output as part of literal
                 out[outPos++] = in[inPos++];
                 literals++;
-                // end of this literal chunk, write length to control byte and start new chunk
+                // at the end of this literal chunk, write the length
+                // to the control byte and start a new chunk
                 if (literals == MAX_LITERAL) {
                     out[outPos - literals - 1] = (byte) (literals - 1);
                     literals = 0;
-                    // move ahead one byte to allow for control byte containing literal length
+                    // move ahead one byte to allow for the
+                    // literal run control byte
                     outPos++;
                 }
             }
         }
-        // writes out remaining few bytes as literals
+        // write the remaining few bytes as literals
         while (inPos < inLen) {
             out[outPos++] = in[inPos++];
             literals++;
@@ -208,7 +204,7 @@ public final class CompressLZF implements Compressor {
                 outPos++;
             }
         }
-        // writes final literal run length to control byte
+        // writes the final literal run length to the control byte
         out[outPos - literals - 1] = (byte) (literals - 1);
         if (literals == 0) {
             outPos--;
@@ -216,44 +212,37 @@ public final class CompressLZF implements Compressor {
         return outPos;
     }
 
-    /**
-     * Expand compressed data from one buffer to another
-     * @param in Compressed data buffer
-     * @param inPos Index of first byte in input data
-     * @param inLen Number of compressed input bytes
-     * @param out Output buffer for decompressed data
-     * @param outPos Index for start of decompressed data
-     * @param outLen Size of decompressed data
-     */
     public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) {
         do {
             int ctrl = in[inPos++] & 255;
-            // literal run of length = ctrl + 1,
-            //  directly copy to output and move forward this many bytes
             if (ctrl < MAX_LITERAL) {
+                // literal run of length = ctrl + 1,
                 ctrl++;
+                // copy to output and move forward this many bytes
                 System.arraycopy(in, inPos, out, outPos, ctrl);
                 outPos += ctrl;
                 inPos += ctrl;
             } else {
                 // back reference
-                // highest 3 bits are match length
+                // the highest 3 bits are the match length
                 int len = ctrl >> 5;
-                // if length is maxed add in next byte to length
+                // if the length is maxed, add the next byte to the length
                 if (len == 7) {
                     len += in[inPos++] & 255;
                 }
-                // minimum back-reference is 3 bytes, so 2 was subtracted before storing size
+                // minimum back-reference is 3 bytes,
+                // so 2 was subtracted before storing size
                 len += 2;
 
-                // control is now offset amount for back-reference...
+                // ctrl is now the offset for a back-reference...
                 // the logical AND operation removes the length bits
                 ctrl = -((ctrl & 0x1f) << 8) - 1;
 
-                // next byte augments/increases offset
+                // the next byte augments/increases the offset
                 ctrl -= in[inPos++] & 255;
 
-                // quickly copy back-reference bytes from location in output to current position
+                // copy the back-reference bytes from the given
+                // location in output to current position
                 for (int i = 0; i < len; i++) {
                     out[outPos + i] = out[outPos + ctrl + i];
                 }
@@ -265,4 +254,5 @@ public final class CompressLZF implements Compressor {
     public int getAlgorithm() {
         return Compressor.LZF;
     }
+
 }

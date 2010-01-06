@@ -321,11 +321,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return buff.toString();
     }
 
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(Table targetTable, String quotedName) {
         StringBuilder buff = new StringBuilder("CREATE ");
         buff.append(indexType.getSQL());
         buff.append(' ').append(quotedName);
-        buff.append(" ON ").append(table.getSQL());
+        buff.append(" ON ").append(targetTable.getSQL());
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }

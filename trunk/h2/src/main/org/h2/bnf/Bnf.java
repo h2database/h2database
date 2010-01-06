@@ -136,12 +136,12 @@ public class Bnf {
     /**
      * Get the HTML railroad for a given syntax.
      *
-     * @param syntax the syntax
+     * @param bnf the syntax
      * @return the HTML formatted railroad
      */
-    public String getRailroadHtml(String syntax) {
-        syntax = StringUtils.replaceAll(syntax, "\n    ", " ");
-        String[] syntaxList = StringUtils.arraySplit(syntax, '\n', true);
+    public String getRailroadHtml(String bnf) {
+        bnf = StringUtils.replaceAll(bnf, "\n    ", " ");
+        String[] syntaxList = StringUtils.arraySplit(bnf, '\n', true);
         StringBuilder buff = new StringBuilder();
         for (String s : syntaxList) {
             this.syntax = s;

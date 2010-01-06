@@ -61,7 +61,7 @@ import java.sql.SQLXML;
  */
 public class JdbcPreparedStatement extends JdbcStatement implements PreparedStatement {
 
-    private final String sql;
+    private final String sqlStatement;
     private CommandInterface command;
     private ObjectArray<Value[]> batchParameters;
 
@@ -69,7 +69,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 int resultSetConcurrency, boolean closeWithResultSet) throws SQLException {
         super(conn, id, resultSetType, resultSetConcurrency, closeWithResultSet);
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
-        this.sql = sql;
+        this.sqlStatement = sql;
         command = conn.prepareCommand(sql, fetchSize);
     }
 
@@ -1495,7 +1495,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         if (super.checkClosed(write)) {
             // if the session was re-connected, re-prepare the statement
             ObjectArray< ? extends ParameterInterface> oldParams = command.getParameters();
-            command = conn.prepareCommand(sql, fetchSize);
+            command = conn.prepareCommand(sqlStatement, fetchSize);
             ObjectArray< ? extends ParameterInterface> newParams = command.getParameters();
             for (int i = 0; i < oldParams.size(); i++) {
                 ParameterInterface old = oldParams.get(i);

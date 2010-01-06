@@ -69,7 +69,7 @@ public class LogFile {
     private byte[] buffer;
     private ObjectArray<Record> unwritten;
     private DataPage rowBuff;
-    private int pos = LogSystem.LOG_WRITTEN;
+    private int logPos = LogSystem.LOG_WRITTEN;
     private int firstUncommittedPos = LogSystem.LOG_WRITTEN;
     private int firstUnwrittenPos = LogSystem.LOG_WRITTEN;
 
@@ -88,8 +88,8 @@ public class LogFile {
             if (!log.getDatabase().isReadOnly()) {
                 writeHeader();
             }
-            pos = getBlock();
-            firstUncommittedPos = pos;
+            logPos = getBlock();
+            firstUncommittedPos = logPos;
         } catch (SQLException e) {
             close(false);
             throw e;
@@ -167,12 +167,12 @@ public class LogFile {
         if (buff.length() >= buffer.length) {
             // special case really long write request: write it without buffering
             file.write(buff.getBytes(), 0, buff.length());
-            pos = getBlock();
+            logPos = getBlock();
             return;
         }
         System.arraycopy(buff.getBytes(), 0, buffer, bufferPos, buff.length());
         bufferPos += buff.length();
-        pos = getBlock() + (bufferPos / BLOCK_SIZE);
+        logPos = getBlock() + (bufferPos / BLOCK_SIZE);
     }
 
     /**
@@ -367,9 +367,9 @@ public class LogFile {
         try {
             int max = (int) (length / BLOCK_SIZE);
             while (true) {
-                pos = getBlock();
-                database.setProgress(DatabaseEventListener.STATE_RECOVER, fileName, pos, max);
-                if ((long) pos * BLOCK_SIZE >= length) {
+                logPos = getBlock();
+                database.setProgress(DatabaseEventListener.STATE_RECOVER, fileName, logPos, max);
+                if ((long) logPos * BLOCK_SIZE >= length) {
                     break;
                 }
                 boolean more = redoOrUndo(false, readOnly);
@@ -392,7 +392,7 @@ public class LogFile {
             // on power loss, sometime there is garbage at the end of the file
             // we stop recovering in this case (checksum mismatch)
         }
-        go(pos);
+        go(logPos);
     }
 
     /**
@@ -424,13 +424,13 @@ public class LogFile {
                 throw Message.getSQLException(ErrorCode.DATABASE_IS_CLOSED);
             }
             file.write(buffer, 0, bufferPos);
-            pos = getBlock();
+            logPos = getBlock();
             for (Record r : unwritten) {
-                r.setLogWritten(id, pos);
+                r.setLogWritten(id, logPos);
             }
             unwritten.clear();
             bufferPos = 0;
-            long min = (long) pos * BLOCK_SIZE;
+            long min = (long) logPos * BLOCK_SIZE;
             min = MathUtils.scaleUp50Percent(Constants.FILE_MIN_SIZE, min, Constants.FILE_PAGE_SIZE, Constants.FILE_MAX_INCREMENT);
             if (min > file.length()) {
                 file.setLength(min);
@@ -598,7 +598,7 @@ public class LogFile {
     }
 
     int getPos() {
-        return pos;
+        return logPos;
     }
 
     long getFileSize() throws SQLException {

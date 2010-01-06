@@ -102,7 +102,7 @@ public class Trace {
     private TraceWriter traceWriter;
     private String module;
     private String lineSeparator;
-    private int level = TraceSystem.PARENT;
+    private int traceLevel = TraceSystem.PARENT;
 
     Trace(TraceWriter traceWriter, String module) {
         this.traceWriter = traceWriter;
@@ -117,14 +117,14 @@ public class Trace {
      * @param level the new level
      */
     public void setLevel(int level) {
-        this.level = level;
+        this.traceLevel = level;
     }
 
     private boolean isEnabled(int level) {
-        if (this.level == TraceSystem.PARENT) {
+        if (this.traceLevel == TraceSystem.PARENT) {
             return traceWriter.isEnabled(level);
         }
-        return level <= this.level;
+        return level <= this.traceLevel;
     }
 
     /**

@@ -98,7 +98,6 @@ public class PageBtreeIndex extends PageIndex {
             PageBtree page1 = root;
             PageBtree page2 = root.split(splitPoint);
             store.logUndo(page2, null);
-            int rootPageId = root.getPos();
             int id = store.allocatePage();
             page1.setPageId(id);
             page1.setParentPageId(rootPageId);

@@ -423,8 +423,8 @@ public class PageDataLeaf extends PageData {
     }
 
     Row getRow(long key) throws SQLException {
-        int index = find(key);
-        return getRowAt(index);
+        int at = find(key);
+        return getRowAt(at);
     }
 
     int getRowCount() {

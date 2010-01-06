@@ -157,7 +157,7 @@ public class DbContents {
             return new String[] { null };
         }
         ResultSet rs = meta.getSchemas();
-        ArrayList<String> schemas = New.arrayList();
+        ArrayList<String> schemaList = New.arrayList();
         while (rs.next()) {
             String schema = rs.getString(findColumn(rs, "TABLE_SCHEM", 1));
             if (isOracle) {
@@ -175,11 +175,11 @@ public class DbContents {
             if (schema == null) {
                 continue;
             }
-            schemas.add(schema);
+            schemaList.add(schema);
         }
         rs.close();
-        String[] list = new String[schemas.size()];
-        schemas.toArray(list);
+        String[] list = new String[schemaList.size()];
+        schemaList.toArray(list);
         return list;
     }
 

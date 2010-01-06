@@ -29,6 +29,7 @@ import org.h2.value.ValueArray;
  * This class implements the temp table buffer for the LocalResult class.
  */
 public class ResultTempTable implements ResultExternal {
+
     private static final String COLUMN_NAME = "DATA";
     private Session session;
     private TableData table;

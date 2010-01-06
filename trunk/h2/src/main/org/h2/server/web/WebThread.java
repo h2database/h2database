@@ -328,8 +328,8 @@ class WebThread extends WebApp implements Runnable {
                 server.traceError(e);
             }
 
-            public void init(String url) {
-                log("Init: " + PageParser.escapeHtml(url));
+            public void init(String databaseUrl) {
+                log("Init: " + PageParser.escapeHtml(databaseUrl));
             }
 
             public void opened() {

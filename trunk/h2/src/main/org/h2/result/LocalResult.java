@@ -130,16 +130,16 @@ public class LocalResult implements ResultInterface {
      * Create a shallow copy of the result set. The data and a temporary table
      * (if there is any) is not copied.
      *
-     * @param session the session
+     * @param targetSession the session of the copy
      * @return the copy
      */
-    public LocalResult createShallowCopy(Session session) {
+    public LocalResult createShallowCopy(Session targetSession) {
         if (disk == null && (rows == null || rows.size() < rowCount)) {
             return null;
         }
         LocalResult copy = new LocalResult();
         copy.maxMemoryRows = this.maxMemoryRows;
-        copy.session = session;
+        copy.session = targetSession;
         copy.visibleColumnCount = this.visibleColumnCount;
         copy.expressions = this.expressions;
         copy.rowId = -1;

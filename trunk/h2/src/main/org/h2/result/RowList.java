@@ -174,7 +174,7 @@ public class RowList {
         if (buff.readByte() == 0) {
             return null;
         }
-        int memory = buff.readInt();
+        int mem = buff.readInt();
         int columnCount = buff.readInt();
         long key = buff.readLong();
         int version = buff.readInt();
@@ -208,7 +208,7 @@ public class RowList {
                 return (Row) found;
             }
         }
-        Row row = new Row(values, memory);
+        Row row = new Row(values, mem);
         row.setKey(key);
         row.setVersion(version);
         row.setDeleted(deleted);

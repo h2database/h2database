@@ -63,7 +63,7 @@ public class PgServerThread implements Runnable {
     private String dateStyle = "ISO";
     private HashMap<String, Prepared> prepared = New.hashMap();
     private HashMap<String, Portal> portals = New.hashMap();
-    private HashSet<Integer> types = New.hashSet();
+    private HashSet<Integer> typeSet = New.hashSet();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;
@@ -374,7 +374,7 @@ public class PgServerThread implements Runnable {
     }
 
     private void checkType(int type) {
-        if (types.contains(type)) {
+        if (typeSet.contains(type)) {
             server.trace("Unsupported type: " + type);
         }
     }
@@ -618,7 +618,7 @@ public class PgServerThread implements Runnable {
 
             rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
             while (rs.next()) {
-                types.add(rs.getInt(1));
+                typeSet.add(rs.getInt(1));
             }
         } finally {
             JdbcUtils.closeSilently(stat);
@@ -717,8 +717,8 @@ public class PgServerThread implements Runnable {
         dataOut.write(b);
     }
 
-    private void startMessage(int messageType) {
-        this.messageType = messageType;
+    private void startMessage(int newMessageType) {
+        this.messageType = newMessageType;
         outBuffer = new ByteArrayOutputStream();
         dataOut = new DataOutputStream(outBuffer);
     }

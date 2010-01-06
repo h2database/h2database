@@ -43,23 +43,23 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     /**
      * Initialize the base index.
      *
-     * @param table the table
+     * @param newTable the table
      * @param id the object id
      * @param name the index name
-     * @param indexColumns the columns that are indexed or null if this is not
-     *            yet known
-     * @param indexType the index type
+     * @param newIndexColumns the columns that are indexed or null if this is
+     *            not yet known
+     * @param newIndexType the index type
      */
-    void initBaseIndex(Table table, int id, String name, IndexColumn[] indexColumns, IndexType indexType) {
-        initSchemaObjectBase(table.getSchema(), id, name, Trace.INDEX);
-        this.indexType = indexType;
-        this.table = table;
-        if (indexColumns != null) {
-            this.indexColumns = indexColumns;
-            columns = new Column[indexColumns.length];
+    void initBaseIndex(Table newTable, int id, String name, IndexColumn[] newIndexColumns, IndexType newIndexType) {
+        initSchemaObjectBase(newTable.getSchema(), id, name, Trace.INDEX);
+        this.indexType = newIndexType;
+        this.table = newTable;
+        if (newIndexColumns != null) {
+            this.indexColumns = newIndexColumns;
+            columns = new Column[newIndexColumns.length];
             columnIds = new int[columns.length];
             for (int i = 0; i < columns.length; i++) {
-                Column col = indexColumns[i].column;
+                Column col = newIndexColumns[i].column;
                 columns[i] = col;
                 columnIds[i] = col.getColumnId();
             }

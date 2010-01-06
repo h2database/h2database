@@ -100,14 +100,14 @@ public class TestJoin extends TestBase {
         execute("INSERT INTO TWO VALUES(3, 3)", null);
         execute("INSERT INTO TWO VALUES(4, NULL)", null);
         random = new Random();
-        long start = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         for (int i = 0;; i++) {
             paramCount = 0;
             buff = new StringBuilder();
             long time = System.currentTimeMillis();
-            if (time - start > 5000) {
+            if (time - startTime > 5000) {
                 printTime("i:" + i);
-                start = time;
+                startTime = time;
             }
             buff.append("SELECT ");
             int tables = 1 + random.nextInt(5);
@@ -279,27 +279,27 @@ public class TestJoin extends TestBase {
     }
 
     private String readResult(ResultSet rs) throws SQLException {
-        StringBuilder buff = new StringBuilder();
+        StringBuilder b = new StringBuilder();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         for (int i = 0; i < columnCount; i++) {
             if (i > 0) {
-                buff.append(",");
+                b.append(",");
             }
-            buff.append(StringUtils.toUpperEnglish(meta.getColumnLabel(i + 1)));
+            b.append(StringUtils.toUpperEnglish(meta.getColumnLabel(i + 1)));
         }
-        buff.append(":\n");
-        String result = buff.toString();
+        b.append(":\n");
+        String result = b.toString();
         ArrayList<String> list = New.arrayList();
         while (rs.next()) {
-            buff = new StringBuilder();
+            b = new StringBuilder();
             for (int i = 0; i < columnCount; i++) {
                 if (i > 0) {
-                    buff.append(",");
+                    b.append(",");
                 }
-                buff.append(rs.getString(i + 1));
+                b.append(rs.getString(i + 1));
             }
-            list.add(buff.toString());
+            list.add(b.toString());
         }
         Collections.sort(list);
         for (int i = 0; i < list.size(); i++) {

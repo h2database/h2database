@@ -83,10 +83,10 @@ public class ConditionInSelect extends Condition {
         return ValueBoolean.get(result);
     }
 
-    public void mapColumns(ColumnResolver resolver, int queryLevel) throws SQLException {
-        left.mapColumns(resolver, queryLevel);
-        query.mapColumns(resolver, queryLevel + 1);
-        this.queryLevel = Math.max(queryLevel, this.queryLevel);
+    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+        left.mapColumns(resolver, level);
+        query.mapColumns(resolver, level + 1);
+        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     public Expression optimize(Session session) throws SQLException {

@@ -325,15 +325,15 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
                     p = updateMany[random.nextInt(tableCount)];
                     p.setInt(1, i);
                     p.setInt(2, random.nextInt(50));
-                    int start = random.nextInt(1 + i);
-                    p.setInt(3, start);
-                    p.setInt(4, start + random.nextInt(50));
+                    int first = random.nextInt(1 + i);
+                    p.setInt(3, first);
+                    p.setInt(4, first + random.nextInt(50));
                     p.executeUpdate();
                 } else {
                     p = deleteMany[random.nextInt(tableCount)];
-                    int start = random.nextInt(1 + i);
-                    p.setInt(1, start);
-                    p.setInt(2, start + random.nextInt(100));
+                    int first = random.nextInt(1 + i);
+                    p.setInt(1, first);
+                    p.setInt(2, first + random.nextInt(100));
                     p.executeUpdate();
                 }
             }

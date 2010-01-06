@@ -24,7 +24,7 @@ import org.h2.value.ValueString;
 public class TestOverflow extends TestBase {
 
     private ArrayList<Value> values;
-    private int type;
+    private int dataType;
     private BigInteger min, max;
     private boolean successExpected;
 
@@ -44,24 +44,24 @@ public class TestOverflow extends TestBase {
         test(Value.SHORT, Short.MIN_VALUE, Short.MAX_VALUE);
     }
 
-    private void test(int type, long min, long max) throws SQLException {
+    private void test(int type, long minValue, long maxValue) throws SQLException {
         values = New.arrayList();
-        this.type = type;
-        this.min = new BigInteger("" + min);
-        this.max = new BigInteger("" + max);
+        this.dataType = type;
+        this.min = new BigInteger("" + minValue);
+        this.max = new BigInteger("" + maxValue);
         add(0);
-        add(min);
-        add(max);
-        add(max - 1);
-        add(min + 1);
+        add(minValue);
+        add(maxValue);
+        add(maxValue - 1);
+        add(minValue + 1);
         add(1);
         add(-1);
         Random random = new Random(1);
         for (int i = 0; i < 40; i++) {
-            if (max > Integer.MAX_VALUE) {
+            if (maxValue > Integer.MAX_VALUE) {
                 add(random.nextLong());
             } else {
-                add((random.nextBoolean() ? 1 : -1) * random.nextInt((int) max));
+                add((random.nextBoolean() ? 1 : -1) * random.nextInt((int) maxValue));
             }
         }
         for (Value va : values) {
@@ -127,7 +127,7 @@ public class TestOverflow extends TestBase {
     }
 
     private void add(long l) throws SQLException {
-        values.add(ValueString.get("" + l).convertTo(type));
+        values.add(ValueString.get("" + l).convertTo(dataType));
     }
 
 }

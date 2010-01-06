@@ -197,7 +197,7 @@ public class TestMetaData extends TestBase {
             trace(name + "=" + value);
         }
 
-        test(conn);
+        testMore();
 
         // meta.getTablePrivileges()
 
@@ -215,17 +215,17 @@ public class TestMetaData extends TestBase {
     }
 
     private void testColumnLobMeta() throws SQLException {
-        Statement stat = conn.createStatement();
+        stat = conn.createStatement();
         stat.executeUpdate("CREATE TABLE t (blob BLOB, clob CLOB)");
         stat.execute("INSERT INTO t VALUES('', '')");
         ResultSet rs = stat.executeQuery("SELECT blob,clob FROM t");
-        ResultSetMetaData meta = rs.getMetaData();
+        ResultSetMetaData rsMeta = rs.getMetaData();
         if (SysProperties.RETURN_LOB_OBJECTS) {
-            assertEquals("java.sql.Blob", meta.getColumnClassName(1));
-            assertEquals("java.sql.Clob", meta.getColumnClassName(2));
+            assertEquals("java.sql.Blob", rsMeta.getColumnClassName(1));
+            assertEquals("java.sql.Clob", rsMeta.getColumnClassName(2));
         } else {
-            assertEquals("java.io.InputStream", meta.getColumnClassName(1));
-            assertEquals("java.io.Reader", meta.getColumnClassName(2));
+            assertEquals("java.io.InputStream", rsMeta.getColumnClassName(1));
+            assertEquals("java.io.Reader", rsMeta.getColumnClassName(2));
         }
         rs.next();
         if (SysProperties.RETURN_LOB_OBJECTS) {
@@ -239,50 +239,50 @@ public class TestMetaData extends TestBase {
     }
 
     private void testColumnMetaData() throws SQLException {
-        String statement = "select substring('Hello',0,1)";
-        ResultSet rs = conn.prepareStatement(statement).executeQuery();
+        String sql = "select substring('Hello',0,1)";
+        ResultSet rs = conn.prepareStatement(sql).executeQuery();
         rs.next();
         int type = rs.getMetaData().getColumnType(1);
         assertEquals(Types.VARCHAR, type);
         rs = conn.createStatement().executeQuery("SELECT COUNT(*) C FROM DUAL");
         assertEquals("C", rs.getMetaData().getColumnName(1));
 
-        Statement stat = conn.createStatement();
+        stat = conn.createStatement();
         stat.execute("create table a(x array)");
         stat.execute("insert into a values((1, 2))");
         rs = stat.executeQuery("SELECT x[1] FROM a");
-        ResultSetMetaData meta = rs.getMetaData();
-        assertEquals(Types.VARCHAR, meta.getColumnType(1));
+        ResultSetMetaData rsMeta = rs.getMetaData();
+        assertEquals(Types.VARCHAR, rsMeta.getColumnType(1));
         rs.next();
         // assertEquals(String.class.getName(), rs.getObject(1).getClass().getName());
         stat.execute("drop table a");
     }
 
     private void testColumnPrecision() throws SQLException {
-        Statement stat = conn.createStatement();
+        stat = conn.createStatement();
         stat.execute("CREATE TABLE ONE(X NUMBER(12,2), Y FLOAT)");
         stat.execute("CREATE TABLE TWO AS SELECT * FROM ONE");
         ResultSet rs;
-        ResultSetMetaData meta;
+        ResultSetMetaData rsMeta;
         rs = stat.executeQuery("SELECT * FROM ONE");
-        meta = rs.getMetaData();
-        assertEquals(12, meta.getPrecision(1));
-        assertEquals(17, meta.getPrecision(2));
-        assertEquals(Types.DECIMAL, meta.getColumnType(1));
-        assertEquals(Types.DOUBLE, meta.getColumnType(2));
+        rsMeta = rs.getMetaData();
+        assertEquals(12, rsMeta.getPrecision(1));
+        assertEquals(17, rsMeta.getPrecision(2));
+        assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
+        assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         rs = stat.executeQuery("SELECT * FROM TWO");
-        meta = rs.getMetaData();
-        assertEquals(12, meta.getPrecision(1));
-        assertEquals(17, meta.getPrecision(2));
-        assertEquals(Types.DECIMAL, meta.getColumnType(1));
-        assertEquals(Types.DOUBLE, meta.getColumnType(2));
+        rsMeta = rs.getMetaData();
+        assertEquals(12, rsMeta.getPrecision(1));
+        assertEquals(17, rsMeta.getPrecision(2));
+        assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
+        assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         stat.execute("DROP TABLE ONE, TWO");
     }
 
     private void testColumnDefault() throws SQLException {
-        DatabaseMetaData meta = conn.getMetaData();
+        meta = conn.getMetaData();
         ResultSet rs;
-        Statement stat = conn.createStatement();
+        stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(A INT, B INT DEFAULT NULL)");
         rs = meta.getColumns(null, null, "TEST", null);
         rs.next();
@@ -296,9 +296,9 @@ public class TestMetaData extends TestBase {
     }
 
     private void testProcedureColumns() throws SQLException {
-        DatabaseMetaData meta = conn.getMetaData();
+        meta = conn.getMetaData();
         ResultSet rs;
-        Statement stat = conn.createStatement();
+        stat = conn.createStatement();
         stat.execute("CREATE ALIAS PROP FOR \"java.lang.System.getProperty(java.lang.String)\"");
         stat.execute("CREATE ALIAS EXIT FOR \"java.lang.System.exit\"");
         rs = meta.getProcedures(null, null, "EX%");
@@ -330,12 +330,11 @@ public class TestMetaData extends TestBase {
     }
 
     private void testCrossReferences() throws SQLException {
-        DatabaseMetaData meta = conn.getMetaData();
+        meta = conn.getMetaData();
         ResultSet rs;
-        Statement stat = conn.createStatement();
+        stat = conn.createStatement();
         stat.execute("CREATE TABLE PARENT(A INT, B INT, PRIMARY KEY(A, B))");
-        stat
-                .execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, PA INT, PB INT, CONSTRAINT AB FOREIGN KEY(PA, PB) REFERENCES PARENT(A, B))");
+        stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, PA INT, PB INT, CONSTRAINT AB FOREIGN KEY(PA, PB) REFERENCES PARENT(A, B))");
         rs = meta.getCrossReference(null, "PUBLIC", "PARENT", null, "PUBLIC", "CHILD");
         checkCrossRef(rs);
         rs = meta.getImportedKeys(null, "PUBLIC", "CHILD");
@@ -363,8 +362,8 @@ public class TestMetaData extends TestBase {
     }
 
     private void testTempTable() throws SQLException {
-        Connection conn = getConnection("metaData");
-        Statement stat = conn.createStatement();
+        conn = getConnection("metaData");
+        stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST_TEMP");
         stat.execute("CREATE TEMP TABLE TEST_TEMP(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("CREATE INDEX IDX_NAME ON TEST_TEMP(NAME)");
@@ -579,9 +578,9 @@ public class TestMetaData extends TestBase {
         assertTrue(meta.usesLocalFiles());
     }
 
-    private void test(Connection conn) throws SQLException {
-        DatabaseMetaData meta = conn.getMetaData();
-        Statement stat = conn.createStatement();
+    private void testMore() throws SQLException {
+        meta = conn.getMetaData();
+        stat = conn.createStatement();
         ResultSet rs;
 
         conn.setReadOnly(true);

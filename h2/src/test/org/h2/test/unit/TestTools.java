@@ -354,10 +354,10 @@ public class TestTools extends TestBase {
     private void testManagementDb() throws SQLException {
         int count = getSize(2, 10);
         for (int i = 0; i < count; i++) {
-            Server server = Server.createTcpServer("-tcpPort", "9192").start();
-            server.stop();
-            server = Server.createTcpServer("-tcpPassword", "abc", "-tcpPort", "9192").start();
-            server.stop();
+            Server tcpServer = Server.createTcpServer("-tcpPort", "9192").start();
+            tcpServer.stop();
+            tcpServer = Server.createTcpServer("-tcpPassword", "abc", "-tcpPort", "9192").start();
+            tcpServer.stop();
         }
     }
 
@@ -494,13 +494,13 @@ public class TestTools extends TestBase {
     private void testServer() throws SQLException {
         Connection conn;
         deleteDb("test");
-        Server server = Server.createTcpServer(
+        Server tcpServer = Server.createTcpServer(
                         "-baseDir", baseDir,
                         "-tcpPort", "9192",
                         "-tcpAllowOthers").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
-        server.stop();
+        tcpServer.stop();
         Server.createTcpServer(
                         "-ifExists",
                         "-tcpPassword", "abc",

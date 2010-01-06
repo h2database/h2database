@@ -74,7 +74,7 @@ public class TableFunction extends Function {
         columns.toArray(columnList);
     }
 
-    private ValueResultSet getTable(Session session, Expression[] args, boolean onlyColumnList, boolean distinct) throws SQLException {
+    private ValueResultSet getTable(Session session, Expression[] argList, boolean onlyColumnList, boolean distinctRows) throws SQLException {
         int len = columnList.length;
         Expression[] header = new Expression[len];
         Database db = session.getDatabase();
@@ -84,24 +84,24 @@ public class TableFunction extends Function {
             header[i] = col;
         }
         LocalResult result = new LocalResult(session, header, len);
-        if (distinct) {
+        if (distinctRows) {
             result.setDistinct();
         }
         if (!onlyColumnList) {
             Value[][] list = new Value[len][];
-            int rowCount = 0;
+            int rows = 0;
             for (int i = 0; i < len; i++) {
-                Value v = args[i].getValue(session);
+                Value v = argList[i].getValue(session);
                 if (v == ValueNull.INSTANCE) {
                     list[i] = new Value[0];
                 } else {
                     ValueArray array = (ValueArray) v.convertTo(Value.ARRAY);
                     Value[] l = array.getList();
                     list[i] = l;
-                    rowCount = Math.max(rowCount, l.length);
+                    rows = Math.max(rows, l.length);
                 }
             }
-            for (int row = 0; row < rowCount; row++) {
+            for (int row = 0; row < rows; row++) {
                 Value[] r = new Value[len];
                 for (int j = 0; j < len; j++) {
                     Value[] l = list[j];

@@ -67,10 +67,10 @@ public class TestThreads extends TestBase implements Runnable {
         int threadCount = 4;
         Thread[] threads = new Thread[threadCount];
         for (int i = 0; i < threadCount; i++) {
-            String table = random.nextBoolean() ? null : getRandomTable();
+            String t = random.nextBoolean() ? null : getRandomTable();
             int op = random.nextInt(OP_TYPES);
             op = i % 2 == 0 ? RECONNECT : CHECKPOINT;
-            threads[i] = new Thread(new TestThreads(this, op, table));
+            threads[i] = new Thread(new TestThreads(this, op, t));
         }
         for (int i = 0; i < threadCount; i++) {
             threads[i].start();

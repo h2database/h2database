@@ -71,9 +71,9 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
         final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
 
-        Connection c = DriverManager.getConnection(url);
-        c.createStatement().execute("create table test(id int) as select 1");
-        c.close();
+        Connection conn = DriverManager.getConnection(url);
+        conn.createStatement().execute("create table test(id int) as select 1");
+        conn.close();
 
         final int len = 10;
         final Exception[] ex = new Exception[1];
@@ -147,9 +147,9 @@ public class TestFileLockSerialized extends TestBase {
                 while (!stop[0]) {
                     try {
                         Thread.sleep(10);
-                        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
-                        conn.createStatement().execute("select * from test");
-                        conn.close();
+                        Connection c = DriverManager.getConnection(writeUrl, "sa", "sa");
+                        c.createStatement().execute("select * from test");
+                        c.close();
                     } catch (Exception e) {
                         // ignore
                     }
@@ -294,10 +294,10 @@ public class TestFileLockSerialized extends TestBase {
         final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
                 "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;LOG=2;CACHE_SIZE=65536";
 
-        Connection c = DriverManager.getConnection(url);
-        c.createStatement().execute("create table test(id int)");
-        c.createStatement().execute("insert into test values(1)");
-        c.close();
+        Connection conn = DriverManager.getConnection(url);
+        conn.createStatement().execute("create table test(id int)");
+        conn.createStatement().execute("insert into test values(1)");
+        conn.close();
 
         final long endTime = System.currentTimeMillis() + runTime;
         final Exception[] ex = new Exception[1];

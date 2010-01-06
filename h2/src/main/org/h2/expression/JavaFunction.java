@@ -107,8 +107,8 @@ public class JavaFunction extends Expression implements FunctionCall {
         return javaMethod.getParameterCount();
     }
 
-    public ValueResultSet getValueForColumnList(Session session, Expression[] args) throws SQLException {
-        Value v = javaMethod.getValue(session, args, true);
+    public ValueResultSet getValueForColumnList(Session session, Expression[] argList) throws SQLException {
+        Value v = javaMethod.getValue(session, argList, true);
         return v == ValueNull.INSTANCE ? null : (ValueResultSet) v;
     }
 

@@ -429,7 +429,7 @@ public class Function extends Expression implements FunctionCall {
         return null;
     }
 
-    private Value getSimpleValue(Session session, Value v0, Expression[] args) throws SQLException {
+    private Value getSimpleValue(Session session, Value v0, Expression[] argList) throws SQLException {
         Value result;
         switch (info.type) {
         case ABS:
@@ -538,7 +538,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case CONCAT: {
             result = ValueNull.INSTANCE;
-            for (Expression e : args) {
+            for (Expression e : argList) {
                 Value v = e.getValue(session);
                 if (v == ValueNull.INSTANCE) {
                     continue;
@@ -730,15 +730,15 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(session.getId());
             break;
         case IFNULL: {
-            result = v0 == ValueNull.INSTANCE ? args[1].getValue(session) : v0;
+            result = v0 == ValueNull.INSTANCE ? argList[1].getValue(session) : v0;
             break;
         }
         case CASEWHEN: {
             Expression expr;
             if (v0 == ValueNull.INSTANCE || !v0.getBoolean().booleanValue()) {
-                expr = args[2];
+                expr = argList[2];
             } else {
-                expr = args[1];
+                expr = argList[1];
             }
             Value v = expr.getValue(session);
             result = v.convertTo(dataType);
@@ -746,8 +746,8 @@ public class Function extends Expression implements FunctionCall {
         }
         case COALESCE: {
             result = v0;
-            for (int i = 0; i < args.length; i++) {
-                Value v = i == 0 ? v0 : args[i].getValue(session);
+            for (int i = 0; i < argList.length; i++) {
+                Value v = i == 0 ? v0 : argList[i].getValue(session);
                 if (!(v == ValueNull.INSTANCE)) {
                     result = v.convertTo(dataType);
                     break;
@@ -758,8 +758,8 @@ public class Function extends Expression implements FunctionCall {
         case GREATEST:
         case LEAST: {
             result = ValueNull.INSTANCE;
-            for (int i = 0; i < args.length; i++) {
-                Value v = i == 0 ? v0 : args[i].getValue(session);
+            for (int i = 0; i < argList.length; i++) {
+                Value v = i == 0 ? v0 : argList[i].getValue(session);
                 if (!(v == ValueNull.INSTANCE)) {
                     v = v.convertTo(dataType);
                     if (result == ValueNull.INSTANCE) {
@@ -779,21 +779,21 @@ public class Function extends Expression implements FunctionCall {
         case CASE: {
             result = null;
             int i = 0;
-            for (; i < args.length; i++) {
-                Value when = args[i++].getValue(session);
+            for (; i < argList.length; i++) {
+                Value when = argList[i++].getValue(session);
                 if (Boolean.TRUE.equals(when)) {
-                    result = args[i].getValue(session);
+                    result = argList[i].getValue(session);
                     break;
                 }
             }
             if (result == null) {
-                result = i < args.length ? args[i].getValue(session) : ValueNull.INSTANCE;
+                result = i < argList.length ? argList[i].getValue(session) : ValueNull.INSTANCE;
             }
             break;
         }
         case ARRAY_GET: {
             if (v0.getType() == Value.ARRAY) {
-                Value v1 = args[1].getValue(session);
+                Value v1 = argList[1].getValue(session);
                 int element = v1.getInt();
                 Value[] list = ((ValueArray) v0).getList();
                 if (element < 1 || element > list.length) {
@@ -845,24 +845,24 @@ public class Function extends Expression implements FunctionCall {
         return false;
     }
 
-    private Value getValueWithArgs(Session session, Expression[] args) throws SQLException {
+    private Value getValueWithArgs(Session session, Expression[] argList) throws SQLException {
         if (info.nullIfParameterIsNull) {
-            for (int i = 0; i < args.length; i++) {
-                if (getNullOrValue(session, args, i) == ValueNull.INSTANCE) {
+            for (int i = 0; i < argList.length; i++) {
+                if (getNullOrValue(session, argList, i) == ValueNull.INSTANCE) {
                     return ValueNull.INSTANCE;
                 }
             }
         }
-        Value v0 = getNullOrValue(session, args, 0);
-        Value resultSimple = getSimpleValue(session, v0, args);
+        Value v0 = getNullOrValue(session, argList, 0);
+        Value resultSimple = getSimpleValue(session, v0, argList);
         if (resultSimple != null) {
             return resultSimple;
         }
-        Value v1 = getNullOrValue(session, args, 1);
-        Value v2 = getNullOrValue(session, args, 2);
-        Value v3 = getNullOrValue(session, args, 3);
-        Value v4 = getNullOrValue(session, args, 4);
-        Value v5 = getNullOrValue(session, args, 5);
+        Value v1 = getNullOrValue(session, argList, 1);
+        Value v2 = getNullOrValue(session, argList, 2);
+        Value v3 = getNullOrValue(session, argList, 3);
+        Value v4 = getNullOrValue(session, argList, 4);
+        Value v5 = getNullOrValue(session, argList, 5);
         Value result;
         switch (info.type) {
         case ATAN2:
@@ -1055,7 +1055,7 @@ public class Function extends Expression implements FunctionCall {
             String fieldSeparatorRead = v3 == null ? null : v3.getString();
             String fieldDelimiter = v4 == null ? null : v4.getString();
             String escapeCharacter = v5 == null ? null : v5.getString();
-            Value v6 = getNullOrValue(session, args, 6);
+            Value v6 = getNullOrValue(session, argList, 6);
             String nullString = v6 == null ? null : v6.getString();
             Csv csv = Csv.getInstance();
             setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
@@ -1081,9 +1081,9 @@ public class Function extends Expression implements FunctionCall {
             String fieldSeparatorWrite = v3 == null ? null : v3.getString();
             String fieldDelimiter = v4 == null ? null : v4.getString();
             String escapeCharacter = v5 == null ? null : v5.getString();
-            Value v6 = getNullOrValue(session, args, 6);
+            Value v6 = getNullOrValue(session, argList, 6);
             String nullString = v6 == null ? null : v6.getString();
-            Value v7 = getNullOrValue(session, args, 7);
+            Value v7 = getNullOrValue(session, argList, 7);
             String lineSeparator = v7 == null ? null : v7.getString();
             Csv csv = Csv.getInstance();
             setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter, escapeCharacter);
@@ -1096,7 +1096,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case SET: {
-            Variable var = (Variable) args[0];
+            Variable var = (Variable) argList[0];
             session.setVariable(var.getName(), v1);
             result = v1;
             break;
@@ -1104,7 +1104,7 @@ public class Function extends Expression implements FunctionCall {
         case FILE_READ: {
             session.getUser().checkAdmin();
             String fileName = v0.getString();
-            boolean blob = args.length == 1;
+            boolean blob = argList.length == 1;
             try {
                 InputStream in = new AutoCloseInputStream(FileUtils.openFileInputStream(fileName));
                 if (blob) {
@@ -1868,18 +1868,18 @@ public class Function extends Expression implements FunctionCall {
         return args.length;
     }
 
-    public ValueResultSet getValueForColumnList(Session session, Expression[] args) throws SQLException {
+    public ValueResultSet getValueForColumnList(Session session, Expression[] argList) throws SQLException {
         switch (info.type) {
         case CSVREAD: {
-            String fileName = args[0].getValue(session).getString();
+            String fileName = argList[0].getValue(session).getString();
             if (fileName == null) {
                 throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "fileName");
             }
-            String columnList = args.length < 2 ? null : args[1].getValue(session).getString();
-            String charset = args.length < 3 ? null : args[2].getValue(session).getString();
-            String fieldSeparatorRead = args.length < 4 ? null : args[3].getValue(session).getString();
-            String fieldDelimiter = args.length < 5 ? null : args[4].getValue(session).getString();
-            String escapeCharacter = args.length < 6 ? null : args[5].getValue(session).getString();
+            String columnList = argList.length < 2 ? null : argList[1].getValue(session).getString();
+            String charset = argList.length < 3 ? null : argList[2].getValue(session).getString();
+            String fieldSeparatorRead = argList.length < 4 ? null : argList[3].getValue(session).getString();
+            String fieldDelimiter = argList.length < 5 ? null : argList[4].getValue(session).getString();
+            String escapeCharacter = argList.length < 6 ? null : argList[5].getValue(session).getString();
             Csv csv = Csv.getInstance();
             setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
             char fieldSeparator = csv.getFieldSeparatorRead();
@@ -1896,7 +1896,7 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
-        return (ValueResultSet) getValueWithArgs(session, args);
+        return (ValueResultSet) getValueWithArgs(session, argList);
     }
 
     private void setCsvDelimiterEscape(Csv csv, String fieldSeparator, String fieldDelimiter, String escapeCharacter) {

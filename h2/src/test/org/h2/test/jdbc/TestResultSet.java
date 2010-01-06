@@ -166,7 +166,7 @@ public class TestResultSet extends TestBase {
             assertFalse(meta.ownDeletesAreVisible(type));
             assertFalse(meta.ownInsertsAreVisible(type));
         }
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+        stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
@@ -182,7 +182,7 @@ public class TestResultSet extends TestBase {
     }
 
     private void testUpdatePrimaryKey() throws SQLException {
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+        stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
@@ -920,7 +920,7 @@ public class TestResultSet extends TestBase {
         trace("Test CLOB");
         ResultSet rs;
         String string;
-        Statement stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+        stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE CLOB)");
         stat.execute("INSERT INTO TEST VALUES(1,'Test')");
         stat.execute("INSERT INTO TEST VALUES(2,'Hello')");

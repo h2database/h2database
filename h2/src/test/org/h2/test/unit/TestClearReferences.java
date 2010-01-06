@@ -47,9 +47,8 @@ public class TestClearReferences extends TestBase {
     }
 
     public void test() throws Exception {
-        String baseDir = "bin/org/h2";
         ArrayList<Class < ? >> classes = New.arrayList();
-        check(classes, new File(baseDir));
+        check(classes, new File("bin/org/h2"));
         for (Class< ? > clazz : classes) {
             clearClass(clazz);
         }

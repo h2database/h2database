@@ -55,13 +55,14 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
     }
 
     public void test() throws Exception {
-        testReconnect(true);
-        testReconnect(false);
+        autoServer = true;
+        testReconnect();
+        autoServer = false;
+        testReconnect();
         deleteDb("autoReconnect");
     }
 
-    private void testReconnect(boolean autoServer) throws Exception {
-        this.autoServer = autoServer;
+    private void testReconnect() throws Exception {
         deleteDb("autoReconnect");
         if (autoServer) {
             url = "jdbc:h2:" + baseDir + "/autoReconnect;" +
@@ -197,7 +198,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         // ignore
     }
 
-    public void init(String url) {
+    public void init(String u) {
         state = "init";
     }
 

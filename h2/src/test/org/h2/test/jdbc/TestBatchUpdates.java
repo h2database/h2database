@@ -61,8 +61,8 @@ public class TestBatchUpdates extends TestBase {
 
     private void testExecuteCall() throws SQLException {
         deleteDb("batchUpdates");
-        Connection conn = getConnection("batchUpdates");
-        Statement stat = conn.createStatement();
+        conn = getConnection("batchUpdates");
+        stat = conn.createStatement();
         stat.execute("CREATE ALIAS updatePrices FOR \"" + getClass().getName() + ".updatePrices\"");
         CallableStatement call = conn.prepareCall("{call updatePrices(?, ?)}");
         call.setString(1, "Hello");
@@ -93,10 +93,10 @@ public class TestBatchUpdates extends TestBase {
 
     private void testException() throws SQLException {
         deleteDb("batchUpdates");
-        Connection conn = getConnection("batchUpdates");
-        Statement stat = conn.createStatement();
+        conn = getConnection("batchUpdates");
+        stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
-        PreparedStatement prep = conn.prepareStatement("insert into test values(?)");
+        prep = conn.prepareStatement("insert into test values(?)");
         for (int i = 0; i < 700; i++) {
             prep.setString(1, "x");
             prep.addBatch();
@@ -119,7 +119,7 @@ public class TestBatchUpdates extends TestBase {
 
     private void testCoffee() throws SQLException {
         deleteDb("batchUpdates");
-        this.conn = getConnection("batchUpdates");
+        conn = getConnection("batchUpdates");
         stat = conn.createStatement();
         DatabaseMetaData meta = conn.getMetaData();
         if (!meta.supportsBatchUpdates()) {

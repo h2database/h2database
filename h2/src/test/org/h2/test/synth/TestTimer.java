@@ -47,7 +47,7 @@ public class TestTimer extends TestBase {
         Random random = new Random();
         int max = 0;
         int count = 0;
-        long start = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         while (true) {
             int action = random.nextInt(10);
             int x = max == 0 ? 0 : random.nextInt(max);
@@ -82,9 +82,9 @@ public class TestTimer extends TestBase {
                 int c = rs.getInt(1);
                 assertEquals(count, c);
                 long time = System.currentTimeMillis();
-                if (time > start + 5000) {
+                if (time > startTime + 5000) {
                     println("rows: " + count);
-                    start = time;
+                    startTime = time;
                 }
                 break;
             default:

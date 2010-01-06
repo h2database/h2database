@@ -75,12 +75,12 @@ public class ConditionIn extends Condition {
         return ValueBoolean.get(result);
     }
 
-    public void mapColumns(ColumnResolver resolver, int queryLevel) throws SQLException {
-        left.mapColumns(resolver, queryLevel);
+    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+        left.mapColumns(resolver, level);
         for (Expression e : valueList) {
-            e.mapColumns(resolver, queryLevel);
+            e.mapColumns(resolver, level);
         }
-        this.queryLevel = Math.max(queryLevel, this.queryLevel);
+        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     public Expression optimize(Session session) throws SQLException {

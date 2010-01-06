@@ -228,14 +228,14 @@ public abstract class TestHalt extends TestBase {
             // OP_DELETE = 1, OP_UPDATE = 2, OP_SELECT = 4;
             // int flags = FLAG_NODELAY;
             // FLAG_NO_DELAY = 1, FLAG_AUTO_COMMIT = 2, FLAG_SMALL_CACHE = 4;
-            int value = random.nextInt(1000);
+            int testValue = random.nextInt(1000);
             // for Derby and HSQLDB
             // String classPath = "-cp
             // .;D:/data/java/hsqldb.jar;D:/data/java/derby.jar";
             String selfDestruct = SelfDestructor.getPropertyString(60);
             String[] procDef = new String[] { "java", selfDestruct, getPageStoreProperty(),
                     "-cp", getClassPath(),
-                    getClass().getName(), "" + operations, "" + flags, "" + value};
+                    getClass().getName(), "" + operations, "" + flags, "" + testValue};
             traceOperation("start: " + StringUtils.arrayCombine(procDef, ' '));
             Process p = Runtime.getRuntime().exec(procDef);
             InputStream in = p.getInputStream();

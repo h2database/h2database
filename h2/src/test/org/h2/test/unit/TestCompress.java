@@ -137,7 +137,7 @@ public class TestCompress extends TestBase {
         byte[] test = new byte[2 * pageSize];
         compress.compress(buff, pageSize, test, 0);
         for (int j = 0; j < 4; j++) {
-            long start = System.currentTimeMillis();
+            long time = System.currentTimeMillis();
             for (int i = 0; i < 1000; i++) {
                 InputStream in = FileSystem.getInstance("memFS:").openFileInputStream("memFS:compress.h2.db");
                 int total = 0;
@@ -150,7 +150,7 @@ public class TestCompress extends TestBase {
                 }
                 in.close();
             }
-            System.out.println("compress: " + (System.currentTimeMillis() - start) + " ms");
+            System.out.println("compress: " + (System.currentTimeMillis() - time) + " ms");
         }
 
         for (int j = 0; j < 4; j++) {
@@ -168,14 +168,14 @@ public class TestCompress extends TestBase {
             }
             in.close();
             byte[] result = new byte[pageSize];
-            long start = System.currentTimeMillis();
+            long time = System.currentTimeMillis();
             for (int i = 0; i < 1000; i++) {
                 for (int k = 0; k < comp.size(); k++) {
                     byte[] data = comp.get(k);
                     compress.expand(data, 0, data.length, result, 0, pageSize);
                 }
             }
-            System.out.println("expand: " + (System.currentTimeMillis() - start) + " ms");
+            System.out.println("expand: " + (System.currentTimeMillis() - time) + " ms");
         }
     }
 
@@ -214,11 +214,11 @@ public class TestCompress extends TestBase {
             }
             CompressTool utils = CompressTool.getInstance();
             for (String a : new String[] { "LZF", "No", "Deflate" }) {
-                long start = System.currentTimeMillis();
+                long time = System.currentTimeMillis();
                 byte[] out = utils.compress(buff, a);
                 byte[] test = utils.expand(out);
                 if (testPerformance) {
-                    System.out.println("p:" + pattern + " len: " + out.length + " time: " + (System.currentTimeMillis() - start) + " " + a);
+                    System.out.println("p:" + pattern + " len: " + out.length + " time: " + (System.currentTimeMillis() - time) + " " + a);
                 }
                 assertEquals(buff.length, test.length);
                 assertEquals(buff, test);

@@ -48,7 +48,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support mixed clustering mode (one embedded, others in server mode)
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Test very large databases and LOBs (up to 256 GB)
-</li><li>Support alter table add column if table has views defined
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
@@ -469,6 +468,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Automatic detection of redundant indexes.
 </li><li>Maybe reject join without "on" (except natural join).
 </li><li>Cluster: support load balance with values for each server / auto detect.
+</li><li>Implement GiST (Generalized Search Tree for Secondary Storage).
 </li></ul>
 
 <h2>Not Planned</h2>

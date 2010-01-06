@@ -545,7 +545,7 @@ Before triggers are called after data conversion is made, default values are set
 null and length constraint checks have been made;
 but before other constraints have been checked.
 
-Only row based AFTER trigger can be called on rollback. 
+Only row based AFTER trigger can be called on rollback.
 Exceptions that occur within such triggers are ignored.
 
 The MERGE statement will call both INSERT and UPDATE triggers.

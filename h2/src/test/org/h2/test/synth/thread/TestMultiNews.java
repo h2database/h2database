@@ -82,17 +82,17 @@ public class TestMultiNews extends TestMultiThread {
     }
 
     void first() throws SQLException {
-        Connection conn = base.getConnection();
-        Statement stat = conn.createStatement();
+        Connection c = base.getConnection();
+        Statement stat = c.createStatement();
         stat.execute("CREATE TABLE TEST (ID IDENTITY, NAME VARCHAR)");
         stat.execute("CREATE TABLE NEWS (FID NUMERIC(19) PRIMARY KEY, COMMENTS LONGVARCHAR, "
                 + "LINK VARCHAR(255), STATE INTEGER, VALUE VARCHAR(255))");
         stat.execute("CREATE INDEX IF NOT EXISTS NEWS_GUID_VALUE_INDEX ON NEWS(VALUE)");
         stat.execute("CREATE INDEX IF NOT EXISTS NEWS_LINK_INDEX ON NEWS(LINK)");
         stat.execute("CREATE INDEX IF NOT EXISTS NEWS_STATE_INDEX ON NEWS(STATE)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO NEWS (FID, COMMENTS, LINK, STATE, VALUE) VALUES "
+        PreparedStatement prep = c.prepareStatement("INSERT INTO NEWS (FID, COMMENTS, LINK, STATE, VALUE) VALUES "
                 + "(?, ?, ?, ?, ?) ");
-        PreparedStatement prep2 = conn.prepareStatement("INSERT INTO TEST (NAME) VALUES (?)");
+        PreparedStatement prep2 = c.prepareStatement("INSERT INTO TEST (NAME) VALUES (?)");
         for (int i = 0; i < len; i++) {
             int x = random.nextInt(10) * 128;
             StringBuilder buff = new StringBuilder();

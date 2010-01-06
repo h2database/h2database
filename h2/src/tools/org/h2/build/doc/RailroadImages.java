@@ -40,11 +40,11 @@ public class RailroadImages {
     /**
      * Create the images.
      *
-     * @param outDir the target directory
+     * @param out the target directory
      */
-    void run(String outDir) {
-        this.outDir = outDir;
-        new File(outDir).mkdirs();
+    void run(String out) {
+        this.outDir = out;
+        new File(out).mkdirs();
         BufferedImage img;
         Graphics2D g;
         img = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_ARGB);

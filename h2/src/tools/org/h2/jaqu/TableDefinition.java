@@ -153,22 +153,22 @@ class TableDefinition<T> {
     }
 
     private String getDataType(Field field) {
-        Class< ? > clazz = field.getType();
-        if (clazz == Integer.class) {
+        Class< ? > fieldClass = field.getType();
+        if (fieldClass == Integer.class) {
             return "INT";
-        } else if (clazz == String.class) {
+        } else if (fieldClass == String.class) {
             return "VARCHAR";
-        } else if (clazz == Double.class) {
+        } else if (fieldClass == Double.class) {
             return "DOUBLE";
-        } else if (clazz == java.math.BigDecimal.class) {
+        } else if (fieldClass == java.math.BigDecimal.class) {
             return "DECIMAL";
-        } else if (clazz == java.util.Date.class) {
+        } else if (fieldClass == java.util.Date.class) {
             return "DATE";
-        } else if (clazz == java.sql.Date.class) {
+        } else if (fieldClass == java.sql.Date.class) {
             return "DATE";
-        } else if (clazz == java.sql.Time.class) {
+        } else if (fieldClass == java.sql.Time.class) {
             return "TIME";
-        } else if (clazz == java.sql.Timestamp.class) {
+        } else if (fieldClass == java.sql.Timestamp.class) {
             return "TIMESTAMP";
         }
         return "VARCHAR";

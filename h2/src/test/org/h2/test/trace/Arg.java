@@ -68,17 +68,17 @@ class Arg {
         return obj;
     }
 
-    private String quote(Class< ? > clazz, Object value) {
+    private String quote(Class< ? > valueClass, Object value) {
         if (value == null) {
             return null;
-        } else if (clazz == String.class) {
+        } else if (valueClass == String.class) {
             return StringUtils.quoteJavaString(value.toString());
-        } else if (clazz == BigDecimal.class) {
+        } else if (valueClass == BigDecimal.class) {
             return "new BigDecimal(\"" + value.toString() + "\")";
-        } else if (clazz.isArray()) {
-            if (clazz == String[].class) {
+        } else if (valueClass.isArray()) {
+            if (valueClass == String[].class) {
                 return StringUtils.quoteJavaStringArray((String[]) value);
-            } else if (clazz == int[].class) {
+            } else if (valueClass == int[].class) {
                 return StringUtils.quoteJavaIntArray((int[]) value);
             }
         }

@@ -61,7 +61,7 @@ class SelectTable <T> {
         }
     }
 
-    void appendSQLAsJoin(SQLStatement stat, Query<T> query) {
+    void appendSQLAsJoin(SQLStatement stat, Query<T> q) {
         if (outerJoin) {
             stat.appendSQL(" LEFT OUTER JOIN ");
         } else {
@@ -71,7 +71,7 @@ class SelectTable <T> {
         if (!joinConditions.isEmpty()) {
             stat.appendSQL(" ON ");
             for (Token token : joinConditions) {
-                token.appendSQL(stat, query);
+                token.appendSQL(stat, q);
                 stat.appendSQL(" ");
             }
         }

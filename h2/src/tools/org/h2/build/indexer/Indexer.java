@@ -166,14 +166,13 @@ public class Indexer {
             }
         });
         for (int i = 0; i < pages.size(); i++) {
-            Page page = pages.get(i);
-            page.id = i;
+            pages.get(i).id = i;
         }
     }
 
     private void listPages() {
-        for (Page page : pages) {
-            output.println("pages[" + page.id + "]=new Page('" + convertUTF(page.title) + "', '" + page.fileName
+        for (Page p : pages) {
+            output.println("pages[" + p.id + "]=new Page('" + convertUTF(p.title) + "', '" + p.fileName
                     + "');");
         }
     }
@@ -226,7 +225,7 @@ public class Indexer {
             totalRelations += weights.size();
             for (int j = 0; j < weights.size(); j++) {
                 Weight weight = weights.get(j);
-                Page page = weight.page;
+                Page p = weight.page;
                 if (j > 0) {
                     buff.append(",");
                 }
@@ -242,7 +241,7 @@ public class Indexer {
                     weightString = ws;
                     buff.append(ws);
                 }
-                buff.append(page.id);
+                buff.append(p.id);
             }
         }
         output.println("ref['" + convertUTF(first) + "']='" + buff.toString() + "';");

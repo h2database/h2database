@@ -577,9 +577,9 @@ public class Recover extends Tool implements DataHandler {
                         sessionCommit.put(sessionId, pos);
                     }
                 } else {
-                    int storageId = s.readInt();
+                    int sId = s.readInt();
                     int recId = s.readInt();
-                    int blockCount = s.readInt();
+                    int bCount = s.readInt();
                     if (type != 'T') {
                         s.readDataPageNoSize();
                     }
@@ -600,9 +600,9 @@ public class Recover extends Tool implements DataHandler {
                     case 'T':
                         containsUncommitted = true;
                         if (!onlySetSessionState) {
-                            writer.println("//   truncate session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
+                            writer.println("//   truncate session: "+sessionId+" storage: " + sId + " pos: " + recId + " blockCount: "+bCount);
                             if (sessionCommit.get(sessionId) >= pos) {
-                                setStorage(storageId);
+                                setStorage(sId);
                                 writer.println("TRUNCATE TABLE " + storageName + ";");
                             }
                         }
@@ -610,10 +610,10 @@ public class Recover extends Tool implements DataHandler {
                     case 'I':
                         containsUncommitted = true;
                         if (!onlySetSessionState) {
-                            writer.println("//   insert session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
-                            if (storageId >= 0) {
+                            writer.println("//   insert session: "+sessionId+" storage: " + sId + " pos: " + recId + " blockCount: "+bCount);
+                            if (sId >= 0) {
                                 if (sessionCommit.get(sessionId) >= pos) {
-                                    setStorage(storageId);
+                                    setStorage(sId);
                                     writeLogRecord(writer, s, true);
                                 }
                             }
@@ -622,10 +622,10 @@ public class Recover extends Tool implements DataHandler {
                     case 'D':
                         containsUncommitted = true;
                         if (!onlySetSessionState) {
-                            writer.println("//   delete session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
-                            if (storageId >= 0) {
+                            writer.println("//   delete session: "+sessionId+" storage: " + sId + " pos: " + recId + " blockCount: "+bCount);
+                            if (sId >= 0) {
                                 if (sessionCommit.get(sessionId) >= pos) {
-                                    setStorage(storageId);
+                                    setStorage(sId);
                                     writeLogRecord(writer, s, false);
                                 }
                             }
@@ -634,7 +634,7 @@ public class Recover extends Tool implements DataHandler {
                     default:
                         containsUncommitted = true;
                         if (!onlySetSessionState) {
-                            writer.println("//   type?: "+type+" session: "+sessionId+" storage: " + storageId + " pos: " + recId + " blockCount: "+blockCount);
+                            writer.println("//   type?: "+type+" session: "+sessionId+" storage: " + sId + " pos: " + recId + " blockCount: "+bCount);
                         }
                         break;
                     }
@@ -685,9 +685,9 @@ public class Recover extends Tool implements DataHandler {
             writer.println("//");
             int len = in.readInt();
             for (int i = 0; i < len; i++) {
-                int storageId = in.readInt();
-                if (storageId != -1) {
-                    writer.println("//     pos: " + (i * DiskFile.BLOCKS_PER_PAGE) + " storage: " + storageId);
+                int sId = in.readInt();
+                if (sId != -1) {
+                    writer.println("//     pos: " + (i * DiskFile.BLOCKS_PER_PAGE) + " storage: " + sId);
                 }
             }
             while (true) {
@@ -705,22 +705,22 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpIndex(String fileName) {
         PrintWriter writer = null;
-        FileStore store = null;
+        FileStore fileStore = null;
         try {
             setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_INDEX_FILE.length()));
             writer = getWriter(fileName, ".txt");
-            store = FileStore.open(null, fileName, "r");
-            long length = store.length();
+            fileStore = FileStore.open(null, fileName, "r");
+            long length = fileStore.length();
             int offset = FileStore.HEADER_LENGTH;
             int blockSize = DiskFile.BLOCK_SIZE;
             int blocks = (int) (length / blockSize);
             blockCount = 1;
             int[] pageOwners = new int[blocks / DiskFile.BLOCKS_PER_PAGE];
             for (block = 0; block < blocks; block += blockCount) {
-                store.seek(offset + (long) block * blockSize);
+                fileStore.seek(offset + (long) block * blockSize);
                 byte[] buff = new byte[blockSize];
                 DataPage s = DataPage.create(this, buff);
-                store.readFully(buff, 0, blockSize);
+                fileStore.readFully(buff, 0, blockSize);
                 blockCount = s.readInt();
                 setStorage(-1);
                 recordLength = -1;
@@ -746,7 +746,7 @@ public class Recover extends Tool implements DataHandler {
                     continue;
                 }
                 if (blockCount > 1) {
-                    store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+                    fileStore.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
                 }
                 try {
                     s.check(blockCount * blockSize);
@@ -799,7 +799,7 @@ public class Recover extends Tool implements DataHandler {
             e.printStackTrace();
         } finally {
             IOUtils.closeSilently(writer);
-            closeSilently(store);
+            closeSilently(fileStore);
         }
     }
 

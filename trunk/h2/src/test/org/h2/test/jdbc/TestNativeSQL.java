@@ -209,7 +209,7 @@ public class TestNativeSQL extends TestBase {
 
     private void testPairs() {
         for (int i = 0; i < PAIRS.length; i += 2) {
-            test(conn, PAIRS[i], PAIRS[i + 1]);
+            test(PAIRS[i], PAIRS[i + 1]);
         }
     }
 
@@ -241,7 +241,7 @@ public class TestNativeSQL extends TestBase {
         assertFalse(conn.isClosed());
     }
 
-    private void test(Connection conn, String original, String expected) {
+    private void test(String original, String expected) {
         trace("original: <" + original + ">");
         trace("expected: <" + expected + ">");
         try {

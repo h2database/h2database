@@ -541,7 +541,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     /**
      * Test method to create a simple result set.
      *
-     * @param count the number of rows
+     * @param rowCount the number of rows
      * @param ip an int
      * @param bp a boolean
      * @param fp a float
@@ -551,24 +551,24 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param sp a short
      * @return a result set
      */
-    public static ResultSet simpleResultSet(Integer count, int ip, boolean bp, float fp, double dp, long lp,
+    public static ResultSet simpleResultSet(Integer rowCount, int ip, boolean bp, float fp, double dp, long lp,
             byte byParam, short sp) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
-        if (count == null) {
+        if (rowCount == null) {
             if (ip != 0 || bp || fp != 0.0 || dp != 0.0 || sp != 0 || lp != 0 || byParam != 0) {
                 throw new AssertionError("params not 0/false");
             }
         }
-        if (count != null) {
+        if (rowCount != null) {
             if (ip != 1 || !bp || fp != 1.0 || dp != 1.0 || sp != 1 || lp != 1 || byParam != 1) {
                 throw new AssertionError("params not 1/true");
             }
-            if (count.intValue() >= 1) {
+            if (rowCount.intValue() >= 1) {
                 rs.addRow(0, "Hello");
             }
-            if (count.intValue() >= 2) {
+            if (rowCount.intValue() >= 2) {
                 rs.addRow(1, "World");
             }
         }

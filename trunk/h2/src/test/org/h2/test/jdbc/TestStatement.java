@@ -66,22 +66,22 @@ public class TestStatement extends TestBase {
             // ignore
         }
         FileObject trace = FileSystem.getInstance(fileName).openFileObject(fileName, "r");
-        long start = trace.length();
+        long lengthBefore = trace.length();
         try {
             stat.execute("ERROR");
         } catch (SQLException e) {
             // ignore
         }
         long error = trace.length();
-        assertSmaller(start, error);
-        start = error;
+        assertSmaller(lengthBefore, error);
+        lengthBefore = error;
         try {
             stat.execute("INSERT INTO TEST VALUES(1)");
         } catch (SQLException e) {
             // ignore
         }
         error = trace.length();
-        assertEquals(start, error);
+        assertEquals(lengthBefore, error);
         stat.execute("DROP TABLE TEST IF EXISTS");
     }
 

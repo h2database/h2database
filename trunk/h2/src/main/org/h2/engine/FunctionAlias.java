@@ -111,10 +111,10 @@ public class FunctionAlias extends DbObjectBase {
 
     private void loadFromSource() throws SQLException {
         SourceCompiler compiler = database.getCompiler();
-        String className = Constants.USER_PACKAGE + "." + getName();
-        compiler.setSource(className, source);
+        String fullClassName = Constants.USER_PACKAGE + "." + getName();
+        compiler.setSource(fullClassName, source);
         try {
-            Method m = compiler.getMethod(className);
+            Method m = compiler.getMethod(fullClassName);
             JavaMethod method = new JavaMethod(m, 0);
             javaMethods = new JavaMethod[] {
                     method

@@ -34,7 +34,7 @@ public class ExpressionColumn extends Expression {
     private String schemaName;
     private String tableAlias;
     private String columnName;
-    private ColumnResolver resolver;
+    private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
     private boolean evaluatable;
@@ -68,7 +68,7 @@ public class ExpressionColumn extends Expression {
     }
 
     public TableFilter getTableFilter() {
-        return resolver == null ? null : resolver.getTableFilter();
+        return columnResolver == null ? null : columnResolver.getTableFilter();
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
@@ -95,11 +95,11 @@ public class ExpressionColumn extends Expression {
     }
 
     private void mapColumn(ColumnResolver resolver, Column col, int level) throws SQLException {
-        if (this.resolver == null) {
+        if (this.columnResolver == null) {
             queryLevel = level;
             column = col;
-            this.resolver = resolver;
-        } else if (queryLevel == level && this.resolver != resolver) {
+            this.columnResolver = resolver;
+        } else if (queryLevel == level && this.columnResolver != resolver) {
             if (resolver instanceof SelectListColumnResolver) {
                 // ignore - already mapped, that's ok
             } else {
@@ -109,7 +109,7 @@ public class ExpressionColumn extends Expression {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        if (resolver == null) {
+        if (columnResolver == null) {
             Schema schema = session.getDatabase().findSchema(
                     tableAlias == null ? session.getCurrentSchemaName() : tableAlias);
             if (schema != null) {
@@ -127,12 +127,12 @@ public class ExpressionColumn extends Expression {
             }
             throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, name);
         }
-        return resolver.optimize(this, column);
+        return columnResolver.optimize(this, column);
     }
 
     public void updateAggregate(Session session) throws SQLException {
-        Value now = resolver.getValue(column);
-        Select select = resolver.getSelect();
+        Value now = columnResolver.getValue(column);
+        Select select = columnResolver.getSelect();
         if (select == null) {
             throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
@@ -155,7 +155,7 @@ public class ExpressionColumn extends Expression {
         // TODO refactor: simplify check if really part of an aggregated value /
         // detection of
         // usage of non-grouped by columns without aggregate function
-        Select select = resolver.getSelect();
+        Select select = columnResolver.getSelect();
         if (select != null) {
             HashMap<Expression, Object> values = select.getCurrentGroup();
             if (values != null) {
@@ -165,7 +165,7 @@ public class ExpressionColumn extends Expression {
                 }
             }
         }
-        Value value = resolver.getValue(column);
+        Value value = columnResolver.getValue(column);
         if (value == null) {
             throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
@@ -177,7 +177,7 @@ public class ExpressionColumn extends Expression {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        if (resolver != null && tableFilter == resolver.getTableFilter()) {
+        if (columnResolver != null && tableFilter == columnResolver.getTableFilter()) {
             evaluatable = b;
         }
     }
@@ -250,7 +250,7 @@ public class ExpressionColumn extends Expression {
             visitor.addDataModificationId(column.getTable().getMaxDataModificationId());
             return true;
         case ExpressionVisitor.NOT_FROM_RESOLVER:
-            return resolver != visitor.getResolver();
+            return columnResolver != visitor.getResolver();
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(column.getTable());
             return true;

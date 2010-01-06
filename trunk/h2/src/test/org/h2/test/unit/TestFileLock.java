@@ -78,13 +78,13 @@ public class TestFileLock extends TestBase implements Runnable {
         lock2.unlock();
     }
 
-    private void test(boolean allowSockets) throws Exception {
+    private void test(boolean allowSocketsLock) throws Exception {
         int threadCount = getSize(3, 5);
         wait = getSize(20, 200);
         Thread[] threads = new Thread[threadCount];
         new File(FILE).delete();
         for (int i = 0; i < threadCount; i++) {
-            threads[i] = new Thread(new TestFileLock(this, allowSockets));
+            threads[i] = new Thread(new TestFileLock(this, allowSocketsLock));
             threads[i].start();
             Thread.sleep(wait + (int) (Math.random() * wait));
         }

@@ -60,11 +60,11 @@ public class IndexCursor implements Cursor {
     /**
      * Re-evaluate the start and end values of the index search for rows.
      *
-     * @param session the session
+     * @param s the session
      * @param indexConditions the index conditions
      */
-    public void find(Session session, ObjectArray<IndexCondition> indexConditions) throws SQLException {
-        this.session = session;
+    public void find(Session s, ObjectArray<IndexCondition> indexConditions) throws SQLException {
+        this.session = s;
         alwaysFalse = false;
         start = end = null;
         inList = null;
@@ -79,16 +79,16 @@ public class IndexCursor implements Cursor {
             if (condition.getCompareType() == Comparison.IN_LIST) {
                 if (start == null && end == null) {
                     this.inColumn = column;
-                    inList = condition.getCurrentValueList(session);
+                    inList = condition.getCurrentValueList(s);
                     inListIndex = 0;
                 }
             } else if (condition.getCompareType() == Comparison.IN_QUERY) {
                 if (start == null && end == null) {
                     this.inColumn = column;
-                    inResult = condition.getCurrentResult(session);
+                    inResult = condition.getCurrentResult(s);
                 }
             } else {
-                Value v = column.convert(condition.getCurrentValue(session));
+                Value v = column.convert(condition.getCurrentValue(s));
                 boolean isStart = condition.isStart();
                 boolean isEnd = condition.isEnd();
                 int id = column.getColumnId();
@@ -125,7 +125,7 @@ public class IndexCursor implements Cursor {
             return;
         }
         if (!alwaysFalse) {
-            cursor = index.find(session, start, end);
+            cursor = index.find(s, start, end);
         }
     }
 

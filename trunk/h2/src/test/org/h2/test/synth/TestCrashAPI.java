@@ -182,8 +182,8 @@ public class TestCrashAPI extends TestBase {
             throw e;
         }
         int len = random.getInt(50);
-        int start = random.getInt(statements.size() - len);
-        int end = start + len;
+        int first = random.getInt(statements.size() - len);
+        int end = first + len;
         Statement stat = conn.createStatement();
         stat.execute("SET LOCK_TIMEOUT 10");
         stat.execute("SET WRITE_DELAY 0");
@@ -197,7 +197,7 @@ public class TestCrashAPI extends TestBase {
             }
         }
         stat.execute("SCRIPT NOPASSWORDS NOSETTINGS");
-        for (int i = start; i < end && i < statements.size(); i++) {
+        for (int i = first; i < end && i < statements.size(); i++) {
             try {
                 stat.execute("SELECT * FROM TEST WHERE ID=1");
             } catch (Throwable t) {

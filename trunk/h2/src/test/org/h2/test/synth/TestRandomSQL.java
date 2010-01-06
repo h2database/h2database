@@ -30,7 +30,7 @@ public class TestRandomSQL extends TestBase {
     private ArrayList<RuleHead> statements;
     private int seed;
     private boolean exitOnError = true;
-    private Bnf bnf;
+    private Bnf bnfSyntax;
     private int success, total;
 
     /**
@@ -99,9 +99,9 @@ public class TestRandomSQL extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        bnf = Bnf.getInstance(null);
-        bnf.linkStatements();
-        statements = bnf.getStatements();
+        bnfSyntax = Bnf.getInstance(null);
+        bnfSyntax.linkStatements();
+        statements = bnfSyntax.getStatements();
 
         // go backwards so we can append at the end
         for (int i = statements.size() - 1; i >= 0; i--) {
@@ -131,8 +131,8 @@ public class TestRandomSQL extends TestBase {
         return this;
     }
 
-    private void testWithSeed(Bnf config) throws SQLException {
-        config.getRandom().setSeed(seed);
+    private void testWithSeed(Bnf bnf) throws SQLException {
+        bnf.getRandom().setSeed(seed);
         Connection conn = null;
         try {
             conn = connect();
@@ -142,9 +142,9 @@ public class TestRandomSQL extends TestBase {
         }
         Statement stat = conn.createStatement();
         for (int i = 0; i < statements.size(); i++) {
-            int sid = config.getRandom().nextInt(statements.size());
+            int sid = bnf.getRandom().nextInt(statements.size());
             RuleHead r = statements.get(sid);
-            String rand = r.getRule().random(config, 0).trim();
+            String rand = r.getRule().random(bnf, 0).trim();
             if (rand.length() > 0) {
                 try {
                     Thread.yield();
@@ -184,7 +184,7 @@ public class TestRandomSQL extends TestBase {
             } catch (SQLException e) {
                 processException("deleteDb", e);
             }
-            testWithSeed(bnf);
+            testWithSeed(bnfSyntax);
         } finally {
             SysProperties.setScriptDirectory(old);
         }
@@ -203,8 +203,8 @@ public class TestRandomSQL extends TestBase {
         exitOnError = false;
         showSQL = false;
         for (int a = 0; a < len; a++) {
-            int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
-            testCase(seed);
+            int s = RandomUtils.nextInt(Integer.MAX_VALUE);
+            testCase(s);
         }
     }
 

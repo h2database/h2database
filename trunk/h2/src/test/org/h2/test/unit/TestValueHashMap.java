@@ -122,7 +122,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         return null;
     }
 
-    public int getChecksum(byte[] data, int start, int end) {
+    public int getChecksum(byte[] data, int s, int e) {
         return 0;
     }
 

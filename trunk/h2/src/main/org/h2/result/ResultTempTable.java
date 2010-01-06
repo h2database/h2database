@@ -35,7 +35,7 @@ public class ResultTempTable implements ResultExternal {
     private TableData table;
     private SortOrder sort;
     private Index index;
-    private Cursor cursor;
+    private Cursor resultCursor;
 
     public ResultTempTable(Session session, SortOrder sort) throws SQLException {
         this.session = session;
@@ -137,16 +137,16 @@ public class ResultTempTable implements ResultExternal {
     }
 
     public Value[] next() throws SQLException {
-        if (!cursor.next()) {
+        if (!resultCursor.next()) {
             return null;
         }
-        Row row = cursor.get();
+        Row row = resultCursor.get();
         ValueArray data = (ValueArray) row.getValue(0);
         return data.getList();
     }
 
     public void reset() throws SQLException {
-        cursor = index.find(session, null, null);
+        resultCursor = index.find(session, null, null);
     }
 
     private Row convertToRow(Value[] values) {

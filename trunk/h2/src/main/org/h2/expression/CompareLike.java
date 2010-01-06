@@ -31,17 +31,20 @@ public class CompareLike extends Condition {
     private static final int MATCH = 0, ONE = 1, ANY = 2;
 
     private final CompareMode compareMode;
-    private final boolean regexp;
     private Expression left;
     private Expression right;
     private Expression escape;
 
     private boolean isInit;
-    private char[] pattern;
+
+    private char[] patternChars;
     private String patternString;
-    private Pattern patternRegexp;
-    private int[] types;
+    private int[] patternTypes;
     private int patternLength;
+
+    private final boolean regexp;
+    private Pattern patternRegexp;
+
     private boolean ignoreCase;
     private boolean fastCompare;
     private boolean invalidPattern;
@@ -166,7 +169,7 @@ public class CompareLike extends Condition {
         if (invalidPattern) {
             return;
         }
-        if (patternLength <= 0 || types[0] != MATCH) {
+        if (patternLength <= 0 || patternTypes[0] != MATCH) {
             // can't use an index
             return;
         }
@@ -177,8 +180,8 @@ public class CompareLike extends Condition {
         }
         int maxMatch = 0;
         StringBuilder buff = new StringBuilder();
-        while (maxMatch < patternLength && types[maxMatch] == MATCH) {
-            buff.append(pattern[maxMatch++]);
+        while (maxMatch < patternLength && patternTypes[maxMatch] == MATCH) {
+            buff.append(patternChars[maxMatch++]);
         }
         String begin = buff.toString();
         if (maxMatch == patternLength) {
@@ -232,7 +235,7 @@ public class CompareLike extends Condition {
             // result = patternRegexp.matcher(value).matches();
             result = patternRegexp.matcher(value).find();
         } else {
-            result = compareAt(value, 0, 0, value.length(), pattern, types);
+            result = compareAt(value, 0, 0, value.length(), patternChars, patternTypes);
         }
         return ValueBoolean.get(result);
     }
@@ -285,10 +288,10 @@ public class CompareLike extends Condition {
         if (invalidPattern) {
             return false;
         }
-        return compareAt(value, 0, 0, value.length(), pattern, types);
+        return compareAt(value, 0, 0, value.length(), patternChars, patternTypes);
     }
 
-    private void initPattern(String p, Character escape) throws SQLException {
+    private void initPattern(String p, Character escapeChar) throws SQLException {
         if (compareMode.getName().equals(CompareMode.OFF) && !ignoreCase) {
             fastCompare = true;
         }
@@ -307,18 +310,18 @@ public class CompareLike extends Condition {
         }
         patternLength = 0;
         if (p == null) {
-            types = null;
-            pattern = null;
+            patternTypes = null;
+            patternChars = null;
             return;
         }
         int len = p.length();
-        pattern = new char[len];
-        types = new int[len];
+        patternChars = new char[len];
+        patternTypes = new int[len];
         boolean lastAny = false;
         for (int i = 0; i < len; i++) {
             char c = p.charAt(i);
             int type;
-            if (escape != null && escape == c) {
+            if (escapeChar != null && escapeChar == c) {
                 if (i >= len - 1) {
                     invalidPattern = true;
                     return;
@@ -338,23 +341,23 @@ public class CompareLike extends Condition {
                 type = MATCH;
                 lastAny = false;
             }
-            types[patternLength] = type;
-            pattern[patternLength++] = c;
+            patternTypes[patternLength] = type;
+            patternChars[patternLength++] = c;
         }
         for (int i = 0; i < patternLength - 1; i++) {
-            if ((types[i] == ANY) && (types[i + 1] == ONE)) {
-                types[i] = ONE;
-                types[i + 1] = ANY;
+            if ((patternTypes[i] == ANY) && (patternTypes[i + 1] == ONE)) {
+                patternTypes[i] = ONE;
+                patternTypes[i + 1] = ANY;
             }
         }
-        patternString = new String(pattern, 0, patternLength);
+        patternString = new String(patternChars, 0, patternLength);
     }
 
     private boolean isFullMatch() {
-        if (types == null) {
+        if (patternTypes == null) {
             return false;
         }
-        for (int type : types) {
+        for (int type : patternTypes) {
             if (type != MATCH) {
                 return false;
             }

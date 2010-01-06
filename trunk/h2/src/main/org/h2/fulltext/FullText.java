@@ -871,16 +871,16 @@ public class FullText {
                 if (newRow != null) {
                     // update
                     if (hasChanged(oldRow, newRow, index.indexColumns)) {
-                        delete(setting, oldRow);
-                        insert(setting, newRow);
+                        delete(oldRow);
+                        insert(newRow);
                     }
                 } else {
                     // delete
-                    delete(setting, oldRow);
+                    delete(oldRow);
                 }
             } else if (newRow != null) {
                 // insert
-                insert(setting, newRow);
+                insert(newRow);
             }
         }
 
@@ -901,10 +901,9 @@ public class FullText {
         /**
          * Add a row to the index.
          *
-         * @param setting the setting
          * @param row the row
          */
-        protected void insert(FullTextSettings setting, Object[] row) throws SQLException {
+        protected void insert(Object[] row) throws SQLException {
             String key = getKey(row);
             int hash = key.hashCode();
             prepInsertRow.setInt(1, hash);
@@ -915,7 +914,7 @@ public class FullText {
             rs.next();
             int rowId = rs.getInt(1);
             prepInsertMap.setInt(1, rowId);
-            int[] wordIds = getWordIds(setting, row);
+            int[] wordIds = getWordIds(row);
             for (int id : wordIds) {
                 prepInsertMap.setInt(2, id);
                 prepInsertMap.execute();
@@ -925,10 +924,9 @@ public class FullText {
         /**
          * Delete a row from the index.
          *
-         * @param setting the setting
          * @param row the row
          */
-        protected void delete(FullTextSettings setting, Object[] row) throws SQLException {
+        protected void delete(Object[] row) throws SQLException {
             String key = getKey(row);
             int hash = key.hashCode();
             prepSelectRow.setInt(1, hash);
@@ -938,7 +936,7 @@ public class FullText {
             if (rs.next()) {
                 int rowId = rs.getInt(1);
                 prepDeleteMap.setInt(1, rowId);
-                int[] wordIds = getWordIds(setting, row);
+                int[] wordIds = getWordIds(row);
                 for (int id : wordIds) {
                     prepDeleteMap.setInt(2, id);
                     prepDeleteMap.executeUpdate();
@@ -950,7 +948,7 @@ public class FullText {
             }
         }
 
-        private int[] getWordIds(FullTextSettings setting, Object[] row) throws SQLException {
+        private int[] getWordIds(Object[] row) throws SQLException {
             HashSet<String> words = New.hashSet();
             for (int i = 0; i < index.indexColumns.length; i++) {
                 int idx = index.indexColumns[i];

@@ -214,7 +214,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public int getChecksum(byte[] data, int start, int end) {
+    public int getChecksum(byte[] data, int s, int e) {
         return 0;
     }
 

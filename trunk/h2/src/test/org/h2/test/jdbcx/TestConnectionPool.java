@@ -60,17 +60,17 @@ public class TestConnectionPool extends TestBase {
         JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
         Connection conn = man.getConnection();
         int len = 1000;
-        long start = System.currentTimeMillis();
+        long time = System.currentTimeMillis();
         for (int i = 0; i < len; i++) {
             man.getConnection().close();
         }
-        trace((int) (System.currentTimeMillis() - start));
+        trace((int) (System.currentTimeMillis() - time));
         man.dispose();
-        start = System.currentTimeMillis();
+        time = System.currentTimeMillis();
         for (int i = 0; i < len; i++) {
             DriverManager.getConnection(url, user, password).close();
         }
-        trace((int) (System.currentTimeMillis() - start));
+        trace((int) (System.currentTimeMillis() - time));
         conn.close();
     }
 

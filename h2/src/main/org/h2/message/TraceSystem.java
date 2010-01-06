@@ -84,7 +84,7 @@ public class TraceSystem implements TraceWriter {
 
     private int levelSystemOut = DEFAULT_TRACE_LEVEL_SYSTEM_OUT;
     private int levelFile = DEFAULT_TRACE_LEVEL_FILE;
-    private int level;
+    private int levelMax;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     private String fileName;
     private SmallLRUCache<String, Trace> traces;
@@ -109,7 +109,7 @@ public class TraceSystem implements TraceWriter {
     }
 
     private void updateLevel() {
-        level = Math.max(levelSystemOut, levelFile);
+        levelMax = Math.max(levelSystemOut, levelFile);
     }
 
     /**
@@ -140,7 +140,7 @@ public class TraceSystem implements TraceWriter {
     }
 
     public boolean isEnabled(int level) {
-        return level <= this.level;
+        return level <= this.levelMax;
     }
 
     /**
@@ -217,7 +217,7 @@ public class TraceSystem implements TraceWriter {
     }
 
     public void write(int level, String module, String s, Throwable t) {
-        if (level <= levelSystemOut || level > this.level) {
+        if (level <= levelSystemOut || level > this.levelMax) {
             // level <= levelSystemOut: the system out level is set higher
             // level > this.level: the level for this module is set higher
             System.out.println(format(module, s));

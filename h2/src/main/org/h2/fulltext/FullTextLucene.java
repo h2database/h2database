@@ -474,9 +474,9 @@ public class FullTextLucene extends FullText {
             prep.setString(2, tableName);
             rs = prep.executeQuery();
             if (rs.next()) {
-                String columns = rs.getString(1);
-                if (columns != null) {
-                    for (String s : StringUtils.arraySplit(columns, ',', true)) {
+                String cols = rs.getString(1);
+                if (cols != null) {
+                    for (String s : StringUtils.arraySplit(cols, ',', true)) {
                         indexList.add(s);
                     }
                 }

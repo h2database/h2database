@@ -160,7 +160,6 @@ public class PageDataIndex extends PageIndex implements RowIndex {
             long pivot = splitPoint == 0 ? row.getKey() : root.getKey(splitPoint - 1);
             PageData page1 = root;
             PageData page2 = root.split(splitPoint);
-            int rootPageId = root.getPos();
             int id = store.allocatePage();
             page1.setPageId(id);
             page1.setParentPageId(rootPageId);

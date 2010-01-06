@@ -24,8 +24,8 @@ public class PageDelegateIndex extends PageIndex {
     private final PageDataIndex mainIndex;
 
     public PageDelegateIndex(TableData table, int id, String name, IndexType indexType, PageDataIndex mainIndex, int headPos, Session session) throws SQLException {
-        IndexColumn[] columns = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
-        this.initBaseIndex(table, id, name, columns, indexType);
+        IndexColumn[] cols = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
+        this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
         if (!database.isPersistent() || id < 0) {
             throw Message.throwInternalError("" + name);

@@ -74,8 +74,8 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     private transient JdbcDataSourceFactory factory;
     private transient PrintWriter logWriter;
     private int loginTimeout;
-    private String user = "";
-    private char[] password = new char[0];
+    private String userName = "";
+    private char[] passwordChars = new char[0];
     private String url = "";
 
     static {
@@ -150,7 +150,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
-        return getJdbcConnection(user, StringUtils.cloneCharArray(password));
+        return getJdbcConnection(userName, StringUtils.cloneCharArray(passwordChars));
     }
 
     /**
@@ -205,7 +205,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
     public void setPassword(String password) {
         debugCodeCall("setPassword", "");
-        this.password = convertToCharArray(password);
+        this.passwordChars = convertToCharArray(password);
     }
 
     /**
@@ -217,7 +217,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         if (isDebugEnabled()) {
             debugCode("setPasswordChars(new char[0]);");
         }
-        this.password = password;
+        this.passwordChars = password;
     }
 
     private char[] convertToCharArray(String s) {
@@ -235,7 +235,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
     public String getPassword() {
         debugCodeCall("getPassword");
-        return convertToString(password);
+        return convertToString(passwordChars);
     }
 
     /**
@@ -245,7 +245,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
     public String getUser() {
         debugCodeCall("getUser");
-        return user;
+        return userName;
     }
 
     /**
@@ -255,7 +255,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
     public void setUser(String user) {
         debugCodeCall("setUser", user);
-        this.user = user;
+        this.userName = user;
     }
 
     /**
@@ -269,8 +269,8 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         String factoryClassName = JdbcDataSourceFactory.class.getName();
         Reference ref = new Reference(getClass().getName(), factoryClassName, null);
         ref.add(new StringRefAddr("url", url));
-        ref.add(new StringRefAddr("user", user));
-        ref.add(new StringRefAddr("password", convertToString(password)));
+        ref.add(new StringRefAddr("user", userName));
+        ref.add(new StringRefAddr("password", convertToString(passwordChars)));
         ref.add(new StringRefAddr("loginTimeout", String.valueOf(loginTimeout)));
         return ref;
     }
@@ -285,7 +285,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     public XAConnection getXAConnection() throws SQLException {
         debugCodeCall("getXAConnection");
         int id = getNextId(XA_DATA_SOURCE);
-        return new JdbcXAConnection(factory, id, url, user, password);
+        return new JdbcXAConnection(factory, id, url, userName, passwordChars);
     }
 //## Java 1.4 end ##
 
@@ -362,7 +362,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      * INTERNAL
      */
     public String toString() {
-        return getTraceObjectName() + ": url=" + url + " user=" + user;
+        return getTraceObjectName() + ": url=" + url + " user=" + userName;
     }
 
 }

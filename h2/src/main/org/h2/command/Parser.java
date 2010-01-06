@@ -4283,8 +4283,8 @@ public class Parser {
         throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
     }
 
-    private Sequence findSequence(String schemaName, String sequenceName) throws SQLException {
-        Sequence sequence = database.getSchema(schemaName).findSequence(sequenceName);
+    private Sequence findSequence(String schema, String sequenceName) throws SQLException {
+        Sequence sequence = database.getSchema(schema).findSequence(sequenceName);
         if (sequence != null) {
             return sequence;
         }

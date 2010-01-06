@@ -322,15 +322,15 @@ public class ConstraintReferential extends Constraint {
             int refIdx = refCol.getColumnId();
             check.setValue(refIdx, refCol.convert(v));
         }
-        if (!found(session, refIndex, check, null)) {
+        if (!existsRow(session, refIndex, check, null)) {
             throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
                     getShortDescription());
         }
     }
 
-    private boolean found(Session session, Index searchIndex, SearchRow check, Row excluding) throws SQLException {
-        Table table = searchIndex.getTable();
-        table.lock(session, false, false);
+    private boolean existsRow(Session session, Index searchIndex, SearchRow check, Row excluding) throws SQLException {
+        Table searchTable = searchIndex.getTable();
+        searchTable.lock(session, false, false);
         Cursor cursor = searchIndex.find(session, check, check);
         while (cursor.next()) {
             SearchRow found;
@@ -344,7 +344,7 @@ public class ConstraintReferential extends Constraint {
                 int idx = cols[i].getColumnId();
                 Value c = check.getValue(idx);
                 Value f = found.getValue(idx);
-                if (table.compareTypeSave(c, f) != 0) {
+                if (searchTable.compareTypeSave(c, f) != 0) {
                     allEqual = false;
                     break;
                 }
@@ -371,7 +371,7 @@ public class ConstraintReferential extends Constraint {
         }
         // exclude the row only for self-referencing constraints
         Row excluding = (refTable == table) ? oldRow : null;
-        if (found(session, index, check, excluding)) {
+        if (existsRow(session, index, check, excluding)) {
             throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1,
                     getShortDescription());
         }

@@ -114,7 +114,7 @@ public class TraceObject {
     };
 
     private Trace trace;
-    private int type;
+    private int traceType;
     private int id;
 
     /**
@@ -126,7 +126,7 @@ public class TraceObject {
      */
     protected void setTrace(Trace trace, int type, int id) {
         this.trace = trace;
-        this.type = type;
+        this.traceType = type;
         this.id = id;
     }
 
@@ -159,7 +159,7 @@ public class TraceObject {
      * INTERNAL
      */
     public String getTraceObjectName() {
-        return PREFIX[type] + id;
+        return PREFIX[traceType] + id;
     }
 
     /**
@@ -195,13 +195,13 @@ public class TraceObject {
      * className prefixId = objectName.value.
      *
      * @param className the class name of the result
-     * @param type the prefix type
-     * @param id the trace object id of the created object
+     * @param newType the prefix type
+     * @param newId the trace object id of the created object
      * @param value the value to assign this new object to
      */
-    protected void debugCodeAssign(String className, int type, int id, String value) {
+    protected void debugCodeAssign(String className, int newType, int newId, String value) {
         if (trace.isDebugEnabled()) {
-            trace.debugCode(className + " " + PREFIX[type] + id + " = " + getTraceObjectName() + "." + value + ";");
+            trace.debugCode(className + " " + PREFIX[newType] + newId + " = " + getTraceObjectName() + "." + value + ";");
         }
     }
 

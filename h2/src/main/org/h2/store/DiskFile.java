@@ -1164,14 +1164,14 @@ public class DiskFile implements CacheWriter {
                 System.arraycopy(all.getBytes(), 0, data, 0, all.length());
             }
             for (int i = 0; i < blockCount; i++) {
-                RedoLogRecord log = new RedoLogRecord();
-                log.recordId = recordId + i;
-                log.offset = i * BLOCK_SIZE;
-                log.storage = storage;
-                log.data = data;
-                log.sequenceId = redoBuffer.size();
-                redoBuffer.add(log);
-                redoBufferSize += log.getSize();
+                RedoLogRecord redo = new RedoLogRecord();
+                redo.recordId = recordId + i;
+                redo.offset = i * BLOCK_SIZE;
+                redo.storage = storage;
+                redo.data = data;
+                redo.sequenceId = redoBuffer.size();
+                redoBuffer.add(redo);
+                redoBufferSize += redo.getSize();
             }
             if (redoBufferSize > SysProperties.REDO_BUFFER_SIZE) {
                 flushRedoLog();

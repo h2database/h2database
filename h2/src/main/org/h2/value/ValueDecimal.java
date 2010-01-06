@@ -140,11 +140,11 @@ public class ValueDecimal extends Value {
         return precision;
     }
 
-    public boolean checkPrecision(long precision) {
-        if (precision == DEFAULT_PRECISION) {
+    public boolean checkPrecision(long prec) {
+        if (prec == DEFAULT_PRECISION) {
             return true;
         }
-        return getPrecision() <= precision;
+        return getPrecision() <= prec;
     }
 
     public int getScale() {
@@ -176,11 +176,11 @@ public class ValueDecimal extends Value {
         return ValueDecimal.get(bd);
     }
 
-    public Value convertPrecision(long precision) throws SQLException {
-        if (getPrecision() <= precision) {
+    public Value convertPrecision(long newPrecision) throws SQLException {
+        if (getPrecision() <= newPrecision) {
             return this;
         }
-        throw Message.getSQLException(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + precision);
+        throw Message.getSQLException(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + newPrecision);
     }
 
     /**

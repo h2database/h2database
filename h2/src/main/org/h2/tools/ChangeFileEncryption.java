@@ -25,8 +25,8 @@ import org.h2.util.Tool;
  */
 public class ChangeFileEncryption extends Tool {
 
-    private String dir;
-    private String cipher;
+    private String directory;
+    private String cipherType;
     private byte[] decrypt;
     private byte[] encrypt;
 
@@ -133,8 +133,8 @@ public class ChangeFileEncryption extends Tool {
             }
         }
         change.out = out;
-        change.dir = dir;
-        change.cipher = cipher;
+        change.directory = dir;
+        change.cipherType = cipher;
         change.decrypt = getFileEncryptionKey(decryptPassword);
         change.encrypt = getFileEncryptionKey(encryptPassword);
 
@@ -168,7 +168,7 @@ public class ChangeFileEncryption extends Tool {
         if (decrypt == null) {
             in = FileStore.open(null, fileName, "r");
         } else {
-            in = FileStore.open(null, fileName, "r", cipher, decrypt);
+            in = FileStore.open(null, fileName, "r", cipherType, decrypt);
         }
         in.init();
         copy(fileName, in, encrypt);
@@ -178,13 +178,13 @@ public class ChangeFileEncryption extends Tool {
         if (FileUtils.isDirectory(fileName)) {
             return;
         }
-        String temp = dir + "/temp.db";
+        String temp = directory + "/temp.db";
         FileUtils.delete(temp);
         FileStore fileOut;
         if (key == null) {
             fileOut = FileStore.open(null, temp, "rw");
         } else {
-            fileOut = FileStore.open(null, temp, "rw", cipher, key);
+            fileOut = FileStore.open(null, temp, "rw", cipherType, key);
         }
         fileOut.init();
         byte[] buffer = new byte[4 * 1024];

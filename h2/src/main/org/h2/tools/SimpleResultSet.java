@@ -1101,7 +1101,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public boolean relative(int rows) throws SQLException {
+    public boolean relative(int offset) throws SQLException {
         throw getUnsupportedException();
     }
 

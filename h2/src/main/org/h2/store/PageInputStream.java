@@ -21,7 +21,7 @@ public class PageInputStream extends InputStream {
     private PageStore store;
     private final Trace trace;
     private int firstTrunkPage;
-    private PageStreamTrunk.Iterator it;
+    private PageStreamTrunk.Iterator trunkIterator;
     private int dataPage;
     private PageStreamTrunk trunk;
     private PageStreamData data;
@@ -36,7 +36,7 @@ public class PageInputStream extends InputStream {
         // minus one because we increment before comparing
         this.logKey = logKey - 1;
         this.firstTrunkPage = firstTrunkPage;
-        it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
+        trunkIterator = new PageStreamTrunk.Iterator(store, firstTrunkPage);
         this.dataPage = dataPage;
     }
 
@@ -88,7 +88,7 @@ public class PageInputStream extends InputStream {
         int next;
         while (true) {
             if (trunk == null) {
-                trunk = it.next();
+                trunk = trunkIterator.next();
                 logKey++;
                 if (trunk == null || trunk.getLogKey() != logKey) {
                     endOfFile = true;

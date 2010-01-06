@@ -111,30 +111,30 @@ public class TableFilter implements ColumnResolver {
     /**
      * Lock the table. This will also lock joined tables.
      *
-     * @param session the session
+     * @param s the session
      * @param exclusive true if an exclusive lock is required
      * @param force lock even in the MVCC mode
      */
-    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
-        table.lock(session, exclusive, force);
+    public void lock(Session s, boolean exclusive, boolean force) throws SQLException {
+        table.lock(s, exclusive, force);
         if (join != null) {
-            join.lock(session, exclusive, force);
+            join.lock(s, exclusive, force);
         }
     }
 
     /**
      * Get the best plan item (index, cost) to use use for the current join order.
      *
-     * @param session the session
+     * @param s the session
      * @param level 1 for the first table in a join, 2 for the second, and so on
      * @return the best plan item
      */
-    public PlanItem getBestPlanItem(Session session, int level) throws SQLException {
+    public PlanItem getBestPlanItem(Session s, int level) throws SQLException {
         PlanItem item;
         if (indexConditions.size() == 0) {
             item = new PlanItem();
-            item.setIndex(table.getScanIndex(session));
-            item.cost = item.getIndex().getCost(session, null);
+            item.setIndex(table.getScanIndex(s));
+            item.cost = item.getIndex().getCost(s, null);
         } else {
             int len = table.getColumns().length;
             int[] masks = new int[len];
@@ -148,7 +148,7 @@ public class TableFilter implements ColumnResolver {
                     masks[id] |= condition.getMask(indexConditions.size());
                 }
             }
-            item = table.getBestPlanItem(session, masks);
+            item = table.getBestPlanItem(s, masks);
             // the more index conditions, the earlier the table
             // to ensure joins without indexes are evaluated:
             // x (x.a=10); y (x.b=y.b) - see issue 113
@@ -156,7 +156,7 @@ public class TableFilter implements ColumnResolver {
         }
         if (join != null) {
             setEvaluatable(join);
-            item.setJoinPlan(join.getBestPlanItem(session, level));
+            item.setJoinPlan(join.getBestPlanItem(s, level));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getJoinPlan().cost;
@@ -222,13 +222,13 @@ public class TableFilter implements ColumnResolver {
     /**
      * Start the query. This will reset the scan counts.
      *
-     * @param session the session
+     * @param s the session
      */
-    public void startQuery(Session session) {
-        this.session = session;
+    public void startQuery(Session s) {
+        this.session = s;
         scanCount = 0;
         if (join != null) {
-            join.startQuery(session);
+            join.startQuery(s);
         }
     }
 
@@ -382,10 +382,10 @@ public class TableFilter implements ColumnResolver {
      * Add a filter condition.
      *
      * @param condition the condition
-     * @param join if this is in fact a join condition
+     * @param isJoin if this is in fact a join condition
      */
-    public void addFilterCondition(Expression condition, boolean join) {
-        if (join) {
+    public void addFilterCondition(Expression condition, boolean isJoin) {
+        if (isJoin) {
             if (joinCondition == null) {
                 joinCondition = condition;
             } else {
@@ -460,12 +460,12 @@ public class TableFilter implements ColumnResolver {
     /**
      * Get the query execution plan text to use for this table filter.
      *
-     * @param join if this is a joined table
+     * @param isJoin if this is a joined table
      * @return the SQL statement snippet
      */
-    public String getPlanSQL(boolean join) {
+    public String getPlanSQL(boolean isJoin) {
         StringBuilder buff = new StringBuilder();
-        if (join) {
+        if (isJoin) {
             if (outerJoin) {
                 buff.append("LEFT OUTER JOIN ");
             } else {
@@ -490,7 +490,7 @@ public class TableFilter implements ColumnResolver {
             String plan = StringUtils.quoteRemarkSQL(planBuff.toString());
             buff.append(plan).append(" */");
         }
-        if (join) {
+        if (isJoin) {
             buff.append(" ON ");
             if (joinCondition == null) {
                 // need to have a ON expression, otherwise the nesting is unclear

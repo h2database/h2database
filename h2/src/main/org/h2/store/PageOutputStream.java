@@ -33,7 +33,7 @@ public class PageOutputStream extends OutputStream {
     private byte[] buffer = new byte[1];
     private boolean needFlush;
     private boolean writing;
-    private int pages;
+    private int pageCount;
     private boolean atEnd;
     private int logKey;
 
@@ -106,13 +106,13 @@ public class PageOutputStream extends OutputStream {
             trunkNext = reservedPages.get(len);
             logKey++;
             trunk = PageStreamTrunk.create(store, parent, trunkPageId, trunkNext, logKey, pageIds);
-            pages++;
+            pageCount++;
             trunk.write(null);
             reservedPages.removeRange(0, len + 1);
             nextData = trunk.getNextPageData();
         }
         data = PageStreamData.create(store, nextData, trunk.getPos(), logKey);
-        pages++;
+        pageCount++;
         data.initWrite();
     }
 
@@ -186,7 +186,7 @@ public class PageOutputStream extends OutputStream {
     }
 
     long getSize() {
-        return pages * store.getPageSize();
+        return pageCount * store.getPageSize();
     }
 
     /**
@@ -195,7 +195,7 @@ public class PageOutputStream extends OutputStream {
      * @param t the trunk page
      */
     void free(PageStreamTrunk t) throws SQLException {
-        pages -= t.free();
+        pageCount -= t.free();
     }
 
     int getCurrentLogKey() {

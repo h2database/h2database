@@ -397,9 +397,7 @@ public class DataPage {
      * @param v the value
      */
     public void writeValue(Value v) throws SQLException {
-        if (SysProperties.CHECK) {
-            checkCapacity(8);
-        }
+        checkCapacity(8);
         // TODO text output: could be in the Value... classes
         if (v == ValueNull.INSTANCE) {
             data[pos++] = '-';

@@ -178,8 +178,8 @@ public class FileObjectMemory implements FileObject {
         }
     }
 
-    public void seek(long pos) {
-        this.pos = (int) pos;
+    public void seek(long newPos) {
+        this.pos = (int) newPos;
     }
 
     private void changeLength(long len) {

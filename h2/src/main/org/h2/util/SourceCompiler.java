@@ -66,20 +66,20 @@ public class SourceCompiler {
     /**
      * Get the class object for the given name.
      *
-     * @param name the class name
+     * @param packageAndClassName the class name
      * @return the class
      */
-    private Class< ? > getClass(String name) throws ClassNotFoundException {
+    private Class< ? > getClass(String packageAndClassName) throws ClassNotFoundException {
 
-        Class< ? > clazz = compiled.get(name);
-        if (clazz != null) {
-            return clazz;
+        Class< ? > compiledClass = compiled.get(packageAndClassName);
+        if (compiledClass != null) {
+            return compiledClass;
         }
 
         ClassLoader classLoader = new ClassLoader(getClass().getClassLoader()) {
             public Class< ? > findClass(String name) throws ClassNotFoundException {
-                Class< ? > clazz = compiled.get(name);
-                if (clazz == null) {
+                Class< ? > classInstance = compiled.get(name);
+                if (classInstance == null) {
                     String source = sources.get(name);
                     String packageName = null;
                     int idx = name.lastIndexOf('.');
@@ -92,16 +92,16 @@ public class SourceCompiler {
                     }
                     byte[] data = javacCompile(packageName, className, source);
                     if (data == null) {
-                        clazz = findSystemClass(name);
+                        classInstance = findSystemClass(name);
                     } else {
-                        clazz = defineClass(name, data, 0, data.length);
-                        compiled.put(name, clazz);
+                        classInstance = defineClass(name, data, 0, data.length);
+                        compiled.put(name, classInstance);
                     }
                 }
-                return clazz;
+                return classInstance;
             }
         };
-        return classLoader.loadClass(name);
+        return classLoader.loadClass(packageAndClassName);
     }
 
     /**

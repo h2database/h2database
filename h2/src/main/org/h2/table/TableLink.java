@@ -23,7 +23,6 @@ import org.h2.index.LinkedIndex;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
-import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.schema.Schema;
@@ -48,7 +47,7 @@ public class TableLink extends Table {
 
     private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
-    private HashMap<String, PreparedStatement> prepared = New.hashMap();
+    private HashMap<String, PreparedStatement> preparedMap = New.hashMap();
     private final ObjectArray<Index> indexes = ObjectArray.newInstance();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
@@ -332,7 +331,7 @@ public class TableLink extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            int headPos, String comment) throws SQLException {
+            int headPos, String indexComment) throws SQLException {
         throw Message.getUnsupportedException("LINK");
     }
 
@@ -413,20 +412,19 @@ public class TableLink extends Table {
      * @return the prepared statement
      */
     public PreparedStatement getPreparedStatement(String sql, boolean exclusive) throws SQLException {
-        Trace trace = database.getTrace(Trace.TABLE);
         if (trace.isDebugEnabled()) {
             trace.debug(getName() + ":\n" + sql);
         }
         if (conn == null) {
             throw connectException;
         }
-        PreparedStatement prep = prepared.get(sql);
+        PreparedStatement prep = preparedMap.get(sql);
         if (prep == null) {
             prep = conn.getConnection().prepareStatement(sql);
-            prepared.put(sql, prep);
+            preparedMap.put(sql, prep);
         }
         if (exclusive) {
-            prepared.remove(sql);
+            preparedMap.remove(sql);
         }
         return prep;
     }
@@ -465,7 +463,7 @@ public class TableLink extends Table {
         database.removeMeta(session, getId());
         driver = null;
         url = user = password = originalTable = null;
-        prepared = null;
+        preparedMap = null;
         invalidate();
     }
 
@@ -536,7 +534,7 @@ public class TableLink extends Table {
      * @param sql the SQL statement
      */
     public void reusePreparedStatement(PreparedStatement prep, String sql) {
-        prepared.put(sql, prep);
+        preparedMap.put(sql, prep);
     }
 
     public boolean isDeterministic() {

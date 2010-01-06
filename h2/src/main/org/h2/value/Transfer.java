@@ -12,7 +12,6 @@ import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -25,7 +24,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
@@ -364,8 +362,7 @@ public class Transfer {
                 throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
             }
             writeLong(length);
-            InputStream in = v.getInputStream();
-            long written = IOUtils.copyAndCloseInput(in, out);
+            long written = IOUtils.copyAndCloseInput(v.getInputStream(), out);
             if (written != length) {
                 throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length:" + length + " written:" + written);
             }
@@ -564,9 +561,9 @@ public class Transfer {
     public Transfer openNewConnection() throws IOException {
         InetAddress address = socket.getInetAddress();
         int port = socket.getPort();
-        Socket socket = NetUtils.createSocket(address, port, ssl);
+        Socket s2 = NetUtils.createSocket(address, port, ssl);
         Transfer trans = new Transfer(null);
-        trans.setSocket(socket);
+        trans.setSocket(s2);
         trans.setSSL(ssl);
         return trans;
     }

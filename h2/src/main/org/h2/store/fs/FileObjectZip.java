@@ -87,8 +87,8 @@ public class FileObjectZip implements FileObject {
         inPos += len;
     }
 
-    public void seek(long pos) {
-        this.pos = pos;
+    public void seek(long newPos) {
+        this.pos = newPos;
     }
 
     public void setFileLength(long newLength) throws IOException {

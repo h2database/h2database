@@ -201,18 +201,18 @@ public class Recover extends Tool implements DataHandler {
             return;
         }
         setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
-        FileStore store = FileStore.open(null, fileName, "rw");
-        long length = store.length();
+        FileStore fileStore = FileStore.open(null, fileName, "rw");
+        long length = fileStore.length();
         int offset = FileStore.HEADER_LENGTH;
         int blockSize = DiskFile.BLOCK_SIZE;
         int blocks = (int) (length / blockSize);
         blockCount = 1;
-        for (int block = 0; block < blocks; block += blockCount) {
-            store.seek(offset + (long) block * blockSize);
+        for (int b = 0; b < blocks; b += blockCount) {
+            fileStore.seek(offset + (long) b * blockSize);
             byte[] bytes = new byte[blockSize];
             DataPage s = DataPage.create(this, bytes);
-            long start = store.getFilePointer();
-            store.readFully(bytes, 0, blockSize);
+            long start = fileStore.getFilePointer();
+            fileStore.readFully(bytes, 0, blockSize);
             blockCount = s.readInt();
             setStorage(-1);
             recordLength = -1;
@@ -232,7 +232,7 @@ public class Recover extends Tool implements DataHandler {
                 continue;
             }
             if (blockCount > 1) {
-                store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+                fileStore.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
             }
             try {
                 s.check(blockCount * blockSize);
@@ -297,8 +297,8 @@ public class Recover extends Tool implements DataHandler {
                     System.arraycopy(replacement, 0, s.getBytes(), at, replacement.length);
                     s.fill(blockCount * blockSize);
                     s.updateChecksum();
-                    store.seek(start);
-                    store.write(s.getBytes(), 0, s.length());
+                    fileStore.seek(start);
+                    fileStore.write(s.getBytes(), 0, s.length());
                     if (trace) {
                         out.println("User: " + userName);
                     }
@@ -308,7 +308,7 @@ public class Recover extends Tool implements DataHandler {
                 }
             }
         }
-        closeSilently(store);
+        closeSilently(fileStore);
     }
 
     /**
@@ -377,15 +377,15 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpLob(String fileName, boolean lobCompression) {
         OutputStream fileOut = null;
-        FileStore store = null;
+        FileStore fileStore = null;
         int size = 0;
         String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
         InputStream in = null;
         try {
             fileOut = FileUtils.openFileOutputStream(n, false);
-            store = FileStore.open(null, fileName, "r");
-            store.init();
-            in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression, false));
+            fileStore = FileStore.open(null, fileName, "r");
+            fileStore.init();
+            in = new BufferedInputStream(new FileStoreInputStream(fileStore, this, lobCompression, false));
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
             while (true) {
                 int l = in.read(buffer);
@@ -402,7 +402,7 @@ public class Recover extends Tool implements DataHandler {
         } finally {
             IOUtils.closeSilently(fileOut);
             IOUtils.closeSilently(in);
-            closeSilently(store);
+            closeSilently(fileStore);
         }
         if (size == 0) {
             try {
@@ -488,7 +488,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpLog(String fileName, boolean onlySetSessionState) {
         PrintWriter writer = null;
-        FileStore store = null;
+        FileStore fileStore = null;
         boolean containsUncommitted = false;
         try {
             if (onlySetSessionState) {
@@ -498,8 +498,8 @@ public class Recover extends Tool implements DataHandler {
             if (!onlySetSessionState) {
                 writer = getWriter(fileName, ".txt");
             }
-            store = FileStore.open(null, fileName, "r");
-            long length = store.length();
+            fileStore = FileStore.open(null, fileName, "r");
+            long length = fileStore.length();
             if (!onlySetSessionState) {
                 writer.println("// length: " + length);
             }
@@ -518,8 +518,8 @@ public class Recover extends Tool implements DataHandler {
                 }
                 return;
             }
-            store.seek(offset);
-            store.readFully(s.getBytes(), 0, len);
+            fileStore.seek(offset);
+            fileStore.readFully(s.getBytes(), 0, len);
             int id = s.readInt();
             int firstUncommittedPos = s.readInt();
             int firstUnwrittenPos = s.readInt();
@@ -531,12 +531,12 @@ public class Recover extends Tool implements DataHandler {
                 writer.println("// max: " + max);
             }
             while (true) {
-                int pos = (int) (store.getFilePointer() / blockSize);
+                int pos = (int) (fileStore.getFilePointer() / blockSize);
                 if ((long) pos * blockSize >= length) {
                     break;
                 }
                 buff = new byte[blockSize];
-                store.readFully(buff, 0, blockSize);
+                fileStore.readFully(buff, 0, blockSize);
                 s = DataPage.create(this, buff);
                 // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
                 blocks = MathUtils.convertLongToInt(Math.abs(s.readInt()));
@@ -545,7 +545,7 @@ public class Recover extends Tool implements DataHandler {
                     System.arraycopy(buff, 0, b2, 0, blockSize);
                     buff = b2;
                     try {
-                        store.readFully(buff, blockSize, blocks * blockSize - blockSize);
+                        fileStore.readFully(buff, blockSize, blocks * blockSize - blockSize);
                     } catch (SQLException e) {
                         break;
                     }
@@ -656,7 +656,7 @@ public class Recover extends Tool implements DataHandler {
             writeError(writer, e);
         } finally {
             IOUtils.closeSilently(writer);
-            closeSilently(store);
+            closeSilently(fileStore);
         }
     }
 
@@ -1554,25 +1554,25 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpData(String fileName, String outputName, int offset) {
         PrintWriter writer = null;
-        FileStore store = null;
+        FileStore fileStore = null;
         try {
             writer = getWriter(outputName, ".sql");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
             resetSchema();
-            store = FileStore.open(null, fileName, "r");
-            long length = store.length();
+            fileStore = FileStore.open(null, fileName, "r");
+            long length = fileStore.length();
             int blockSize = DiskFile.BLOCK_SIZE;
             int blocks = (int) (length / blockSize);
             blockCount = 1;
             int pageCount = blocks / DiskFile.BLOCKS_PER_PAGE;
             int[] pageOwners = new int[pageCount + 1];
             for (block = 0; block < blocks; block += blockCount) {
-                store.seek(offset + (long) block * blockSize);
+                fileStore.seek(offset + (long) block * blockSize);
                 byte[] buff = new byte[blockSize];
                 DataPage s = DataPage.create(this, buff);
                 try {
-                    store.readFully(buff, 0, blockSize);
+                    fileStore.readFully(buff, 0, blockSize);
                 } catch (SQLException e) {
                     writer.println("-- ERROR: can not read: " + e);
                     break;
@@ -1609,11 +1609,11 @@ public class Recover extends Tool implements DataHandler {
                         continue;
                     }
                     try {
-                        store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+                        fileStore.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
                     } catch (Throwable e) {
                         writeDataError(writer, "eof", s.getBytes(), 1);
                         blockCount = 1;
-                        store = FileStore.open(null, fileName, "r");
+                        fileStore = FileStore.open(null, fileName, "r");
                         continue;
                     }
                 }
@@ -1648,7 +1648,7 @@ public class Recover extends Tool implements DataHandler {
             writeError(writer, e);
         } finally {
             IOUtils.closeSilently(writer);
-            closeSilently(store);
+            closeSilently(fileStore);
         }
     }
 
@@ -1730,9 +1730,9 @@ public class Recover extends Tool implements DataHandler {
     }
 
 
-    private void closeSilently(FileStore store) {
-        if (store != null) {
-            store.closeSilently();
+    private void closeSilently(FileStore fileStore) {
+        if (fileStore != null) {
+            fileStore.closeSilently();
         }
     }
 

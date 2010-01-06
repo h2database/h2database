@@ -150,12 +150,12 @@ public class Script extends Tool {
      * @param fileName the script file
      */
     void process(String url, String user, String password, String fileName) throws SQLException {
-        OutputStream out = null;
+        OutputStream o = null;
         try {
-            out = FileUtils.openFileOutputStream(fileName, false);
-            process(url, user, password, out);
+            o = FileUtils.openFileOutputStream(fileName, false);
+            process(url, user, password, o);
         } finally {
-            IOUtils.closeSilently(out);
+            IOUtils.closeSilently(o);
         }
     }
 
@@ -165,16 +165,16 @@ public class Script extends Tool {
      * @param url the database URL
      * @param user the user name
      * @param password the password
-     * @param out the output stream
+     * @param o the output stream
      */
-    void process(String url, String user, String password, OutputStream out) throws SQLException {
+    void process(String url, String user, String password, OutputStream o) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
             org.h2.Driver.load();
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
-            PrintWriter writer = new PrintWriter(IOUtils.getWriter(out));
+            PrintWriter writer = new PrintWriter(IOUtils.getWriter(o));
             ResultSet rs = stat.executeQuery("SCRIPT");
             while (rs.next()) {
                 String s = rs.getString(1);

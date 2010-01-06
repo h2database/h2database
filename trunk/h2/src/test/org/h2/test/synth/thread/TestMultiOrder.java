@@ -118,18 +118,14 @@ public class TestMultiOrder extends TestMultiThread {
     }
 
     void first() throws SQLException {
-        Connection conn = base.getConnection();
-        conn.createStatement().execute("drop table customer if exists");
-        conn.createStatement().execute("drop table orders if exists");
-        conn.createStatement().execute("drop table orderLine if exists");
-        conn.createStatement().execute("create table customer(id int primary key, name varchar, account decimal)");
-        conn.createStatement().execute(
-                "create table orders(id int identity primary key, customer_id int, total decimal)");
-        conn
-                .createStatement()
-                .execute(
-                        "create table orderLine(order_id int, line_id int, text varchar, amount decimal, primary key(order_id, line_id))");
-        conn.close();
+        Connection c = base.getConnection();
+        c.createStatement().execute("drop table customer if exists");
+        c.createStatement().execute("drop table orders if exists");
+        c.createStatement().execute("drop table orderLine if exists");
+        c.createStatement().execute("create table customer(id int primary key, name varchar, account decimal)");
+        c.createStatement().execute("create table orders(id int identity primary key, customer_id int, total decimal)");
+        c.createStatement().execute("create table orderLine(order_id int, line_id int, text varchar, amount decimal, primary key(order_id, line_id))");
+        c.close();
     }
 
     void finalTest() throws SQLException {

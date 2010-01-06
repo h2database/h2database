@@ -46,8 +46,6 @@ public class TestRecover {
     private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test;PAGE_STORE=TRUE");
     private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
 
-    private Random random;
-
     // private static final String DIR =
     //     System.getProperty("test.dir", "/temp/derby");
     // private static final String URL =
@@ -176,7 +174,7 @@ public class TestRecover {
     }
 
     private void testLoop() throws Exception {
-        random = new SecureRandom();
+        Random random = new SecureRandom();
         while (true) {
             runOneTest(random.nextInt());
         }

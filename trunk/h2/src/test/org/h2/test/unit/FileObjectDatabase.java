@@ -51,8 +51,8 @@ public class FileObjectDatabase implements FileObject {
         pos += len;
     }
 
-    public void seek(long pos) {
-        this.pos = (int) pos;
+    public void seek(long newPos) {
+        this.pos = (int) newPos;
     }
 
     public void setFileLength(long newLength) {

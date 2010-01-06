@@ -48,7 +48,7 @@ public class TestSynth extends TestBase {
     static final int POSTGRESQL = 4;
     private static final String DIR = "synth";
 
-    private DbState db = new DbState(this);
+    private DbState dbState = new DbState(this);
     private ArrayList<DbInterface> databases;
     private ArrayList<Command> commands;
     private RandomGen random = new RandomGen();
@@ -97,7 +97,7 @@ public class TestSynth extends TestBase {
     }
 
     private void add(Command command) throws Exception {
-        command.run(db);
+        command.run(dbState);
         commands.add(command);
     }
 
@@ -248,7 +248,7 @@ public class TestSynth extends TestBase {
      * @return the table
      */
     Table randomTable() {
-        return db.randomTable();
+        return dbState.randomTable();
     }
 
     /**

@@ -165,11 +165,11 @@ public class OutputCatcher {
         /**
          * Write a character.
          *
-         * @param error if the character comes from the error stream
+         * @param errorStream if the character comes from the error stream
          * @param b the character
          */
-        void write(boolean error, int b) throws IOException {
-            setError(error);
+        void write(boolean errorStream, int b) throws IOException {
+            setError(errorStream);
             switch (b) {
             case '\n':
                 super.write(BR);

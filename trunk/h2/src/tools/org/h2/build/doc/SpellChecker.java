@@ -51,8 +51,8 @@ public class SpellChecker {
         new SpellChecker().run("tools/org/h2/build/doc/dictionary.txt", dir);
     }
 
-    private void run(String dictionary, String dir) throws IOException {
-        process(new File(dir + "/" + dictionary));
+    private void run(String dictionaryFileName, String dir) throws IOException {
+        process(new File(dir + "/" + dictionaryFileName));
         process(new File(dir));
         if (printDictionary) {
             System.out.println("USED WORDS");

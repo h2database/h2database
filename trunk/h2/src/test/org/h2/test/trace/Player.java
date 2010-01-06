@@ -71,12 +71,12 @@ public class Player {
      * Execute a trace file.
      *
      * @param fileName the file name
-     * @param log print debug information
-     * @param checkResult if the result of each method should be compared
-     *            against the result in the file
+     * @param trace print debug information
      */
-    public static void execute(String fileName, boolean log, boolean checkResult) throws IOException {
-        new Player().runFile(fileName, log);
+    public static void execute(String fileName, boolean trace) throws IOException {
+        Player player = new Player();
+        player.trace = trace;
+        player.runFile(fileName);
     }
 
     private void run(String... args) throws IOException {
@@ -96,11 +96,10 @@ public class Player {
                     + " [-trace] <fileName>");
             return;
         }
-        runFile(fileName, trace);
+        runFile(fileName);
     }
 
-    private void runFile(String fileName, boolean trace) throws IOException {
-        this.trace = trace;
+    private void runFile(String fileName) throws IOException {
         LineNumberReader reader = new LineNumberReader(new BufferedReader(
                 new FileReader(fileName)));
         while (true) {

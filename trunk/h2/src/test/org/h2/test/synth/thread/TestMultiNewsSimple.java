@@ -31,14 +31,14 @@ public class TestMultiNewsSimple extends TestMultiThread {
     }
 
     void first() throws SQLException {
-        Connection conn = base.getConnection();
-        conn.createStatement().execute("create table news(id identity, state int default 0, text varchar default '')");
-        PreparedStatement prep = conn.prepareStatement("insert into news() values()");
+        Connection c = base.getConnection();
+        c.createStatement().execute("create table news(id identity, state int default 0, text varchar default '')");
+        PreparedStatement prep = c.prepareStatement("insert into news() values()");
         for (int i = 0; i < newsCount; i++) {
             prep.executeUpdate();
         }
-        conn.createStatement().execute("update news set text = 'Text' || id");
-        conn.close();
+        c.createStatement().execute("update news set text = 'Text' || id");
+        c.close();
     }
 
     void begin() {

@@ -33,7 +33,7 @@ public class ClassReader {
     private Token result;
     private Stack<Token> stack = new Stack<Token>();
     private ArrayList<Token> variables = new ArrayList<Token>();
-    private boolean end;
+    private boolean endOfMethod;
     private boolean condition;
     private int nextPc;
     private Map<String, Object> fieldMap = new HashMap<String, Object>();
@@ -44,9 +44,9 @@ public class ClassReader {
         }
     }
 
-    public Token decompile(Object instance, Map<String, Object> fieldMap, String methodName) {
-        this.fieldMap = fieldMap;
-        this.convertMethodName = methodName;
+    public Token decompile(Object instance, Map<String, Object> fields, String method) {
+        this.fieldMap = fields;
+        this.convertMethodName = method;
         Class< ? > clazz = instance.getClass();
         String className = clazz.getName();
         debug("class name " + className);
@@ -226,7 +226,7 @@ public class ClassReader {
     private Token getResult() {
         while (true) {
             readByteCode();
-            if (end) {
+            if (endOfMethod) {
                 return stack.pop();
             }
             if (condition) {
@@ -266,7 +266,7 @@ public class ClassReader {
         int startPos = pos - startByteCode;
         int opCode = readByte();
         String op;
-        end = false;
+        endOfMethod = false;
         condition = false;
         nextPc = 0;
         switch(opCode) {
@@ -1165,29 +1165,29 @@ public class ClassReader {
 //        }
         case 172:
             op = "ireturn";
-            end = true;
+            endOfMethod = true;
             break;
         case 173:
             op = "lreturn";
-            end = true;
+            endOfMethod = true;
             break;
         case 174:
             op = "freturn";
-            end = true;
+            endOfMethod = true;
             break;
         case 175:
             op = "dreturn";
-            end = true;
+            endOfMethod = true;
             break;
         case 176:
             op = "areturn";
-            end = true;
+            endOfMethod = true;
             break;
         case 177:
             op = "return";
             // no value returned
             stack.push(null);
-            end = true;
+            endOfMethod = true;
             break;
 //        case 178:
 //            op = "getstatic " + getField(readShort());
@@ -1224,8 +1224,8 @@ public class ClassReader {
             break;
         }
         case 183: {
-            String methodName = getMethod(readShort());
-            op = "invokespecial " + methodName;
+            String method = getMethod(readShort());
+            op = "invokespecial " + method;
             break;
         }
         case 184:
@@ -1414,8 +1414,8 @@ public class ClassReader {
         return new String(chars, 0, j);
     }
 
-    private int getAbsolutePos(int pos, int offset) {
-        return pos - startByteCode - 1 + (short) offset;
+    private int getAbsolutePos(int start, int offset) {
+        return start - startByteCode - 1 + (short) offset;
     }
 
     private int readByte() {

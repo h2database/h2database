@@ -62,13 +62,8 @@ public class XMLParser {
      */
     public static final int DTD = 11;
 
-    // public static final int CDATA = 12;
-    // public static final int NAMESPACE = 13;
-    // public static final int NOTATION_DECLARATION = 14;
-    // public static final int ENTITY_DECLARATION = 15;
-
     private String xml;
-    private int index;
+    private int pos;
     private int eventType;
     private String currentText;
     private String currentToken;
@@ -98,14 +93,14 @@ public class XMLParser {
         this.html = html;
     }
 
-    private void addAttributeName(String prefix, String localName) {
+    private void addAttributeName(String pre, String name) {
         if (attributeValues.length <= currentAttribute) {
             String[] temp = new String[attributeValues.length * 2];
             System.arraycopy(attributeValues, 0, temp, 0, attributeValues.length);
             attributeValues = temp;
         }
-        attributeValues[currentAttribute++] = prefix;
-        attributeValues[currentAttribute++] = localName;
+        attributeValues[currentAttribute++] = pre;
+        attributeValues[currentAttribute++] = name;
     }
 
     private void addAttributeValue(String v) {
@@ -113,18 +108,18 @@ public class XMLParser {
     }
 
     private int readChar() {
-        if (index >= xml.length()) {
+        if (pos >= xml.length()) {
             return -1;
         }
-        return xml.charAt(index++);
+        return xml.charAt(pos++);
     }
 
     private void back() {
-        index--;
+        pos--;
     }
 
     private void error(String expected) {
-        throw new RuntimeException("Expected: " + expected + " got: " + xml.substring(index, Math.min(index + 1000, xml.length())));
+        throw new RuntimeException("Expected: " + expected + " got: " + xml.substring(pos, Math.min(pos + 1000, xml.length())));
     }
 
     private void read(String chars) {
@@ -136,26 +131,26 @@ public class XMLParser {
     }
 
     private void skipSpaces() {
-        while (index < xml.length() && xml.charAt(index) <= ' ') {
-            index++;
+        while (pos < xml.length() && xml.charAt(pos) <= ' ') {
+            pos++;
         }
     }
 
     private void read() {
         currentText = null;
         currentAttribute = 0;
-        int tokenStart = index, currentStart = index;
+        int tokenStart = pos, currentStart = pos;
         int ch = readChar();
         if (ch < 0) {
             eventType = END_DOCUMENT;
         } else if (ch == '<') {
-            currentStart = index;
+            currentStart = pos;
             ch = readChar();
             if (ch < 0) {
                 eventType = ERROR;
             } else if (ch == '?') {
                 eventType = PROCESSING_INSTRUCTION;
-                currentStart = index;
+                currentStart = pos;
                 while (true) {
                     ch = readChar();
                     if (ch < 0) {
@@ -170,7 +165,7 @@ public class XMLParser {
                     read();
                     tokenStart = back;
                 } else {
-                    currentText = xml.substring(currentStart, index - 1);
+                    currentText = xml.substring(currentStart, pos - 1);
                 }
             } else if (ch == '!') {
                 ch = readChar();
@@ -179,7 +174,7 @@ public class XMLParser {
                     if (readChar() != '-') {
                         error("-");
                     }
-                    currentStart = index;
+                    currentStart = pos;
                     while (true) {
                         ch = readChar();
                         if (ch < 0) {
@@ -190,7 +185,7 @@ public class XMLParser {
                             break;
                         }
                     }
-                    currentText = xml.substring(currentStart, index - 1);
+                    currentText = xml.substring(currentStart, pos - 1);
                 } else if (ch == 'D') {
                     read("OCTYPE");
                     eventType = DTD;
@@ -205,7 +200,7 @@ public class XMLParser {
                     }
                 } else if (ch == '[') {
                     read("CDATA[");
-                    currentStart = index;
+                    currentStart = pos;
                     eventType = CHARACTERS;
                     while (true) {
                         ch = readChar();
@@ -225,14 +220,14 @@ public class XMLParser {
                                 }
                             } while (ch == ']');
                             if (ch == '>') {
-                                currentText = xml.substring(currentStart, index - 3);
+                                currentText = xml.substring(currentStart, pos - 3);
                                 break;
                             }
                         }
                     }
                 }
             } else if (ch == '/') {
-                currentStart = index;
+                currentStart = pos;
                 prefix = null;
                 eventType = END_ELEMENT;
                 while (true) {
@@ -240,13 +235,13 @@ public class XMLParser {
                     if (ch < 0) {
                         error(">");
                     } else if (ch == ':') {
-                        prefix = xml.substring(currentStart, index - 1);
-                        currentStart = index + 1;
+                        prefix = xml.substring(currentStart, pos - 1);
+                        currentStart = pos + 1;
                     } else if (ch == '>') {
-                        localName = xml.substring(currentStart, index - 1);
+                        localName = xml.substring(currentStart, pos - 1);
                         break;
                     } else if (ch <= ' ') {
-                        localName = xml.substring(currentStart, index - 1);
+                        localName = xml.substring(currentStart, pos - 1);
                         skipSpaces();
                         read(">");
                         break;
@@ -261,23 +256,23 @@ public class XMLParser {
                     if (ch < 0) {
                         error(">");
                     } else if (ch == ':') {
-                        prefix = xml.substring(currentStart, index - 1);
-                        currentStart = index + 1;
+                        prefix = xml.substring(currentStart, pos - 1);
+                        currentStart = pos + 1;
                     } else if (ch <= ' ') {
-                        localName = xml.substring(currentStart, index - 1);
+                        localName = xml.substring(currentStart, pos - 1);
                         readAttributeValues();
                         ch = readChar();
                     }
                     if (ch == '/') {
                         if (localName == null) {
-                            localName = xml.substring(currentStart, index - 1);
+                            localName = xml.substring(currentStart, pos - 1);
                         }
                         read(">");
                         endElement = true;
                         break;
                     } else if (ch == '>') {
                         if (localName == null) {
-                            localName = xml.substring(currentStart, index - 1);
+                            localName = xml.substring(currentStart, pos - 1);
                         }
                         break;
                     }
@@ -295,14 +290,14 @@ public class XMLParser {
                     break;
                 }
             }
-            currentText = xml.substring(currentStart, index);
+            currentText = xml.substring(currentStart, pos);
         }
-        currentToken = xml.substring(tokenStart, index);
+        currentToken = xml.substring(tokenStart, pos);
     }
 
     private void readAttributeValues() {
         while (true) {
-            int start = index;
+            int start = pos;
             int ch = readChar();
             if (ch < 0) {
                 error(">");
@@ -316,7 +311,7 @@ public class XMLParser {
             int localNameStart = start;
             boolean noValue = false;
             while (true) {
-                end = index;
+                end = pos;
                 ch = readChar();
                 if (ch < 0) {
                     error("=");
@@ -335,7 +330,7 @@ public class XMLParser {
                 } else if (ch == '=') {
                     break;
                 } else if (ch == ':') {
-                    localNameStart = index;
+                    localNameStart = pos;
                 } else if (ch == '/' || ch == '>') {
                     if (html) {
                         back();
@@ -358,9 +353,9 @@ public class XMLParser {
                 if (ch != '\"') {
                     error("\"");
                 }
-                start = index;
+                start = pos;
                 while (true) {
-                    end = index;
+                    end = pos;
                     ch = readChar();
                     if (ch < 0) {
                         error("\"");
@@ -379,7 +374,7 @@ public class XMLParser {
      * @return true if there are more tags
      */
     public boolean hasNext() {
-        return index < xml.length();
+        return pos < xml.length();
     }
 
     /**
@@ -477,9 +472,9 @@ public class XMLParser {
      * @return the full name
      */
     public String getAttributeName(int index) {
-        String prefix = getAttributePrefix(index);
-        String localName = getAttributeLocalName(index);
-        return prefix == null || prefix.length() == 0 ? localName : prefix + ":" + localName;
+        String pre = getAttributePrefix(index);
+        String name = getAttributeLocalName(index);
+        return pre == null || pre.length() == 0 ? name : pre + ":" + name;
     }
 
     /**
@@ -496,13 +491,13 @@ public class XMLParser {
      * Get the value of this attribute.
      *
      * @param namespaceURI the namespace URI (currently ignored)
-     * @param localName the attribute name
+     * @param name the local name of the attribute
      * @return the value or null
      */
-    public String getAttributeValue(String namespaceURI, String localName) {
+    public String getAttributeValue(String namespaceURI, String name) {
         int len = getAttributeCount();
         for (int i = 0; i < len; i++) {
-            if (getAttributeLocalName(i).equals(localName)) {
+            if (getAttributeLocalName(i).equals(name)) {
                 return getAttributeValue(i);
             }
         }
@@ -554,16 +549,16 @@ public class XMLParser {
      * @return the remaining XML
      */
     public String getRemaining() {
-        return xml.substring(index);
+        return xml.substring(pos);
     }
 
     /**
-     * Get the index of the current position.
+     * Get the current character position in the XML document.
      *
      * @return the position
      */
     public int getPos() {
-        return index;
+        return pos;
     }
 
 }

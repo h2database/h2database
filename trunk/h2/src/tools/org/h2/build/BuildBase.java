@@ -149,7 +149,7 @@ public class BuildBase {
     /**
      * The output stream (System.out).
      */
-    protected PrintStream out = System.out;
+    protected PrintStream sysOut = System.out;
 
     /**
      * If output should be disabled.
@@ -185,7 +185,7 @@ public class BuildBase {
                     try {
                         m = getClass().getMethod(a);
                     } catch (Exception e) {
-                        out.println("Unknown target: " + a);
+                        sysOut.println("Unknown target: " + a);
                         projectHelp();
                         break;
                     }
@@ -226,8 +226,8 @@ public class BuildBase {
      * Emit a beep.
      */
     protected void beep() {
-        out.print("\007");
-        out.flush();
+        sysOut.print("\007");
+        sysOut.flush();
     }
 
     /**
@@ -241,14 +241,14 @@ public class BuildBase {
                 return a.getName().compareTo(b.getName());
             }
         });
-        out.println("Targets:");
+        sysOut.println("Targets:");
         for (Method m : methods) {
             int mod = m.getModifiers();
             if (!Modifier.isStatic(mod) && Modifier.isPublic(mod) && m.getParameterTypes().length == 0) {
-                out.println(m.getName());
+                sysOut.println(m.getName());
             }
         }
-        out.println();
+        sysOut.println();
     }
 
     private boolean isWindows() {
@@ -290,8 +290,8 @@ public class BuildBase {
             }
             println("");
             Process p = Runtime.getRuntime().exec(cmd.array());
-            copyInThread(p.getInputStream(), quiet ? null : out);
-            copyInThread(p.getErrorStream(), quiet ? null : out);
+            copyInThread(p.getInputStream(), quiet ? null : sysOut);
+            copyInThread(p.getErrorStream(), quiet ? null : sysOut);
             p.waitFor();
             return p.exitValue();
         } catch (Exception e) {
@@ -851,7 +851,7 @@ public class BuildBase {
      */
     protected void println(String s) {
         if (!quiet) {
-            out.println(s);
+            sysOut.println(s);
         }
     }
 
@@ -862,7 +862,7 @@ public class BuildBase {
      */
     protected void print(String s) {
         if (!quiet) {
-            out.print(s);
+            sysOut.print(s);
         }
     }
 

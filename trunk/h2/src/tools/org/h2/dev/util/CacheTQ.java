@@ -45,9 +45,8 @@ class CacheTQ implements Cache {
     private CacheObject[] values;
 
     CacheTQ(CacheWriter writer, int maxKb) {
-        int maxSize = maxKb * 1024 / 4;
         this.writer = writer;
-        this.maxSize = maxSize;
+        this.maxSize = maxKb * 1024 / 4;
         this.len = MathUtils.nextPowerOf2(maxSize / 64);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);
@@ -56,9 +55,9 @@ class CacheTQ implements Cache {
     }
 
     public void clear() {
-        headMain.next = headMain.previous = headMain;
-        headIn.next = headIn.previous = headIn;
-        headOut.next = headOut.previous = headOut;
+        headMain.cacheNext = headMain.cachePrevious = headMain;
+        headIn.cacheNext = headIn.cachePrevious = headIn;
+        headOut.cacheNext = headOut.cachePrevious = headOut;
         // first set to null - avoiding out of memory
         values = null;
         values = new CacheObject[len];
@@ -77,26 +76,26 @@ class CacheTQ implements Cache {
             if (rec == head) {
                 Message.throwInternalError("try to move head");
             }
-            if (rec.next != null || rec.previous != null) {
+            if (rec.cacheNext != null || rec.cachePrevious != null) {
                 Message.throwInternalError("already linked");
             }
         }
-        rec.next = head;
-        rec.previous = head.previous;
-        rec.previous.next = rec;
-        head.previous = rec;
+        rec.cacheNext = head;
+        rec.cachePrevious = head.cachePrevious;
+        rec.cachePrevious.cacheNext = rec;
+        head.cachePrevious = rec;
     }
 
     private void removeFromList(CacheObject rec) {
         if (SysProperties.CHECK && (rec instanceof CacheHead && rec.cacheQueue != OUT)) {
             Message.throwInternalError();
         }
-        rec.previous.next = rec.next;
-        rec.next.previous = rec.previous;
+        rec.cachePrevious.cacheNext = rec.cacheNext;
+        rec.cacheNext.cachePrevious = rec.cachePrevious;
         // TODO cache: mystery: why is this required? needs more memory if we
         // don't do this
-        rec.next = null;
-        rec.previous = null;
+        rec.cacheNext = null;
+        rec.cachePrevious = null;
     }
 
     public CacheObject get(int pos) {
@@ -122,7 +121,7 @@ class CacheTQ implements Cache {
     private CacheObject findCacheObject(int pos) {
         CacheObject rec = values[pos & mask];
         while (rec != null && rec.getPos() != pos) {
-            rec = rec.chained;
+            rec = rec.cacheChained;
         }
         return rec;
     }
@@ -134,23 +133,23 @@ class CacheTQ implements Cache {
             return null;
         }
         if (rec.getPos() == pos) {
-            values[index] = rec.chained;
+            values[index] = rec.cacheChained;
         } else {
             CacheObject last;
             do {
                 last = rec;
-                rec = rec.chained;
+                rec = rec.cacheChained;
                 if (rec == null) {
                     return null;
                 }
             } while (rec.getPos() != pos);
-            last.chained = rec.chained;
+            last.cacheChained = rec.cacheChained;
         }
         if (!(rec instanceof CacheHead)) {
             recordCount--;
         }
         if (SysProperties.CHECK) {
-            rec.chained = null;
+            rec.cacheChained = null;
         }
         return rec;
     }
@@ -178,7 +177,7 @@ class CacheTQ implements Cache {
         int i = 0;
         ObjectArray<CacheObject> changed = ObjectArray.newInstance();
         int si = sizeIn, sm = sizeMain, rc = recordCount;
-        CacheObject inNext = headIn.next, mainNext = headMain.next;
+        CacheObject inNext = headIn.cacheNext, mainNext = headMain.cacheNext;
         while (((si * 4 > maxIn * 3) || (sm * 4 > maxMain * 3))
                 && rc > Constants.CACHE_MIN_RECORDS) {
             i++;
@@ -194,7 +193,7 @@ class CacheTQ implements Cache {
             }
             if (si > maxIn) {
                 CacheObject r = inNext;
-                inNext = r.next;
+                inNext = r.cacheNext;
                 if (!r.canRemove()) {
                     if (r != headIn) {
                         removeFromList(r);
@@ -211,7 +210,7 @@ class CacheTQ implements Cache {
                 }
             } else if (sm > 0) {
                 CacheObject r = mainNext;
-                mainNext = r.next;
+                mainNext = r.cacheNext;
                 if (!r.canRemove() && !(r instanceof CacheHead)) {
                     removeFromList(r);
                     addToFront(headMain, r);
@@ -265,7 +264,7 @@ class CacheTQ implements Cache {
             addToFront(headOut, r);
             sizeOut++;
             while (sizeOut >= maxOut) {
-                r = headOut.next;
+                r = headOut.cacheNext;
                 sizeOut--;
                 removeCacheObject(r.getPos());
                 removeFromList(r);
@@ -279,12 +278,12 @@ class CacheTQ implements Cache {
 
     public ObjectArray<CacheObject> getAllChanged() {
         ObjectArray<CacheObject> list = ObjectArray.newInstance();
-        for (CacheObject o = headMain.next; o != headMain; o = o.next) {
+        for (CacheObject o = headMain.cacheNext; o != headMain; o = o.cacheNext) {
             if (o.isChanged()) {
                 list.add(o);
             }
         }
-        for (CacheObject o = headIn.next; o != headIn; o = o.next) {
+        for (CacheObject o = headIn.cacheNext; o != headIn; o = o.cacheNext) {
             if (o.isChanged()) {
                 list.add(o);
             }
@@ -311,7 +310,7 @@ class CacheTQ implements Cache {
             }
         }
         int index = rec.getPos() & mask;
-        rec.chained = values[index];
+        rec.cacheChained = values[index];
         values[index] = rec;
         if (!(rec instanceof CacheHead)) {
             recordCount++;

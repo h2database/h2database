@@ -235,8 +235,8 @@ public class Query<T> {
         return this;
     }
 
-    public Query<T> groupBy(Object... groupByExpressions) {
-        this.groupByExpressions = groupByExpressions;
+    public Query<T> groupBy(Object... groupBy) {
+        this.groupByExpressions = groupBy;
         return this;
     }
 

@@ -109,6 +109,7 @@ public class Database implements DataHandler {
     private Schema mainSchema;
     private Schema infoSchema;
     private int nextSessionId;
+    private int nextTempTableId;
     private User systemUser;
     private Session systemSession;
     private TableData meta;
@@ -1842,17 +1843,14 @@ public class Database implements DataHandler {
     /**
      * Get a unique temporary table name.
      *
-     * @param sessionId the session id
+     * @param session the session
      * @return a unique name
      */
-    public String getTempTableName(int sessionId) {
+    public synchronized String getTempTableName(Session session) {
         String tempName;
-        for (int i = 0;; i++) {
-            tempName = Constants.TEMP_TABLE_PREFIX + sessionId + "_" + i;
-            if (mainSchema.findTableOrView(null, tempName) == null) {
-                break;
-            }
-        }
+        do {
+            tempName = Constants.TEMP_TABLE_PREFIX + session.getId() + "_" + nextTempTableId++;
+        } while (mainSchema.findTableOrView(session, tempName) != null);
         return tempName;
     }
 

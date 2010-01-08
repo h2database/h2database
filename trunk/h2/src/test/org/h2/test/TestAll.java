@@ -59,6 +59,7 @@ import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestView;
+import org.h2.test.db.TestViewAlterTable;
 import org.h2.test.jaqu.AliasMapTest;
 import org.h2.test.jaqu.SamplesTest;
 import org.h2.test.jaqu.UpdateTest;
@@ -298,7 +299,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-AlterTableAlterColumn todo
+update copyright to 2010
 
 outer join bug
 
@@ -516,6 +517,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestTriggersConstraints().runTest(this);
         new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
+        new TestViewAlterTable().runTest(this);
 
         // jaqu
         new AliasMapTest().runTest(this);

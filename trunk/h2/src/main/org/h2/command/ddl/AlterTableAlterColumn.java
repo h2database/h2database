@@ -7,6 +7,9 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -28,6 +31,7 @@ import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableData;
+import org.h2.table.TableView;
 import org.h2.util.ObjectArray;
 
 /**
@@ -139,7 +143,6 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case CHANGE_TYPE: {
-            checkNoViews();
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, null);
             oldColumn.setConvertNullToDefault(false);
@@ -153,13 +156,11 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case ADD: {
-            checkNoViews();
             convertAutoIncrementColumn(newColumn);
             copyData();
             break;
         }
         case DROP: {
-            checkNoViews();
             if (table.getColumns().length == 1) {
                 throw Message.getSQLException(ErrorCode.CANNOT_DROP_LAST_COLUMN, oldColumn.getSQL());
             }
@@ -200,23 +201,54 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void checkNoViews() throws SQLException {
-        for (DbObject child : table.getChildren()) {
-            if (child.getType() == DbObject.TABLE_OR_VIEW) {
-                throw Message.getSQLException(ErrorCode.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2,
-                        table.getName(), child.getName());
-            }
-        }
-    }
-
     private void copyData() throws SQLException {
         if (table.isTemporary()) {
             throw Message.getUnsupportedException("TEMP TABLE");
         }
         Database db = session.getDatabase();
-        String tempName = db.getTempTableName(session.getId());
+        String tempName = db.getTempTableName(session);
         Column[] columns = table.getColumns();
         ObjectArray<Column> newColumns = ObjectArray.newInstance();
+        TableData newTable = cloneTableStructure(columns, db, tempName, newColumns);
+        List<String> views;
+        try {
+            views = checkViews(table, newTable);
+        } catch (SQLException e) {
+            execute("DROP TABLE " + newTable.getName(), true);
+            throw Message.getSQLException(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
+        }
+        String tableName = table.getName();
+        execute("DROP TABLE " + table.getSQL(), true);
+        db.renameSchemaObject(session, newTable, tableName);
+        for (DbObject child : newTable.getChildren()) {
+            if (child instanceof Sequence) {
+                continue;
+            }
+            String name = child.getName();
+            if (name == null || child.getCreateSQL() == null) {
+                continue;
+            }
+            if (name.startsWith(tempName + "_")) {
+                name = name.substring(tempName.length() + 1);
+                SchemaObject so = (SchemaObject) child;
+                if (so instanceof Constraint) {
+                    if (so.getSchema().findConstraint(session, name) != null) {
+                        name = so.getSchema().getUniqueConstraintName(session, newTable);
+                    }
+                } else if (so instanceof Index) {
+                    if (so.getSchema().findIndex(session, name) != null) {
+                        name = so.getSchema().getUniqueIndexName(session, newTable, name);
+                    }
+                }
+                db.renameSchemaObject(session, so, name);
+            }
+        }
+        for (String view : views) {
+            execute(view, true);
+        }
+    }
+
+    private TableData cloneTableStructure(Column[] columns, Database db, String tempName, ObjectArray<Column> newColumns) throws SQLException {
         for (Column col : columns) {
             newColumns.add(col.getClone());
         }
@@ -270,7 +302,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
         buff.append(" AS SELECT ");
         if (columnList.length() == 0) {
-            // special case insert into test select * from test
+            // special case: insert into test select * from
             buff.append('*');
         } else {
             buff.append(columnList);
@@ -297,7 +329,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (createSQL == null) {
                 continue;
             }
-            if (child.getType() == DbObject.TABLE_OR_VIEW) {
+            if (child instanceof TableView) {
+                continue;
+            } else if (child.getType() == DbObject.TABLE_OR_VIEW) {
                 Message.throwInternalError();
             }
             String quotedName = Parser.quoteIdentifier(tempName + "_" + child.getName());
@@ -319,7 +353,6 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 }
             }
         }
-        String tableName = table.getName();
         table.setModified();
         // remove the sequences from the columns (except dropped columns)
         // otherwise the sequence is dropped if the table is dropped
@@ -333,29 +366,54 @@ public class AlterTableAlterColumn extends SchemaCommand {
         for (String sql : triggers) {
             execute(sql, true);
         }
-        execute("DROP TABLE " + table.getSQL(), true);
-        db.renameSchemaObject(session, newTable, tableName);
-        for (DbObject child : newTable.getChildren()) {
-            if (child instanceof Sequence) {
-                continue;
+        return newTable;
+    }
+
+    /**
+     * Check that all views are still valid.
+     *
+     * @param the list of SQL statements to re-create views that depend on this table
+     */
+    private List<String> checkViews(SchemaObject sourceTable, SchemaObject newTable) throws SQLException {
+        List<String> viewSql = new ArrayList<String>();
+        String sourceTableName = sourceTable.getName();
+        String newTableName = newTable.getName();
+        Database db = sourceTable.getDatabase();
+        // save the real table under a temporary name
+        db.renameSchemaObject(session, sourceTable, db.getTempTableName(session));
+        try {
+            // have our new table impersonate the target table
+            db.renameSchemaObject(session, newTable, sourceTableName);
+            checkViewsAreValid(sourceTable, viewSql);
+        } finally {
+            // always put the source tables back with their proper names
+            try {
+                db.renameSchemaObject(session, newTable, newTableName);
+            } finally {
+                db.renameSchemaObject(session, sourceTable, sourceTableName);
             }
-            String name = child.getName();
-            if (name == null || child.getCreateSQL() == null) {
-                continue;
-            }
-            if (name.startsWith(tempName + "_")) {
-                name = name.substring(tempName.length() + 1);
-                SchemaObject so = (SchemaObject) child;
-                if (so instanceof Constraint) {
-                    if (so.getSchema().findConstraint(session, name) != null) {
-                        name = so.getSchema().getUniqueConstraintName(session, newTable);
-                    }
-                } else if (so instanceof Index) {
-                    if (so.getSchema().findIndex(session, name) != null) {
-                        name = so.getSchema().getUniqueIndexName(session, newTable, name);
-                    }
-                }
-                db.renameSchemaObject(session, so, name);
+        }
+        return viewSql;
+    }
+
+    /**
+     * Check that a table or view is still valid.
+     *
+     * @param tableOrView the table or view to check
+     * @param recreate the list of SQL statements to re-create views that depend
+     *            on this table
+     */
+    private void checkViewsAreValid(DbObject tableOrView, List<String> recreate) throws SQLException {
+        for (DbObject view : tableOrView.getChildren()) {
+            if (view instanceof TableView) {
+                String sql = ((TableView) view).getQuery();
+                // check if the query is still valid
+                // do not execute, not even with limit 1, because that could
+                // have side effects or take a very long time
+                session.prepare(sql);
+                recreate.add(view.getDropSQL());
+                recreate.add(view.getCreateSQL());
+                checkViewsAreValid(view, recreate);
             }
         }
     }

@@ -23,7 +23,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
 
     private long last;
     private int lastState = -1;
-    private String url;
+    private String databaseUrl;
 
     public TestListener() {
         start = last = System.currentTimeMillis();
@@ -102,12 +102,12 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     }
 
     public void closingDatabase() {
-        if (url.toUpperCase().indexOf("CIPHER") >= 0) {
+        if (databaseUrl.toUpperCase().indexOf("CIPHER") >= 0) {
             return;
         }
         Connection conn = null;
         try {
-            conn = DriverManager.getConnection(url, getUser(), getPassword());
+            conn = DriverManager.getConnection(databaseUrl, getUser(), getPassword());
             conn.createStatement().execute("DROP TABLE TEST2");
             conn.close();
         } catch (SQLException e) {
@@ -118,16 +118,16 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     }
 
     public void init(String url) {
-        this.url = url;
+        this.databaseUrl = url;
     }
 
     public void opened() {
-        if (url.toUpperCase().indexOf("CIPHER") >= 0) {
+        if (databaseUrl.toUpperCase().indexOf("CIPHER") >= 0) {
             return;
         }
         Connection conn = null;
         try {
-            conn = DriverManager.getConnection(url, getUser(), getPassword());
+            conn = DriverManager.getConnection(databaseUrl, getUser(), getPassword());
             conn.createStatement().execute("CREATE TABLE IF NOT EXISTS TEST2(ID INT)");
             conn.close();
         } catch (SQLException e) {

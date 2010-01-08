@@ -34,7 +34,7 @@ class Database {
     private int id;
     private String name, url, user, password;
     private ArrayList<String[]> replace = new ArrayList<String[]>();
-    private String action;
+    private String currentAction;
     private long startTime;
     private Connection conn;
     private Statement stat;
@@ -182,12 +182,12 @@ class Database {
      * @return the opened connection
      */
     Connection openNewConnection() throws SQLException {
-        Connection conn = DriverManager.getConnection(url, user, password);
+        Connection newConn = DriverManager.getConnection(url, user, password);
         if (url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
-            Statement stat = null;
+            Statement s = null;
             try {
-                stat = conn.createStatement();
+                s = newConn.createStatement();
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageCacheSize',
                 // '64')");
@@ -195,19 +195,19 @@ class Database {
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize',
                 // '8192')");
             } finally {
-                JdbcUtils.closeSilently(stat);
+                JdbcUtils.closeSilently(s);
             }
         } else if (url.startsWith("jdbc:hsqldb:")) {
             // HSQLDB: use a WRITE_DELAY of 1 second
-            Statement stat = null;
+            Statement s = null;
             try {
-                stat = conn.createStatement();
-                stat.execute("SET WRITE_DELAY 1");
+                s = newConn.createStatement();
+                s.execute("SET WRITE_DELAY 1");
             } finally {
-                JdbcUtils.closeSilently(stat);
+                JdbcUtils.closeSilently(s);
             }
         }
-        return conn;
+        return newConn;
     }
 
     /**
@@ -222,9 +222,9 @@ class Database {
      * Close the database connection.
      */
     void closeConnection() throws SQLException {
-//        if(!serverHSQLDB && url.startsWith("jdbc:hsqldb:")) {
-//            stat.execute("SHUTDOWN");
-//        }
+        // if(!serverHSQLDB && url.startsWith("jdbc:hsqldb:")) {
+        //     stat.execute("SHUTDOWN");
+        // }
         conn.close();
         stat = null;
         conn = null;
@@ -236,12 +236,12 @@ class Database {
      * @param prop the properties with the translations to use
      */
     void setTranslations(Properties prop) {
-        String id = url.substring("jdbc:".length());
-        id = id.substring(0, id.indexOf(':'));
+        String databaseType = url.substring("jdbc:".length());
+        databaseType = databaseType.substring(0, databaseType.indexOf(':'));
         for (Object k : prop.keySet()) {
             String key = (String) k;
-            if (key.startsWith(id + ".")) {
-                String pattern = key.substring(id.length() + 1);
+            if (key.startsWith(databaseType + ".")) {
+                String pattern = key.substring(databaseType.length() + 1);
                 pattern = StringUtils.replaceAll(pattern, "_", " ");
                 pattern = StringUtils.toUpperEnglish(pattern);
                 String replacement = prop.getProperty(key);
@@ -264,8 +264,8 @@ class Database {
     private String getSQL(String sql) {
         for (String[] pair : replace) {
             String pattern = pair[0];
-            String replace = pair[1];
-            sql = StringUtils.replaceAll(sql, pattern, replace);
+            String replacement = pair[1];
+            sql = StringUtils.replaceAll(sql, pattern, replacement);
         }
         return sql;
     }
@@ -277,7 +277,7 @@ class Database {
      * @param action the action
      */
     void start(Bench bench, String action) {
-        this.action = bench.getName() + ": " + action;
+        this.currentAction = bench.getName() + ": " + action;
         this.startTime = System.currentTimeMillis();
     }
 
@@ -287,7 +287,7 @@ class Database {
      */
     void end() {
         long time = System.currentTimeMillis() - startTime;
-        log(action, "ms", (int) time);
+        log(currentAction, "ms", (int) time);
         if (test.collect) {
             totalTime += time;
         }
@@ -310,10 +310,10 @@ class Database {
      * Execute an SQL statement.
      *
      * @param prep the prepared statement
-     * @param trace the trace message
+     * @param traceMessage the trace message
      */
-    void update(PreparedStatement prep, String trace) throws SQLException {
-        test.trace(trace);
+    void update(PreparedStatement prep, String traceMessage) throws SQLException {
+        test.trace(traceMessage);
         prep.executeUpdate();
         if (test.collect) {
             executedStatements++;
@@ -410,12 +410,12 @@ class Database {
      * @return the result set
      */
     ResultSet query(PreparedStatement prep) throws SQLException {
-//        long time = System.currentTimeMillis();
+        // long time = System.currentTimeMillis();
         ResultSet rs = prep.executeQuery();
-//        time = System.currentTimeMillis() - time;
-//        if(time > 100) {
-//            System.out.println("time="+time);
-//        }
+        // time = System.currentTimeMillis() - time;
+        // if(time > 100) {
+        //     System.out.println("time="+time);
+        // }
         if (test.collect) {
             executedStatements++;
         }

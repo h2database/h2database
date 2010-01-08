@@ -108,12 +108,12 @@ public class TestIndex extends TestBase {
 
     private void testRandomized() throws SQLException {
         boolean reopen = !config.memory;
-        Random random = new Random(1);
+        Random rand = new Random(1);
         reconnect();
         stat.execute("CREATE TABLE TEST(ID identity)");
         int len = getSize(100, 1000);
         for (int i = 0; i < len; i++) {
-            switch (random.nextInt(4)) {
+            switch (rand.nextInt(4)) {
             case 0:
                 if (reopen) {
                     trace("reconnect");
@@ -144,16 +144,16 @@ public class TestIndex extends TestBase {
         int len = getSize(1000, 10000);
         stat.execute("insert into testA select x, 'Hello' from system_range(1, " + len + ")");
         stat.execute("insert into testB select x, 'Hello' from system_range(1, " + len + ")");
-        Random random = new Random(1);
+        Random rand = new Random(1);
         for (int i = 0; i < len; i++) {
-            int x = random.nextInt(len);
+            int x = rand.nextInt(len);
             String sql = "";
-            switch(random.nextInt(3)) {
+            switch(rand.nextInt(3)) {
             case 0:
                 sql = "delete from testA where id = " + x;
                 break;
             case 1:
-                sql = "update testA set name = " + random.nextInt(100) + " where id = " + x;
+                sql = "update testA set name = " + rand.nextInt(100) + " where id = " + x;
                 break;
             case 2:
                 sql = "select name from testA where id = " + x;
@@ -314,21 +314,21 @@ public class TestIndex extends TestBase {
             prep.setInt(1, a);
             prep.setInt(2, a);
             prep.execute();
-            assertEquals(1, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + a));
-            assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=-1-" + a));
+            assertEquals(1, getValue("SELECT COUNT(*) FROM TEST WHERE A=" + a));
+            assertEquals(0, getValue("SELECT COUNT(*) FROM TEST WHERE A=-1-" + a));
         }
 
         reconnect();
 
         prep = conn.prepareStatement("DELETE FROM TEST WHERE A=?");
         for (int a = 0; a < len; a++) {
-            if (getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + a) != 1) {
-                assertEquals(1, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + a));
+            if (getValue("SELECT COUNT(*) FROM TEST WHERE A=" + a) != 1) {
+                assertEquals(1, getValue("SELECT COUNT(*) FROM TEST WHERE A=" + a));
             }
             prep.setInt(1, a);
             assertEquals(1, prep.executeUpdate());
         }
-        assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
+        assertEquals(0, getValue("SELECT COUNT(*) FROM TEST"));
     }
 
     private void testMultiColumnIndex() throws SQLException {
@@ -346,13 +346,13 @@ public class TestIndex extends TestBase {
         stat.execute("CREATE INDEX ON TEST(A, B)");
         prep = conn.prepareStatement("DELETE FROM TEST WHERE A=?");
         for (int a = 0; a < len; a++) {
-            log(stat, "SELECT * FROM TEST");
-            assertEquals(2, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + (len - a - 1)));
-            assertEquals((len - a) * 2, getValue(stat, "SELECT COUNT(*) FROM TEST"));
+            log("SELECT * FROM TEST");
+            assertEquals(2, getValue("SELECT COUNT(*) FROM TEST WHERE A=" + (len - a - 1)));
+            assertEquals((len - a) * 2, getValue("SELECT COUNT(*) FROM TEST"));
             prep.setInt(1, len - a - 1);
             prep.execute();
         }
-        assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
+        assertEquals(0, getValue("SELECT COUNT(*) FROM TEST"));
     }
 
     private void testMultiColumnHashIndex() throws SQLException {
@@ -392,17 +392,17 @@ public class TestIndex extends TestBase {
 
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST WHERE DATA <> 'i('||a||','||b||')u('||a||','||b||')'");
         assertFalse(rs.next());
-        assertEquals(len * (len / 2), getValue(stat, "SELECT COUNT(*) FROM TEST"));
+        assertEquals(len * (len / 2), getValue("SELECT COUNT(*) FROM TEST"));
         stat.execute("DROP TABLE TEST");
     }
 
-    private int getValue(Statement stat, String sql) throws SQLException {
+    private int getValue(String sql) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
         return rs.getInt(1);
     }
 
-    private void log(Statement stat, String sql) throws SQLException {
+    private void log(String sql) throws SQLException {
         trace(sql);
         ResultSet rs = stat.executeQuery(sql);
         int cols = rs.getMetaData().getColumnCount();

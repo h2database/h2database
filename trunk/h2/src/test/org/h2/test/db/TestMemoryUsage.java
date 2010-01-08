@@ -81,20 +81,20 @@ public class TestMemoryUsage extends TestBase {
             return;
         }
         deleteDb("memoryUsage");
-        Connection conn = getConnection("memoryUsage");
+        conn = getConnection("memoryUsage");
         Statement stat = conn.createStatement();
         stat.execute("SET MAX_LENGTH_INPLACE_LOB 32768");
         stat.execute("SET CACHE_SIZE 8000");
         stat.execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
         freeSoftReferences();
         try {
-            int start = MemoryUtils.getMemoryUsed();
+            int base = MemoryUtils.getMemoryUsed();
             for (int i = 0; i < 4; i++) {
                 stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(32000) FROM SYSTEM_RANGE(1, 200)");
                 freeSoftReferences();
                 int used = MemoryUtils.getMemoryUsed();
-                if ((used - start) > 16000) {
-                    fail("Used: " + (used - start));
+                if ((used - base) > 16000) {
+                    fail("Used: " + (used - base));
                 }
             }
         } finally {
@@ -122,7 +122,7 @@ public class TestMemoryUsage extends TestBase {
             return;
         }
         deleteDb("memoryUsage");
-        Connection conn = getConnection("memoryUsage");
+        conn = getConnection("memoryUsage");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar(255))");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, space(200))");
@@ -134,13 +134,13 @@ public class TestMemoryUsage extends TestBase {
             prep.setInt(1, i);
             prep.executeUpdate();
         }
-        int start = MemoryUtils.getMemoryUsed();
+        int base = MemoryUtils.getMemoryUsed();
         stat.execute("create index idx_test_id on test(id)");
         System.gc();
         System.gc();
         int used = MemoryUtils.getMemoryUsed();
-        if ((used - start) > getSize(7500, 12000)) {
-            fail("Used: " + (used - start));
+        if ((used - base) > getSize(7500, 12000)) {
+            fail("Used: " + (used - base));
         }
         stat.execute("drop table test");
         conn.close();

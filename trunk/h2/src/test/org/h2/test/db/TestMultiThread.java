@@ -49,9 +49,8 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     public void test() throws Exception {
-
-        Connection conn = getConnection();
-        Statement stat = conn.createStatement();
+        conn = getConnection();
+        stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
         int len = getSize(10, 200);
         Thread[] threads = new Thread[len];

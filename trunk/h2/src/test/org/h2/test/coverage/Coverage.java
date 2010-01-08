@@ -92,8 +92,8 @@ public class Coverage {
         }
     }
 
-    private void addExclude(String file) {
-        exclude.add(file);
+    private void addExclude(String fileName) {
+        exclude.add(fileName);
     }
 
     private boolean isExcluded(String s) {

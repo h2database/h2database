@@ -17,11 +17,11 @@ import java.util.Random;
  */
 public class BenchSimple implements Bench {
 
-    Database db;
+    Database database;
     int records;
 
     public void init(Database db, int size) throws SQLException {
-        this.db = db;
+        this.database = db;
         this.records = size * 60;
 
         db.start(this, "Init");
@@ -53,6 +53,7 @@ public class BenchSimple implements Bench {
 
     public void runTest() throws SQLException {
         PreparedStatement prep;
+        Database db = database;
         Random random = db.getRandom();
 
         db.openConnection();

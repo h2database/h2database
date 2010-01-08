@@ -50,7 +50,7 @@ public class TestMultiThreadedKernel extends TestBase {
                 public void run() {
                     Connection conn = null;
                     try {
-                        for (int i = 0; i < 100 && !stop; i++) {
+                        for (int j = 0; j < 100 && !stop; j++) {
                             conn = DriverManager.getConnection(url, user, password);
                             Statement stat = conn.createStatement();
                             stat.execute("create local temporary table temp(id identity)");

@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Fulltext search: exceptions within the fulltext seach package had the wrong SQL state.
+<ul><li>Result sets larger than 2 GB threw an exception "Negative seek offset". Fixed.
+</li><li>If the system property h2.check was set to false, an ArrayIndexOutOfBoundsException could occur.
+</li><li>Alter table is now supported even if a table has views defined.
+</li><li>Fulltext search: exceptions within the fulltext search package had the wrong SQL state.
 </li><li>The Lucene fulltext search ignored transaction rollback. Fixed using a trigger on rollback.
 </li><li>Trigger can now be called on rollback.
 </li><li>The shell script h2.sh ignored command line line arguments.

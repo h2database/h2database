@@ -149,7 +149,7 @@ public class UndoLogRecord {
      * @param file the file
      */
     void seek(FileStore file) throws SQLException {
-        file.seek(filePos * Constants.FILE_BLOCK_SIZE);
+        file.seek(((long) filePos) * Constants.FILE_BLOCK_SIZE);
     }
 
     /**

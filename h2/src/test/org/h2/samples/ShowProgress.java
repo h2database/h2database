@@ -55,9 +55,9 @@ public class ShowProgress implements DatabaseEventListener {
         time = System.currentTimeMillis();
         int len = 1000;
         for (int i = 0; i < len; i++) {
-            long last = System.currentTimeMillis();
-            if (last > time + 1000) {
-                time = last;
+            long now = System.currentTimeMillis();
+            if (now > time + 1000) {
+                time = now;
                 System.out.println("Inserting " + (100L * i / len) + "%");
             }
             prep.setInt(1, i);

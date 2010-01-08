@@ -145,13 +145,13 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
             threads[i] = new Thread() {
                 public void run() {
                     try {
-                        Connection conn = DriverManager.getConnection(url, user, password);
-                        PreparedStatement prep = conn.prepareStatement("insert into employee values(?, ?, 0)");
+                        Connection c = DriverManager.getConnection(url, user, password);
+                        PreparedStatement prep = c.prepareStatement("insert into employee values(?, ?, 0)");
                         int id = getNextId();
                         prep.setInt(1, id);
                         prep.setString(2, "employee " + id);
                         prep.execute();
-                        conn.close();
+                        c.close();
                     } catch (Throwable e) {
                         TestBase.logError("insert", e);
                     }

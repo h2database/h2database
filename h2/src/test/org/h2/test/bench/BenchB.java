@@ -22,7 +22,7 @@ import java.util.Random;
 public class BenchB implements Bench, Runnable {
 
     // master data
-    private Database db;
+    private Database database;
     private int scale = 1;
     private int branches = 1;
     private int tellers = 10;
@@ -47,7 +47,7 @@ public class BenchB implements Bench, Runnable {
     private BenchB(BenchB master, int seed) throws SQLException {
         this.master = master;
         random = new Random(seed);
-        conn = master.db.openNewConnection();
+        conn = master.database.openNewConnection();
         conn.setAutoCommit(false);
         updateAccount = conn.prepareStatement(
                 "UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
@@ -62,7 +62,7 @@ public class BenchB implements Bench, Runnable {
     }
 
     public void init(Database db, int size) throws SQLException {
-        this.db = db;
+        this.database = db;
         this.transactionPerClient = size;
 
         db.start(this, "Init");
@@ -181,6 +181,7 @@ public class BenchB implements Bench, Runnable {
 
 
     public void runTest() throws Exception {
+        Database db = database;
         db.start(this, "Transactions");
         db.openConnection();
         processTransactions();

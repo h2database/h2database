@@ -270,16 +270,16 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
     }
 
-    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
-        this.triggerName = triggerName;
+    public void init(Connection conn, String schemaName, String trigger, String tableName, boolean before, int type) {
+        this.triggerName = trigger;
         if (!"TEST".equals(tableName)) {
             throw new AssertionError("supposed to be TEST");
         }
-        if ((triggerName.endsWith("AFTER") && before) || (triggerName.endsWith("BEFORE") && !before)) {
-            throw new AssertionError("triggerName: " + triggerName + " before:" + before);
+        if ((trigger.endsWith("AFTER") && before) || (trigger.endsWith("BEFORE") && !before)) {
+            throw new AssertionError("triggerName: " + trigger + " before:" + before);
         }
-        if ((triggerName.startsWith("UPD") && type != UPDATE) || (triggerName.startsWith("INS") && type != INSERT) || (triggerName.startsWith("DEL") && type != DELETE)) {
-            throw new AssertionError("triggerName: " + triggerName + " type:" + type);
+        if ((trigger.startsWith("UPD") && type != UPDATE) || (trigger.startsWith("INS") && type != INSERT) || (trigger.startsWith("DEL") && type != DELETE)) {
+            throw new AssertionError("triggerName: " + trigger + " type:" + type);
         }
     }
 

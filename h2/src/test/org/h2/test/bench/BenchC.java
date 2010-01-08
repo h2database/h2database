@@ -169,7 +169,7 @@ public class BenchC implements Bench {
     int districtsPerWarehouse = 10;
     int customersPerDistrict = 300;
 
-    private Database db;
+    private Database database;
 
     private int ordersPerDistrict = 300;
 
@@ -180,7 +180,7 @@ public class BenchC implements Bench {
 
 
     public void init(Database db, int size) throws SQLException {
-        this.db = db;
+        this.database = db;
 
         random = new BenchCRandom();
 
@@ -206,17 +206,17 @@ public class BenchC implements Bench {
 
     private void load() throws SQLException {
         for (String sql : TABLES) {
-            db.dropTable(sql);
+            database.dropTable(sql);
         }
         for (String sql : CREATE_SQL) {
-            db.update(sql);
+            database.update(sql);
         }
-        db.setAutoCommit(false);
+        database.setAutoCommit(false);
         loadItem();
         loadWarehouse();
         loadCustomer();
         loadOrder();
-        db.commit();
+        database.commit();
         trace("Load done");
     }
 
@@ -225,13 +225,13 @@ public class BenchC implements Bench {
     }
 
     private void trace(int i, int max) {
-        db.trace(action, i, max);
+        database.trace(action, i, max);
     }
 
     private void loadItem() throws SQLException {
         trace("Loading item table");
         boolean[] original = random.getBoolean(items, items / 10);
-        PreparedStatement prep = db.prepare(
+        PreparedStatement prep = database.prepare(
                 "INSERT INTO ITEM(I_ID, I_IM_ID, I_NAME, I_PRICE, I_DATA) " +
                 "VALUES(?, ?, ?, ?, ?)");
         for (int id = 1; id <= items; id++) {
@@ -246,17 +246,17 @@ public class BenchC implements Bench {
             prep.setString(3, name);
             prep.setBigDecimal(4, price);
             prep.setString(5, data);
-            db.update(prep, "insertItem");
+            database.update(prep, "insertItem");
             trace(id, items);
             if (id % commitEvery == 0) {
-                db.commit();
+                database.commit();
             }
         }
     }
 
     private void loadWarehouse() throws SQLException {
         trace("Loading warehouse table");
-        PreparedStatement prep = db.prepare(
+        PreparedStatement prep = database.prepare(
                 "INSERT INTO WAREHOUSE(W_ID, W_NAME, W_STREET_1, " +
                 "W_STREET_2, W_CITY, W_STATE, W_ZIP, W_TAX, W_YTD) " +
                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -279,11 +279,11 @@ public class BenchC implements Bench {
             prep.setString(7, zip);
             prep.setBigDecimal(8, tax);
             prep.setBigDecimal(9, ytd);
-            db.update(prep, "insertWarehouse");
+            database.update(prep, "insertWarehouse");
             loadStock(id);
             loadDistrict(id);
             if (id % commitEvery == 0) {
-                db.commit();
+                database.commit();
             }
         }
     }
@@ -297,7 +297,7 @@ public class BenchC implements Bench {
                 loadCustomerSub(districtId, id);
                 trace(i++, max);
                 if (i % commitEvery == 0) {
-                    db.commit();
+                    database.commit();
                 }
             }
         }
@@ -305,7 +305,7 @@ public class BenchC implements Bench {
 
     private void loadCustomerSub(int dId, int wId) throws SQLException {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        PreparedStatement prepCustomer = db.prepare(
+        PreparedStatement prepCustomer = database.prepare(
                 "INSERT INTO CUSTOMER(C_ID, C_D_ID, C_W_ID, " +
                 "C_FIRST, C_MIDDLE, C_LAST, " +
                 "C_STREET_1, C_STREET_2, C_CITY, C_STATE, C_ZIP, " +
@@ -313,7 +313,7 @@ public class BenchC implements Bench {
                 "C_CREDIT_LIM, C_DISCOUNT, C_BALANCE, C_DATA, " +
                 "C_YTD_PAYMENT, C_PAYMENT_CNT, C_DELIVERY_CNT) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        PreparedStatement prepHistory = db.prepare(
+        PreparedStatement prepHistory = database.prepare(
                 "INSERT INTO HISTORY(H_C_ID, H_C_D_ID, H_C_W_ID, " +
                 "H_W_ID, H_D_ID, H_DATE, H_AMOUNT, H_DATA) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
@@ -367,7 +367,7 @@ public class BenchC implements Bench {
             prepCustomer.setBigDecimal(19, ytdPayment);
             prepCustomer.setInt(20, paymentCnt);
             prepCustomer.setInt(21, deliveryCnt);
-            db.update(prepCustomer, "insertCustomer");
+            database.update(prepCustomer, "insertCustomer");
             BigDecimal amount = new BigDecimal("10.00");
             String hData = random.getString(12, 24);
             prepHistory.setInt(1, cId);
@@ -378,7 +378,7 @@ public class BenchC implements Bench {
             prepHistory.setTimestamp(6, timestamp);
             prepHistory.setBigDecimal(7, amount);
             prepHistory.setString(8, hData);
-            db.update(prepHistory, "insertHistory");
+            database.update(prepHistory, "insertHistory");
         }
     }
 
@@ -397,14 +397,14 @@ public class BenchC implements Bench {
     private void loadOrderSub(int dId, int wId) throws SQLException {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         int[] orderid = random.getPermutation(ordersPerDistrict);
-        PreparedStatement prepOrder = db.prepare(
+        PreparedStatement prepOrder = database.prepare(
                 "INSERT INTO ORDERS(O_ID, O_C_ID, O_D_ID, O_W_ID, " +
                 "O_ENTRY_D, O_CARRIER_ID, O_OL_CNT, O_ALL_LOCAL) " +
                 "VALUES(?, ?, ?, ?, ?, ?, ?, 1)");
-        PreparedStatement prepNewOrder = db.prepare(
+        PreparedStatement prepNewOrder = database.prepare(
                 "INSERT INTO NEW_ORDER (NO_O_ID, NO_D_ID, NO_W_ID) " +
                 "VALUES (?, ?, ?)");
-        PreparedStatement prepLine = db.prepare(
+        PreparedStatement prepLine = database.prepare(
                 "INSERT INTO ORDER_LINE(" +
                 "OL_O_ID, OL_D_ID, OL_W_ID, OL_NUMBER, " +
                 "OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, OL_AMOUNT, " +
@@ -428,9 +428,9 @@ public class BenchC implements Bench {
                 prepNewOrder.setInt(1, oId);
                 prepNewOrder.setInt(2, dId);
                 prepNewOrder.setInt(3, wId);
-                db.update(prepNewOrder, "newNewOrder");
+                database.update(prepNewOrder, "newNewOrder");
             }
-            db.update(prepOrder, "insertOrder");
+            database.update(prepOrder, "insertOrder");
             for (int ol = 1; ol <= olCnt; ol++) {
                 int id = random.getInt(1, items);
                 int supplyId = wId;
@@ -451,9 +451,9 @@ public class BenchC implements Bench {
                 prepLine.setInt(7, quantity);
                 prepLine.setBigDecimal(8, amount);
                 prepLine.setString(9, distInfo);
-                db.update(prepLine, "insertOrderLine");
+                database.update(prepLine, "insertOrderLine");
                 if (i++ % commitEvery == 0) {
-                    db.commit();
+                    database.commit();
                 }
             }
         }
@@ -462,7 +462,7 @@ public class BenchC implements Bench {
     private void loadStock(int wId) throws SQLException {
         trace("Loading stock table (warehouse " + wId + ")");
         boolean[] original = random.getBoolean(items, items / 10);
-        PreparedStatement prep = db.prepare(
+        PreparedStatement prep = database.prepare(
                 "INSERT INTO STOCK(S_I_ID, S_W_ID, S_QUANTITY, " +
                 "S_DIST_01, S_DIST_02, S_DIST_03, S_DIST_04, S_DIST_05, " +
                 "S_DIST_06, S_DIST_07, S_DIST_08, S_DIST_09, S_DIST_10, " +
@@ -501,9 +501,9 @@ public class BenchC implements Bench {
             prep.setInt(15, 0);
             prep.setInt(16, 0);
             prep.setInt(17, 0);
-            db.update(prep, "insertStock");
+            database.update(prep, "insertStock");
             if (id % commitEvery == 0) {
-                db.commit();
+                database.commit();
             }
             trace(id, items);
         }
@@ -512,7 +512,7 @@ public class BenchC implements Bench {
     private void loadDistrict(int wId) throws SQLException {
         BigDecimal ytd = new BigDecimal("300000.00");
         int nextId = 3001;
-        PreparedStatement prep = db.prepare(
+        PreparedStatement prep = database.prepare(
                 "INSERT INTO DISTRICT(D_ID, D_W_ID, D_NAME, " +
                 "D_STREET_1, D_STREET_2, D_CITY, D_STATE, D_ZIP, " +
                 "D_TAX, D_YTD, D_NEXT_O_ID) " +
@@ -537,26 +537,26 @@ public class BenchC implements Bench {
             prep.setBigDecimal(9, tax);
             prep.setBigDecimal(10, ytd);
             prep.setInt(11, nextId);
-            db.update(prep, "insertDistrict");
+            database.update(prep, "insertDistrict");
             trace(dId, districtsPerWarehouse);
         }
     }
 
     public void runTest() throws SQLException {
-        db.start(this, "Transactions");
-        db.openConnection();
+        database.start(this, "Transactions");
+        database.openConnection();
         for (int i = 0; i < 70; i++) {
-            BenchCThread process = new BenchCThread(db, this, random, i);
+            BenchCThread process = new BenchCThread(database, this, random, i);
             process.process();
         }
-        db.closeConnection();
-        db.end();
+        database.closeConnection();
+        database.end();
 
-        db.openConnection();
-        BenchCThread process = new BenchCThread(db, this, random, 0);
+        database.openConnection();
+        BenchCThread process = new BenchCThread(database, this, random, 0);
         process.process();
-        db.logMemory(this, "Memory Usage");
-        db.closeConnection();
+        database.logMemory(this, "Memory Usage");
+        database.closeConnection();
     }
 
     public String getName() {

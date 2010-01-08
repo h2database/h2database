@@ -590,10 +590,10 @@ public class TestLob extends TestBase {
             len = 100;
         }
 
-        int start = 1, increment = 19;
+        int first = 1, increment = 19;
 
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(ID, B, C) VALUES(?, ?, ?)");
-        for (int i = start; i < len; i += increment) {
+        for (int i = first; i < len; i += increment) {
             int l = i;
             prep.setInt(1, i);
             prep.setBinaryStream(2, getRandomStream(l, i), -1);
@@ -615,7 +615,7 @@ public class TestLob extends TestBase {
         }
 
         prep = conn.prepareStatement("UPDATE TEST SET B=?, C=? WHERE ID=?");
-        for (int i = start; i < len; i += increment) {
+        for (int i = first; i < len; i += increment) {
             int l = i;
             prep.setBinaryStream(1, getRandomStream(l, -i), -1);
             prep.setCharacterStream(2, getRandomReader(l, -i), -1);

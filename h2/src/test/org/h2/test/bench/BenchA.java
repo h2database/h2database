@@ -22,16 +22,16 @@ public class BenchA implements Bench {
     private static final String FILLER = "abcdefghijklmnopqrstuvwxyz";
     private static final int DELTA = 10000;
 
-    private Database db;
+    private Database database;
 
     private int branches;
     private int tellers;
     private int accounts;
-    private int size;
+    private int transactions;
 
     public void init(Database db, int size) throws SQLException {
-        this.db = db;
-        this.size = size;
+        this.database = db;
+        transactions = size * 30;
 
         int scale = 1;
         accounts = size * 50;
@@ -100,32 +100,31 @@ public class BenchA implements Bench {
 
     public void runTest() throws SQLException {
 
-        db.start(this, "Transactions");
-        db.openConnection();
+        database.start(this, "Transactions");
+        database.openConnection();
         processTransactions();
-        db.closeConnection();
-        db.end();
+        database.closeConnection();
+        database.end();
 
-        db.openConnection();
+        database.openConnection();
         processTransactions();
-        db.logMemory(this, "Memory Usage");
-        db.closeConnection();
+        database.logMemory(this, "Memory Usage");
+        database.closeConnection();
 
     }
 
     private void processTransactions() throws SQLException {
-        Random random = db.getRandom();
+        Random random = database.getRandom();
         int branch = random.nextInt(branches);
         int teller = random.nextInt(tellers);
-        int transactions = size * 30;
 
-        PreparedStatement updateAccount = db.prepare("UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
-        PreparedStatement selectBalance = db.prepare("SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
-        PreparedStatement updateTeller = db.prepare("UPDATE TELLERS SET TBALANCE=TBALANCE+? WHERE TID=?");
-        PreparedStatement updateBranch = db.prepare("UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?");
-        PreparedStatement insertHistory = db.prepare("INSERT INTO HISTORY(AID,TID,BID,DELTA,HTIME,FILLER) VALUES(?,?,?,?,?,?)");
+        PreparedStatement updateAccount = database.prepare("UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
+        PreparedStatement selectBalance = database.prepare("SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
+        PreparedStatement updateTeller = database.prepare("UPDATE TELLERS SET TBALANCE=TBALANCE+? WHERE TID=?");
+        PreparedStatement updateBranch = database.prepare("UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?");
+        PreparedStatement insertHistory = database.prepare("INSERT INTO HISTORY(AID,TID,BID,DELTA,HTIME,FILLER) VALUES(?,?,?,?,?,?)");
         int accountsPerBranch = accounts / branches;
-        db.setAutoCommit(false);
+        database.setAutoCommit(false);
 
         for (int i = 0; i < transactions; i++) {
             int account;
@@ -142,18 +141,18 @@ public class BenchA implements Bench {
 
             updateAccount.setBigDecimal(1, delta);
             updateAccount.setInt(2, account);
-            db.update(updateAccount, "updateAccount");
+            database.update(updateAccount, "updateAccount");
 
             updateTeller.setBigDecimal(1, delta);
             updateTeller.setInt(2, teller);
-            db.update(updateTeller, "updateTeller");
+            database.update(updateTeller, "updateTeller");
 
             updateBranch.setBigDecimal(1, delta);
             updateBranch.setInt(2, branch);
-            db.update(updateBranch, "updateBranch");
+            database.update(updateBranch, "updateBranch");
 
             selectBalance.setInt(1, account);
-            db.queryReadResult(selectBalance);
+            database.queryReadResult(selectBalance);
 
             insertHistory.setInt(1, account);
             insertHistory.setInt(2, teller);
@@ -164,9 +163,9 @@ public class BenchA implements Bench {
             // insertHistory.setDate(5, new java.sql.Date(current));
             insertHistory.setTimestamp(5, new java.sql.Timestamp(current));
             insertHistory.setString(6, BenchA.FILLER);
-            db.update(insertHistory, "insertHistory");
+            database.update(insertHistory, "insertHistory");
 
-            db.commit();
+            database.commit();
         }
         updateAccount.close();
         selectBalance.close();

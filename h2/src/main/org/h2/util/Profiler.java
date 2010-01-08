@@ -178,4 +178,12 @@ public class Profiler implements Runnable {
         return buff.toString();
     }
 
+    public int getInterval() {
+        return interval;
+    }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
+
 }

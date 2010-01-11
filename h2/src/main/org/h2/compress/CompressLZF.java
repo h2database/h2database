@@ -42,7 +42,7 @@ package org.h2.compress;
  * </p>
  * <ul>
  * <li>Each instance should be used by a single thread only.</li>
- * <li>The data buffers must be smaller than 2^31.</li>
+ * <li>The data buffers should be smaller than 1 GB.</li>
  * <li>For performance reasons, safety checks on expansion are omitted.</li>
  * <li>Invalid compressed data can cause an ArrayIndexOutOfBoundsException.</li>
  * </ul>

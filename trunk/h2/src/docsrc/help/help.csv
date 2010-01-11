@@ -391,7 +391,8 @@ When defining a function alias with source code, the Sun javac is compiler
 is used if the tools.jar is in the classpath. If not, javac is run as a separate process.
 Only the source code is stored in the database; the class is compiled each time
 the database is re-opened. Source code is usually passed
-as dollar quoted text to avoid escaping problems.
+as dollar quoted text to avoid escaping problems. If import statements are used,
+then the tag @CODE must be added before the method.
 
 If the first parameter of the Java function is a java.sql.Connection, then a
 connection to the database is provided. This connection must not be closed.

@@ -45,9 +45,14 @@ public class PgServer implements Service {
      */
     public static final int DEFAULT_PORT = 5435;
 
+    /**
+     * The VARCHAR type.
+     */
+    public static final int PG_TYPE_VARCHAR = 1043;
+
     private static final int PG_TYPE_BOOL = 16;
     private static final int PG_TYPE_BYTEA = 17;
-    private static final int PG_TYPE_CHAR = 18;
+    private static final int PG_TYPE_BPCHAR = 1042;
     private static final int PG_TYPE_INT8 = 20;
     private static final int PG_TYPE_INT2 = 21;
     private static final int PG_TYPE_INT4 = 23;
@@ -57,11 +62,12 @@ public class PgServer implements Service {
     private static final int PG_TYPE_FLOAT8 = 701;
     private static final int PG_TYPE_UNKNOWN = 705;
     private static final int PG_TYPE_TEXTARRAY = 1009;
-    private static final int PG_TYPE_VARCHAR = 1043;
     private static final int PG_TYPE_DATE = 1082;
     private static final int PG_TYPE_TIME = 1083;
     private static final int PG_TYPE_TIMESTAMP_NO_TMZONE = 1114;
     private static final int PG_TYPE_NUMERIC = 1700;
+
+    private HashSet<Integer> typeSet = New.hashSet();
 
     private int port = PgServer.DEFAULT_PORT;
     private boolean stop;
@@ -102,8 +108,8 @@ public class PgServer implements Service {
             }
         }
         org.h2.Driver.load();
-//        int testing;
-//        log = true;
+        // int testing;
+        // trace = true;
     }
 
     boolean getTrace() {
@@ -410,7 +416,7 @@ public class PgServer implements Service {
         case Types.CLOB:
             return PG_TYPE_TEXT;
         case Types.CHAR:
-            return PG_TYPE_CHAR;
+            return PG_TYPE_BPCHAR;
         case Types.SMALLINT:
             return PG_TYPE_INT2;
         case Types.INTEGER:
@@ -437,6 +443,27 @@ public class PgServer implements Service {
             return PG_TYPE_TEXTARRAY;
         default:
             return PG_TYPE_UNKNOWN;
+        }
+    }
+
+    /**
+     * Get the type hash set.
+     *
+     * @return the type set
+     */
+    HashSet<Integer> getTypeSet() {
+        return typeSet;
+    }
+
+    /**
+     * Check whether a data type is supported.
+     * A warning is logged if not.
+     *
+     * @param type the type
+     */
+    void checkType(int type) {
+        if (!typeSet.contains(type)) {
+            trace("Unsupported type: " + type);
         }
     }
 

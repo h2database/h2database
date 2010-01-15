@@ -12,8 +12,10 @@ import java.sql.DriverManager;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
@@ -68,6 +70,11 @@ public class TestPgServer extends TestBase {
         prep.execute();
         ResultSet rs = stat.executeQuery("select * from test");
         rs.next();
+
+        ResultSetMetaData rsMeta = rs.getMetaData();
+        assertEquals(Types.INTEGER, rsMeta.getColumnType(1));
+        assertEquals(Types.VARCHAR, rsMeta.getColumnType(2));
+
         prep.close();
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));

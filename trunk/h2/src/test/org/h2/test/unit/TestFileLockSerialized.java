@@ -36,6 +36,8 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
+        println("testAutoIncrement");
+        testAutoIncrement();
         println("testSequenceFlush");
         testSequenceFlush();
         println("testLeftLogFiles");
@@ -308,6 +310,79 @@ public class TestFileLockSerialized extends TestBase {
         }
     }
 
+    private void testAutoIncrement() throws Exception {
+        boolean longRun = false;
+        if (longRun) {
+            for (int waitTime = 100; waitTime < 10000; waitTime += 20) {
+                for (int howManyThreads = 1; howManyThreads < 10; howManyThreads++) {
+                    testAutoIncrement(waitTime, howManyThreads, 2000);
+                }
+            }
+        } else {
+            testAutoIncrement(400, 2, 2000);
+        }
+    }
+
+    private void testAutoIncrement(final int waitTime, int howManyThreads, int runTime) throws Exception {
+        println("testAutoIncrement waitTime: " + waitTime + " howManyThreads: " + howManyThreads + " runTime: " + runTime);
+        deleteDb("fileLockSerialized");
+        final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
+                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;LOG=2;CACHE_SIZE=65536";
+
+        Connection c = DriverManager.getConnection(url);
+        c.createStatement().execute("create table test(id int auto_increment, id2 int)");
+        c.close();
+
+        final long endTime = System.currentTimeMillis() + runTime;
+        final Exception[] ex = new Exception[1];
+        final Connection[] connList = new Connection[howManyThreads];
+        final boolean[] stop = new boolean[1];
+        final int[] nextInt = { 0 };
+        Thread[] threads = new Thread[howManyThreads];
+        for (int i = 0; i < howManyThreads; i++) {
+            final int finalNrOfConnection = i;
+            Thread t = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        Connection c = DriverManager.getConnection(url);
+                        connList[finalNrOfConnection] = c;
+                        while (!stop[0]) {
+                            synchronized (nextInt) {
+                                ResultSet rs = c.createStatement().executeQuery("select id, id2 from test");
+                                while (rs.next()) {
+                                    if (rs.getInt(1) != rs.getInt(2)) {
+                                        throw new Exception(Thread.currentThread().getId() + " nextInt: " + nextInt [0] + " rs.getInt(1): " + rs.getInt(1) + " rs.getInt(2): " + rs.getInt(2));
+                                    }
+                                }
+                                nextInt[0]++;
+                                c.createStatement().execute("insert into test (id2) values(" + nextInt[0] + ")");
+                            }
+                            Thread.sleep(waitTime);
+                        }
+                        c.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        ex[0] = e;
+                    }
+                }
+            });
+            t.start();
+            threads[i] = t;
+        }
+        while ((ex[0] == null) && (System.currentTimeMillis() < endTime)) {
+            Thread.sleep(10);
+        }
+
+        stop[0] = true;
+        for (int i = 0; i < howManyThreads; i++) {
+            threads[i].join();
+        }
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        DriverManager.getConnection(url).close();
+        deleteDb("fileLockSerialized");
+    }
 
     private void testConcurrentUpdates(final int waitTime, int howManyThreads, int runTime) throws Exception {
         println("testConcurrentUpdates waitTime: " + waitTime + " howManyThreads: " + howManyThreads + " runTime: " + runTime);

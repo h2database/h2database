@@ -86,6 +86,7 @@ public class Session extends SessionWithState {
     private int systemIdentifier;
     private HashMap<String, Procedure> procedures;
     private boolean undoLogEnabled = true;
+    private boolean redoLogBinary = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAt;
@@ -1010,6 +1011,10 @@ public class Session extends SessionWithState {
         this.undoLogEnabled = b;
     }
 
+    public void setRedoLogBinary(boolean b) {
+        this.redoLogBinary = b;
+    }
+
     public boolean isUndoLogEnabled() {
         return undoLogEnabled;
     }
@@ -1173,6 +1178,10 @@ public class Session extends SessionWithState {
 
     public Value getScopeIdentity() {
         return scopeIdentity;
+    }
+
+    public boolean isRedoLogBinaryEnabled() {
+        return redoLogBinary;
     }
 
 }

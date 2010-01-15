@@ -245,6 +245,11 @@ public class Set extends Prepared {
             session.setQueryTimeout(value);
             break;
         }
+        case SetTypes.REDO_LOG_BINARY: {
+            int value = getIntValue();
+            session.setRedoLogBinary(value == 1);
+            break;
+        }
         case SetTypes.REFERENTIAL_INTEGRITY: {
             session.getUser().checkAdmin();
             int value = getIntValue();

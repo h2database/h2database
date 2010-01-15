@@ -299,6 +299,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+increment storage read version
+
 update copyright to 2010
 
 outer join bug

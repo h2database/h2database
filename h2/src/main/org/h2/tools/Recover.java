@@ -1015,6 +1015,8 @@ public class Recover extends Tool implements DataHandler {
                 byte[] data = new byte[pageSize];
                 if (size == 0) {
                     in.readFully(data, 0, pageSize);
+                } else if (size == 1) {
+                    // empty
                 } else {
                     byte[] compressBuffer = new byte[size];
                     in.readFully(compressBuffer, 0, size);

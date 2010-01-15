@@ -137,8 +137,8 @@ public class PageStore implements CacheWriter {
 
     private static final int INCREMENT_PAGES = 128;
 
-    private static final int READ_VERSION = 2;
-    private static final int WRITE_VERSION = 2;
+    private static final int READ_VERSION = 3;
+    private static final int WRITE_VERSION = 3;
 
     private static final int META_TYPE_SCAN_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
@@ -202,6 +202,8 @@ public class PageStore implements CacheWriter {
      * pages with change count 0 can be evicted from the cache.
      */
     private int changeCount = 1;
+
+    private Data emptyPage;
 
     /**
      * Create a new page store object.
@@ -632,6 +634,7 @@ public class PageStore implements CacheWriter {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
         }
         pageSize = size;
+        emptyPage = createData();
         pageSizeShift = shift;
     }
 
@@ -665,7 +668,7 @@ public class PageStore implements CacheWriter {
     private void writeVariableHeader() throws SQLException {
         Data page = createData();
         page.writeInt(0);
-        page.writeLong(writeCount);
+        page.writeLong(getWriteCountTotal());
         page.writeInt(logKey);
         page.writeInt(logFirstTrunkPage);
         page.writeInt(logFirstDataPage);
@@ -739,10 +742,12 @@ public class PageStore implements CacheWriter {
             database.checkWritingAllowed();
             if (!recoveryRunning) {
                 int pos = record.getPos();
-                if (old == null) {
-                    old = readPage(pos);
+                if (!log.getUndo(pos)) {
+                    if (old == null) {
+                        old = readPage(pos);
+                    }
+                    log.addUndo(pos, old);
                 }
-                log.addUndo(pos, old);
             }
         }
     }
@@ -847,7 +852,11 @@ public class PageStore implements CacheWriter {
      * @return the page id
      */
     public int allocatePage() throws SQLException {
-        return allocatePage(null, 0);
+        int pos = allocatePage(null, 0);
+        if (!recoveryRunning) {
+            log.addUndo(pos, emptyPage);
+        }
+        return pos;
     }
 
     private int allocatePage(BitField exclude, int first) throws SQLException {

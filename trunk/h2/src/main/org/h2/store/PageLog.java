@@ -9,6 +9,7 @@ package org.h2.store;
 import java.io.EOFException;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import org.h2.compress.CompressLZF;
 import org.h2.constant.ErrorCode;
@@ -26,6 +27,7 @@ import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Transaction log mechanism. The stream contains a list of records. The data
@@ -45,8 +47,9 @@ public class PageLog {
     public static final int NOOP = 0;
 
     /**
-     * An undo log entry.
-     * Format: page id: varInt, page.
+     * An undo log entry. Format: page id: varInt, size, page. Size 0 means
+     * uncompressed, size 1 means empty page, otherwise the size is the number
+     * of compressed bytes.
      */
     public static final int UNDO = 1;
 
@@ -255,6 +258,9 @@ public class PageLog {
                     int size = in.readVarInt();
                     if (size == 0) {
                         in.readFully(data.getBytes(), 0, store.getPageSize());
+                    } else if (size == 1) {
+                        // empty
+                        Arrays.fill(data.getBytes(), 0, store.getPageSize(), (byte) 0);
                     } else {
                         in.readFully(compressBuffer, 0, size);
                         compress.expand(compressBuffer, 0, size, data.getBytes(), 0, store.getPageSize());
@@ -424,6 +430,16 @@ public class PageLog {
     }
 
     /**
+     * Check if the undo entry was already written for the given page.
+     *
+     * @param pageId the page
+     * @return true if it was written
+     */
+    boolean getUndo(int pageId) {
+        return undo.get(pageId);
+    }
+
+    /**
      * Add an undo entry to the log. The page data is only written once until
      * the next checkpoint.
      *
@@ -446,22 +462,26 @@ public class PageLog {
             Data buffer = getBuffer();
             buffer.writeByte((byte) UNDO);
             buffer.writeVarInt(pageId);
-            int pageSize = store.getPageSize();
-            if (COMPRESS_UNDO) {
-                int size = compress.compress(page.getBytes(), pageSize, compressBuffer, 0);
-                if (size < pageSize) {
-                    buffer.writeVarInt(size);
-                    buffer.checkCapacity(size);
-                    buffer.write(compressBuffer, 0, size);
+            if (page.getBytes()[0] == 0) {
+                buffer.writeVarInt(1);
+            } else {
+                int pageSize = store.getPageSize();
+                if (COMPRESS_UNDO) {
+                    int size = compress.compress(page.getBytes(), pageSize, compressBuffer, 0);
+                    if (size < pageSize) {
+                        buffer.writeVarInt(size);
+                        buffer.checkCapacity(size);
+                        buffer.write(compressBuffer, 0, size);
+                    } else {
+                        buffer.writeVarInt(0);
+                        buffer.checkCapacity(pageSize);
+                        buffer.write(page.getBytes(), 0, pageSize);
+                    }
                 } else {
                     buffer.writeVarInt(0);
                     buffer.checkCapacity(pageSize);
                     buffer.write(page.getBytes(), 0, pageSize);
                 }
-            } else {
-                buffer.writeVarInt(0);
-                buffer.checkCapacity(pageSize);
-                buffer.write(page.getBytes(), 0, pageSize);
             }
             write(buffer);
         } catch (IOException e) {
@@ -579,8 +599,19 @@ public class PageLog {
             int columns = row.getColumnCount();
             data.writeVarInt(columns);
             data.checkCapacity(row.getByteCount(data));
-            for (int i = 0; i < columns; i++) {
-                data.writeValue(row.getValue(i));
+            if (session.isRedoLogBinaryEnabled()) {
+                for (int i = 0; i < columns; i++) {
+                    data.writeValue(row.getValue(i));
+                }
+            } else {
+                for (int i = 0; i < columns; i++) {
+                    Value v = row.getValue(i);
+                    if (v.getType() == Value.BYTES) {
+                        data.writeValue(ValueNull.INSTANCE);
+                    } else {
+                        data.writeValue(v);
+                    }
+                }
             }
             Data buffer = getBuffer();
             buffer.writeByte((byte) (add ? ADD : REMOVE));

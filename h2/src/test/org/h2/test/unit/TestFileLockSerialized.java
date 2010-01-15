@@ -36,6 +36,8 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
+        println("testSequenceFlush");
+        testSequenceFlush();
         println("testLeftLogFiles");
         testLeftLogFiles();
         println("testWrongDatabaseInstanceOnReconnect");
@@ -64,6 +66,25 @@ public class TestFileLockSerialized extends TestBase {
         testKillWriter();
         println("testConcurrentReadWrite");
         testConcurrentReadWrite();
+    }
+
+    private void testSequenceFlush() throws Exception {
+        deleteDb("fileLockSerialized");
+        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        ResultSet rs;
+        Connection conn1 = DriverManager.getConnection(url);
+        Statement stat1 = conn1.createStatement();
+        stat1.execute("create sequence seq");
+        rs = stat1.executeQuery("call seq.nextval");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        Connection conn2 = DriverManager.getConnection(url);
+        Statement stat2 = conn2.createStatement();
+        rs = stat2.executeQuery("call seq.nextval");
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        conn1.close();
+        conn2.close();
     }
 
     private void testThreeMostlyReaders(final boolean write) throws Exception {

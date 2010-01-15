@@ -18,11 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>File system: getting the file name from a path is now faster. This should
+<ul><li>Page store: new databases can not be opened with older versions.
+</li><li>Page store: adding data to new database is now faster.
+</li><li>File system: getting the file name from a path is now faster. This should
     speed up BLOB and CLOB access.
 </li><li>PgServer: incorrect SQL types were returned in result set meta data.
     Concurrently opening a database could fail (PG catalog initialization was not synchronized).
-    Thanks a lot to S. Vladykin for providing the patches!
+    Thanks a lot to Sergi Vladykin for providing the patches!
 </li><li>SHOW COLUMNS did not work correctly if there where multiple indexes
     on the same columns.
 </li><li>Page store: the wrong write count was written to the database header.

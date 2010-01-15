@@ -41,7 +41,7 @@ public class ByteUtils {
     /**
      * Write a long value to the byte array.
      *
-     * @param buffthe byte array
+     * @param buff the byte array
      * @param pos the position
      * @param x the value
      */

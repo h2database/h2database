@@ -194,6 +194,11 @@ public class SetTypes {
      */
     public static final int QUERY_TIMEOUT = 36;
 
+    /**
+     * The type of a SET REDO_LOG_BINARY statement.
+     */
+    public static final int REDO_LOG_BINARY = 37;
+
     private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {
@@ -239,6 +244,7 @@ public class SetTypes {
         list.add(CREATE_BUILD, "CREATE_BUILD");
         list.add(VARIABLE, "@");
         list.add(QUERY_TIMEOUT, "QUERY_TIMEOUT");
+        list.add(REDO_LOG_BINARY, "REDO_LOG_BINARY");
     }
 
     /**

@@ -120,7 +120,7 @@ public class FileSystemDebug extends FileSystem {
         return PREFIX + FileSystem.getInstance(fileName).getAbsolutePath(fileName);
     }
 
-    public String getFileName(String name) throws SQLException {
+    public String getFileName(String name) {
         name = translateFileName(name);
         trace("getFileName", name);
         return FileSystem.getInstance(name).getFileName(name);

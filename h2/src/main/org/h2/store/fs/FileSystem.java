@@ -280,7 +280,7 @@ public abstract class FileSystem {
      * @param name the directory and file name
      * @return just the file name
      */
-    public abstract String getFileName(String name) throws SQLException;
+    public abstract String getFileName(String name);
 
     /**
      * Check if a file starts with a given prefix.

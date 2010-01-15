@@ -359,19 +359,9 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public String getFileName(String name) throws SQLException {
+    public String getFileName(String name) {
         name = translateFileName(name);
-        String separator = SysProperties.FILE_SEPARATOR;
-        String path = getParent(name);
-        if (!path.endsWith(separator)) {
-            path += separator;
-        }
-        String fullFileName = normalize(name);
-        if (!fullFileName.startsWith(path)) {
-            Message.throwInternalError("file utils error: " + fullFileName + " does not start with " + path);
-        }
-        String fileName = fullFileName.substring(path.length());
-        return fileName;
+        return new File(name).getName();
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {

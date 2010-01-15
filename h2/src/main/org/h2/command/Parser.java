@@ -812,12 +812,15 @@ public class Parser {
             buff.append("C.COLUMN_NAME FIELD, " +
                     "C.TYPE_NAME || '(' || C.NUMERIC_PRECISION || ')' TYPE, " +
                     "C.IS_NULLABLE \"NULL\", " +
-                    "CASE I.INDEX_TYPE_NAME WHEN 'PRIMARY KEY' THEN 'PRI' WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END KEY, " +
-                    "IFNULL(COLUMN_DEFAULT, 'NULL') DEFAULT " +
-                    "FROM INFORMATION_SCHEMA.COLUMNS C LEFT OUTER JOIN INFORMATION_SCHEMA.INDEXES I " +
-                    "ON I.TABLE_SCHEMA=C.TABLE_SCHEMA " +
+                    "CASE (SELECT MAX(I.INDEX_TYPE_NAME) FROM " +
+                    "INFORMATION_SCHEMA.INDEXES I " +
+                    "WHERE I.TABLE_SCHEMA=C.TABLE_SCHEMA " +
                     "AND I.TABLE_NAME=C.TABLE_NAME " +
-                    "AND I.COLUMN_NAME=C.COLUMN_NAME " +
+                    "AND I.COLUMN_NAME=C.COLUMN_NAME)" +
+                    "WHEN 'PRIMARY KEY' THEN 'PRI' " +
+                    "WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END KEY, " +
+                    "IFNULL(COLUMN_DEFAULT, 'NULL') DEFAULT " +
+                    "FROM INFORMATION_SCHEMA.COLUMNS C " +
                     "WHERE C.TABLE_NAME=? AND C.TABLE_SCHEMA=? " +
                     "ORDER BY C.ORDINAL_POSITION");
             paramValues.add(ValueString.get(schema));

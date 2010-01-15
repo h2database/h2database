@@ -328,10 +328,6 @@ There are various ways to analyze an application. Sometimes two implementations 
 <code>System.currentTimeMillis()</code>. But this does not work for complex applications with many modules, and for memory problems.
 </p>
 <p>
-A good tool to measure both memory usage and performance is the
-<a href="http://www.yourkit.com">YourKit Java Profiler</a>.
-</p>
-<p>
 A simple way to profile an application is to use the built-in profiling tool of java. Example:
 </p>
 <pre>
@@ -343,6 +339,18 @@ a number of full thread dumps. To do that, first run <code>jps -l</code> to get 
 run <code>jstack &lt;pid&gt;</code> or <code>kill -QUIT &lt;pid&gt;</code> (Linux) or press
 Ctrl+C (Windows).
 </p>
+<p>
+A simple profiling tool is included in H2. To use it, the application needs to be changed slightly. Example:
+</p>
+<pre>
+import org.h2.util;
+...
+profiler = new Profiler();
+profiler.startCollecting();
+// application code
+profiler.stopCollecting();
+System.out.println(profiler.getTop(3));
+</pre>
 
 <h2 id="database_profiling">Database Profiling</h2>
 <p>

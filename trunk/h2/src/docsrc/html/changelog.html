@@ -18,7 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Result sets larger than 2 GB threw an exception "Negative seek offset". Fixed.
+<ul><li>File system: getting the file name from a path is now faster. This should
+    speed up BLOB and CLOB access.
+</li><li>PgServer: incorrect SQL types were returned in result set meta data.
+    Concurrently opening a database could fail (PG catalog initialization was not synchronized).
+    Thanks a lot to S. Vladykin for providing the patches!
+</li><li>SHOW COLUMNS did not work correctly if there where multiple indexes
+    on the same columns.
+</li><li>Page store: the wrong write count was written to the database header.
+    This could cause the server-less multi-connection mode to fail.
+</li><li>Result sets larger than 2 GB threw an exception "Negative seek offset". Fixed.
 </li><li>If the system property h2.check was set to false, an ArrayIndexOutOfBoundsException could occur.
 </li><li>Alter table is now supported even if a table has views defined.
 </li><li>Fulltext search: exceptions within the fulltext search package had the wrong SQL state.

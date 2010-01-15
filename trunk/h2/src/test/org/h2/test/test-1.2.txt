@@ -1,4 +1,24 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int primary key, name varchar(255), x int);
+> ok
+
+create unique index idx_name1 on test(name);
+> ok
+
+create unique index idx_name2 on test(name);
+> ok
+
+show columns from test;
+> FIELD TYPE         NULL KEY DEFAULT
+> ----- ------------ ---- --- -------
+> ID    INTEGER(10)  NO   PRI NULL
+> NAME  VARCHAR(255) YES  UNI NULL
+> X     INTEGER(10)  YES      NULL
+> rows: 3
+
+drop table test;
+> ok
+
 create table a(a int) as select 1;
 > ok
 

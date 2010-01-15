@@ -99,7 +99,7 @@ public class FileSystemSplit extends FileSystem {
         return FileSystem.PREFIX_SPLIT + getFileSystem(fileName).getAbsolutePath(fileName);
     }
 
-    public String getFileName(String name) throws SQLException {
+    public String getFileName(String name) {
         name = translateFileName(name);
         return getFileSystem(name).getFileName(name);
     }

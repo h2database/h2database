@@ -43,7 +43,6 @@ import org.h2.util.ScriptReader;
  * One server thread is opened for each client.
  */
 public class PgServerThread implements Runnable {
-    private static final int TYPE_STRING = Types.VARCHAR;
     private PgServer server;
     private Socket socket;
     private Connection conn;
@@ -63,7 +62,6 @@ public class PgServerThread implements Runnable {
     private String dateStyle = "ISO";
     private HashMap<String, Prepared> prepared = New.hashMap();
     private HashMap<String, Portal> portals = New.hashMap();
-    private HashSet<Integer> typeSet = New.hashSet();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;
@@ -163,7 +161,7 @@ public class PgServerThread implements Runnable {
                     } else if ("DateStyle".equals(param)) {
                         dateStyle = value;
                     }
-                    // server.log(" param " + param + "=" + value);
+                    server.trace(" param " + param + "=" + value);
                 }
                 sendAuthenticationCleartextPassword();
                 initDone = true;
@@ -210,7 +208,7 @@ public class PgServerThread implements Runnable {
             p.paramType = new int[count];
             for (int i = 0; i < count; i++) {
                 int type = readInt();
-                checkType(type);
+                server.checkType(type);
                 p.paramType[i] = type;
             }
             try {
@@ -373,12 +371,6 @@ public class PgServerThread implements Runnable {
         }
     }
 
-    private void checkType(int type) {
-        if (typeSet.contains(type)) {
-            server.trace("Unsupported type: " + type);
-        }
-    }
-
     private String getSQL(String s) {
         String lower = s.toLowerCase();
         if (lower.startsWith("show max_identifier_length")) {
@@ -495,9 +487,9 @@ public class PgServerThread implements Runnable {
                 if (p.paramType != null && p.paramType[i] != 0) {
                     type = p.paramType[i];
                 } else {
-                    type = TYPE_STRING;
+                    type = PgServer.PG_TYPE_VARCHAR;
                 }
-                checkType(type);
+                server.checkType(type);
                 writeInt(type);
             }
             sendMessage();
@@ -523,8 +515,9 @@ public class PgServerThread implements Runnable {
                 for (int i = 0; i < columns; i++) {
                     names[i] = meta.getColumnName(i + 1);
                     int type = meta.getColumnType(i + 1);
+                    type = PgServer.convertType(type);
                     precision[i] = meta.getColumnDisplaySize(i + 1);
-                    checkType(type);
+                    server.checkType(type);
                     types[i] = type;
                 }
                 startMessage('T');
@@ -588,37 +581,42 @@ public class PgServerThread implements Runnable {
         ResultSet rs = null;
         Reader r = null;
         try {
-            rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null);
-            boolean tableFound = rs.next();
-            stat = conn.createStatement();
-            if (tableFound) {
-                rs = stat.executeQuery("SELECT VERSION FROM PG_CATALOG.PG_VERSION");
-                if (rs.next()) {
-                    if (rs.getInt(1) == 1) {
-                        // already installed
-                        stat.execute("set search_path = PUBLIC, pg_catalog");
-                        return;
+            synchronized (server) {
+                // better would be: set the database to exclusive mode
+                rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null);
+                boolean tableFound = rs.next();
+                stat = conn.createStatement();
+                if (!tableFound) {
+                    try {
+                        r = new InputStreamReader(new ByteArrayInputStream(Resources
+                                .get("/org/h2/server/pg/pg_catalog.sql")));
+                    } catch (IOException e) {
+                        throw Message.convertIOException(e, "Can not read pg_catalog resource");
                     }
+                    ScriptReader reader = new ScriptReader(r);
+                    while (true) {
+                        String sql = reader.readStatement();
+                        if (sql == null) {
+                            break;
+                        }
+                        stat.execute(sql);
+                    }
+                    reader.close();
                 }
             }
-            try {
-                r = new InputStreamReader(new ByteArrayInputStream(Resources.get("/org/h2/server/pg/pg_catalog.sql")));
-            } catch (IOException e) {
-                throw Message.convertIOException(e, "Can not read pg_catalog resource");
-            }
-            ScriptReader reader = new ScriptReader(r);
-            while (true) {
-                String sql = reader.readStatement();
-                if (sql == null) {
-                    break;
-                }
-                stat.execute(sql);
-            }
-            reader.close();
 
-            rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
-            while (rs.next()) {
-                typeSet.add(rs.getInt(1));
+            rs = stat.executeQuery("SELECT VERSION FROM PG_CATALOG.PG_VERSION");
+            if (!rs.next() || rs.getInt(1) != 1) {
+                throw Message.throwInternalError("Invalid PG_VERSION");
+            }
+            stat.execute("set search_path = PUBLIC, pg_catalog");
+
+            HashSet<Integer> typeSet = server.getTypeSet();
+            if (typeSet.size() == 0) {
+                rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
+                while (rs.next()) {
+                    typeSet.add(rs.getInt(1));
+                }
             }
         } finally {
             JdbcUtils.closeSilently(stat);

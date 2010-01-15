@@ -18,8 +18,8 @@ import java.io.*;
 byte[] firstBytes(InputStream in, int len) throws IOException {
     try {
         byte[] data = new byte[len];
-        DataInputStream din = new DataInputStream(in);
-        din.readFully(data, 0, len);
+        DataInputStream dIn = new DataInputStream(in);
+        dIn.readFully(data, 0, len);
         return data;
     } finally {
         in.close();

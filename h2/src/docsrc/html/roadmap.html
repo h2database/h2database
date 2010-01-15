@@ -188,6 +188,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index
 </li><li>Use LinkedList instead of ArrayList where applicable
+</li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support % operator (modulo)
 </li><li>Support JMX: create an MBean for each database and server (support JConsole).
     See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html
@@ -218,7 +219,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Benchmark: add a graph to show how databases scale (performance/database size)
 </li><li>Implement a SQLData interface to map your data over to a custom object
 </li><li>In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
-</li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support multiple directories (on different hard drives) for the same database
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response
 </li><li>Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
@@ -469,6 +469,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Cluster: support load balance with values for each server / auto detect.
 </li><li>Implement GiST (Generalized Search Tree for Secondary Storage).
 </li><li>Function to read a number of bytes/characters from an BLOB or CLOB.
+</li><li>Issue 156: Support SELECT ? UNION SELECT ?.
 </li></ul>
 
 <h2>Not Planned</h2>

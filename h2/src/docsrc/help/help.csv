@@ -441,7 +441,7 @@ ON tableName ( indexColumn [,...] )
 Creates a new index.
 This command commits an open transaction.
 
-Hash indexes are kept in memory. They can only test for equality, and do not support 
+Hash indexes are kept in memory. They can only test for equality, and do not support
 range queries (similar to a hash table). They do support non-unique keys.
 A multi-column hash index is only used if all column values are known.
 ","

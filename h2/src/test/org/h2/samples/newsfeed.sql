@@ -13,6 +13,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(77,
+'New version available: 1.2.127 (2010-01-15)', '2009-12-18 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(76,
 'New version available: 1.2.126 (2009-12-18)', '2009-12-18 12:00:00',
 $$A new version of H2 is available for
@@ -290,33 +303,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Fulltext search: searching for NULL or an empty string threw an exception.
 </li><li>Lucene fulltext search: FTL_DROP_ALL did not drop triggers.
 </li><li>Backup: the backup could included a file entry for the LOB directory.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(64,
-'New version available: 1.1.114 (2009-06-01)', '2009-06-01 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Java 1.5 is now required to run H2.
-</li><li>Fulltext search: data is no longer deleted and
-    re-inserted if there was no change.
-</li><li>Microsoft Windows: when using the the installer, Vista wrote
-    "This program may not have installed correctly."
-    This message should no longer appear.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>ResultSetMetaData.getColumnClassName returned the wrong
-    class for CLOB and BLOB columns.
-</li><li>In some situations, an ArrayIndexOutOfBoundsException was
-    thrown when adding rows.
-</li><li>The Recover tool did not always work.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

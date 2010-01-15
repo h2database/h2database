@@ -100,6 +100,16 @@ public class Sequence extends SchemaObjectBase {
     }
 
     /**
+     * Flush the current value to disk.
+     */
+    public void flushWithoutMargin() throws SQLException {
+        if (valueWithMargin != value) {
+            valueWithMargin = value;
+            flush(null);
+        }
+    }
+
+    /**
      * Flush the current value, including the margin, to disk.
      *
      * @param session the session
@@ -133,8 +143,7 @@ public class Sequence extends SchemaObjectBase {
      * Flush the current value to disk and close this object.
      */
     public void close() throws SQLException {
-        valueWithMargin = value;
-        flush(null);
+        flushWithoutMargin();
     }
 
     public int getType() {

@@ -2412,6 +2412,7 @@ public class Database implements DataHandler {
             synchronized (this) {
                 getTrace().debug("checkpoint start");
                 flushIndexes(0);
+                flushSequences();
                 checkpoint();
                 reconnectModified(false);
                 getTrace().debug("checkpoint end");
@@ -2455,6 +2456,13 @@ public class Database implements DataHandler {
         }
     }
 
+    private void flushSequences() throws SQLException {
+        for (SchemaObject obj : getAllSchemaObjects(DbObject.SEQUENCE)) {
+            Sequence sequence = (Sequence) obj;
+            sequence.flushWithoutMargin();
+        }
+    }
+
     /**
      * Flush all changes and open a new log file.
      */
@@ -2463,7 +2471,6 @@ public class Database implements DataHandler {
             if (pageStore != null) {
                 pageStore.checkpoint();
             }
-            LogSystem log = getLog();
             if (log != null) {
                 log.checkpoint();
             }

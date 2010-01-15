@@ -299,6 +299,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+power failure test: larger binaries and additional indexes
+(with many columns).
+
 increment storage read version
 
 update copyright to 2010

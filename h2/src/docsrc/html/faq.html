@@ -155,12 +155,16 @@ In addition to that, running out of memory should be avoided.
 In older versions, OutOfMemory errors while using the database could corrupt a databases.
 </p>
 <p>
-Areas that are not fully tested:
+Some areas of this database are not fully tested.
+When using one of those features for production, please ensure your use case 
+is well tested (if possible with automated test cases).
+Those areas are:
 </p>
 <ul>
 <li>Platforms other than Windows XP, Linux, Mac OS X, or JVMs other than Sun 1.5 or 1.6
 </li><li>The features <code>AUTO_SERVER</code> and
     <code>AUTO_RECONNECT</code>
+</li><li>The file locking method 'Serialized'
 </li><li>The MVCC (multi version concurrency) mode
 </li><li>Cluster mode, 2-phase commit, savepoints
 </li><li>24/7 operation

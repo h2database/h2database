@@ -48,6 +48,8 @@ Advanced
     Using the Recover Tool</a><br />
 <a href="#file_locking_protocols">
     File Locking Protocols</a><br />
+<a href="#file_locking_serialized">
+    File Locking Method 'Serialized'</a><br />
 <a href="#sql_injection">
     Protection against SQL Injection</a><br />
 <a href="#remote_access">
@@ -839,6 +841,25 @@ This method does not require a watchdog thread actively polling (reading) the sa
 file every second. The problem with this method is, if the file is stored on a network
 share, two processes (running on different computers) could still open the same
 database files, if they do not have a direct TCP/IP connection.
+</p>
+
+<h2 id="file_locking_serialized">File Locking Method 'Serialized'</h2>
+<p>
+This locking mode allows to open multiple connections to the same database.
+The connections may be opened from multiple processes and from different computers.
+When writing to the database, access is automatically synchronized internally. Write operations
+are slower than when using the server mode, and concurrency is relatively poor.
+The advantage of this mode is that there is no need to start a server.
+</p>
+<p>
+To enable this feature, append <code>;FILE_LOCK=SERIALIZED</code> to the database URL.
+</p>
+<p>
+This feature is relatively new. When using it for production, please ensure
+your use case is well tested (if possible with automated test cases).
+To simulate opening the same database from multiple computers within
+a test case, also append <code>;OPEN_NEW=TRUE</code> to the database URL
+(this feature is not needed in production).
 </p>
 
 <h2 id="sql_injection">Protection against SQL Injection</h2>

@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
+Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
@@ -74,6 +74,12 @@ Advanced
     Glossary and Links</a><br />
 
 <h2 id="result_sets">Result Sets</h2>
+
+<h3>Statements that Return a Result Set</h3>
+<p>
+The following statements return a result set: <code>SELECT, EXPLAIN, CALL, SCRIPT</code>.
+All other statements return an update count.
+</p>
 
 <h3>Limiting the Number of Rows</h3>
 <p>
@@ -857,9 +863,6 @@ To enable this feature, append <code>;FILE_LOCK=SERIALIZED</code> to the databas
 <p>
 This feature is relatively new. When using it for production, please ensure
 your use case is well tested (if possible with automated test cases).
-To simulate opening the same database from multiple computers within
-a test case, also append <code>;OPEN_NEW=TRUE</code> to the database URL
-(this feature is not needed in production).
 </p>
 
 <h2 id="sql_injection">Protection against SQL Injection</h2>

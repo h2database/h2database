@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -89,6 +89,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
 
     /**
      * Returns the data type of a column.
+     * See also java.sql.Type.
      *
      * @param column the column index (1,2,...)
      * @return the data type
@@ -109,7 +110,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * Returns the data type name of a column.
      *
      * @param column the column index (1,2,...)
-     * @return the data type
+     * @return the data type name
      * @throws SQLException if the result set is closed or invalid
      */
     public String getColumnTypeName(int column) throws SQLException {

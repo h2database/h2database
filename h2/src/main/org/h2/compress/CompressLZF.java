@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Copyright (c) 2000-2005 Marc Alexander Lehmann <schmorp@schmorp.de>
@@ -213,6 +213,9 @@ public final class CompressLZF implements Compressor {
     }
 
     public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) {
+        if (inPos < 0 || outPos < 0 || outLen < 0) {
+            throw new IllegalArgumentException();
+        }
         do {
             int ctrl = in[inPos++] & 255;
             if (ctrl < MAX_LITERAL) {
@@ -243,10 +246,14 @@ public final class CompressLZF implements Compressor {
 
                 // copy the back-reference bytes from the given
                 // location in output to current position
-                for (int i = 0; i < len; i++) {
-                    out[outPos + i] = out[outPos + ctrl + i];
+                ctrl += outPos;
+                if (outPos + len >= out.length) {
+                    // reduce array bounds checking
+                    throw new ArrayIndexOutOfBoundsException();
                 }
-                outPos += len;
+                for (int i = 0; i < len; i++) {
+                    out[outPos++] = out[ctrl++];
+                }
             }
         } while (outPos < outLen);
     }

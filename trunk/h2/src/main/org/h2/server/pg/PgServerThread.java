@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,7 +25,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.constant.SysProperties;
@@ -544,9 +543,9 @@ public class PgServerThread implements Runnable {
         }
     }
 
-    private int getTypeSize(int type, int precision) {
-        switch (type) {
-        case Types.VARCHAR:
+    private int getTypeSize(int pgType, int precision) {
+        switch (pgType) {
+        case PgServer.PG_TYPE_VARCHAR:
             return Math.max(255, precision + 10);
         default:
             return precision + 4;

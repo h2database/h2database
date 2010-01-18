@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -299,12 +299,14 @@ java org.h2.test.TestAll timer
 
 /*
 
+performance: ensure array bound checking optimization: Data
+
 power failure test: larger binaries and additional indexes
 (with many columns).
 
-increment storage read version
+instead of trigger on views
 
-update copyright to 2010
+pseudo column rowid, oid, _rowid_
 
 outer join bug
 

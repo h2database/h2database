@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -329,9 +329,9 @@ public class TestFileLockSerialized extends TestBase {
         final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
                 "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;LOG=2;CACHE_SIZE=65536";
 
-        Connection c = DriverManager.getConnection(url);
-        c.createStatement().execute("create table test(id int auto_increment, id2 int)");
-        c.close();
+        Connection conn = DriverManager.getConnection(url);
+        conn.createStatement().execute("create table test(id int auto_increment, id2 int)");
+        conn.close();
 
         final long endTime = System.currentTimeMillis() + runTime;
         final Exception[] ex = new Exception[1];

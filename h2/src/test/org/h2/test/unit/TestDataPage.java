@@ -11,7 +11,6 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-
 import org.h2.constant.SysProperties;
 import org.h2.message.Trace;
 import org.h2.store.Data;
@@ -47,7 +46,7 @@ import org.h2.value.ValueUuid;
  */
 public class TestDataPage extends TestBase implements DataHandler {
 
-    private boolean testPerformance;
+    private boolean testPerformance = true;
 
     /**
      * Run just this test.
@@ -59,8 +58,61 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     public void test() throws SQLException {
+        if (testPerformance) {
+            testPerformance();
+            System.exit(0);
+            return;
+        }
         testValues();
         testAll();
+    }
+
+    private void testPerformance() {
+        Data data = Data.create(null, 1024);
+        for (int j = 0; j < 4; j++) {
+            long time = System.currentTimeMillis();
+            for (int i = 0; i < 100000; i++) {
+                data.reset();
+                for (int k = 0; k < 30; k++) {
+                    data.writeString("Hello World");
+                }
+            }
+            //            for (int i = 0; i < 5000000; i++) {
+            //                data.reset();
+            //                for (int k = 0; k < 100; k++) {
+            //                    data.writeInt(k * k);
+            //                }
+            //            }
+            //            for (int i = 0; i < 200000; i++) {
+            //                data.reset();
+            //                for (int k = 0; k < 100; k++) {
+            //                    data.writeVarInt(k * k);
+            //                }
+            //            }
+            System.out.println("write: " + (System.currentTimeMillis() - time) + " ms");
+        }
+        for (int j = 0; j < 4; j++) {
+            long time = System.currentTimeMillis();
+            for (int i = 0; i < 1000000; i++) {
+                data.reset();
+                for (int k = 0; k < 30; k++) {
+                    data.readString();
+                }
+            }
+            //            for (int i = 0; i < 3000000; i++) {
+            //                data.reset();
+            //                for (int k = 0; k < 100; k++) {
+            //                    data.readVarInt();
+            //                }
+            //            }
+            //            for (int i = 0; i < 50000000; i++) {
+            //                data.reset();
+            //                for (int k = 0; k < 100; k++) {
+            //                    data.readInt();
+            //                }
+            //            }
+            System.out.println("read: " + (System.currentTimeMillis() - time) + " ms");
+        }
     }
 
     private void testValues() throws SQLException {
@@ -150,10 +202,12 @@ public class TestDataPage extends TestBase implements DataHandler {
         Data data = Data.create(null, 1024);
         data.checkCapacity((int) v.getPrecision());
         data.writeValue(v);
+        data.writeInt(123);
         data.reset();
         Value v2 = data.readValue();
         assertEquals(v.getType(), v2.getType());
         assertTrue(v.compareEqual(v2));
+        assertEquals(123, data.readInt());
     }
 
 

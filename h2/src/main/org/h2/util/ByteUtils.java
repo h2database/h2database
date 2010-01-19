@@ -201,8 +201,10 @@ public class ByteUtils {
      * @param buff the byte array
      */
     public static void clear(byte[] buff) {
-        for (int i = 0; buff != null && i < buff.length; i++) {
-            buff[i] = 0;
+        if (buff != null) {
+            for (int i = 0; i < buff.length; i++) {
+                buff[i] = 0;
+            }
         }
     }
 

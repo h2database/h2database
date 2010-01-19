@@ -92,10 +92,11 @@ public class Data extends DataPage {
      */
     public void writeInt(int x) {
         byte[] buff = data;
-        buff[pos++] = (byte) (x >> 24);
-        buff[pos++] = (byte) (x >> 16);
-        buff[pos++] = (byte) (x >> 8);
-        buff[pos++] = (byte) x;
+        buff[pos] = (byte) (x >> 24);
+        buff[pos + 1] = (byte) (x >> 16);
+        buff[pos + 2] = (byte) (x >> 8);
+        buff[pos + 3] = (byte) x;
+        pos += 4;
     }
 
     /**
@@ -106,7 +107,9 @@ public class Data extends DataPage {
      */
     public int readInt() {
         byte[] buff = data;
-        return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
+        int x = (buff[pos] << 24) + ((buff[pos+1] & 0xff) << 16) + ((buff[pos+2] & 0xff) << 8) + (buff[pos+3] & 0xff);
+        pos += 4;
+        return x;
     }
 
     /**
@@ -911,26 +914,32 @@ public class Data extends DataPage {
      * @return the value
      */
     public int readVarInt() {
-        int b = data[pos++];
+        int b = data[pos];
         if (b >= 0) {
+            pos++;
             return b;
         }
         int x = b & 0x7f;
-        b = data[pos++];
+        b = data[pos + 1];
         if (b >= 0) {
+            pos += 2;
             return x | (b << 7);
         }
         x |= (b & 0x7f) << 7;
-        b = data[pos++];
+        b = data[pos + 2];
         if (b >= 0) {
+            pos += 3;
             return x | (b << 14);
         }
         x |= (b & 0x7f) << 14;
-        b = data[pos++];
+        b = data[pos + 3];
         if (b >= 0) {
+            pos += 4;
             return x | b << 21;
         }
-        return x | ((b & 0x7f) << 21) | (data[pos++] << 28);
+        x |= ((b & 0x7f) << 21) | (data[pos + 4] << 28);
+        pos += 5;
+        return x;
     }
 
     /**

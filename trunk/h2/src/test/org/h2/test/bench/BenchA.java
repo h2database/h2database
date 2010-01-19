@@ -136,7 +136,7 @@ public class BenchA implements Bench {
             int max = BenchA.DELTA;
             // delta: -max .. +max
 
-            BigDecimal delta = new BigDecimal("" + (random.nextInt(max * 2) - max));
+            BigDecimal delta = BigDecimal.valueOf(random.nextInt(max * 2) - max);
             long current = System.currentTimeMillis();
 
             updateAccount.setBigDecimal(1, delta);

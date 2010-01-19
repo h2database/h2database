@@ -57,7 +57,7 @@ import org.h2.value.Value;
 public class TableData extends Table implements RecordReader {
     private RowIndex scanIndex;
     private long rowCount;
-    private Session lockExclusive;
+    private volatile Session lockExclusive;
     private HashSet<Session> lockShared = New.hashSet();
     private Trace traceLock;
     private boolean globalTemporary;
@@ -427,6 +427,9 @@ public class TableData extends Table implements RecordReader {
             } else {
                 return;
             }
+        }
+        if (lockExclusive == session) {
+            return;
         }
         synchronized (database) {
             try {

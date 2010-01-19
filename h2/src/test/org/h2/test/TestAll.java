@@ -299,7 +299,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-performance: ensure array bound checking optimization: Data
+MVCCIndexCorruptedTest
 
 power failure test: larger binaries and additional indexes
 (with many columns).

@@ -46,7 +46,7 @@ import org.h2.value.ValueUuid;
  */
 public class TestDataPage extends TestBase implements DataHandler {
 
-    private boolean testPerformance = true;
+    private boolean testPerformance;
 
     /**
      * Run just this test.

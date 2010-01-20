@@ -1180,7 +1180,8 @@ open, one of them will then start a server (auto-reconnect is enabled automatica
 </p>
 <p>
 All processes need to have access to the database files.
-If the first connection is closed (the connection that started the server), open transactions of other connections will be rolled back.
+If the first connection is closed (the connection that started the server), open transactions of other connections will be rolled back
+(this may not be a problem if you don't disable autocommit).
 Explicit client/server connections (using <code>jdbc:h2:tcp://</code> or <code>ssl://</code>) are not supported.
 This mode is not supported for in-memory databases.
 </p>

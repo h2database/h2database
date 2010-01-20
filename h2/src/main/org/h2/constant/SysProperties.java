@@ -268,6 +268,13 @@ public class SysProperties {
     public static final int ESTIMATED_FUNCTION_TABLE_ROWS = getIntSetting("h2.estimatedFunctionTableRows", 1000);
 
     /**
+     * System property <code>h2.identifiersToUpper</code> (default: true).<br />
+     * Unquoted identifiers in SQL statements are case insensitive and converted
+     * to uppercase.
+     */
+    public static final boolean IDENTIFIERS_TO_UPPER = getBooleanSetting("h2.identifiersToUpper", true);
+
+    /**
      * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
      * Buffer size for large result sets. Set this value to 0 to disable the
      * buffer.

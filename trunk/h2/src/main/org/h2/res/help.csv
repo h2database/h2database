@@ -187,7 +187,7 @@ name { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
 ","
 Creates a new table."
 "Commands (DDL)","CREATE TRIGGER","
-CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER }
+CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER | INSTEAD OF }
 { INSERT | UPDATE | DELETE | SELECT | ROLLBACK } [,...] ON tableName [ FOR EACH ROW ]
 [ QUEUE int ] [ NOWAIT ] CALL triggeredClassName
 ","

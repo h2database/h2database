@@ -37,11 +37,55 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     public void test() throws SQLException {
         deleteDb("trigger");
+        testViewTrigger();
         testTriggerBeforeSelect();
         testTriggerAlterTable();
         testTriggers();
         testConstraints();
         deleteDb("trigger");
+    }
+
+    private void testViewTrigger() throws SQLException {
+        Connection conn;
+        Statement stat;
+        conn = getConnection("trigger");
+        stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id int)");
+        stat.execute("create view test_view as select * from test");
+        stat.execute("create trigger test_view_insert instead of insert on test_view for each row call \"" + TestView.class.getName() + "\"");
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("trigger");
+            stat = conn.createStatement();
+        }
+        stat.execute("insert into test_view values(1)");
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        stat.execute("drop view test_view");
+        stat.execute("drop table test");
+        conn.close();
+    }
+
+    /**
+     * A test trigger implementation.
+     */
+    public static class TestView implements Trigger {
+
+        PreparedStatement prepInsert;
+
+        public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
+                int type) throws SQLException {
+            prepInsert = conn.prepareStatement("insert into test values(?)");
+        }
+
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+            prepInsert.setInt(1, (Integer) newRow[0]);
+            prepInsert.execute();
+        }
+
     }
 
     private void testTriggerBeforeSelect() throws SQLException {

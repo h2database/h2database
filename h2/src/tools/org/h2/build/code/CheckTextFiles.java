@@ -24,7 +24,7 @@ public class CheckTextFiles {
     private static final String LICENSE = "Multiple-Licensed " + "under the H2 License";
 
     private static final String[] SUFFIX_CHECK = new String[] { "html", "jsp", "js", "css", "bat", "nsi",
-            "java", "txt", "properties", "sql", "xml", "csv", "Driver" };
+            "java", "txt", "properties", "sql", "xml", "csv", "Driver", "prefs" };
     private static final String[] SUFFIX_IGNORE = new String[] { "gif", "png", "odg", "ico", "sxd",
             "layout", "res", "win", "jar", "task", "svg", "MF", "sh", "DS_Store" };
 
@@ -33,7 +33,7 @@ public class CheckTextFiles {
     private int spacesPerTab = 4;
     private boolean autoFix = true;
     private boolean useCRLF;
-    private String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh" };
+    private String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh", "prefs" };
     private boolean hasError;
 
     /**

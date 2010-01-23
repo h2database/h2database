@@ -122,6 +122,7 @@ public class UndoLogRecord {
             try {
                 if (!db.isPageStoreEnabled()) {
                     row.setKey(0);
+                    row.setVersion(row.getVersion() - 1);
                 }
                 table.addRow(session, row);
                 table.fireAfterRow(session, null, row, true);

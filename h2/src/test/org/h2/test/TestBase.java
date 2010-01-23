@@ -771,11 +771,11 @@ public abstract class TestBase {
     /**
      * Check that the result set row count matches.
      *
-     * @param rs the result set
      * @param expected the number of expected rows
+     * @param rs the result set
      * @throws AssertionError if a different number of rows have been found
      */
-    protected void assertResultRowCount(ResultSet rs, int expected) throws SQLException {
+    protected void assertResultRowCount(int expected, ResultSet rs) throws SQLException {
         int i = 0;
         while (rs.next()) {
             i++;

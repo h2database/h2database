@@ -299,14 +299,8 @@ java org.h2.test.TestAll timer
 
 /*
 
-MVCCIndexCorruptedTest
-
 power failure test: larger binaries and additional indexes
 (with many columns).
-
-instead of trigger on views
-
-pseudo column rowid, oid, _rowid_
 
 outer join bug
 

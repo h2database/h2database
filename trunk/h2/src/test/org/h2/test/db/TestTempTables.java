@@ -106,16 +106,16 @@ public class TestTempTables extends TestBase {
         s1.execute("create local temporary table test_temp(id int) on commit delete rows");
         s1.execute("insert into test_temp values(1)");
         rs = s1.executeQuery("select * from test_temp");
-        assertResultRowCount(rs, 1);
+        assertResultRowCount(1, rs);
         c1.commit();
         rs = s1.executeQuery("select * from test_temp");
-        assertResultRowCount(rs, 0);
+        assertResultRowCount(0, rs);
         s1.execute("drop table test_temp");
 
         s1.execute("create local temporary table test_temp(id int) on commit drop");
         s1.execute("insert into test_temp values(1)");
         rs = s1.executeQuery("select * from test_temp");
-        assertResultRowCount(rs, 1);
+        assertResultRowCount(1, rs);
         c1.commit();
         try {
             s1.executeQuery("select * from test_temp");

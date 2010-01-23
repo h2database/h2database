@@ -114,11 +114,13 @@ public class Insert extends Prepared {
                     }
                 }
                 table.validateConvertUpdateSequence(session, newRow);
-                table.fireBeforeRow(session, null, newRow);
-                table.lock(session, true, false);
-                table.addRow(session, newRow);
-                session.log(table, UndoLogRecord.INSERT, newRow);
-                table.fireAfterRow(session, null, newRow, false);
+                boolean done = table.fireBeforeRow(session, null, newRow);
+                if (!done) {
+                    table.lock(session, true, false);
+                    table.addRow(session, newRow);
+                    session.log(table, UndoLogRecord.INSERT, newRow);
+                    table.fireAfterRow(session, null, newRow, false);
+                }
                 count++;
             }
         } else {
@@ -141,10 +143,12 @@ public class Insert extends Prepared {
                     }
                 }
                 table.validateConvertUpdateSequence(session, newRow);
-                table.fireBeforeRow(session, null, newRow);
-                table.addRow(session, newRow);
-                session.log(table, UndoLogRecord.INSERT, newRow);
-                table.fireAfterRow(session, null, newRow, false);
+                boolean done = table.fireBeforeRow(session, null, newRow);
+                if (!done) {
+                    table.addRow(session, newRow);
+                    session.log(table, UndoLogRecord.INSERT, newRow);
+                    table.fireAfterRow(session, null, newRow, false);
+                }
             }
             rows.close();
         }

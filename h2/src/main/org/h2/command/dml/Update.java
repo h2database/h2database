@@ -104,11 +104,14 @@ public class Update extends Prepared {
                         newRow.setValue(i, newValue);
                     }
                     table.validateConvertUpdateSequence(session, newRow);
+                    boolean done = false;
                     if (table.fireRow()) {
-                        table.fireBeforeRow(session, oldRow, newRow);
+                        done = table.fireBeforeRow(session, oldRow, newRow);
                     }
-                    rows.add(oldRow);
-                    rows.add(newRow);
+                    if (!done) {
+                        rows.add(oldRow);
+                        rows.add(newRow);
+                    }
                     count++;
                 }
             }

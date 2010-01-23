@@ -56,10 +56,13 @@ public class Delete extends Prepared {
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                     Row row = tableFilter.get();
+                    boolean done = false;
                     if (table.fireRow()) {
-                        table.fireBeforeRow(session, row, null);
+                        done = table.fireBeforeRow(session, row, null);
                     }
-                    rows.add(row);
+                    if (!done) {
+                        rows.add(row);
+                    }
                 }
             }
             int rowScanCount = 0;

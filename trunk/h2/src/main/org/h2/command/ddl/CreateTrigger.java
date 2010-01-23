@@ -25,6 +25,7 @@ public class CreateTrigger extends SchemaCommand {
     private String triggerName;
     private boolean ifNotExists;
 
+    private boolean insteadOf;
     private boolean before;
     private int typeMask;
     private boolean rowBased;
@@ -37,6 +38,10 @@ public class CreateTrigger extends SchemaCommand {
 
     public CreateTrigger(Session session, Schema schema) {
         super(session, schema);
+    }
+
+    public void setInsteadOf(boolean insteadOf) {
+        this.insteadOf = insteadOf;
     }
 
     public void setBefore(boolean before) {
@@ -87,6 +92,7 @@ public class CreateTrigger extends SchemaCommand {
         int id = getObjectId(false, true);
         Table table = getSchema().getTableOrView(session, tableName);
         TriggerObject trigger = new TriggerObject(getSchema(), id, triggerName, table);
+        trigger.setInsteadOf(insteadOf);
         trigger.setBefore(before);
         trigger.setNoWait(noWait);
         trigger.setQueueSize(queueSize);

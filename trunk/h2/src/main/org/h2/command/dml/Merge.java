@@ -175,11 +175,13 @@ public class Merge extends Prepared {
         if (count == 0) {
             try {
                 table.validateConvertUpdateSequence(session, row);
-                table.fireBeforeRow(session, null, row);
-                table.lock(session, true, false);
-                table.addRow(session, row);
-                session.log(table, UndoLogRecord.INSERT, row);
-                table.fireAfterRow(session, null, row, false);
+                boolean done = table.fireBeforeRow(session, null, row);
+                if (!done) {
+                    table.lock(session, true, false);
+                    table.addRow(session, row);
+                    session.log(table, UndoLogRecord.INSERT, row);
+                    table.fireAfterRow(session, null, row, false);
+                }
             } catch (SQLException e) {
                 if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                     // concurrent merge or insert

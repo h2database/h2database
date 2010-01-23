@@ -3105,6 +3105,10 @@ public class Parser {
         if (len == 0) {
             throw getSyntaxError();
         }
+        if (!identifiersToUpper) {
+            // if not yet converted to uppercase, do it now
+            s = StringUtils.toUpperEnglish(s);
+        }
         return getSaveTokenType(s, database.getMode().supportOffsetFetch);
     }
 
@@ -3732,11 +3736,17 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         String triggerName = readIdentifierWithSchema(null);
         Schema schema = getSchema();
-        boolean isBefore;
-        if (readIf("BEFORE")) {
+        boolean insteadOf, isBefore;
+        if (readIf("INSTEAD")) {
+            read("OF");
+            isBefore = true;
+            insteadOf = true;
+        } else if (readIf("BEFORE")) {
+            insteadOf = false;
             isBefore = true;
         } else {
             read("AFTER");
+            insteadOf = false;
             isBefore = false;
         }
         int typeMask = 0;
@@ -3763,6 +3773,7 @@ public class Parser {
         command.setForce(force);
         command.setTriggerName(triggerName);
         command.setIfNotExists(ifNotExists);
+        command.setInsteadOf(insteadOf);
         command.setBefore(isBefore);
         command.setOnRollback(onRollback);
         command.setTypeMask(typeMask);

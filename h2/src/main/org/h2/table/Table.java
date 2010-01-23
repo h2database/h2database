@@ -745,13 +745,15 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Fire all triggers that need to be called before a row is updated.
      *
-     *  @param session the session
-     *  @param oldRow the old data or null for an insert
-     *  @param newRow the new data or null for a delete
+     * @param session the session
+     * @param oldRow the old data or null for an insert
+     * @param newRow the new data or null for a delete
+     * @return true if no further action is required (for 'instead of' triggers)
      */
-    public void fireBeforeRow(Session session, Row oldRow, Row newRow) throws SQLException {
-        fireRow(session, oldRow, newRow, true, false);
+    public boolean fireBeforeRow(Session session, Row oldRow, Row newRow) throws SQLException {
+        boolean done = fireRow(session, oldRow, newRow, true, false);
         fireConstraints(session, oldRow, newRow, true);
+        return done;
     }
 
     private void fireConstraints(Session session, Row oldRow, Row newRow, boolean before) throws SQLException {
@@ -779,12 +781,16 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    private void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) throws SQLException {
+    private boolean fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) throws SQLException {
         if (triggers != null) {
             for (TriggerObject trigger : triggers) {
-                trigger.fireRow(session, oldRow, newRow, beforeAction, rollback);
+                boolean done = trigger.fireRow(session, oldRow, newRow, beforeAction, rollback);
+                if (done) {
+                    return true;
+                }
             }
         }
+        return false;
     }
 
     public boolean isGlobalTemporary() {

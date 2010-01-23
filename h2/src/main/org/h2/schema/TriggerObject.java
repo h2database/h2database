@@ -35,6 +35,7 @@ public class TriggerObject extends SchemaObjectBase {
      */
     public static final int DEFAULT_QUEUE_SIZE = 1024;
 
+    private boolean insteadOf;
     private boolean before;
     private int typeMask;
     private boolean rowBased;
@@ -54,6 +55,10 @@ public class TriggerObject extends SchemaObjectBase {
 
     public void setBefore(boolean before) {
         this.before = before;
+    }
+
+    public void setInsteadOf(boolean insteadOf) {
+        this.insteadOf = insteadOf;
     }
 
     private synchronized void load(Session session) throws SQLException {
@@ -148,14 +153,15 @@ public class TriggerObject extends SchemaObjectBase {
      * @param newRow the new row
      * @param beforeAction true if this method is called before the operation is
      *            applied
-     *  @param rollback when the operation occurred within a rollback
+     * @param rollback when the operation occurred within a rollback
+     * @return true if no further action is required (for 'instead of' triggers)
      */
-    public void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) throws SQLException {
+    public boolean fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) throws SQLException {
         if (!rowBased || before != beforeAction) {
-            return;
+            return false;
         }
         if (rollback && !onRollback) {
-            return;
+            return false;
         }
         load(session);
         Object[] oldList;
@@ -177,7 +183,7 @@ public class TriggerObject extends SchemaObjectBase {
             }
         }
         if (!fire) {
-            return;
+            return false;
         }
         oldList = convertToObjectList(oldRow);
         newList = convertToObjectList(newRow);
@@ -217,6 +223,7 @@ public class TriggerObject extends SchemaObjectBase {
             session.setCommitOrRollbackDisabled(oldDisabled);
             session.setAutoCommit(old);
         }
+        return insteadOf;
     }
 
     /**
@@ -259,7 +266,9 @@ public class TriggerObject extends SchemaObjectBase {
     public String getCreateSQLForCopy(Table targetTable, String quotedName) {
         StringBuilder buff = new StringBuilder("CREATE FORCE TRIGGER ");
         buff.append(quotedName);
-        if (before) {
+        if (insteadOf) {
+            buff.append(" INSTEAD OF ");
+        } else if (before) {
             buff.append(" BEFORE ");
         } else {
             buff.append(" AFTER ");

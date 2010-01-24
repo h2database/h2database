@@ -425,7 +425,9 @@ public class TableData extends Table implements RecordReader {
             if (exclusive) {
                 exclusive = false;
             } else {
-                return;
+                if (lockExclusive == null) {
+                    return;
+                }
             }
         }
         if (lockExclusive == session) {

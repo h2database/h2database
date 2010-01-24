@@ -228,7 +228,7 @@ public class Bnf {
         } else if (found.getSection().startsWith("Functions")) {
             page = "functions.html";
         } else if (token.equals("@func@")) {
-            return  "<a href=\"functions.html\">Function</a>";
+            return "<a href=\"functions.html\">Function</a>";
         } else if (found.getRule() instanceof RuleFixed) {
             return found.getRule().getHtmlRailroad(this, false);
         }

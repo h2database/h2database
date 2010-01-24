@@ -3209,9 +3209,10 @@ SELECT ""Last Name"" FROM CSVREAD('address.csv');
 "Functions (System)","CSVWRITE","
 CSVWRITE ( fileNameString, queryString [, csvOptions [, lineSepString] ] )
 ","
-Writes a CSV (comma separated values). The file is overwritten if it exists. For
-each parameter, NULL means the default value should be used. The default charset
-is the default value for this system, and the default field separator is a comma.
+Writes a CSV (comma separated values). The file is overwritten if it exists. 
+If only a file name is specified, it will be written to the current working directory.
+For each parameter, NULL means the default value should be used. 
+The default charset is the default value for this system, and the default field separator is a comma.
 
 The values are converted to text using the default string representation;
 if another conversion is required you need to change the select statement accordingly.

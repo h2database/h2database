@@ -355,7 +355,13 @@ public class TestFileLockSerialized extends TestBase {
                                     }
                                 }
                                 nextInt[0]++;
-                                c.createStatement().execute("insert into test (id2) values(" + nextInt[0] + ")");
+                                Statement stat = c.createStatement();
+                                stat.execute("insert into test (id2) values(" + nextInt[0] + ")");
+                                ResultSet rsKeys = stat.getGeneratedKeys();
+                                while (rsKeys.next()) {
+                                    assertEquals(nextInt[0], rsKeys.getInt(1));
+                                }
+                                rsKeys.close();
                             }
                             Thread.sleep(waitTime);
                         }

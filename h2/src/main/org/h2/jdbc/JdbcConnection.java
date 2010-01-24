@@ -311,17 +311,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                                 rollbackInternal();
                                 session.afterWriting();
                             }
-                            commit = closeAndSetNull(commit);
-                            rollback = closeAndSetNull(rollback);
-                            setAutoCommitTrue = closeAndSetNull(setAutoCommitTrue);
-                            setAutoCommitFalse = closeAndSetNull(setAutoCommitFalse);
-                            getAutoCommit = closeAndSetNull(getAutoCommit);
-                            getReadOnly = closeAndSetNull(getReadOnly);
-                            getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
-                            getLockMode = closeAndSetNull(getLockMode);
-                            setLockMode = closeAndSetNull(setLockMode);
-                            getQueryTimeout = closeAndSetNull(getQueryTimeout);
-                            setQueryTimeout = closeAndSetNull(setQueryTimeout);
+                            closePreparedCommands();
                         } finally {
                             session.close();
                         }
@@ -333,6 +323,20 @@ public class JdbcConnection extends TraceObject implements Connection {
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private void closePreparedCommands() {
+        commit = closeAndSetNull(commit);
+        rollback = closeAndSetNull(rollback);
+        setAutoCommitTrue = closeAndSetNull(setAutoCommitTrue);
+        setAutoCommitFalse = closeAndSetNull(setAutoCommitFalse);
+        getAutoCommit = closeAndSetNull(getAutoCommit);
+        getReadOnly = closeAndSetNull(getReadOnly);
+        getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
+        getLockMode = closeAndSetNull(getLockMode);
+        setLockMode = closeAndSetNull(setLockMode);
+        getQueryTimeout = closeAndSetNull(getQueryTimeout);
+        setQueryTimeout = closeAndSetNull(setQueryTimeout);
     }
 
     private CommandInterface closeAndSetNull(CommandInterface command) {
@@ -1346,6 +1350,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         if (session.isReconnectNeeded(write)) {
             trace.debug("reconnect");
+            closePreparedCommands();
             session = session.reconnect(write);
             setTrace(session.getTrace());
         }

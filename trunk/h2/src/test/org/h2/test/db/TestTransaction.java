@@ -8,13 +8,13 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.test.TestBase;
 import org.h2.util.New;
 
@@ -34,12 +34,37 @@ public class TestTransaction extends TestBase {
     }
 
     public void test() throws SQLException {
+        testForUpdate();
         testRollback();
         testSetTransaction();
         testReferential();
         testSavepoint();
         testIsolation();
         deleteDb("transaction");
+    }
+
+    private void testForUpdate() throws SQLException {
+        deleteDb("transaction");
+        Connection conn = getConnection("transaction");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key) as select 1");
+        conn.commit();
+        PreparedStatement prep = conn.prepareStatement("select * from test for update");
+        prep.execute();
+        // releases the lock
+        conn.commit();
+        prep.execute();
+        Connection conn2 = getConnection("transaction");
+        conn2.setAutoCommit(false);
+        try {
+            conn2.createStatement().execute("select * from test");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        conn2.close();
+        conn.close();
     }
 
     private void testRollback() throws SQLException {

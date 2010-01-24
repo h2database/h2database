@@ -1050,6 +1050,9 @@ public class Select extends Query {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC: {
+            if (isForUpdate) {
+                return false;
+            }
             for (TableFilter f : filters) {
                 if (!f.getTable().isDeterministic()) {
                     return false;

@@ -226,8 +226,8 @@ class H2Adapter extends DatabaseAdapter
      * DROP TABLE FOO
      * </pre></blockquote>
      *
-     * @param table     The table to drop.
-     * @return  The text of the SQL statement.
+     * @param table The table to drop.
+     * @return The text of the SQL statement.
      */
     public String getDropTableStatement(DatastoreContainerObject table)
     {

@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Triggers: INSTEAD OF triggers are now supported.
+<ul><li>If a FOR UPDATE query was executed twice (using a PreparedStatement), the table was not locked.
+</li><li>Triggers: INSTEAD OF triggers are now supported.
     Such triggers can be defined on views.
 </li><li>MVCC: if the page store is disabled, rollback of multiple rows
     with the same index key did not work correctly.

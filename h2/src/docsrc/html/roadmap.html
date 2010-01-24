@@ -156,6 +156,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app)
 </li><li>Count on a column that can not be null could be optimized to COUNT(*)
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
+</li><li>Issue 159: System property for the H2 Console and TCP configuration (which .h2.server.properties and .h2.keystore to use)
 </li><li>Backup tool should work with other databases as well
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
@@ -260,7 +261,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
-</li><li>Command line option for the H2 Console and TCP configuration (which .h2.server.properties and .h2.keystore to use)
 </li><li>Support a schema name for Java functions
 </li><li>Remember the user defined data type (domain) of a column
 </li><li>Support Jackcess (MS Access databases)

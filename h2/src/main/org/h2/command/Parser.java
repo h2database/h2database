@@ -3363,6 +3363,9 @@ public class Parser {
         String comment = null;
         Column templateColumn = null;
         DataType dataType;
+        if (!identifiersToUpper) {
+            original = StringUtils.toUpperEnglish(original);
+        }
         UserDataType userDataType = database.findUserDataType(original);
         if (userDataType != null) {
             templateColumn = userDataType.getColumn();

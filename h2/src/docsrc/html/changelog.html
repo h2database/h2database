@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVCC: if the table was locked in exclusive mode (such as SELECT ... FOR UPDATE), another session
+<ul><li>Comparing an column against a constant expression with a higher precision or length 
+    than the column could give wrong results (the expression was truncated before comparing).
+</li><li>Improved PostgreSQL compatibility (support SHOW DEFAULT_TRANSACTION_ISOLATION).
+</li><li>Documentation: the javadocs for Csv.write and read used the wrong default charset.
+</li><li>MVCC: if the table was locked in exclusive mode (such as SELECT ... FOR UPDATE), another session
     could query the table. This is now longer possible.
 </li><li>If a FOR UPDATE query was executed twice (using a PreparedStatement), the table was not locked.
 </li><li>Triggers: INSTEAD OF triggers are now supported.

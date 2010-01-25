@@ -299,6 +299,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+union problem
+
 power failure test: larger binaries and additional indexes
 (with many columns).
 

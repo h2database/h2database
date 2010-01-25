@@ -726,10 +726,10 @@ DROP VIEW TEST_VIEW
 "Commands (DDL)","TRUNCATE TABLE","
 TRUNCATE TABLE tableName
 ","
-Removes all rows from a table. Other than DELETE FROM without where clause, this
+Removes all rows from a table. Unlike DELETE FROM without where clause, this
 command can not be rolled back. This command is faster than DELETE without where
 clause. Only regular data tables without foreign key constraints can be
-truncated.
+truncated. Linked tables can't be truncated.
 
 This command commits an open transaction.
 ","
@@ -1390,7 +1390,7 @@ closed automatically when the last connection to it is closed.
 
 If no option is used, then the database is closed normally.
 All connections are closed, open transactions are rolled back.
-COMPACT fully compacts the database.
+COMPACT compacts the database (re-creating the database may further reduce the database size).
 IMMEDIATELY closes the database files without any cleanup.
 
 Admin rights are required to execute this command.

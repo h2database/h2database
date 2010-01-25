@@ -79,6 +79,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter
 </li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
     ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
+</li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
+</li><li>Access rights: finer grained access control (grant access for specific functions)
 </li><li>Suggestion: include Jetty as Servlet Container (like LAMP)
 </li><li>Trace shipping to server
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
@@ -233,8 +235,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Index usage for REGEXP LIKE.
 </li><li>Compatibility: add a role DBA (like ADMIN).
 </li><li>Better support multiple processors for in-memory databases.
-</li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
-</li><li>Access rights: finer grained access control (grant access for specific functions)
 </li><li>Support N'text'
 </li><li>Pure SQL triggers (example: update parent table if the child table is changed).
 </li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
@@ -472,6 +472,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 156: Support SELECT ? UNION SELECT ?.
 </li><li>Automatic mixed mode: support a port range list (to avoid firewall problems).
 </li><li>Support the pseudo column rowid, oid, _rowid_.
+</li><li>Support TRUNCATE for linked tables.
 </li></ul>
 
 <h2>Not Planned</h2>

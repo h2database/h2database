@@ -122,8 +122,9 @@ public class Csv implements SimpleRowSource {
      *
      * @param outputFileName the name of the csv file
      * @param rs the result set - the result set must be positioned before the
-     *            first row.
-     * @param charset the charset or null to use UTF-8
+     *          first row.
+     * @param charset the charset or null to use the system default charset
+     *          (see system property file.encoding)
      * @return the number of rows written
      * @throws SQLException
      */
@@ -143,7 +144,8 @@ public class Csv implements SimpleRowSource {
      * @param conn the connection
      * @param outputFileName the file name
      * @param sql the query
-     * @param charset the charset or null to use UTF-8
+     * @param charset the charset or null to use the system default charset
+     *          (see system property file.encoding)
      * @return the number of rows written
      * @throws SQLException
      */
@@ -168,8 +170,9 @@ public class Csv implements SimpleRowSource {
      *
      * @param inputFileName the file name
      * @param colNames or null if the column names should be read from the CSV
-     *            file
-     * @param charset the charset or null to use UTF-8
+     *          file
+     * @param charset the charset or null to use the system default charset
+     *          (see system property file.encoding)
      * @return the result set
      * @throws SQLException
      */

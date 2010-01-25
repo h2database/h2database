@@ -1,4 +1,10 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select count(*) from (select 1 union (select 2 intersect select 2)) x;
+> COUNT(*)
+> --------
+> 2
+> rows: 1
+
 create table test(id varchar(1) primary key) as select 'X';
 > ok
 
@@ -5392,8 +5398,8 @@ SELECT * FROM (SELECT ID FROM TEST GROUP BY ID);
 
 EXPLAIN SELECT * FROM TEST UNION ALL SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */)UNION ALL (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */) ORDER BY 1 LIMIT 2 OFFSET 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */) UNION ALL (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */) ORDER BY 1 LIMIT 2 OFFSET 1
 > rows (ordered): 1
 
 EXPLAIN DELETE FROM TEST WHERE ID=1;
@@ -5739,8 +5745,8 @@ SELECT * FROM SYSTEM_RANGE(1,2) UNION ALL SELECT * FROM SYSTEM_RANGE(1,2) ORDER 
 
 EXPLAIN (SELECT * FROM SYSTEM_RANGE(1,2) UNION ALL SELECT * FROM SYSTEM_RANGE(1,2) ORDER BY 1);
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */)UNION ALL (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) ORDER BY 1
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) ORDER BY 1
 > rows (ordered): 1
 
 CREATE TABLE CHILDREN(ID INT PRIMARY KEY, NAME VARCHAR(255), CLASS INT);
@@ -5783,8 +5789,8 @@ SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN ORDER BY ID, NAME FOR UP
 
 EXPLAIN SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN ORDER BY ID, NAME FOR UPDATE;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ FOR UPDATE)UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ FOR UPDATE) ORDER BY 1, 2 FOR UPDATE
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ FOR UPDATE) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ FOR UPDATE) ORDER BY 1, 2 FOR UPDATE
 > rows (ordered): 1
 
 SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASSES;
@@ -5803,8 +5809,8 @@ SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASS
 
 EXPLAIN SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASSES;
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT 'Child', ID, NAME FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */)UNION (SELECT 'Class', ID, NAME FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_DATA */)
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT 'Child', ID, NAME FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */) UNION (SELECT 'Class', ID, NAME FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_DATA */)
 > rows: 1
 
 SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
@@ -5817,14 +5823,14 @@ SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 
 EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */)EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ WHERE CLASS = 0)
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ WHERE CLASS = 0)
 > rows: 1
 
 EXPLAIN SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */)INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_DATA */)
+> ----------------------------------------------------------------------------------------------------------------------------------
+> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */) INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_DATA */)
 > rows: 1
 
 SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
@@ -5837,8 +5843,8 @@ SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 
 EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */)EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ WHERE CLASS = 0)
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_DATA */ WHERE CLASS = 0)
 > rows: 1
 
 SELECT * FROM CHILDREN CH, CLASSES CL WHERE CH.CLASS = CL.ID;
@@ -5928,8 +5934,8 @@ SELECT * FROM V_UNION WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_UNION WHERE ID=1;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1)UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1): ID = 1 */ WHERE ID = 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_EXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
@@ -5943,8 +5949,8 @@ SELECT * FROM V_EXCEPT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_EXCEPT WHERE ID=1;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1)EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_INTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
@@ -5957,8 +5963,8 @@ SELECT * FROM V_INTERSECT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_INTERSECT WHERE ID=1;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE ID = ?1)INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID = ?1 ++/ WHERE CLASSES.ID = ?1): ID = 1 */ WHERE ID = 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE ID = ?1) INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID = ?1 ++/ WHERE CLASSES.ID = ?1): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 DROP VIEW V_UNION;

@@ -1,4 +1,16 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id varchar(1) primary key) as select 'X';
+> ok
+
+select count(*) from test where id = 'X1';
+> COUNT(*)
+> --------
+> 0
+> rows: 1
+
+drop table test;
+> ok
+
 create table test(id int primary key, name varchar(255), x int);
 > ok
 
@@ -4783,7 +4795,7 @@ WHERE 1=J.X and J.Y=I.X AND I.Y=H.X AND H.Y=G.X AND G.Y=F.X AND F.Y=E.X
 AND E.Y=D.X AND D.Y=C.X AND C.Y=B.X AND B.Y=A.X;
 > PLAN
 > ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT A.X FROM PUBLIC.O J /* PUBLIC.PRIMARY_KEY_4: X = 1 */ /* WHERE 1 = J.X */ INNER JOIN PUBLIC.O I /* PUBLIC.PRIMARY_KEY_4: X = J.Y */ ON 1=1 /* WHERE J.Y = I.X */ INNER JOIN PUBLIC.O H /* PUBLIC.PRIMARY_KEY_4: X = I.Y */ ON 1=1 /* WHERE I.Y = H.X */ INNER JOIN PUBLIC.O G /* PUBLIC.PRIMARY_KEY_4: X = H.Y */ ON 1=1 /* WHERE H.Y = G.X */ INNER JOIN PUBLIC.O F /* PUBLIC.PRIMARY_KEY_4: X = G.Y */ ON 1=1 /* WHERE G.Y = F.X */ INNER JOIN PUBLIC.O E /* PUBLIC.PRIMARY_KEY_4: X = F.Y */ ON 1=1 /* WHERE F.Y = E.X */ INNER JOIN PUBLIC.O D /* PUBLIC.PRIMARY_KEY_4: X = E.Y */ ON 1=1 /* WHERE E.Y = D.X */ INNER JOIN PUBLIC.O C /* PUBLIC.PRIMARY_KEY_4: X = D.Y */ ON 1=1 /* WHERE D.Y = C.X */ INNER JOIN PUBLIC.O B /* PUBLIC.PRIMARY_KEY_4: X = C.Y */ ON 1=1 /* WHERE C.Y = B.X */ INNER JOIN PUBLIC.O A /* PUBLIC.PRIMARY_KEY_4: X = B.Y */ ON 1=1 WHERE (B.Y = A.X) AND ((C.Y = B.X) AND ((D.Y = C.X) AND ((E.Y = D.X) AND ((F.Y = E.X) AND ((G.Y = F.X) AND ((H.Y = G.X) AND ((I.Y = H.X) AND ((1 = J.X) AND (J.Y = I.X)))))))))
+> SELECT A.X FROM PUBLIC.O J /* PUBLIC.PRIMARY_KEY_4: X = 1 */ /* WHERE J.X = 1 */ INNER JOIN PUBLIC.O I /* PUBLIC.PRIMARY_KEY_4: X = J.Y */ ON 1=1 /* WHERE J.Y = I.X */ INNER JOIN PUBLIC.O H /* PUBLIC.PRIMARY_KEY_4: X = I.Y */ ON 1=1 /* WHERE I.Y = H.X */ INNER JOIN PUBLIC.O G /* PUBLIC.PRIMARY_KEY_4: X = H.Y */ ON 1=1 /* WHERE H.Y = G.X */ INNER JOIN PUBLIC.O F /* PUBLIC.PRIMARY_KEY_4: X = G.Y */ ON 1=1 /* WHERE G.Y = F.X */ INNER JOIN PUBLIC.O E /* PUBLIC.PRIMARY_KEY_4: X = F.Y */ ON 1=1 /* WHERE F.Y = E.X */ INNER JOIN PUBLIC.O D /* PUBLIC.PRIMARY_KEY_4: X = E.Y */ ON 1=1 /* WHERE E.Y = D.X */ INNER JOIN PUBLIC.O C /* PUBLIC.PRIMARY_KEY_4: X = D.Y */ ON 1=1 /* WHERE D.Y = C.X */ INNER JOIN PUBLIC.O B /* PUBLIC.PRIMARY_KEY_4: X = C.Y */ ON 1=1 /* WHERE C.Y = B.X */ INNER JOIN PUBLIC.O A /* PUBLIC.PRIMARY_KEY_4: X = B.Y */ ON 1=1 WHERE (B.Y = A.X) AND ((C.Y = B.X) AND ((D.Y = C.X) AND ((E.Y = D.X) AND ((F.Y = E.X) AND ((G.Y = F.X) AND ((H.Y = G.X) AND ((I.Y = H.X) AND ((J.X = 1) AND (J.Y = I.X)))))))))
 > rows: 1
 
 DROP TABLE O;

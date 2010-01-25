@@ -21,6 +21,10 @@ LIMIT limits the number of rows returned by the query, OFFSET specified
 how many rows to skip. SAMPLE_SIZE limits the number of rows read for
 aggregate queries.
 
+Multiple set operators (UNION/INTERSECT/MINUS/EXPECT) are evaluated
+from left to right. For compatibility with other databases and future versions
+of H2 please use parentheses.
+
 If FOR UPDATE is specified, the tables are locked for writing.
 ","
 SELECT * FROM TEST;
@@ -3209,9 +3213,9 @@ SELECT ""Last Name"" FROM CSVREAD('address.csv');
 "Functions (System)","CSVWRITE","
 CSVWRITE ( fileNameString, queryString [, csvOptions [, lineSepString] ] )
 ","
-Writes a CSV (comma separated values). The file is overwritten if it exists. 
+Writes a CSV (comma separated values). The file is overwritten if it exists.
 If only a file name is specified, it will be written to the current working directory.
-For each parameter, NULL means the default value should be used. 
+For each parameter, NULL means the default value should be used.
 The default charset is the default value for this system, and the default field separator is a comma.
 
 The values are converted to text using the default string representation;

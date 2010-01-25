@@ -19,7 +19,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>Nested UNION/INTERSECT queries with brackets could produce the wrong result if used within a subquery. Example:
-    select count(*) from (select 1 union (select 2 intersect select 2)) x; 
+    select count(*) from (select 1 union (select 2 intersect select 2)) x;
 </li><li>Comparing an column against a constant expression with a higher precision or length
     than the column could give wrong results (the expression was truncated before comparing).
 </li><li>Improved PostgreSQL compatibility (support SHOW DEFAULT_TRANSACTION_ISOLATION).

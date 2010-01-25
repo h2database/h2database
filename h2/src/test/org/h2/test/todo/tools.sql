@@ -29,3 +29,39 @@ $$;
 create table test(data blob);
 insert into test values('010203040506070809');
 select first_bytes(data, 3) from test;
+
+-- encrypt and decrypt strings
+CALL CAST(ENCRYPT('AES', HASH('SHA256', STRINGTOUTF8('key'), 1), STRINGTOUTF8('Hello')) AS VARCHAR); 
+CALL TRIM(CHAR(0) FROM UTF8TOSTRING(DECRYPT('AES', HASH('SHA256', STRINGTOUTF8('key'), 1), '16e44604230717eec9f5fa6058e77e83')));
+DROP ALIAS ENC;
+DROP ALIAS DEC;
+CREATE ALIAS ENC AS $$
+import org.h2.security.*;
+import org.h2.util.*;
+@CODE
+String encrypt(String data, String key) throws Exception {
+    byte[] k = new SHA256().getHash(key.getBytes("UTF-8"), false);
+    byte[] b1 = data.getBytes("UTF-8");
+    byte[] buff = new byte[(b1.length + 15) / 16 * 16];
+    System.arraycopy(b1, 0, buff, 0, b1.length);
+    BlockCipher bc = CipherFactory.getBlockCipher("AES");
+    bc.setKey(k);
+    bc.encrypt(buff, 0, buff.length);
+    return ByteUtils.convertBytesToString(buff);
+}
+$$;
+CREATE ALIAS DEC AS $$
+import org.h2.security.*;
+import org.h2.util.*;
+@CODE
+String decrypt(String data, String key) throws Exception {
+    byte[] k = new SHA256().getHash(key.getBytes("UTF-8"), false);
+    byte[] buff = ByteUtils.convertStringToBytes(data);
+    BlockCipher bc = CipherFactory.getBlockCipher("AES");
+    bc.setKey(k);
+    bc.decrypt(buff, 0, buff.length);
+    return StringUtils.trim(new String(buff, "UTF-8"), false, true, "\u0000");
+}
+$$;
+CALL ENC('Hello', 'key');
+CALL DEC(ENC('Hello', 'key'), 'key');

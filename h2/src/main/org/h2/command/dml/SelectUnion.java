@@ -297,24 +297,24 @@ public class SelectUnion extends Query {
 
     public String getPlanSQL() {
         StringBuilder buff = new StringBuilder();
-        buff.append('(').append(StringUtils.unEnclose(left.getPlanSQL())).append(')');
+        buff.append('(').append(left.getPlanSQL()).append(')');
         switch (unionType) {
         case UNION_ALL:
-            buff.append("UNION ALL ");
+            buff.append(" UNION ALL ");
             break;
         case UNION:
-            buff.append("UNION ");
+            buff.append(" UNION ");
             break;
         case INTERSECT:
-            buff.append("INTERSECT ");
+            buff.append(" INTERSECT ");
             break;
         case EXCEPT:
-            buff.append("EXCEPT ");
+            buff.append(" EXCEPT ");
             break;
         default:
             Message.throwInternalError("type=" + unionType);
         }
-        buff.append('(').append(StringUtils.unEnclose(right.getPlanSQL())).append(')');
+        buff.append('(').append(right.getPlanSQL()).append(')');
         Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
         if (sort != null) {
             buff.append(" ORDER BY ").append(sort.getSQL(exprList, exprList.length));

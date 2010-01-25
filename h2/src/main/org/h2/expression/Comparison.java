@@ -85,7 +85,7 @@ public class Comparison extends Condition {
     public static final int IN_QUERY = 10;
 
     private final Database database;
-    private final int compareType;
+    private int compareType;
     private Expression left;
     private Expression right;
     private int dataType = -2;
@@ -149,18 +149,29 @@ public class Comparison extends Condition {
         } else {
             right = right.optimize(session);
             try {
+                if (right instanceof ExpressionColumn) {
+                    if (left.isConstant() || left instanceof Parameter) {
+                        Expression temp = left;
+                        left = right;
+                        right = temp;
+                        compareType = getReversedCompareType(compareType);
+                    }
+                }
                 if (left instanceof ExpressionColumn) {
                     if (right.isConstant()) {
-                        right = getCast(right, left.getType(), left.getPrecision(), left.getScale(), left.getDisplaySize(), session);
+                        Value r = right.getValue(session);
+                        if (r == ValueNull.INSTANCE) {
+                            return ValueExpression.getNull();
+                        }
+                        Expression test = getCast(right, left.getType(), left.getPrecision(), left.getScale(), left.getDisplaySize(), session);
+                        if (!r.compareEqual(test.getValue(session))) {
+                            return ValueExpression.get(ValueBoolean.get(false));
+                        }
+                        right = test;
                     } else if (right instanceof Parameter) {
                         ((Parameter) right).setColumn(((ExpressionColumn) left).getColumn());
                     }
-                } else if (right instanceof ExpressionColumn) {
-                    if (left.isConstant()) {
-                        left = getCast(left, right.getType(), right.getPrecision(), right.getScale(), right.getDisplaySize(), session);
-                    } else if (left instanceof Parameter) {
-                        ((Parameter) left).setColumn(((ExpressionColumn) right).getColumn());
-                    }
+
                 }
             } catch (SQLException e) {
                 int code = e.getErrorCode();

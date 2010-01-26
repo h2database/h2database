@@ -950,8 +950,19 @@ public class Parser {
         Table table;
         String alias = null;
         if (readIf("(")) {
+            // need to read ahead, it could be a nested union or join:
+            // select 1 from (((select 1) union (select 1)) union (select 1));
+            // select * from ((test d1 inner join test d2 on d1.id = d2.id)
+            // inner join test d3 on d1.id = d3.id) inner join test d4
+            // on d4.id = d1.id;
+            int start = lastParseIndex;
+            while (readIf("(")) {
+                // ignore, but go back later
+            }
             if (isToken("SELECT") || isToken("FROM")) {
-                int start = lastParseIndex;
+                parseIndex = start;
+                read();
+                start = lastParseIndex;
                 int paramIndex = parameters.size();
                 Query query = parseSelectUnion();
                 read(")");
@@ -971,6 +982,8 @@ public class Parser {
                 alias = session.getNextSystemIdentifier(sqlCommand);
                 table = TableView.createTempView(s, session.getUser(), alias, query, currentSelect);
             } else {
+                parseIndex = start;
+                read();
                 TableFilter top = readTableFilter(fromOuter);
                 top = readJoin(top, currentSelect, fromOuter);
                 read(")");

@@ -1877,7 +1877,11 @@ public class Recover extends Tool implements DataHandler {
     public static void deleteRecoverFiles(String dir, String db) throws SQLException {
         ArrayList<String> files = getRecoverFiles(dir, db);
         for (String s : files) {
-            FileUtils.delete(s);
+            if (FileUtils.isDirectory(s)) {
+                FileUtils.tryDelete(s);
+            } else {
+                FileUtils.delete(s);
+            }
         }
     }
 
@@ -1904,6 +1908,7 @@ public class Recover extends Tool implements DataHandler {
                 if (start == null || FileUtils.fileStartsWith(f, start + ".")) {
                     files.addAll(getRecoverFiles(f, null));
                 }
+                ok = true;
             } else if (f.endsWith(".lob.comp.txt")) {
                 ok = true;
             } else if (f.endsWith(".lob.db.txt")) {

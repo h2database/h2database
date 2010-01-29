@@ -214,23 +214,40 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         deleteDb("pageStore");
         Connection conn;
         conn = getConnection("pageStore;PAGE_STORE=FALSE");
-        conn.createStatement().execute("create table test(id int, data clob)");
-        conn.createStatement().execute("insert into test select x, space(10000) from system_range(1, 2)");
-        conn.createStatement().execute("shutdown immediately");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, data clob)");
+        stat.execute("insert into test select x, space(10000) from system_range(1, 2)");
+        stat.execute("checkpoint");
+        stat.execute("set write_delay 0");
+        stat.execute("insert into test select x, 'empty' from system_range(10, 20)");
+        stat.execute("shutdown immediately");
         try {
             conn.close();
         } catch (SQLException e) {
             // ignore
         }
+
+        // a database that was not closed normally can't be converted
         try {
             getConnection("pageStore;PAGE_STORE=TRUE");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
+
+        // now open and close the database normally
         conn = getConnection("pageStore");
         conn.close();
+
+        // convert it
         conn = getConnection("pageStore;PAGE_STORE=TRUE");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from test order by id");
+        while (rs.next()) {
+            rs.getString(1);
+            rs.getString(2);
+        }
+        stat.execute("drop table test");
         conn.close();
     }
 

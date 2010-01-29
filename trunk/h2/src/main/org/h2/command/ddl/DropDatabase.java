@@ -50,7 +50,7 @@ public class DropDatabase extends DefineCommand {
                 db.removeDatabaseObject(session, schema);
             }
         }
-        ObjectArray<Table> tables = db.getAllTablesAndViews();
+        ObjectArray<Table> tables = db.getAllTablesAndViews(false);
         for (Table t : tables) {
             if (t.getName() != null && Table.VIEW.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);

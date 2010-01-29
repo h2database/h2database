@@ -565,7 +565,7 @@ public class MetaTable extends Table {
     }
 
     private ObjectArray<Table> getAllTables(Session session) {
-        ObjectArray<Table> tables = database.getAllTablesAndViews();
+        ObjectArray<Table> tables = database.getAllTablesAndViews(true);
         ObjectArray<Table> tempTables = session.getLocalTempTables();
         tables.addAll(tempTables);
         return tables;

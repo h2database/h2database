@@ -45,7 +45,7 @@ import org.h2.store.PageStore;
 import org.h2.store.RecordReader;
 import org.h2.store.Storage;
 import org.h2.store.WriterThread;
-import org.h2.store.fs.FileSystem;
+import org.h2.store.fs.FileSystemMemory;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
@@ -175,6 +175,7 @@ public class Database implements DataHandler {
     private int cacheSize;
     private boolean compactFully;
     private SourceCompiler compiler;
+    private boolean metaTablesInitialized;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = CompareMode.getInstance(null, 0);
@@ -693,10 +694,6 @@ public class Database implements DataHandler {
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);
         objectIds.set(0);
-        // there could be views on system tables, so they must be added first
-        for (int i = 0; i < MetaTable.getMetaTableTypeCount(); i++) {
-            addMetaData(i);
-        }
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
         // first, create all function aliases and sequences because
@@ -758,7 +755,7 @@ public class Database implements DataHandler {
         boolean recompileSuccessful;
         do {
             recompileSuccessful = false;
-            for (Table obj : getAllTablesAndViews()) {
+            for (Table obj : getAllTablesAndViews(false)) {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.isInvalid()) {
@@ -777,7 +774,7 @@ public class Database implements DataHandler {
         // when opening a database, views are initialized before indexes,
         // so they may not have the optimal plan yet
         // this is not a problem, it is just nice to see the newest plan
-        for (Table obj : getAllTablesAndViews()) {
+        for (Table obj : getAllTablesAndViews(false)) {
             if (obj instanceof TableView) {
                 TableView view = (TableView) obj;
                 if (!view.isInvalid()) {
@@ -855,9 +852,19 @@ public class Database implements DataHandler {
         return storage;
     }
 
-    private void addMetaData(int type) throws SQLException {
-        MetaTable m = new MetaTable(infoSchema, -1 - type, type);
-        infoSchema.add(m);
+    private void initMetaTables() {
+        if (metaTablesInitialized) {
+            return;
+        }
+        for (int type = 0; type < MetaTable.getMetaTableTypeCount(); type++) {
+            try {
+                MetaTable m = new MetaTable(infoSchema, -1 - type, type);
+                infoSchema.add(m);
+            } catch (SQLException e) {
+                throw Message.convertToInternal(e);
+            }
+        }
+        metaTablesInitialized = true;
     }
 
     private synchronized void addMeta(Session session, DbObject obj) throws SQLException {
@@ -1034,7 +1041,11 @@ public class Database implements DataHandler {
      * @return the schema or null
      */
     public Schema findSchema(String schemaName) {
-        return schemas.get(schemaName);
+        Schema schema = schemas.get(schemaName);
+        if (schema == infoSchema) {
+            initMetaTables();
+        }
+        return schema;
     }
 
     /**
@@ -1201,7 +1212,7 @@ public class Database implements DataHandler {
         try {
             if (systemSession != null) {
                 if (powerOffCount != -1) {
-                    for (Table table : getAllTablesAndViews()) {
+                    for (Table table : getAllTablesAndViews(false)) {
                         table.close(systemSession);
                     }
                     for (SchemaObject obj : getAllSchemaObjects(DbObject.SEQUENCE)) {
@@ -1426,6 +1437,9 @@ public class Database implements DataHandler {
      * @return all objects of that type
      */
     public ObjectArray<SchemaObject> getAllSchemaObjects(int type) {
+        if (type == DbObject.TABLE_OR_VIEW) {
+            initMetaTables();
+        }
         ObjectArray<SchemaObject> list = ObjectArray.newInstance();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAll(type));
@@ -1438,7 +1452,10 @@ public class Database implements DataHandler {
      *
      * @return all objects of that type
      */
-    public ObjectArray<Table> getAllTablesAndViews() {
+    public ObjectArray<Table> getAllTablesAndViews(boolean includeMeta) {
+        if (includeMeta) {
+            initMetaTables();
+        }
         ObjectArray<Table> list = ObjectArray.newInstance();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAllTablesAndViews());
@@ -1447,6 +1464,7 @@ public class Database implements DataHandler {
     }
 
     public ObjectArray<Schema> getAllSchemas() {
+        initMetaTables();
         return ObjectArray.newInstance(schemas.values());
     }
 
@@ -1603,7 +1621,7 @@ public class Database implements DataHandler {
             boolean inTempDir = readOnly;
             String name = databaseName;
             if (!persistent) {
-                name = FileSystem.PREFIX_MEMORY + name;
+                name = FileSystemMemory.PREFIX + name;
             }
             return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, true, inTempDir);
         } catch (IOException e) {
@@ -1719,7 +1737,7 @@ public class Database implements DataHandler {
         default:
         }
         HashSet<DbObject> set = New.hashSet();
-        for (Table t : getAllTablesAndViews()) {
+        for (Table t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
             }
@@ -1735,7 +1753,7 @@ public class Database implements DataHandler {
     private String getFirstInvalidTable(Session session) {
         String conflict = null;
         try {
-            for (Table t : getAllTablesAndViews()) {
+            for (Table t : getAllTablesAndViews(false)) {
                 conflict = t.getSQL();
                 session.prepare(t.getCreateSQL());
             }
@@ -2327,7 +2345,7 @@ public class Database implements DataHandler {
      * @return the table or null if no table is defined
      */
     public Table getFirstUserTable() {
-        for (Table table : getAllTablesAndViews()) {
+        for (Table table : getAllTablesAndViews(false)) {
             if (table.getCreateSQL() != null) {
                 return table;
             }

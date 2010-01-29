@@ -34,7 +34,7 @@ public class Analyze extends DefineCommand {
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
         // TODO do we need to lock the table?
-        for (Table table : db.getAllTablesAndViews()) {
+        for (Table table : db.getAllTablesAndViews(false)) {
             if (!(table instanceof TableData)) {
                 continue;
             }

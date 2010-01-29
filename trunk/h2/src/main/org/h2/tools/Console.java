@@ -31,11 +31,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import org.h2.util.Resources;
 import org.h2.util.Tool;
-
 import java.io.IOException;
 //## AWT end ##
 import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.server.ShutdownHandler;
 import org.h2.util.StartBrowser;
@@ -55,7 +53,6 @@ ShutdownHandler {
 //## AWT begin ##
     Frame frame;
     private Font font;
-    private Image icon16, icon22, icon24;
     private Button startBrowser;
 //## AWT end ##
     private Server web, tcp, pg;
@@ -150,6 +147,27 @@ ShutdownHandler {
                 startException = e;
             }
         }
+
+//## AWT begin ##
+        if (toolStart && webRunning && !GraphicsEnvironment.isHeadless()) {
+            loadFont();
+            try {
+                if (!createTrayIcon()) {
+                    showWindow(true);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+//## AWT end ##
+
+        // start browser in any case (even if the server is already running)
+        // because some people don't look at the output,
+        // but are wondering why nothing happens
+        if (browserStart) {
+            StartBrowser.openURL(web.getURL());
+        }
+
         if (tcpStart) {
             try {
                 tcp = Server.createTcpServer(args);
@@ -172,32 +190,6 @@ ShutdownHandler {
                 }
             }
         }
-//## AWT begin ##
-        if (toolStart && webRunning && !GraphicsEnvironment.isHeadless()) {
-            if (isWindows) {
-                font = new Font("Dialog", Font.PLAIN, 11);
-            } else {
-                font = new Font("Dialog", Font.PLAIN, 12);
-            }
-            try {
-                icon16 = loadImage("/org/h2/res/h2.png");
-                icon22 = loadImage("/org/h2/res/h2-22.png");
-                icon24 = loadImage("/org/h2/res/h2-24.png");
-                if (!createTrayIcon()) {
-                    showWindow(true);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-//## AWT end ##
-
-        // start browser anyway (even if the server is already running)
-        // because some people don't look at the output,
-        // but are wondering why nothing happens
-        if (browserStart) {
-            StartBrowser.openURL(web.getURL());
-        }
         if (startException != null) {
             throw startException;
         }
@@ -212,12 +204,17 @@ ShutdownHandler {
         }
     }
 
-    private Image loadImage(String name) throws IOException {
-        byte[] imageData = Resources.get(name);
-        if (imageData == null) {
+    private Image loadImage(String name) {
+        try {
+            byte[] imageData = Resources.get(name);
+            if (imageData == null) {
+                return null;
+            }
+            return Toolkit.getDefaultToolkit().createImage(imageData);
+        } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
-        return Toolkit.getDefaultToolkit().createImage(imageData);
     }
 
     /**
@@ -253,17 +250,23 @@ ShutdownHandler {
     }
 
 //## AWT begin ##
+    private void loadFont() {
+        if (isWindows) {
+            font = new Font("Dialog", Font.PLAIN, 11);
+        } else {
+            font = new Font("Dialog", Font.PLAIN, 12);
+        }
+    }
+
     private boolean createTrayIcon() {
         try {
             // SystemTray.isSupported();
             Boolean supported = (Boolean) Class.forName("java.awt.SystemTray").
                 getMethod("isSupported").
                 invoke(null);
-
-            if (!supported.booleanValue()) {
+            if (!supported) {
                 return false;
             }
-
             PopupMenu menuConsole = new PopupMenu();
             MenuItem itemConsole = new MenuItem("H2 Console");
             itemConsole.setActionCommand("console");
@@ -290,14 +293,15 @@ ShutdownHandler {
             Dimension d = (Dimension) Class.forName("java.awt.SystemTray").
                 getMethod("getTrayIconSize").
                 invoke(tray);
-            Image icon;
+            String iconFile;
             if (d.width >= 24 && d.height >= 24) {
-                icon = icon24;
+                iconFile = "/org/h2/res/h2-24.png";
             } else if (d.width >= 22 && d.height >= 22) {
-                icon = icon22;
+                iconFile = "/org/h2/res/h2-22.png";
             } else {
-                icon = icon16;
+                iconFile = "/org/h2/res/h2.png";
             }
+            Image icon = loadImage(iconFile);
             // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
             Object trayIcon = Class.forName("java.awt.TrayIcon").
                 getConstructor(Image.class, String.class, PopupMenu.class).
@@ -330,8 +334,9 @@ ShutdownHandler {
                 }
             }
         });
-        if (icon16 != null) {
-            frame.setIconImage(icon16);
+        Image image = loadImage("/org/h2/res/h2.png");
+        if (image != null) {
+            frame.setIconImage(image);
         }
         frame.setResizable(false);
         frame.setBackground(SystemColor.control);

@@ -114,7 +114,7 @@ public class FileUtils {
      * @param name the directory and file name
      * @return just the file name
      */
-    public static String getFileName(String name) throws SQLException {
+    public static String getFileName(String name) {
         return FileSystem.getInstance(name).getFileName(name);
     }
 

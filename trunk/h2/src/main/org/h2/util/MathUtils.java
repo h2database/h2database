@@ -89,7 +89,7 @@ public class MathUtils {
     public static long scaleUp50Percent(long start, long min, long blockSize, long maxIncrease) {
         long len;
         if (min > maxIncrease * 2) {
-            len = MathUtils.roundUpLong(min, maxIncrease);
+            len = roundUpLong(min, maxIncrease);
         } else {
             len = start;
             while (len < min) {

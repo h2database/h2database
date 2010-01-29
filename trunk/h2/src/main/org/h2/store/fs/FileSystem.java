@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import org.h2.util.ClassUtils;
 import org.h2.util.New;
 
 /**
@@ -18,36 +19,7 @@ import org.h2.util.New;
  */
 public abstract class FileSystem {
 
-    /**
-     * The prefix used for an in-memory file system.
-     */
-    public static final String PREFIX_MEMORY = "memFS:";
-
-    /**
-     * The prefix used for a compressed in-memory file system.
-     */
-    public static final String PREFIX_MEMORY_LZF = "memLZF:";
-
-    /**
-     * The prefix used for a read-only zip-file based file system.
-     */
-    public static final String PREFIX_ZIP = "zip:";
-
-    /**
-     * The prefix used to split large files (required for a FAT32 because it
-     * only support files up to 2 GB).
-     */
-    public static final String PREFIX_SPLIT = "split:";
-
-    /**
-     * The prefix used for the NIO FileChannel file system.
-     */
-    public static final String PREFIX_NIO = "nio:";
-
-    /**
-     * The prefix used for the NIO (memory mapped) file system.
-     */
-    public static final String PREFIX_NIO_MAPPED = "nioMapped:";
+    private static boolean defaultServicesRegistered;
 
     private static final ArrayList<FileSystem> SERVICES = New.arrayList();
 
@@ -58,23 +30,36 @@ public abstract class FileSystem {
      * @return the file system
      */
     public static FileSystem getInstance(String fileName) {
-        if (isInMemory(fileName)) {
-            return FileSystemMemory.getInstance();
-        } else if (fileName.startsWith(PREFIX_ZIP)) {
-            return FileSystemZip.getInstance();
-        } else if (fileName.startsWith(PREFIX_SPLIT)) {
-            return FileSystemSplit.getInstance();
-        } else if (fileName.startsWith(PREFIX_NIO)) {
-            return FileSystemDiskNio.getInstance();
-        } else if (fileName.startsWith(PREFIX_NIO_MAPPED)) {
-            return FileSystemDiskNioMapped.getInstance();
-        }
-        for (FileSystem fs : SERVICES) {
-            if (fs.accepts(fileName)) {
-                return fs;
+        if (fileName.indexOf(':') >= 0) {
+            if (FileSystemMemory.getInstance().accepts(fileName)) {
+                return FileSystemMemory.getInstance();
+            }
+            registerDefaultServices();
+            for (FileSystem fs : SERVICES) {
+                if (fs.accepts(fileName)) {
+                    return fs;
+                }
             }
         }
         return FileSystemDisk.getInstance();
+    }
+
+    private static synchronized void registerDefaultServices() {
+        if (!defaultServicesRegistered) {
+            defaultServicesRegistered = true;
+            for (String c : new String[] {
+                    "org.h2.store.fs.FileSystemZip",
+                    "org.h2.store.fs.FileSystemSplit",
+                    "org.h2.store.fs.FileSystemDiskNio",
+                    "org.h2.store.fs.FileSystemDiskNioMapped"
+            }) {
+                try {
+                    ClassUtils.loadSystemClass(c);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 
     /**
@@ -83,6 +68,7 @@ public abstract class FileSystem {
      * @param service the file system
      */
     public static synchronized void register(FileSystem service) {
+        registerDefaultServices();
         SERVICES.add(service);
     }
 
@@ -101,13 +87,7 @@ public abstract class FileSystem {
      * @param fileName the file name
      * @return true if it is
      */
-    protected boolean accepts(String fileName) {
-        return false;
-    }
-
-    private static boolean isInMemory(String fileName) {
-        return fileName != null && (fileName.startsWith(PREFIX_MEMORY) || fileName.startsWith(PREFIX_MEMORY_LZF));
-    }
+    protected abstract boolean accepts(String fileName);
 
     /**
      * Get the length of a file.

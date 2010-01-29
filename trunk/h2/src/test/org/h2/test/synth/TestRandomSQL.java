@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import org.h2.bnf.Bnf;
 import org.h2.bnf.RuleHead;
 import org.h2.constant.SysProperties;
-import org.h2.store.fs.FileSystem;
+import org.h2.store.fs.FileSystemMemory;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
@@ -90,7 +90,7 @@ public class TestRandomSQL extends TestBase {
 
     private void deleteDb() throws SQLException {
         String name = getDatabaseName();
-        if (name.startsWith(FileSystem.PREFIX_MEMORY)) {
+        if (name.startsWith(FileSystemMemory.PREFIX)) {
             DeleteDbFiles.execute("memFS:/", name, true);
         } else {
             DeleteDbFiles.execute(baseDir, name, true);

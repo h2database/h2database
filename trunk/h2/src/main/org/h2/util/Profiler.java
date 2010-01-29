@@ -53,10 +53,13 @@ public class Profiler implements Runnable {
      */
     public void stopCollecting() {
         stop = true;
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            // ignore
+        if (thread != null) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                // ignore
+            }
+            thread = null;
         }
     }
 
@@ -184,6 +187,14 @@ public class Profiler implements Runnable {
 
     public void setInterval(int interval) {
         this.interval = interval;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 
 }

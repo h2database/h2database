@@ -20,6 +20,7 @@ import java.util.Random;
 
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
+import org.h2.store.fs.FileSystemMemory;
 import org.h2.test.TestBase;
 
 /**
@@ -40,14 +41,14 @@ public class TestFileSystem extends TestBase {
         testDatabaseInMemFileSys();
         testDatabaseInJar();
         // set default part size to 1 << 10
-        FileSystem.getInstance(FileSystem.PREFIX_SPLIT + "10:" + baseDir + "/fs");
-        testFileSystem(FileSystem.PREFIX_SPLIT + baseDir + "/fs");
+        FileSystem.getInstance("split:10:" + baseDir + "/fs");
+        testFileSystem("split:" + baseDir + "/fs");
         testFileSystem(baseDir + "/fs");
-        testFileSystem(FileSystem.PREFIX_MEMORY);
+        testFileSystem(FileSystemMemory.PREFIX);
         FileSystemDatabase fs = FileSystemDatabase.register("jdbc:h2:mem:fs");
         // testFileSystem("jdbc:h2:mem:fs;TRACE_LEVEL_FILE=3");
         testFileSystem("jdbc:h2:mem:fs");
-        testFileSystem(FileSystem.PREFIX_MEMORY_LZF);
+        testFileSystem(FileSystemMemory.PREFIX_LZF);
         testUserHome();
         fs.unregister();
     }
@@ -175,7 +176,7 @@ public class TestFileSystem extends TestBase {
         assertTrue(fs.tryDelete(fsBase + "/test2"));
         fs.delete(fsBase + "/test");
 
-        if (!fsBase.startsWith(FileSystem.PREFIX_MEMORY) && !fsBase.startsWith(FileSystem.PREFIX_MEMORY_LZF)) {
+        if (!fsBase.startsWith(FileSystemMemory.PREFIX) && !fsBase.startsWith(FileSystemMemory.PREFIX_LZF)) {
             fs.createDirs(fsBase + "/testDir/test");
             assertTrue(fs.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith("jdbc:")) {

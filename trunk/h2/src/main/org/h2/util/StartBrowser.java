@@ -44,7 +44,6 @@ public class StartBrowser {
                 }
                 return;
             }
-
             try {
                 Class< ? > desktopClass = Class.forName("java.awt.Desktop");
                 // Desktop.isDesktopSupported()
@@ -52,7 +51,7 @@ public class StartBrowser {
                     getMethod("isDesktopSupported").
                     invoke(null, new Object[0]);
                 URI uri = new URI(url);
-                if (supported.booleanValue()) {
+                if (supported) {
                     // Desktop.getDesktop();
                     Object desktop = desktopClass.getMethod("getDesktop").
                         invoke(null, new Object[0]);
@@ -64,7 +63,6 @@ public class StartBrowser {
             } catch (Exception e) {
                 // ignore
             }
-
             if (osName.indexOf("windows") >= 0) {
                 rt.exec(new String[] { "rundll32", "url.dll,FileProtocolHandler", url });
             } else if (osName.indexOf("mac") >= 0) {

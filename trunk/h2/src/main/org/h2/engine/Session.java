@@ -558,6 +558,7 @@ public class Session extends SessionWithState {
     public void close() throws SQLException {
         if (!closed) {
             try {
+                database.checkPowerOff();
                 cleanTempTables(true);
                 database.removeSession(this);
             } finally {

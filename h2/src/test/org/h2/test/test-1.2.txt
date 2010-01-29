@@ -8,6 +8,15 @@ select count(*) from (select 1 union (select 2 intersect select 2)) x;
 create table test(id varchar(1) primary key) as select 'X';
 > ok
 
+select count(*) from (select 1 from dual where x in ((select 1 union select 1))) a;
+> COUNT(*)
+> --------
+> 1
+> rows: 1
+
+insert into test ((select 1 union select 2) union select 3);
+> update count: 3
+
 select count(*) from test where id = 'X1';
 > COUNT(*)
 > --------

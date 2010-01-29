@@ -413,7 +413,7 @@ public class FileLock {
                 } catch (BindException e) {
                     throw getExceptionFatal("Bind Exception", null);
                 } catch (ConnectException e) {
-                    trace.debug("lockSocket not connected " + port, e);
+                    trace.debug("Socket not connected to port " + port, e);
                 } catch (IOException e) {
                     throw getExceptionFatal("IOException", null);
                 }

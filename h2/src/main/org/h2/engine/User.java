@@ -64,7 +64,8 @@ public class User extends RightOwner {
      */
     public void setUserPasswordHash(byte[] userPasswordHash) {
         if (userPasswordHash != null) {
-            salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);
+            salt = new byte[Constants.SALT_LEN];
+            RandomUtils.nextBytes(salt);
             SHA256 sha = new SHA256();
             this.passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
         }

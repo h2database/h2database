@@ -171,7 +171,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(agg.getCreateSQL(), false);
             }
-            ObjectArray<Table> tables = db.getAllTablesAndViews();
+            ObjectArray<Table> tables = db.getAllTablesAndViews(false);
             // sort by id, so that views are after tables and views on views
             // after the base views
             tables.sort(new Comparator<Table>() {

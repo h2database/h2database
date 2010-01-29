@@ -39,6 +39,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (!config.pageStore) {
             return;
         }
+        testCloseTempTable();
         testDuplicateKey();
         testUpdateOverflow();
         testTruncateReconnect();
@@ -58,6 +59,32 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testCloseTempTable() throws SQLException {
+        deleteDb("pageStore");
+        Connection conn;
+        String url = "pageStore;PAGE_STORE=TRUE;CACHE_SIZE=0";
+        conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("create local temporary table test(id int)");
+        conn.rollback();
+        Connection conn2 = getConnection(url);
+        Statement stat2 = conn2.createStatement();
+        stat2.execute("create table test2 as select x from system_range(1, 5000)");
+        stat2.execute("shutdown immediately");
+        try {
+            conn.close();
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        try {
+            conn2.close();
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
     }
 
     private void testDuplicateKey() throws SQLException {

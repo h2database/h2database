@@ -7,6 +7,7 @@
 package org.h2.test.utils;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -15,6 +16,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Random;
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.ByteUtils;
@@ -73,12 +76,12 @@ public class TestLob {
      */
     static class LobInputStream extends InputStream {
 
-        private byte[] page = new byte[BLOCK_LENGTH];
-        private byte[] buff = new byte[1];
+        private byte[] buffer = new byte[BLOCK_LENGTH];
         private PreparedStatement prepSelectBlock;
+        private int bufferEnd;
         private long remaining;
-        private long offset;
         private long next;
+        private int pos;
 
         LobInputStream(PreparedStatement prepSelectBlock, long first, long length) {
             this.next = first;
@@ -87,11 +90,11 @@ public class TestLob {
         }
 
         public int read() throws IOException {
-            int len = readFully(buff, 0, 1);
-            if (len == 0) {
+            fillBuffer();
+            if (pos >= bufferEnd) {
                 return -1;
             }
-            return buff[0] & 255;
+            return buffer[pos++] & 255;
         }
 
         public int read(byte[] buff) throws IOException {
@@ -103,11 +106,71 @@ public class TestLob {
         }
 
         private int readFully(byte[] buff, int off, int length) throws IOException {
-            int len = 0;
-            while (length > 0 && remaining > 0) {
+            if (length == 0) {
+                return 0;
             }
-            return len;
+            int read = 0;
+            int todo;
+//            while (length > 0) {
+//                fillBuffer();
+//
+//                if (r < 0) {
+//                    break;
+//                }
+//                read += r;
+//                off += r;
+//                len -= r;
+//            }
+//            return read == 0 ? -1 : read;
+//
+//            int len = 0;
+//            while (length > 0 && remaining > 0) {
+//            }
+            return read;
         }
+
+        private void fillBuffer() throws IOException {
+            if (buffer != null && pos < bufferEnd) {
+                return;
+            }
+            if (remaining <= 0) {
+                return;
+            }
+            try {
+                prepSelectBlock.setLong(1, next);
+                ResultSet rs = prepSelectBlock.executeQuery();
+                if (!rs.next()) {
+                    SQLException e = Message.getSQLException(ErrorCode.IO_EXCEPTION_1, "block: "+ next);
+                    IOException io = new EOFException("Unexpected end of stream");
+                    io.initCause(e);
+                    throw e;
+                }
+            } catch (SQLException e) {
+                throw Message.convertToIOException(e);
+            }
+            int todo;
+//
+//
+//            int len = readInt();
+//            if (decompress == null) {
+//                // EOF
+//                this.bufferLength = 0;
+//            } else if (len < 0) {
+//                len = -len;
+//                buffer = ensureSize(buffer, len);
+//                readFully(buffer, len);
+//                this.bufferLength = len;
+//            } else {
+//                inBuffer = ensureSize(inBuffer, len);
+//                int size = readInt();
+//                readFully(inBuffer, len);
+//                buffer = ensureSize(buffer, size);
+//                decompress.expand(inBuffer, 0, len, buffer, 0, size);
+//                this.bufferLength = size;
+//            }
+//            pos = 0;
+        }
+
 
     }
 
@@ -120,14 +183,30 @@ public class TestLob {
         new TestLob().test();
     }
 
-    private void test() throws SQLException {
+    private void test() throws Exception {
         DeleteDbFiles.execute("data", "test", true);
         org.h2.Driver.load();
         Connection c = DriverManager.getConnection("jdbc:h2:data/test");
         init(c);
         c = DriverManager.getConnection("jdbc:h2:data/test");
+
         int len = 128 * 1024;
         byte[] buff = new byte[len];
+        Random random = new Random(1);
+        random.nextBytes(buff);
+
+        LobId lob = addLob(new ByteArrayInputStream(buff), -1, -1);
+        InputStream in = getInputStream(lob);
+        for (int i = 0; i < len; i++) {
+            int x = in.read();
+            if (x != (buff[i] & 255)) {
+                throw new AssertionError();
+            }
+        }
+        if (in.read() != -1) {
+            throw new AssertionError();
+        }
+
         Statement stat = c.createStatement();
         stat.execute("create table test(id int primary key, data blob)");
         PreparedStatement prep = conn.prepareStatement("insert into test(id, data) values(?, ?)");

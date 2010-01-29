@@ -10,7 +10,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
@@ -59,7 +58,8 @@ public class RandomUtils {
                             cachedSecureRandom.setSeed(seed);
                             seeded = true;
                         }
-                    } catch (NoSuchAlgorithmException e) {
+                    } catch (Exception e) {
+                        // NoSuchAlgorithmException
                         warn("SecureRandom", e);
                     }
                 }
@@ -89,7 +89,8 @@ public class RandomUtils {
                 generateAlternativeSeed();
             }
 
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
+            // NoSuchAlgorithmException
             warn("SecureRandom", e);
             cachedSecureRandom = new SecureRandom();
         }
@@ -175,6 +176,15 @@ public class RandomUtils {
         synchronized (sr) {
             return sr.nextLong();
         }
+    }
+
+    /**
+     * Get a number of pseudo random bytes.
+     *
+     * @param bytes the target array
+     */
+    public static void nextBytes(byte[] bytes) {
+        RANDOM.nextBytes(bytes);
     }
 
     /**

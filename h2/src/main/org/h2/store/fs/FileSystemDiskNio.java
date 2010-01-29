@@ -16,10 +16,10 @@ import java.sql.SQLException;
  */
 public class FileSystemDiskNio extends FileSystemDisk {
 
-    private static final FileSystemDiskNio INSTANCE = new FileSystemDiskNio();
+    private static final String PREFIX = "nio:";
 
-    public static FileSystemDisk getInstance() {
-        return INSTANCE;
+    static {
+        FileSystem.register(new FileSystemDiskNio());
     }
 
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir)
@@ -82,7 +82,7 @@ public class FileSystemDiskNio extends FileSystemDisk {
      * @return the prefix
      */
     protected String getPrefix() {
-        return FileSystem.PREFIX_NIO;
+        return PREFIX;
     }
 
     /**
@@ -95,6 +95,10 @@ public class FileSystemDiskNio extends FileSystemDisk {
      */
     protected FileObject open(String fileName, String mode) throws IOException {
         return new FileObjectDiskChannel(fileName, mode);
+    }
+
+    protected boolean accepts(String fileName) {
+        return fileName.startsWith(getPrefix());
     }
 
 }

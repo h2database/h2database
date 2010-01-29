@@ -441,4 +441,8 @@ public class FileSystemDisk extends FileSystem {
         return f;
     }
 
+    protected boolean accepts(String fileName) {
+        return true;
+    }
+
 }

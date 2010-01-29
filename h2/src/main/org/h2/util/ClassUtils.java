@@ -85,10 +85,11 @@ public class ClassUtils {
             } catch (Exception e2) {
                 throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
             }
-        } catch (UnsupportedClassVersionError e) {
-            throw Message.getSQLException(ErrorCode.GENERAL_ERROR_1, e, className);
         } catch (NoClassDefFoundError e) {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+        } catch (Error e) {
+            // UnsupportedClassVersionError
+            throw Message.getSQLException(ErrorCode.GENERAL_ERROR_1, e, className);
         }
     }
 

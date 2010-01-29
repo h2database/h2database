@@ -24,14 +24,10 @@ import org.h2.util.New;
  */
 public class FileSystemZip extends FileSystem {
 
-    private static final FileSystemZip INSTANCE = new FileSystemZip();
+    private static final String PREFIX = "zip:";
 
-    private FileSystemZip() {
-        // don't allow construction
-    }
-
-    public static FileSystemZip getInstance() {
-        return INSTANCE;
+    static {
+        FileSystem.register(new FileSystemZip());
     }
 
     public boolean canWrite(String fileName) {
@@ -221,8 +217,8 @@ public class FileSystemZip extends FileSystem {
     }
 
     private String translateFileName(String fileName) {
-        if (fileName.startsWith(FileSystem.PREFIX_ZIP)) {
-            fileName = fileName.substring(FileSystem.PREFIX_ZIP.length());
+        if (fileName.startsWith(PREFIX)) {
+            fileName = fileName.substring(PREFIX.length());
         }
         int idx = fileName.indexOf('!');
         if (idx >= 0) {
@@ -249,4 +245,9 @@ public class FileSystemZip extends FileSystem {
         fileName = translateFileName(fileName);
         return new ZipFile(fileName);
     }
+
+    protected boolean accepts(String fileName) {
+        return fileName.startsWith(PREFIX);
+    }
+
 }

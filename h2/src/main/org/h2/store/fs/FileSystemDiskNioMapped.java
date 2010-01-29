@@ -14,14 +14,14 @@ import java.io.IOException;
  */
 public class FileSystemDiskNioMapped extends FileSystemDiskNio {
 
-    private static final FileSystemDiskNioMapped INSTANCE = new FileSystemDiskNioMapped();
+    private static final String PREFIX = "nioMapped:";
 
-    public static FileSystemDisk getInstance() {
-        return INSTANCE;
+    static {
+        FileSystem.register(new FileSystemDiskNioMapped());
     }
 
     protected String getPrefix() {
-        return FileSystem.PREFIX_NIO_MAPPED;
+        return PREFIX;
     }
 
     protected FileObject open(String fileName, String mode) throws IOException {

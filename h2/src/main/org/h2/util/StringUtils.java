@@ -6,16 +6,13 @@
  */
 package org.h2.util;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -279,7 +276,8 @@ public class StringUtils {
     public static byte[] utf8Encode(String s) {
         try {
             return s.getBytes(Constants.UTF8);
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
+            // UnsupportedEncodingException
             throw Message.convertToInternal(e);
         }
     }
@@ -293,7 +291,8 @@ public class StringUtils {
     public static String utf8Decode(byte[] utf8) {
         try {
             return new String(utf8, Constants.UTF8);
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
+            // UnsupportedEncodingException
             throw Message.convertToInternal(e);
         }
     }
@@ -310,7 +309,8 @@ public class StringUtils {
     private static String utf8Decode(byte[] bytes, int offset, int length) {
         try {
             return new String(bytes, offset, length, Constants.UTF8);
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
+            // UnsupportedEncodingException
             throw Message.convertToInternal(e);
         }
     }
@@ -389,7 +389,8 @@ public class StringUtils {
 //## Java 1.4 begin ##
         try {
             return URLEncoder.encode(s, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
+            // UnsupportedEncodingException
             throw Message.convertToInternal(e);
         }
 //## Java 1.4 end ##
@@ -529,7 +530,8 @@ public class StringUtils {
             synchronized (dateFormat) {
                 return dateFormat.parse(date);
             }
-        } catch (ParseException e) {
+        } catch (Exception e) {
+            // ParseException
             throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, e, date);
         }
     }

@@ -23,6 +23,16 @@ import org.h2.util.RandomUtils;
  */
 public class FileSystemMemory extends FileSystem {
 
+    /**
+     * The prefix used for an in-memory file system.
+     */
+    public static final String PREFIX = "memFS:";
+
+    /**
+     * The prefix used for a compressed in-memory file system.
+     */
+    public static final String PREFIX_LZF = "memLZF:";
+
     private static final FileSystemMemory INSTANCE = new FileSystemMemory();
     private static final TreeMap<String, FileObjectMemory> MEMORY_FILES = new TreeMap<String, FileObjectMemory>();
 
@@ -220,12 +230,16 @@ public class FileSystemMemory extends FileSystem {
         synchronized (MEMORY_FILES) {
             FileObjectMemory m = MEMORY_FILES.get(fileName);
             if (m == null) {
-                boolean compress = fileName.startsWith(FileSystem.PREFIX_MEMORY_LZF);
+                boolean compress = fileName.startsWith(PREFIX_LZF);
                 m = new FileObjectMemory(fileName, compress);
                 MEMORY_FILES.put(fileName, m);
             }
             return m;
         }
+    }
+
+    protected boolean accepts(String fileName) {
+        return fileName.startsWith(PREFIX) || fileName.startsWith(PREFIX_LZF);
     }
 
 }

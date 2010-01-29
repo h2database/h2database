@@ -19,15 +19,17 @@ import org.h2.util.New;
 
 /**
  * A file system that may split files into multiple smaller files.
+ * (required for a FAT32 because it only support files up to 2 GB).
  */
 public class FileSystemSplit extends FileSystem {
 
+    private static final String PREFIX = "split:";
+
     private static final String PART_SUFFIX = ".part";
-    private static final FileSystemSplit INSTANCE = new FileSystemSplit();
     private long defaultMaxSize = 1L << SysProperties.SPLIT_FILE_SIZE_SHIFT;
 
-    public static FileSystemSplit getInstance() {
-        return INSTANCE;
+    static {
+        FileSystem.register(new FileSystemSplit());
     }
 
     public boolean canWrite(String fileName) {
@@ -63,7 +65,7 @@ public class FileSystemSplit extends FileSystem {
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
         prefix = translateFileName(prefix);
-        return FileSystem.PREFIX_SPLIT + getFileSystem(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
+        return PREFIX + getFileSystem(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
     }
 
     public void delete(String fileName) throws SQLException {
@@ -96,7 +98,7 @@ public class FileSystemSplit extends FileSystem {
 
     public String getAbsolutePath(String fileName) {
         fileName = translateFileName(fileName);
-        return FileSystem.PREFIX_SPLIT + getFileSystem(fileName).getAbsolutePath(fileName);
+        return PREFIX + getFileSystem(fileName).getAbsolutePath(fileName);
     }
 
     public String getFileName(String name) {
@@ -121,7 +123,7 @@ public class FileSystemSplit extends FileSystem {
 
     public String getParent(String fileName) {
         fileName = translateFileName(fileName);
-        return FileSystem.PREFIX_SPLIT + getFileSystem(fileName).getParent(fileName);
+        return PREFIX + getFileSystem(fileName).getParent(fileName);
     }
 
     public boolean isAbsolute(String fileName) {
@@ -162,7 +164,7 @@ public class FileSystemSplit extends FileSystem {
             if (f.endsWith(PART_SUFFIX)) {
                 continue;
             }
-            array[i] = f = FileSystem.PREFIX_SPLIT + f;
+            array[i] = f = PREFIX + f;
             list.add(f);
         }
         if (list.size() != array.length) {
@@ -174,7 +176,7 @@ public class FileSystemSplit extends FileSystem {
 
     public String normalize(String fileName) throws SQLException {
         fileName = translateFileName(fileName);
-        return FileSystem.PREFIX_SPLIT + getFileSystem(fileName).normalize(fileName);
+        return PREFIX + getFileSystem(fileName).normalize(fileName);
     }
 
     public InputStream openFileInputStream(String fileName) throws IOException {
@@ -271,10 +273,10 @@ public class FileSystemSplit extends FileSystem {
     }
 
     private String translateFileName(String fileName) {
-        if (!fileName.startsWith(FileSystem.PREFIX_SPLIT)) {
-            Message.throwInternalError(fileName + " doesn't start with " + FileSystem.PREFIX_SPLIT);
+        if (!fileName.startsWith(PREFIX)) {
+            Message.throwInternalError(fileName + " doesn't start with " + PREFIX);
         }
-        fileName = fileName.substring(FileSystem.PREFIX_SPLIT.length());
+        fileName = fileName.substring(PREFIX.length());
         if (fileName.length() > 0 && Character.isDigit(fileName.charAt(0))) {
             int idx = fileName.indexOf(':');
             String size = fileName.substring(0, idx);
@@ -304,6 +306,10 @@ public class FileSystemSplit extends FileSystem {
 
     private FileSystem getFileSystem(String fileName) {
         return FileSystem.getInstance(fileName);
+    }
+
+    protected boolean accepts(String fileName) {
+        return fileName.startsWith(PREFIX);
     }
 
 }

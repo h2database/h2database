@@ -351,7 +351,7 @@ public class ObjectArray<T> implements Iterable<T> {
         }
 
         public void remove() {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException();
         }
     }
 

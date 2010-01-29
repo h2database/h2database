@@ -222,7 +222,7 @@ public class FtpServer extends Tool implements Service {
         return NetUtils.createServerSocket(0, false);
     }
 
-    private void appendFile(StringBuilder buff, String fileName) throws SQLException {
+    private void appendFile(StringBuilder buff, String fileName) {
         buff.append(fs.isDirectory(fileName) ? 'd' : '-');
         buff.append('r');
         buff.append(fs.canWrite(fileName) ? 'w' : '-');

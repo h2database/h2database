@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Nested UNION/INTERSECT queries with brackets could produce the wrong result if used within a subquery. Example:
+<ul><li>If the database was already closed using SHUTDOWN IMMEDIATELY, closing a second
+    connection could throw a NullPointerException if there was a local temporary table.
+</li><li>Less classes are loaded when using the database in embedded mode.
+</li><li>The information schema tables are only initialized when needed.
+    This reduces memory usage and speeds up creating in-memory databases.
+    Each in-memory database needs about 8 KB of heap memory.
+</li><li>Nested UNION/INTERSECT queries with brackets could produce the wrong result if used within a subquery. Example:
     select count(*) from (select 1 union (select 2 intersect select 2)) x;
 </li><li>Comparing an column against a constant expression with a higher precision or length
     than the column could give wrong results (the expression was truncated before comparing).

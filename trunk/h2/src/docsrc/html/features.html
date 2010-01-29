@@ -1582,7 +1582,7 @@ to match all SQL types (matching all SQL types is not supported). The second spe
 arrays of any class are mapped to <code>ARRAY</code>.
 </p>
 
-<h3>Functions that require a Connection</h3>
+<h3>Functions That Require a Connection</h3>
 <p>
 If the first parameter of a Java function is a <code>java.sql.Connection</code>, then the connection
 to database is provided. This connection does not need to be closed before returning.
@@ -1594,6 +1594,8 @@ does not need to be (can not be) specified.
 <p>
 If a function throws an exception, then the current statement is rolled back
 and the exception is thrown to the application.
+SQLException are directly re-thrown to the calling application; 
+all other exceptions are first converted to a SQLException.
 </p>
 
 <h3>Functions Returning a Result Set</h3>
@@ -1727,6 +1729,7 @@ The amount of memory used for caching can be changed using the setting
 <code>CACHE_SIZE</code>. This setting can be set in the database connection URL
 (<code>jdbc:h2:~/test;CACHE_SIZE=131072</code>), or it can be changed at runtime using
 <code>SET CACHE_SIZE size</code>.
+This setting has no effect for in-memory databases.
 </p><p>
 Also included is an experimental second level soft reference cache. Rows in this cache are only garbage collected
 on low memory. By default the second level cache is disabled. To enable it,

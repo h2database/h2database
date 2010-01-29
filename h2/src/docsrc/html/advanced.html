@@ -1010,10 +1010,9 @@ this password is still protected up to some point. See also
 'RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication'
 for more information.
 </p><p>
-When a new database or user is created, a new cryptographically secure
-random salt value is generated. The size of the salt is 64 bits.
-Using the random salt reduces the risk of an attacker pre-calculating hash values
-for many different (commonly used) passwords.
+When a new database or user is created, a new random salt value is generated.
+The size of the salt is 64 bits. Using the random salt reduces the risk of an
+attacker pre-calculating hash values for many different (commonly used) passwords.
 </p><p>
 The combination of user-password hash value (see above) and salt is hashed
 using SHA-256. The resulting value is stored in the database.

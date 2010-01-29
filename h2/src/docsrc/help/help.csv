@@ -398,6 +398,9 @@ the database is re-opened. Source code is usually passed
 as dollar quoted text to avoid escaping problems. If import statements are used,
 then the tag @CODE must be added before the method.
 
+If the method throws a SQLException, it is directly re-thrown to the calling application;
+all other exceptions are first converted to a SQLException.
+
 If the first parameter of the Java function is a java.sql.Connection, then a
 connection to the database is provided. This connection must not be closed.
 If the class contains multiple methods with the given name but different
@@ -921,6 +924,7 @@ Depending on the virtual machine, the actual memory required may be higher.
 
 This setting is persistent and affects all connections as there is only one cache per database.
 This setting only affects the database engine (the server in a client/server environment).
+It has no effect for in-memory databases.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.

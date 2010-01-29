@@ -29,6 +29,7 @@ import org.h2.value.ValueString;
 public class CompareLike extends Condition {
 
     private static final int MATCH = 0, ONE = 1, ANY = 2;
+    private static final Character DEFAULT_ESCAPE_CHAR = getEscapeChar(SysProperties.DEFAULT_ESCAPE);
 
     private final CompareMode compareMode;
     private Expression left;
@@ -55,6 +56,10 @@ public class CompareLike extends Condition {
         this.left = left;
         this.right = right;
         this.escape = escape;
+    }
+
+    private static Character getEscapeChar(String s) {
+        return s == null || s.length() == 0 ? null : s.charAt(0);
     }
 
     public String getSQL() {
@@ -121,12 +126,12 @@ public class CompareLike extends Condition {
 
     private Character getEscapeChar(Value e) throws SQLException {
         if (e == null) {
-            return SysProperties.DEFAULT_ESCAPE_CHAR;
+            return DEFAULT_ESCAPE_CHAR;
         }
         String es = e.getString();
         Character esc;
         if (es == null) {
-            esc = SysProperties.DEFAULT_ESCAPE_CHAR;
+            esc = DEFAULT_ESCAPE_CHAR;
         } else if (es.length() == 0) {
             esc = null;
         } else if (es.length() > 1) {

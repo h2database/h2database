@@ -1419,9 +1419,14 @@ public class JdbcConnection extends TraceObject implements Connection {
         executingStatement = stat;
     }
 
-    ResultInterface getGeneratedKeys() throws SQLException {
+    /**
+     * INTERNAL
+     */
+    ResultSet getGeneratedKeys(JdbcStatement stat, int id) throws SQLException {
         getGeneratedKeys = prepareCommand("CALL SCOPE_IDENTITY()", getGeneratedKeys);
-        return getGeneratedKeys.executeQuery(0, false);
+        ResultInterface result = getGeneratedKeys.executeQuery(0, false);
+        ResultSet rs = new JdbcResultSet(this, stat, result, id, false, true, false);
+        return rs;
     }
 
     /**

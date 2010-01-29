@@ -184,7 +184,7 @@ public class SysProperties {
      * The default escape character for LIKE comparisons. To select no escape
      * character, use an empty string.
      */
-    public static final Character DEFAULT_ESCAPE_CHAR = getEscapeChar(getStringSetting("h2.defaultEscape", "\\"));
+    public static final String DEFAULT_ESCAPE = getStringSetting("h2.defaultEscape", "\\");
 
     /**
      * System property <code>h2.defaultMaxOperationMemory</code> (default:
@@ -743,7 +743,8 @@ public class SysProperties {
     private static String getProperty(String name) {
         try {
             return System.getProperty(name);
-        } catch (SecurityException e) {
+        } catch (Exception e) {
+            // SecurityException
             // applets may not do that - ignore
             return null;
         }
@@ -833,10 +834,6 @@ public class SysProperties {
      */
     public static boolean getPageStore() {
         return getBooleanSetting(H2_PAGE_STORE, PAGE_STORE);
-    }
-
-    private static Character getEscapeChar(String s) {
-        return s == null || s.length() == 0 ? null : s.charAt(0);
     }
 
 }

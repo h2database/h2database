@@ -213,6 +213,11 @@ public class WebServer implements Service {
     }
 
     String getStartDateTime() {
+        if (startDateTime == null) {
+            SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
+            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+            startDateTime = format.format(new Date());
+        }
         return startDateTime;
     }
 
@@ -272,12 +277,6 @@ public class WebServer implements Service {
 //                    TraceSystem.traceThrowable(e);
 //                }
 //            }
-        SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
-        synchronized (format) {
-            format.setTimeZone(TimeZone.getTimeZone("GMT"));
-            startDateTime = format.format(new Date());
-        }
-        trace(startDateTime);
         for (String[] lang : LANGUAGES) {
             languages.add(lang[0]);
         }

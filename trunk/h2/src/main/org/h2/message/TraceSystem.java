@@ -105,7 +105,6 @@ public class TraceSystem implements TraceWriter {
         this.fileName = fileName;
         updateLevel();
         traces = SmallLRUCache.newInstance(100);
-        dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
     }
 
     private void updateLevel() {
@@ -210,10 +209,11 @@ public class TraceSystem implements TraceWriter {
         return levelFile;
     }
 
-    private String format(String module, String s) {
-        synchronized (dateFormat) {
-            return dateFormat.format(new Date()) + module + ": " + s;
+    private synchronized String format(String module, String s) {
+        if (dateFormat == null) {
+            dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
         }
+        return dateFormat.format(new Date()) + module + ": " + s;
     }
 
     public void write(int level, String module, String s, Throwable t) {

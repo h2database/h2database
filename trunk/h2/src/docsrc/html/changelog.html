@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>If the database was already closed using SHUTDOWN IMMEDIATELY, closing a second
+<ul><li>The DeleteDbFiles tool deleted all files in the .lob.db directory,
+    even files that didn't belong to the database.
+</li><li>Automatic conversion of old databases to the page store format failed
+    if the database contained LOB files.
+</li><li>Nested subqueries didn't work for INSERT INTO and IN(..).
+    Example: insert into test ((select 1));
+</li><li>If the database was already closed using SHUTDOWN IMMEDIATELY, closing a second
     connection could throw a NullPointerException if there was a local temporary table.
 </li><li>Less classes are loaded when using the database in embedded mode.
 </li><li>The information schema tables are only initialized when needed.

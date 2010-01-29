@@ -475,12 +475,14 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support TRUNCATE for linked tables.
 </li><li>UNION: evaluate INTERSECT before UNION (like most other database except Oracle).
 </li><li>Delay creating the information schema, and share metadata columns.
+</li><li>TCP Server: use a nonce (number used once) to protect unencrypted channels against replay attacks.
 </li></ul>
 
 <h2>Not Planned</h2>
 <ul>
 <li>HSQLDB (did) support this: select id i from test where i&lt;0 (other databases don't). Supporting it may break compatibility.
 </li><li>String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively.
+</li><li>In prepared statements, identifier names (table names and so on) can not be parameterized. Adding such a feature would complicate the souce code without providing reasonable speedup, and would slow down regular prepared statements.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -1450,6 +1450,7 @@ public class Database implements DataHandler {
     /**
      * Get all tables and views.
      *
+     * @param includeMeta whether to include the meta data tables
      * @return all objects of that type
      */
     public ObjectArray<Table> getAllTablesAndViews(boolean includeMeta) {

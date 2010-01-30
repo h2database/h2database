@@ -1161,7 +1161,7 @@ public class Session extends SessionWithState {
         if (undoLog.size() == 0 || !database.isPersistent()) {
             return ValueNull.INSTANCE;
         }
-        return ValueString.get(firstUncommittedLog+"-" + firstUncommittedPos + "-" + id);
+        return ValueString.get(firstUncommittedLog + "-" + firstUncommittedPos + "-" + id);
     }
 
     /**

@@ -2,7 +2,14 @@
 setlocal
 
 copy /y /b ..\bin\h2-*.jar ..\bin\h2.jar
+fc /b ..\bin\h2-*.jar ..\bin\h2.jar
+if not errorlevel 1 goto :start
+echo Please ensure there is only one h2-*.jar file.
+echo Process stopped
+pause
+goto :eof
 
+:start
 rem Copyright (c) 1999, 2006 Tanuki Software Inc.
 rem
 rem Java Service Wrapper general startup script

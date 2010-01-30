@@ -1286,7 +1286,7 @@ Only use Java 1.5 features (do not use Java 1.6) (see <a href="#environment">Env
 Follow the coding style used in the project, and use Checkstyle (see above) to verify. For example, do not use tabs (use spaces instead). The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>. 
 
 @build_1061_li
-A template of the Eclipse settings are in <code>src/installer/eclipse.settings/*</code>. If you want to use them, you need to copy them to the <code>.settings</code> directory. 
+A template of the Eclipse settings are in <code>src/installer/eclipse.settings/*</code>. If you want to use them, you need to copy them to the <code>.settings</code> directory. The formatting options (<code>eclipseCodeStyle</code>) are also included. 
 
 @build_1062_li
 Please provide test cases and integrate them into the test suite. For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>. For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or <code>testSimple.in.txt</code>. 

@@ -13,8 +13,21 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(78,
+'New version available: 1.2.128 (2010-01-30)', '2009-12-30 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(77,
-'New version available: 1.2.127 (2010-01-15)', '2009-12-18 12:00:00',
+'New version available: 1.2.127 (2010-01-15)', '2010-01-15 12:00:00',
 $$A new version of H2 is available for
 <a href="http://www.h2database.com">download</a>.
 (You may have to click 'Refresh').
@@ -271,38 +284,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Fulltext search: an exception was thrown when updating a value sometimes.
 </li><li>The Recover tool did not always work.
 </li><li>The soft-references cache (CACHE_TYPE=SOFT_LRU) could throw an exception.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(65,
-'New version available: 1.1.115 (2009-06-27)', '2009-06-27 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>The new storage mechanism is now alpha quality.
-    To try it out, enable the system property "h2.pageStore" to "true".
-    The database file size is smaller, and there is only one file.
-</li><li>java.util.UUID is now supported.
-</li><li>H2 Console: improved Polish translation.
-</li><li>The download page now included the SHA1 checksums.
-</li><li>Shell tool: the file encoding workaround is now documented.
-</li><li>Data types: LONG is now an alias for BIGINT.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>ALTER TABLE could throw an exception "object already exists".
-</li><li>Views: in some situations, an ArrayIndexOutOfBoundsException was thrown.
-</li><li>H2 Console: the language was reset to the browser language.
-</li><li>Server-less multi-connection mode: more bugs are fixed.
-</li><li>RunScript did not work with LZF.
-</li><li>Fulltext search: searching for NULL or an empty string threw an exception.
-</li><li>Lucene fulltext search: FTL_DROP_ALL did not drop triggers.
-</li><li>Backup: the backup could included a file entry for the LOB directory.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

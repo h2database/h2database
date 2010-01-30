@@ -34,8 +34,9 @@ public class TestTransaction extends TestBase {
     }
 
     public void test() throws SQLException {
-        testForUpdate();
         testRollback();
+        testRollback2();
+        testForUpdate();
         testSetTransaction();
         testReferential();
         testSavepoint();
@@ -68,6 +69,60 @@ public class TestTransaction extends TestBase {
     }
 
     private void testRollback() throws SQLException {
+        if (!config.pageStore) {
+            // known not to work when the page store is disabled
+            return;
+        }
+        deleteDb("transaction");
+        Connection conn = getConnection("transaction");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("create index idx_id on test(id)");
+        stat.execute("insert into test values(1), (1), (1)");
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("transaction");
+            stat = conn.createStatement();
+        }
+        conn.setAutoCommit(false);
+        stat.execute("delete from test");
+        conn.rollback();
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        assertResultRowCount(3, rs);
+        rs = stat.executeQuery("select * from test where id = 1");
+        assertResultRowCount(3, rs);
+        conn.close();
+
+        conn = getConnection("transaction");
+        stat = conn.createStatement();
+        stat.execute("create table master(id int) as select 1");
+        stat.execute("create table child1(id int references master(id) on delete cascade)");
+        stat.execute("insert into child1 values(1), (1), (1)");
+        stat.execute("create table child2(id int references master(id)) as select 1");
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("transaction");
+            stat = conn.createStatement();
+        }
+        stat = conn.createStatement();
+        try {
+            stat.execute("delete from master");
+            fail();
+        } catch (SQLException ex) {
+            // ok
+            conn.rollback();
+        }
+        rs = stat.executeQuery("select * from master where id=1");
+        assertResultRowCount(1, rs);
+        rs = stat.executeQuery("select * from child1");
+        assertResultRowCount(3, rs);
+        rs = stat.executeQuery("select * from child1 where id=1");
+        assertResultRowCount(3, rs);
+        conn.close();
+    }
+
+    private void testRollback2() throws SQLException {
         deleteDb("transaction");
         Connection conn = getConnection("transaction");
         Statement stat = conn.createStatement();

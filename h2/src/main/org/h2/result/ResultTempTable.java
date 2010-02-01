@@ -11,7 +11,6 @@ import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.index.BtreeIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -60,11 +59,7 @@ public class ResultTempTable implements ResultExternal {
         IndexType indexType;
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = new IndexColumn[]{indexColumn};
-        if (session.getDatabase().isPageStoreEnabled()) {
-            index = new PageBtreeIndex(table, indexId, data.tableName, indexCols, indexType, Index.EMPTY_HEAD, session);
-        } else {
-            index = new BtreeIndex(session, table, indexId, data.tableName, indexCols, indexType, Index.EMPTY_HEAD);
-        }
+        index = new PageBtreeIndex(table, indexId, data.tableName, indexCols, indexType, Index.EMPTY_HEAD, session);
         index.setTemporary(true);
         table.getIndexes().add(index);
     }

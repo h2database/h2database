@@ -883,19 +883,4 @@ public class StringUtils {
         return s;
     }
 
-    /**
-     * Check if a string only contains numbers.
-     *
-     * @param s the string
-     * @return true if it only contains digits 0 - 9
-     */
-    public static boolean isNumber(String s) {
-        for (int i = 0; i < s.length(); i++) {
-            if (!Character.isDigit(s.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 }

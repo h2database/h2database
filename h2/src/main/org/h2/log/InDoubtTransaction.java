@@ -35,30 +35,24 @@ public class InDoubtTransaction {
     // TODO 2-phase-commit: document sql statements and metadata table
 
     private final PageStore store;
-    private final LogFile log;
     private final int sessionId;
     private final int pos;
     private final String transaction;
-    private final int blocks;
     private int state;
 
     /**
      * Create a new in-doubt transaction info object.
      *
      * @param store the page store
-     * @param log the log file
      * @param sessionId the session id
      * @param pos the position
      * @param transaction the transaction name
-     * @param blocks the number of blocks the 'prepare commit' entry occupies
      */
-    public InDoubtTransaction(PageStore store, LogFile log, int sessionId, int pos, String transaction, int blocks) {
+    public InDoubtTransaction(PageStore store, int sessionId, int pos, String transaction) {
         this.store = store;
-        this.log = log;
         this.sessionId = sessionId;
         this.pos = pos;
         this.transaction = transaction;
-        this.blocks = blocks;
         this.state = IN_DOUBT;
     }
 
@@ -71,18 +65,10 @@ public class InDoubtTransaction {
     public void setState(int state) throws SQLException {
         switch(state) {
         case COMMIT:
-            if (store != null) {
-                store.setInDoubtTransactionState(sessionId, pos, true);
-            } else {
-                log.updatePreparedCommit(true, pos, sessionId, blocks);
-            }
+            store.setInDoubtTransactionState(sessionId, pos, true);
             break;
         case ROLLBACK:
-            if (store != null) {
-                store.setInDoubtTransactionState(sessionId, pos, false);
-            } else {
-                log.updatePreparedCommit(false, pos, sessionId, blocks);
-            }
+            store.setInDoubtTransactionState(sessionId, pos, false);
             break;
         default:
             Message.throwInternalError("state="+state);

@@ -176,7 +176,7 @@ public class TestRandomSQL extends TestBase {
     public void testCase(int i) throws SQLException {
         String old = SysProperties.getScriptDirectory();
         try {
-            SysProperties.setScriptDirectory("dataScript/");
+            System.setProperty(SysProperties.H2_SCRIPT_DIRECTORY, "dataScript/");
             seed = i;
             printTime("seed: " + seed);
             try {
@@ -186,7 +186,7 @@ public class TestRandomSQL extends TestBase {
             }
             testWithSeed(bnfSyntax);
         } finally {
-            SysProperties.setScriptDirectory(old);
+            System.setProperty(SysProperties.H2_SCRIPT_DIRECTORY, old);
         }
         try {
             deleteDb();

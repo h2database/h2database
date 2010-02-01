@@ -306,20 +306,4 @@ public class FileUtils {
         return FileSystem.getInstance(fileName).getLastModified(fileName);
     }
 
-    /**
-     * Set the file length.
-     *
-     * @param fileName the file name
-     * @param length the new length
-     */
-    public static void setLength(String fileName, long length) throws SQLException {
-        try {
-            FileObject f = FileSystem.getInstance(fileName).openFileObject(fileName, "rw");
-            f.setFileLength(length);
-            f.close();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, fileName + " length: " + length);
-        }
-    }
-
 }

@@ -113,21 +113,6 @@ public class DataPage {
     }
 
     /**
-     * Update an integer at the given position.
-     * The current position is not change.
-     *
-     * @param pos the position
-     * @param x the value
-     */
-    public void setInt(int pos, int x) {
-        byte[] buff = data;
-        buff[pos] = (byte) (x >> 24);
-        buff[pos + 1] = (byte) (x >> 16);
-        buff[pos + 2] = (byte) (x >> 8);
-        buff[pos + 3] = (byte) x;
-    }
-
-    /**
      * Write an integer at the current position.
      * The current position is incremented.
      *
@@ -298,20 +283,6 @@ public class DataPage {
      */
     public void reset() {
         pos = 0;
-    }
-
-    /**
-     * Append the contents of the given data page to this page.
-     * The filler is not appended.
-     *
-     * @param page the page that will be appended
-     */
-    public void writeDataPageNoSize(DataPage page) {
-        checkCapacity(page.pos);
-        // don't write filler
-        int len = page.pos - LENGTH_FILLER;
-        System.arraycopy(page.data, 0, data, pos, len);
-        pos += len;
     }
 
     /**
@@ -673,27 +644,6 @@ public class DataPage {
         // TODO datapage: fillAligned should not use a fixed constant '2'
         // 0..6 > 8, 7..14 > 16, 15..22 > 24, ...
         fill(MathUtils.roundUp(pos + 2, Constants.FILE_BLOCK_SIZE));
-    }
-
-    /**
-     * Set the current read / write position.
-     *
-     * @param pos the new position
-     */
-    public void setPos(int pos) {
-        this.pos = pos;
-    }
-
-    /**
-     * Write a short integer at the current position.
-     * The current position is incremented.
-     *
-     * @param x the value
-     */
-    public void writeShortInt(int x) {
-        byte[] buff = data;
-        buff[pos++] = (byte) (x >> 8);
-        buff[pos++] = (byte) x;
     }
 
     /**

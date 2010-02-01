@@ -74,7 +74,7 @@ public class Insert extends Prepared {
     public int update() throws SQLException {
         Database db = session.getDatabase();
         PageIndex index = null;
-        if (sortedInsertMode && db.isPageStoreEnabled() && db.isPersistent()) {
+        if (sortedInsertMode && db.isPersistent()) {
             index = (PageIndex) table.getScanIndex(session);
             index.setSortedInsertMode(true);
         }

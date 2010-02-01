@@ -77,30 +77,6 @@ public class MathUtils {
     }
 
     /**
-     * Increase the value by about 50%. The method is used to increase the file
-     * size in larger steps.
-     *
-     * @param start the smallest possible returned value
-     * @param min the current value
-     * @param blockSize the block size
-     * @param maxIncrease the maximum increment
-     * @return the new value
-     */
-    public static long scaleUp50Percent(long start, long min, long blockSize, long maxIncrease) {
-        long len;
-        if (min > maxIncrease * 2) {
-            len = roundUpLong(min, maxIncrease);
-        } else {
-            len = start;
-            while (len < min) {
-                len += len / 2;
-                len += len % blockSize;
-            }
-        }
-        return len;
-    }
-
-    /**
      * Set the scale of a BigDecimal value.
      *
      * @param bd the BigDecimal value

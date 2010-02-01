@@ -15,7 +15,6 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.Data;
-import org.h2.store.DataPage;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.util.MemoryUtils;
@@ -321,12 +320,8 @@ public class PageDataNode extends PageData {
         }
     }
 
-    public int getByteCount(DataPage dummy) {
-        return index.getPageStore().getPageSize();
-    }
-
-    public void write(DataPage buff) throws SQLException {
-        write();
+    public void write() throws SQLException {
+        writeData();
         index.getPageStore().writePage(getPos(), data);
     }
 
@@ -345,7 +340,7 @@ public class PageDataNode extends PageData {
         data.writeShortInt(entryCount);
     }
 
-    private void write() {
+    private void writeData() {
         if (written) {
             return;
         }

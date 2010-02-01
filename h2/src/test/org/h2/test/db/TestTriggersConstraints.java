@@ -258,7 +258,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     private void checkRows(ResultSet rs, String[] expected) throws SQLException {
-        HashSet<String> set = New.hashSet(Arrays.asList(expected));
+        HashSet<String> set = new HashSet<String>(Arrays.asList(expected));
         while (rs.next()) {
             set.remove(rs.getString(1));
         }

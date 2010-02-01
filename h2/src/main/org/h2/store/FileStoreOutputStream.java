@@ -19,7 +19,7 @@ import org.h2.tools.CompressTool;
  */
 public class FileStoreOutputStream extends OutputStream {
     private FileStore store;
-    private DataPage page;
+    private Data page;
     private String compressionAlgorithm;
     private CompressTool compress;
     private byte[] buffer = new byte[1];
@@ -30,7 +30,7 @@ public class FileStoreOutputStream extends OutputStream {
             compress = CompressTool.getInstance();
             this.compressionAlgorithm = compressionAlgorithm;
         }
-        page = DataPage.create(handler, Constants.FILE_BLOCK_SIZE);
+        page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
     }
 
     public void write(int b) throws IOException {
@@ -56,10 +56,12 @@ public class FileStoreOutputStream extends OutputStream {
                     int uncompressed = len;
                     buff = compress.compress(buff, compressionAlgorithm);
                     len = buff.length;
+                    page.checkCapacity(2 * DataPage.LENGTH_INT + len);
                     page.writeInt(len);
                     page.writeInt(uncompressed);
                     page.write(buff, off, len);
                 } else {
+                    page.checkCapacity(DataPage.LENGTH_INT + len);
                     page.writeInt(len);
                     page.write(buff, off, len);
                 }

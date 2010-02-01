@@ -28,6 +28,11 @@ public class SysProperties {
     /**
      * INTERNAL
      */
+    public static final String H2_SCRIPT_DIRECTORY = "h2.scriptDirectory";
+
+    /**
+     * INTERNAL
+     */
     public static final String H2_MAX_QUERY_TIMEOUT = "h2.maxQueryTimeout";
 
     /**
@@ -39,11 +44,6 @@ public class SysProperties {
      * INTERNAL
      */
     public static final String H2_COLLATOR_CACHE_SIZE = "h2.collatorCacheSize";
-
-    /**
-     * INTERNAL
-     */
-    public static final String H2_PAGE_STORE = "h2.pageStore";
 
     /**
      * System property <code>file.encoding</code> (default: Cp1252).<br />
@@ -555,17 +555,6 @@ public class SysProperties {
     public static final int PAGE_SIZE = getIntSetting("h2.pageSize", 2048);
 
     /**
-     * System property <code>h2.pageStore</code>.<br />
-     * Use the 'page store' database file format for new databases.
-     * <p>
-     * In version 1.1, it is disabled by default.
-     * </p><p>
-     * In version 1.2, it is enabled by default.
-     * </p>
-     */
-    public static final boolean PAGE_STORE = getBooleanSetting(H2_PAGE_STORE, Constants.VERSION >= 1.2);
-
-    /**
      * System property <code>h2.pageStoreTrim</code> (default: true).<br />
      * Trim the database size when closing.
      */
@@ -798,14 +787,7 @@ public class SysProperties {
      * read from.
      */
     public static String getScriptDirectory() {
-        return getStringSetting("h2.scriptDirectory", "");
-    }
-
-    /**
-     * INTERNAL
-     */
-    public static void setScriptDirectory(String dir) {
-        System.setProperty("h2.scriptDirectory", dir);
+        return getStringSetting(H2_SCRIPT_DIRECTORY, "");
     }
 
     /**
@@ -827,13 +809,6 @@ public class SysProperties {
      */
     public static int getCollatorCacheSize() {
         return getIntSetting(H2_COLLATOR_CACHE_SIZE, 32000);
-    }
-
-    /**
-     * INTERNAL
-     */
-    public static boolean getPageStore() {
-        return getBooleanSetting(H2_PAGE_STORE, PAGE_STORE);
     }
 
 }

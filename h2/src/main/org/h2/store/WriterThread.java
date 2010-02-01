@@ -10,12 +10,10 @@ import java.lang.ref.WeakReference;
 import java.security.AccessControlException;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.log.LogSystem;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
-import org.h2.util.FileUtils;
 
 /**
  * The writer thread is responsible to flush the transaction log file from time
@@ -36,10 +34,7 @@ public class WriterThread implements Runnable {
     private volatile WeakReference<Database> databaseRef;
 
     private int writeDelay;
-    private long lastIndexFlush;
     private volatile boolean stop;
-    private long oldLogFileDelete;
-    private String oldLogFile;
 
     private WriterThread(Database database, int writeDelay) {
         this.databaseRef = new WeakReference<Database>(database);
@@ -93,35 +88,11 @@ public class WriterThread implements Runnable {
         return log;
     }
 
-    private void flushIndexesIfRequired(Database database) {
-        long time = System.currentTimeMillis();
-        if (lastIndexFlush + Constants.FLUSH_INDEX_DELAY > time) {
-            return;
-        }
-        database.flushIndexes(time - Constants.FLUSH_INDEX_DELAY);
-        lastIndexFlush = time;
-    }
-
     public void run() {
         while (!stop) {
-            synchronized (this) {
-                if (oldLogFile != null) {
-                    long time = System.currentTimeMillis();
-                    if (time > oldLogFileDelete) {
-                        FileUtils.tryDelete(oldLogFile);
-                        if (!FileUtils.exists(oldLogFile)) {
-                            oldLogFile = null;
-                        }
-                    }
-                }
-            }
             Database database = databaseRef.get();
             if (database == null) {
                 break;
-            }
-            boolean flush = Constants.FLUSH_INDEX_DELAY != 0;
-            if (flush) {
-                flushIndexesIfRequired(database);
             }
 
             int wait = writeDelay;
@@ -164,33 +135,10 @@ public class WriterThread implements Runnable {
     }
 
     /**
-     * Stop the thread. This method is called when closing the database. Old log
-     * files are deleted as well.
+     * Stop the thread. This method is called when closing the database.
      */
-    public void stopThread() throws SQLException {
+    public void stopThread() {
         stop = true;
-        deleteLogFileLater(null);
-    }
-
-    /**
-     * Delete the following log file later on. If there is already a file to be
-     * deleted, that one will be deleted immediately.
-     *
-     * @param fileName the name of the file to delete
-     */
-    public synchronized void deleteLogFileLater(String fileName) throws SQLException {
-        if (oldLogFile != null) {
-            FileUtils.delete(oldLogFile);
-        }
-        int delay = SysProperties.getLogFileDeleteDelay();
-        if (delay == 0 && fileName != null) {
-            FileUtils.delete(fileName);
-        } else {
-            oldLogFile = fileName;
-            if (fileName != null) {
-                oldLogFileDelete = System.currentTimeMillis() + delay;
-            }
-        }
     }
 
 }

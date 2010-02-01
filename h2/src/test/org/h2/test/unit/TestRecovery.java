@@ -43,10 +43,7 @@ public class TestRecovery extends TestBase {
 
         conn = getConnection("recovery", "diff", "");
         stat = conn.createStatement();
-        String name = "recovery.data.sql";
-        if (config.pageStore) {
-            name = "recovery.h2.sql";
-        }
+        String name = "recovery.h2.sql";
 
         stat.execute("runscript from '" + baseDir + "/" + name + "'");
         stat.execute("select * from test");

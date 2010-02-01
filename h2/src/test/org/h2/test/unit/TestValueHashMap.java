@@ -178,8 +178,4 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         return TempFileDeleter.getInstance();
     }
 
-    public Trace getTrace() {
-        return null;
-    }
-
 }

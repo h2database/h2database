@@ -238,7 +238,9 @@ implements XAConnection, XAResource
             list.toArray(result);
             return result;
         } catch (SQLException e) {
-            throw new XAException(XAException.XAER_RMERR);
+            XAException xa = new XAException(XAException.XAER_RMERR);
+            xa.initCause(e);
+            throw xa;
         } finally {
             JdbcUtils.closeSilently(stat);
         }

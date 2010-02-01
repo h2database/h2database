@@ -52,11 +52,6 @@ public class LinkedCursor implements Cursor {
         return current;
     }
 
-    public long getKey() {
-        throw Message.throwInternalError();
-    }
-
-
     public boolean next() throws SQLException {
         boolean result = rs.next();
         if (!result) {

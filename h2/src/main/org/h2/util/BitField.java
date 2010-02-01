@@ -33,30 +33,6 @@ public class BitField {
     }
 
     /**
-     * Get the index of the next bit that is set.
-     *
-     * @param fromIndex where to start searching
-     * @return the index of the next enabled bit
-     */
-    public int nextSetBit(int fromIndex) {
-        int i = fromIndex >> ADDRESS_BITS;
-        int max = data.length;
-        int maxAddress = data.length << ADDRESS_BITS;
-        for (; i < max; i++) {
-            if (data[i] == 0) {
-                continue;
-            }
-            int j = Math.max(fromIndex, i << ADDRESS_BITS);
-            for (int end = Math.min(maxAddress, j + 64); j < end; j++) {
-                if (get(j)) {
-                    return j;
-                }
-            }
-        }
-        return -1;
-    }
-
-    /**
      * Get the index of the next bit that is not set.
      *
      * @param fromIndex where to start searching
@@ -77,20 +53,6 @@ public class BitField {
             }
         }
         return max << ADDRESS_BITS;
-    }
-
-    /**
-     * Get the bit mask of the bits at the given index.
-     *
-     * @param i the index (must be a multiple of 64)
-     * @return the bit mask as a long
-     */
-    public long getLong(int i) {
-        int addr = getAddress(i);
-        if (addr >= data.length) {
-            return 0;
-        }
-        return data[addr];
     }
 
     /**

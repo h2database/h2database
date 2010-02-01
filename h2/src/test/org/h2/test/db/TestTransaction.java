@@ -69,10 +69,6 @@ public class TestTransaction extends TestBase {
     }
 
     private void testRollback() throws SQLException {
-        if (!config.pageStore) {
-            // known not to work when the page store is disabled
-            return;
-        }
         deleteDb("transaction");
         Connection conn = getConnection("transaction");
         Statement stat = conn.createStatement();

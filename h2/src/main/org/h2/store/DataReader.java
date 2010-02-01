@@ -94,18 +94,18 @@ public class DataReader {
      *
      * @return the value
      */
-    public int readInt() throws IOException {
-        return (read() << 24) + ((read() & 0xff) << 16) + ((read() & 0xff) << 8) + (read() & 0xff);
-    }
+    // public int readInt() throws IOException {
+    //    return (read() << 24) + ((read() & 0xff) << 16) + ((read() & 0xff) << 8) + (read() & 0xff);
+    // }
 
     /**
      * Read a long.
      *
      * @return the value
      */
-    public long readLong() throws IOException {
-        return ((long) (readInt()) << 32) + (readInt() & 0xffffffffL);
-    }
+    // public long readLong() throws IOException {
+    //    return ((long) (readInt()) << 32) + (readInt() & 0xffffffffL);
+    // }
 
     /**
      * Read a number of bytes.

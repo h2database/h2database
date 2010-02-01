@@ -10,7 +10,6 @@ import java.util.Comparator;
 
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
-import org.h2.store.DiskFile;
 
 /**
  * The base object for all cached objects.
@@ -58,11 +57,6 @@ public abstract class CacheObject {
      */
     public int cacheQueue;
 
-    /**
-     * The number of blocks occupied by this object.
-     */
-    protected int blockCount;
-
     private int pos;
     private boolean changed;
 
@@ -75,20 +69,19 @@ public abstract class CacheObject {
     public abstract boolean canRemove();
 
     /**
+     * Get the estimated memory size.
+     *
+     * @return number of double words (4 bytes)
+     */
+    public abstract int getMemorySize();
+
+    /**
      * Order the given list of cache objects by position.
      *
      * @param recordList the list of cache objects
      */
     public static void sort(ObjectArray<CacheObject> recordList) {
         recordList.sort(new CacheComparator());
-    }
-
-    public void setBlockCount(int size) {
-        this.blockCount = size;
-    }
-
-    public int getBlockCount() {
-        return blockCount;
     }
 
     public void setPos(int pos) {
@@ -114,24 +107,6 @@ public abstract class CacheObject {
 
     public void setChanged(boolean b) {
         changed = b;
-    }
-
-    /**
-     * Check if this cache object can be removed from the cache.
-     *
-     * @return if it can be removed
-     */
-    public boolean isPinned() {
-        return false;
-    }
-
-    /**
-     * Get the estimated memory size.
-     *
-     * @return number of double words (4 bytes)
-     */
-    public int getMemorySize() {
-        return blockCount * (DiskFile.BLOCK_SIZE / 4);
     }
 
 }

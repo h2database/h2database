@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.Resources;
+import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
 /**
@@ -31,18 +32,19 @@ public class Message {
 
     static {
         try {
-            byte[] messages = Resources.get("/org/h2/res/_messages_en.properties");
+            byte[] messages = Resources.get("/org/h2/res/_messages_en.prop");
             if (messages != null) {
                 MESSAGES.load(new ByteArrayInputStream(messages));
             }
             String language = Locale.getDefault().getLanguage();
             if (!"en".equals(language)) {
-                byte[] translations = Resources.get("/org/h2/res/_messages_" + language + ".properties");
+                byte[] translations = Resources.get("/org/h2/res/_messages_" + language + ".prop");
                 // message: translated message + english
                 // (otherwise certain applications don't work)
                 if (translations != null) {
-                    Properties p = new Properties();
-                    p.load(new ByteArrayInputStream(translations));
+                    Properties p = SortedProperties.fromLines(new String(translations, "UTF-8"));
+//                    Properties p = new Properties();
+//                    p.load(new ByteArrayInputStream(translations));
                     for (Entry<Object, Object> e : p.entrySet()) {
                         String key = (String) e.getKey();
                         String translation = (String) e.getValue();
@@ -250,16 +252,6 @@ public class Message {
             ((JdbcSQLException) e2).setSQL(sql);
         }
         return e2;
-    }
-
-    /**
-     * Convert a stack overflow error.
-     *
-     * @param e the root cause
-     * @return the SQL exception object
-     */
-    public static SQLException convert(StackOverflowError e) {
-        return getSQLException(ErrorCode.GENERAL_ERROR_1, e);
     }
 
     /**

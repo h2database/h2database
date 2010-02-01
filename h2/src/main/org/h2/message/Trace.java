@@ -149,17 +149,6 @@ public class Trace {
      * Write a message with trace level ERROR to the trace system.
      *
      * @param s the message
-     */
-    public void error(String s) {
-        if (isEnabled(TraceSystem.ERROR)) {
-            traceWriter.write(TraceSystem.ERROR, module, s, null);
-        }
-    }
-
-    /**
-     * Write a message with trace level ERROR to the trace system.
-     *
-     * @param s the message
      * @param t the exception
      */
     public void error(String s, Throwable t) {

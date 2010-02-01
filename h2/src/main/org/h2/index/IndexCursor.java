@@ -165,10 +165,6 @@ public class IndexCursor implements Cursor {
         return cursor.get();
     }
 
-    public long getKey() {
-        return cursor.getKey();
-    }
-
     public SearchRow getSearchRow() throws SQLException {
         return cursor.getSearchRow();
     }

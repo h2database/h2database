@@ -13,7 +13,6 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
-import org.h2.store.DataPage;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 
@@ -237,12 +236,8 @@ public class PageBtreeLeaf extends PageBtree {
         // ignore
     }
 
-    public int getByteCount(DataPage dummy) {
-        return index.getPageStore().getPageSize();
-    }
-
-    public void write(DataPage buff) throws SQLException {
-        write();
+    public void write() throws SQLException {
+        writeData();
         index.getPageStore().writePage(getPos(), data);
     }
 
@@ -255,7 +250,7 @@ public class PageBtreeLeaf extends PageBtree {
         data.writeShortInt(entryCount);
     }
 
-    private void write() throws SQLException {
+    private void writeData() throws SQLException {
         if (written) {
             return;
         }

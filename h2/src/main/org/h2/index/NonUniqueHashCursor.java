@@ -39,10 +39,6 @@ public class NonUniqueHashCursor implements Cursor {
         return tableData.getRow(session, positions.get(index));
     }
 
-    public long getKey() {
-        return index;
-    }
-
     public SearchRow getSearchRow() throws SQLException {
         return get();
     }

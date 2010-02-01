@@ -182,9 +182,6 @@ public class TransactionCommand extends Prepared {
                     s.close();
                 }
             }
-            LogSystem log = db.getLog();
-            log.setDisabled(false);
-            log.checkpoint();
             session.close();
             break;
         }

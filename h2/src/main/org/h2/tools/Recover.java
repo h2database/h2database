@@ -34,7 +34,6 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
-import org.h2.log.LogFile;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -77,6 +76,7 @@ import org.h2.value.ValueLong;
 public class Recover extends Tool implements DataHandler {
 
     private static final String SUFFIX_UNCOMMITTED = ".uncommitted.txt";
+    private static final int LOG_FILE_BLOCK_SIZE = 16;
 
     private String databaseName;
     private int block;
@@ -504,7 +504,7 @@ public class Recover extends Tool implements DataHandler {
                 writer.println("// length: " + length);
             }
             int offset = FileStore.HEADER_LENGTH;
-            int blockSize = LogFile.BLOCK_SIZE;
+            int blockSize = LOG_FILE_BLOCK_SIZE;
             int blocks = (int) (length / blockSize);
             byte[] buff = new byte[blockSize];
             DataPage s = DataPage.create(this, buff);
@@ -1859,13 +1859,6 @@ public class Recover extends Tool implements DataHandler {
      */
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Trace getTrace() {
-        return null;
     }
 
     /**

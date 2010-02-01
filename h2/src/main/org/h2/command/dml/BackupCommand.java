@@ -20,16 +20,13 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.log.LogFile;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.result.ResultInterface;
-import org.h2.store.DiskFile;
 import org.h2.store.FileLister;
 import org.h2.store.PageStore;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.ObjectArray;
 
 /**
  * This class represents the statement
@@ -65,47 +62,25 @@ public class BackupCommand extends Prepared {
             OutputStream zip = FileUtils.openFileOutputStream(fileName, false);
             ZipOutputStream out = new ZipOutputStream(zip);
             LogSystem log = db.getLog();
-            try {
-                log.flush();
-                log.updateKeepFiles(1);
-                String fn;
-                if (db.isPageStoreEnabled()) {
-                    fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
-                    backupPageStore(out, fn, db.getPageStore());
-                } else {
-                    fn = db.getName() + Constants.SUFFIX_DATA_FILE;
-                    backupDiskFile(out, fn, db.getDataFile());
-                    fn = db.getName() + Constants.SUFFIX_INDEX_FILE;
-                    backupDiskFile(out, fn, db.getIndexFile());
-                }
-                // synchronize on the database, to avoid concurrent temp file
-                // creation / deletion / backup
-                String base = FileUtils.getParent(fn);
-                synchronized (db.getLobSyncObject()) {
-                    if (!db.isPageStoreEnabled()) {
-                        ObjectArray<LogFile> list = log.getActiveLogFiles();
-                        int max = list.size();
-                        for (int i = 0; i < list.size(); i++) {
-                            LogFile lf = list.get(i);
-                            fn = lf.getFileName();
-                            backupFile(out, base, fn);
-                            db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);
-                        }
-                    }
-                    String prefix = db.getDatabasePath();
-                    String dir = FileUtils.getParent(prefix);
-                    ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
-                    for (String n : fileList) {
-                        if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                            backupFile(out, base, n);
-                        }
+            log.flush();
+            String fn;
+            fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
+            backupPageStore(out, fn, db.getPageStore());
+            // synchronize on the database, to avoid concurrent temp file
+            // creation / deletion / backup
+            String base = FileUtils.getParent(fn);
+            synchronized (db.getLobSyncObject()) {
+                String prefix = db.getDatabasePath();
+                String dir = FileUtils.getParent(prefix);
+                ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
+                for (String n : fileList) {
+                    if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
+                        backupFile(out, base, n);
                     }
                 }
-                out.close();
-                zip.close();
-            } finally {
-                log.updateKeepFiles(-1);
             }
+            out.close();
+            zip.close();
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         }
@@ -119,22 +94,6 @@ public class BackupCommand extends Prepared {
         int pos = 0;
         while (true) {
             pos = store.copyDirect(pos, out);
-            if (pos < 0) {
-                break;
-            }
-            db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, fileName, pos, max);
-        }
-        out.closeEntry();
-    }
-
-    private void backupDiskFile(ZipOutputStream out, String fileName, DiskFile file) throws SQLException, IOException {
-        Database db = session.getDatabase();
-        fileName = FileUtils.getFileName(fileName);
-        out.putNextEntry(new ZipEntry(fileName));
-        int pos = -1;
-        int max = file.getReadCount();
-        while (true) {
-            pos = file.copyDirect(pos, out);
             if (pos < 0) {
                 break;
             }

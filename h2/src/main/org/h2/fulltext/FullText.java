@@ -910,7 +910,7 @@ public class FullText {
             prepInsertRow.setInt(2, index.id);
             prepInsertRow.setString(3, key);
             prepInsertRow.execute();
-            ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertRow);
+            ResultSet rs = prepInsertRow.getGeneratedKeys();
             rs.next();
             int rowId = rs.getInt(1);
             prepInsertMap.setInt(1, rowId);
@@ -977,7 +977,7 @@ public class FullText {
                 if (wId == null) {
                     prepInsertWord.setString(1, word);
                     prepInsertWord.execute();
-                    ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertWord);
+                    ResultSet rs = prepInsertWord.getGeneratedKeys();
                     rs.next();
                     wordId = rs.getInt(1);
                     allWords.put(word, wordId);

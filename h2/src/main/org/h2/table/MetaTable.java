@@ -48,7 +48,6 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.store.DiskFile;
 import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.MathUtils;
@@ -871,28 +870,13 @@ public class MetaTable extends Table {
             add(rows, "h2.serverCachedObjects", "" + SysProperties.SERVER_CACHED_OBJECTS);
             add(rows, "h2.serverResultSetFetchSize", "" + SysProperties.SERVER_RESULT_SET_FETCH_SIZE);
             add(rows, "h2.sortNullsHigh", "" + SysProperties.SORT_NULLS_HIGH);
-            if (database.isPageStoreEnabled() && database.isPersistent()) {
+            if (database.isPersistent()) {
                 PageStore store = database.getPageStore();
                 add(rows, "info.FILE_WRITE_TOTAL", "" + store.getWriteCountTotal());
                 add(rows, "info.FILE_WRITE", "" + store.getWriteCount());
                 add(rows, "info.FILE_READ", "" + store.getReadCount());
                 add(rows, "info.CACHE_MAX_SIZE", "" + store.getCache().getMaxSize());
                 add(rows, "info.CACHE_SIZE", "" + store.getCache().getSize());
-            }
-            DiskFile dataFile = database.getDataFile();
-            if (dataFile != null) {
-                add(rows, "CACHE_TYPE", dataFile.getCache().getTypeName());
-                if (session.getUser().isAdmin()) {
-                    DiskFile indexFile = database.getIndexFile();
-                    add(rows, "info.FILE_DISK_WRITE", "" + dataFile.getWriteCount());
-                    add(rows, "info.FILE_DISK_READ", "" + dataFile.getReadCount());
-                    add(rows, "info.FILE_INDEX_WRITE", "" + database.getIndexFile().getWriteCount());
-                    add(rows, "info.FILE_INDEX_READ", "" + database.getIndexFile().getReadCount());
-                    add(rows, "info.CACHE_DATA_MAX_SIZE", "" + dataFile.getCache().getMaxSize());
-                    add(rows, "info.CACHE_DATA_SIZE", "" + dataFile.getCache().getSize());
-                    add(rows, "info.CACHE_INDEX_MAX_SIZE", "" + indexFile.getCache().getMaxSize());
-                    add(rows, "info.CACHE_INDEX_SIZE", "" + indexFile.getCache().getSize());
-                }
             }
             break;
         }

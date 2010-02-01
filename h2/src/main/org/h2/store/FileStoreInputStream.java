@@ -22,7 +22,7 @@ import org.h2.util.MemoryUtils;
 public class FileStoreInputStream extends InputStream {
 
     private FileStore store;
-    private DataPage page;
+    private Data page;
     private int remainingInBuffer;
     private CompressTool compress;
     private boolean endOfFile;
@@ -34,7 +34,7 @@ public class FileStoreInputStream extends InputStream {
         if (compression) {
             compress = CompressTool.getInstance();
         }
-        page = DataPage.create(handler, Constants.FILE_BLOCK_SIZE);
+        page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
         try {
             if (store.length() <= FileStore.HEADER_LENGTH) {
                 close();

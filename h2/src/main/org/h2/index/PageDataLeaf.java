@@ -15,7 +15,6 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.Data;
-import org.h2.store.DataPage;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 
@@ -226,7 +225,7 @@ public class PageDataLeaf extends PageData {
             int page = index.getPageStore().allocatePage();
             firstOverflowPageId = page;
             this.overflowRowSize = pageSize + rowLength;
-            write();
+            writeData();
             // free up the space used by the row
             rowRef = new SoftReference<Row>(rows[0]);
             rows[0] = null;
@@ -435,12 +434,8 @@ public class PageDataLeaf extends PageData {
         // ignore
     }
 
-    public int getByteCount(DataPage dummy) {
-        return index.getPageStore().getPageSize();
-    }
-
-    public void write(DataPage buff) throws SQLException {
-        write();
+    public void write() throws SQLException {
+        writeData();
         index.getPageStore().writePage(getPos(), data);
         data.truncate(index.getPageStore().getPageSize());
     }
@@ -472,7 +467,7 @@ public class PageDataLeaf extends PageData {
         data.writeShortInt(entryCount);
     }
 
-    private void write() throws SQLException {
+    private void writeData() throws SQLException {
         if (written) {
             return;
         }
@@ -525,7 +520,7 @@ public class PageDataLeaf extends PageData {
         p2.offsets = offsets;
         p2.start = start;
         p2.remapChildren(getPos());
-        p2.write();
+        p2.writeData();
         p2.data.truncate(index.getPageStore().getPageSize());
         store.update(p2);
         store.free(getPos());

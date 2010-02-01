@@ -12,20 +12,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.store.Storage;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
 /**
@@ -37,7 +34,6 @@ import org.h2.value.ValueLob;
 public class ScanIndex extends BaseIndex implements RowIndex {
     private long firstFree = -1;
     private ObjectArray<Row> rows = ObjectArray.newInstance();
-    private Storage storage;
     private TableData tableData;
     private int rowCountDiff;
     private HashMap<Integer, Integer> sessionRowCount;
@@ -50,31 +46,15 @@ public class ScanIndex extends BaseIndex implements RowIndex {
             sessionRowCount = New.hashMap();
         }
         tableData = table;
-        if (!database.isPersistent() || id < 0 || !indexType.isPersistent()) {
-            return;
-        }
-        this.storage = database.getStorage(table, id, true);
-        int count = storage.getRecordCount();
-        rowCount = count;
-        table.setRowCount(count);
-        trace.info("open existing " + table.getName() + " rows: " + count);
     }
 
     public void remove(Session session) throws SQLException {
         truncate(session);
-        if (storage != null) {
-            storage.truncate(session);
-            database.removeStorage(storage.getId(), storage.getDiskFile());
-        }
     }
 
     public void truncate(Session session) throws SQLException {
-        if (storage == null) {
-            rows = ObjectArray.newInstance();
-            firstFree = -1;
-        } else {
-            storage.truncate(session);
-        }
+        rows = ObjectArray.newInstance();
+        firstFree = -1;
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
             ValueLob.removeAllForTable(database, table.getId());
         }
@@ -91,50 +71,27 @@ public class ScanIndex extends BaseIndex implements RowIndex {
     }
 
     public void close(Session session) {
-        if (storage != null) {
-            storage = null;
-        }
+        // nothing to do
     }
 
-    public Row getRow(Session session, long key) throws SQLException {
-        if (storage != null) {
-            return (Row) storage.getRecord(session, (int) key);
-        }
+    public Row getRow(Session session, long key) {
         return rows.get((int) key);
     }
 
-    public void add(Session session, Row row) throws SQLException {
-        if (storage != null) {
-            if (tableData.getContainsLargeObject()) {
-                for (int i = 0; i < row.getColumnCount(); i++) {
-                    Value v = row.getValue(i);
-                    Value v2 = v.link(database, getId());
-                    if (v2.isLinked()) {
-                        session.unlinkAtCommitStop(v2);
-                    }
-                    if (v != v2) {
-                        row.setValue(i, v2);
-                    }
-                }
-            }
-            storage.addRecord(session, row, Storage.ALLOCATE_POS);
+    public void add(Session session, Row row) {
+        // in-memory
+        if (firstFree == -1) {
+            int key = rows.size();
+            row.setKey(key);
+            rows.add(row);
         } else {
-            // in-memory
-            if (firstFree == -1) {
-                int key = rows.size();
-                row.setKey(key);
-                row.setPos(key);
-                rows.add(row);
-            } else {
-                long key = firstFree;
-                Row free = rows.get((int) key);
-                firstFree = free.getKey();
-                row.setPos((int) key);
-                row.setKey(key);
-                rows.set((int) key, row);
-            }
-            row.setDeleted(false);
+            long key = firstFree;
+            Row free = rows.get((int) key);
+            firstFree = free.getKey();
+            row.setKey(key);
+            rows.set((int) key, row);
         }
+        row.setDeleted(false);
         if (database.isMultiVersion()) {
             if (delta == null) {
                 delta = New.hashSet();
@@ -167,30 +124,17 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         }
     }
 
-    public void remove(Session session, Row row) throws SQLException {
-        if (storage != null) {
-            storage.removeRecord(session, (int) row.getKey());
-            if (tableData.getContainsLargeObject()) {
-                for (int i = 0; i < row.getColumnCount(); i++) {
-                    Value v = row.getValue(i);
-                    if (v.isLinked()) {
-                        session.unlinkAtCommit((ValueLob) v);
-                    }
-                }
-            }
+    public void remove(Session session, Row row) {
+        // in-memory
+        if (!database.isMultiVersion() && rowCount == 1) {
+            rows = ObjectArray.newInstance();
+            firstFree = -1;
         } else {
-            // in-memory
-            if (!database.isMultiVersion() && rowCount == 1) {
-                rows = ObjectArray.newInstance();
-                firstFree = -1;
-            } else {
-                Row free = new Row(null, 0);
-                free.setPos((int) firstFree);
-                free.setKey(firstFree);
-                long key = row.getKey();
-                rows.set((int) key, free);
-                firstFree = key;
-            }
+            Row free = new Row(null, 0);
+            free.setKey(firstFree);
+            long key = row.getKey();
+            rows.set((int) key, free);
+            firstFree = key;
         }
         if (database.isMultiVersion()) {
             // if storage is null, the delete flag is not yet set
@@ -212,11 +156,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
     }
 
     public double getCost(Session session, int[] masks) {
-        long cost = tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
-        if (storage != null) {
-            cost *= 10;
-        }
-        return cost;
+        return tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
     }
 
     public long getRowCount(Session session) {
@@ -237,30 +177,23 @@ public class ScanIndex extends BaseIndex implements RowIndex {
      * @param row the current row or null to start the scan
      * @return the next row or null if there are no more rows
      */
-    Row getNextRow(Session session, Row row) throws SQLException {
-        if (storage == null) {
-            long key;
-            if (row == null) {
-                key = -1;
-            } else {
-                key = row.getKey();
+    Row getNextRow(Session session, Row row) {
+        long key;
+        if (row == null) {
+            key = -1;
+        } else {
+            key = row.getKey();
+        }
+        while (true) {
+            key++;
+            if (key >= rows.size()) {
+                return null;
             }
-            while (true) {
-                key++;
-                if (key >= rows.size()) {
-                    return null;
-                }
-                row = rows.get((int) key);
-                if (!row.isEmpty()) {
-                    return row;
-                }
+            row = rows.get((int) key);
+            if (!row.isEmpty()) {
+                return row;
             }
         }
-        int pos = storage.getNext(row);
-        if (pos < 0) {
-            return null;
-        }
-        return (Row) storage.getRecord(session, pos);
     }
 
     public int getColumnIndex(Column col) {

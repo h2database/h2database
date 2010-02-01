@@ -400,7 +400,7 @@ public class PageLog {
         if (transaction == null) {
             doubt = null;
         } else {
-            doubt = new InDoubtTransaction(store, null, sessionId, pageId, transaction, 0);
+            doubt = new InDoubtTransaction(store, sessionId, pageId, transaction);
         }
         state.inDoubtTransaction = doubt;
     }
@@ -592,7 +592,6 @@ public class PageLog {
                         " row:" + row);
             }
             session.addLogPos(logSectionId, logPos);
-            row.setLastLog(logSectionId, logPos);
             logPos++;
             Data data = dataBuffer;
             data.reset();
@@ -835,7 +834,7 @@ public class PageLog {
         d.write(bytes, 0, bytes.length);
         bytes = new byte[d.getRemaining()];
         d.write(bytes, 0, bytes.length);
-        d.write(null);
+        d.write();
     }
 
     /**

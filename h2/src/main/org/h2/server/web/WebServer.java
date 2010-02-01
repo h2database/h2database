@@ -6,7 +6,6 @@
  */
 package org.h2.server.web;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +27,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.Map.Entry;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -129,7 +127,6 @@ public class WebServer implements Service {
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
     private boolean ifExists;
-    private boolean allowScript;
     private boolean trace;
     private TranslateThread translateThread;
 
@@ -245,8 +242,6 @@ public class WebServer implements Service {
                 } else {
                     allowOthers = true;
                 }
-            } else if ("-webScript".equals(a)) {
-                allowScript = true;
             } else if ("-baseDir".equals(a)) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
@@ -404,9 +399,9 @@ public class WebServer implements Service {
         Properties text = new Properties();
         try {
             trace("translation: "+language);
-            byte[] trans = getFile("_text_"+language+".properties");
+            byte[] trans = getFile("_text_"+language+".prop");
             trace("  "+new String(trans));
-            text.load(new ByteArrayInputStream(trans));
+            text = SortedProperties.fromLines(new String(trans, "UTF-8"));
             // remove starting # (if not translated yet)
             for (Entry<Object, Object> entry : text.entrySet()) {
                 String value = (String) entry.getValue();
@@ -640,10 +635,6 @@ public class WebServer implements Service {
 
     public void setShutdownHandler(ShutdownHandler shutdownHandler) {
         this.shutdownHandler = shutdownHandler;
-    }
-
-    boolean getAllowScript() {
-        return allowScript;
     }
 
     /**

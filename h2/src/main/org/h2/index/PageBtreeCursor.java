@@ -48,10 +48,6 @@ public class PageBtreeCursor implements Cursor {
         return currentRow;
     }
 
-    public long getKey() {
-        return currentSearchRow.getKey();
-    }
-
     public SearchRow getSearchRow() {
         return currentSearchRow;
     }

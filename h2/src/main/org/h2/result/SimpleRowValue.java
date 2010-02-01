@@ -36,14 +36,6 @@ public class SimpleRowValue implements SearchRow {
         return virtualColumnCount;
     }
 
-    public int getPos() {
-        return (int) key;
-    }
-
-    public void setPos(int pos) {
-        this.key = pos;
-    }
-
     public long getKey() {
         return key;
     }

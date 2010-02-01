@@ -12,15 +12,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.store.FileLister;
 import org.h2.test.TestBase;
-import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
 
 /**
@@ -55,7 +51,6 @@ public class TestPowerOff extends TestBase {
         testSummaryCrash();
         testCrash();
         testShutdown();
-        testNoIndexFile();
         testMemoryTables();
         testPersistentTables();
         deleteDb(dir, dbName);
@@ -159,42 +154,6 @@ public class TestPowerOff extends TestBase {
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
         assertFalse(rs.next());
-        conn.close();
-    }
-
-    private void testNoIndexFile() throws SQLException {
-        if (config.networked) {
-            return;
-        }
-        deleteDb(dir, dbName);
-        Connection conn = getConnection(url);
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-        stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
-        ((JdbcConnection) conn).setPowerOffCount(1);
-        try {
-            stat.execute("INSERT INTO TEST VALUES(2, 'Hello')");
-            stat.execute("CHECKPOINT");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        if (!config.pageStore) {
-            boolean deleted = false;
-            for (String fileName : FileLister.getDatabaseFiles(dir, dbName, false)) {
-                if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
-                    FileUtils.delete(fileName);
-                    deleted = true;
-                }
-            }
-            assertTrue(deleted);
-        }
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            // ignore
-        }
-        conn = getConnection(url);
         conn.close();
     }
 

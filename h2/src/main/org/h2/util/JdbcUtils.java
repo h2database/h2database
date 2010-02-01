@@ -75,21 +75,6 @@ public class JdbcUtils {
     }
 
     /**
-     * Get the result set containing the generated keys from the given
-     * statement. This method returns null for Java versions older than 1.4.
-     *
-     * @param stat the statement
-     * @return the result set or null
-     */
-    public static ResultSet getGeneratedKeys(Statement stat) throws SQLException {
-        ResultSet rs = null;
-        //## Java 1.4 begin ##
-        rs = stat.getGeneratedKeys();
-        //## Java 1.4 end ##
-        return rs;
-    }
-
-    /**
      * Close an XA connection set without throwing an exception.
      *
      * @param conn the XA connection or null

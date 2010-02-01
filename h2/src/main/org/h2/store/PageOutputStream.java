@@ -7,7 +7,6 @@
 package org.h2.store;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.sql.SQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -17,7 +16,7 @@ import org.h2.util.IntArray;
 /**
  * An output stream that writes into a page store.
  */
-public class PageOutputStream extends OutputStream {
+public class PageOutputStream {
 
     private PageStore store;
     private final Trace trace;
@@ -30,7 +29,6 @@ public class PageOutputStream extends OutputStream {
     private PageStreamData data;
     private int reserved;
     private int remaining;
-    private byte[] buffer = new byte[1];
     private boolean needFlush;
     private boolean writing;
     private int pageCount;
@@ -82,15 +80,6 @@ public class PageOutputStream extends OutputStream {
         }
     }
 
-    public void write(int b) throws IOException {
-        buffer[0] = (byte) b;
-        write(buffer);
-    }
-
-    public void write(byte[] b) throws IOException {
-        write(b, 0, b.length);
-    }
-
     private void initNextData() throws SQLException {
         int nextData = trunk == null ? -1 : trunk.getNextPageData();
         if (nextData == -1) {
@@ -107,7 +96,7 @@ public class PageOutputStream extends OutputStream {
             logKey++;
             trunk = PageStreamTrunk.create(store, parent, trunkPageId, trunkNext, logKey, pageIds);
             pageCount++;
-            trunk.write(null);
+            trunk.write();
             reservedPages.removeRange(0, len + 1);
             nextData = trunk.getNextPageData();
         }
@@ -150,7 +139,7 @@ public class PageOutputStream extends OutputStream {
             if (trace.isDebugEnabled()) {
                 trace.debug("pageOut.storePage " + data);
             }
-            data.write(null);
+            data.write();
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }
@@ -181,7 +170,7 @@ public class PageOutputStream extends OutputStream {
         }
         reserve(data.getRemaining() + 1);
         reserved -= data.getRemaining();
-        data.write(null);
+        data.write();
         initNextData();
     }
 
@@ -196,10 +185,6 @@ public class PageOutputStream extends OutputStream {
      */
     void free(PageStreamTrunk t) throws SQLException {
         pageCount -= t.free();
-    }
-
-    int getCurrentLogKey() {
-        return trunk.getLogKey();
     }
 
     /**

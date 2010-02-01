@@ -236,11 +236,6 @@ public class Constants {
     public static final int FILE_PAGE_SIZE = 8 * 1024;
 
     /**
-     * The default delay to flush indexes. 0 means indexes are not flushed.
-     */
-    public static final long FLUSH_INDEX_DELAY = 0;
-
-    /**
      * For testing, the lock timeout is smaller than for interactive use cases.
      * This value could be increased to about 5 or 10 seconds.
      */
@@ -520,7 +515,7 @@ public class Constants {
      * @return the version number
      */
     public static Object getVersionStable() {
-        return "1.1." + BUILD_ID_STABLE;
+        return "1.2." + BUILD_ID_STABLE;
     }
 
     /**

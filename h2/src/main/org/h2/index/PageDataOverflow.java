@@ -12,7 +12,6 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.store.Data;
-import org.h2.store.DataPage;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 
@@ -168,23 +167,19 @@ public class PageDataOverflow extends Page {
         return nextPage;
     }
 
-    public int getByteCount(DataPage dummy) {
-        return store.getPageSize();
-    }
-
     private void writeHead() {
         data.writeByte((byte) type);
         data.writeShortInt(0);
         data.writeInt(parentPageId);
     }
 
-    public void write(DataPage buff) throws SQLException {
-        write();
+    public void write() throws SQLException {
+        writeData();
         store.writePage(getPos(), data);
     }
 
 
-    private void write() {
+    private void writeData() {
         data.reset();
         writeHead();
         if (type == Page.TYPE_DATA_OVERFLOW) {

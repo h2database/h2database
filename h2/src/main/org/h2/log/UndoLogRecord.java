@@ -7,17 +7,15 @@
 package org.h2.log;
 
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.result.Row;
-import org.h2.store.DataPage;
+import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.table.Table;
 import org.h2.value.Value;
@@ -88,14 +86,6 @@ public class UndoLogRecord {
         switch (operation) {
         case INSERT:
             if (state == IN_MEMORY_INVALID) {
-                if (!db.isPageStoreEnabled()) {
-                    Index index = table.getUniqueIndex();
-                    Cursor cursor = index.find(session, row, row);
-                    cursor.next();
-                    // can not just set the position, because the row
-                    // may already be in the cache
-                    row = cursor.get();
-                }
                 state = IN_MEMORY;
             }
             if (db.getLockMode() == Constants.LOCK_MODE_OFF) {
@@ -120,10 +110,6 @@ public class UndoLogRecord {
             break;
         case DELETE:
             try {
-                if (!db.isPageStoreEnabled()) {
-                    row.setKey(0);
-                    row.setVersion(row.getVersion() - 1);
-                }
                 table.addRow(session, row);
                 table.fireAfterRow(session, null, row, true);
                 // reset session id, otherwise other session think
@@ -156,10 +142,10 @@ public class UndoLogRecord {
     /**
      * Save the row in the file using the data page as a buffer.
      *
-     * @param buff the data page that is used as a buffer
+     * @param buff the buffer
      * @param file the file
      */
-    void save(DataPage buff, FileStore file) throws SQLException {
+    void save(Data buff, FileStore file) throws SQLException {
         buff.reset();
         buff.writeInt(0);
         buff.writeInt(operation);
@@ -168,7 +154,9 @@ public class UndoLogRecord {
         buff.writeInt(row.getSessionId());
         buff.writeInt(row.getColumnCount());
         for (int i = 0; i < row.getColumnCount(); i++) {
-            buff.writeValue(row.getValue(i));
+            Value v = row.getValue(i);
+            buff.checkCapacity(buff.getValueLen(v));
+            buff.writeValue(v);
         }
         buff.fillAligned();
         buff.setInt(0, buff.length() / Constants.FILE_BLOCK_SIZE);
@@ -182,10 +170,10 @@ public class UndoLogRecord {
     /**
      * Load an undo log record row using the data page as a buffer.
      *
-     * @param buff the data page that is used as a buffer
+     * @param buff the buffer
      * @param file the source file
      */
-    void load(DataPage buff, FileStore file) throws SQLException {
+    void load(Data buff, FileStore file) throws SQLException {
         int min = Constants.FILE_BLOCK_SIZE;
         seek(file);
         buff.reset();

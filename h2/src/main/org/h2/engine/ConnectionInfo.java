@@ -81,7 +81,7 @@ public class ConnectionInfo implements Cloneable {
         String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
                 "PASSWORD", "RECOVER", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",
-                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_STORE" };
+                "AUTO_RECONNECT", "OPEN_NEW" };
         for (String key : connectionTime) {
             if (SysProperties.CHECK && set.contains(key)) {
                 Message.throwInternalError(key);
@@ -326,12 +326,7 @@ public class ConnectionInfo implements Cloneable {
      */
     String getName() throws SQLException {
         if (persistent) {
-            String suffix;
-            if (SysProperties.getPageStore()) {
-                suffix = Constants.SUFFIX_PAGE_FILE;
-            } else {
-                suffix = Constants.SUFFIX_DATA_FILE;
-            }
+            String suffix = Constants.SUFFIX_PAGE_FILE;
             String n = FileUtils.normalize(name + suffix);
             String fileName = FileUtils.getFileName(n);
             if (fileName.length() < suffix.length() + 1) {

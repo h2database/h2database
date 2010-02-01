@@ -96,7 +96,6 @@ public class Session extends SessionWithState {
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout = SysProperties.getMaxQueryTimeout();
-    private int lastUncommittedDelete;
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
     private int modificationId;
@@ -429,14 +428,6 @@ public class Session extends SessionWithState {
         database.setPowerOffCount(count);
     }
 
-    public int getLastUncommittedDelete() {
-        return lastUncommittedDelete;
-    }
-
-    public void setLastUncommittedDelete(int deleteId) {
-        lastUncommittedDelete = deleteId;
-    }
-
     /**
      * Commit the current transaction. If the statement was not a data
      * definition statement, and if there are temporary tables that should be
@@ -446,7 +437,6 @@ public class Session extends SessionWithState {
      */
     public void commit(boolean ddl) throws SQLException {
         checkCommitRollback();
-        lastUncommittedDelete = 0;
         currentTransactionName = null;
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible

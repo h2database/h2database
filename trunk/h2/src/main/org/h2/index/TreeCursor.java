@@ -36,10 +36,6 @@ public class TreeCursor implements Cursor {
         return get();
     }
 
-    public long getKey() {
-        return node.row.getKey();
-    }
-
     public boolean next() throws SQLException {
         if (beforeFirst) {
             beforeFirst = false;

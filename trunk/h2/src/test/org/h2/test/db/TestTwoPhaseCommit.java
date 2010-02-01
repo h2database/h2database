@@ -49,9 +49,6 @@ public class TestTwoPhaseCommit extends TestBase {
     }
 
     private void testLargeTransactionName() throws SQLException {
-        if (!config.pageStore) {
-            return;
-        }
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();
         conn.setAutoCommit(false);

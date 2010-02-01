@@ -43,7 +43,7 @@ public class TestRecover {
 
     private static final String TEST_DIRECTORY = DIR + "/data" + NODE;
     private static final String BACKUP_DIRECTORY = DIR + "/last";
-    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test;PAGE_STORE=TRUE");
+    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test");
     private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
 
     // private static final String DIR =

@@ -478,9 +478,11 @@ public class PageStore implements CacheWriter {
      * @return the page
      */
     public Page getPage(int pageId) throws SQLException {
-        Record rec = getRecord(pageId);
-        if (rec != null) {
-            return (Page) rec;
+        synchronized (database) {
+            Page p = (Page) cache.find(pageId);
+            if (p != null) {
+                return p;
+            }
         }
         Data data = createData();
         readPage(pageId, data);
@@ -716,11 +718,11 @@ public class PageStore implements CacheWriter {
 
     public void writeBack(CacheObject obj) throws SQLException {
         synchronized (database) {
-            Record record = (Record) obj;
+            Page record = (Page) obj;
             if (trace.isDebugEnabled()) {
                 trace.debug("writeBack " + record);
             }
-            record.write(null);
+            record.write();
             record.setChanged(false);
         }
     }
@@ -728,10 +730,10 @@ public class PageStore implements CacheWriter {
     /**
      * Write an undo log entry if required.
      *
-     * @param record the page
+     * @param page the page
      * @param old the old data (if known) or null
      */
-    public void logUndo(Record record, Data old) throws SQLException {
+    public void logUndo(Page page, Data old) throws SQLException {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
                 // if (!record.isChanged()) {
@@ -741,7 +743,7 @@ public class PageStore implements CacheWriter {
             checkOpen();
             database.checkWritingAllowed();
             if (!recoveryRunning) {
-                int pos = record.getPos();
+                int pos = page.getPos();
                 if (!log.getUndo(pos)) {
                     if (old == null) {
                         old = readPage(pos);
@@ -930,19 +932,6 @@ public class PageStore implements CacheWriter {
      */
     public Data createData() {
         return Data.create(database, new byte[pageSize]);
-    }
-
-    /**
-     * Get the record if it is stored in the file, or null if not.
-     *
-     * @param pos the page id
-     * @return the record or null
-     */
-    public Record getRecord(int pos) {
-        synchronized (database) {
-            CacheObject obj = cache.find(pos);
-            return (Record) obj;
-        }
     }
 
     /**
@@ -1397,7 +1386,7 @@ public class PageStore implements CacheWriter {
         row.setValue(3, ValueInt.get(index.getRootPageId()));
         row.setValue(4, ValueString.get(options));
         row.setValue(5, ValueString.get(columnList));
-        row.setPos(index.getId() + 1);
+        row.setKey(index.getId() + 1);
         metaIndex.add(session, row);
     }
 
@@ -1526,14 +1515,6 @@ public class PageStore implements CacheWriter {
                 log.logTruncate(session, tableId);
             }
         }
-    }
-
-    int getLogFirstTrunkPage() {
-        return this.logFirstTrunkPage;
-    }
-
-    int getLogFirstDataPage() {
-        return this.logFirstDataPage;
     }
 
     /**

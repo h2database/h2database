@@ -42,10 +42,6 @@ class PageDataCursor implements Cursor {
         return row;
     }
 
-    public long getKey() {
-        return row.getKey();
-    }
-
     public SearchRow getSearchRow() {
         return get();
     }

@@ -21,7 +21,6 @@ import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
-import org.h2.index.BtreeIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -37,13 +36,9 @@ import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.DataHandler;
-import org.h2.store.DataPage;
-import org.h2.store.DiskFile;
 import org.h2.store.FileLock;
 import org.h2.store.FileStore;
 import org.h2.store.PageStore;
-import org.h2.store.RecordReader;
-import org.h2.store.Storage;
 import org.h2.store.WriterThread;
 import org.h2.store.fs.FileSystemMemory;
 import org.h2.table.Column;
@@ -117,11 +112,8 @@ public class Database implements DataHandler {
     private FileLock lock;
     private LogSystem log;
     private WriterThread writer;
-    private HashMap<Integer, Storage> storageMap = New.hashMap();
     private boolean starting;
-    private DiskFile fileData, fileIndex;
     private TraceSystem traceSystem;
-    private DataPage dummy;
     private int fileLockMethod;
     private Role publicRole;
     private long modificationDataId;
@@ -135,7 +127,6 @@ public class Database implements DataHandler {
     private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
     private int maxMemoryUndo = SysProperties.DEFAULT_MAX_MEMORY_UNDO;
     private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
-    private boolean logIndexChanges;
     private int logLevel = 1;
     private int maxLengthInplaceLob = SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB;
     private int allowLiterals = Constants.DEFAULT_ALLOW_LITERALS;
@@ -165,7 +156,6 @@ public class Database implements DataHandler {
     private HashMap<TableLinkConnection, TableLinkConnection> linkConnections;
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
     private PageStore pageStore;
-    private boolean usePageStoreSet, usePageStore;
     private Properties reconnectLastLock;
     private volatile long reconnectCheckNext;
     private volatile boolean reconnectChangePending;
@@ -188,8 +178,6 @@ public class Database implements DataHandler {
         this.accessModeLog = ci.getProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
-        this.usePageStoreSet = ci.getProperty("PAGE_STORE") != null;
-        this.usePageStore = ci.getProperty("PAGE_STORE", SysProperties.getPageStore());
         this.cacheSize = ci.getProperty("CACHE_SIZE", SysProperties.CACHE_SIZE_DEFAULT);
         if ("r".equals(accessModeData)) {
             readOnly = true;
@@ -207,9 +195,6 @@ public class Database implements DataHandler {
             }
         }
         String logSetting = ci.getProperty(SetTypes.LOG, null);
-        if (logSetting != null) {
-            this.logIndexChanges = "2".equals(logSetting);
-        }
         String ignoreSummary = ci.getProperty("RECOVER", null);
         if (ignoreSummary != null) {
             this.recovery = true;
@@ -422,29 +407,8 @@ public class Database implements DataHandler {
             try {
                 powerOffCount = -1;
                 if (log != null) {
-                    try {
-                        stopWriter();
-                        log.close(false);
-                    } catch (SQLException e) {
-                        // ignore
-                    }
+                    stopWriter();
                     log = null;
-                }
-                if (fileData != null) {
-                    try {
-                        fileData.close();
-                    } catch (SQLException e) {
-                        // ignore
-                    }
-                    fileData = null;
-                }
-                if (fileIndex != null) {
-                    try {
-                        fileIndex.close();
-                    } catch (SQLException e) {
-                        // ignore
-                    }
-                    fileIndex = null;
                 }
                 if (pageStore != null) {
                     try {
@@ -518,20 +482,6 @@ public class Database implements DataHandler {
         return ByteUtils.compareSecure(testHash, filePasswordHash);
     }
 
-    private void openFileData() throws SQLException {
-        fileData = new DiskFile(this, databaseName + Constants.SUFFIX_DATA_FILE, accessModeData, true, true,
-                SysProperties.CACHE_SIZE_DEFAULT);
-    }
-
-    private void openFileIndex() throws SQLException {
-        fileIndex = new DiskFile(this, databaseName + Constants.SUFFIX_INDEX_FILE, accessModeData, false,
-                logIndexChanges, SysProperties.CACHE_SIZE_INDEX_DEFAULT);
-    }
-
-    public DataPage getDataPage() {
-        return dummy;
-    }
-
     private String parseDatabaseShortName() {
         String n = databaseName;
         if (n.endsWith(":")) {
@@ -555,39 +505,17 @@ public class Database implements DataHandler {
             boolean existsData = FileUtils.exists(dataFileName);
             String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
             boolean existsPage = FileUtils.exists(pageFileName);
-            if (usePageStoreSet && usePageStore && existsData && !existsPage) {
+            if (existsData && !existsPage) {
                 String dir = FileUtils.getParent(databaseName);
                 String db = FileUtils.getFileName(databaseName);
                 Recover.convert(dir, db);
-                existsData = FileUtils.exists(dataFileName);
-                existsPage = FileUtils.exists(pageFileName);
+                existsPage = true;
             }
-            if (!usePageStoreSet) {
-                // if the URL flag is not set
-                if (existsData && !existsPage) {
-                    // only an old database exists
-                    usePageStore = false;
-                } else if (existsPage && !existsData) {
-                    // only an new database exists
-                    usePageStore = true;
-                } else {
-                    // for new databases, or if both exists:
-                    // use the system property
-                    usePageStore = SysProperties.getPageStore();
-                }
+            if (existsPage && FileUtils.isReadOnly(pageFileName)) {
+                // if it is already read-only because ACCESS_MODE_DATA=r
+                readOnly = readOnly | FileUtils.isReadOnly(pageFileName);
             }
-            if (usePageStore) {
-                if (existsPage && FileUtils.isReadOnly(pageFileName)) {
-                    // if it is already read-only because ACCESS_MODE_DATA=r
-                    readOnly = readOnly | FileUtils.isReadOnly(pageFileName);
-                }
-            } else {
-                if (existsData) {
-                    // if it is already read-only because ACCESS_MODE_DATA=r
-                    readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
-                }
-            }
-            boolean exists = existsData || existsPage;
+            boolean exists = existsPage;
             if (readOnly) {
                 traceSystem = new TraceSystem(null);
             } else {
@@ -624,42 +552,16 @@ public class Database implements DataHandler {
                 lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
                 lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
             }
-            dummy = DataPage.create(this, 0);
             deleteOldTempFiles();
-            if (usePageStore) {
-                starting = true;
-                getPageStore();
-                starting = false;
-            }
-            log = new LogSystem(this, databaseName, readOnly, accessModeLog, pageStore);
-            if (pageStore == null) {
-                openFileData();
-                log.open();
-                openFileIndex();
-                log.recover();
-                fileData.init();
-                try {
-                    fileIndex.init();
-                } catch (Exception e) {
-                    if (recovery) {
-                        traceSystem.getTrace(Trace.DATABASE).error("opening index", e);
-                        for (Storage s : New.arrayList(storageMap.values())) {
-                            if (s.getDiskFile() == fileIndex) {
-                                removeStorage(s.getId(), fileIndex);
-                            }
-                        }
-                        fileIndex.delete();
-                        openFileIndex();
-                    } else {
-                        throw Message.convert(e);
-                    }
-                }
-            }
+            starting = true;
+            getPageStore();
+            starting = false;
+            log = new LogSystem(this, readOnly, pageStore);
             reserveLobFileObjectIds();
             writer = WriterThread.create(this, writeDelay);
         } else {
             traceSystem = new TraceSystem(null);
-            log = new LogSystem(null, null, false, null, null);
+            log = new LogSystem(null, false, null);
         }
         systemUser = new User(this, 0, Constants.DBA_NAME, true);
         mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);
@@ -717,16 +619,9 @@ public class Database implements DataHandler {
         addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
         addDefaultSetting(systemSession, SetTypes.CREATE_BUILD, null, Constants.BUILD_ID);
-        if (!readOnly) {
-            removeUnusedStorages(systemSession);
-        }
         systemSession.commit(true);
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
         afterWriting();
-    }
-
-    public Schema getMainSchema() {
-        return mainSchema;
     }
 
     private void startServer(String key) throws SQLException {
@@ -788,17 +683,6 @@ public class Database implements DataHandler {
         }
     }
 
-    private void removeUnusedStorages(Session session) throws SQLException {
-        if (persistent) {
-            ObjectArray<Storage> storages = getAllStorages();
-            for (Storage storage : storages) {
-                if (storage != null && storage.getRecordReader() == null) {
-                    storage.truncate(session);
-                }
-            }
-        }
-    }
-
     private void addDefaultSetting(Session session, int type, String stringValue, int intValue) throws SQLException {
         if (readOnly) {
             return;
@@ -813,43 +697,6 @@ public class Database implements DataHandler {
             }
             addDatabaseObject(session, setting);
         }
-    }
-
-    /**
-     * Remove the storage object from the file.
-     *
-     * @param id the storage id
-     * @param file the file
-     */
-    public void removeStorage(int id, DiskFile file) {
-        if (SysProperties.CHECK) {
-            Storage s = storageMap.get(id);
-            if (s == null || s.getDiskFile() != file) {
-                Message.throwInternalError();
-            }
-        }
-        storageMap.remove(id);
-    }
-
-    /**
-     * Get the storage object for the given file. An new object is created if
-     * required.
-     *
-     * @param id the storage id
-     * @param file the file
-     * @return the storage object
-     */
-    public Storage getStorage(int id, DiskFile file) {
-        Storage storage = storageMap.get(id);
-        if (storage != null) {
-            if (SysProperties.CHECK && storage.getDiskFile() != file) {
-                Message.throwInternalError(storage.getDiskFile() + " != " + file + " id:" + id);
-            }
-        } else {
-            storage = new Storage(this, file, null, id);
-            storageMap.put(id, storage);
-        }
-        return storage;
     }
 
     private void initMetaTables() {
@@ -1160,10 +1007,6 @@ public class Database implements DataHandler {
         if (fileLockMethod == FileLock.LOCK_SERIALIZED && !reconnectChangePending) {
             // another connection may have written something - don't write
             try {
-                // make sure the log doesn't try to write
-                if (log != null) {
-                    log.setReadOnly(true);
-                }
                 closeOpenFilesAndUnlock(false);
             } catch (SQLException e) {
                 // ignore
@@ -1191,9 +1034,6 @@ public class Database implements DataHandler {
                     traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);
                 }
             }
-        }
-        if (log != null) {
-            log.setDisabled(false);
         }
         traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName);
         if (eventListener != null) {
@@ -1275,11 +1115,7 @@ public class Database implements DataHandler {
 
     private void stopWriter() {
         if (writer != null) {
-            try {
-                writer.stopThread();
-            } catch (SQLException e) {
-                traceSystem.getTrace(Trace.DATABASE).error("close", e);
-            }
+            writer.stopThread();
             writer = null;
         }
     }
@@ -1292,11 +1128,6 @@ public class Database implements DataHandler {
     private synchronized void closeOpenFilesAndUnlock(boolean flush) throws SQLException {
         if (log != null) {
             stopWriter();
-            try {
-                log.close(flush);
-            } catch (Throwable e) {
-                traceSystem.getTrace(Trace.DATABASE).error("close", e);
-            }
             log = null;
         }
         if (pageStore != null) {
@@ -1351,14 +1182,6 @@ public class Database implements DataHandler {
 
     private void closeFiles() {
         try {
-            if (fileData != null) {
-                fileData.close();
-                fileData = null;
-            }
-            if (fileIndex != null) {
-                fileIndex.close();
-                fileIndex = null;
-            }
             if (pageStore != null) {
                 pageStore.close();
                 pageStore = null;
@@ -1366,7 +1189,6 @@ public class Database implements DataHandler {
         } catch (SQLException e) {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);
         }
-        storageMap.clear();
     }
 
     private void checkMetaFree(Session session, int id) throws SQLException {
@@ -1379,6 +1201,7 @@ public class Database implements DataHandler {
     }
 
     public synchronized int allocateObjectId(boolean needFresh, boolean dataFile) {
+        int todo;
         // TODO refactor: use hash map instead of bit field for object ids
         needFresh = true;
         int i;
@@ -1386,12 +1209,6 @@ public class Database implements DataHandler {
             i = objectIds.getLastSetBit() + 1;
             if ((i & 1) != (dataFile ? 1 : 0)) {
                 i++;
-            }
-            while (storageMap.get(i) != null || objectIds.get(i)) {
-                i++;
-                if ((i & 1) != (dataFile ? 1 : 0)) {
-                    i++;
-                }
             }
         } else {
             i = objectIds.nextClearBit(0);
@@ -1471,10 +1288,6 @@ public class Database implements DataHandler {
 
     public ObjectArray<Setting> getAllSettings() {
         return ObjectArray.newInstance(settings.values());
-    }
-
-    public ObjectArray<Storage> getAllStorages() {
-        return ObjectArray.newInstance(storageMap.values());
     }
 
     public ObjectArray<UserDataType> getAllUserDataTypes() {
@@ -1661,26 +1474,6 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Get or create the specified storage object.
-     *
-     * @param reader the record reader
-     * @param id the object id
-     * @param dataFile true if the data is in the data file
-     * @return the storage
-     */
-    public Storage getStorage(RecordReader reader, int id, boolean dataFile) {
-        DiskFile file;
-        if (dataFile) {
-            file = fileData;
-        } else {
-            file = fileIndex;
-        }
-        Storage storage = getStorage(id, file);
-        storage.setReader(reader);
-        return storage;
-    }
-
-    /**
      * Get the schema. If the schema does not exist, an exception is thrown.
      *
      * @param schemaName the name of the schema
@@ -1830,21 +1623,8 @@ public class Database implements DataHandler {
         return traceSystem;
     }
 
-    public DiskFile getDataFile() {
-        return fileData;
-    }
-
-    public DiskFile getIndexFile() {
-        return fileIndex;
-    }
-
     public synchronized void setCacheSize(int kb) throws SQLException {
         cacheSize = kb;
-        if (fileData != null) {
-            fileData.getCache().setMaxSize(kb);
-            int valueIndex = kb <= 32 ? kb : (kb >>> SysProperties.CACHE_SIZE_INDEX_SHIFT);
-            fileIndex.getCache().setMaxSize(valueIndex);
-        }
         if (pageStore != null) {
             pageStore.getCache().setMaxSize(kb);
         }
@@ -1903,29 +1683,6 @@ public class Database implements DataHandler {
         writeDelay = value;
         if (writer != null) {
             writer.setWriteDelay(value);
-        }
-    }
-
-    /**
-     * Delete an unused log file. It is deleted immediately if no writer thread
-     * is running, or deleted later on if one is running. Deleting is delayed
-     * because the hard drive otherwise may delete the file a bit before the
-     * data is written to the new file, which can cause problems when
-     * recovering.
-     *
-     * @param fileName the name of the file to be deleted
-     */
-    public void deleteLogFileLater(String fileName) throws SQLException {
-        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
-            // need to truncate the file, because another process could keep it open
-            FileUtils.setLength(fileName, 0);
-            FileUtils.tryDelete(fileName);
-        } else {
-            if (writer != null) {
-                writer.deleteLogFileLater(fileName);
-            } else {
-                FileUtils.delete(fileName);
-            }
         }
     }
 
@@ -1998,15 +1755,7 @@ public class Database implements DataHandler {
      * executing the SQL statement CHECKPOINT SYNC.
      */
     public void sync() throws SQLException {
-        if (log != null) {
-            log.sync();
-        }
-        if (fileData != null) {
-            fileData.sync();
-        }
-        if (fileIndex != null) {
-            fileIndex.sync();
-        }
+        int todo;
     }
 
     public int getMaxMemoryRows() {
@@ -2051,10 +1800,6 @@ public class Database implements DataHandler {
         this.closeDelay = value;
     }
 
-    public boolean getLogIndexChanges() {
-        return logIndexChanges;
-    }
-
     public synchronized void setLog(int level) throws SQLException {
         if (logLevel == level) {
             return;
@@ -2077,22 +1822,10 @@ public class Database implements DataHandler {
         default:
             throw Message.throwInternalError("level=" + level);
         }
-        if (fileIndex != null) {
-            fileIndex.setLogChanges(logIndex);
-        }
-        logIndexChanges = logIndex;
-        if (log != null) {
-            log.setDisabled(!logData);
-            log.checkpoint();
-        }
         if (level == 0) {
             traceSystem.getTrace(Trace.DATABASE).error("SET LOG " + level, null);
         }
         logLevel = level;
-    }
-
-    public boolean getRecovery() {
-        return recovery;
     }
 
     public Session getSystemSession() {
@@ -2158,7 +1891,9 @@ public class Database implements DataHandler {
     }
 
     public synchronized void setMaxLogSize(long value) {
-        getLog().setMaxLogSize(value);
+        if (pageStore != null) {
+            pageStore.setMaxLogSize(value);
+        }
     }
 
     public void setAllowLiterals(int value) {
@@ -2171,22 +1906,6 @@ public class Database implements DataHandler {
 
     public void setOptimizeReuseResults(boolean b) {
         optimizeReuseResults = b;
-    }
-
-    /**
-     * Called when the summary of the index in the log file has become invalid.
-     * This method is only called if index changes are not logged, and if an
-     * index has been changed.
-     */
-    public void invalidateIndexSummary() throws SQLException {
-        if (indexSummaryValid) {
-            indexSummaryValid = false;
-            log.invalidateIndexSummary();
-        }
-    }
-
-    public boolean isIndexSummaryValid() {
-        return indexSummaryValid;
     }
 
     public Object getLobSyncObject() {
@@ -2329,15 +2048,11 @@ public class Database implements DataHandler {
     }
 
     public PageStore getPageStore() throws SQLException {
-        if (pageStore == null && usePageStore) {
+        if (pageStore == null) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
             pageStore.open();
         }
         return pageStore;
-    }
-
-    public boolean isPageStoreEnabled() {
-        return usePageStore;
     }
 
     /**
@@ -2430,7 +2145,6 @@ public class Database implements DataHandler {
             }
             synchronized (this) {
                 getTrace().debug("checkpoint start");
-                flushIndexes(0);
                 flushSequences();
                 checkpoint();
                 reconnectModified(false);
@@ -2444,35 +2158,6 @@ public class Database implements DataHandler {
 
     public boolean isFileLockSerialized() {
         return fileLockMethod == FileLock.LOCK_SERIALIZED;
-    }
-
-    /**
-     * Flush the indexes that were last changed prior to some time.
-     *
-     * @param maxLastChange indexes that were changed
-     *          afterwards are not flushed; 0 to flush all indexes
-     */
-    public synchronized void flushIndexes(long maxLastChange) {
-        for (SchemaObject obj : getAllSchemaObjects(DbObject.INDEX)) {
-            if (obj instanceof BtreeIndex) {
-                BtreeIndex idx = (BtreeIndex) obj;
-                if (idx.getLastChange() == 0) {
-                    continue;
-                }
-                Table tab = idx.getTable();
-                if (tab.isLockedExclusively()) {
-                    continue;
-                }
-                if (maxLastChange != 0 && idx.getLastChange() > maxLastChange) {
-                    continue;
-                }
-                try {
-                    idx.flush(systemSession);
-                } catch (SQLException e) {
-                    getTrace().error("flush index " + idx.getName(), e);
-                }
-            }
-        }
     }
 
     private void flushSequences() throws SQLException {
@@ -2489,9 +2174,6 @@ public class Database implements DataHandler {
         if (persistent) {
             if (pageStore != null) {
                 pageStore.checkpoint();
-            }
-            if (log != null) {
-                log.checkpoint();
             }
         }
         getTempFileDeleter().deleteUnused();

@@ -49,7 +49,6 @@ public class TestPowerOffFs extends TestBase {
         deleteDb("memFS:", null);
         fs.setPowerOffCount(x);
         String url = "jdbc:h2:debug:memFS:powerOffFs;FILE_LOCK=NO;TRACE_LEVEL_FILE=0;WRITE_DELAY=0;CACHE_SIZE=4096";
-        url += ";page_store=true";
         Connection conn = null;
         Statement stat = null;
         try {

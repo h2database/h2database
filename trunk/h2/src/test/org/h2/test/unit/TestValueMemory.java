@@ -254,8 +254,4 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return TempFileDeleter.getInstance();
     }
 
-    public Trace getTrace() {
-        return null;
-    }
-
 }

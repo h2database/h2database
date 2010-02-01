@@ -159,11 +159,7 @@ public class PageFreeList extends Page {
         full = false;
     }
 
-    public int getByteCount(DataPage dummy) {
-        return store.getPageSize();
-    }
-
-    public void write(DataPage buff) throws SQLException {
+    public void write() throws SQLException {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_FREE_LIST);
         data.writeShortInt(0);

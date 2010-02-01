@@ -36,10 +36,6 @@ class RangeCursor implements Cursor {
         return currentRow;
     }
 
-    public long getKey() {
-        throw Message.throwInternalError();
-    }
-
     public boolean next() {
         if (beforeFirst) {
             beforeFirst = false;

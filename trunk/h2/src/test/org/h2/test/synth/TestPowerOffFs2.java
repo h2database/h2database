@@ -46,7 +46,6 @@ public class TestPowerOffFs2 extends TestBase {
     public void test() throws Exception {
         FileSystemDebug.register();
         url = "jdbc:h2:debug:memFS:powerOffFs;FILE_LOCK=NO;TRACE_LEVEL_FILE=0;WRITE_DELAY=0;CACHE_SIZE=32";
-        url += ";page_store=true";
         fs = (FileSystemDebug) FileSystem.getInstance("debug:/");
         for (int i = 0;; i++) {
             test(i);

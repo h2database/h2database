@@ -37,10 +37,6 @@ public class ViewCursor implements Cursor {
         return current;
     }
 
-    public long getKey() {
-        throw Message.throwInternalError();
-    }
-
     public boolean next() throws SQLException {
         boolean res = result.next();
         if (!res) {

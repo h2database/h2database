@@ -12,10 +12,9 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.store.Data;
 import org.h2.store.DataPage;
 import org.h2.store.FileStore;
-import org.h2.util.Cache;
-import org.h2.util.CacheObject;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
@@ -31,8 +30,7 @@ public class RowList {
     private int size;
     private int index, listIndex;
     private FileStore file;
-    private DataPage rowBuff;
-    private Cache cache;
+    private Data rowBuff;
     private ObjectArray<ValueLob> lobs;
     private int memory, maxMemory;
     private boolean written;
@@ -50,7 +48,7 @@ public class RowList {
         }
     }
 
-    private void writeRow(DataPage buff, Row r) throws SQLException {
+    private void writeRow(Data buff, Row r) throws SQLException {
         buff.checkCapacity(1 + DataPage.LENGTH_INT * 8);
         buff.writeByte((byte) 1);
         buff.writeInt(r.getMemorySize());
@@ -59,7 +57,6 @@ public class RowList {
         buff.writeInt(r.getVersion());
         buff.writeInt(r.isDeleted() ? 1 : 0);
         buff.writeInt(r.getSessionId());
-        buff.writeInt(r.getStorageId());
         for (int i = 0; i < r.getColumnCount(); i++) {
             Value v = r.getValue(i);
             buff.checkCapacity(1);
@@ -92,16 +89,13 @@ public class RowList {
     private void writeAllRows() throws SQLException {
         if (file == null) {
             Database db = session.getDatabase();
-            if (!db.isPageStoreEnabled()) {
-                cache = db.getDataFile().getCache();
-            }
             String fileName = db.createTempFile();
             file = db.openFile(fileName, "rw", false);
             file.seek(FileStore.HEADER_LENGTH);
-            rowBuff = DataPage.create(db, Constants.DEFAULT_DATA_PAGE_SIZE);
+            rowBuff = Data.create(db, Constants.DEFAULT_DATA_PAGE_SIZE);
             file.seek(FileStore.HEADER_LENGTH);
         }
-        DataPage buff = rowBuff;
+        Data buff = rowBuff;
         initBuffer(buff);
         for (int i = 0; i < list.size(); i++) {
             if (i > 0 && buff.length() > Constants.IO_BUFFER_SIZE) {
@@ -117,12 +111,12 @@ public class RowList {
         memory = 0;
     }
 
-    private void initBuffer(DataPage buff) {
+    private void initBuffer(Data buff) {
         buff.reset();
         buff.writeInt(0);
     }
 
-    private void flushBuffer(DataPage buff) throws SQLException {
+    private void flushBuffer(Data buff) throws SQLException {
         buff.checkCapacity(1);
         buff.writeByte((byte) 0);
         buff.fillAligned();
@@ -170,7 +164,7 @@ public class RowList {
         return index < size;
     }
 
-    private Row readRow(DataPage buff) throws SQLException {
+    private Row readRow(Data buff) throws SQLException {
         if (buff.readByte() == 0) {
             return null;
         }
@@ -183,7 +177,6 @@ public class RowList {
         }
         boolean deleted = buff.readInt() == 1;
         int sessionId = buff.readInt();
-        int storageId = buff.readInt();
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             Value v;
@@ -202,18 +195,11 @@ public class RowList {
             }
             values[i] = v;
         }
-        if (key != 0 && cache != null) {
-            CacheObject found = cache.find((int) key);
-            if (found != null) {
-                return (Row) found;
-            }
-        }
         Row row = new Row(values, mem);
         row.setKey(key);
         row.setVersion(version);
         row.setDeleted(deleted);
         row.setSessionId(sessionId);
-        row.setStorageId(storageId);
         return row;
     }
 
@@ -230,7 +216,7 @@ public class RowList {
             if (listIndex >= list.size()) {
                 list.clear();
                 listIndex = 0;
-                DataPage buff = rowBuff;
+                Data buff = rowBuff;
                 buff.reset();
                 int min = Constants.FILE_BLOCK_SIZE;
                 file.readFully(buff.getBytes(), 0, min);

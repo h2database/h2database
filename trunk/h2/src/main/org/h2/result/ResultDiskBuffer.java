@@ -14,7 +14,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.store.DataPage;
+import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
@@ -26,7 +26,7 @@ class ResultDiskBuffer implements ResultExternal {
 
     private static final int READ_AHEAD = 128;
 
-    private DataPage rowBuff;
+    private Data rowBuff;
     private FileStore file;
     private ObjectArray<ResultDiskTape> tapes;
     private ResultDiskTape mainTape;
@@ -64,7 +64,7 @@ class ResultDiskBuffer implements ResultExternal {
         this.sort = sort;
         this.columnCount = columnCount;
         Database db = session.getDatabase();
-        rowBuff = DataPage.create(db, Constants.DEFAULT_DATA_PAGE_SIZE);
+        rowBuff = Data.create(db, Constants.DEFAULT_DATA_PAGE_SIZE);
         String fileName = session.getDatabase().createTempFile();
         file = session.getDatabase().openFile(fileName, "rw", false);
         file.setCheckedWriting(false);
@@ -81,7 +81,7 @@ class ResultDiskBuffer implements ResultExternal {
         if (sort != null) {
             sort.sort(rows);
         }
-        DataPage buff = rowBuff;
+        Data buff = rowBuff;
         long start = file.getFilePointer();
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int bufferLen = 0;
@@ -90,7 +90,9 @@ class ResultDiskBuffer implements ResultExternal {
             buff.reset();
             buff.writeInt(0);
             for (int j = 0; j < columnCount; j++) {
-                buff.writeValue(row[j]);
+                Value v = row[j];
+                buff.checkCapacity(buff.getValueLen(v));
+                buff.writeValue(v);
             }
             buff.fillAligned();
             int len = buff.length();
@@ -142,7 +144,7 @@ class ResultDiskBuffer implements ResultExternal {
 
     private void readRow(ResultDiskTape tape) throws SQLException {
         int min = Constants.FILE_BLOCK_SIZE;
-        DataPage buff = rowBuff;
+        Data buff = rowBuff;
         buff.reset();
         file.readFully(buff.getBytes(), 0, min);
         int len = buff.readInt();

@@ -76,13 +76,6 @@ public interface Cache {
     void setMaxSize(int size) throws SQLException;
 
     /**
-     * Get the name of the cache type in a human readable form.
-     *
-     * @return the cache type name
-     */
-    String getTypeName();
-
-    /**
      * Get the maximum size in words (4 bytes).
      *
      * @return the maximum size in number of double words (4 bytes)

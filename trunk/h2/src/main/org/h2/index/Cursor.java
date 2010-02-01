@@ -39,13 +39,6 @@ public interface Cursor {
     SearchRow getSearchRow() throws SQLException;
 
     /**
-     * Get the unique key of the current row.
-     *
-     * @return the key
-     */
-    long getKey();
-
-    /**
      * Skip to the next row if one is available.
      *
      * @return true if another row is available

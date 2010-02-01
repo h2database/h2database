@@ -40,10 +40,6 @@ public class FunctionCursor implements Cursor {
         return get();
     }
 
-    public long getKey() {
-        throw Message.throwInternalError();
-    }
-
     public boolean next() throws SQLException {
         row = null;
         if (result.next()) {

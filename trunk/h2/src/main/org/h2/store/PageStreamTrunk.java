@@ -113,10 +113,6 @@ public class PageStreamTrunk extends Page {
         index = 0;
     }
 
-    void setNextDataPage(int page) {
-        pageIds[index++] = page;
-    }
-
     int getNextPageData() {
         if (index >= pageIds.length) {
             return -1;
@@ -124,11 +120,7 @@ public class PageStreamTrunk extends Page {
         return pageIds[index++];
     }
 
-    public int getByteCount(DataPage dummy) {
-        return store.getPageSize();
-    }
-
-    public void write(DataPage buff) throws SQLException {
+    public void write() throws SQLException {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_STREAM_TRUNK);
         data.writeShortInt(0);
@@ -190,23 +182,6 @@ public class PageStreamTrunk extends Page {
      */
     public int getMemorySize() {
         return store.getPageSize() >> 2;
-    }
-
-    /**
-     * One of the children has moved to another place.
-     *
-     * @param oldPos the old position
-     * @param newPos the new position
-     */
-    void moveChild(int oldPos, int newPos) throws SQLException {
-        store.logUndo(this, data);
-        for (int i = 0; i < pageIds.length; i++) {
-            if (pageIds[i] == oldPos) {
-                pageIds[i] = newPos;
-                break;
-            }
-        }
-        store.update(this);
     }
 
     public void moveTo(Session session, int newPos) {

@@ -52,50 +52,29 @@ public class TestIntArray extends TestBase {
         for (int i = 0; i < 10000; i++) {
             int idx = test.length == 0 ? 0 : random.nextInt(test.length);
             int v = random.nextInt(100);
-            int op = random.nextInt(9);
+            int op = random.nextInt(5);
             switch (op) {
             case 0:
-                array.add(idx, v);
-                test = add(test, idx, v);
-                break;
-            case 1:
                 array.add(v);
                 test = add(test, v);
                 break;
-            case 2:
-                array.sort();
-                test = sort(test);
-                array.addValueSorted(v);
-                test = addValueSorted(test, v);
-                break;
-            case 3:
-                array.sort();
-                test = sort(test);
-                int a = array.findNextIndexSorted(v);
-                int b = findNextValueIndex(test, v);
-                assertEquals(b, a);
-                break;
-            case 4:
+            case 1:
                 if (test.length > idx) {
                     assertEquals(get(test, idx), array.get(idx));
                 }
                 break;
-            case 5:
+            case 2:
                 array.remove(idx);
                 test = remove(test, idx);
                 break;
-            case 6:
+            case 3:
                 if (test.length > idx) {
                     v = test[idx];
                     array.removeValue(v);
                     test = removeValue(test, v);
                 }
                 break;
-            case 7:
-                array.set(idx, v);
-                test = set(test, idx, v);
-                break;
-            case 8:
+            case 4:
                 assertEquals(test.length, array.size());
                 break;
             default:

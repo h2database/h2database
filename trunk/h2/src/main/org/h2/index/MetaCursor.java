@@ -33,10 +33,6 @@ public class MetaCursor implements Cursor {
         return current;
     }
 
-    public long getKey() {
-        throw Message.throwInternalError();
-    }
-
     public boolean next() {
         current = index >= rows.size() ? null : rows.get(index++);
         return current != null;

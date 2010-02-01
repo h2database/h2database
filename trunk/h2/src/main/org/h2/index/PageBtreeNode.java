@@ -14,7 +14,6 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
-import org.h2.store.DataPage;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.util.MemoryUtils;
@@ -401,13 +400,9 @@ public class PageBtreeNode extends PageBtree {
         }
     }
 
-    public int getByteCount(DataPage dummy) {
-        return index.getPageStore().getPageSize();
-    }
-
-    public void write(DataPage buff) throws SQLException {
+    public void write() throws SQLException {
         check();
-        write();
+        writeData();
         index.getPageStore().writePage(getPos(), data);
     }
 
@@ -421,7 +416,7 @@ public class PageBtreeNode extends PageBtree {
         data.writeShortInt(entryCount);
     }
 
-    private void write() throws SQLException {
+    private void writeData() throws SQLException {
         if (written) {
             return;
         }

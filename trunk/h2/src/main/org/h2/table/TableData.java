@@ -19,7 +19,6 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
-import org.h2.index.BtreeIndex;
 import org.h2.index.Cursor;
 import org.h2.index.HashIndex;
 import org.h2.index.Index;
@@ -37,9 +36,6 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
-import org.h2.store.DataPage;
-import org.h2.store.Record;
-import org.h2.store.RecordReader;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
@@ -54,7 +50,7 @@ import org.h2.value.Value;
  * in the database. The actual data is not kept here, instead it is kept in the
  * indexes. There is at least one index, the scan index.
  */
-public class TableData extends Table implements RecordReader {
+public class TableData extends Table {
     private RowIndex scanIndex;
     private long rowCount;
     private volatile Session lockExclusive;
@@ -79,7 +75,7 @@ public class TableData extends Table implements RecordReader {
         data.columns.toArray(cols);
         setColumns(cols);
         setTemporary(data.temporary);
-        if (database.isPageStoreEnabled() && data.persistData && database.isPersistent()) {
+        if (data.persistData && database.isPersistent()) {
             mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData), data.headPos, data.session);
             scanIndex = mainIndex;
         } else {
@@ -193,23 +189,19 @@ public class TableData extends Table implements RecordReader {
         }
         Index index;
         if (isPersistIndexes() && indexType.isPersistent()) {
-            if (database.isPageStoreEnabled()) {
-                int mainIndexColumn;
-                if (database.isStarting() && database.getPageStore().getRootPageId(indexId) != 0) {
-                    mainIndexColumn = -1;
-                } else if (!database.isStarting() && mainIndex.getRowCount(session) != 0) {
-                    mainIndexColumn = -1;
-                } else {
-                    mainIndexColumn = getMainIndexColumn(indexType, cols);
-                }
-                if (mainIndexColumn != -1) {
-                    mainIndex.setMainIndexColumn(mainIndexColumn);
-                    index = new PageDelegateIndex(this, indexId, indexName, indexType, mainIndex, headPos, session);
-                } else {
-                    index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos, session);
-                }
+            int mainIndexColumn;
+            if (database.isStarting() && database.getPageStore().getRootPageId(indexId) != 0) {
+                mainIndexColumn = -1;
+            } else if (!database.isStarting() && mainIndex.getRowCount(session) != 0) {
+                mainIndexColumn = -1;
             } else {
-                index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
+                mainIndexColumn = getMainIndexColumn(indexType, cols);
+            }
+            if (mainIndexColumn != -1) {
+                mainIndex.setMainIndexColumn(mainIndexColumn);
+                index = new PageDelegateIndex(this, indexId, indexName, indexType, mainIndex, headPos, session);
+            } else {
+                index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos, session);
             }
         } else {
             if (indexType.isHash()) {
@@ -272,18 +264,6 @@ public class TableData extends Table implements RecordReader {
                 session.addLocalTempTableIndex(index);
             } else {
                 database.addSchemaObject(session, index);
-            }
-            // must not do this when using the page store
-            // because recovery is not done yet
-            if (!database.isPageStoreEnabled()) {
-                // need to update, because maybe the index is rebuilt at startup,
-                // and so the head pos may have changed, which needs to be stored now.
-                // addSchemaObject doesn't update the sys table at startup
-                if (index.getIndexType().isPersistent() && !database.isReadOnly()
-                        && !database.getLog().containsInDoubtTransactions()) {
-                    // can not save anything in the log file if it contains in-doubt transactions
-                    database.update(session, index);
-                }
             }
         }
         indexes.add(index);
@@ -398,14 +378,6 @@ public class TableData extends Table implements RecordReader {
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = indexes.get(i);
             index.truncate(session);
-            if (SysProperties.CHECK) {
-                if (!database.isPageStoreEnabled()) {
-                    long rc = index.getRowCount(session);
-                    if (rc != 0) {
-                        Message.throwInternalError("rowCount expected 0 got " + rc);
-                    }
-                }
-            }
         }
         rowCount = 0;
     }
@@ -658,25 +630,6 @@ public class TableData extends Table implements RecordReader {
                 }
             }
         }
-    }
-
-    public Record read(Session session, DataPage s) throws SQLException {
-        return readRow(s);
-    }
-
-    /**
-     * Read a row from the data page.
-     *
-     * @param s the data page
-     * @return the row
-     */
-    public Row readRow(DataPage s) throws SQLException {
-        int len = s.readInt();
-        Value[] data = new Value[len];
-        for (int i = 0; i < len; i++) {
-            data[i] = s.readValue();
-        }
-        return createRow(data);
     }
 
     /**

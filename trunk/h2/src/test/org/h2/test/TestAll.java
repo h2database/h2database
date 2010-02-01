@@ -9,7 +9,6 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.Driver;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.bench.TestPerformance;
@@ -170,11 +169,6 @@ java org.h2.test.TestAll timer
 */
 
     /**
-     * If the test should run with the page store flag.
-     */
-    public boolean pageStore = true;
-
-    /**
      * If the test should run with many rows.
      */
     public boolean big;
@@ -298,8 +292,24 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+DataHandler.getLobFilesInDirectories
+remove Record class; or at least fix javadoc
+remove links from Row - Record - Page - DataPage
+cleanup SortedProperties
+remove unused methods
 
-documentation and resources: utf-8
+change test case for migration (download old h2.jar).
+move migration to separate classes.
+direct link to javadoc doesn't open method; cannot copy & paste
+TestAll deleteIndex
+remove DiskFile
+SET LOG 2 noop
+Database.accessModeLog, accessModeData
+FileStore.sync, Database.sync() (CHECKPOINT SYNC)
+data page > buffer
+
+Verify that Tomcat memory leak protection don't cause exceptions:
+http://java.dzone.com/articles/memory-leak-protection-tomcat
 
 document FETCH FIRST
 
@@ -353,19 +363,12 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-            System.setProperty(SysProperties.H2_PAGE_STORE, "true");
-            test.pageStore = true;
             test.runTests();
             TestPerformance.main("-init", "-db", "1");
 //            Recover.execute("data", null);
 //            RunScript.execute("jdbc:h2:data/test2",
 //                 "sa1", "sa1", "data/test.h2.sql", null, false);
 //            Recover.execute("data", null);
-
-            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
-            test.pageStore = false;
-            test.runTests();
-            TestPerformance.main("-init", "-db", "1");
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
     }
@@ -681,7 +684,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        appendIf(buff, pageStore, "pageStore");
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");
         appendIf(buff, memory, "memory");

@@ -75,10 +75,6 @@ public class PageStreamData extends Page {
         logKey = data.readInt();
     }
 
-    public int getByteCount(DataPage dummy) {
-        return store.getPageSize();
-    }
-
     /**
      * Write the header data.
      */
@@ -106,7 +102,7 @@ public class PageStreamData extends Page {
         return max;
     }
 
-    public void write(DataPage buff) throws SQLException {
+    public void write() throws SQLException {
         store.writePage(getPos(), data);
     }
 

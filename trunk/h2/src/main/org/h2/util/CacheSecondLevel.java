@@ -58,10 +58,6 @@ class CacheSecondLevel implements Cache {
         return baseCache.getSize();
     }
 
-    public String getTypeName() {
-        return prefix + baseCache.getTypeName();
-    }
-
     public void put(CacheObject r) throws SQLException {
         baseCache.put(r);
         map.put(r.getPos(), r);

@@ -83,15 +83,6 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
-    public long getKey() {
-        synchronized (sync) {
-            if (SysProperties.CHECK && end) {
-                Message.throwInternalError();
-            }
-            return onBase ? baseCursor.getKey() : deltaCursor.getKey();
-        }
-    }
-
     public SearchRow getSearchRow() throws SQLException {
         synchronized (sync) {
             if (end) {

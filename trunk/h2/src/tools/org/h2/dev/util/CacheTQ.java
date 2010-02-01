@@ -302,11 +302,9 @@ class CacheTQ implements Cache {
 
     private void putCacheObject(CacheObject rec) {
         if (SysProperties.CHECK) {
-            for (int i = 0; i < rec.getBlockCount(); i++) {
-                CacheObject old = find(rec.getPos() + i);
-                if (old != null) {
-                    Message.throwInternalError("try to add a record twice i=" + i);
-                }
+            CacheObject old = find(rec.getPos());
+            if (old != null) {
+                Message.throwInternalError("try to add a record twice " + rec.getPos());
             }
         }
         int index = rec.getPos() & mask;
@@ -320,11 +318,9 @@ class CacheTQ implements Cache {
     public void put(CacheObject rec) throws SQLException {
         if (SysProperties.CHECK) {
             int pos = rec.getPos();
-            for (int i = 0; i < rec.getBlockCount(); i++) {
-                CacheObject old = find(pos + i);
-                if (old != null) {
-                    Message.throwInternalError("try to add a record twice pos:" + pos + " i:" + i);
-                }
+            CacheObject old = find(pos);
+            if (old != null) {
+                Message.throwInternalError("try to add a record twice pos:" + pos);
             }
         }
         int pos = rec.getPos();
@@ -376,10 +372,6 @@ class CacheTQ implements Cache {
         // can not resize, otherwise existing records are lost
         // resize(maxSize);
         removeOldIfRequired();
-    }
-
-    public String getTypeName() {
-        return TYPE_NAME;
     }
 
     public int  getMaxSize() {

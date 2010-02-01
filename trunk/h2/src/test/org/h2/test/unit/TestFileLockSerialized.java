@@ -599,11 +599,7 @@ public class TestFileLockSerialized extends TestBase {
 
         // without serialized
         String url;
-        if (config.pageStore) {
-            url = "jdbc:h2:" + baseDir + "/fileLockSerialized;PAGE_STORE=TRUE";
-        } else {
-            url = "jdbc:h2:" + baseDir + "/fileLockSerialized;PAGE_STORE=FALSE";
-        }
+        url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
         Connection conn = DriverManager.getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
@@ -613,11 +609,7 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
 
         // with serialized
-        if (config.pageStore) {
-            url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;PAGE_STORE=TRUE";
-        } else {
-            url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;PAGE_STORE=FALSE";
-        }
+        url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
         conn = DriverManager.getConnection(url);
         stat = conn.createStatement();
         stat.execute("create table test(id int)");

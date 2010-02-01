@@ -8,6 +8,7 @@ package org.h2.store;
 
 import java.sql.SQLException;
 import org.h2.engine.Session;
+import org.h2.util.CacheObject;
 
 
 /**
@@ -17,7 +18,7 @@ import org.h2.engine.Session;
  * </li><li>page-type specific data
  * </li></ul>
  */
-public abstract class Page extends Record {
+public abstract class Page extends CacheObject {
 
     /**
      * This is the last page of a chain.
@@ -82,5 +83,17 @@ public abstract class Page extends Record {
      * @param newPos the new position
      */
     public abstract void moveTo(Session session, int newPos) throws SQLException;
+
+    public boolean canRemove() {
+        if (isChanged()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Write the page.
+     */
+    public abstract void write() throws SQLException;
 
 }

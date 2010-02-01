@@ -450,15 +450,8 @@ public class FileStore {
      * Call fsync. Depending on the operating system and hardware, this may or
      * may not in fact write the changes.
      */
-    public void sync() {
-        try {
-            file.sync();
-        } catch (IOException e) {
-            Trace trace = handler.getTrace();
-            if (trace != null) {
-                trace.error("Sync failed", e);
-            }
-        }
+    public void sync() throws IOException {
+        file.sync();
     }
 
     /**
@@ -478,15 +471,6 @@ public class FileStore {
     public void stopAutoDelete() {
         tempFileDeleter.stopAutoDelete(autoDeleteReference, name);
         autoDeleteReference = null;
-    }
-
-    /**
-     * Check if the file is encrypted.
-     *
-     * @return true if it is
-     */
-    public boolean isEncrypted() {
-        return false;
     }
 
     /**

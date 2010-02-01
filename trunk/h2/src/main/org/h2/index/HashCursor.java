@@ -30,10 +30,6 @@ public class HashCursor implements Cursor {
         return row;
     }
 
-    public long getKey() {
-        return row.getKey();
-    }
-
     public boolean next() {
         if (row == null || end) {
             row = null;

@@ -210,7 +210,7 @@ public class FileSystemDatabase extends FileSystem {
                     prep.setLong(2, parentId);
                     prep.setLong(3, System.currentTimeMillis());
                     prep.execute();
-                    rs = JdbcUtils.getGeneratedKeys(prep);
+                    rs = prep.getGeneratedKeys();
                     rs.next();
                     parentId = rs.getLong(1);
                 } else {
@@ -447,7 +447,7 @@ public class FileSystemDatabase extends FileSystem {
             prep.setString(2, getFileName(fileName));
             prep.setLong(3, System.currentTimeMillis());
             prep.execute();
-            ResultSet rs = JdbcUtils.getGeneratedKeys(prep);
+            ResultSet rs = prep.getGeneratedKeys();
             rs.next();
             id = rs.getLong(1);
             prep = prepare("INSERT INTO FILEDATA(ID, DATA) VALUES(?, ?)");

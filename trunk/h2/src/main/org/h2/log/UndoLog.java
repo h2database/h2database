@@ -7,13 +7,12 @@
 package org.h2.log;
 
 import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.store.DataPage;
+import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.util.ObjectArray;
 
@@ -26,7 +25,7 @@ public class UndoLog {
     //  and use less memory than an array
     private ObjectArray<UndoLogRecord> records = ObjectArray.newInstance();
     private FileStore file;
-    private DataPage rowBuff;
+    private Data rowBuff;
     private int memoryUndo;
 
     /**
@@ -125,8 +124,8 @@ public class UndoLog {
                 String fileName = database.createTempFile();
                 file = database.openFile(fileName, "rw", false);
                 file.seek(FileStore.HEADER_LENGTH);
-                rowBuff = DataPage.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
-                DataPage buff = rowBuff;
+                rowBuff = Data.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
+                Data buff = rowBuff;
                 for (int i = 0; i < records.size(); i++) {
                     UndoLogRecord r = records.get(i);
                     saveIfPossible(r, buff);
@@ -138,7 +137,7 @@ public class UndoLog {
         }
     }
 
-    private void saveIfPossible(UndoLogRecord r, DataPage buff) throws SQLException {
+    private void saveIfPossible(UndoLogRecord r, Data buff) throws SQLException {
         if (!r.isStored() && r.canStore()) {
             r.save(buff, file);
             memoryUndo--;

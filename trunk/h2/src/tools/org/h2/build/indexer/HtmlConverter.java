@@ -131,15 +131,28 @@ public class HtmlConverter {
             String key = html.substring(i + 1, idx);
             Character repl;
             if (key.startsWith("#")) {
-                try {
-                    int code = Integer.parseInt(key.substring(1));
-                    if (code < 0 || code > 0xffff) {
+                if (key.startsWith("#x")) {
+                    try {
+                        int code = Integer.parseInt(key.substring(2), 16);
+                        if (code < 0 || code > 0xffff) {
+                            repl = null;
+                        } else {
+                            repl = Character.valueOf((char) code);
+                        }
+                    } catch (NumberFormatException e) {
                         repl = null;
-                    } else {
-                        repl = Character.valueOf((char) code);
                     }
-                } catch (NumberFormatException e) {
-                    repl = null;
+                } else {
+                    try {
+                        int code = Integer.parseInt(key.substring(1));
+                        if (code < 0 || code > 0xffff) {
+                            repl = null;
+                        } else {
+                            repl = Character.valueOf((char) code);
+                        }
+                    } catch (NumberFormatException e) {
+                        repl = null;
+                    }
                 }
             } else {
                 repl = charMap.get(key);

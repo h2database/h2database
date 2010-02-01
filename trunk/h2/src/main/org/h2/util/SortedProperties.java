@@ -9,7 +9,6 @@ package org.h2.util;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-//import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,8 +21,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.Vector;
-
+import java.util.Map.Entry;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 
@@ -131,6 +131,36 @@ public class SortedProperties extends Properties {
             }
         }
         writer.close();
+    }
+
+    /**
+     * Convert the map to a list of line in the form key=value.
+     *
+     * @return the lines
+     */
+    public synchronized String toLines() {
+        StringBuilder buff = new StringBuilder();
+        for (Entry<Object, Object> e : new TreeMap<Object, Object>(this).entrySet()) {
+            buff.append(e.getKey()).append('=').append(e.getValue()).append('\n');
+        }
+        return buff.toString();
+    }
+
+    /**
+     * Convert a String to a map.
+     *
+     * @param s the string
+     * @return the map
+     */
+    public static SortedProperties fromLines(String s) {
+        SortedProperties p = new SortedProperties();
+        for (String line : StringUtils.arraySplit(s, '\n', true)) {
+            int idx = line.indexOf('=');
+            if (idx > 0) {
+                p.put(line.substring(0, idx), line.substring(idx + 1));
+            }
+        }
+        return p;
     }
 
 }

@@ -48,8 +48,6 @@ public class PrepareTranslation {
 
     private void run() throws Exception {
         String baseDir = "src/docsrc/textbase";
-        prepare(baseDir, "src/main/org/h2/res");
-        prepare(baseDir, "src/main/org/h2/server/web/res");
 
         // convert the txt files to properties files
         PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_de.utf8.txt",

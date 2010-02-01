@@ -247,8 +247,4 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         return null;
     }
 
-    public Trace getTrace() {
-        return session.getDatabase().getTrace(Trace.DATABASE);
-    }
-
 }

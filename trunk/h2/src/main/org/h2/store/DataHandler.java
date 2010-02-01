@@ -145,11 +145,4 @@ public interface DataHandler {
      */
     SmallLRUCache<String, String[]> getLobFileListCache();
 
-    /**
-     * Get the trace writer.
-     *
-     * @return the trace writer
-     */
-    Trace getTrace();
-
 }

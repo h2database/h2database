@@ -26,25 +26,10 @@ public class TestBitField extends TestBase {
 
     public void test() {
         testNextClearBit();
-        testNextSetBit();
         testByteOperations();
         testRandom();
         testGetSet();
         testRandomSetRange();
-    }
-
-    private void testNextSetBit() {
-        Random random = new Random(1);
-        BitField field = new BitField();
-        for (int i = 0; i < 100000; i++) {
-            int a = random.nextInt(120);
-            int b = a + 1 + random.nextInt(200);
-            field.set(a);
-            field.set(b);
-            assertEquals(b, field.nextSetBit(a + 1));
-            field.clear(a);
-            field.clear(b);
-        }
     }
 
     private void testNextClearBit() {
@@ -120,7 +105,6 @@ public class TestBitField extends TestBase {
             } else {
                 assertEquals(set.get(idx), bits.get(idx));
                 assertEquals(set.nextClearBit(idx), bits.nextClearBit(idx));
-                assertEquals(set.nextSetBit(idx), bits.nextSetBit(idx));
             }
         }
     }

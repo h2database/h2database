@@ -144,9 +144,7 @@ bugs that have not yet been found (as with most software). Some features are kno
 to be dangerous, they are only supported for situations where performance is more important
 than reliability. Those dangerous features are:
 </p>
-<ul>
-<li>Disabling the transaction log mechanism using <code>SET LOG 0</code>.
-</li><li>Using the transaction isolation level <code>READ_UNCOMMITTED</code>
+<ul><li>Using the transaction isolation level <code>READ_UNCOMMITTED</code>
     (<code>LOCK_MODE 0</code>) while at the same time using multiple
     connections.
 </li><li>Disabling database file protection using <code>FILE_LOCK=NO</code>
@@ -187,12 +185,9 @@ Areas considered experimental are:
     and out of memory issues have been reported.
 </li></ul>
 <p>
-Some users have reported that after a power failure, the database can sometimes not be
-opened because the index file is corrupt. In that case, the index file can be deleted
-(it is automatically re-created). To avoid this, append
-<code>;LOG=2</code> to the database URL.
-See also: <a href="grammar.html#set_log" class="notranslate">SET LOG</a>. This problem will be solved
-using the new 'page store' mechanism (currently beta).
+Some users have reported that after a power failure, the database cannot be opened sometimes.
+In this case, use a backup of the database or the Recover tool. Please report such problems.
+The plan is that the database automatically recovers in all situations.
 </p>
 
 <h3 id="column_names_incorrect">Column Names are Incorrect?</h3>

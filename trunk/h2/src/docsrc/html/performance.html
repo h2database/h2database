@@ -579,12 +579,11 @@ To speed up large imports, consider using the following options temporarily:
 </p>
 <ul><li><code>SET CACHE_SIZE</code> (a large cache is faster)
 </li><li><code>SET LOCK_MODE 0</code> (disable locking)
-</li><li><code>SET LOG 0</code> (disable the transaction log)
 </li><li><code>SET UNDO_LOG 0</code> (disable the session undo log)
 </li></ul>
 <p>
 These options can be set in the database URL:
-<code>jdbc:h2:~/test;CACHE_SIZE=65536;LOCK_MODE=0;LOG=0;UNDO_LOG=0</code>.
+<code>jdbc:h2:~/test;CACHE_SIZE=65536;LOCK_MODE=0;UNDO_LOG=0</code>.
 Most of those options are not recommended for regular use, that means you need to reset them after use.
 </p>
 

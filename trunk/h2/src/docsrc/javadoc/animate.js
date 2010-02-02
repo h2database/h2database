@@ -46,7 +46,7 @@ function openLink() {
         return true;
     }
     el = el.parentNode.parentNode;
-    on(el.id);
     window.scrollTo(0, el.offsetTop);
-    return true;
+    on(el.id.substr(2));
+    return false;
 }

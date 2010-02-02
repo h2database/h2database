@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import org.h2.constant.SysProperties;
-import org.h2.message.Trace;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.DataPage;

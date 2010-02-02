@@ -8,7 +8,6 @@ package org.h2.store;
 
 import java.sql.SQLException;
 
-import org.h2.message.Trace;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;

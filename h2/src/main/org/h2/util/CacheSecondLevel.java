@@ -16,12 +16,10 @@ import java.util.Map;
 class CacheSecondLevel implements Cache {
 
     private final Cache baseCache;
-    private final String prefix;
     private final Map<Integer, CacheObject> map;
 
-    CacheSecondLevel(Cache cache, String prefix, Map<Integer, CacheObject> map) {
+    CacheSecondLevel(Cache cache, Map<Integer, CacheObject> map) {
         this.baseCache = cache;
-        this.prefix = prefix;
         this.map = map;
     }
 

@@ -21,7 +21,6 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.Message;
-import org.h2.message.Trace;
 import org.h2.security.SHA256;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;

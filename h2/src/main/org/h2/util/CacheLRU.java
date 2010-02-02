@@ -49,15 +49,12 @@ public class CacheLRU implements Cache {
      */
     public static Cache getCache(CacheWriter writer, String cacheType, int cacheSize) throws SQLException {
         Map<Integer, CacheObject> secondLevel = null;
-        String prefix = null;
         if (cacheType.startsWith("SOFT_")) {
             secondLevel = new SoftHashMap<Integer, CacheObject>();
             cacheType = cacheType.substring("SOFT_".length());
-            prefix = "SOFT_";
         } else if (cacheType.startsWith("WEAK_")) {
             secondLevel = new WeakHashMap<Integer, CacheObject>();
             cacheType = cacheType.substring("WEAK_".length());
-            prefix = "WEAK_";
         }
         Cache cache;
         if ("TQ".equals(cacheType)) {
@@ -69,7 +66,7 @@ public class CacheLRU implements Cache {
             throw Message.getInvalidValueException(cacheType, "CACHE_TYPE");
         }
         if (secondLevel != null) {
-            cache = new CacheSecondLevel(cache, prefix, secondLevel);
+            cache = new CacheSecondLevel(cache, secondLevel);
         }
         return cache;
     }

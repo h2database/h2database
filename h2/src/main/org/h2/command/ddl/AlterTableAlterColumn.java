@@ -186,7 +186,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (c.isPrimaryKey()) {
                 c.setOriginalSQL("IDENTITY");
             } else {
-                int objId = getObjectId(true, true);
+                int objId = getObjectId();
                 c.convertAutoIncrementToSequence(session, getSchema(), objId, table.isTemporary());
             }
         }
@@ -274,7 +274,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         // with the old table
         // still need a new id because using 0 would mean: the new table tries
         // to use the rows of the table 0 (the meta table)
-        int id = db.allocateObjectId(true, true);
+        int id = db.allocateObjectId();
         CreateTableData data = new CreateTableData();
         data.tableName = tempName;
         data.id = id;

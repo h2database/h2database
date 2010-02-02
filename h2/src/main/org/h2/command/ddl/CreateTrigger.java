@@ -89,7 +89,7 @@ public class CreateTrigger extends SchemaCommand {
             }
             throw Message.getSQLException(ErrorCode.TRIGGER_ALREADY_EXISTS_1, triggerName);
         }
-        int id = getObjectId(false, true);
+        int id = getObjectId();
         Table table = getSchema().getTableOrView(session, tableName);
         TriggerObject trigger = new TriggerObject(getSchema(), id, triggerName, table);
         trigger.setInsteadOf(insteadOf);

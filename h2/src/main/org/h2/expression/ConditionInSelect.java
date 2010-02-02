@@ -8,18 +8,15 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 import org.h2.command.dml.Query;
-import org.h2.command.dml.Select;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.message.Message;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.table.TableView;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -91,6 +88,7 @@ public class ConditionInSelect extends Condition {
 
     public Expression optimize(Session session) throws SQLException {
         left = left.optimize(session);
+        query.setDistinct(true);
         query.prepare();
         if (query.getColumnCount() != 1) {
             throw Message.getSQLException(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
@@ -121,43 +119,6 @@ public class ConditionInSelect extends Condition {
 
     public int getCost() {
         return left.getCost() + 10 + (int) (10 * query.getCost());
-    }
-
-    public Expression optimizeInJoin(Session session, Select select) throws SQLException {
-        query.setDistinct(true);
-        if (SysProperties.OPTIMIZE_IN_LIST) {
-            return this;
-        }
-        if (all || compareType != Comparison.EQUAL) {
-            return this;
-        }
-        if (!query.isEverything(ExpressionVisitor.EVALUATABLE)) {
-            return this;
-        }
-        if (!query.isEverything(ExpressionVisitor.INDEPENDENT)) {
-            return this;
-        }
-        String alias = query.getFirstColumnAlias(session);
-        if (alias == null) {
-            return this;
-        }
-        if (!(left instanceof ExpressionColumn)) {
-            return this;
-        }
-        ExpressionColumn ec = (ExpressionColumn) left;
-        Index index = ec.getTableFilter().getTable().getIndexForColumn(ec.getColumn(), false);
-        if (index == null) {
-            return this;
-        }
-        String name = session.getNextSystemIdentifier(select.getSQL());
-        TableView view = TableView.createTempView(session, session.getUser(), name, query, select);
-        TableFilter filter = new TableFilter(session, view, name, false, select);
-        select.addTableFilter(filter, true);
-        ExpressionColumn column = new ExpressionColumn(session.getDatabase(), null, view.getName(), alias);
-        Expression on = new Comparison(session, Comparison.EQUAL, left, column);
-        on.mapColumns(filter, 0);
-        on = on.optimize(session);
-        return on;
     }
 
     public void createIndexConditions(Session session, TableFilter filter) {

@@ -30,7 +30,7 @@ public class TestTwoPhaseCommit extends TestBase {
     }
 
     public void test() throws SQLException {
-        if (config.memory || config.networked || config.logMode == 0) {
+        if (config.memory || config.networked) {
             return;
         }
 

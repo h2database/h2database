@@ -38,7 +38,7 @@ public class CreateAggregate extends DefineCommand {
                 throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
             }
         } else {
-            int id = getObjectId(false, true);
+            int id = getObjectId();
             UserAggregate aggregate = new UserAggregate(db, id, name, javaClassMethod, force);
             db.addDatabaseObject(session, aggregate);
         }

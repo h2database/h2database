@@ -107,7 +107,7 @@ public class SetComment extends DefineCommand {
                 if (text == null) {
                     // reset a non-existing comment - nothing to do
                 } else {
-                    int id = getObjectId(false, false);
+                    int id = getObjectId();
                     comment = new Comment(db, id, object);
                     comment.setCommentText(text);
                     db.addDatabaseObject(session, comment);

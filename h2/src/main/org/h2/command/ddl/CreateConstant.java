@@ -45,7 +45,7 @@ public class CreateConstant extends SchemaCommand {
             }
             throw Message.getSQLException(ErrorCode.CONSTANT_ALREADY_EXISTS_1, constantName);
         }
-        int id = getObjectId(false, true);
+        int id = getObjectId();
         Constant constant = new Constant(getSchema(), id, constantName);
         expression = expression.optimize(session);
         Value value = expression.getValue(session);

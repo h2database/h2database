@@ -56,7 +56,7 @@ public class CreateView extends SchemaCommand {
             }
             throw Message.getSQLException(ErrorCode.VIEW_ALREADY_EXISTS_1, viewName);
         }
-        int id = getObjectId(true, true);
+        int id = getObjectId();
         String querySQL;
         if (select == null) {
             querySQL = selectSQL;

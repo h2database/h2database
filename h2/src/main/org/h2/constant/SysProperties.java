@@ -38,11 +38,6 @@ public class SysProperties {
     /**
      * INTERNAL
      */
-    public static final String H2_LOG_DELETE_DELAY = "h2.logDeleteDelay";
-
-    /**
-     * INTERNAL
-     */
     public static final String H2_COLLATOR_CACHE_SIZE = "h2.collatorCacheSize";
 
     /**
@@ -78,7 +73,7 @@ public class SysProperties {
     public static final String USER_HOME = getStringSetting("user.home", "");
 
     /**
-     * System property <code>h2.aliasColumnName</code>.<br />
+     * System property <code>h2.aliasColumnName</code> (default: false).<br />
      * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
      * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in
      * getTableName(). If disabled, the real column name (ID in this case) and
@@ -86,15 +81,8 @@ public class SysProperties {
      * <p>
      * When using different modes, this feature is disabled for compatibility
      * for all databases except MySQL. For MySQL, it is always enabled.
-     * </p>
-     * <p>
-     * In version 1.0, it is enabled by default.
-     * </p>
-     * <p>
-     * In version 1.1, it is disabled by default.
-     * </p>
      */
-    public static final boolean ALIAS_COLUMN_NAME = getBooleanSetting("h2.aliasColumnName", Constants.VERSION <= 1.0);
+    public static final boolean ALIAS_COLUMN_NAME = getBooleanSetting("h2.aliasColumnName", false);
 
     /**
      * System property <code>h2.allowBigDecimalExtensions</code> (default:
@@ -139,19 +127,6 @@ public class SysProperties {
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
 
     /**
-     * System property <code>h2.cacheSizeIndexShift</code> (default: 3).<br />
-     * How many time the cache size value is divided by two to get the index
-     * cache size. The index cache size is calculated like this: cacheSize >>
-     * cacheSizeIndexShift.
-     */
-    public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
-
-    /**
-     * INTERNAL
-     */
-    public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
-
-    /**
      * System property <code>h2.cacheTypeDefault</code> (default: LRU).<br />
      * How many time the cache size value is divided by two to get the index
      * cache size. The index cache size is calculated like this: cacheSize >>
@@ -194,16 +169,11 @@ public class SysProperties {
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
 
     /**
-     * System property <code>h2.defaultMaxLengthInplaceLob</code>.<br />
+     * System property <code>h2.defaultMaxLengthInplaceLob</code>
+     * (default: 4096).<br />
      * The default maximum length of an LOB that is stored in the data file itself.
-     * <p>
-     * In version 1.1, the default is 1024.
-     * </p>
-     * <p>
-     * In version 1.2, the default is 4096.
-     * </p>
      */
-    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = getIntSetting("h2.defaultMaxLengthInplaceLob", Constants.VERSION <= 1.1 ? 1024 : 4096);
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = getIntSetting("h2.defaultMaxLengthInplaceLob", 4096);
 
     /**
      * System property <code>h2.defaultResultSetConcurrency</code> (default:
@@ -252,14 +222,6 @@ public class SysProperties {
     public static final int DELAY_WRONG_PASSWORD_MAX = getIntSetting("h2.delayWrongPasswordMax", 4000);
 
     /**
-     * System property <code>h2.dollarQuoting</code> (default: true).<br />
-     * Dollar quoting is used to quote text without having to use escape
-     * characters. A dollar quoted string starts and ends with $$. Inside the
-     * text, $$ is not allowed.
-     */
-    public static final boolean DOLLAR_QUOTING = getBooleanSetting("h2.dollarQuoting", true);
-
-    /**
      * System property <code>h2.estimatedFunctionTableRows</code> (default:
      * 1000).<br />
      * The estimated number of rows in a function table (for example, CSVREAD or
@@ -286,19 +248,6 @@ public class SysProperties {
      * Close LOB files between read operations.
      */
     public static boolean lobCloseBetweenReads = getBooleanSetting("h2.lobCloseBetweenReads", false);
-
-    /**
-     * System property <code>h2.lobFilesInDirectories</code>.<br />
-     * Store LOB files in subdirectories.
-     * <p>
-     * In version 1.0, it is disabled by default.
-     * </p><p>
-     * In version 1.1, it is enabled by default.
-     * </p>
-     */
-    // when removing this property, also remove
-    // DataHandler.allocateObjectId, createTempFile it
-    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", Constants.VERSION > 1.0);
 
     /**
      * System property <code>h2.lobFilesPerDirectory</code> (default: 256).<br />
@@ -352,12 +301,6 @@ public class SysProperties {
     public static final int MAX_MEMORY_ROWS_DISTINCT = getIntSetting("h2.maxMemoryRowsDistinct", Integer.MAX_VALUE);
 
     /**
-     * System property <code>h2.maxQueryTimeout</code> (default: 0).<br />
-     * The maximum timeout of a query. The default is 0, meaning no limit.
-     */
-    public static final int MAX_QUERY_TIMEOUT = getIntSetting(H2_MAX_QUERY_TIMEOUT, 0);
-
-    /**
      * System property <code>h2.maxReconnect</code> (default: 3).<br />
      * The maximum number of tries to reconnect in a row.
      */
@@ -397,19 +340,6 @@ public class SysProperties {
     public static final boolean NIO_CLEANER_HACK = getBooleanSetting("h2.nioCleanerHack", true);
 
     /**
-     * System property <code>h2.nullConcatIsNull</code>.<br />
-     * Concatenation with NULL results in NULL. Usually, NULL is treated as an
-     * empty string if only one of the operands is NULL, and NULL is only
-     * returned if both operands are NULL.
-     * <p>
-     * In version 1.1, it is disabled by default.
-     * </p><p>
-     * In version 1.2, it is enabled by default.
-     * </p>
-     */
-    public static final boolean NULL_CONCAT_IS_NULL = getBooleanSetting("h2.nullConcatIsNull", Constants.VERSION >= 1.2);
-
-    /**
      * System property <code>h2.objectCache</code> (default: true).<br />
      * Cache commonly used objects (integers, strings).
      */
@@ -428,25 +358,6 @@ public class SysProperties {
      * This value must be a power of 2.
      */
     public static final int OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(getIntSetting("h2.objectCacheSize", 1024));
-
-    /**
-     * System property <code>h2.oldCommandLineOptions</code>.<br />
-     * Support old command line options.
-     * <p>
-     * In version 1.0, it is enabled by default.
-     * </p><p>
-     * In version 1.1, it is disabled by default.
-     * </p>
-     */
-    public static final boolean OLD_COMMAND_LINE_OPTIONS = getBooleanSetting("h2.oldCommandLineOptions", Constants.VERSION < 1.1);
-
-    /**
-     * System property <code>h2.optimizeDropDependencies</code> (default:
-     * true).<br />
-     * Improve the performance of DROP and DROP ALL OBJECTS by quicker scanning
-     * if other objects depend on this object.
-     */
-    public static final boolean OPTIMIZE_DROP_DEPENDENCIES = getBooleanSetting("h2.optimizeDropDependencies", true);
 
     /**
      * System property <code>h2.optimizeDistinct</code> (default: true).<br />
@@ -470,58 +381,11 @@ public class SysProperties {
     public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = getBooleanSetting("h2.optimizeEvaluatableSubqueries", true);
 
     /**
-     * System property <code>h2.optimizeGroupSorted</code>.<br />
-     * Optimize GROUP BY queries if an index can be used that matches the group
-     * by columns.
-     * <p>
-     * In version 1.0, it is disabled by default.
-     * </p><p>
-     * In version 1.1, it is enabled by default.
-     * </p>
-     */
-    public static final boolean OPTIMIZE_GROUP_SORTED = getBooleanSetting("h2.optimizeGroupSorted", Constants.VERSION > 1.0);
-
-    /**
-     * System property <code>h2.optimizeIn</code> (default: true).<br />
-     * Optimize IN(...) comparisons.
-     */
-    public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
-
-    /**
-     * System property <code>h2.optimizeInList</code> (default: false).<br />
+     * System property <code>h2.optimizeInList</code> (default: true).<br />
      * Optimize IN(...) and IN(SELECT ...) comparisons. This includes
-     * optimization for SELECT, DELETE, and UPDATE. Overrides h2.optimizeIn and
-     * h2.optimizeInJoin if enabled.
-     * <p>
-     * In version 1.1, it is disabled by default.
-     * </p><p>
-     * In version 1.2, it is enabled by default.
-     * </p>
+     * optimization for SELECT, DELETE, and UPDATE.
      */
-    public static final boolean OPTIMIZE_IN_LIST = getBooleanSetting("h2.optimizeInList", Constants.VERSION >= 1.2);
-
-    /**
-     * System property <code>h2.optimizeInJoin</code> (default: false).<br />
-     * Optimize IN(...) comparisons by converting them to inner joins.
-     * <p>
-     * In version 1.0, it is disabled by default.
-     * </p><p>
-     * In version 1.1, it is enabled by default.
-     * </p>
-     */
-    public static boolean optimizeInJoin = getBooleanSetting("h2.optimizeInJoin", Constants.VERSION > 1.0);
-
-    /**
-     * System property <code>h2.optimizeMinMax</code> (default: true).<br />
-     * Optimize MIN and MAX aggregate functions.
-     */
-    public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
-
-    /**
-     * System property <code>h2.optimizeNot</code> (default: true).<br />
-     * Optimize NOT conditions by removing the NOT and inverting the condition.
-     */
-    public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
+    public static final boolean OPTIMIZE_IN_LIST = getBooleanSetting("h2.optimizeInList", true);
 
     /**
      * System property <code>h2.optimizeOr</code> (default: false).<br />
@@ -603,36 +467,12 @@ public class SysProperties {
     public static final int RESERVE_MEMORY = getIntSetting("h2.reserveMemory", 512 * 1024);
 
     /**
-     * System property <code>h2.returnLobObjects</code>.<br />
+     * System property <code>h2.returnLobObjects</code> (default: true).<br />
      * When true, ResultSet.getObject for CLOB or BLOB will return a
      * java.sql.Clob / java.sql.Blob object. When set to false, it will return a
      * java.io.Reader / java.io.InputStream.
-     * <p>
-     * In version 1.0, it is disabled by default.
-     * </p>
-     * <p>
-     * In version 1.1, it is enabled by default.
-     * </p>
      */
-    public static final boolean RETURN_LOB_OBJECTS = getBooleanSetting("h2.returnLobObjects", Constants.VERSION > 1.0);
-
-    /**
-     * System property <code>h2.reuseSpaceAfter</code> (default: 16).<br />
-     * Reuse space in database files after this many pages are free.
-     */
-    public static final int REUSE_SPACE_AFTER = getIntSetting("h2.reuseSpaceAfter", 32);
-
-    /**
-     * System property <code>h2.reuseSpaceBtreeIndex</code> (default: true).<br />
-     * Reuse space after deleting or updating many rows in a b-tree index.
-     */
-    public static final boolean REUSE_SPACE_BTREE_INDEX = getBooleanSetting("h2.reuseSpaceBtreeIndex", true);
-
-    /**
-     * System property <code>h2.reuseSpaceQuickly</code> (default: true).<br />
-     * Reuse space in database files quickly.
-     */
-    public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpaceQuickly", true);
+    public static final boolean RETURN_LOB_OBJECTS = getBooleanSetting("h2.returnLobObjects", true);
 
     /**
      * System property <code>h2.runFinalize</code> (default: true).<br />
@@ -654,18 +494,13 @@ public class SysProperties {
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
 
     /**
-     * System property <code>h2.shareLinkedConnections</code>.<br />
+     * System property <code>h2.shareLinkedConnections</code>
+     * (default: true).<br />
      * Linked connections should be shared, that means connections to the same
      * database should be used for all linked tables that connect to the same
      * database.
-     * <p>
-     * In version 1.0, it is disabled by default.
-     * </p>
-     * <p>
-     * In version 1.1, it is enabled by default.
-     * </p>
      */
-    public static final boolean SHARE_LINKED_CONNECTIONS = getBooleanSetting("h2.shareLinkedConnections", Constants.VERSION > 1.0);
+    public static final boolean SHARE_LINKED_CONNECTIONS = getBooleanSetting("h2.shareLinkedConnections", true);
 
     /**
      * System property <code>h2.socketConnectTimeout</code> (default: 2000).<br />
@@ -698,18 +533,6 @@ public class SysProperties {
      * The H2 Console will abbreviate (truncate) result values larger than this size.
      */
     public static final int WEB_MAX_VALUE_LENGTH = getIntSetting("h2.webMaxValueLength", 10000);
-
-    /**
-     * System property <code>h2.collatorCacheSize</code> (default: 10000).<br />
-     * The cache size for collation keys (in elements). Used when a collator has
-     * been set for the database.
-     */
-    public static final int COLLATOR_CACHE_SIZE = getCollatorCacheSize();
-
-    /**
-     * The current time this class was loaded (in milliseconds).
-     */
-    public static final long TIME_START = System.currentTimeMillis();
 
     private static final String H2_BASE_DIR = "h2.baseDir";
 
@@ -780,32 +603,33 @@ public class SysProperties {
     }
 
     /**
-     * INTERNAL.
      * System property <code>h2.scriptDirectory</code> (default: empty
      * string).<br />
      * Relative or absolute directory where the script files are stored to or
      * read from.
+     *
+     * @return the current value
      */
     public static String getScriptDirectory() {
         return getStringSetting(H2_SCRIPT_DIRECTORY, "");
     }
 
     /**
-     * INTERNAL
+     * System property <code>h2.maxQueryTimeout</code> (default: 0).<br />
+     * The maximum timeout of a query. The default is 0, meaning no limit.
+     *
+     * @return the current value
      */
     public static int getMaxQueryTimeout() {
         return getIntSetting(H2_MAX_QUERY_TIMEOUT, 0);
     }
 
     /**
-     * INTERNAL
-     */
-    public static int getLogFileDeleteDelay() {
-        return getIntSetting(H2_LOG_DELETE_DELAY, 0);
-    }
-
-    /**
-     * INTERNAL
+     * System property <code>h2.collatorCacheSize</code> (default: 32000).<br />
+     * The cache size for collation keys (in elements). Used when a collator has
+     * been set for the database.
+     *
+     * @return the current value
      */
     public static int getCollatorCacheSize() {
         return getIntSetting(H2_COLLATOR_CACHE_SIZE, 32000);

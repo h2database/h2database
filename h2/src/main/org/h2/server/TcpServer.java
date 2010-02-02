@@ -21,10 +21,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
 import org.h2.Driver;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
@@ -32,7 +30,6 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
-import org.h2.util.Tool;
 
 /**
  * The TCP server implements the native H2 database server protocol.
@@ -152,16 +149,8 @@ public class TcpServer implements Service {
             String a = args[i];
             if ("-trace".equals(a)) {
                 trace = true;
-            } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-                trace = Tool.readArgBoolean(args, i) == 1;
-                i++;
             } else if ("-tcpSSL".equals(a)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    ssl = Tool.readArgBoolean(args, i) == 1;
-                    i++;
-                } else {
-                    ssl = true;
-                }
+                ssl = true;
             } else if ("-tcpPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-tcpPassword".equals(a)) {
@@ -172,19 +161,9 @@ public class TcpServer implements Service {
                 key = args[++i];
                 keyDatabase = args[++i];
             } else if ("-tcpAllowOthers".equals(a)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    allowOthers = Tool.readArgBoolean(args, i) == 1;
-                    i++;
-                } else {
-                    allowOthers = true;
-                }
+                allowOthers = true;
             } else if ("-ifExists".equals(a)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    ifExists = Tool.readArgBoolean(args, i) == 1;
-                    i++;
-                } else {
-                    ifExists = true;
-                }
+                ifExists = true;
             }
         }
         org.h2.Driver.load();

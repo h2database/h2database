@@ -12,7 +12,6 @@ import java.util.HashMap;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -544,9 +543,6 @@ public class Aggregate extends Expression {
                 return visitor.getTable().canGetRowCount();
             case MIN:
             case MAX:
-                if (!SysProperties.OPTIMIZE_MIN_MAX) {
-                    return false;
-                }
                 boolean first = type == MIN;
                 Index index = getColumnIndex(first);
                 return index != null;

@@ -7,8 +7,6 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
-
-import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -43,10 +41,6 @@ public class ConditionNot extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        if (!SysProperties.OPTIMIZE_NOT) {
-            condition = condition.optimize(session);
-            return this;
-        }
         Expression e2 = condition.getNotIfPossible(session);
         if (e2 != null) {
             return e2.optimize(session);

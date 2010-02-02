@@ -46,7 +46,7 @@ public class TestCases extends TestBase {
         testDeleteGroup();
         testDisconnect();
         testExecuteTrace();
-        if (config.memory || config.logMode == 0) {
+        if (config.memory) {
             return;
         }
         testDeleteAndDropTableWithLobs(true);

@@ -18,7 +18,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
-import org.h2.constant.SysProperties;
 import org.h2.server.Service;
 import org.h2.store.fs.FileSystem;
 import org.h2.tools.Server;
@@ -340,9 +339,6 @@ public class FtpServer extends Tool implements Service {
                 writePassword = args[++i];
             } else if ("-trace".equals(a)) {
                 trace = true;
-            } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-                trace = Tool.readArgBoolean(args, i) == 1;
-                i++;
             } else if ("-ftpTask".equals(a)) {
                 allowTask = true;
             }

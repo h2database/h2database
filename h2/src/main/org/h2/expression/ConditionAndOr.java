@@ -7,8 +7,6 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
-
-import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -140,7 +138,7 @@ public class ConditionAndOr extends Condition {
         // INSERT INTO TEST VALUES(1, NULL);
         // SELECT * FROM TEST WHERE NOT (B=A AND B=0); // no rows
         // SELECT * FROM TEST WHERE NOT (B=A AND B=0 AND A=0); // 1, NULL
-        if (SysProperties.OPTIMIZE_TWO_EQUALS && SysProperties.OPTIMIZE_NOT && andOrType == AND) {
+        if (SysProperties.OPTIMIZE_TWO_EQUALS && andOrType == AND) {
             // try to add conditions (A=B AND B=1: add A=1)
             if (left instanceof Comparison && right instanceof Comparison) {
                 Comparison compLeft = (Comparison) left;
@@ -252,21 +250,6 @@ public class ConditionAndOr extends Condition {
 
     public int getCost() {
         return left.getCost() + right.getCost();
-    }
-
-    public Expression optimizeInJoin(Session session, Select select) throws SQLException {
-        if (andOrType == AND) {
-            Expression l = left.optimizeInJoin(session, select);
-            Expression r = right.optimizeInJoin(session, select);
-            if (l != left || r != right) {
-                left = l;
-                right = r;
-                // only optimize again if there was some change
-                // otherwise some expressions are 'over-optimized'
-                return optimize(session);
-            }
-        }
-        return this;
     }
 
     /**

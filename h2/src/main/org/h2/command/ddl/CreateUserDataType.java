@@ -64,7 +64,7 @@ public class CreateUserDataType extends DefineCommand {
                 throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName + " (" + table.getSQL() + ")");
             }
         }
-        int id = getObjectId(false, true);
+        int id = getObjectId();
         UserDataType type = new UserDataType(db, id, typeName);
         type.setColumn(column);
         db.addDatabaseObject(session, type);

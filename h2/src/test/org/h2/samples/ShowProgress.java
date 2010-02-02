@@ -46,7 +46,7 @@ public class ShowProgress implements DatabaseEventListener {
      */
     void test() throws Exception {
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:test;LOG=2", "sa", "");
+        Connection conn = DriverManager.getConnection("jdbc:h2:test", "sa", "");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
@@ -77,7 +77,7 @@ public class ShowProgress implements DatabaseEventListener {
 
         System.out.println("Open connection...");
         time = System.currentTimeMillis();
-        conn = DriverManager.getConnection("jdbc:h2:test;LOG=2;DATABASE_EVENT_LISTENER='" + getClass().getName() + "'", "sa", "");
+        conn = DriverManager.getConnection("jdbc:h2:test;DATABASE_EVENT_LISTENER='" + getClass().getName() + "'", "sa", "");
         time = System.currentTimeMillis() - time;
         System.out.println("Done after " + time + " ms");
         conn.close();

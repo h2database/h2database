@@ -40,7 +40,7 @@ public class CreateFunctionAlias extends DefineCommand {
                 throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
             }
         } else {
-            int id = getObjectId(false, true);
+            int id = getObjectId();
             FunctionAlias functionAlias;
             if (javaClassMethod != null) {
                 functionAlias = FunctionAlias.newInstance(db, id, aliasName, javaClassMethod, force);

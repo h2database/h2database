@@ -118,7 +118,7 @@ public class GrantRevoke extends DefineCommand {
         for (Table table : tables) {
             Right right = grantee.getRightForTable(table);
             if (right == null) {
-                int id = getObjectId(true, true);
+                int id = getObjectId();
                 right = new Right(db, id, grantee, rightMask, table);
                 grantee.grantRight(table, right);
                 db.addDatabaseObject(session, right);
@@ -140,7 +140,7 @@ public class GrantRevoke extends DefineCommand {
             }
         }
         Database db = session.getDatabase();
-        int id = getObjectId(true, true);
+        int id = getObjectId();
         Right right = new Right(db, id, grantee, grantedRole);
         db.addDatabaseObject(session, right);
         grantee.grantRole(grantedRole, right);

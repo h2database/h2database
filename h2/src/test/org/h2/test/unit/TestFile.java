@@ -7,7 +7,6 @@
 package org.h2.test.unit;
 
 import java.util.Random;
-import org.h2.constant.SysProperties;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
@@ -131,10 +130,6 @@ public class TestFile extends TestBase implements DataHandler {
         FileUtils.delete("~/testFile");
     }
 
-    public int allocateObjectId(boolean needFresh, boolean dataFile) {
-        return 0;
-    }
-
     public void checkPowerOff() {
         // nothing to do
     }
@@ -145,10 +140,6 @@ public class TestFile extends TestBase implements DataHandler {
 
     public int compareTypeSave(Value a, Value b) {
         return 0;
-    }
-
-    public String createTempFile() {
-        return null;
     }
 
     public void freeUpDiskSpace() {
@@ -175,16 +166,8 @@ public class TestFile extends TestBase implements DataHandler {
         return 0;
     }
 
-    public void handleInvalidChecksum() {
-        // nothing to do
-    }
-
     public FileStore openFile(String name, String mode, boolean mustExist) {
         return null;
-    }
-
-    public boolean getLobFilesInDirectories() {
-        return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {

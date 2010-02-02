@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.TreeSet;
-
-import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
@@ -169,9 +167,6 @@ public class TestOptimizations extends TestBase {
         assertTrue(rs.next());
         assertFalse(rs.next());
 
-        boolean old = SysProperties.optimizeInJoin;
-        SysProperties.optimizeInJoin = true;
-
         prep = conn.prepareStatement(
                 "select 2 from test a where a=? and b in(" +
                 "select b.c from test b where b.d=?)");
@@ -181,15 +176,10 @@ public class TestOptimizations extends TestBase {
         assertTrue(rs.next());
         assertFalse(rs.next());
         conn.close();
-
-        SysProperties.optimizeInJoin = old;
     }
 
 
     private void testOptimizeInJoinSelect() throws SQLException {
-        boolean old = SysProperties.optimizeInJoin;
-        SysProperties.optimizeInJoin = true;
-
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -205,9 +195,6 @@ public class TestOptimizations extends TestBase {
         assertEquals(1, rs.getInt(1));
         assertFalse(rs.next());
         conn.close();
-
-        SysProperties.optimizeInJoin = old;
-
     }
 
     /**
@@ -223,9 +210,6 @@ public class TestOptimizations extends TestBase {
     }
 
     private void testOptimizeInJoin() throws SQLException {
-        boolean old = SysProperties.optimizeInJoin;
-        SysProperties.optimizeInJoin = true;
-
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -239,8 +223,6 @@ public class TestOptimizations extends TestBase {
             fail("Expected using the primary key, got: " + plan);
         }
         conn.close();
-
-        SysProperties.optimizeInJoin = old;
     }
 
     private void testMinMaxNullOptimization() throws SQLException {
@@ -391,11 +373,6 @@ public class TestOptimizations extends TestBase {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        // if h2.optimizeInJoin is enabled, the following query can not be improved
-        if (!SysProperties.optimizeInJoin) {
-            testQuerySpeed(stat,
-                    "select sum(x) from system_range(1, 10000) a where a.x in (select b.x from system_range(1, 30) b)");
-        }
         testQuerySpeed(stat,
                 "select sum(a.n), sum(b.x) from system_range(1, 100) b, (select sum(x) n from system_range(1, 4000)) a");
         conn.close();

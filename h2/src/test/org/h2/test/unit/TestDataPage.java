@@ -11,7 +11,6 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import org.h2.constant.SysProperties;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.DataPage;
@@ -288,10 +287,6 @@ public class TestDataPage extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public void handleInvalidChecksum() throws SQLException {
-        throw new SQLException();
-    }
-
     public int compareTypeSave(Value a, Value b) throws SQLException {
         throw new SQLException();
     }
@@ -300,24 +295,12 @@ public class TestDataPage extends TestBase implements DataHandler {
         throw new AssertionError();
     }
 
-    public int allocateObjectId(boolean b, boolean c) {
-        throw new AssertionError();
-    }
-
-    public String createTempFile() throws SQLException {
-        throw new SQLException();
-    }
-
     public String getLobCompressionAlgorithm(int type) {
         throw new AssertionError();
     }
 
     public Object getLobSyncObject() {
         return this;
-    }
-
-    public boolean getLobFilesInDirectories() {
-        return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {

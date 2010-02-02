@@ -236,9 +236,6 @@ public abstract class TestBase {
             url = name;
         }
         if (!config.memory) {
-            if (admin) {
-                url += ";LOG=" + config.logMode;
-            }
             if (config.smallLog && admin) {
                 url += ";MAX_LOG_SIZE=1";
             }

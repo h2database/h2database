@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.sql.SQLException;
 import java.util.Arrays;
-
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 
@@ -86,7 +84,7 @@ public class ScriptReader {
             switch (c) {
             case '$': {
                 c = read();
-                if (c == '$' && SysProperties.DOLLAR_QUOTING && (bufferPos - bufferStart < 3 || buffer[bufferPos - 3] <= ' ')) {
+                if (c == '$' && (bufferPos - bufferStart < 3 || buffer[bufferPos - 3] <= ' ')) {
                     // dollar quoted string
                     while (true) {
                         c = read();

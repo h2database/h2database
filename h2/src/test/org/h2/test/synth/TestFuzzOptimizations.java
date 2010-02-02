@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.db.Db;
 import org.h2.test.db.Db.Prepared;
@@ -42,7 +41,6 @@ public class TestFuzzOptimizations extends TestBase {
     }
 
     private void testInSelect() {
-        boolean old = SysProperties.optimizeInJoin;
         Db db = new Db(conn);
         db.execute("CREATE TABLE TEST(A INT, B INT)");
         db.execute("CREATE INDEX IDX ON TEST(A)");
@@ -53,22 +51,19 @@ public class TestFuzzOptimizations extends TestBase {
         long seed = random.nextLong();
         println("seed: " + seed);
         for (int i = 0; i < 100; i++) {
-            String sql = "SELECT * FROM TEST T WHERE ";
-            sql += random.nextBoolean() ? "A" : "B";
-            sql += " IN(SELECT ";
-            sql += new String[] { "NULL", "0", "A", "B" }[random.nextInt(4)];
-            sql += " FROM TEST I WHERE I.";
-            sql += random.nextBoolean() ? "A" : "B";
-            sql += "=?) ORDER BY 1, 2";
-            int v = random.nextInt(3);
-            SysProperties.optimizeInJoin = false;
-            List<Map<String, Object>> a = db.prepare(sql).set(v).query();
-            SysProperties.optimizeInJoin = true;
-            List<Map<String, Object>> b = db.prepare(sql).set(v).query();
+            String column = random.nextBoolean() ? "A" : "B";
+            String value = new String[] { "NULL", "0", "A", "B" }[random.nextInt(4)];
+            String compare = random.nextBoolean() ? "A" : "B";
+            int x = random.nextInt(3);
+            String sql1 = "SELECT * FROM TEST T WHERE " + column + "+0 " +
+                "IN(SELECT " + value + " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
+            String sql2 = "SELECT * FROM TEST T WHERE " + column + " " +
+                "IN(SELECT " + value + " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
+            List<Map<String, Object>> a = db.prepare(sql1).set(x).query();
+            List<Map<String, Object>> b = db.prepare(sql2).set(x).query();
             assertTrue(a.equals(b));
         }
         db.execute("DROP TABLE TEST");
-        SysProperties.optimizeInJoin = old;
     }
 
     private void testGroupSorted() {

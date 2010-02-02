@@ -44,7 +44,7 @@ public class ResultTempTable implements ResultExternal {
         column.setNullable(false);
         CreateTableData data = new CreateTableData();
         data.columns.add(column);
-        data.id = session.getDatabase().allocateObjectId(true, true);
+        data.id = session.getDatabase().allocateObjectId();
         data.tableName = "TEMP_RESULT_SET_" + data.id;
         data.temporary = true;
         data.persistIndexes = false;
@@ -52,7 +52,7 @@ public class ResultTempTable implements ResultExternal {
         data.headPos = Index.EMPTY_HEAD;
         data.session = session;
         table = schema.createTable(data);
-        int indexId = session.getDatabase().allocateObjectId(true, false);
+        int indexId = session.getDatabase().allocateObjectId();
         IndexColumn indexColumn = new IndexColumn();
         indexColumn.column = column;
         indexColumn.columnName = COLUMN_NAME;

@@ -1258,9 +1258,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 chars[i] = ' ';
                 break;
             case '$':
-                if (SysProperties.DOLLAR_QUOTING) {
-                    i = translateGetEnd(sql, i, c);
-                }
+                i = translateGetEnd(sql, i, c);
                 break;
             default:
             }

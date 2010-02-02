@@ -55,7 +55,7 @@ public class TestReadOnly extends TestBase {
         deleteDb("readonly");
         Connection conn = getConnection("readonly");
         conn.close();
-        conn = getConnection("readonly;ACCESS_MODE_LOG=r;ACCESS_MODE_DATA=r");
+        conn = getConnection("readonly;ACCESS_MODE_DATA=r");
         Statement stat = conn.createStatement();
         try {
             stat.execute("CREATE TABLE TEST(ID INT)");
@@ -165,7 +165,7 @@ public class TestReadOnly extends TestBase {
         stat.execute("create table test(id identity)");
         stat.execute("insert into test select x from system_range(1, 11)");
         try {
-            getConnection("readonly;ACCESS_MODE_LOG=r;ACCESS_MODE_DATA=r;OPEN_NEW=TRUE");
+            getConnection("readonly;ACCESS_MODE_DATA=r;OPEN_NEW=TRUE");
         } catch (SQLException e) {
             assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
         }

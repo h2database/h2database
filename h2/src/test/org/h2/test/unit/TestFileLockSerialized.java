@@ -255,7 +255,7 @@ public class TestFileLockSerialized extends TestBase {
         String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
         String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         // ;TRACE_LEVEL_SYSTEM_OUT=3
-        // String readUrl = writeUrl + ";ACCESS_MODE_LOG=R;ACCESS_MODE_DATA=R";
+        // String readUrl = writeUrl + ";ACCESS_MODE_DATA=R";
 
         trace(" create database");
         Class.forName("org.h2.Driver");
@@ -327,7 +327,7 @@ public class TestFileLockSerialized extends TestBase {
         println("testAutoIncrement waitTime: " + waitTime + " howManyThreads: " + howManyThreads + " runTime: " + runTime);
         deleteDb("fileLockSerialized");
         final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
-                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;LOG=2;CACHE_SIZE=65536";
+                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
         Connection conn = DriverManager.getConnection(url);
         conn.createStatement().execute("create table test(id int auto_increment, id2 int)");
@@ -394,7 +394,7 @@ public class TestFileLockSerialized extends TestBase {
         println("testConcurrentUpdates waitTime: " + waitTime + " howManyThreads: " + howManyThreads + " runTime: " + runTime);
         deleteDb("fileLockSerialized");
         final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
-                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;LOG=2;CACHE_SIZE=65536";
+                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
         Connection conn = DriverManager.getConnection(url);
         conn.createStatement().execute("create table test(id int)");

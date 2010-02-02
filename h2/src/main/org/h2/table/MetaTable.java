@@ -839,7 +839,6 @@ public class MetaTable extends Table {
             add(rows, "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE");
             add(rows, "QUERY_TIMEOUT", "" + session.getQueryTimeout());
             // the setting for the current database
-            add(rows, "LOB_FILES_IN_DIRECTORIES", "" + database.getLobFilesInDirectories());
             add(rows, "h2.allowBigDecimalExtensions", "" + SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS);
             add(rows, "h2.baseDir", "" + SysProperties.getBaseDir());
             add(rows, "h2.check", "" + SysProperties.CHECK);
@@ -847,7 +846,6 @@ public class MetaTable extends Table {
             add(rows, "h2.clientTraceDirectory", SysProperties.CLIENT_TRACE_DIRECTORY);
             add(rows, SysProperties.H2_COLLATOR_CACHE_SIZE, "" + SysProperties.getCollatorCacheSize());
             add(rows, "h2.defaultMaxMemoryUndo", "" + SysProperties.DEFAULT_MAX_MEMORY_UNDO);
-            add(rows, "h2.lobFilesInDirectories", "" + SysProperties.LOB_FILES_IN_DIRECTORIES);
             add(rows, "h2.lobFilesPerDirectory", "" + SysProperties.LOB_FILES_PER_DIRECTORY);
             add(rows, "h2.logAllErrors", "" + SysProperties.LOG_ALL_ERRORS);
             add(rows, "h2.logAllErrorsFile", "" + SysProperties.LOG_ALL_ERRORS_FILE);
@@ -857,10 +855,7 @@ public class MetaTable extends Table {
             add(rows, "h2.objectCache", "" + SysProperties.OBJECT_CACHE);
             add(rows, "h2.objectCacheSize", "" + SysProperties.OBJECT_CACHE_SIZE);
             add(rows, "h2.objectCacheMaxPerElementSize", "" + SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE);
-            add(rows, "h2.optimizeIn", "" + SysProperties.OPTIMIZE_IN);
-            add(rows, "h2.optimizeInJoin", "" + SysProperties.optimizeInJoin);
             add(rows, "h2.optimizeInList", "" + SysProperties.OPTIMIZE_IN_LIST);
-            add(rows, "h2.optimizeMinMax", "" + SysProperties.OPTIMIZE_MIN_MAX);
             add(rows, "h2.optimizeSubqueryCache", "" + SysProperties.OPTIMIZE_SUBQUERY_CACHE);
             add(rows, "h2.overflowExceptions", "" + SysProperties.OVERFLOW_EXCEPTIONS);
             add(rows, "h2.recompileAlways", "" + SysProperties.RECOMPILE_ALWAYS);

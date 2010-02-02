@@ -69,13 +69,6 @@ public interface DataHandler {
     void freeUpDiskSpace() throws SQLException;
 
     /**
-     * Called when the checksum was invalid.
-     *
-     * @throws SQLException if this should not be ignored
-     */
-    void handleInvalidChecksum() throws SQLException;
-
-    /**
      * Compare two values.
      *
      * @param a the first value
@@ -100,23 +93,6 @@ public interface DataHandler {
     String getLobCompressionAlgorithm(int type);
 
     /**
-     * Get the next object id.
-     * This method is not required if LOB_FILES_IN_DIRECTORIES is enabled.
-     *
-     * @param needFresh if a fresh id is required
-     * @param dataFile true if the id is for the data file
-     * @return the new id
-     */
-    int allocateObjectId(boolean needFresh, boolean dataFile);
-
-    /**
-     * Create a temporary file and return the file name.
-     *
-     * @return the file name
-     */
-    String createTempFile() throws SQLException;
-
-    /**
      * Get the temp file deleter mechanism.
      *
      * @return the temp file deleter
@@ -129,13 +105,6 @@ public interface DataHandler {
      * @return the synchronization object
      */
     Object getLobSyncObject();
-
-    /**
-     * Checks if the lob files stored in directories.
-     *
-     * @return true if lob files are stored in directories.
-     */
-    boolean getLobFilesInDirectories();
 
     /**
      * Get the lob file list cache if it is used.

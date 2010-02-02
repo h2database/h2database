@@ -1107,30 +1107,6 @@ This setting can be appended to the database URL: jdbc:h2:test;LOCK_TIMEOUT=1000
 SET LOCK_TIMEOUT 1000
 "
 
-"Commands (Other)","SET LOG","
-SET LOG int
-","
-Enabled or disables writing to the transaction log file. The values 0, 1, and 2
-are supported.
-
-0 means logging is disabled (faster). 1 means logging of the data is enabled,
-but logging of the index changes is disabled (default). 2 means logging of both
-data and index changes are enabled.
-
-Transaction logging can be disabled to improve the performance when durability
-is not important, for example while running tests or when loading the database.
-Warning: it may not be possible to recover the database if logging is disabled
-and the application terminates abnormally. If logging of index changes is
-enabled, opening a database that was crashed becomes faster because the indexes
-don't need to be rebuilt.
-
-Admin rights are required to execute this command.
-This command commits an open transaction.
-This setting can be appended to the database URL: jdbc:h2:test;LOG=2
-","
-SET LOG 0
-"
-
 "Commands (Other)","SET MAX_LENGTH_INPLACE_LOB","
 SET MAX_LENGTH_INPLACE_LOB int
 ","

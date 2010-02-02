@@ -43,8 +43,6 @@ Features
     Ignore Unknown Settings</a><br />
 <a href="#other_settings">
     Changing Other Settings when Opening a Connection</a><br />
-<a href="#log_index_changes">
-    Log Index Changes</a><br />
 <a href="#custom_access_mode">
     Custom File Access Mode</a><br />
 <a href="#multiple_connections">
@@ -526,13 +524,6 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     </td>
 </tr>
 <tr>
-    <td><a href="#log_index_changes">Log index changes</a></td>
-    <td class="notranslate">
-        jdbc:h2:&lt;url&gt;;LOG=2<br />
-        jdbc:h2:file:~/sample;LOG=2<br />
-    </td>
-</tr>
-<tr>
     <td><a href="#trace_options">Debug trace settings</a></td>
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br />
@@ -548,7 +539,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 <tr>
     <td><a href="#custom_access_mode">Custom file access mode</a></td>
     <td class="notranslate">
-        jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws<br />
+        jdbc:h2:&lt;url&gt;;ACCESS_MODE_DATA=rws<br />
     </td>
 </tr>
 <tr>
@@ -758,21 +749,6 @@ The database URL to disable database closing on exit is:
 String url = "jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE";
 </pre>
 
-<h2 id="log_index_changes">Log Index Changes</h2>
-<p>
-Usually, changes to the index file are not logged for performance.
-If the index file is corrupt or missing when opening a database, it is re-created from the data.
-The index file can get corrupt when the database is not shut down correctly,
-because of power failure or abnormal program termination.
-In some situations, for example when using very large databases (over a few hundred MB),
-re-creating the index file takes very long.
-In these situations it may be better to log changes to the index file,
-so that recovery from a corrupted index file is fast.
-To enable log index changes, add <code>LOG=2</code> to the URL, as in <code>jdbc:h2:~/test;LOG=2</code>.
-This setting should be specified when connecting.
-The update performance of the database will be reduced when using this option.
-</p>
-
 <h2 id="ignore_unknown_settings">Ignore Unknown Settings</h2>
 <p>
 Some applications (for example OpenOffice.org Base) pass some additional parameters
@@ -802,12 +778,10 @@ read-write (except for read only databases, where the mode <code>r</code> is use
 To open a database in read-only mode if the files are not read-only, use
 <code>ACCESS_MODE_DATA=r</code>.
 Also supported are <code>rws</code> and <code>rwd</code>.
-The access mode used for log files is set via <code>ACCESS_MODE_LOG</code>;
-for data and index files use <code>ACCESS_MODE_DATA</code>.
-These settings must be specified in the database URL:
+This setting must be specified in the database URL:
 </p>
 <pre>
-String url = "jdbc:h2:~/test;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws";
+String url = "jdbc:h2:~/test;ACCESS_MODE_DATA=rws";
 </pre>
 <p>
 For more information see <a href="advanced.html#durability_problems">Durability Problems</a>.

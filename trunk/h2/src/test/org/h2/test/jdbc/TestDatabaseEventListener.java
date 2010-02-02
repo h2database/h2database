@@ -125,7 +125,6 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         p.setProperty("password", password);
         Connection conn = DriverManager.getConnection(url, p);
         Statement stat = conn.createStatement();
-        stat.execute("set log 0");
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test select x, space(1000) from system_range(1,1000)");
         if (shutdown) {

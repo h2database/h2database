@@ -378,10 +378,6 @@ Sets the lock mode."
 SET LOCK_TIMEOUT int
 ","
 Sets the lock timeout (in milliseconds) for the current session."
-"Commands (Other)","SET LOG","
-SET LOG int
-","
-Enabled or disables writing to the transaction log file."
 "Commands (Other)","SET MAX_LENGTH_INPLACE_LOB","
 SET MAX_LENGTH_INPLACE_LOB int
 ","

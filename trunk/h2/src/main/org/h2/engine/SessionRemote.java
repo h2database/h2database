@@ -71,7 +71,6 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     private boolean autoCommit = true;
     private CommandInterface switchOffAutoCommit;
     private ConnectionInfo connectionInfo;
-    private int objectId;
     private String databaseName;
     private String cipher;
     private byte[] fileEncryptionKey;
@@ -556,10 +555,6 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         }
     }
 
-    public int allocateObjectId(boolean needFresh, boolean dataFile) {
-        return objectId++;
-    }
-
     public void checkPowerOff() {
         // ok
     }
@@ -570,15 +565,6 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
 
     public int compareTypeSave(Value a, Value b) {
         throw Message.throwInternalError();
-    }
-
-    public String createTempFile() throws SQLException {
-        try {
-            String prefix = getFilePrefix(System.getProperty("java.io.tmpdir"));
-            return FileUtils.createTempFile(prefix, Constants.SUFFIX_TEMP_FILE, true, false);
-        } catch (IOException e) {
-            throw Message.convertIOException(e, databaseName);
-        }
     }
 
     public void freeUpDiskSpace() {
@@ -599,10 +585,6 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
 
     public int getMaxLengthInplaceLob() {
         return Constants.DEFAULT_MAX_LENGTH_CLIENTSIDE_LOB;
-    }
-
-    public void handleInvalidChecksum() throws SQLException {
-        throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
     }
 
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
@@ -631,10 +613,6 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
 
     public Object getLobSyncObject() {
         return lobSyncObject;
-    }
-
-    public boolean getLobFilesInDirectories() {
-        return false;
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {

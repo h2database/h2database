@@ -33,7 +33,6 @@ import org.h2.test.db.TestLargeBlob;
 import org.h2.test.db.TestLinkedTable;
 import org.h2.test.db.TestListener;
 import org.h2.test.db.TestLob;
-import org.h2.test.db.TestLogFile;
 import org.h2.test.db.TestMemoryUsage;
 import org.h2.test.db.TestMultiConn;
 import org.h2.test.db.TestMultiDimension;
@@ -199,11 +198,6 @@ java org.h2.test.TestAll timer
     public boolean mvcc;
 
     /**
-     * The log mode to use.
-     */
-    public int logMode = 1;
-
-    /**
      * The cipher to use (null for unencrypted).
      */
     public String cipher;
@@ -292,7 +286,13 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-DataHandler.getLobFilesInDirectories
+
+document in performance section:
+PreparedStatement prep = conn.prepareStatement(
+"select * from table(x int = ?) t inner join test on t.x = test.id");
+prep.setObject(1, new Object[] { "1", "2" });
+ResultSet rs = prep.executeQuery();
+
 remove Record class; or at least fix javadoc
 remove links from Row - Record - Page - DataPage
 cleanup SortedProperties
@@ -300,11 +300,9 @@ remove unused methods
 
 change test case for migration (download old h2.jar).
 move migration to separate classes.
-direct link to javadoc doesn't open method; cannot copy & paste
 TestAll deleteIndex
 remove DiskFile
-SET LOG 2 noop
-Database.accessModeLog, accessModeData
+move upgrade code from Recover to a separate class
 FileStore.sync, Database.sync() (CHECKPOINT SYNC)
 data page > buffer
 
@@ -393,8 +391,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 ssl = (a & 16) != 0;
                 diskResult = (a & 32) != 0;
                 deleteIndex = (a & 64) != 0;
-                for (logMode = 0; logMode < 3; logMode++) {
-                    traceLevelFile = logMode;
+                for (int trace = 0; trace < 3; trace++) {
+                    traceLevelFile = trace;
                     test();
                 }
             }
@@ -410,7 +408,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         diskResult = deleteIndex = traceSystemOut = diskUndo = false;
         mvcc = traceTest = stopOnError = false;
         traceLevelFile = throttle = 0;
-        logMode = 1;
         cipher = null;
         test();
         testUnit();
@@ -421,10 +418,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         networked = false;
         memory = false;
-        logMode = 2;
         test();
 
-        logMode = 1;
         diskUndo = true;
         diskResult = true;
         deleteIndex = true;
@@ -446,24 +441,20 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         smallLog = true;
         networked = true;
         ssl = true;
-        logMode = 2;
         test();
 
         smallLog = false;
         networked = false;
         ssl = false;
-        logMode = 1;
         traceLevelFile = 0;
         test();
 
         big = false;
-        logMode = 0;
         cipher = "AES";
         test();
 
         mvcc = true;
         cipher = null;
-        logMode = 1;
         test();
 
         memory = true;
@@ -502,7 +493,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestLinkedTable().runTest(this);
         new TestListener().runTest(this);
         new TestLob().runTest(this);
-        new TestLogFile().runTest(this);
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
@@ -689,7 +679,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, memory, "memory");
         appendIf(buff, codeCoverage, "codeCoverage");
         appendIf(buff, mvcc, "mvcc");
-        appendIf(buff, logMode != 1, "logMode:" + logMode);
         appendIf(buff, cipher != null, cipher);
         appendIf(buff, jdk14, "jdk14");
         appendIf(buff, smallLog, "smallLog");

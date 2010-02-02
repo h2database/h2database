@@ -718,9 +718,6 @@ public class Select extends Query {
         }
         if (condition != null) {
             condition = condition.optimize(session);
-            if (SysProperties.optimizeInJoin) {
-                condition = condition.optimizeInJoin(session, this);
-            }
             for (TableFilter f : filters) {
                 condition.createIndexConditions(session, f);
             }
@@ -769,7 +766,7 @@ public class Select extends Query {
                 }
             }
         }
-        if (SysProperties.OPTIMIZE_GROUP_SORTED && !isQuickAggregateQuery && isGroupQuery && getGroupByExpressionCount() > 0) {
+        if (!isQuickAggregateQuery && isGroupQuery && getGroupByExpressionCount() > 0) {
             Index index = getGroupSortedIndex();
             Index current = topTableFilter.getIndex();
             if (index != null && (current.getIndexType().isScan() || current == index)) {

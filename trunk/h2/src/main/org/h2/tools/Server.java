@@ -8,9 +8,7 @@ package org.h2.tools;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
@@ -124,13 +122,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     webStart = true;
                 } else if ("-webAllowOthers".equals(arg)) {
-                    if (Tool.readArgBoolean(args, i) != 0) {
-                        i++;
-                    }
+                    // no parameters
                 } else if ("-webSSL".equals(arg)) {
-                    if (Tool.readArgBoolean(args, i) != 0) {
-                        i++;
-                    }
+                    // no parameters
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else if ("-webScript".equals(arg)) {
@@ -146,13 +140,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     tcpStart = true;
                 } else if ("-tcpAllowOthers".equals(arg)) {
-                    if (Tool.readArgBoolean(args, i) != 0) {
-                        i++;
-                    }
+                    // no parameters
                 } else if ("-tcpSSL".equals(arg)) {
-                    if (Tool.readArgBoolean(args, i) != 0) {
-                        i++;
-                    }
+                    // no parameters
                 } else if ("-tcpPort".equals(arg)) {
                     i++;
                 } else if ("-tcpPassword".equals(arg)) {
@@ -162,12 +152,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     tcpShutdown = true;
                     tcpShutdownServer = args[++i];
                 } else if ("-tcpShutdownForce".equals(arg)) {
-                    if (Tool.readArgBoolean(args, i) != 0) {
-                        tcpShutdownForce = Tool.readArgBoolean(args, i) == 1;
-                        i++;
-                    } else {
-                        tcpShutdownForce = true;
-                    }
+                    tcpShutdownForce = true;
                 } else {
                     throwUnsupportedOption(arg);
                 }
@@ -176,9 +161,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     pgStart = true;
                 } else if ("-pgAllowOthers".equals(arg)) {
-                    if (Tool.readArgBoolean(args, i) != 0) {
-                        i++;
-                    }
+                    // no parameters
                 } else if ("-pgPort".equals(arg)) {
                     i++;
                 } else {
@@ -186,12 +169,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 }
             } else if ("-trace".equals(arg)) {
                 // no parameters
-            } else if ("-log".equals(arg) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-                i++;
             } else if ("-ifExists".equals(arg)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    i++;
-                }
+                // no parameters
             } else if ("-baseDir".equals(arg)) {
                 i++;
             } else {

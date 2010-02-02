@@ -30,7 +30,7 @@ public class TestOutOfMemory extends TestBase {
     }
 
     public void test() throws SQLException {
-        if (config.memory || config.mvcc || config.logMode == 0) {
+        if (config.memory || config.mvcc) {
             return;
         }
         for (int i = 0; i < 5; i++) {

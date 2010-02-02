@@ -68,7 +68,7 @@ public class CreateUser extends DefineCommand {
             }
             throw Message.getSQLException(ErrorCode.USER_ALREADY_EXISTS_1, userName);
         }
-        int id = getObjectId(false, true);
+        int id = getObjectId();
         User user = new User(db, id, userName, false);
         user.setAdmin(admin);
         user.setComment(comment);

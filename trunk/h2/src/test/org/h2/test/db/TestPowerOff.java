@@ -39,7 +39,7 @@ public class TestPowerOff extends TestBase {
     }
 
     public void test() throws SQLException {
-        if (config.memory || config.logMode == 0) {
+        if (config.memory) {
             return;
         }
         if (config.big || config.googleAppEngine) {

@@ -127,28 +127,25 @@ public class Database implements DataHandler {
     private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
     private int maxMemoryUndo = SysProperties.DEFAULT_MAX_MEMORY_UNDO;
     private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
-    private int logLevel = 1;
     private int maxLengthInplaceLob = SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB;
     private int allowLiterals = Constants.DEFAULT_ALLOW_LITERALS;
 
     private int powerOffCount = initialPowerOffCount;
     private int closeDelay;
     private DatabaseCloser delayedCloser;
-    private boolean recovery;
     private volatile boolean closing;
     private boolean ignoreCase;
     private boolean deleteFilesOnDisconnect;
     private String lobCompressionAlgorithm;
     private boolean optimizeReuseResults = true;
     private String cacheType;
-    private String accessModeLog, accessModeData;
+    private String accessModeData;
     private boolean referentialIntegrity = true;
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getInstance(Mode.REGULAR);
     private boolean multiThreaded;
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
-    private boolean lobFilesInDirectories = SysProperties.LOB_FILES_IN_DIRECTORIES;
     private SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache.newInstance(128);
     private boolean autoServerMode;
     private Server server;
@@ -174,13 +171,11 @@ public class Database implements DataHandler {
         this.databaseShortName = parseDatabaseShortName();
         this.cipher = cipher;
         String lockMethodName = ci.getProperty("FILE_LOCK", null);
-        this.accessModeLog = ci.getProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.cacheSize = ci.getProperty("CACHE_SIZE", SysProperties.CACHE_SIZE_DEFAULT);
         if ("r".equals(accessModeData)) {
             readOnly = true;
-            accessModeLog = "r";
         }
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         this.databaseURL = ci.getURL();
@@ -192,11 +187,6 @@ public class Database implements DataHandler {
                 listener = StringUtils.trim(listener, true, true, "'");
                 setEventListenerClass(listener);
             }
-        }
-        String logSetting = ci.getProperty(SetTypes.LOG, null);
-        String ignoreSummary = ci.getProperty("RECOVER", null);
-        if (ignoreSummary != null) {
-            this.recovery = true;
         }
         this.multiVersion = ci.getProperty("MVCC", false);
         boolean closeAtVmShutdown = ci.getProperty("DB_CLOSE_ON_EXIT", true);
@@ -514,7 +504,6 @@ public class Database implements DataHandler {
                 // if it is already read-only because ACCESS_MODE_DATA=r
                 readOnly = readOnly | FileUtils.isReadOnly(pageFileName);
             }
-            boolean exists = existsPage;
             if (readOnly) {
                 traceSystem = new TraceSystem(null);
             } else {
@@ -546,10 +535,6 @@ public class Database implements DataHandler {
             while (isReconnectNeeded() && !beforeWriting()) {
                 // wait until others stopped writing and
                 // until we can write (file are not open - no need to re-connect)
-            }
-            if (exists) {
-                lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
-                lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
             }
             deleteOldTempFiles();
             starting = true;
@@ -688,7 +673,7 @@ public class Database implements DataHandler {
         }
         String name = SetTypes.getTypeName(type);
         if (settings.get(name) == null) {
-            Setting setting = new Setting(this, allocateObjectId(false, true), name);
+            Setting setting = new Setting(this, allocateObjectId(), name);
             if (stringValue == null) {
                 setting.setIntValue(intValue);
             } else {
@@ -1198,22 +1183,8 @@ public class Database implements DataHandler {
         }
     }
 
-    public synchronized int allocateObjectId(boolean needFresh, boolean dataFile) {
-        int todo;
-        // TODO refactor: use hash map instead of bit field for object ids
-        needFresh = true;
-        int i;
-        if (needFresh) {
-            i = objectIds.getLastSetBit() + 1;
-            if ((i & 1) != (dataFile ? 1 : 0)) {
-                i++;
-            }
-        } else {
-            i = objectIds.nextClearBit(0);
-        }
-        if (SysProperties.CHECK && objectIds.get(i)) {
-            Message.throwInternalError();
-        }
+    public synchronized int allocateObjectId() {
+        int i = objectIds.nextClearBit(0);
         objectIds.set(i);
         return i;
     }
@@ -1542,19 +1513,6 @@ public class Database implements DataHandler {
         return null;
     }
 
-    private String getFirstInvalidTable(Session session) {
-        String conflict = null;
-        try {
-            for (Table t : getAllTablesAndViews(false)) {
-                conflict = t.getSQL();
-                session.prepare(t.getCreateSQL());
-            }
-        } catch (SQLException e) {
-            return conflict;
-        }
-        return null;
-    }
-
     /**
      * Remove an object from the system table.
      *
@@ -1591,16 +1549,10 @@ public class Database implements DataHandler {
         }
         obj.getSchema().remove(obj);
         if (!starting) {
-            String invalid;
-            if (SysProperties.OPTIMIZE_DROP_DEPENDENCIES) {
-                Table t = getDependentTable(obj, null);
-                invalid = t == null ? null : t.getSQL();
-            } else {
-                invalid = getFirstInvalidTable(session);
-            }
-            if (invalid != null) {
+            Table t = getDependentTable(obj, null);
+            if (t != null) {
                 obj.getSchema().add(obj);
-                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, obj.getSQL(), invalid);
+                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, obj.getSQL(), t.getSQL());
             }
             obj.removeChildrenAndResources(session);
         }
@@ -1798,44 +1750,8 @@ public class Database implements DataHandler {
         this.closeDelay = value;
     }
 
-    public synchronized void setLog(int level) throws SQLException {
-        if (logLevel == level) {
-            return;
-        }
-        boolean logData;
-        boolean logIndex;
-        switch (level) {
-        case 0:
-            logData = false;
-            logIndex = false;
-            break;
-        case 1:
-            logData = true;
-            logIndex = false;
-            break;
-        case 2:
-            logData = true;
-            logIndex = true;
-            break;
-        default:
-            throw Message.throwInternalError("level=" + level);
-        }
-        if (level == 0) {
-            traceSystem.getTrace(Trace.DATABASE).error("SET LOG " + level, null);
-        }
-        logLevel = level;
-    }
-
     public Session getSystemSession() {
         return systemSession;
-    }
-
-    public void handleInvalidChecksum() throws SQLException {
-        SQLException e = Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
-        if (!recovery) {
-            throw e;
-        }
-        traceSystem.getTrace(Trace.DATABASE).error("recover", e);
     }
 
     /**
@@ -1985,10 +1901,6 @@ public class Database implements DataHandler {
 
     public void setExclusiveSession(Session session) {
         this.exclusiveSession = session;
-    }
-
-    public boolean getLobFilesInDirectories() {
-        return lobFilesInDirectories;
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {

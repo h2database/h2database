@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Random;
-import org.h2.constant.SysProperties;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
@@ -136,10 +135,6 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public void handleInvalidChecksum() {
-        // nothing to do
-    }
-
     public int compareTypeSave(Value a, Value b) throws SQLException {
         return a.compareTo(b, compareMode);
     }
@@ -148,24 +143,12 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         return 0;
     }
 
-    public int allocateObjectId(boolean b, boolean c) {
-        return 0;
-    }
-
-    public String createTempFile() {
-        return null;
-    }
-
     public String getLobCompressionAlgorithm(int type) {
         return null;
     }
 
     public Object getLobSyncObject() {
         return this;
-    }
-
-    public boolean getLobFilesInDirectories() {
-        return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {

@@ -42,7 +42,6 @@ import org.h2.util.New;
 import org.h2.util.RandomUtils;
 import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
-import org.h2.util.Tool;
 
 /**
  * The web server is a simple standalone HTTP server that implements the H2
@@ -229,34 +228,16 @@ public class WebServer implements Service {
             if ("-webPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-webSSL".equals(a)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    ssl = Tool.readArgBoolean(args, i) == 1;
-                    i++;
-                } else {
-                    ssl = true;
-                }
+                ssl = true;
             } else if ("-webAllowOthers".equals(a)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    allowOthers = Tool.readArgBoolean(args, i) == 1;
-                    i++;
-                } else {
-                    allowOthers = true;
-                }
+                allowOthers = true;
             } else if ("-baseDir".equals(a)) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
             } else if ("-ifExists".equals(a)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    ifExists = Tool.readArgBoolean(args, i) == 1;
-                    i++;
-                } else {
-                    ifExists = true;
-                }
+                ifExists = true;
             } else if ("-trace".equals(a)) {
                 trace = true;
-            } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-                trace = Tool.readArgBoolean(args, i) == 1;
-                i++;
             }
         }
 //            if(driverList != null) {

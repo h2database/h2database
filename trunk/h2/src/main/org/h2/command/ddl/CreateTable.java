@@ -126,7 +126,7 @@ public class CreateTable extends SchemaCommand {
         ObjectArray<Sequence> sequences = ObjectArray.newInstance();
         for (Column c : data.columns) {
             if (c.isAutoIncrement()) {
-                int objId = getObjectId(true, true);
+                int objId = getObjectId();
                 c.convertAutoIncrementToSequence(session, getSchema(), objId, data.temporary);
             }
             Sequence seq = c.getSequence();
@@ -134,7 +134,7 @@ public class CreateTable extends SchemaCommand {
                 sequences.add(seq);
             }
         }
-        data.id = getObjectId(true, true);
+        data.id = getObjectId();
         data.headPos = headPos;
         data.session = session;
         TableData table = getSchema().createTable(data);

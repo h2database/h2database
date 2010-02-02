@@ -107,7 +107,7 @@ public class Mode {
     static {
         Mode mode = new Mode(REGULAR);
         mode.aliasColumnName = SysProperties.ALIAS_COLUMN_NAME;
-        mode.nullConcatIsNull = SysProperties.NULL_CONCAT_IS_NULL;
+        mode.nullConcatIsNull = true;
         add(mode);
 
         mode = new Mode("DB2");

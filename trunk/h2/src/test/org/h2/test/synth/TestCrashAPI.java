@@ -116,7 +116,7 @@ public class TestCrashAPI extends TestBase {
             recoverAll();
             return;
         }
-        if (config.mvcc || config.networked || config.logMode == 0) {
+        if (config.mvcc || config.networked) {
             return;
         }
         int len = getSize(2, 6);
@@ -151,7 +151,6 @@ public class TestCrashAPI extends TestBase {
 //            Runtime.getRuntime().halt(0);
 //            System.exit(1);
 //        }
-        // add = ";LOG=2";
         // System.out.println("now open " + openCount);
         // add += ";TRACE_LEVEL_FILE=3";
         // config.logMode = 2;
@@ -468,7 +467,7 @@ public class TestCrashAPI extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        if (config.mvcc || config.networked || config.logMode == 0) {
+        if (config.mvcc || config.networked) {
             return this;
         }
         baseDir = TestBase.getTestDir("crash");

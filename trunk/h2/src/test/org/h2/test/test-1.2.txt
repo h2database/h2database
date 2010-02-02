@@ -5699,8 +5699,8 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ WHERE NOT (ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */))
+> ----------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_DATA */ WHERE NOT (ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */))
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;

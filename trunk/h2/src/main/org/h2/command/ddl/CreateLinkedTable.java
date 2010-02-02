@@ -74,7 +74,7 @@ public class CreateLinkedTable extends SchemaCommand {
             throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
                     tableName);
         }
-        int id = getObjectId(false, true);
+        int id = getObjectId();
         TableLink table = getSchema().createTableLink(id, tableName, driver, url, user, password, originalSchema, originalTable, emitUpdates, force);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);

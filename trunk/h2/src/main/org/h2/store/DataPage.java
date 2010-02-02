@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
@@ -108,7 +109,7 @@ public class DataPage {
             if (data[len - 2] == (byte) x) {
                 return;
             }
-            handler.handleInvalidChecksum();
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "Invalid checksum");
         }
     }
 

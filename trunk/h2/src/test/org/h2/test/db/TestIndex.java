@@ -53,7 +53,7 @@ public class TestIndex extends TestBase {
         testWideIndex(979);
         testWideIndex(1200);
         testWideIndex(2400);
-        if (config.big && config.logMode == 2) {
+        if (config.big) {
             for (int i = 0; i < 2000; i++) {
                 if ((i % 100) == 0) {
                     System.out.println("width: " + i);

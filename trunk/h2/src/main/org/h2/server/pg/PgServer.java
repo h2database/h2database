@@ -19,14 +19,11 @@ import java.sql.Types;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.server.Service;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
-import org.h2.util.Tool;
 
 /**
  * This class implements a subset of the PostgreSQL protocol as described here:
@@ -84,27 +81,14 @@ public class PgServer implements Service {
             String a = args[i];
             if ("-trace".equals(a)) {
                 trace = true;
-            } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-                trace = Tool.readArgBoolean(args, i) == 1;
-                i++;
             } else if ("-pgPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
             } else if ("-pgAllowOthers".equals(a)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    allowOthers = Tool.readArgBoolean(args, i) == 1;
-                    i++;
-                } else {
-                    allowOthers = true;
-                }
+                allowOthers = true;
             } else if ("-ifExists".equals(a)) {
-                if (Tool.readArgBoolean(args, i) != 0) {
-                    ifExists = Tool.readArgBoolean(args, i) == 1;
-                    i++;
-                } else {
-                    ifExists = true;
-                }
+                ifExists = true;
             }
         }
         org.h2.Driver.load();

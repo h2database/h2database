@@ -48,7 +48,7 @@ public class CreateRole extends DefineCommand {
             }
             throw Message.getSQLException(ErrorCode.ROLE_ALREADY_EXISTS_1, roleName);
         }
-        int id = getObjectId(false, true);
+        int id = getObjectId();
         Role role = new Role(db, id, roleName, false);
         db.addDatabaseObject(session, role);
         return 0;

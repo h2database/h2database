@@ -121,11 +121,8 @@ public class ValueLob extends Value {
         if (SysProperties.CHECK && tableId == 0 && objectId == 0) {
             Message.throwInternalError("0 LOB");
         }
-        if (handler.getLobFilesInDirectories()) {
-            String table = tableId < 0 ? ".temp" : ".t" + tableId;
-            return getFileNamePrefix(handler.getDatabasePath(), objectId) + table + Constants.SUFFIX_LOB_FILE;
-        }
-        return handler.getDatabasePath() + "." + tableId + "." + objectId + Constants.SUFFIX_LOB_FILE;
+        String table = tableId < 0 ? ".temp" : ".t" + tableId;
+        return getFileNamePrefix(handler.getDatabasePath(), objectId) + table + Constants.SUFFIX_LOB_FILE;
     }
 
     /**
@@ -388,13 +385,8 @@ public class ValueLob extends Value {
         String compressionAlgorithm = h.getLobCompressionAlgorithm(type);
         this.compression = compressionAlgorithm != null;
         synchronized (h) {
-            if (h.getLobFilesInDirectories()) {
-                objectId = getNewObjectId(h);
-                fileName = getFileNamePrefix(h.getDatabasePath(), objectId) + Constants.SUFFIX_TEMP_FILE;
-            } else {
-                objectId = h.allocateObjectId(false, true);
-                fileName = h.createTempFile();
-            }
+            objectId = getNewObjectId(h);
+            fileName = getFileNamePrefix(h.getDatabasePath(), objectId) + Constants.SUFFIX_TEMP_FILE;
             tempFile = h.openFile(fileName, "rw", false);
             tempFile.autoDelete();
         }
@@ -477,12 +469,7 @@ public class ValueLob extends Value {
             // synchronize on the database, to avoid concurrent temp file
             // creation / deletion / backup
             synchronized (handler) {
-                if (handler.getLobFilesInDirectories()) {
-                    temp = getFileName(handler, -1, objectId);
-                } else {
-                    // just to get a filename - an empty file will be created
-                    temp = handler.createTempFile();
-                }
+                temp = getFileName(handler, -1, objectId);
                 deleteFile(handler, temp);
                 renameFile(handler, fileName, temp);
                 tempFile = FileStore.open(handler, temp, "rw");
@@ -501,11 +488,7 @@ public class ValueLob extends Value {
         }
         if (linked) {
             ValueLob copy = ValueLob.copy(this);
-            if (h.getLobFilesInDirectories()) {
-                copy.objectId = getNewObjectId(h);
-            } else {
-                copy.objectId = h.allocateObjectId(false, true);
-            }
+            copy.objectId = getNewObjectId(h);
             copy.tableId = tabId;
             String live = getFileName(h, copy.tableId, copy.objectId);
             copyFileTo(h, fileName, live);
@@ -749,36 +732,8 @@ public class ValueLob extends Value {
      * @param tableId the table id
      */
     public static void removeAllForTable(DataHandler handler, int tableId) throws SQLException {
-        if (handler.getLobFilesInDirectories()) {
-            String dir = getFileNamePrefix(handler.getDatabasePath(), 0);
-            removeAllForTable(handler, dir, tableId);
-        } else {
-            String prefix = handler.getDatabasePath();
-            String dir = FileUtils.getParent(prefix);
-            String[] list = FileUtils.listFiles(dir);
-            for (String name : list) {
-                if (name.startsWith(prefix + "." + tableId + ".") && name.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                    deleteFile(handler, name);
-                }
-            }
-        }
-    }
-
-    /**
-     * Check if a lob file exists for this database.
-     *
-     * @param prefix the file name prefix
-     * @return true if a lob file exists
-     */
-    public static boolean existsLobFile(String prefix) throws SQLException {
-        String dir = FileUtils.getParent(prefix);
-        String[] list = FileUtils.listFiles(dir);
-        for (String name: list) {
-            if (name.startsWith(prefix + ".") && name.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                return true;
-            }
-        }
-        return false;
+        String dir = getFileNamePrefix(handler.getDatabasePath(), 0);
+        removeAllForTable(handler, dir, tableId);
     }
 
     private static void removeAllForTable(DataHandler handler, String dir, int tableId) throws SQLException {

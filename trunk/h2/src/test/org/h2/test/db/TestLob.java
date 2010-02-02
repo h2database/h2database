@@ -217,7 +217,7 @@ public class TestLob extends TestBase {
     }
 
     private void testLobDrop() throws SQLException {
-        if (config.logMode == 0 || config.networked) {
+        if (config.networked) {
             return;
         }
         deleteDb("lob");
@@ -239,7 +239,7 @@ public class TestLob extends TestBase {
     }
 
     private void testLobNoClose() throws Exception {
-        if (config.logMode == 0 || config.networked) {
+        if (config.networked) {
             return;
         }
         deleteDb("lob");
@@ -289,11 +289,6 @@ public class TestLob extends TestBase {
     }
 
     private void testLobTransactions(int spaceLen) throws SQLException {
-        if (config.logMode == 0) {
-            return;
-        }
-        // Constants.LOB_CLOSE_BETWEEN_READS = true;
-
         deleteDb("lob");
         Connection conn = reconnect(null);
         conn.createStatement().execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB, DATA2 VARCHAR)");
@@ -373,9 +368,6 @@ public class TestLob extends TestBase {
     }
 
     private void testLobRollbackStop() throws SQLException {
-        if (config.logMode == 0) {
-            return;
-        }
         deleteDb("lob");
         Connection conn = reconnect(null);
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB)");

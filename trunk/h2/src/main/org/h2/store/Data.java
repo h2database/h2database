@@ -260,19 +260,6 @@ public class Data extends DataPage {
     }
 
     /**
-     * Append the contents of the given data page to this page.
-     * The filler is not appended.
-     *
-     * @param page the page that will be appended
-     */
-    public void writeDataPageNoSize(Data page) {
-        // don't write filler
-        int len = page.pos - LENGTH_FILLER;
-        System.arraycopy(page.data, 0, data, pos, len);
-        pos += len;
-    }
-
-    /**
      * Append a number of bytes to this data page.
      *
      * @param buff the data

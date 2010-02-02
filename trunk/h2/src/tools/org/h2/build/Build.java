@@ -288,6 +288,7 @@ public class Build extends BuildBase {
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").

@@ -60,10 +60,9 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     private void testBackup() throws SQLException {
-        if (config.memory || config.logMode == 0) {
+        if (config.memory) {
             return;
         }
-
         deleteDb("openClose");
         String url = getURL("openClose", true);
         org.h2.Driver.load();

@@ -202,24 +202,12 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         session.getDatabase().freeUpDiskSpace();
     }
 
-    public void handleInvalidChecksum() throws SQLException {
-        session.getDatabase().handleInvalidChecksum();
-    }
-
     public int compareTypeSave(Value a, Value b) {
         throw Message.throwInternalError();
     }
 
     public int getMaxLengthInplaceLob() {
         return session.getDatabase().getMaxLengthInplaceLob();
-    }
-
-    public int allocateObjectId(boolean b, boolean c) {
-        return session.getDatabase().allocateObjectId(b, c);
-    }
-
-    public String createTempFile() throws SQLException {
-        return session.getDatabase().createTempFile();
     }
 
     public TempFileDeleter getTempFileDeleter() {
@@ -236,10 +224,6 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
 
     public Object getLobSyncObject() {
         return this;
-    }
-
-    public boolean getLobFilesInDirectories() {
-        return session.getDatabase().getLobFilesInDirectories();
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {

@@ -137,7 +137,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (index == null) {
                 IndexType indexType = IndexType.createPrimaryKey(table.isPersistIndexes(), primaryKeyHash);
                 String indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY);
-                int id = getObjectId(true, false);
+                int id = getObjectId();
                 try {
                     index = table.addIndex(session, indexName, id, indexColumns, indexType, Index.EMPTY_HEAD, null);
                 } finally {
@@ -145,7 +145,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 }
             }
             index.getIndexType().setBelongsToConstraint(true);
-            int constraintId = getObjectId(true, true);
+            int constraintId = getObjectId();
             String name = generateConstraintName(table);
             ConstraintUnique pk = new ConstraintUnique(getSchema(), constraintId, name, table, true);
             pk.setColumns(indexColumns);
@@ -166,7 +166,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                     isOwner = true;
                 }
             }
-            int id = getObjectId(true, true);
+            int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintUnique unique = new ConstraintUnique(getSchema(), id, name, table, false);
             unique.setColumns(indexColumns);
@@ -175,7 +175,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             break;
         }
         case CHECK: {
-            int id = getObjectId(true, true);
+            int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
             TableFilter filter = new TableFilter(session, table, null, false, null);
@@ -227,7 +227,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                     isRefOwner = true;
                 }
             }
-            int id = getObjectId(true, true);
+            int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintReferential ref = new ConstraintReferential(getSchema(), id, name, table);
             ref.setColumns(indexColumns);
@@ -259,7 +259,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private Index createIndex(Table t, IndexColumn[] cols, boolean unique) throws SQLException {
-        int indexId = getObjectId(true, false);
+        int indexId = getObjectId();
         IndexType indexType;
         if (unique) {
             // for unique constraints

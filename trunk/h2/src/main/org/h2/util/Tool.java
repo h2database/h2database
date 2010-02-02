@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.Properties;
-import org.h2.constant.SysProperties;
 
 /**
  * Command line tools implement the tool interface so that they can be used in
@@ -92,29 +91,6 @@ public abstract class Tool {
         out.println("Usage: java "+getClass().getName() + " <options>");
         out.println(resources.get(className + ".main"));
         out.println("See also http://h2database.com/javadoc/" + className.replace('.', '/') + ".html");
-    }
-
-    /**
-     * Read an argument and check if it is true (1), false (-1), or not (0).
-     * This method is used for compatibility with older versions only.
-     *
-     * @param args the list of arguments
-     * @param i the index - 1
-     * @return 1 for true, -1 for false, or 0 for not read
-     */
-    public static int readArgBoolean(String[] args, int i) {
-        if (!SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-            return 0;
-        }
-        if (i + 1 < args.length) {
-            String a = args[++i];
-            if ("true".equals(a)) {
-                return 1;
-            } else if ("false".equals(a)) {
-                return -1;
-            }
-        }
-        return 0;
     }
 
 }

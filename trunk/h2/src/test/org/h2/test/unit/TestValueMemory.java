@@ -7,20 +7,15 @@
 package org.h2.test.unit;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Random;
-import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
-import org.h2.message.Message;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
-import org.h2.util.FileUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
@@ -183,10 +178,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return new String(chars);
     }
 
-    public int allocateObjectId(boolean needFresh, boolean dataFile) {
-        return 0;
-    }
-
     public void checkPowerOff() {
         // nothing to do
     }
@@ -197,15 +188,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
 
     public int compareTypeSave(Value a, Value b) {
         return 0;
-    }
-
-    public String createTempFile() throws SQLException {
-        String name = baseDir + "/valueMemory/data";
-        try {
-            return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, true, false);
-        } catch (IOException e) {
-            throw Message.convertIOException(e, name);
-        }
     }
 
     public void freeUpDiskSpace() {
@@ -232,16 +214,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return 100;
     }
 
-    public void handleInvalidChecksum() {
-        // nothing to do
-    }
-
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         return FileStore.open(this, name, mode);
-    }
-
-    public boolean getLobFilesInDirectories() {
-        return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {

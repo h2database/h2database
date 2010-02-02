@@ -50,7 +50,7 @@ public class CreateSequence extends SchemaCommand {
             }
             throw Message.getSQLException(ErrorCode.SEQUENCE_ALREADY_EXISTS_1, sequenceName);
         }
-        int id = getObjectId(false, true);
+        int id = getObjectId();
         Sequence sequence = new Sequence(getSchema(), id, sequenceName, belongsToTable);
         sequence.setStartValue(getLong(start, 1));
         sequence.setIncrement(getLong(increment, 1));

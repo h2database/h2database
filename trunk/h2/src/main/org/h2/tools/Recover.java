@@ -85,7 +85,6 @@ public class Recover extends Tool implements DataHandler {
     private int recordLength;
     private int valueId;
     private boolean trace;
-    private boolean lobFilesInDirectories;
     private ObjectArray<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
@@ -482,7 +481,6 @@ public class Recover extends Tool implements DataHandler {
 
     private void setDatabaseName(String name) {
         databaseName = name;
-        lobFilesInDirectories = FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
     }
 
     private void dumpLog(String fileName, boolean onlySetSessionState) {
@@ -1793,13 +1791,6 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public void handleInvalidChecksum() throws SQLException {
-        throw new SQLException("Invalid Checksum");
-    }
-
-    /**
-     * INTERNAL
-     */
     public int compareTypeSave(Value a, Value b) {
         throw Message.throwInternalError();
     }
@@ -1808,20 +1799,6 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     public int getMaxLengthInplaceLob() {
-        throw Message.throwInternalError();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public int allocateObjectId(boolean b, boolean c) {
-        throw Message.throwInternalError();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public String createTempFile() {
         throw Message.throwInternalError();
     }
 
@@ -1837,13 +1814,6 @@ public class Recover extends Tool implements DataHandler {
      */
     public Object getLobSyncObject() {
         return this;
-    }
-
-    /**
-     * INTERNAL
-     */
-    public boolean getLobFilesInDirectories() {
-        return lobFilesInDirectories;
     }
 
     /**

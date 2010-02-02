@@ -1052,7 +1052,7 @@ public class ErrorCode {
      * the connection properties.
      * Example:
      * <pre>
-     * jdbc:h2:~/test;LOG=0;LOG=1
+     * jdbc:h2:~/test;LOCK_TIMEOUT=0;LOCK_TIMEOUT=1
      * </pre>
      */
     public static final int DUPLICATE_PROPERTY_1 = 90066;

@@ -1747,9 +1747,6 @@ public class Parser {
                 read("NULL");
                 r = new Comparison(session, type, r, null);
             } else if (readIf("IN")) {
-                if (SysProperties.OPTIMIZE_IN && !SysProperties.OPTIMIZE_IN_LIST) {
-                    recompileAlways = true;
-                }
                 read("(");
                 if (readIf(")")) {
                     r = ValueExpression.get(ValueBoolean.get(false));
@@ -2901,7 +2898,7 @@ public class Parser {
                 }
                 break;
             case '$':
-                if (SysProperties.DOLLAR_QUOTING && command[i + 1] == '$' && (i == 0 || command[i - 1] <= ' ')) {
+                if (command[i + 1] == '$' && (i == 0 || command[i - 1] <= ' ')) {
                     // dollar quoted string
                     changed = true;
                     command[i] = ' ';
@@ -3867,7 +3864,7 @@ public class Parser {
             columns.add(new Column(c, Value.STRING));
         }
         CreateTableData data = new CreateTableData();
-        data.id = database.allocateObjectId(true, true);
+        data.id = database.allocateObjectId();
         data.tableName = tempViewName;
         data.temporary = true;
         data.persistData = true;
@@ -3881,7 +3878,7 @@ public class Parser {
         Query withQuery = parseSelect();
         withQuery.prepare();
         session.removeLocalTempTable(recursiveTable);
-        int id = database.allocateObjectId(true, true);
+        int id = database.allocateObjectId();
         TableView view = new TableView(schema, id, tempViewName, querySQL, null, cols, session, true);
         view.setTemporary(true);
         // view.setOnCommitDrop(true);
@@ -4164,10 +4161,6 @@ public class Parser {
             read();
             return new NoOperation(session);
         } else if (readIf("DB_CLOSE_ON_EXIT")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("ACCESS_MODE_LOG")) {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);

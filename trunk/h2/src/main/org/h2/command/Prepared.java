@@ -238,17 +238,15 @@ public abstract class Prepared {
      * Get the current object id, or get a new id from the database. The object
      * id is used when creating new database object (CREATE statement).
      *
-     * @param needFresh if a fresh id is required
-     * @param dataFile if the object id is used for the
      * @return the object id
      */
-    protected int getObjectId(boolean needFresh, boolean dataFile) {
-        Database db = session.getDatabase();
+    protected int getObjectId() {
         int id = objectId;
         if (id == 0) {
-            id = db.allocateObjectId(needFresh, dataFile);
+            id = session.getDatabase().allocateObjectId();
+        } else {
+            objectId = 0;
         }
-        objectId = 0;
         return id;
     }
 

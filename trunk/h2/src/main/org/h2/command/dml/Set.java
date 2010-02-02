@@ -178,7 +178,7 @@ public class Set extends Prepared {
             if (value == 0) {
                 session.getUser().checkAdmin();
             }
-            database.setLog(value);
+            // currently no effect
             break;
         }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {
@@ -349,7 +349,7 @@ public class Set extends Prepared {
         boolean addNew = false;
         if (setting == null) {
             addNew = true;
-            int id = getObjectId(false, true);
+            int id = getObjectId();
             setting = new Setting(database, id, name);
         }
         if (s != null) {

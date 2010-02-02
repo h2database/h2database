@@ -35,7 +35,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
 import org.h2.message.Message;
-import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;

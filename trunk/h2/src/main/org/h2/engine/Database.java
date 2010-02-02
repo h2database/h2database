@@ -141,7 +141,6 @@ public class Database implements DataHandler {
     private String lobCompressionAlgorithm;
     private boolean optimizeReuseResults = true;
     private String cacheType;
-    private boolean indexSummaryValid = true;
     private String accessModeLog, accessModeData;
     private boolean referentialIntegrity = true;
     private boolean multiVersion;
@@ -1068,7 +1067,6 @@ public class Database implements DataHandler {
                     meta.close(systemSession);
                     systemSession.commit(true);
                 }
-                indexSummaryValid = true;
             }
         } catch (SQLException e) {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);

@@ -16,7 +16,6 @@ import java.util.HashSet;
 
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests for trigger and constraints.

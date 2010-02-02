@@ -14,8 +14,6 @@ import java.io.RandomAccessFile;
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
-import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 
 /**

@@ -287,24 +287,27 @@ java org.h2.test.TestAll timer
 
 /*
 
+Constants.FILE_BLOCK_SIZE and others
+simplify SysProperties
+combine small classes (StringCache / utils...)
 document in performance section:
 PreparedStatement prep = conn.prepareStatement(
 "select * from table(x int = ?) t inner join test on t.x = test.id");
 prep.setObject(1, new Object[] { "1", "2" });
 ResultSet rs = prep.executeQuery();
 
-remove Record class; or at least fix javadoc
-remove links from Row - Record - Page - DataPage
-cleanup SortedProperties
 remove unused methods
-
-change test case for migration (download old h2.jar).
-move migration to separate classes.
+cleanup SortedProperties
+headPos > boolean isNew?
+verify Row - Page
+fix class javadocs
+test remote lob (temp file) read write
 TestAll deleteIndex
-remove DiskFile
-move upgrade code from Recover to a separate class
 FileStore.sync, Database.sync() (CHECKPOINT SYNC)
 data page > buffer
+try to reduce number of packages, classes
+rename Page classes to normal names
+use RuntimeException internally
 
 Verify that Tomcat memory leak protection don't cause exceptions:
 http://java.dzone.com/articles/memory-leak-protection-tomcat

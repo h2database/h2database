@@ -39,7 +39,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.ValueHashMap;
@@ -216,7 +215,7 @@ public class Select extends Query {
         }
         // remove columns so that 'distinct' can filter duplicate rows
         Value[] r2 = new Value[distinctColumnCount];
-        ObjectUtils.arrayCopy(row, r2, distinctColumnCount);
+        System.arraycopy(row, 0, r2, 0, distinctColumnCount);
         return r2;
     }
 

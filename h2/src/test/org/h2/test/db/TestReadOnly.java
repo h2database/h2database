@@ -13,9 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-
 import org.h2.constant.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
@@ -135,28 +133,12 @@ public class TestReadOnly extends TestBase {
     }
 
     private void setReadOnly() throws SQLException {
-        String lastLogFile = null;
         ArrayList<String> list = FileLister.getDatabaseFiles(TestBase.baseDir, "readonly", true);
         for (String fileName : list) {
             File file = new File(fileName);
             file.setReadOnly();
-            if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
-                if (lastLogFile == null || lastLogFile.compareTo(fileName) < 0) {
-                    lastLogFile = fileName;
-                }
-            }
-        }
-        // delete all log files except the last one
-        for (String fileName : list) {
-            if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
-                if (!lastLogFile.equals(fileName)) {
-                    File file = new File(fileName);
-                    file.delete();
-                }
-            }
         }
     }
-
 
     private void testReadOnlyConnect() throws SQLException {
         deleteDb("readonly");

@@ -52,9 +52,9 @@ public class CreateTableData {
     public boolean persistData;
 
     /**
-     * The head position.
+     * Whether to create a new table.
      */
-    public int headPos;
+    public boolean create;
 
     /**
      * The session.

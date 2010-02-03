@@ -407,12 +407,6 @@ public class SysProperties {
     public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
 
     /**
-     * System property <code>h2.overflowExceptions</code> (default: true).<br />
-     * Throw an exception on integer overflows.
-     */
-    public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
-
-    /**
      * System property <code>h2.pageSize</code> (default: 2048).<br />
      * The page size to use for new databases.
      */

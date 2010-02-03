@@ -9,7 +9,6 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.MathUtils;
 
@@ -37,10 +36,7 @@ public class ValueByte extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange(value + other.value);
-        }
-        return ValueByte.get((byte) (value + other.value));
+        return checkRange(value + other.value);
     }
 
     private ValueByte checkRange(int x) throws SQLException {
@@ -55,26 +51,17 @@ public class ValueByte extends Value {
     }
 
     public Value negate() throws SQLException {
-        if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange(-(int) value);
-        }
-        return ValueByte.get((byte) (-value));
+        return checkRange(-(int) value);
     }
 
     public Value subtract(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange(value - other.value);
-        }
-        return ValueByte.get((byte) (value - other.value));
+        return checkRange(value - other.value);
     }
 
     public Value multiply(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange(value * other.value);
-        }
-        return ValueByte.get((byte) (value * other.value));
+        return checkRange(value * other.value);
     }
 
     public Value divide(Value v) throws SQLException {

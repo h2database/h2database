@@ -3869,7 +3869,7 @@ public class Parser {
         data.temporary = true;
         data.persistData = true;
         data.persistIndexes = false;
-        data.headPos = Index.EMPTY_HEAD;
+        data.create = true;
         data.session = session;
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);

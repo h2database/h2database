@@ -97,7 +97,6 @@ class ResultDiskBuffer implements ResultExternal {
             buff.fillAligned();
             int len = buff.length();
             buff.setInt(0, len);
-            buff.updateChecksum();
             if (maxBufferSize > 0) {
                 buffer.write(buff.getBytes(), 0, len);
                 bufferLen += len;
@@ -152,7 +151,6 @@ class ResultDiskBuffer implements ResultExternal {
         if (len - min > 0) {
             file.readFully(buff.getBytes(), min, len - min);
         }
-        buff.check(len);
         tape.pos += len;
         Value[] row = new Value[columnCount];
         for (int k = 0; k < columnCount; k++) {

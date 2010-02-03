@@ -164,7 +164,7 @@ public class ConstraintReferential extends Constraint {
      *
      * @return the description
      */
-    public String getShortDescription() {
+    private String getShortDescription() {
         StatementBuilder buff = new StatementBuilder(getName());
         buff.append(": ").append(table.getSQL()).append(" FOREIGN KEY(");
         for (IndexColumn c : columns) {

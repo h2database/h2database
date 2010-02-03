@@ -219,10 +219,4 @@ public interface DbObject {
      */
     String getComment();
 
-    /**
-     * Get the position of the head record.
-     *
-     * @return the head position
-     */
-    int getHeadPos();
 }

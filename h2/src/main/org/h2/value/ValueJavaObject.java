@@ -11,8 +11,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.h2.constant.SysProperties;
+import org.h2.util.ByteUtils;
 import org.h2.util.MemoryUtils;
-import org.h2.util.ObjectUtils;
 
 /**
  * Implementation of the OBJECT data type.
@@ -48,7 +48,7 @@ public class ValueJavaObject extends ValueBytesBase {
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        Object obj = ObjectUtils.deserialize(getBytesNoCopy());
+        Object obj = ByteUtils.deserialize(getBytesNoCopy());
         prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);
     }
 

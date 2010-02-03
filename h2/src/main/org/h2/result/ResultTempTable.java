@@ -49,7 +49,7 @@ public class ResultTempTable implements ResultExternal {
         data.temporary = true;
         data.persistIndexes = false;
         data.persistData = true;
-        data.headPos = Index.EMPTY_HEAD;
+        data.create = true;
         data.session = session;
         table = schema.createTable(data);
         int indexId = session.getDatabase().allocateObjectId();
@@ -59,7 +59,7 @@ public class ResultTempTable implements ResultExternal {
         IndexType indexType;
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = new IndexColumn[]{indexColumn};
-        index = new PageBtreeIndex(table, indexId, data.tableName, indexCols, indexType, Index.EMPTY_HEAD, session);
+        index = new PageBtreeIndex(table, indexId, data.tableName, indexCols, indexType, true, session);
         index.setTemporary(true);
         table.getIndexes().add(index);
     }

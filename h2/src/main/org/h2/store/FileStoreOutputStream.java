@@ -56,12 +56,12 @@ public class FileStoreOutputStream extends OutputStream {
                     int uncompressed = len;
                     buff = compress.compress(buff, compressionAlgorithm);
                     len = buff.length;
-                    page.checkCapacity(2 * DataPage.LENGTH_INT + len);
+                    page.checkCapacity(2 * Data.LENGTH_INT + len);
                     page.writeInt(len);
                     page.writeInt(uncompressed);
                     page.write(buff, off, len);
                 } else {
-                    page.checkCapacity(DataPage.LENGTH_INT + len);
+                    page.checkCapacity(Data.LENGTH_INT + len);
                     page.writeInt(len);
                     page.write(buff, off, len);
                 }

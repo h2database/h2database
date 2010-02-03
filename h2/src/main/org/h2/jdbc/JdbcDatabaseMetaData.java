@@ -2695,21 +2695,21 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Gets the major version of the supported JDBC API.
      *
-     * @return the major version
+     * @return the major version (3)
      */
     public int getJDBCMajorVersion() {
         debugCodeCall("getJDBCMajorVersion");
-        return Constants.VERSION_JDBC_MAJOR;
+        return 3;
     }
 
     /**
      * Gets the minor version of the supported JDBC API.
      *
-     * @return the minor version
+     * @return the minor version (0)
      */
     public int getJDBCMinorVersion() {
         debugCodeCall("getJDBCMinorVersion");
-        return Constants.VERSION_JDBC_MINOR;
+        return 0;
     }
 
     /**

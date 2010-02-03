@@ -25,6 +25,34 @@ import org.h2.message.Message;
  */
 public class JdbcUtils {
 
+    private static final String[] DRIVERS = {
+        "h2:", "org.h2.Driver",
+        "Cache:", "com.intersys.jdbc.CacheDriver",
+        "daffodilDB://", "in.co.daffodil.db.rmi.RmiDaffodilDBDriver",
+        "daffodil", "in.co.daffodil.db.jdbc.DaffodilDBDriver",
+        "db2:", "COM.ibm.db2.jdbc.net.DB2Driver",
+        "derby:net:", "org.apache.derby.jdbc.ClientDriver",
+        "derby://", "org.apache.derby.jdbc.ClientDriver",
+        "derby:", "org.apache.derby.jdbc.EmbeddedDriver",
+        "FrontBase:", "com.frontbase.jdbc.FBJDriver",
+        "firebirdsql:", "org.firebirdsql.jdbc.FBDriver",
+        "hsqldb:", "org.hsqldb.jdbcDriver",
+        "informix-sqli:", "com.informix.jdbc.IfxDriver",
+        "jtds:", "net.sourceforge.jtds.jdbc.Driver",
+        "microsoft:", "com.microsoft.jdbc.sqlserver.SQLServerDriver",
+        "mimer:", "com.mimer.jdbc.Driver",
+        "mysql:", "com.mysql.jdbc.Driver",
+        "odbc:", "sun.jdbc.odbc.JdbcOdbcDriver",
+        "oracle:", "oracle.jdbc.driver.OracleDriver",
+        "pervasive:", "com.pervasive.jdbc.v2.Driver",
+        "pointbase:micro:", "com.pointbase.me.jdbc.jdbcDriver",
+        "pointbase:", "com.pointbase.jdbc.jdbcUniversalDriver",
+        "postgresql:", "org.postgresql.Driver",
+        "sybase:", "com.sybase.jdbc3.jdbc.SybDriver",
+        "sqlserver:", "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+        "teradata:", "com.ncr.teradata.TeraDriver",
+    };
+
     private JdbcUtils() {
         // utility class
     }
@@ -134,7 +162,7 @@ public class JdbcUtils {
      */
     public static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
         if (StringUtils.isNullOrEmpty(driver)) {
-            JdbcDriverUtils.load(url);
+            JdbcUtils.load(url);
         } else {
             Class< ? > d = ClassUtils.loadUserClass(driver);
             if (java.sql.Driver.class.isAssignableFrom(d)) {
@@ -165,6 +193,38 @@ public class JdbcUtils {
             }
         }
         return DriverManager.getConnection(url, prop);
+    }
+
+    /**
+     * Get the driver class name for the given URL, or null if the URL is
+     * unknown.
+     *
+     * @param url the database URL
+     * @return the driver class name
+     */
+    public static String getDriver(String url) {
+        if (url.startsWith("jdbc:")) {
+            url = url.substring("jdbc:".length());
+            for (int i = 0; i < DRIVERS.length; i += 2) {
+                String prefix = DRIVERS[i];
+                if (url.startsWith(prefix)) {
+                    return DRIVERS[i + 1];
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Load the driver class for the given URL, if the database URL is known.
+     *
+     * @param url the database URL
+     */
+    public static void load(String url) throws SQLException {
+        String driver = getDriver(url);
+        if (driver != null) {
+            ClassUtils.loadUserClass(driver);
+        }
     }
 
 }

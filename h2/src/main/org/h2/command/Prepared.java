@@ -13,7 +13,6 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
-import org.h2.index.Index;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.ResultInterface;
@@ -37,9 +36,9 @@ public abstract class Prepared {
     protected String sqlStatement;
 
     /**
-     * The position of the head record (used for indexes).
+     * Whether to create a new object (for indexes).
      */
-    protected int headPos = Index.EMPTY_HEAD;
+    protected boolean create = true;
 
     /**
      * The list of parameters.
@@ -282,12 +281,12 @@ public abstract class Prepared {
     }
 
     /**
-     * Set the head position.
+     * Set whether to create a new object.
      *
-     * @param headPos the head position
+     * @param create the new value
      */
-    public void setHeadPos(int headPos) {
-        this.headPos = headPos;
+    public void setCreate(boolean create) {
+        this.create = create;
     }
 
     /**

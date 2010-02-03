@@ -139,7 +139,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 String indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY);
                 int id = getObjectId();
                 try {
-                    index = table.addIndex(session, indexName, id, indexColumns, indexType, Index.EMPTY_HEAD, null);
+                    index = table.addIndex(session, indexName, id, indexColumns, indexType, true, null);
                 } finally {
                     getSchema().freeUniqueName(indexName);
                 }
@@ -272,7 +272,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         String prefix = constraintName == null ? "CONSTRAINT" : constraintName;
         String indexName = t.getSchema().getUniqueIndexName(session, t, prefix + "_INDEX_");
         try {
-            return t.addIndex(session, indexName, indexId, cols, indexType, Index.EMPTY_HEAD, null);
+            return t.addIndex(session, indexName, indexId, cols, indexType, true, null);
         } finally {
             getSchema().freeUniqueName(indexName);
         }

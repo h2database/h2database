@@ -28,7 +28,6 @@ import org.h2.index.NonUniqueHashIndex;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageDataIndex;
 import org.h2.index.PageDelegateIndex;
-import org.h2.index.RowIndex;
 import org.h2.index.ScanIndex;
 import org.h2.index.TreeIndex;
 import org.h2.message.Message;
@@ -51,7 +50,7 @@ import org.h2.value.Value;
  * indexes. There is at least one index, the scan index.
  */
 public class TableData extends Table {
-    private RowIndex scanIndex;
+    private Index scanIndex;
     private long rowCount;
     private volatile Session lockExclusive;
     private HashSet<Session> lockShared = New.hashSet();
@@ -76,7 +75,7 @@ public class TableData extends Table {
         setColumns(cols);
         setTemporary(data.temporary);
         if (data.persistData && database.isPersistent()) {
-            mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData), data.headPos, data.session);
+            mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData), data.create, data.session);
             scanIndex = mainIndex;
         } else {
             scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData));
@@ -89,10 +88,6 @@ public class TableData extends Table {
             }
         }
         traceLock = database.getTrace(Trace.LOCK);
-    }
-
-    public int getHeadPos() {
-        return scanIndex.getHeadPos();
     }
 
     public void close(Session session) throws SQLException {
@@ -177,7 +172,7 @@ public class TableData extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            int headPos, String indexComment) throws SQLException {
+            boolean create, String indexComment) throws SQLException {
         if (indexType.isPrimaryKey()) {
             for (IndexColumn c : cols) {
                 Column column = c.column;
@@ -199,9 +194,9 @@ public class TableData extends Table {
             }
             if (mainIndexColumn != -1) {
                 mainIndex.setMainIndexColumn(mainIndexColumn);
-                index = new PageDelegateIndex(this, indexId, indexName, indexType, mainIndex, headPos, session);
+                index = new PageDelegateIndex(this, indexId, indexName, indexType, mainIndex, create, session);
             } else {
-                index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos, session);
+                index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, create, session);
             }
         } else {
             if (indexType.isHash()) {

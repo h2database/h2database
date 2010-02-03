@@ -22,7 +22,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.test.trace.Player;
@@ -36,6 +35,7 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.Server;
 import org.h2.util.FileUtils;
+import org.h2.util.JdbcUtils;
 
 /**
  * Tests the database tools.
@@ -58,6 +58,7 @@ public class TestTools extends TestBase {
             return;
         }
         org.h2.Driver.load();
+        testJdbcDriverUtils();
         testWrongServer();
         deleteDb("utils");
         testDeleteFiles();
@@ -73,6 +74,12 @@ public class TestTools extends TestBase {
         testBackupRestore();
         testRecover();
         deleteDb("utils");
+    }
+
+    private void testJdbcDriverUtils() {
+        assertEquals("org.h2.Driver", JdbcUtils.getDriver("jdbc:h2:~/test"));
+        assertEquals("org.postgresql.Driver", JdbcUtils.getDriver("jdbc:postgresql:test"));
+        assertEquals(null, JdbcUtils.getDriver("jdbc:unknown:test"));
     }
 
     private void testWrongServer() throws Exception {
@@ -283,12 +290,6 @@ public class TestTools extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
         conn.close();
-        ArrayList<String> list = FileLister.getDatabaseFiles(baseDir, "toolsRemove", true);
-        for (String fileName : list) {
-            if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
-                FileUtils.delete(fileName);
-            }
-        }
         Recover.main("-dir", baseDir, "-db", "toolsRemove", "-removePassword");
         conn = DriverManager.getConnection(url, "sa", "");
         stat = conn.createStatement();

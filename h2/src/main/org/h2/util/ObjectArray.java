@@ -227,7 +227,7 @@ public class ObjectArray<T> implements Iterable<T> {
      * @return the array
      */
     public T[] toArray(T[] array) {
-        ObjectUtils.arrayCopy(data, array, size);
+        System.arraycopy(data, 0, array, 0, size);
         return array;
     }
 

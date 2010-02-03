@@ -24,10 +24,6 @@ public abstract class PageIndex extends BaseIndex {
         return rootPageId;
     }
 
-    public int getHeadPos() {
-        return 0;
-    }
-
     /**
      * Write back the row count if it has changed.
      */

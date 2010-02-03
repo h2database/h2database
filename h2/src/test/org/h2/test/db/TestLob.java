@@ -28,9 +28,9 @@ import org.h2.store.FileLister;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.ValueLob;
 
@@ -875,7 +875,7 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("drop table test");
         stat.execute("create table test(value other)");
         prep = conn.prepareStatement("insert into test values(?)");
-        prep.setObject(1, ObjectUtils.serialize(""));
+        prep.setObject(1, ByteUtils.serialize(""));
         prep.execute();
         rs = stat.executeQuery("select value from test");
         while (rs.next()) {

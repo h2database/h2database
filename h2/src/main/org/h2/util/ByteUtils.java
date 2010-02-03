@@ -6,6 +6,10 @@
  */
 package org.h2.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
@@ -265,6 +269,51 @@ public class ByteUtils {
         byte[] copy = new byte[len];
         System.arraycopy(b, 0, copy, 0, len);
         return copy;
+    }
+
+    /**
+     * Serialize the object to a byte array.
+     *
+     * @param obj the object to serialize
+     * @return the byte array
+     */
+    public static byte[] serialize(Object obj) throws SQLException {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ObjectOutputStream os = new ObjectOutputStream(out);
+            os.writeObject(obj);
+            return out.toByteArray();
+        } catch (Throwable e) {
+            throw Message.getSQLException(ErrorCode.SERIALIZATION_FAILED_1, e, e.toString());
+        }
+    }
+
+    /**
+     * De-serialize the byte array to an object.
+     *
+     * @param data the byte array
+     * @return the object
+     * @throws SQLException
+     */
+    public static Object deserialize(byte[] data) throws SQLException {
+        try {
+            ByteArrayInputStream in = new ByteArrayInputStream(data);
+            ObjectInputStream is = new ObjectInputStream(in);
+            Object obj = is.readObject();
+            return obj;
+        } catch (Throwable e) {
+            throw Message.getSQLException(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());
+        }
+    }
+
+    /**
+     * Calculate the hash code of the given object. The object may be null.
+     *
+     * @param o the object
+     * @return the hash code, or 0 if the object is null
+     */
+    public static int hashCode(Object o) {
+        return o == null ? 0 : o.hashCode();
     }
 
 }

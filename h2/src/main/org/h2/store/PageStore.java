@@ -186,7 +186,7 @@ public class PageStore implements CacheWriter {
      * and the value the latest transaction position where this page is used.
      */
     private HashMap<Integer, Integer> reservedPages;
-    private int systemTableHeadPos;
+    private boolean isNew;
     // TODO reduce DEFAULT_MAX_LOG_SIZE, and don't divide here
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE / 10;
     private Session systemSession;
@@ -284,7 +284,7 @@ public class PageStore implements CacheWriter {
         openMetaIndex();
         logFirstTrunkPage = allocatePage();
         log.openForWriting(logFirstTrunkPage, false);
-        systemTableHeadPos = Index.EMPTY_HEAD;
+        isNew = true;
         recoveryRunning = false;
         increaseFileSize(INCREMENT_PAGES);
     }
@@ -1051,11 +1051,7 @@ public class PageStore implements CacheWriter {
             }
         }
         PageDataIndex systemTable = (PageDataIndex) metaObjects.get(0);
-        if (systemTable == null) {
-            systemTableHeadPos = Index.EMPTY_HEAD;
-        } else {
-            systemTableHeadPos = systemTable.getHeadPos();
-        }
+        isNew = systemTable == null;
         for (Index openIndex : metaObjects.values()) {
             if (openIndex.getTable().isTemporary()) {
                 openIndex.truncate(systemSession);
@@ -1124,12 +1120,12 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Get the position of the system table head.
+     * Check whether this is a new database.
      *
-     * @return the system table head
+     * @return true if it is
      */
-    public int getSystemTableHeadPos() {
-        return systemTableHeadPos;
+    public boolean isNew() {
+        return isNew;
     }
 
     /**
@@ -1218,7 +1214,7 @@ public class PageStore implements CacheWriter {
         data.temporary = false;
         data.persistData = true;
         data.persistIndexes = true;
-        data.headPos = 0;
+        data.create = false;
         data.session = systemSession;
         metaTable = new TableData(data);
         metaIndex = (PageDataIndex) metaTable.getScanIndex(
@@ -1291,7 +1287,7 @@ public class PageStore implements CacheWriter {
             data.temporary = ops[2].equals("temp");
             data.persistData = true;
             data.persistIndexes = true;
-            data.headPos = 0;
+            data.create = false;
             data.session = session;
             TableData table = new TableData(data);
             CompareMode mode = CompareMode.getInstance(ops[0], Integer.parseInt(ops[1]));
@@ -1328,7 +1324,7 @@ public class PageStore implements CacheWriter {
             } else {
                 indexType = IndexType.createNonUnique(true);
             }
-            meta = table.addIndex(session, "I" + id, id, cols, indexType, id, null);
+            meta = table.addIndex(session, "I" + id, id, cols, indexType, false, null);
         }
         PageIndex index;
         if (meta instanceof MultiVersionIndex) {

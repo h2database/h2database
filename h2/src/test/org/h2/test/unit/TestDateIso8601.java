@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.h2.test.TestBase;
-import org.h2.util.DateTimeIso8601Utils;
+import org.h2.util.DateTimeUtils;
 
 /**
  * Test cases for DateTimeIso8601Utils.
@@ -53,7 +53,7 @@ public class TestDateIso8601 extends TestBase {
     }
 
     private static int getIsoDayOfWeek(Date date) {
-        return DateTimeIso8601Utils.getIsoDayOfWeek(date);
+        return DateTimeUtils.getIsoDayOfWeek(date);
     }
 
     /**
@@ -71,7 +71,7 @@ public class TestDateIso8601 extends TestBase {
 
     private static int getIsoWeek(Date date) {
         Timestamp ts = new Timestamp(date.getTime());
-        return DateTimeIso8601Utils.getIsoWeek(ts);
+        return DateTimeUtils.getIsoWeek(ts);
     }
 
     /**
@@ -155,7 +155,7 @@ public class TestDateIso8601 extends TestBase {
 
     private static int getIsoYear(Date date) {
         Timestamp ts = new Timestamp(date.getTime());
-        return DateTimeIso8601Utils.getIsoYear(ts);
+        return DateTimeUtils.getIsoYear(ts);
     }
 
     /**

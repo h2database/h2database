@@ -34,8 +34,6 @@ public class FileLister {
     public static String getDatabaseNameFromFileName(String fileName) {
         if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
             return fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length());
-        } else if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
-            return fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length());
         }
         return null;
     }
@@ -84,13 +82,7 @@ public class FileLister {
         for (int i = 0; list != null && i < list.length; i++) {
             String f = list[i];
             boolean ok = false;
-            if (f.endsWith(Constants.SUFFIX_DATA_FILE)) {
-                ok = true;
-            } else if (f.endsWith(Constants.SUFFIX_INDEX_FILE)) {
-                ok = true;
-            } else if (f.endsWith(Constants.SUFFIX_LOG_FILE)) {
-                ok = true;
-            } else if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
+            if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
                 if (start == null || FileUtils.fileStartsWith(f, start + ".")) {
                     files.addAll(getDatabaseFiles(f, null, all));
                     ok = true;

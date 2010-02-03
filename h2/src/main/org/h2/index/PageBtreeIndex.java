@@ -36,7 +36,7 @@ public class PageBtreeIndex extends PageIndex {
     private long rowCount;
 
     public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
-            IndexType indexType, int headPos, Session session) throws SQLException {
+            IndexType indexType, boolean create, Session session) throws SQLException {
         initBaseIndex(table, id, indexName, columns, indexType);
         // int test;
         // trace.setLevel(TraceSystem.DEBUG);
@@ -46,7 +46,7 @@ public class PageBtreeIndex extends PageIndex {
         }
         this.store = database.getPageStore();
         store.addIndex(this);
-        if (headPos == Index.EMPTY_HEAD) {
+        if (create) {
             // new index
             rootPageId = store.allocatePage();
             needRebuild = true;
@@ -283,7 +283,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param key the row key
      * @return the row
      */
-    Row getRow(Session session, long key) throws SQLException {
+    public Row getRow(Session session, long key) throws SQLException {
         return tableData.getRow(session, key);
     }
 

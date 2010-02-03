@@ -13,7 +13,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
-import org.h2.store.DataPage;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
@@ -210,13 +209,14 @@ public class TestDataPage extends TestBase implements DataHandler {
 
 
     private void testAll() throws SQLException {
-        DataPage page = DataPage.create(this, 128);
+        Data page = Data.create(this, 128);
 
         char[] data = new char[0x10000];
         for (int i = 0; i < data.length; i++) {
             data[i] = (char) i;
         }
         String s = new String(data);
+        page.checkCapacity(s.length() * 4);
         page.writeString(s);
         int len = page.length();
         assertEquals(len, page.getStringLen(s));

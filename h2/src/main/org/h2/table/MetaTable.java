@@ -544,7 +544,7 @@ public class MetaTable extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            int headPos, String indexComment) throws SQLException {
+            boolean create, String indexComment) throws SQLException {
         throw Message.getUnsupportedException("META");
     }
 
@@ -857,7 +857,6 @@ public class MetaTable extends Table {
             add(rows, "h2.objectCacheMaxPerElementSize", "" + SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE);
             add(rows, "h2.optimizeInList", "" + SysProperties.OPTIMIZE_IN_LIST);
             add(rows, "h2.optimizeSubqueryCache", "" + SysProperties.OPTIMIZE_SUBQUERY_CACHE);
-            add(rows, "h2.overflowExceptions", "" + SysProperties.OVERFLOW_EXCEPTIONS);
             add(rows, "h2.recompileAlways", "" + SysProperties.RECOMPILE_ALWAYS);
             add(rows, "h2.redoBufferSize", "" + SysProperties.REDO_BUFFER_SIZE);
             add(rows, "h2.runFinalize", "" + SysProperties.runFinalize);

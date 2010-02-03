@@ -88,7 +88,7 @@ public class CreateIndex extends SchemaCommand {
             indexType = IndexType.createNonUnique(persistent, hash);
         }
         IndexColumn.mapColumns(indexColumns, table);
-        table.addIndex(session, indexName, id, indexColumns, indexType, headPos, comment);
+        table.addIndex(session, indexName, id, indexColumns, indexType, create, comment);
         return 0;
     }
 

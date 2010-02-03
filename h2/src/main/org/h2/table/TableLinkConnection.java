@@ -11,8 +11,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 import org.h2.constant.SysProperties;
+import org.h2.util.ByteUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -90,10 +90,10 @@ public class TableLinkConnection {
     }
 
     public int hashCode() {
-        return ObjectUtils.hashCode(driver)
-                ^ ObjectUtils.hashCode(url)
-                ^ ObjectUtils.hashCode(user)
-                ^ ObjectUtils.hashCode(password);
+        return ByteUtils.hashCode(driver)
+                ^ ByteUtils.hashCode(url)
+                ^ ByteUtils.hashCode(user)
+                ^ ByteUtils.hashCode(password);
     }
 
     public boolean equals(Object o) {

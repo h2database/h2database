@@ -151,12 +151,12 @@ public abstract class Table extends SchemaObjectBase {
      * @param indexId the id
      * @param cols the index columns
      * @param indexType the index type
-     * @param headPos the position of the head (if the index already exists)
+     * @param create whether this is a new index
      * @param indexComment the comment
      * @return the index
      */
     public abstract Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            int headPos, String indexComment) throws SQLException;
+            boolean create, String indexComment) throws SQLException;
 
     /**
      * Remove a row from the table and all indexes.

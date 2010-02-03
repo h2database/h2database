@@ -3,6 +3,8 @@
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
+ * Iso8601:
+ * Initial Developer: Robert Rathsack (firstName dot lastName at gmx dot de)
  */
 package org.h2.util;
 
@@ -426,6 +428,69 @@ public class DateTimeUtils {
             c.setTime(d);
             return c.getTime().getTime() - c.get(Calendar.ZONE_OFFSET);
         }
+    }
+
+    /**
+     * Return the day of week according to the ISO 8601 specification. Week
+     * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
+     *
+     * @author Robert Rathsack
+     *
+     * @param date the date object which day of week should be calculated
+     * @return the day of the week, Monday as 1 to Sunday as 7
+     */
+    public static int getIsoDayOfWeek(java.util.Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(date.getTime());
+        int val = cal.get(Calendar.DAY_OF_WEEK) - 1;
+        return val == 0 ? 7 : val;
+    }
+
+    /**
+     * Returns the week of the year according to the ISO 8601 specification. The
+     * spec defines the first week of the year as the week which contains at
+     * least 4 days of the new year. The week starts at Monday. Therefore
+     * December 29th - 31th could belong to the next year and January 1st - 3th
+     * could belong to the previous year. If January 1st is on Thursday (or
+     * earlier) it belongs to the first week, otherwise to the last week of the
+     * previous year. Hence January 4th always belongs to the first week while
+     * the December 28th always belongs to the last week.
+     *
+     * @author Robert Rathsack
+     *
+     * @param date the date object which week of year should be calculated
+     * @return the week of the year
+     */
+    public static int getIsoWeek(java.util.Date date) {
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(date.getTime());
+        c.setFirstDayOfWeek(Calendar.MONDAY);
+        c.setMinimalDaysInFirstWeek(4);
+        return c.get(Calendar.WEEK_OF_YEAR);
+    }
+
+    /**
+     * Returns the year according to the ISO week definition.
+     *
+     * @author Robert Rathsack
+     *
+     * @param date the date object which year should be calculated
+     * @return the year
+     */
+    public static int getIsoYear(java.util.Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(date.getTime());
+        cal.setFirstDayOfWeek(Calendar.MONDAY);
+        cal.setMinimalDaysInFirstWeek(4);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int week = cal.get(Calendar.WEEK_OF_YEAR);
+        if (month == 0 && week > 51) {
+            year--;
+        } else if (month == 11 && week == 1) {
+            year++;
+        }
+        return year;
     }
 
 }

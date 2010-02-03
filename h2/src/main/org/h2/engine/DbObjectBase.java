@@ -145,10 +145,6 @@ public abstract class DbObjectBase implements DbObject {
         objectName = null;
     }
 
-    public int getHeadPos() {
-        return 0;
-    }
-
     public void rename(String newName) throws SQLException {
         checkRename();
         objectName = newName;

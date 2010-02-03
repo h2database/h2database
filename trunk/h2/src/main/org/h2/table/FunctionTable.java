@@ -92,7 +92,7 @@ public class FunctionTable extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            int headPos, String indexComment) throws SQLException {
+            boolean create, String indexComment) throws SQLException {
         throw Message.getUnsupportedException("ALIAS");
     }
 

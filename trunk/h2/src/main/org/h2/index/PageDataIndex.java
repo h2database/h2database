@@ -36,7 +36,7 @@ import org.h2.value.ValueNull;
  * all rows of a table. Each regular table has one such object, even if no
  * primary key or indexes are defined.
  */
-public class PageDataIndex extends PageIndex implements RowIndex {
+public class PageDataIndex extends PageIndex {
 
     private PageStore store;
     private TableData tableData;
@@ -49,7 +49,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
     private SQLException fastDuplicateKeyException;
     private int memorySizePerPage;
 
-    public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
+    public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
 
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
@@ -64,8 +64,7 @@ public class PageDataIndex extends PageIndex implements RowIndex {
         if (!database.isPersistent()) {
             throw Message.throwInternalError(table.getName());
         }
-        if (headPos == Index.EMPTY_HEAD) {
-            // new table
+        if (create) {
             rootPageId = store.allocatePage();
             store.addMeta(this, session);
             PageDataLeaf root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);

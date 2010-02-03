@@ -56,7 +56,7 @@ public class CommandRemote implements CommandInterface {
     private void prepare(SessionRemote s, boolean createParams) throws SQLException {
         id = s.getNextId();
         paramCount = 0;
-        boolean readParams = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_6;
+        boolean readParams = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION;
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = transferList.get(i);

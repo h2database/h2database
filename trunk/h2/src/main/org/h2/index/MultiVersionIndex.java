@@ -277,10 +277,6 @@ public class MultiVersionIndex implements Index {
         return base.getDatabase();
     }
 
-    public int getHeadPos() {
-        return base.getHeadPos();
-    }
-
     public int getId() {
         return base.getId();
     }
@@ -319,6 +315,10 @@ public class MultiVersionIndex implements Index {
 
     public Index getBaseIndex() {
         return base;
+    }
+
+    public Row getRow(Session session, long key) throws SQLException {
+        return base.getRow(session, key);
     }
 
 }

@@ -16,6 +16,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -45,9 +46,19 @@ import org.h2.value.ValueUuid;
 /**
  * A data page is a byte buffer that contains persistent data of a page.
  */
-public class Data extends DataPage {
+public class Data {
+
+    /**
+     * The length of an integer value.
+     */
+    public static final int LENGTH_INT = 4;
 
     private static final int TEST_OFFSET = 0;
+
+    /**
+     * The length of a long value.
+     */
+    private static final int LENGTH_LONG = 8;
 
     private static final int INT_0_15 = 32;
     private static final int LONG_0_7 = 48;
@@ -65,8 +76,24 @@ public class Data extends DataPage {
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
+    /**
+     * The data itself.
+     */
+    private byte[] data;
+
+    /**
+     * The current write or read position.
+     */
+    private int pos;
+
+    /**
+     * The data handler responsible for lob objects.
+     */
+    private final DataHandler handler;
+
     private Data(DataHandler handler, byte[] data) {
-        super(handler, data);
+        this.handler = handler;
+        this.data = data;
     }
 
     /**
@@ -977,6 +1004,32 @@ public class Data extends DataPage {
                 return x;
             }
         }
+    }
+
+    /**
+     * Check if there is still enough capacity in the buffer.
+     * This method extends the buffer if required.
+     *
+     * @param plus the number of additional bytes required
+     */
+    public void checkCapacity(int plus) {
+        if (pos + plus >= data.length) {
+            byte[] d = MemoryUtils.newBytes((data.length + plus) * 2);
+            // must copy everything, because pos could be 0 and data may be
+            // still required
+            System.arraycopy(data, 0, d, 0, data.length);
+            data = d;
+        }
+    }
+
+    /**
+     * Fill up the buffer with empty space and an (initially empty) checksum
+     * until the size is a multiple of Constants.FILE_BLOCK_SIZE.
+     */
+    public void fillAligned() {
+        // TODO datapage: fillAligned should not use a fixed constant '2'
+        // 0..6 > 8, 7..14 > 16, 15..22 > 24, ...
+        fill(MathUtils.roundUp(pos + 2, Constants.FILE_BLOCK_SIZE));
     }
 
 }

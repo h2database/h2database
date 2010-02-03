@@ -23,7 +23,7 @@ public class PageDelegateIndex extends PageIndex {
 
     private final PageDataIndex mainIndex;
 
-    public PageDelegateIndex(TableData table, int id, String name, IndexType indexType, PageDataIndex mainIndex, int headPos, Session session) throws SQLException {
+    public PageDelegateIndex(TableData table, int id, String name, IndexType indexType, PageDataIndex mainIndex, boolean create, Session session) throws SQLException {
         IndexColumn[] cols = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
@@ -32,7 +32,7 @@ public class PageDelegateIndex extends PageIndex {
         }
         PageStore store = database.getPageStore();
         store.addIndex(this);
-        if (headPos == Index.EMPTY_HEAD) {
+        if (create) {
             store.addMeta(this, session);
         }
     }

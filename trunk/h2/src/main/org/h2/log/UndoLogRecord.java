@@ -160,7 +160,6 @@ public class UndoLogRecord {
         }
         buff.fillAligned();
         buff.setInt(0, buff.length() / Constants.FILE_BLOCK_SIZE);
-        buff.updateChecksum();
         filePos = (int) (file.getFilePointer() / Constants.FILE_BLOCK_SIZE);
         file.write(buff.getBytes(), 0, buff.length());
         row = null;
@@ -183,7 +182,6 @@ public class UndoLogRecord {
         if (len - min > 0) {
             file.readFully(buff.getBytes(), min, len - min);
         }
-        buff.check(len);
         int op = buff.readInt();
         if (SysProperties.CHECK) {
             if (operation != op) {

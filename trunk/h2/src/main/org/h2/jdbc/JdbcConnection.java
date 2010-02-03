@@ -33,8 +33,8 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.util.ByteUtils;
 import org.h2.util.MemoryUtils;
-import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
@@ -1679,7 +1679,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             break;
         }
         case Value.JAVA_OBJECT:
-            o = ObjectUtils.deserialize(v.getBytesNoCopy());
+            o = ByteUtils.deserialize(v.getBytesNoCopy());
             break;
         default:
             o = v.getObject();

@@ -22,11 +22,6 @@ import org.h2.table.Table;
 public interface Index extends SchemaObject {
 
     /**
-     * Indicates that there is no head record yet.
-     */
-    int EMPTY_HEAD = -1;
-
-    /**
      * Create a duplicate key exception with a message that contains the index name
      *
      * @return the exception
@@ -262,5 +257,15 @@ public interface Index extends SchemaObject {
      * @return the root page id
      */
     int getRootPageId();
+
+
+    /**
+     * Get the row with the given key.
+     *
+     * @param session the session
+     * @param key the unique key
+     * @return the row
+     */
+    Row getRow(Session session, long key) throws SQLException;
 
 }

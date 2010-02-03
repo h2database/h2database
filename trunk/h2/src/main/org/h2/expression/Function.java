@@ -41,7 +41,6 @@ import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
-import org.h2.util.DateTimeIso8601Utils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
@@ -648,13 +647,13 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.YEAR));
             break;
         case ISO_YEAR:
-            result = ValueInt.get(DateTimeIso8601Utils.getIsoYear(v0.getDateNoCopy()));
+            result = ValueInt.get(DateTimeUtils.getIsoYear(v0.getDateNoCopy()));
             break;
         case ISO_WEEK:
-            result = ValueInt.get(DateTimeIso8601Utils.getIsoWeek(v0.getDateNoCopy()));
+            result = ValueInt.get(DateTimeUtils.getIsoWeek(v0.getDateNoCopy()));
             break;
         case ISO_DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeIso8601Utils.getIsoDayOfWeek(v0.getDateNoCopy()));
+            result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0.getDateNoCopy()));
             break;
         case CURDATE:
         case CURRENT_DATE:

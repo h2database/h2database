@@ -135,7 +135,7 @@ public class CreateTable extends SchemaCommand {
             }
         }
         data.id = getObjectId();
-        data.headPos = headPos;
+        data.create = create;
         data.session = session;
         TableData table = getSchema().createTable(data);
         table.setComment(comment);

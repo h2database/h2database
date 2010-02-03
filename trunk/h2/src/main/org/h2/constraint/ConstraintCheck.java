@@ -54,7 +54,7 @@ public class ConstraintCheck extends Constraint {
         return buff.toString();
     }
 
-    public String getShortDescription() {
+    private String getShortDescription() {
         return getName() + ": " + expr.getSQL();
     }
 

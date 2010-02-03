@@ -40,16 +40,10 @@ public class Constants {
     public static final String BUILD_DATE_STABLE = "2010-01-15";
 
     /**
-     * The TCP protocol version number 5. This protocol is used by the TCP
+     * The TCP protocol version number. This protocol is used by the TCP
      * server and remote JDBC client.
      */
-    public static final int TCP_PROTOCOL_VERSION_5 = 5;
-
-    /**
-     * The TCP protocol version number 6. This protocol is used by the TCP
-     * server and remote JDBC client.
-     */
-    public static final int TCP_PROTOCOL_VERSION_6 = 6;
+    public static final int TCP_PROTOCOL_VERSION = 6;
 
     /**
      * The major version of this database.
@@ -65,12 +59,6 @@ public class Constants {
      * The version number (major.minor) of this database.
      */
     public static final double VERSION = VERSION_MAJOR + VERSION_MINOR / 10.;
-
-    /**
-     * If empty b-tree pages are allowed. This is supported for backward
-     * compatibility.
-     */
-    public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
 
     /**
      * Constant meaning both numbers and text is allowed in SQL statements.
@@ -387,11 +375,6 @@ public class Constants {
     public static final long SLOW_QUERY_LIMIT_MS = 100;
 
     /**
-     * The file name suffix of data files.
-     */
-    public static final String SUFFIX_DATA_FILE = ".data.db";
-
-    /**
      * The file name suffix of page files.
      */
     public static final String SUFFIX_PAGE_FILE = ".h2.db";
@@ -400,11 +383,6 @@ public class Constants {
      * The file name suffix of all database files.
      */
     public static final String SUFFIX_DB_FILE = ".db";
-
-    /**
-     * The file name suffix of index files.
-     */
-    public static final String SUFFIX_INDEX_FILE = ".index.db";
 
     /**
      * The file name suffix of file lock files that are used to make sure a
@@ -422,11 +400,6 @@ public class Constants {
      * directory.
      */
     public static final String SUFFIX_LOBS_DIRECTORY = ".lobs.db";
-
-    /**
-     * The file name suffix of transaction log files.
-     */
-    public static final String SUFFIX_LOG_FILE = ".log.db";
 
     /**
      * The file name suffix of temporary files.
@@ -458,16 +431,6 @@ public class Constants {
      * Name of the character encoding format.
      */
     public static final String UTF8 = "UTF8";
-
-    /**
-     * The major version number of the supported JDBC API.
-     */
-    public static final int VERSION_JDBC_MAJOR = 3;
-
-    /**
-     * The minor version number of the supported JDBC API.
-     */
-    public static final int VERSION_JDBC_MINOR = 0;
 
     /**
      * The maximum time in milliseconds to keep the cost of a view.

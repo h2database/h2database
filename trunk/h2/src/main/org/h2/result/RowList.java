@@ -7,13 +7,11 @@
 package org.h2.result;
 
 import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.store.Data;
-import org.h2.store.DataPage;
 import org.h2.store.FileStore;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
@@ -49,7 +47,7 @@ public class RowList {
     }
 
     private void writeRow(Data buff, Row r) throws SQLException {
-        buff.checkCapacity(1 + DataPage.LENGTH_INT * 8);
+        buff.checkCapacity(1 + Data.LENGTH_INT * 8);
         buff.writeByte((byte) 1);
         buff.writeInt(r.getMemorySize());
         buff.writeInt(r.getColumnCount());
@@ -121,7 +119,6 @@ public class RowList {
         buff.writeByte((byte) 0);
         buff.fillAligned();
         buff.setInt(0, buff.length() / Constants.FILE_BLOCK_SIZE);
-        buff.updateChecksum();
         file.write(buff.getBytes(), 0, buff.length());
     }
 
@@ -225,7 +222,6 @@ public class RowList {
                 if (len - min > 0) {
                     file.readFully(buff.getBytes(), min, len - min);
                 }
-                buff.check(len);
                 for (int i = 0;; i++) {
                     r = readRow(buff);
                     if (r == null) {

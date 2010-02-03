@@ -25,7 +25,6 @@ import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
-import org.h2.util.JdbcDriverUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.SortedProperties;
@@ -355,7 +354,7 @@ public class Shell extends Tool {
         print("URL       ");
         url = readLine(url);
         if (driver == null) {
-            driver = JdbcDriverUtils.getDriver(url);
+            driver = JdbcUtils.getDriver(url);
         }
         if (driver != null) {
             println("[Enter]   " + driver);

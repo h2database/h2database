@@ -10,8 +10,6 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
-
-import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.util.New;
 import org.h2.value.Value;
@@ -78,7 +76,7 @@ public class TestOverflow extends TestBase {
     }
 
     private void onSuccess() {
-        if (!successExpected && SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (!successExpected) {
             fail();
         }
     }

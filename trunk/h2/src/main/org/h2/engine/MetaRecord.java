@@ -25,12 +25,10 @@ public class MetaRecord {
 
     private int id;
     private int objectType;
-    private int headPos;
     private String sql;
 
     public MetaRecord(SearchRow r) throws SQLException {
         id = r.getValue(0).getInt();
-        headPos = r.getValue(1).getInt();
         objectType = r.getValue(2).getInt();
         sql = r.getValue(3).getString();
     }
@@ -38,7 +36,6 @@ public class MetaRecord {
     MetaRecord(DbObject obj) {
         id = obj.getId();
         objectType = obj.getType();
-        headPos = obj.getHeadPos();
         sql = obj.getCreateSQL();
     }
 
@@ -62,7 +59,7 @@ public class MetaRecord {
 
     void setRecord(SearchRow r) {
         r.setValue(0, ValueInt.get(id));
-        r.setValue(1, ValueInt.get(headPos));
+        r.setValue(1, ValueInt.get(0));
         r.setValue(2, ValueInt.get(objectType));
         r.setValue(3, ValueString.get(sql));
     }
@@ -78,7 +75,7 @@ public class MetaRecord {
         try {
             Prepared command = systemSession.prepare(sql);
             command.setObjectId(id);
-            command.setHeadPos(headPos);
+            command.setCreate(false);
             command.update();
         } catch (Exception e) {
             SQLException s = Message.addSQL(Message.convert(e), sql);

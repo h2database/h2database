@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.h2.util.JdbcDriverUtils;
+import org.h2.util.JdbcUtils;
 
 /**
  * A simple wrapper around the JDBC API.
@@ -61,7 +61,7 @@ public class Db {
      */
     public static Db open(String url, String user, String password) {
         try {
-            JdbcDriverUtils.load(url);
+            JdbcUtils.load(url);
             return new Db(DriverManager.getConnection(url, user, password));
         } catch (SQLException e) {
             throw convert(e);

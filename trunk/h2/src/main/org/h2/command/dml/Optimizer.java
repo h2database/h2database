@@ -9,13 +9,11 @@ package org.h2.command.dml;
 import java.sql.SQLException;
 import java.util.BitSet;
 import java.util.Random;
-
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.Plan;
 import org.h2.table.PlanItem;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectUtils;
 import org.h2.util.Permutations;
 
 /**
@@ -157,20 +155,20 @@ public class Optimizer {
             }
             boolean generateRandom = (x & 127) == 0;
             if (!generateRandom) {
-                ObjectUtils.arrayCopy(best, list, filters.length);
+                System.arraycopy(best, 0, list, 0, filters.length);
                 if (!shuffleTwo(list)) {
                     generateRandom = true;
                 }
             }
             if (generateRandom) {
                 switched = new BitSet();
-                ObjectUtils.arrayCopy(filters, best, filters.length);
+                System.arraycopy(filters, 0, best, 0, filters.length);
                 shuffleAll(best);
-                ObjectUtils.arrayCopy(best, list, filters.length);
+                System.arraycopy(best, 0, list, 0, filters.length);
             }
             if (testPlan(list)) {
                 switched = new BitSet();
-                ObjectUtils.arrayCopy(list, best, filters.length);
+                System.arraycopy(list, 0, best, 0, filters.length);
             }
         }
     }

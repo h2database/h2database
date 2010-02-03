@@ -8,8 +8,6 @@ package org.h2.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,19 +15,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
 import java.util.zip.CRC32;
-import org.h2.Driver;
-import org.h2.command.Parser;
 import org.h2.compress.CompressLZF;
-import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -40,9 +32,7 @@ import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
-import org.h2.store.DataPage;
 import org.h2.store.DataReader;
-import org.h2.store.DiskFile;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
@@ -55,8 +45,6 @@ import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
-import org.h2.util.MathUtils;
-import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
@@ -74,12 +62,8 @@ import org.h2.value.ValueLong;
  */
 public class Recover extends Tool implements DataHandler {
 
-    private static final String SUFFIX_UNCOMMITTED = ".uncommitted.txt";
-    private static final int LOG_FILE_BLOCK_SIZE = 16;
-
     private String databaseName;
     private int block;
-    private int blockCount;
     private int storageId;
     private String storageName;
     private int recordLength;
@@ -88,7 +72,6 @@ public class Recover extends Tool implements DataHandler {
     private ObjectArray<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
-    private HashMap<Integer, Integer> sessionCommit;
     private boolean remove;
 
     private long pageDataEmpty;
@@ -150,9 +133,6 @@ public class Recover extends Tool implements DataHandler {
                 throwUnsupportedOption(arg);
             }
         }
-        if (remove) {
-            removePassword(dir, db);
-        }
         process(dir, db);
     }
 
@@ -170,15 +150,6 @@ public class Recover extends Tool implements DataHandler {
         return new BufferedInputStream(FileUtils.openFileInputStream(fileName));
     }
 
-    private void removePassword(String dir, String db) throws SQLException {
-        ArrayList<String> list = FileLister.getDatabaseFiles(dir, db, true);
-        for (String fileName : list) {
-            if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
-                removePassword(fileName);
-            }
-        }
-    }
-
     private void trace(String message) {
         if (trace) {
             out.println(message);
@@ -190,123 +161,6 @@ public class Recover extends Tool implements DataHandler {
         if (trace) {
             t.printStackTrace(out);
         }
-    }
-
-    private void removePassword(String fileName) throws SQLException {
-        if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-            remove = true;
-            dumpPageStore(fileName);
-            return;
-        }
-        setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
-        FileStore fileStore = FileStore.open(null, fileName, "rw");
-        long length = fileStore.length();
-        int offset = FileStore.HEADER_LENGTH;
-        int blockSize = DiskFile.BLOCK_SIZE;
-        int blocks = (int) (length / blockSize);
-        blockCount = 1;
-        for (int b = 0; b < blocks; b += blockCount) {
-            fileStore.seek(offset + (long) b * blockSize);
-            byte[] bytes = new byte[blockSize];
-            DataPage s = DataPage.create(this, bytes);
-            long start = fileStore.getFilePointer();
-            fileStore.readFully(bytes, 0, blockSize);
-            blockCount = s.readInt();
-            setStorage(-1);
-            recordLength = -1;
-            valueId = -1;
-            if (blockCount == 0) {
-                // free block
-                blockCount = 1;
-                continue;
-            } else if (blockCount < 0) {
-                blockCount = 1;
-                continue;
-            }
-            try {
-                s.checkCapacity(blockCount * blockSize);
-            } catch (OutOfMemoryError e) {
-                blockCount = 1;
-                continue;
-            }
-            if (blockCount > 1) {
-                fileStore.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
-            }
-            try {
-                s.check(blockCount * blockSize);
-            } catch (SQLException e) {
-                blockCount = 1;
-                continue;
-            }
-            setStorage(s.readInt());
-            if (storageId != 0) {
-                continue;
-            }
-            recordLength = s.readInt();
-            if (recordLength <= 0) {
-                continue;
-            }
-            Value[] data;
-            try {
-                data = new Value[recordLength];
-            } catch (Throwable e) {
-                continue;
-            }
-            for (valueId = 0; valueId < recordLength; valueId++) {
-                try {
-                    data[valueId] = s.readValue();
-                } catch (Throwable e) {
-                    continue;
-                }
-            }
-            if (storageId == 0) {
-                try {
-                    String sql = data[3].getString();
-                    if (!sql.startsWith("CREATE USER ")) {
-                        continue;
-                    }
-                    int idx = sql.indexOf("SALT");
-                    if (idx < 0) {
-                        continue;
-                    }
-                    String userName = sql.substring("CREATE USER ".length(), idx - 1);
-                    if (userName.startsWith("\"")) {
-                        // TODO doesn't work for all cases ("" inside user name)
-                        userName = userName.substring(1, userName.length() - 1);
-                    }
-                    SHA256 sha = new SHA256();
-                    byte[] userPasswordHash = sha.getKeyPasswordHash(userName, "".toCharArray());
-                    byte[] salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);
-                    byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
-                    boolean admin = sql.indexOf("ADMIN") >= 0;
-                    StringBuilder buff = new StringBuilder();
-                    buff.append("CREATE USER ").
-                        append(Parser.quoteIdentifier(userName)).
-                        append(" SALT '").
-                        append(ByteUtils.convertBytesToString(salt)).
-                        append("' HASH '").
-                        append(ByteUtils.convertBytesToString(passwordHash)).
-                        append('\'');
-                    if (admin) {
-                        buff.append(" ADMIN");
-                    }
-                    byte[] replacement = buff.toString().getBytes();
-                    int at = ByteUtils.indexOf(s.getBytes(), "CREATE USER ".getBytes(), 0);
-                    System.arraycopy(replacement, 0, s.getBytes(), at, replacement.length);
-                    s.fill(blockCount * blockSize);
-                    s.updateChecksum();
-                    fileStore.seek(start);
-                    fileStore.write(s.getBytes(), 0, s.length());
-                    if (trace) {
-                        out.println("User: " + userName);
-                    }
-                    break;
-                } catch (Throwable e) {
-                    e.printStackTrace(out);
-                }
-            }
-        }
-        closeSilently(fileStore);
     }
 
     /**
@@ -325,15 +179,8 @@ public class Recover extends Tool implements DataHandler {
             printNoDatabaseFilesFound(dir, db);
         }
         for (String fileName : list) {
-            if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
-                dumpData(fileName);
-            } else if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+            if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
                 dumpPageStore(fileName);
-            } else if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
-                dumpIndex(fileName);
-            } else if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
-                dumpLog(fileName, true);
-                dumpLog(fileName, false);
             } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 dumpLob(fileName, true);
                 dumpLob(fileName, false);
@@ -348,11 +195,11 @@ public class Recover extends Tool implements DataHandler {
         return new PrintWriter(IOUtils.getWriter(FileUtils.openFileOutputStream(outputFile, false)));
     }
 
-    private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) {
-        writer.println("-- ERROR: " + error + " block: " + block + " blockCount: " + blockCount + " storageId: "
+    private void writeDataError(PrintWriter writer, String error, byte[] data) {
+        writer.println("-- ERROR: " + error + " block: " + block + " storageId: "
                 + storageId + " recordLength: " + recordLength + " valueId: " + valueId);
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < data.length && i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
+        for (int i = 0; i < data.length; i++) {
             int x = data[i] & 0xff;
             if (x >= ' ' && x < 128) {
                 sb.append((char) x);
@@ -362,7 +209,7 @@ public class Recover extends Tool implements DataHandler {
         }
         writer.println("-- dump: " + sb.toString());
         sb = new StringBuilder();
-        for (int i = 0; i < data.length && i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
+        for (int i = 0; i < data.length; i++) {
             int x = data[i] & 0xff;
             sb.append(' ');
             if (x < 16) {
@@ -411,59 +258,6 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void writeLogRecord(PrintWriter writer, DataPage s, boolean insert) {
-        recordLength = s.readInt();
-        if (recordLength <= 0) {
-            writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
-            return;
-        }
-        Value[] data;
-        try {
-            data = new Value[recordLength];
-        } catch (OutOfMemoryError e) {
-            writeDataError(writer, "out of memory", s.getBytes(), blockCount);
-            return;
-        }
-        StringBuilder sb = new StringBuilder();
-        if (insert) {
-            sb.append("MERGE INTO ").append(storageName).append(" VALUES(");
-        } else {
-            sb.append("DELETE FROM ").append(storageName).append(" WHERE ");
-        }
-        for (valueId = 0; valueId < recordLength; valueId++) {
-            try {
-                Value v = s.readValue();
-                data[valueId] = v;
-                if (valueId > 0) {
-                    if (insert) {
-                        sb.append(", ");
-                    } else {
-                        sb.append(" AND ");
-                    }
-                }
-                if (!insert) {
-                    sb.append(" C").append(valueId).append('=');
-                }
-                sb.append(getSQL(v));
-            } catch (Exception e) {
-                if (trace) {
-                    traceError("log data", e);
-                }
-                writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
-                continue;
-            } catch (OutOfMemoryError e) {
-                writeDataError(writer, "out of memory", s.getBytes(), blockCount);
-                continue;
-            }
-        }
-        if (insert) {
-            sb.append(')');
-        }
-        sb.append(';');
-        writer.println(sb.toString());
-        writer.flush();
-    }
-
     private String getSQL(Value v) {
         if (v instanceof ValueLob) {
             ValueLob lob = (ValueLob) v;
@@ -481,323 +275,6 @@ public class Recover extends Tool implements DataHandler {
 
     private void setDatabaseName(String name) {
         databaseName = name;
-    }
-
-    private void dumpLog(String fileName, boolean onlySetSessionState) {
-        PrintWriter writer = null;
-        FileStore fileStore = null;
-        boolean containsUncommitted = false;
-        try {
-            if (onlySetSessionState) {
-                sessionCommit = New.hashMap();
-            }
-            setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_LOG_FILE.length()));
-            if (!onlySetSessionState) {
-                writer = getWriter(fileName, ".txt");
-            }
-            fileStore = FileStore.open(null, fileName, "r");
-            long length = fileStore.length();
-            if (!onlySetSessionState) {
-                writer.println("// length: " + length);
-            }
-            int offset = FileStore.HEADER_LENGTH;
-            int blockSize = LOG_FILE_BLOCK_SIZE;
-            int blocks = (int) (length / blockSize);
-            byte[] buff = new byte[blockSize];
-            DataPage s = DataPage.create(this, buff);
-            s.fill(3 * blockSize);
-            int len = s.length();
-            s.reset();
-            if (length < FileStore.HEADER_LENGTH + len) {
-                // this is an empty file
-                if (!onlySetSessionState) {
-                    writer.println("// empty file");
-                }
-                return;
-            }
-            fileStore.seek(offset);
-            fileStore.readFully(s.getBytes(), 0, len);
-            int id = s.readInt();
-            int firstUncommittedPos = s.readInt();
-            int firstUnwrittenPos = s.readInt();
-            int max = (int) (length / blockSize);
-            if (!onlySetSessionState) {
-                writer.println("// id: " + id);
-                writer.println("// firstUncommittedPos: " + firstUncommittedPos);
-                writer.println("// firstUnwrittenPos: " + firstUnwrittenPos);
-                writer.println("// max: " + max);
-            }
-            while (true) {
-                int pos = (int) (fileStore.getFilePointer() / blockSize);
-                if ((long) pos * blockSize >= length) {
-                    break;
-                }
-                buff = new byte[blockSize];
-                fileStore.readFully(buff, 0, blockSize);
-                s = DataPage.create(this, buff);
-                // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
-                blocks = MathUtils.convertLongToInt(Math.abs(s.readInt()));
-                if (blocks > 1) {
-                    byte[] b2 = MemoryUtils.newBytes(blocks * blockSize);
-                    System.arraycopy(buff, 0, b2, 0, blockSize);
-                    buff = b2;
-                    try {
-                        fileStore.readFully(buff, blockSize, blocks * blockSize - blockSize);
-                    } catch (SQLException e) {
-                        break;
-                    }
-                    s = DataPage.create(this, buff);
-                    s.check(blocks * blockSize);
-                }
-                s.reset();
-                // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
-                blocks = MathUtils.convertLongToInt(Math.abs(s.readInt()));
-                if (blocks == 0) {
-                    if (!onlySetSessionState) {
-                        writer.println("// [" + pos + "] blocks: " + blocks + " (end)");
-                    }
-                    break;
-                }
-                char type = (char) s.readByte();
-                int sessionId = s.readInt();
-                if (type == 'P') {
-                    containsUncommitted = true;
-                    String transaction = s.readString();
-                    if (!onlySetSessionState) {
-                        writer.println("//   prepared session: " + sessionId + " tx: " + transaction);
-                    }
-                } else if (type == 'C') {
-                    containsUncommitted = true;
-                    if (!onlySetSessionState) {
-                        writer.println("//   commit session: " + sessionId);
-                    } else {
-                        sessionCommit.put(sessionId, pos);
-                    }
-                } else {
-                    int sId = s.readInt();
-                    int recId = s.readInt();
-                    int bCount = s.readInt();
-                    if (type != 'T') {
-                        s.readDataPageNoSize();
-                    }
-                    switch (type) {
-                    case 'S': {
-                        char fileType = (char) s.readByte();
-                        int sumLength = s.readInt();
-                        byte[] summary = MemoryUtils.newBytes(sumLength);
-                        if (sumLength > 0) {
-                            s.read(summary, 0, sumLength);
-                        }
-                        if (!onlySetSessionState) {
-                            writer.println("//   summary session: "+sessionId+" fileType: " + fileType + " sumLength: " + sumLength);
-                            dumpSummary(writer, summary);
-                        }
-                        break;
-                    }
-                    case 'T':
-                        containsUncommitted = true;
-                        if (!onlySetSessionState) {
-                            writer.println("//   truncate session: "+sessionId+" storage: " + sId + " pos: " + recId + " blockCount: "+bCount);
-                            if (sessionCommit.get(sessionId) >= pos) {
-                                setStorage(sId);
-                                writer.println("TRUNCATE TABLE " + storageName + ";");
-                            }
-                        }
-                        break;
-                    case 'I':
-                        containsUncommitted = true;
-                        if (!onlySetSessionState) {
-                            writer.println("//   insert session: "+sessionId+" storage: " + sId + " pos: " + recId + " blockCount: "+bCount);
-                            if (sId >= 0) {
-                                if (sessionCommit.get(sessionId) >= pos) {
-                                    setStorage(sId);
-                                    writeLogRecord(writer, s, true);
-                                }
-                            }
-                        }
-                        break;
-                    case 'D':
-                        containsUncommitted = true;
-                        if (!onlySetSessionState) {
-                            writer.println("//   delete session: "+sessionId+" storage: " + sId + " pos: " + recId + " blockCount: "+bCount);
-                            if (sId >= 0) {
-                                if (sessionCommit.get(sessionId) >= pos) {
-                                    setStorage(sId);
-                                    writeLogRecord(writer, s, false);
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        containsUncommitted = true;
-                        if (!onlySetSessionState) {
-                            writer.println("//   type?: "+type+" session: "+sessionId+" storage: " + sId + " pos: " + recId + " blockCount: "+bCount);
-                        }
-                        break;
-                    }
-                }
-            }
-            if (!onlySetSessionState) {
-                writer.close();
-                if (containsUncommitted) {
-                    String db = fileName.substring(0, fileName.length() - Constants.SUFFIX_LOG_FILE.length());
-                    int idx = db.lastIndexOf('.');
-                    if (idx >= 0) {
-                        db = db.substring(0, idx);
-                        writer = getWriter(db + ".db", SUFFIX_UNCOMMITTED);
-                        writer.close();
-                    }
-                }
-            }
-        } catch (Throwable e) {
-            writeError(writer, e);
-        } finally {
-            IOUtils.closeSilently(writer);
-            closeSilently(fileStore);
-        }
-    }
-
-    private void dumpSummary(PrintWriter writer, byte[] summary) {
-        if (summary == null || summary.length == 0) {
-            writer.println("//     summary is empty");
-            return;
-        }
-        try {
-            DataInputStream in = new DataInputStream(new ByteArrayInputStream(summary));
-            int b2 = in.readInt();
-            for (int i = 0; i < b2 / 8; i++) {
-                int x = in.read();
-                if ((i % 8) == 0) {
-                    writer.print("//  ");
-                }
-                writer.print(" " + Long.toString(i * 8) + ": ");
-                for (int j = 0; j < 8; j++) {
-                    writer.print(((x & 1) == 1) ? "1" : "0");
-                    x >>>= 1;
-                }
-                if ((i % 8) == 7) {
-                    writer.println("");
-                }
-            }
-            writer.println("//");
-            int len = in.readInt();
-            for (int i = 0; i < len; i++) {
-                int sId = in.readInt();
-                if (sId != -1) {
-                    writer.println("//     pos: " + (i * DiskFile.BLOCKS_PER_PAGE) + " storage: " + sId);
-                }
-            }
-            while (true) {
-                int s = in.readInt();
-                if (s < 0) {
-                    break;
-                }
-                int recordCount = in.readInt();
-                writer.println("//     storage: " + s + " recordCount: " + recordCount);
-            }
-        } catch (Throwable e) {
-            writeError(writer, e);
-        }
-    }
-
-    private void dumpIndex(String fileName) {
-        PrintWriter writer = null;
-        FileStore fileStore = null;
-        try {
-            setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_INDEX_FILE.length()));
-            writer = getWriter(fileName, ".txt");
-            fileStore = FileStore.open(null, fileName, "r");
-            long length = fileStore.length();
-            int offset = FileStore.HEADER_LENGTH;
-            int blockSize = DiskFile.BLOCK_SIZE;
-            int blocks = (int) (length / blockSize);
-            blockCount = 1;
-            int[] pageOwners = new int[blocks / DiskFile.BLOCKS_PER_PAGE];
-            for (block = 0; block < blocks; block += blockCount) {
-                fileStore.seek(offset + (long) block * blockSize);
-                byte[] buff = new byte[blockSize];
-                DataPage s = DataPage.create(this, buff);
-                fileStore.readFully(buff, 0, blockSize);
-                blockCount = s.readInt();
-                setStorage(-1);
-                recordLength = -1;
-                valueId = -1;
-                if (blockCount == 0) {
-                    // free block
-                    blockCount = 1;
-                    continue;
-                } else if (blockCount < 0) {
-                    writeDataError(writer, "blockCount<0", s.getBytes(), 1);
-                    blockCount = 1;
-                    continue;
-                } else if (((long) blockCount * blockSize) >= Integer.MAX_VALUE / 4) {
-                    writeDataError(writer, "blockCount=" + blockCount, s.getBytes(), 1);
-                    blockCount = 1;
-                    continue;
-                }
-                try {
-                    s.checkCapacity(blockCount * blockSize);
-                } catch (OutOfMemoryError e) {
-                    writeDataError(writer, "out of memory", s.getBytes(), 1);
-                    blockCount = 1;
-                    continue;
-                }
-                if (blockCount > 1) {
-                    fileStore.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
-                }
-                try {
-                    s.check(blockCount * blockSize);
-                } catch (SQLException e) {
-                    writeDataError(writer, "wrong checksum", s.getBytes(), 1);
-                    blockCount = 1;
-                    continue;
-                }
-                setStorage(s.readInt());
-                if (storageId < 0) {
-                    writeDataError(writer, "storageId<0", s.getBytes(), blockCount);
-                    continue;
-                }
-                int page = block / DiskFile.BLOCKS_PER_PAGE;
-                if (pageOwners[page] != 0 && pageOwners[page] != storageId) {
-                    writeDataError(writer, "double allocation, previous=" + pageOwners[page] + " now=" + storageId, s
-                            .getBytes(), blockCount);
-                } else {
-                    pageOwners[page] = storageId;
-                }
-                String data = "";
-                int type = s.readByte();
-                int len;
-                switch (type) {
-                case 'L':
-                    boolean pos = s.readByte() == 'P';
-                    len = s.readInt();
-                    data = "leaf(" + len + ")";
-                    if (pos) {
-                        data += " pos";
-                    }
-                    break;
-                case 'N':
-                    len = s.readInt();
-                    data = "node ";
-                    for (int i = 0; i < len; i++) {
-                        data += "[" + s.readInt() + "]";
-                    }
-                    break;
-                case 'H':
-                    int rootPos = s.readInt();
-                    data = "root [" + rootPos + "]";
-                    break;
-                }
-                writer.println("// [" + block + "] page: " + page + " blocks: " + blockCount + " storage: " + storageId + " " + data);
-            }
-            writer.close();
-        } catch (Throwable e) {
-            writeError(writer, e);
-            e.printStackTrace();
-        } finally {
-            IOUtils.closeSilently(writer);
-            closeSilently(fileStore);
-        }
     }
 
     private void dumpPageStore(String fileName) {
@@ -1117,7 +594,7 @@ public class Recover extends Tool implements DataHandler {
 
         private final PrintWriter writer;
         private final FileStore store;
-        private final DataPage page;
+        private final Data page;
         private final int pageSize;
         private int trunkPage;
         private int dataPage;
@@ -1134,7 +611,7 @@ public class Recover extends Tool implements DataHandler {
             this.logKey = logKey - 1;
             this.trunkPage = firstTrunkPage;
             this.dataPage = firstDataPage;
-            page = DataPage.create(handler, pageSize);
+            page = Data.create(handler, pageSize);
         }
 
         public int read() throws IOException {
@@ -1287,7 +764,7 @@ public class Recover extends Tool implements DataHandler {
                 try {
                     data = s.readValue();
                 } catch (Throwable e) {
-                    writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
+                    writeDataError(writer, "exception " + e, s.getBytes());
                     continue;
                 }
             }
@@ -1344,7 +821,7 @@ public class Recover extends Tool implements DataHandler {
                 try {
                     data = s.readValue();
                 } catch (Throwable e) {
-                    writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
+                    writeDataError(writer, "exception " + e, s.getBytes());
                     continue;
                 }
             }
@@ -1403,7 +880,7 @@ public class Recover extends Tool implements DataHandler {
             writer.println("--   empty: " + empty);
         }
         if (!last) {
-            DataPage s2 = DataPage.create(this, pageSize);
+            Data s2 = Data.create(this, pageSize);
             s.setPos(pageSize);
             long parent = pageId;
             while (true) {
@@ -1424,7 +901,7 @@ public class Recover extends Tool implements DataHandler {
                 } else if (type == Page.TYPE_DATA_OVERFLOW) {
                     next = s2.readInt();
                     if (next == 0) {
-                        writeDataError(writer, "next:0", s2.getBytes(), 1);
+                        writeDataError(writer, "next:0", s2.getBytes());
                         break;
                     }
                     int size = pageSize - s2.length();
@@ -1432,7 +909,7 @@ public class Recover extends Tool implements DataHandler {
                     s.checkCapacity(size);
                     s.write(s2.getBytes(), s2.length(), size);
                 } else {
-                    writeDataError(writer, "type: " + type, s2.getBytes(), 1);
+                    writeDataError(writer, "type: " + type, s2.getBytes());
                     break;
                 }
             }
@@ -1483,27 +960,23 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private Value[] createRecord(PrintWriter writer, DataPage s) {
-        return createRecord(writer, s, s.readInt());
-    }
-
-    private Value[] createRecord(PrintWriter writer, DataPage s, int columnCount) {
+    private Value[] createRecord(PrintWriter writer, Data s, int columnCount) {
         recordLength = columnCount;
         if (columnCount <= 0) {
-            writeDataError(writer, "columnCount<0", s.getBytes(), blockCount);
+            writeDataError(writer, "columnCount<0", s.getBytes());
             return null;
         }
         Value[] data;
         try {
             data = new Value[columnCount];
         } catch (OutOfMemoryError e) {
-            writeDataError(writer, "out of memory", s.getBytes(), blockCount);
+            writeDataError(writer, "out of memory", s.getBytes());
             return null;
         }
         return data;
     }
 
-    private void writeRow(PrintWriter writer, DataPage s, Value[] data) {
+    private void writeRow(PrintWriter writer, Data s, Value[] data) {
         StringBuilder sb = new StringBuilder();
         sb.append("INSERT INTO " + storageName + " VALUES(");
         for (valueId = 0; valueId < recordLength; valueId++) {
@@ -1515,10 +988,10 @@ public class Recover extends Tool implements DataHandler {
                 }
                 sb.append(getSQL(v));
             } catch (Exception e) {
-                writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
+                writeDataError(writer, "exception " + e, s.getBytes());
                 continue;
             } catch (OutOfMemoryError e) {
-                writeDataError(writer, "out of memory", s.getBytes(), blockCount);
+                writeDataError(writer, "out of memory", s.getBytes());
                 continue;
             }
         }
@@ -1540,115 +1013,10 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpData(String fileName) {
-        setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
-        dumpData(fileName, fileName, FileStore.HEADER_LENGTH);
-    }
-
     private void resetSchema() {
         schema = ObjectArray.newInstance();
         objectIdSet = New.hashSet();
         tableMap = New.hashMap();
-    }
-
-    private void dumpData(String fileName, String outputName, int offset) {
-        PrintWriter writer = null;
-        FileStore fileStore = null;
-        try {
-            writer = getWriter(outputName, ".sql");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
-            resetSchema();
-            fileStore = FileStore.open(null, fileName, "r");
-            long length = fileStore.length();
-            int blockSize = DiskFile.BLOCK_SIZE;
-            int blocks = (int) (length / blockSize);
-            blockCount = 1;
-            int pageCount = blocks / DiskFile.BLOCKS_PER_PAGE;
-            int[] pageOwners = new int[pageCount + 1];
-            for (block = 0; block < blocks; block += blockCount) {
-                fileStore.seek(offset + (long) block * blockSize);
-                byte[] buff = new byte[blockSize];
-                DataPage s = DataPage.create(this, buff);
-                try {
-                    fileStore.readFully(buff, 0, blockSize);
-                } catch (SQLException e) {
-                    writer.println("-- ERROR: can not read: " + e);
-                    break;
-                }
-                blockCount = s.readInt();
-                setStorage(-1);
-                recordLength = -1;
-                valueId = -1;
-                if (blockCount == 0) {
-                    // free block
-                    blockCount = 1;
-                    continue;
-                } else if (blockCount < 0) {
-                    writeDataError(writer, "blockCount<0", s.getBytes(), 1);
-                    blockCount = 1;
-                    continue;
-                } else if (((long) blockCount * blockSize) >= Integer.MAX_VALUE / 4 || (blockCount * blockSize) < 0) {
-                    writeDataError(writer, "blockCount=" + blockCount, s.getBytes(), 1);
-                    blockCount = 1;
-                    continue;
-                }
-                writer.println("-- block " + block + " - " + (block + blockCount - 1));
-                try {
-                    s.checkCapacity(blockCount * blockSize);
-                } catch (OutOfMemoryError e) {
-                    writeDataError(writer, "out of memory", s.getBytes(), 1);
-                    blockCount = 1;
-                    continue;
-                }
-                if (blockCount > 1) {
-                    if ((blockCount * blockSize) < 0) {
-                        writeDataError(writer, "wrong blockCount", s.getBytes(), 1);
-                        blockCount = 1;
-                        continue;
-                    }
-                    try {
-                        fileStore.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
-                    } catch (Throwable e) {
-                        writeDataError(writer, "eof", s.getBytes(), 1);
-                        blockCount = 1;
-                        fileStore = FileStore.open(null, fileName, "r");
-                        continue;
-                    }
-                }
-                try {
-                    s.check(blockCount * blockSize);
-                } catch (SQLException e) {
-                    writeDataError(writer, "wrong checksum", s.getBytes(), 1);
-                    blockCount = 1;
-                    continue;
-                }
-                setStorage(s.readInt());
-                if (storageId < 0) {
-                    writeDataError(writer, "storageId<0", s.getBytes(), blockCount);
-                    continue;
-                }
-                int page = block / DiskFile.BLOCKS_PER_PAGE;
-                if (pageOwners[page] != 0 && pageOwners[page] != storageId) {
-                    writeDataError(writer, "double allocation, previous=" + pageOwners[page] + " now=" + storageId, s
-                            .getBytes(), blockCount);
-                } else {
-                    pageOwners[page] = storageId;
-                }
-                Value[] data = createRecord(writer, s);
-                if (data != null) {
-                    createTemporaryTable(writer);
-                    writeRow(writer, s, data);
-                }
-            }
-            writeSchema(writer);
-            writer.close();
-        } catch (Throwable e) {
-            writeError(writer, e);
-        } finally {
-            IOUtils.closeSilently(writer);
-            closeSilently(fileStore);
-        }
     }
 
     private void writeSchema(PrintWriter writer) {
@@ -1828,105 +1196,6 @@ public class Recover extends Tool implements DataHandler {
      */
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
-    }
-
-    /**
-     * Delete all files that were created by the recover tool.
-     *
-     * @param dir the directory
-     * @param db the database name
-     */
-    public static void deleteRecoverFiles(String dir, String db) throws SQLException {
-        ArrayList<String> files = getRecoverFiles(dir, db);
-        for (String s : files) {
-            if (FileUtils.isDirectory(s)) {
-                FileUtils.tryDelete(s);
-            } else {
-                FileUtils.delete(s);
-            }
-        }
-    }
-
-    private static ArrayList<String> getRecoverFiles(String dir, String db) throws SQLException {
-        if (dir == null || dir.equals("")) {
-            dir = ".";
-        }
-        dir = FileUtils.normalize(dir);
-        ArrayList<String> files = New.arrayList();
-        String start = FileUtils.normalize(dir + "/" + db);
-        String[] list = FileUtils.listFiles(dir);
-        for (int i = 0; list != null && i < list.length; i++) {
-            String f = list[i];
-            boolean ok = false;
-            if (f.endsWith(".data.sql")) {
-                ok = true;
-            } else if (f.endsWith(SUFFIX_UNCOMMITTED)) {
-                ok = true;
-            } else if (f.endsWith(".index.txt")) {
-                ok = true;
-            } else if (f.endsWith(".log.txt")) {
-                ok = true;
-            } else if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
-                if (start == null || FileUtils.fileStartsWith(f, start + ".")) {
-                    files.addAll(getRecoverFiles(f, null));
-                }
-                ok = true;
-            } else if (f.endsWith(".lob.comp.txt")) {
-                ok = true;
-            } else if (f.endsWith(".lob.db.txt")) {
-                ok = true;
-            } else if (f.endsWith(".h2.sql")) {
-                ok = true;
-            }
-            if (ok) {
-                if (db == null || FileUtils.fileStartsWith(f, start + ".")) {
-                    String fileName = f;
-                    files.add(fileName);
-                }
-            }
-        }
-        return files;
-    }
-
-    /**
-     * Try to convert a database to the page store format.
-     *
-     * @param dir the directory
-     * @param db the database name
-     * @throws SQLException if conversion fails
-     */
-    public static void convert(String dir, String db) throws SQLException {
-        Recover.execute(dir, db);
-        if (FileUtils.exists(dir + "/" + db + SUFFIX_UNCOMMITTED)) {
-            Recover.deleteRecoverFiles(dir, db);
-            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1,
-                    "- database cannot be converted to the page store format " +
-                    "because it was not closed normally. " +
-                    "Open and close the database with an older version " +
-                    "of H2 before converting.");
-        }
-        FileUtils.delete(dir + "/" + db + ".backup.zip");
-        Backup.execute(dir + "/" + db + ".backup.zip", dir, db, true);
-        DeleteDbFiles.execute(dir, db, true);
-        String randomUser = UUID.randomUUID().toString().toUpperCase();
-        Properties prop = new Properties();
-        prop.setProperty("user", randomUser);
-        prop.setProperty("password", "");
-        Connection conn = Driver.load().connect("jdbc:h2:file:" + dir + "/" + db, prop);
-        InputStream in = null;
-        try {
-            in = FileUtils.openFileInputStream(dir + "/" + db + ".data.sql");
-            in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-            Reader reader = new InputStreamReader(in);
-            RunScript.execute(conn, reader);
-            conn.createStatement().execute("DROP USER \"" + randomUser + "\"");
-            conn.close();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, dir + "/" + db);
-        } finally {
-            IOUtils.closeSilently(in);
-        }
-        Recover.deleteRecoverFiles(dir, db);
     }
 
 }

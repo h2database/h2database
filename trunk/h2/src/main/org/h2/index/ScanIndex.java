@@ -31,7 +31,7 @@ import org.h2.value.ValueLob;
  * of a table. Each regular table has one such object, even if no primary key or
  * indexes are defined.
  */
-public class ScanIndex extends BaseIndex implements RowIndex {
+public class ScanIndex extends BaseIndex {
     private long firstFree = -1;
     private ObjectArray<Row> rows = ObjectArray.newInstance();
     private TableData tableData;

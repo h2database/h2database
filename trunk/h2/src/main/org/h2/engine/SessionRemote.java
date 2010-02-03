@@ -76,7 +76,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     private byte[] fileEncryptionKey;
     private Object lobSyncObject = new Object();
     private String sessionId;
-    private int clientVersion = Constants.TCP_PROTOCOL_VERSION_5;
+    private int clientVersion = Constants.TCP_PROTOCOL_VERSION;
     private boolean autoReconnect;
     private int lastReconnect;
     private SessionInterface embedded;
@@ -97,7 +97,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(clientVersion);
-        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
+        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
             trans.writeInt(clientVersion);
         }
         trans.writeString(db);
@@ -112,7 +112,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         }
         try {
             done(trans);
-            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
                 clientVersion = trans.readInt();
             }
         } catch (SQLException e) {
@@ -135,18 +135,12 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
      * @param id the statement id
      */
     public void cancelStatement(int id) {
-        if (clientVersion <= Constants.TCP_PROTOCOL_VERSION_5) {
-            // older servers don't support this feature
-            return;
-        }
         for (Transfer transfer : transferList) {
             try {
                 Transfer trans = transfer.openNewConnection();
                 trans.init();
                 trans.writeInt(clientVersion);
-                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
-                    trans.writeInt(clientVersion);
-                }
+                trans.writeInt(clientVersion);
                 trans.writeString(null);
                 trans.writeString(null);
                 trans.writeString(sessionId);
@@ -363,7 +357,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                 Value[] v = result.currentRow();
                 int version = v[0].getInt();
                 if (version > 71) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_6;
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION;
                 }
             }
             result.close();
@@ -371,7 +365,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             trace.error("Error trying to upgrade client version", e);
             // ignore
         }
-        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
+        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
             sessionId = ByteUtils.convertBytesToString(RandomUtils.getSecureBytes(32));
             synchronized (this) {
                 for (Transfer transfer : transferList) {

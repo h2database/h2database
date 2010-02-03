@@ -282,7 +282,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         data.temporary = table.isTemporary();
         data.persistData = table.isPersistData();
         data.persistIndexes = table.isPersistIndexes();
-        data.headPos = Index.EMPTY_HEAD;
+        data.create = true;
         data.session = session;
         TableData newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());

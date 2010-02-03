@@ -9,7 +9,6 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.MathUtils;
 
@@ -67,10 +66,7 @@ public class ValueInt extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange((long) value + (long) other.value);
-        }
-        return ValueInt.get(value + other.value);
+        return checkRange((long) value + (long) other.value);
     }
 
     private ValueInt checkRange(long x) throws SQLException {
@@ -85,26 +81,17 @@ public class ValueInt extends Value {
     }
 
     public Value negate() throws SQLException {
-        if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange(-(long) value);
-        }
-        return ValueInt.get(-value);
+        return checkRange(-(long) value);
     }
 
     public Value subtract(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange((long) value - (long) other.value);
-        }
-        return ValueInt.get(value - other.value);
+        return checkRange((long) value - (long) other.value);
     }
 
     public Value multiply(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if (SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange((long) value * (long) other.value);
-        }
-        return ValueInt.get(value * other.value);
+        return checkRange((long) value * (long) other.value);
     }
 
     public Value divide(Value v) throws SQLException {

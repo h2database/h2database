@@ -365,4 +365,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         this.isMultiVersion = multiVersion;
     }
 
+    public Row getRow(Session session, long key) throws SQLException {
+        throw Message.getUnsupportedException(toString());
+    }
+
 }

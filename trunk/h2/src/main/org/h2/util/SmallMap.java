@@ -17,6 +17,7 @@ import org.h2.message.Message;
  * A simple hash table with an optimization for the last recently used object.
  */
 public class SmallMap {
+
     private HashMap<Integer, Object> map = New.hashMap();
     private Object cache;
     private int cacheId;

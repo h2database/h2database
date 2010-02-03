@@ -49,7 +49,6 @@ import org.h2.table.TableData;
 import org.h2.table.TableLinkConnection;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.tools.Recover;
 import org.h2.tools.Server;
 import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
@@ -71,7 +70,7 @@ import org.h2.value.ValueLob;
  * There is one database object per open database.
  *
  * The format of the meta data table is:
- *  id int, headPos int (for indexes), objectType int, sql varchar
+ *  id int, 0, objectType int, sql varchar
  *
  * @since 2004-04-15 22:49
  */
@@ -430,7 +429,7 @@ public class Database implements DataHandler {
      * @return true if one exists
      */
     public static boolean exists(String name) {
-        return FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE) | FileUtils.exists(name + Constants.SUFFIX_DATA_FILE);
+        return FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE);
     }
 
     /**
@@ -490,15 +489,13 @@ public class Database implements DataHandler {
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
-            String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
+            String dataFileName = databaseName + ".data.db";
             boolean existsData = FileUtils.exists(dataFileName);
             String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
             boolean existsPage = FileUtils.exists(pageFileName);
             if (existsData && !existsPage) {
-                String dir = FileUtils.getParent(databaseName);
-                String db = FileUtils.getFileName(databaseName);
-                Recover.convert(dir, db);
-                existsPage = true;
+                throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1,
+                        "Old database: " + dataFileName + " - please convert the database to a SQL script and re-create it.");
             }
             if (existsPage && FileUtils.isReadOnly(pageFileName)) {
                 // if it is already read-only because ACCESS_MODE_DATA=r
@@ -564,21 +561,21 @@ public class Database implements DataHandler {
         cols.add(new Column("HEAD", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("SQL", Value.STRING));
-        int headPos = 0;
+        boolean create = true;
         if (pageStore != null) {
-            headPos = pageStore.getSystemTableHeadPos();
+            create = pageStore.isNew();
         }
         data.tableName = "SYS";
         data.id = 0;
         data.temporary = false;
         data.persistData = persistent;
         data.persistIndexes = persistent;
-        data.headPos = headPos;
+        data.create = create;
         data.session = systemSession;
         meta = mainSchema.createTable(data);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
-                false, false), Index.EMPTY_HEAD, null);
+                false, false), true, null);
         objectIds.set(0);
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);

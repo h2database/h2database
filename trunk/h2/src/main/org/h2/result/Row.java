@@ -8,7 +8,6 @@ package org.h2.result;
 
 import java.sql.SQLException;
 import org.h2.store.Data;
-import org.h2.store.DiskFile;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -83,9 +82,9 @@ public class Row implements SearchRow {
 
     public int getMemorySize() {
         if (memory != MEMORY_CALCULATE) {
-            return (DiskFile.BLOCK_SIZE / 8) + memory * 4;
+            return 16 + memory * 4;
         }
-        int m = DiskFile.BLOCK_SIZE / 16;
+        int m = 8;
         for (int i = 0; data != null && i < data.length; i++) {
             m += data[i].getMemory();
         }

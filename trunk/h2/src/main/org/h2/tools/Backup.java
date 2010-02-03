@@ -120,9 +120,6 @@ public class Backup extends Tool {
                 if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
                     base = FileUtils.getParent(fileName);
                     break;
-                } else if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
-                    base = FileUtils.getParent(fileName);
-                    break;
                 }
             }
             for (String fileName : list) {

@@ -74,10 +74,10 @@ public class ConvertTraceFile extends Tool {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new ConvertTraceFile().run(args);
+        new ConvertTraceFile().runTool(args);
     }
 
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         String traceFile = "test.trace.db";
         String javaClass = "Test";
         String script = "test.sql";

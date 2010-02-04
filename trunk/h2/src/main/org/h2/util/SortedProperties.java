@@ -18,7 +18,6 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -36,13 +35,12 @@ public class SortedProperties extends Properties {
     private static final long serialVersionUID = 1L;
 
     public synchronized Enumeration<Object> keys() {
-        Vector<Object> v = new Vector<Object>(keySet());
-        Collections.sort(v, new Comparator<Object>() {
-            public int compare(Object o1, Object o2) {
-                return o1.toString().compareTo(o2.toString());
-            }
-        });
-        return v.elements();
+        Vector<String> v = new Vector<String>();
+        for (Object o : keySet()) {
+            v.add(o.toString());
+        }
+        Collections.sort(v);
+        return new Vector<Object>(v).elements();
     }
 
     /**

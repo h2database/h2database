@@ -100,10 +100,10 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new Server().run(args);
+        new Server().runTool(args);
     }
 
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         boolean tcpStart = false, pgStart = false, webStart = false;
         boolean browserStart = false;
         boolean tcpShutdown = false, tcpShutdownForce = false;
@@ -441,32 +441,27 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     /**
      * Start a web server and a browser that uses the given connection. The
      * current transaction is preserved. This is specially useful to manually
-     * inspect the database when debugging.
+     * inspect the database when debugging. This method return as soon as the
+     * user has disconnected.
      *
      * @param conn the database connection (the database must be open)
      */
     public static void startWebServer(Connection conn) throws SQLException {
-        final Object waitUntilDisconnected = new Object();
         WebServer webServer = new WebServer();
-        Server server = new Server(webServer, new String[] { "-webPort", "0" });
-        webServer.setShutdownHandler(new ShutdownHandler() {
-            public void shutdown() {
-                synchronized (waitUntilDisconnected) {
-                    waitUntilDisconnected.notifyAll();
-                }
-            }
-        });
-        server.start();
+        Server web = new Server(webServer, new String[] { "-webPort", "0" });
+        web.start();
+        Server server = new Server();
+        server.web = web;
+        webServer.setShutdownHandler(server);
         String url = webServer.addSession(conn);
         StartBrowser.openURL(url);
-        synchronized (waitUntilDisconnected) {
+        while (!webServer.isStopped()) {
             try {
-                waitUntilDisconnected.wait();
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 // ignore
             }
         }
-        webServer.stop();
     }
 
 }

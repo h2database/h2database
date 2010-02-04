@@ -3510,7 +3510,7 @@ public class Parser {
         } else if (readIf("TABLE")) {
             int defaultMode;
             Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_TABLE_TYPE));
-            defaultMode = setting == null ? Constants.DEFAULT_TABLE_TYPE : setting.getIntValue();
+            defaultMode = setting == null ? Table.TYPE_CACHED : setting.getIntValue();
             return parseCreateTable(false, false, defaultMode == Table.TYPE_CACHED);
         } else if (readIf("VIEW")) {
             return parseCreateView(force);

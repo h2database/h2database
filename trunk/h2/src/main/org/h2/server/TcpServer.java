@@ -41,14 +41,14 @@ import org.h2.util.New;
  */
 public class TcpServer implements Service {
 
-    /**
-     * The default port to use for the TCP server.
-     * This value is also in the documentation and in the Server javadoc.
-     */
-    public static final int DEFAULT_PORT = 9092;
-
     private static final int SHUTDOWN_NORMAL = 0;
     private static final int SHUTDOWN_FORCE = 1;
+
+    /**
+     * The name of the in-memory management database used by the TCP server
+     * to keep the active sessions.
+     */
+    private static final String MANAGEMENT_DB_PREFIX = "management_db_";
 
     private static final Map<Integer, TcpServer> SERVERS = Collections.synchronizedMap(new HashMap<Integer, TcpServer>());
 
@@ -77,7 +77,7 @@ public class TcpServer implements Service {
      * @return the database name (usually starting with mem:)
      */
     public static String getManagementDbName(int port) {
-        return "mem:" + Constants.MANAGEMENT_DB_PREFIX + port;
+        return "mem:" + MANAGEMENT_DB_PREFIX + port;
     }
 
     private void initManagementDb() throws SQLException {
@@ -144,7 +144,7 @@ public class TcpServer implements Service {
     }
 
     public void init(String... args) {
-        port = DEFAULT_PORT;
+        port = Constants.DEFAULT_TCP_PORT;
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-trace".equals(a)) {
@@ -373,7 +373,7 @@ public class TcpServer implements Service {
      * @param force if the server should be stopped immediately
      */
     public static synchronized void shutdown(String url, String password, boolean force) throws SQLException {
-        int port = Constants.DEFAULT_SERVER_PORT;
+        int port = Constants.DEFAULT_TCP_PORT;
         int idx = url.indexOf(':', "jdbc:h2:".length());
         if (idx >= 0) {
             String p = url.substring(idx + 1);

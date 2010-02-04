@@ -7,13 +7,11 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
-import java.util.Comparator;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.Prepared;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.SearchRow;
-import org.h2.util.ObjectArray;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
 
@@ -21,7 +19,7 @@ import org.h2.value.ValueString;
  * A record in the system table of the database.
  * It contains the SQL statement to create the database object.
  */
-public class MetaRecord {
+public class MetaRecord implements Comparable<MetaRecord> {
 
     private int id;
     private int objectType;
@@ -37,24 +35,6 @@ public class MetaRecord {
         id = obj.getId();
         objectType = obj.getType();
         sql = obj.getCreateSQL();
-    }
-
-    /**
-     * Sort the list of meta records by 'create order'.
-     *
-     * @param records the list of meta records
-     */
-    public static void sort(ObjectArray<MetaRecord> records) {
-        records.sort(new Comparator<MetaRecord>() {
-            public int compare(MetaRecord m1, MetaRecord m2) {
-                int c1 = DbObjectBase.getCreateOrder(m1.getObjectType());
-                int c2 = DbObjectBase.getCreateOrder(m2.getObjectType());
-                if (c1 != c2) {
-                    return c1 - c2;
-                }
-                return m1.getId() - m2.getId();
-            }
-        });
     }
 
     void setRecord(SearchRow r) {
@@ -99,6 +79,21 @@ public class MetaRecord {
 
     public String getSQL() {
         return sql;
+    }
+
+    /**
+     * Sort the list of meta records by 'create order'.
+     *
+     * @param other the other record
+     * @return -1, 0, or 1
+     */
+    public int compareTo(MetaRecord other) {
+        int c1 = DbObjectBase.getCreateOrder(getObjectType());
+        int c2 = DbObjectBase.getCreateOrder(other.getObjectType());
+        if (c1 != c2) {
+            return c1 - c2;
+        }
+        return getId() - other.getId();
     }
 
 }

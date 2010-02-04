@@ -358,7 +358,7 @@ public class WebApp implements DatabaseEventListener {
             PrintStream out = new PrintStream(outBuff, false, "UTF-8");
             tool.setOut(out);
             try {
-                tool.run(argList);
+                tool.runTool(argList);
                 out.flush();
                 String o = new String(outBuff.toByteArray(), "UTF-8");
                 String result = PageParser.escapeHtml(o);

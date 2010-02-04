@@ -35,7 +35,7 @@ import org.h2.value.Transfer;
  * to it. It uses a cooperative locking protocol. Usually a .lock.db file is
  * used, but locking by creating a socket is supported as well.
  */
-public class FileLock {
+public class FileLock implements Runnable {
 
     /**
      * This locking method means no locking is used at all.
@@ -68,32 +68,32 @@ public class FileLock {
     /**
      * The lock file name.
      */
-    volatile String fileName;
+    private volatile String fileName;
 
     /**
      * The server socket (only used when using the SOCKET mode).
      */
-    volatile ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     /**
      * The file system.
      */
-    FileSystem fs;
+    private FileSystem fs;
 
     /**
      * The number of milliseconds to sleep after checking a file.
      */
-    int sleep;
+    private int sleep;
 
     /**
      * The trace object.
      */
-    Trace trace;
+    private Trace trace;
 
     /**
      * The last time the lock file was written.
      */
-    long lastWrite;
+    private long lastWrite;
 
     private String method, ipAddress;
     private Properties properties;
@@ -220,7 +220,7 @@ public class FileLock {
         boolean running = false;
         String id = prop.getProperty("id");
         try {
-            Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_SERVER_PORT, false);
+            Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_TCP_PORT, false);
             Transfer transfer = new Transfer(null);
             transfer.setSocket(socket);
             transfer.init();
@@ -343,31 +343,7 @@ public class FileLock {
             fileName = null;
             throw getExceptionFatal("Concurrent update", null);
         }
-        watchdog = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    while (fileName != null) {
-                        // trace.debug("watchdog check");
-                        try {
-                            if (!fs.exists(fileName) || fs.getLastModified(fileName) != lastWrite) {
-                                save();
-                            }
-                            Thread.sleep(sleep);
-                        } catch (OutOfMemoryError e) {
-                            // ignore
-                        } catch (InterruptedException e) {
-                            // ignore
-                        } catch (NullPointerException e) {
-                            // ignore
-                        } catch (Exception e) {
-                            trace.debug("watchdog", e);
-                        }
-                    }
-                } catch (Exception e) {
-                    trace.debug("watchdog", e);
-                }
-            }
-        });
+        watchdog = new Thread(this);
         watchdog.setName("H2 File Lock Watchdog " + fileName);
         watchdog.setDaemon(true);
         watchdog.setPriority(Thread.MAX_PRIORITY - 1);
@@ -439,20 +415,7 @@ public class FileLock {
             return;
         }
         save();
-        watchdog = new Thread(new Runnable() {
-            public void run() {
-                while (serverSocket != null) {
-                    try {
-                        trace.debug("watchdog accept");
-                        Socket s = serverSocket.accept();
-                        s.close();
-                    } catch (Exception e) {
-                        trace.debug("watchdog", e);
-                    }
-                }
-                trace.debug("watchdog end");
-            }
-        });
+        watchdog = new Thread(this);
         watchdog.setDaemon(true);
         watchdog.setName("H2 File Lock Watchdog (Socket) " + fileName);
         watchdog.start();
@@ -508,6 +471,40 @@ public class FileLock {
 
     public String getUniqueId() {
         return uniqueId;
+    }
+
+    public void run() {
+        try {
+            while (fileName != null) {
+                // trace.debug("watchdog check");
+                try {
+                    if (!fs.exists(fileName) || fs.getLastModified(fileName) != lastWrite) {
+                        save();
+                    }
+                    Thread.sleep(sleep);
+                } catch (OutOfMemoryError e) {
+                    // ignore
+                } catch (InterruptedException e) {
+                    // ignore
+                } catch (NullPointerException e) {
+                    // ignore
+                } catch (Exception e) {
+                    trace.debug("watchdog", e);
+                }
+            }
+            while (serverSocket != null) {
+                try {
+                    trace.debug("watchdog accept");
+                    Socket s = serverSocket.accept();
+                    s.close();
+                } catch (Exception e) {
+                    trace.debug("watchdog", e);
+                }
+            }
+        } catch (Exception e) {
+            trace.debug("watchdog", e);
+        }
+        trace.debug("watchdog end");
     }
 
 }

@@ -65,7 +65,7 @@ public class RunScript extends Tool {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new RunScript().run(args);
+        new RunScript().runTool(args);
     }
 
     /**
@@ -86,7 +86,7 @@ public class RunScript extends Tool {
      *
      * @param args the command line arguments
      */
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         String url = null;
         String user = "sa";
         String password = "";

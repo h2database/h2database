@@ -91,7 +91,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     }
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
-        Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_SERVER_PORT, ci.isSSL());
+        Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_TCP_PORT, ci.isSSL());
         Transfer trans = new Transfer(this);
         trans.setSocket(socket);
         trans.setSSL(ci.isSSL());

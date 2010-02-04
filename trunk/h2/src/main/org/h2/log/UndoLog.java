@@ -8,7 +8,6 @@ package org.h2.log;
 
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -124,7 +123,7 @@ public class UndoLog {
                 String fileName = database.createTempFile();
                 file = database.openFile(fileName, "rw", false);
                 file.seek(FileStore.HEADER_LENGTH);
-                rowBuff = Data.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
+                rowBuff = Data.create(database, SysProperties.PAGE_SIZE);
                 Data buff = rowBuff;
                 for (int i = 0; i < records.size(); i++) {
                     UndoLogRecord r = records.get(i);

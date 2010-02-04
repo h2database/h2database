@@ -62,13 +62,12 @@ import org.h2.message.Message;
  *      (<a href="http://www.source-code.biz">www.source-code.biz</a>)
  * @author Thomas Mueller (ported to Java 1.4, some changes)
  */
-public class JdbcConnectionPool implements DataSource {
+public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
 
     private static final int DEFAULT_TIMEOUT = 5 * 60;
 
     private final ConnectionPoolDataSource dataSource;
     private final Stack<PooledConnection> recycledConnections = new Stack<PooledConnection>();
-    private final PoolConnectionEventListener poolConnectionEventListener = new PoolConnectionEventListener();
     private PrintWriter logWriter;
     private int maxConnections = 10;
     private int timeout = DEFAULT_TIMEOUT;
@@ -224,7 +223,7 @@ public class JdbcConnectionPool implements DataSource {
         }
         Connection conn = pc.getConnection();
         activeConnections++;
-        pc.addConnectionEventListener(poolConnectionEventListener);
+        pc.addConnectionEventListener(this);
         return conn;
     }
 
@@ -288,21 +287,21 @@ public class JdbcConnectionPool implements DataSource {
     }
 
     /**
-     * This event listener informs the connection pool that about closed and
-     * broken connections.
+     * INTERNAL
      */
-    class PoolConnectionEventListener implements ConnectionEventListener {
-        public void connectionClosed(ConnectionEvent event) {
-            PooledConnection pc = (PooledConnection) event.getSource();
-            pc.removeConnectionEventListener(this);
-            recycleConnection(pc);
-        }
+    public void connectionClosed(ConnectionEvent event) {
+        PooledConnection pc = (PooledConnection) event.getSource();
+        pc.removeConnectionEventListener(this);
+        recycleConnection(pc);
+    }
 
-        public void connectionErrorOccurred(ConnectionEvent event) {
-            PooledConnection pc = (PooledConnection) event.getSource();
-            pc.removeConnectionEventListener(this);
-            disposeConnection(pc);
-        }
+    /**
+     * INTERNAL
+     */
+    public void connectionErrorOccurred(ConnectionEvent event) {
+        PooledConnection pc = (PooledConnection) event.getSource();
+        pc.removeConnectionEventListener(this);
+        disposeConnection(pc);
     }
 
     /**

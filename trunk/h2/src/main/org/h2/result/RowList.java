@@ -90,7 +90,7 @@ public class RowList {
             String fileName = db.createTempFile();
             file = db.openFile(fileName, "rw", false);
             file.seek(FileStore.HEADER_LENGTH);
-            rowBuff = Data.create(db, Constants.DEFAULT_DATA_PAGE_SIZE);
+            rowBuff = Data.create(db, SysProperties.PAGE_SIZE);
             file.seek(FileStore.HEADER_LENGTH);
         }
         Data buff = rowBuff;

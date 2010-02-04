@@ -45,10 +45,10 @@ public class Restore extends Tool {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new Restore().run(args);
+        new Restore().runTool(args);
     }
 
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         String zipFileName = "backup.zip";
         String dir = ".";
         String db = null;

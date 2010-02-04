@@ -78,6 +78,12 @@ public class Database implements DataHandler {
 
     private static int initialPowerOffCount;
 
+    /**
+     * The default name of the system user. This name is only used as long as
+     * there is no administrator user registered.
+     */
+    private static final String SYSTEM_USER_NAME = "DBA";
+
     private final boolean persistent;
     private final String databaseName;
     private final String databaseShortName;
@@ -127,7 +133,7 @@ public class Database implements DataHandler {
     private int maxMemoryUndo = SysProperties.DEFAULT_MAX_MEMORY_UNDO;
     private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
     private int maxLengthInplaceLob = SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB;
-    private int allowLiterals = Constants.DEFAULT_ALLOW_LITERALS;
+    private int allowLiterals = Constants.ALLOW_LITERALS_ALL;
 
     private int powerOffCount = initialPowerOffCount;
     private int closeDelay;
@@ -544,9 +550,9 @@ public class Database implements DataHandler {
             traceSystem = new TraceSystem(null);
             log = new LogSystem(null, false, null);
         }
-        systemUser = new User(this, 0, Constants.DBA_NAME, true);
+        systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);
-        infoSchema = new Schema(this, -1, Constants.SCHEMA_INFORMATION, systemUser, true);
+        infoSchema = new Schema(this, -1, "INFORMATION_SCHEMA", systemUser, true);
         schemas.put(mainSchema.getName(), mainSchema);
         schemas.put(infoSchema.getName(), infoSchema);
         publicRole = new Role(this, 0, Constants.PUBLIC_ROLE_NAME, true);
@@ -581,13 +587,13 @@ public class Database implements DataHandler {
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
         // first, create all function aliases and sequences because
         // they might be used in create table / view / constraints and so on
-        ObjectArray<MetaRecord> records = ObjectArray.newInstance();
+        ArrayList<MetaRecord> records = New.arrayList();
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
             records.add(rec);
         }
-        MetaRecord.sort(records);
+        Collections.sort(records);
         for (MetaRecord rec : records) {
             rec.execute(this, systemSession, eventListener);
         }
@@ -595,7 +601,7 @@ public class Database implements DataHandler {
         recompileInvalidViews(systemSession);
         starting = false;
         addDefaultSetting(systemSession, SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
-        addDefaultSetting(systemSession, SetTypes.DEFAULT_TABLE_TYPE, null, Constants.DEFAULT_TABLE_TYPE);
+        addDefaultSetting(systemSession, SetTypes.DEFAULT_TABLE_TYPE, null, Table.TYPE_CACHED);
         addDefaultSetting(systemSession, SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
         addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
@@ -805,7 +811,7 @@ public class Database implements DataHandler {
         HashMap<String, DbObject> map = getMap(obj.getType());
         if (obj.getType() == DbObject.USER) {
             User user = (User) obj;
-            if (user.isAdmin() && systemUser.getName().equals(Constants.DBA_NAME)) {
+            if (user.isAdmin() && systemUser.getName().equals(SYSTEM_USER_NAME)) {
                 systemUser.rename(user.getName());
             }
         }
@@ -1595,7 +1601,7 @@ public class Database implements DataHandler {
     public synchronized String getTempTableName(Session session) {
         String tempName;
         do {
-            tempName = Constants.TEMP_TABLE_PREFIX + session.getId() + "_" + nextTempTableId++;
+            tempName = "TEMP_TABLE_" + session.getId() + "_" + nextTempTableId++;
         } while (mainSchema.findTableOrView(session, tempName) != null);
         return tempName;
     }

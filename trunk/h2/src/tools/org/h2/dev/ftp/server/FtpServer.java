@@ -148,10 +148,10 @@ public class FtpServer extends Tool implements Service {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new FtpServer().run(args);
+        new FtpServer().runTool(args);
     }
 
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {

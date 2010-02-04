@@ -71,6 +71,8 @@ public class MetaTable extends Table {
      */
     public static final long ROW_COUNT_APPROXIMATION = 1000;
 
+    private static final String CHARACTER_SET_NAME = "Unicode";
+
     private static final int TABLES = 0;
     private static final int COLUMNS = 1;
     private static final int INDEXES = 2;
@@ -693,7 +695,7 @@ public class MetaTable extends Table {
                             // NUMERIC_SCALE
                             "" + c.getScale(),
                             // CHARACTER_SET_NAME
-                            Constants.CHARACTER_SET_NAME,
+                            CHARACTER_SET_NAME,
                             // COLLATION_NAME
                             collation,
                             // TYPE_NAME
@@ -1159,7 +1161,7 @@ public class MetaTable extends Table {
                         // SCHEMA_OWNER
                         identifier(schema.getOwner().getName()),
                         // DEFAULT_CHARACTER_SET_NAME
-                        Constants.CHARACTER_SET_NAME,
+                        CHARACTER_SET_NAME,
                         // DEFAULT_COLLATION_NAME
                         collation,
                         // IS_DEFAULT

@@ -9,13 +9,17 @@ package org.h2.util;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
 import org.h2.message.Message;
 
 /**
  * This is a utility class with mathematical helper functions.
  */
 public class MathUtils {
+
+    /**
+     * The maximum scale of a BigDecimal value.
+     */
+    private static final int BIG_DECIMAL_SCALE_MAX = 100000;
 
     private MathUtils() {
         // utility class
@@ -84,9 +88,9 @@ public class MathUtils {
      * @return the scaled value
      */
     public static BigDecimal setScale(BigDecimal bd, int scale) throws SQLException {
-        if (scale > Constants.BIG_DECIMAL_SCALE_MAX) {
+        if (scale > BIG_DECIMAL_SCALE_MAX) {
             throw Message.getInvalidValueException("" + scale, "scale");
-        } else if (scale < -Constants.BIG_DECIMAL_SCALE_MAX) {
+        } else if (scale < -BIG_DECIMAL_SCALE_MAX) {
             throw Message.getInvalidValueException("" + scale, "scale");
         }
         return bd.setScale(scale, BigDecimal.ROUND_HALF_UP);

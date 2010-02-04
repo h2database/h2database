@@ -709,7 +709,7 @@ public class ValueLob extends Value {
      * @param h the data handler
      */
     public void convertToFileIfRequired(DataHandler h) throws SQLException {
-        if (Constants.AUTO_CONVERT_LOB_TO_FILES && small != null && small.length > h.getMaxLengthInplaceLob()) {
+        if (small != null && small.length > h.getMaxLengthInplaceLob()) {
             boolean compress = h.getLobCompressionAlgorithm(type) != null;
             int len = getBufferSize(h, compress, Long.MAX_VALUE);
             int tabId = tableId;

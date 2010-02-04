@@ -6,10 +6,9 @@
  */
 package org.h2.util;
 
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import org.h2.engine.Constants;
 
@@ -148,34 +147,46 @@ public class Profiler implements Runnable {
         }
     }
 
+    public static void main(String... args) {
+        Profiler p = new Profiler();
+        p.startCollecting();
+        org.h2.Driver.load();
+        Locale.getAvailableLocales();
+        p.stopCollecting();
+        System.out.println(p.getTop(10));
+    }
+
     /**
      * Get the top stack traces.
      *
-     * @param max the maximum number of results
+     * @param count the maximum number of stack traces
      * @return the stack traces.
      */
-    public String getTop(int max) {
+    public String getTop(int count) {
         StringBuilder buff = new StringBuilder();
-        buff.append("Profiler: top ").append(max).append(" stack trace(s) of ").append(time).
+        buff.append("Profiler: top ").append(count).append(" stack trace(s) of ").append(time).
             append(" ms [build-").append(Constants.BUILD_ID).append("]\n");
-        @SuppressWarnings("unchecked")
-        Map.Entry<String, Integer>[] array = new Map.Entry[counts.size()];
-        counts.entrySet().toArray(array);
-        Arrays.sort(array, new Comparator<Map.Entry<String, Integer>>() {
-            public int compare(Map.Entry<String, Integer> a, Map.Entry<String, Integer> b) {
-                return b.getValue() - a.getValue();
+        for (int x = 0, min = 0;;) {
+            int highest = 0;
+            Map.Entry<String, Integer> best = null;
+            for (Map.Entry<String, Integer> el : counts.entrySet()) {
+                if (el.getValue() > highest) {
+                    best = el;
+                    highest = el.getValue();
+                }
             }
-        });
-        int x = 0, min = 0;
-        for (Map.Entry<String, Integer> el : array) {
-            if (++x >= max) {
-                if (el.getValue() < min) {
+            if (best == null) {
+                break;
+            }
+            counts.remove(best.getKey());
+            if (++x >= count) {
+                if (best.getValue() < min) {
                     break;
                 }
-                min = el.getValue();
+                min = best.getValue();
             }
-            buff.append(el.getValue()).append('/').append(total).
-                append('\n').append(el.getKey());
+            buff.append(best.getValue()).append('/').append(total).
+                append('\n').append(best.getKey());
         }
         buff.append('.');
         return buff.toString();

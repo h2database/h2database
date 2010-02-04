@@ -27,15 +27,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+//## AWT end ##
+import org.h2.server.ShutdownHandler;
 import org.h2.util.Resources;
 import org.h2.util.Tool;
 import java.io.IOException;
-//## AWT end ##
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
-import org.h2.server.ShutdownHandler;
 import org.h2.util.StartBrowser;
 
 /**
@@ -46,12 +46,13 @@ import org.h2.util.StartBrowser;
  */
 public class Console extends Tool implements
 //## AWT begin ##
-ActionListener, MouseListener,
+ActionListener, MouseListener, WindowListener,
 //## AWT end ##
 ShutdownHandler {
 
 //## AWT begin ##
-    Frame frame;
+    private Frame frame;
+    private boolean trayIcon;
     private Font font;
     private Button startBrowser;
 //## AWT end ##
@@ -85,7 +86,7 @@ ShutdownHandler {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new Console().run(args);
+        new Console().runTool(args);
     }
 
     /**
@@ -95,7 +96,7 @@ ShutdownHandler {
      *
      * @param args the command line arguments
      */
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         isWindows = SysProperties.getStringSetting("os.name", "").startsWith("Windows");
         boolean tcpStart = false, pgStart = false, webStart = false, toolStart = false;
         boolean browserStart = false;
@@ -153,7 +154,7 @@ ShutdownHandler {
             loadFont();
             try {
                 if (!createTrayIcon()) {
-                    showWindow(true);
+                    showWindow();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -303,19 +304,21 @@ ShutdownHandler {
             }
             Image icon = loadImage(iconFile);
             // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
-            Object trayIcon = Class.forName("java.awt.TrayIcon").
+            Object ti = Class.forName("java.awt.TrayIcon").
                 getConstructor(Image.class, String.class, PopupMenu.class).
                 newInstance(icon, "H2 Database Engine", menuConsole);
 
             // trayIcon.addMouseListener(this);
-            trayIcon.getClass().
+            ti.getClass().
                 getMethod("addMouseListener", MouseListener.class).
-                invoke(trayIcon, this);
+                invoke(ti, this);
 
             // tray.add(icon);
             tray.getClass().
                 getMethod("add", Class.forName("java.awt.TrayIcon")).
-                invoke(tray, trayIcon);
+                invoke(tray, ti);
+
+            this.trayIcon = true;
 
             return true;
         } catch (Exception e) {
@@ -323,17 +326,12 @@ ShutdownHandler {
         }
     }
 
-    private void showWindow(final boolean exit) {
+    private void showWindow() {
+        if (frame != null) {
+            return;
+        }
         frame = new Frame("H2 Console");
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent we) {
-                if (exit) {
-                    stopAll();
-                } else {
-                    frame.dispose();
-                }
-            }
-        });
+        frame.addWindowListener(this);
         Image image = loadImage("/org/h2/res/h2.png");
         if (image != null) {
             frame.setIconImage(image);
@@ -425,7 +423,7 @@ ShutdownHandler {
         } else if ("console".equals(command)) {
             startBrowser();
         } else if ("status".equals(command)) {
-            showWindow(false);
+            showWindow();
         } else if (startBrowser == e.getSource()) {
             // for some reason, IKVM ignores setActionCommand
             startBrowser();
@@ -476,6 +474,74 @@ ShutdownHandler {
      */
 //## AWT begin ##
     public void mouseReleased(MouseEvent e) {
+        // nothing to do
+    }
+//## AWT end ##
+
+    /**
+     * INTERNAL
+     */
+//## AWT begin ##
+    public void windowClosing(WindowEvent e) {
+        if (trayIcon) {
+            frame.dispose();
+            frame = null;
+        } else {
+            stopAll();
+        }
+    }
+//## AWT end ##
+
+    /**
+     * INTERNAL
+     */
+//## AWT begin ##
+    public void windowActivated(WindowEvent e) {
+        // nothing to do
+    }
+//## AWT end ##
+
+    /**
+     * INTERNAL
+     */
+//## AWT begin ##
+    public void windowClosed(WindowEvent e) {
+        // nothing to do
+    }
+//## AWT end ##
+
+    /**
+     * INTERNAL
+     */
+//## AWT begin ##
+    public void windowDeactivated(WindowEvent e) {
+        // nothing to do
+    }
+//## AWT end ##
+
+    /**
+     * INTERNAL
+     */
+//## AWT begin ##
+    public void windowDeiconified(WindowEvent e) {
+        // nothing to do
+    }
+//## AWT end ##
+
+    /**
+     * INTERNAL
+     */
+//## AWT begin ##
+    public void windowIconified(WindowEvent e) {
+        // nothing to do
+    }
+//## AWT end ##
+
+    /**
+     * INTERNAL
+     */
+//## AWT begin ##
+    public void windowOpened(WindowEvent e) {
         // nothing to do
     }
 //## AWT end ##

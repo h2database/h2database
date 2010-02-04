@@ -198,7 +198,7 @@ public class TestTools extends TestBase {
         server.setOut(ps);
         int result = 0;
         try {
-            server.run(args);
+            server.runTool(args);
         } catch (SQLException e) {
             result = 1;
             e.printStackTrace(ps);

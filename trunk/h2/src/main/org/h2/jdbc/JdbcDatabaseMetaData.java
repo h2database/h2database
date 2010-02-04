@@ -58,11 +58,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Gets the database product name.
      *
-     * @return the product name
+     * @return the product name ("H2")
      */
     public String getDatabaseProductName() {
         debugCodeCall("getDatabaseProductName");
-        return Constants.PRODUCT_NAME;
+        // This value must stay like that, see
+        // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2682
+        return "H2";
     }
 
     /**
@@ -78,11 +80,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Gets the name of the JDBC driver.
      *
-     * @return the driver name
+     * @return the driver name ("H2 JDBC Driver")
      */
     public String getDriverName() {
         debugCodeCall("getDriverName");
-        return Constants.DRIVER_NAME;
+        return "H2 JDBC Driver";
     }
 
     /**

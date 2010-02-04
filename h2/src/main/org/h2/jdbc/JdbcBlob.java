@@ -56,9 +56,9 @@ public class JdbcBlob extends TraceObject implements Blob {
             long size = 0;
             InputStream in = value.getInputStream();
             try {
-                byte[] buff = new byte[Constants.FILE_BLOCK_SIZE];
+                byte[] buff = new byte[Constants.IO_BUFFER_SIZE];
                 while (true) {
-                    int len = in.read(buff, 0, Constants.FILE_BLOCK_SIZE);
+                    int len = in.read(buff, 0, Constants.IO_BUFFER_SIZE);
                     if (len <= 0) {
                         break;
                     }

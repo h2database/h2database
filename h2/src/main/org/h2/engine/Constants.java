@@ -56,11 +56,6 @@ public class Constants {
     public static final int VERSION_MINOR = 2;
 
     /**
-     * The version number (major.minor) of this database.
-     */
-    public static final double VERSION = VERSION_MAJOR + VERSION_MINOR / 10.;
-
-    /**
      * Constant meaning both numbers and text is allowed in SQL statements.
      */
     public static final int ALLOW_LITERALS_ALL = 2;
@@ -77,25 +72,9 @@ public class Constants {
     public static final int ALLOW_LITERALS_NUMBERS = 1;
 
     /**
-     * Automatically convert large LOB objects to files even if they have been
-     * set using setBytes.
-     */
-    public static final boolean AUTO_CONVERT_LOB_TO_FILES = true;
-
-    /**
-     * The maximum scale of a BigDecimal value.
-     */
-    public static final int BIG_DECIMAL_SCALE_MAX = 100000;
-
-    /**
      * The minimum number of entries to keep in the cache.
      */
     public static final int CACHE_MIN_RECORDS = 16;
-
-    /**
-     * The name of the character set used in this database.
-     */
-    public static final String CHARACTER_SET_NAME = "Unicode";
 
     /**
      * The value of the cluster setting if clustering is disabled.
@@ -122,43 +101,16 @@ public class Constants {
     public static final int COST_ROW_OFFSET = 1000;
 
     /**
-     * The default name of the system user. This name is only used as long as
-     * there is no administrator user registered.
-     */
-    public static final String DBA_NAME = "DBA";
-
-    /**
      * The number of milliseconds after which to check for a deadlock if locking
      * is not successful.
      */
     public static final int DEADLOCK_CHECK = 100;
 
     /**
-     * The default value of the ALLOW_LITERALS setting
-     */
-    public static final int DEFAULT_ALLOW_LITERALS = ALLOW_LITERALS_ALL;
-
-    /**
-     * The default data page size.
-     */
-    public static final int DEFAULT_DATA_PAGE_SIZE = 512;
-
-    /**
-     * If the HTTP server should allow connections from other computers by
-     * default.
-     */
-    public static final boolean DEFAULT_HTTP_ALLOW_OTHERS = false;
-
-    /**
      * The default port number of the HTTP server (for the H2 Console).
      * This value is also in the documentation and in the Server javadoc.
      */
     public static final int DEFAULT_HTTP_PORT = 8082;
-
-    /**
-     * The default SSL setting for the HTTP server.
-     */
-    public static final boolean DEFAULT_HTTP_SSL = false;
 
     /**
      * The default value for the maximum log file size.
@@ -178,24 +130,14 @@ public class Constants {
 
     /**
      * The default port of the TCP server.
-     * This port is also used in the documentation.
+     * This port is also used in the documentation and in the Server javadoc.
      */
-    public static final int DEFAULT_SERVER_PORT = 9092;
-
-    /**
-     * The default table type when creating new tables.
-     */
-    public static final int DEFAULT_TABLE_TYPE = 0;
+    public static final int DEFAULT_TCP_PORT = 9092;
 
     /**
      * The default delay in milliseconds before the log file is written.
      */
     public static final int DEFAULT_WRITE_DELAY = 500;
-
-    /**
-     * The name of the JDBC driver.
-     */
-    public static final String DRIVER_NAME = "H2 JDBC Driver";
 
     /**
      * The password is hashed this many times
@@ -204,24 +146,9 @@ public class Constants {
     public static final int ENCRYPTION_KEY_HASH_ITERATIONS = 1024;
 
     /**
-     * The 'word size' of a file (the minimum allocation size).
+     * The block of a file. It is also the encryption block size.
      */
     public static final int FILE_BLOCK_SIZE = 16;
-
-    /**
-     * The maximum number of bytes a file should be expanded in one step.
-     */
-    public static final int FILE_MAX_INCREMENT = 32 * 1024 * 1024;
-
-    /**
-     * The minimum file size in bytes.
-     */
-    public static final int FILE_MIN_SIZE = 128 * 1024;
-
-    /**
-     * The page size of a file.
-     */
-    public static final int FILE_PAGE_SIZE = 8 * 1024;
 
     /**
      * For testing, the lock timeout is smaller than for interactive use cases.
@@ -270,28 +197,6 @@ public class Constants {
     public static final int LOCK_SLEEP = 1000;
 
     /**
-     * The file header used for binary files.
-     */
-    public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
-
-    /**
-     * If old text file headers should be supported. This setting can be removed
-     * in future versions (required for compatibility with version 1.1.103).
-     */
-    public static final boolean MAGIC_FILE_HEADER_SUPPORT_TEXT = true;
-
-    /**
-     * The name of the in-memory management database used by the TCP server
-     * to keep the active sessions.
-     */
-    public static final String MANAGEMENT_DB_PREFIX = "management_db_";
-
-    /**
-     * The user name of the management database.
-     */
-    public static final String MANAGEMENT_DB_USER = "sa";
-
-    /**
      * The highest possible parameter index.
      */
     public static final int MAX_PARAMETER_INDEX = 100000;
@@ -318,35 +223,14 @@ public class Constants {
     public static final String PREFIX_PRIMARY_KEY = "PRIMARY_KEY_";
 
     /**
-     * The product name. This value must stay like that, see
-     * http://opensource.atlassian.com/projects/hibernate/browse/HHH-2682
-     */
-    public static final String PRODUCT_NAME = "H2";
-
-    /**
      * Every user belongs to this role.
      */
     public static final String PUBLIC_ROLE_NAME = "PUBLIC";
 
     /**
-     * The name of the schema that contains the information schema tables.
-     */
-    public static final String SCHEMA_INFORMATION = "INFORMATION_SCHEMA";
-
-    /**
      * The name of the default schema.
      */
     public static final String SCHEMA_MAIN = "PUBLIC";
-
-    /**
-     * The default name of the script file if .zip compression is used.
-     */
-    public static final String SCRIPT_SQL = "script.sql";
-
-    /**
-     * The default sample size for the ANALYZE statement.
-     */
-    public static final int SELECTIVITY_ANALYZE_SAMPLE_ROWS = 10000;
 
     /**
      * The default selectivity (used if the selectivity is not calculated).
@@ -362,11 +246,6 @@ public class Constants {
      * The name of the server properties file.
      */
     public static final String SERVER_PROPERTIES_FILE = ".h2.server.properties";
-
-    /**
-     * The title of the server properties file.
-     */
-    public static final String SERVER_PROPERTIES_TITLE = "H2 Server Properties";
 
     /**
      * Queries that take longer than this number of milliseconds are written to
@@ -410,11 +289,6 @@ public class Constants {
      * The file name suffix of trace files.
      */
     public static final String SUFFIX_TRACE_FILE = ".trace.db";
-
-    /**
-     * The table name suffix used to create internal temporary tables.
-     */
-    public static final String TEMP_TABLE_PREFIX = "TEMP_TABLE_";
 
     /**
      * The delay that is to be used if throttle has been enabled.

@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The database URL option ACCESS_MODE_LOG is no longer supported.
+<ul><li>Tools: the method run(String... args) has been renamed to runTool(String... args)
+    so it can't be confused with run().
+</li><li>Server.startWebServer(Connection) was not working as expected.
+</li><li>The database URL option ACCESS_MODE_LOG is no longer supported.
 </li><li>The database URL option RECOVER has currently no effect.
 </li><li>Converting an old (non-page store) database is no longer supported using this version. 
 </li><li>The system property "h2.overflowExceptions" is no longer supported.

@@ -60,7 +60,7 @@ public class TestShell extends TestBase {
                     shell.setIn(toolIn);
                     shell.setOut(toolOut);
                     shell.setErr(toolOut);
-                    shell.run();
+                    shell.runTool();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 } finally {

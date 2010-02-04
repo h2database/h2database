@@ -21,7 +21,7 @@ import org.h2.util.StringUtils;
  * The algorithm used is database independent, the only requirement
  * is that the engine supports a range index (for example b-tree).
  */
-public class MultiDimension {
+public class MultiDimension implements Comparator<long[]> {
 
     private static final MultiDimension INSTANCE = new MultiDimension();
 
@@ -239,11 +239,7 @@ public class MultiDimension {
     }
 
     private void optimize(ArrayList<long[]> list, int total) {
-        Collections.sort(list, new Comparator<long[]>() {
-            public int compare(long[] a, long[] b) {
-                return a[0] > b[0] ? 1 : -1;
-            }
-        });
+        Collections.sort(list, this);
         for (int minGap = 10;; minGap += minGap / 2) {
             for (int i = 0; i < list.size() - 1; i++) {
                 long[] current = list.get(i);
@@ -262,6 +258,10 @@ public class MultiDimension {
                 break;
             }
         }
+    }
+
+    public int compare(long[] a, long[] b) {
+        return a[0] > b[0] ? 1 : -1;
     }
 
     private void addMortonRanges(ArrayList<long[]> list, int[] min, int[] max, int len, int level) {

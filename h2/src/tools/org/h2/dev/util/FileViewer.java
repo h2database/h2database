@@ -27,7 +27,7 @@ public class FileViewer extends Tool {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new FileViewer().run(args);
+        new FileViewer().runTool(args);
     }
 
     protected void showUsage() {
@@ -44,7 +44,7 @@ public class FileViewer extends Tool {
         // getClass().getName().replace('.', '/') + ".html");
     }
 
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         String file = null;
         String find = null;
         boolean head = false, tail = false;

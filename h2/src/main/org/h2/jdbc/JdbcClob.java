@@ -63,9 +63,9 @@ public class JdbcClob extends TraceObject implements Clob
             Reader in = value.getReader();
             try {
                 long size = 0;
-                char[] buff = new char[Constants.FILE_BLOCK_SIZE];
+                char[] buff = new char[Constants.IO_BUFFER_SIZE];
                 while (true) {
-                    int len = in.read(buff, 0, Constants.FILE_BLOCK_SIZE);
+                    int len = in.read(buff, 0, Constants.IO_BUFFER_SIZE);
                     if (len <= 0) {
                         break;
                     }

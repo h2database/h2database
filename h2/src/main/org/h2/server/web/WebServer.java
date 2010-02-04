@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -221,8 +220,8 @@ public class WebServer implements Service {
         // TODO web: support using a different properties file
         Properties prop = loadProperties();
         port = SortedProperties.getIntProperty(prop, "webPort", Constants.DEFAULT_HTTP_PORT);
-        ssl = SortedProperties.getBooleanProperty(prop, "webSSL", Constants.DEFAULT_HTTP_SSL);
-        allowOthers = SortedProperties.getBooleanProperty(prop, "webAllowOthers", Constants.DEFAULT_HTTP_ALLOW_OTHERS);
+        ssl = SortedProperties.getBooleanProperty(prop, "webSSL", false);
+        allowOthers = SortedProperties.getBooleanProperty(prop, "webAllowOthers", false);
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-webPort".equals(a)) {
@@ -305,6 +304,10 @@ public class WebServer implements Service {
             }
             return false;
         }
+    }
+
+    public boolean isStopped() {
+        return serverSocket == null;
     }
 
     public void stop() {
@@ -527,12 +530,7 @@ public class WebServer implements Service {
         } else {
             settings.addAll(connInfoMap.values());
         }
-        Collections.sort(settings, new Comparator<ConnectionInfo>() {
-            public int compare(ConnectionInfo o1, ConnectionInfo o2) {
-                return MathUtils.compare(o2.lastAccess, o1.lastAccess);
-            }
-        }
-        );
+        Collections.sort(settings);
         return settings;
     }
 
@@ -559,7 +557,7 @@ public class WebServer implements Service {
                 }
             }
             OutputStream out = FileUtils.openFileOutputStream(getPropertiesFileName(), false);
-            prop.store(out, Constants.SERVER_PROPERTIES_TITLE);
+            prop.store(out, "H2 Server Properties");
             out.close();
         } catch (Exception e) {
             TraceSystem.traceThrowable(e);

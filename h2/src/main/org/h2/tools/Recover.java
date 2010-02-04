@@ -17,6 +17,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,7 +47,6 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
@@ -69,7 +69,7 @@ public class Recover extends Tool implements DataHandler {
     private int recordLength;
     private int valueId;
     private boolean trace;
-    private ObjectArray<MetaRecord> schema;
+    private ArrayList<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
     private boolean remove;
@@ -99,7 +99,7 @@ public class Recover extends Tool implements DataHandler {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new Recover().run(args);
+        new Recover().runTool(args);
     }
 
     /**
@@ -113,7 +113,7 @@ public class Recover extends Tool implements DataHandler {
      *
      * @param args the command line arguments
      */
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         String dir = ".";
         String db = null;
         for (int i = 0; args != null && i < args.length; i++) {
@@ -1014,14 +1014,14 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void resetSchema() {
-        schema = ObjectArray.newInstance();
+        schema = New.arrayList();
         objectIdSet = New.hashSet();
         tableMap = New.hashMap();
     }
 
     private void writeSchema(PrintWriter writer) {
         writer.println("---- Schema ----------");
-        MetaRecord.sort(schema);
+        Collections.sort(schema);
         for (MetaRecord m : schema) {
             String sql = m.getSQL();
             // create, but not referential integrity constraints and so on

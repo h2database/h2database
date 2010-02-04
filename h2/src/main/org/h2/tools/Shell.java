@@ -34,7 +34,7 @@ import org.h2.util.Tool;
  * Interactive command line tool to access a database using JDBC.
  * @h2.resource
  */
-public class Shell extends Tool {
+public class Shell extends Tool implements Runnable {
 
     private static final int HISTORY_COUNT = 20;
 
@@ -48,6 +48,7 @@ public class Shell extends Tool {
     // Windows: '\u00b3';
     private char boxVertical = '|';
     private ArrayList<String> history = New.arrayList();
+    private boolean stopHide;
 
     /**
      * Options are case sensitive. Supported options are:
@@ -70,7 +71,7 @@ public class Shell extends Tool {
      * @param args the command line arguments
      */
     public static void main(String... args) throws SQLException {
-        new Shell().run(args);
+        new Shell().runTool(args);
     }
 
     /**
@@ -105,7 +106,7 @@ public class Shell extends Tool {
      *
      * @param args the command line settings
      */
-    public void run(String... args) throws SQLException {
+    public void runTool(String... args) throws SQLException {
         String url = null;
         String user = "";
         String password = "";
@@ -401,37 +402,37 @@ public class Shell extends Tool {
         } catch (Exception e) {
             // ignore, use the default solution
         }
-
-        /**
-         * This thread hides the password by repeatedly printing
-         * backspace, backspace, &gt;, &lt;.
-         */
-        class PasswordHider extends Thread {
-            volatile boolean stop;
-            public void run() {
-                while (!stop) {
-                    print("\b\b><");
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        // ignore
-                    }
-                }
-            }
-        }
-        PasswordHider thread = new PasswordHider();
-        thread.start();
+        Thread passwordHider = new Thread(this);
+        stopHide = false;
+        passwordHider.start();
         print("Password  > ");
         String p = readLine();
-        thread.stop = true;
+        stopHide = true;
         try {
-            thread.join();
+            passwordHider.join();
         } catch (InterruptedException e) {
             // ignore
         }
         print("\b\b");
         return p;
     }
+
+    /**
+     * INTERNAL.
+     * Hides the password by repeatedly printing
+     * backspace, backspace, &gt;, &lt;.
+     */
+    public void run() {
+        while (!stopHide) {
+            print("\b\b><");
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+    }
+
 
     private String readLine(String defaultValue) throws IOException {
         String s = readLine();

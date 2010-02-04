@@ -286,7 +286,8 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-
+check client jar file size
+remove ObjectArray
 Constants.FILE_BLOCK_SIZE and others
 simplify SysProperties
 combine small classes (StringCache / utils...)

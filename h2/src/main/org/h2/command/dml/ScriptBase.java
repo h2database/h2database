@@ -39,6 +39,11 @@ import org.h2.value.Value;
 public abstract class ScriptBase extends Prepared implements DataHandler {
 
     /**
+     * The default name of the script file if .zip compression is used.
+     */
+    private static final String SCRIPT_SQL = "script.sql";
+
+    /**
      * The output stream.
      */
     protected OutputStream out;
@@ -130,7 +135,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         } else {
             OutputStream o = FileUtils.openFileOutputStream(file, false);
             out = new BufferedOutputStream(o, Constants.IO_BUFFER_SIZE);
-            out = CompressTool.wrapOutputStream(out, compressionAlgorithm, Constants.SCRIPT_SQL);
+            out = CompressTool.wrapOutputStream(out, compressionAlgorithm, SCRIPT_SQL);
         }
     }
 
@@ -153,9 +158,9 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
                 throw Message.convertIOException(e, file);
             }
             in = new BufferedInputStream(inStream, Constants.IO_BUFFER_SIZE);
-            in = CompressTool.wrapInputStream(in, compressionAlgorithm, Constants.SCRIPT_SQL);
+            in = CompressTool.wrapInputStream(in, compressionAlgorithm, SCRIPT_SQL);
             if (in == null) {
-                throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, Constants.SCRIPT_SQL + " in " + file);
+                throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, SCRIPT_SQL + " in " + file);
             }
         }
     }

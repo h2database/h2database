@@ -39,6 +39,11 @@ public class FileStore {
     protected static final byte[] EMPTY = new byte[16 * 1024];
 
     /**
+     * The magic file header.
+     */
+    private static final String HEADER = "-- H2 0.5/B --      ".substring(0, Constants.FILE_BLOCK_SIZE - 1) + "\n";
+
+    /**
      * The file name.
      */
     protected String name;
@@ -144,7 +149,7 @@ public class FileStore {
      * @return the random salt or the magic
      */
     protected byte[] generateSalt() {
-        return Constants.MAGIC_FILE_HEADER.getBytes();
+        return HEADER.getBytes();
     }
 
     /**
@@ -179,7 +184,7 @@ public class FileStore {
     public void init() throws SQLException {
         int len = Constants.FILE_BLOCK_SIZE;
         byte[] salt;
-        byte[] magic = Constants.MAGIC_FILE_HEADER.getBytes();
+        byte[] magic = HEADER.getBytes();
         if (length() < HEADER_LENGTH) {
             // write unencrypted
             checkedWriting = false;
@@ -195,12 +200,6 @@ public class FileStore {
             seek(0);
             byte[] buff = new byte[len];
             readFullyDirect(buff, 0, len);
-            if (Constants.MAGIC_FILE_HEADER_SUPPORT_TEXT) {
-                if (buff[10] == 'T') {
-                    buff[10] = 'B';
-                    textMode = true;
-                }
-            }
             if (ByteUtils.compareNotNull(buff, magic) != 0) {
                 throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, name);
             }

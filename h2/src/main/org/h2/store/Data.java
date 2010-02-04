@@ -1027,7 +1027,6 @@ public class Data {
      * until the size is a multiple of Constants.FILE_BLOCK_SIZE.
      */
     public void fillAligned() {
-        // TODO datapage: fillAligned should not use a fixed constant '2'
         // 0..6 > 8, 7..14 > 16, 15..22 > 24, ...
         fill(MathUtils.roundUp(pos + 2, Constants.FILE_BLOCK_SIZE));
     }

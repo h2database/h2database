@@ -8,7 +8,6 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 import org.h2.command.Prepared;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.result.ResultInterface;
@@ -23,7 +22,11 @@ import org.h2.util.StatementBuilder;
  */
 public class Analyze extends DefineCommand {
 
-    private int sampleRows = Constants.SELECTIVITY_ANALYZE_SAMPLE_ROWS;
+    /**
+     * The sample size.
+     * The default value is also in the documentation.
+     */
+    private int sampleRows = 10000;
 
     public Analyze(Session session) {
         super(session);

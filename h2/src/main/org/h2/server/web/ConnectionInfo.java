@@ -6,6 +6,7 @@
  */
 package org.h2.server.web;
 
+import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -13,7 +14,7 @@ import org.h2.util.StringUtils;
  * such as the database URL, user name and password.
  * This class is used by the H2 Console.
  */
-public class ConnectionInfo {
+public class ConnectionInfo implements Comparable<ConnectionInfo> {
     /**
      * The driver class name.
      */
@@ -57,6 +58,10 @@ public class ConnectionInfo {
 
     String getString() {
         return StringUtils.arrayCombine(new String[] { name, driver, url, user }, '|');
+    }
+
+    public int compareTo(ConnectionInfo o) {
+        return MathUtils.compare(lastAccess, o.lastAccess);
     }
 
 }

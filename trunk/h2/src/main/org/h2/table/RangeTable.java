@@ -7,7 +7,7 @@
 package org.h2.table;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
@@ -16,7 +16,6 @@ import org.h2.index.RangeIndex;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
@@ -148,7 +147,7 @@ public class RangeTable extends Table {
         }
     }
 
-    public ObjectArray<Index> getIndexes() {
+    public ArrayList<Index> getIndexes() {
         return null;
     }
 

@@ -7,12 +7,11 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
 
 /**
  * The base class for all database objects.
@@ -117,7 +116,7 @@ public abstract class DbObjectBase implements DbObject {
         return Parser.quoteIdentifier(objectName);
     }
 
-    public ObjectArray<DbObject> getChildren() {
+    public ArrayList<DbObject> getChildren() {
         return null;
     }
 

@@ -7,6 +7,7 @@
 package org.h2.util;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /**
  * The cache keeps frequently used objects in the main memory.
@@ -18,7 +19,7 @@ public interface Cache {
      *
      * @return the list of objects
      */
-    ObjectArray<CacheObject> getAllChanged();
+    ArrayList<CacheObject> getAllChanged();
 
     /**
      * Clear the cache.

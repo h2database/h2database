@@ -26,7 +26,6 @@ import org.h2.schema.Schema;
 import org.h2.util.IntArray;
 import org.h2.util.MemoryUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -268,7 +267,7 @@ public class TableView extends Table {
         return item.getIndex();
     }
 
-    public ObjectArray<Index> getIndexes() {
+    public ArrayList<Index> getIndexes() {
         return null;
     }
 

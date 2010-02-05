@@ -7,6 +7,7 @@
 package org.h2.util;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -122,7 +123,7 @@ public class CacheLRU implements Cache {
 
     private void removeOld() throws SQLException {
         int i = 0;
-        ObjectArray<CacheObject> changed = ObjectArray.newInstance();
+        ArrayList<CacheObject> changed = New.arrayList();
         int mem = sizeMemory;
         int rc = recordCount;
         boolean flushed = false;
@@ -287,11 +288,11 @@ public class CacheLRU implements Cache {
 //        }
 //    }
 
-    public ObjectArray<CacheObject> getAllChanged() {
+    public ArrayList<CacheObject> getAllChanged() {
 //        if(Database.CHECK) {
 //            testConsistency();
 //        }
-        ObjectArray<CacheObject> list = ObjectArray.newInstance();
+        ArrayList<CacheObject> list = New.arrayList();
         CacheObject rec = head.cacheNext;
         while (rec != head) {
             if (rec.isChanged()) {
@@ -370,7 +371,7 @@ public class CacheLRU implements Cache {
 //
 //    public ObjectArray getAllChanged() {
 //        Iterator it = values().iterator();
-//        ObjectArray list = ObjectArray.newInstance();
+//        ObjectArray list = New.arrayList();
 //        while(it.hasNext()) {
 //            Record rec = (Record)it.next();
 //            if(rec.isChanged()) {

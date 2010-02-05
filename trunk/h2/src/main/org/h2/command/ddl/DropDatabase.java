@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Role;
@@ -15,7 +16,7 @@ import org.h2.engine.User;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 
 /**
  * This class represents the statement
@@ -50,7 +51,7 @@ public class DropDatabase extends DefineCommand {
                 db.removeDatabaseObject(session, schema);
             }
         }
-        ObjectArray<Table> tables = db.getAllTablesAndViews(false);
+        ArrayList<Table> tables = db.getAllTablesAndViews(false);
         for (Table t : tables) {
             if (t.getName() != null && Table.VIEW.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
@@ -67,7 +68,7 @@ public class DropDatabase extends DefineCommand {
             }
         }
         session.findLocalTempTable(null);
-        ObjectArray<SchemaObject> list = ObjectArray.newInstance();
+        ArrayList<SchemaObject> list = New.arrayList();
         list.addAll(db.getAllSchemaObjects(DbObject.SEQUENCE));
         // maybe constraints and triggers on system tables will be allowed in
         // the future
@@ -89,7 +90,7 @@ public class DropDatabase extends DefineCommand {
                 db.removeDatabaseObject(session, role);
             }
         }
-        ObjectArray<DbObject> dbObjects = ObjectArray.newInstance();
+        ArrayList<DbObject> dbObjects = New.arrayList();
         dbObjects.addAll(db.getAllRights());
         dbObjects.addAll(db.getAllFunctionAliases());
         dbObjects.addAll(db.getAllAggregates());

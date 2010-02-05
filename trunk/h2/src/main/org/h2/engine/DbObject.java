@@ -7,8 +7,8 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
 
 /**
  * A database object such as a table, an index, or a user.
@@ -116,7 +116,7 @@ public interface DbObject {
      *
      * @return the list of children
      */
-    ObjectArray<DbObject> getChildren();
+    ArrayList<DbObject> getChildren();
 
     /**
      * Get the database.

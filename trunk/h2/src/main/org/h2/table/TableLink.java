@@ -30,7 +30,6 @@ import org.h2.schema.Schema;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -49,7 +48,7 @@ public class TableLink extends Table {
     private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
     private HashMap<String, PreparedStatement> preparedMap = New.hashMap();
-    private final ObjectArray<Index> indexes = ObjectArray.newInstance();
+    private final ArrayList<Index> indexes = New.arrayList();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
     private SQLException connectException;
@@ -191,10 +190,10 @@ public class TableLink extends Table {
             rs = null;
         }
         String pkName = "";
-        ObjectArray<Column> list;
+        ArrayList<Column> list;
         if (rs != null && rs.next()) {
             // the problem is, the rows are not sorted by KEY_SEQ
-            list = ObjectArray.newInstance();
+            list = New.arrayList();
             do {
                 int idx = rs.getInt("KEY_SEQ");
                 if (pkName == null) {
@@ -224,7 +223,7 @@ public class TableLink extends Table {
             rs = null;
         }
         String indexName = null;
-        list = ObjectArray.newInstance();
+        list = New.arrayList();
         IndexType indexType = null;
         if (rs != null) {
             while (rs.next()) {
@@ -285,7 +284,7 @@ public class TableLink extends Table {
         return columnName;
     }
 
-    private void addIndex(ObjectArray<Column> list, IndexType indexType) {
+    private void addIndex(ArrayList<Column> list, IndexType indexType) {
         Column[] cols = new Column[list.size()];
         list.toArray(cols);
         Index index = new LinkedIndex(this, 0, IndexColumn.wrap(cols), indexType);
@@ -472,7 +471,7 @@ public class TableLink extends Table {
         return url.startsWith("jdbc:oracle:");
     }
 
-    public ObjectArray<Index> getIndexes() {
+    public ArrayList<Index> getIndexes() {
         return indexes;
     }
 

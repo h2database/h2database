@@ -14,6 +14,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import org.h2.command.Parser;
 import org.h2.constant.SysProperties;
@@ -49,7 +51,6 @@ import org.h2.table.Table;
 import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -171,10 +172,10 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(agg.getCreateSQL(), false);
             }
-            ObjectArray<Table> tables = db.getAllTablesAndViews(false);
+            ArrayList<Table> tables = db.getAllTablesAndViews(false);
             // sort by id, so that views are after tables and views on views
             // after the base views
-            tables.sort(new Comparator<Table>() {
+            Collections.sort(tables, new Comparator<Table>() {
                 public int compare(Table t1, Table t2) {
                     return t1.getId() - t2.getId();
                 }
@@ -206,7 +207,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 String tableType = table.getTableType();
                 add(sql, false);
-                ObjectArray<Constraint> constraints = table.getConstraints();
+                ArrayList<Constraint> constraints = table.getConstraints();
                 if (constraints != null) {
                     for (Constraint constraint : constraints) {
                         if (Constraint.PRIMARY_KEY.equals(constraint.getConstraintType())) {
@@ -276,7 +277,7 @@ public class ScriptCommand extends ScriptBase {
                         }
                     }
                 }
-                ObjectArray<Index> indexes = table.getIndexes();
+                ArrayList<Index> indexes = table.getIndexes();
                 for (int j = 0; indexes != null && j < indexes.size(); j++) {
                     Index index = indexes.get(j);
                     if (!index.getIndexType().getBelongsToConstraint()) {
@@ -291,8 +292,8 @@ public class ScriptCommand extends ScriptBase {
                 add("DROP ALIAS IF EXISTS SYSTEM_COMBINE_BLOB", true);
                 tempLobTableCreated = false;
             }
-            ObjectArray<SchemaObject> constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
-            constraints.sort(new Comparator<SchemaObject>() {
+            ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
+            Collections.sort(constraints, new Comparator<SchemaObject>() {
                 public int compare(SchemaObject c1, SchemaObject c2) {
                     return ((Constraint) c1).compareTo((Constraint) c2);
                 }

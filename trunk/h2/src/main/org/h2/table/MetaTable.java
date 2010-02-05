@@ -17,7 +17,6 @@ import java.sql.Timestamp;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Locale;
-
 import org.h2.command.Command;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -53,7 +52,6 @@ import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.Resources;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -567,9 +565,9 @@ public class MetaTable extends Table {
         return s;
     }
 
-    private ObjectArray<Table> getAllTables(Session session) {
-        ObjectArray<Table> tables = database.getAllTablesAndViews(true);
-        ObjectArray<Table> tempTables = session.getLocalTempTables();
+    private ArrayList<Table> getAllTables(Session session) {
+        ArrayList<Table> tables = database.getAllTablesAndViews(true);
+        ArrayList<Table> tempTables = session.getLocalTempTables();
         tables.addAll(tempTables);
         return tables;
     }
@@ -727,8 +725,8 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                ObjectArray<Index> indexes = table.getIndexes();
-                ObjectArray<Constraint> constraints = table.getConstraints();
+                ArrayList<Index> indexes = table.getIndexes();
+                ArrayList<Constraint> constraints = table.getConstraints();
                 for (int j = 0; indexes != null && j < indexes.size(); j++) {
                     Index index = indexes.get(j);
                     if (index.getCreateSQL() == null) {
@@ -1713,11 +1711,11 @@ public class MetaTable extends Table {
         return new MetaIndex(this, IndexColumn.wrap(columns), true);
     }
 
-    public ObjectArray<Index> getIndexes() {
+    public ArrayList<Index> getIndexes() {
         if (metaIndex == null) {
             return null;
         }
-        ObjectArray <Index>list = ObjectArray.newInstance();
+        ArrayList<Index>list = New.arrayList();
         list.add(new MetaIndex(this, IndexColumn.wrap(columns), true));
         // TODO fixed scan index
         list.add(metaIndex);

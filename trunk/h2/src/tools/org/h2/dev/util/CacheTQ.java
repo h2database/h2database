@@ -7,7 +7,7 @@
 package org.h2.dev.util;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
@@ -16,7 +16,7 @@ import org.h2.util.CacheHead;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.MathUtils;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 
 /**
  * A cache implementation based on the 2Q algorithm.
@@ -175,7 +175,7 @@ class CacheTQ implements Cache {
 
     private void removeOld() throws SQLException {
         int i = 0;
-        ObjectArray<CacheObject> changed = ObjectArray.newInstance();
+        ArrayList<CacheObject> changed = New.arrayList();
         int si = sizeIn, sm = sizeMain, rc = recordCount;
         CacheObject inNext = headIn.cacheNext, mainNext = headMain.cacheNext;
         while (((si * 4 > maxIn * 3) || (sm * 4 > maxMain * 3))
@@ -276,8 +276,8 @@ class CacheTQ implements Cache {
         }
     }
 
-    public ObjectArray<CacheObject> getAllChanged() {
-        ObjectArray<CacheObject> list = ObjectArray.newInstance();
+    public ArrayList<CacheObject> getAllChanged() {
+        ArrayList<CacheObject> list = New.arrayList();
         for (CacheObject o = headMain.cacheNext; o != headMain; o = o.cacheNext) {
             if (o.isChanged()) {
                 list.add(o);

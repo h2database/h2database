@@ -49,7 +49,6 @@ import org.h2.util.FileUtils;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -320,7 +319,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void writeBack() throws SQLException {
-        ObjectArray<CacheObject> list = cache.getAllChanged();
+        ArrayList<CacheObject> list = cache.getAllChanged();
         CacheObject.sort(list);
         for (CacheObject rec : list) {
             writeBack(rec);
@@ -1199,7 +1198,7 @@ public class PageStore implements CacheWriter {
 
     private void openMetaIndex() throws SQLException {
         CreateTableData data = new CreateTableData();
-        ObjectArray<Column> cols = data.columns;
+        ArrayList<Column> cols = data.columns;
         cols.add(new Column("ID", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("PARENT", Value.INT));

@@ -6,6 +6,8 @@
  */
 package org.h2.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 
 import org.h2.constant.SysProperties;
@@ -80,8 +82,8 @@ public abstract class CacheObject {
      *
      * @param recordList the list of cache objects
      */
-    public static void sort(ObjectArray<CacheObject> recordList) {
-        recordList.sort(new CacheComparator());
+    public static void sort(ArrayList<CacheObject> recordList) {
+        Collections.sort(recordList, new CacheComparator());
     }
 
     public void setPos(int pos) {

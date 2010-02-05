@@ -7,11 +7,12 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 
 /**
  * Each session keeps a undo log if rollback is required.
@@ -20,7 +21,7 @@ public class UndoLog {
     private Database database;
     // TODO undo log entry: a chain would probably be faster
     //  and use less memory than an array
-    private ObjectArray<UndoLogRecord> records = ObjectArray.newInstance();
+    private ArrayList<UndoLogRecord> records = New.arrayList();
     private FileStore file;
     private Data rowBuff;
     private int memoryUndo;
@@ -97,7 +98,7 @@ public class UndoLog {
      */
     public void removeLast(boolean trimToSize) {
         int i = records.size() - 1;
-        UndoLogRecord r = (UndoLogRecord) records.remove(i);
+        UndoLogRecord r = records.remove(i);
         if (!r.isStored()) {
             memoryUndo--;
         }

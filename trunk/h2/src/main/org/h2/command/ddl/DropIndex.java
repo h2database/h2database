@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
@@ -16,7 +17,6 @@ import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
 
 /**
  * This class represents the statement
@@ -51,7 +51,7 @@ public class DropIndex extends SchemaCommand {
             Table table = index.getTable();
             session.getUser().checkRight(index.getTable(), Right.ALL);
             Constraint pkConstraint = null;
-            ObjectArray<Constraint> constraints = table.getConstraints();
+            ArrayList<Constraint> constraints = table.getConstraints();
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint cons = constraints.get(i);
                 if (cons.usesIndex(index)) {

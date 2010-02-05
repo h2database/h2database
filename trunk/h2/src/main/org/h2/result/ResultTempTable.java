@@ -7,6 +7,7 @@
 package org.h2.result;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -20,7 +21,6 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -87,7 +87,7 @@ public class ResultTempTable implements ResultExternal {
         return (int) table.getRowCount(session);
     }
 
-    public void addRows(ObjectArray<Value[]> rows) throws SQLException {
+    public void addRows(ArrayList<Value[]> rows) throws SQLException {
         if (sort != null) {
             sort.sort(rows);
         }

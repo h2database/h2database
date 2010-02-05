@@ -7,6 +7,7 @@
 package org.h2.command;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
@@ -16,7 +17,6 @@ import org.h2.expression.Parameter;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.ResultInterface;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -43,7 +43,7 @@ public abstract class Prepared {
     /**
      * The list of parameters.
      */
-    protected ObjectArray<Parameter> parameters;
+    protected ArrayList<Parameter> parameters;
 
     /**
      * If the query should be prepared before each execution. This is set for
@@ -131,7 +131,7 @@ public abstract class Prepared {
      *
      * @param parameters the parameter list
      */
-    public void setParameterList(ObjectArray<Parameter> parameters) {
+    public void setParameterList(ArrayList<Parameter> parameters) {
         this.parameters = parameters;
     }
 
@@ -140,7 +140,7 @@ public abstract class Prepared {
      *
      * @return the parameter list
      */
-    public ObjectArray<Parameter> getParameters() {
+    public ArrayList<Parameter> getParameters() {
         return parameters;
     }
 

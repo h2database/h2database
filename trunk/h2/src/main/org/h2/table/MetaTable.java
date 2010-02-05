@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.h2.command.Command;
@@ -51,6 +52,7 @@ import org.h2.store.InDoubtTransaction;
 import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.Resources;
 import org.h2.util.StatementBuilder;
@@ -600,7 +602,7 @@ public class MetaTable extends Table {
      * @param last the last row to return
      * @return the generated rows
      */
-    public ObjectArray<Row> generateRows(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last) throws SQLException {
         Value indexFrom = null, indexTo = null;
 
         if (indexColumn >= 0) {
@@ -612,7 +614,7 @@ public class MetaTable extends Table {
             }
         }
 
-        ObjectArray<Row> rows = ObjectArray.newInstance();
+        ArrayList<Row> rows = New.arrayList();
         String catalog = identifier(database.getShortName());
         switch (type) {
         case TABLES: {
@@ -1251,15 +1253,16 @@ public class MetaTable extends Table {
             break;
         }
         case IN_DOUBT: {
-            ObjectArray<InDoubtTransaction> prepared = database.getInDoubtTransactions();
-            for (int i = 0; prepared != null && i < prepared.size(); i++) {
-                InDoubtTransaction prep = prepared.get(i);
-                add(rows,
-                        // TRANSACTION
-                        prep.getTransaction(),
-                        // STATE
-                        prep.getState()
-                );
+            ArrayList<InDoubtTransaction> prepared = database.getInDoubtTransactions();
+            if (prepared != null) {
+                for (InDoubtTransaction prep : prepared) {
+                    add(rows,
+                            // TRANSACTION
+                            prep.getTransaction(),
+                            // STATE
+                            prep.getState()
+                    );
+                }
             }
             break;
         }
@@ -1599,7 +1602,7 @@ public class MetaTable extends Table {
         // nothing to do
     }
 
-    private void addPrivileges(ObjectArray<Row> rows, DbObject grantee, String catalog, Table table, String column,
+    private void addPrivileges(ArrayList<Row> rows, DbObject grantee, String catalog, Table table, String column,
             int rightMask) throws SQLException {
         if ((rightMask & Right.SELECT) != 0) {
             addPrivilege(rows, grantee, catalog, table, column, "SELECT");
@@ -1615,7 +1618,7 @@ public class MetaTable extends Table {
         }
     }
 
-    private void addPrivilege(ObjectArray<Row> rows, DbObject grantee, String catalog, Table table, String column,
+    private void addPrivilege(ArrayList<Row> rows, DbObject grantee, String catalog, Table table, String column,
             String right) throws SQLException {
         String isGrantable = "NO";
         if (grantee.getType() == DbObject.USER) {
@@ -1664,7 +1667,7 @@ public class MetaTable extends Table {
         }
     }
 
-    private void add(ObjectArray<Row> rows, String... strings) throws SQLException {
+    private void add(ArrayList<Row> rows, String... strings) throws SQLException {
         Value[] values = new Value[strings.length];
         for (int i = 0; i < strings.length; i++) {
             String s = strings[i];

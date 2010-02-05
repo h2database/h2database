@@ -10,14 +10,13 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Map;
-
 import org.h2.constant.SysProperties;
 import org.h2.expression.ParameterInterface;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
@@ -421,7 +420,7 @@ public class TraceObject {
     /**
      * INTERNAL
      */
-    public static String toString(String sql, ObjectArray< ? extends ParameterInterface> params) {
+    public static String toString(String sql, ArrayList< ? extends ParameterInterface> params) {
         StatementBuilder buff = new StatementBuilder(sql);
         if (params != null && params.size() > 0) {
             buff.append(" {");

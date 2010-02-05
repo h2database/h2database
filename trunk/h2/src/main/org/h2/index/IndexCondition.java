@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import org.h2.command.dml.Query;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
@@ -19,7 +20,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.message.Message;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -60,7 +60,7 @@ public class IndexCondition {
     private int compareType;
 
     private Expression expression;
-    private ObjectArray<Expression> expressionList;
+    private List<Expression> expressionList;
     private Query expressionQuery;
 
     private IndexCondition(int compareType, ExpressionColumn column, Expression expression) {
@@ -89,7 +89,7 @@ public class IndexCondition {
      * @param list the expression list
      * @return the index condition
      */
-    public static IndexCondition getInList(ExpressionColumn column, ObjectArray<Expression> list) {
+    public static IndexCondition getInList(ExpressionColumn column, List<Expression> list) {
         IndexCondition cond = new IndexCondition(Comparison.IN_LIST, column, null);
         cond.expressionList = list;
         return cond;

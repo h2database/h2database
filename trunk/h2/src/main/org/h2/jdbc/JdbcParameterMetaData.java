@@ -8,14 +8,13 @@ package org.h2.jdbc;
 
 import java.sql.ParameterMetaData;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.util.MathUtils;
-import org.h2.util.ObjectArray;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -30,7 +29,7 @@ implements ParameterMetaData
 
     private JdbcPreparedStatement prep;
     private int paramCount;
-    private ObjectArray< ? extends ParameterInterface> parameters;
+    private ArrayList< ? extends ParameterInterface> parameters;
 
     JdbcParameterMetaData(Trace trace, JdbcPreparedStatement prep, CommandInterface command, int id) {
         setTrace(trace, TraceObject.PARAMETER_META_DATA, id);

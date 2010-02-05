@@ -7,12 +7,11 @@
 package org.h2.result;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.util.MathUtils;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -154,17 +153,18 @@ public class SortOrder {
      *
      * @param rows the list of rows
      */
-    public void sort(ObjectArray<Value[]> rows) throws SQLException {
+    public void sort(ArrayList<Value[]> rows) throws SQLException {
+        int todoUseArraySort;
         sort(rows, 0, rows.size() - 1);
     }
 
-    private void swap(ObjectArray<Value[]> rows, int a, int b) {
+    private void swap(ArrayList<Value[]> rows, int a, int b) {
         Value[] t = rows.get(a);
         rows.set(a, rows.get(b));
         rows.set(b, t);
     }
 
-    private void sort(ObjectArray<Value[]> rows, int l, int r) throws SQLException {
+    private void sort(ArrayList<Value[]> rows, int l, int r) throws SQLException {
         // quicksort
         int i, j;
         while (r - l > 10) {

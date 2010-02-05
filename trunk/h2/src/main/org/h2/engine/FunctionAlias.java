@@ -11,8 +11,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
 import org.h2.expression.Expression;
@@ -20,7 +20,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.ClassUtils;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -127,7 +127,7 @@ public class FunctionAlias extends DbObjectBase {
     private void loadClass() throws SQLException {
         Class< ? > javaClass = ClassUtils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
-        ObjectArray<JavaMethod> list = ObjectArray.newInstance();
+        ArrayList<JavaMethod> list = New.arrayList();
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];
             if (!Modifier.isStatic(m.getModifiers())) {

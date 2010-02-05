@@ -7,9 +7,10 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.result.ResultInterface;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.value.Value;
 
 /**
@@ -17,7 +18,7 @@ import org.h2.value.Value;
  */
 public abstract class SessionWithState implements SessionInterface {
 
-    protected ObjectArray<String> sessionState;
+    protected ArrayList<String> sessionState;
     protected boolean sessionStateChanged;
     private boolean sessionStateUpdating;
 
@@ -47,7 +48,7 @@ public abstract class SessionWithState implements SessionInterface {
             return;
         }
         sessionStateChanged = false;
-        sessionState = ObjectArray.newInstance();
+        sessionState = New.arrayList();
         CommandInterface ci = prepareCommand("SELECT * FROM INFORMATION_SCHEMA.SESSION_STATE", Integer.MAX_VALUE);
         ResultInterface result = ci.executeQuery(0, false);
         while (result.next()) {

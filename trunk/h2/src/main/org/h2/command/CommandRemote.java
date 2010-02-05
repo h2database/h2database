@@ -8,7 +8,7 @@ package org.h2.command;
 
 import java.io.IOException;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
@@ -18,7 +18,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultRemote;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
@@ -28,8 +28,8 @@ import org.h2.value.Value;
  */
 public class CommandRemote implements CommandInterface {
 
-    private final ObjectArray<Transfer> transferList;
-    private final ObjectArray<ParameterInterface> parameters;
+    private final ArrayList<Transfer> transferList;
+    private final ArrayList<ParameterInterface> parameters;
     private final Trace trace;
     private final String sql;
     private final int fetchSize;
@@ -40,11 +40,11 @@ public class CommandRemote implements CommandInterface {
     private int paramCount;
     private int created;
 
-    public CommandRemote(SessionRemote session, ObjectArray<Transfer> transferList, String sql, int fetchSize) throws SQLException {
+    public CommandRemote(SessionRemote session, ArrayList<Transfer> transferList, String sql, int fetchSize) throws SQLException {
         this.transferList = transferList;
         trace = session.getTrace();
         this.sql = sql;
-        parameters = ObjectArray.newInstance();
+        parameters = New.arrayList();
         prepare(session, true);
         // set session late because prepare might fail - in this case we don't
         // need to close the object
@@ -93,7 +93,7 @@ public class CommandRemote implements CommandInterface {
         return isQuery;
     }
 
-    public ObjectArray<ParameterInterface> getParameters() {
+    public ArrayList<ParameterInterface> getParameters() {
         return parameters;
     }
 

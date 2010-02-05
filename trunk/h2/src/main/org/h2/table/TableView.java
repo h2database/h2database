@@ -7,6 +7,7 @@
 package org.h2.table;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
@@ -24,6 +25,7 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.util.IntArray;
 import org.h2.util.MemoryUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
@@ -38,7 +40,7 @@ public class TableView extends Table {
     private static final long ROW_COUNT_APPROXIMATION = 100;
 
     private String querySQL;
-    private ObjectArray<Table> tables;
+    private ArrayList<Table> tables;
     private final String[] columnNames;
     private Query viewQuery;
     private ViewIndex index;
@@ -50,7 +52,7 @@ public class TableView extends Table {
     private User owner;
     private Query topQuery;
 
-    public TableView(Schema schema, int id, String name, String querySQL, ObjectArray<Parameter> params, String[] columnNames,
+    public TableView(Schema schema, int id, String name, String querySQL, ArrayList<Parameter> params, String[] columnNames,
             Session session, boolean recursive) throws SQLException {
         super(schema, id, name, false, true);
         this.querySQL = querySQL;
@@ -81,9 +83,9 @@ public class TableView extends Table {
         removeViewFromTables();
         try {
             Query query = recompileQuery(session);
-            tables = ObjectArray.newInstance(query.getTables());
-            ObjectArray<Expression> expressions = query.getExpressions();
-            ObjectArray<Column> list = ObjectArray.newInstance();
+            tables = New.arrayList(query.getTables());
+            ArrayList<Expression> expressions = query.getExpressions();
+            ArrayList<Column> list = New.arrayList();
             for (int i = 0; i < query.getColumnCount(); i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
@@ -110,7 +112,7 @@ public class TableView extends Table {
             // if it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
             // database
-            tables = ObjectArray.newInstance();
+            tables = New.arrayList();
             cols = new Column[0];
             if (recursive && columnNames != null) {
                 cols = new Column[columnNames.length];

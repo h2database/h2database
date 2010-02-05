@@ -8,12 +8,12 @@ package org.h2.result;
 
 import java.io.IOException;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.SessionRemote;
 import org.h2.message.Message;
 import org.h2.message.Trace;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
@@ -31,8 +31,8 @@ public class ResultRemote implements ResultInterface {
     private ResultColumn[] columns;
     private Value[] currentRow;
     private int rowId, rowCount, rowOffset;
-    private ObjectArray<Value[]> result;
-    private ObjectArray<Value> lobValues;
+    private ArrayList<Value[]> result;
+    private ArrayList<Value> lobValues;
     private final Trace trace;
 
     public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int fetchSize)
@@ -47,7 +47,7 @@ public class ResultRemote implements ResultInterface {
             columns[i] = new ResultColumn(transfer);
         }
         rowId = -1;
-        result = ObjectArray.newInstance();
+        result = New.arrayList();
         this.fetchSize = fetchSize;
         fetchRows(false);
     }
@@ -218,7 +218,7 @@ public class ResultRemote implements ResultInterface {
                         values[i] = v;
                         if (v.isFileBased()) {
                             if (lobValues == null) {
-                                lobValues = ObjectArray.newInstance();
+                                lobValues = New.arrayList();
                             }
                             lobValues.add(v);
                         }

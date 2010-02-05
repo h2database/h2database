@@ -6,12 +6,12 @@
  */
 package org.h2.command.dml;
 
+import java.util.ArrayList;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
@@ -35,7 +35,7 @@ public class SelectListColumnResolver implements ColumnResolver {
         int columnCount = select.getColumnCount();
         columns = new Column[columnCount];
         expressions = new Expression[columnCount];
-        ObjectArray<Expression> columnList = select.getExpressions();
+        ArrayList<Expression> columnList = select.getExpressions();
         for (int i = 0; i < columnCount; i++) {
             Expression expr = columnList.get(i);
             Column column = new Column(expr.getAlias(), Value.NULL);

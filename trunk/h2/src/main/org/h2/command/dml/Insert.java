@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.Prepared;
@@ -23,7 +24,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -35,7 +36,7 @@ public class Insert extends Prepared {
 
     private Table table;
     private Column[] columns;
-    private ObjectArray<Expression[]> list = ObjectArray.newInstance();
+    private ArrayList<Expression[]> list = New.arrayList();
     private Query query;
     private boolean sortedInsertMode;
 

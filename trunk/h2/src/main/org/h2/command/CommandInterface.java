@@ -7,10 +7,9 @@
 package org.h2.command;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
-import org.h2.util.ObjectArray;
 
 /**
  * Represents a SQL statement.
@@ -29,7 +28,7 @@ public interface CommandInterface {
      *
      * @return the parameters
      */
-    ObjectArray< ? extends ParameterInterface> getParameters();
+    ArrayList< ? extends ParameterInterface> getParameters();
 
     /**
      * Execute the query.

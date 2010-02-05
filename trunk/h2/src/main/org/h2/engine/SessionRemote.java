@@ -9,7 +9,7 @@ package org.h2.engine;
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.CommandInterface;
 import org.h2.command.CommandRemote;
@@ -29,7 +29,7 @@ import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
@@ -66,7 +66,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
 
     private TraceSystem traceSystem;
     private Trace trace;
-    private ObjectArray<Transfer> transferList = ObjectArray.newInstance();
+    private ArrayList<Transfer> transferList = New.arrayList();
     private int nextId;
     private boolean autoCommit = true;
     private CommandInterface switchOffAutoCommit;

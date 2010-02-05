@@ -7,12 +7,12 @@
 package org.h2.table;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 
 /**
  * A possible query execution plan. The time required to execute a query depends
@@ -34,8 +34,8 @@ public class Plan {
     public Plan(TableFilter[] filters, int count, Expression condition) {
         this.filters = new TableFilter[count];
         System.arraycopy(filters, 0, this.filters, 0, count);
-        ObjectArray<Expression> allCond = ObjectArray.newInstance();
-        ObjectArray<TableFilter> all = ObjectArray.newInstance();
+        ArrayList<Expression> allCond = New.arrayList();
+        ArrayList<TableFilter> all = New.arrayList();
         if (condition != null) {
             allCond.add(condition);
         }

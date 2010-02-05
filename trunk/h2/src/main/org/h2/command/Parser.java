@@ -10,8 +10,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.text.Collator;
+import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterTableAddConstraint;
@@ -129,7 +129,6 @@ import org.h2.table.TableView;
 import org.h2.util.ByteUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -181,12 +180,12 @@ public class Parser {
     private CreateView createView;
     private Prepared currentPrepared;
     private Select currentSelect;
-    private ObjectArray<Parameter> parameters;
+    private ArrayList<Parameter> parameters;
     private String schemaName;
-    private ObjectArray<String> expectedList;
+    private ArrayList<String> expectedList;
     private boolean rightsChecked;
     private boolean recompileAlways;
-    private ObjectArray<Parameter> indexedParameterList;
+    private ArrayList<Parameter> indexedParameterList;
     private boolean identifiersToUpper = SysProperties.IDENTIFIERS_TO_UPPER;
 
     public Parser(Session session) {
@@ -277,11 +276,11 @@ public class Parser {
     private Prepared parse(String sql, boolean withExpectedList) throws SQLException {
         initialize(sql);
         if (withExpectedList) {
-            expectedList = ObjectArray.newInstance();
+            expectedList = New.arrayList();
         } else {
             expectedList = null;
         }
-        parameters = ObjectArray.newInstance();
+        parameters = New.arrayList();
         currentSelect = null;
         currentPrepared = null;
         createView = null;
@@ -568,7 +567,7 @@ public class Parser {
         }
         String procedureName = readAliasIdentifier();
         if (readIf("(")) {
-            ObjectArray<Column> list = ObjectArray.newInstance();
+            ArrayList<Column> list = New.arrayList();
             for (int i = 0;; i++) {
                 Column column = parseColumnForTable("C" + i);
                 list.add(column);
@@ -653,7 +652,7 @@ public class Parser {
         command.setTableFilter(filter);
         read("SET");
         if (readIf("(")) {
-            ObjectArray<Column> columns = ObjectArray.newInstance();
+            ArrayList<Column> columns = New.arrayList();
             do {
                 Column column = readTableColumn(filter);
                 columns.add(column);
@@ -720,7 +719,7 @@ public class Parser {
     }
 
     private IndexColumn[] parseIndexColumnList() throws SQLException {
-        ObjectArray<IndexColumn> columns = ObjectArray.newInstance();
+        ArrayList<IndexColumn> columns = New.arrayList();
         do {
             IndexColumn column = new IndexColumn();
             column.columnName = readColumnIdentifier();
@@ -744,7 +743,7 @@ public class Parser {
     }
 
     private String[] parseColumnList() throws SQLException {
-        ObjectArray<String> columns = ObjectArray.newInstance();
+        ArrayList<String> columns = New.arrayList();
         do {
             String columnName = readColumnIdentifier();
             columns.add(columnName);
@@ -753,7 +752,7 @@ public class Parser {
     }
 
     private Column[] parseColumnList(Table table) throws SQLException {
-        ObjectArray<Column> columns = ObjectArray.newInstance();
+        ArrayList<Column> columns = New.arrayList();
         HashSet<Column> set = New.hashSet();
         if (!readIf(")")) {
             do {
@@ -778,7 +777,7 @@ public class Parser {
     private Prepared parseHelp() throws SQLException {
         StringBuilder buff = new StringBuilder("SELECT * FROM INFORMATION_SCHEMA.HELP");
         int i = 0;
-        ObjectArray<Value> paramValues = ObjectArray.newInstance();
+        ArrayList<Value> paramValues = New.arrayList();
         while (currentTokenType != END) {
             String s = currentToken;
             read();
@@ -795,7 +794,7 @@ public class Parser {
     }
 
     private Prepared parseShow() throws SQLException {
-        ObjectArray<Value> paramValues = ObjectArray.newInstance();
+        ArrayList<Value> paramValues = New.arrayList();
         StringBuilder buff = new StringBuilder("SELECT ");
         if (readIf("CLIENT_ENCODING")) {
             // for PostgreSQL compatibility
@@ -851,9 +850,9 @@ public class Parser {
         return prepare(session, buff.toString(), paramValues);
     }
 
-    private Prepared prepare(Session s, String sql, ObjectArray<Value> paramValues) throws SQLException {
+    private Prepared prepare(Session s, String sql, ArrayList<Value> paramValues) throws SQLException {
         Prepared prep = s.prepare(sql);
-        ObjectArray<Parameter> params = prep.getParameters();
+        ArrayList<Parameter> params = prep.getParameters();
         for (int i = 0; params != null && i < params.size(); i++) {
             Parameter p = params.get(i);
             p.setValue(paramValues.get(i));
@@ -895,7 +894,7 @@ public class Parser {
         }
         if (readIf("VALUES")) {
             do {
-                ObjectArray<Expression> values = ObjectArray.newInstance();
+                ArrayList<Expression> values = New.arrayList();
                 read("(");
                 if (!readIf(")")) {
                     do {
@@ -938,7 +937,7 @@ public class Parser {
             command.addRow(expr);
         } else if (readIf("VALUES")) {
             do {
-                ObjectArray<Expression> values = ObjectArray.newInstance();
+                ArrayList<Expression> values = New.arrayList();
                 read("(");
                 if (!readIf(")")) {
                     do {
@@ -967,7 +966,7 @@ public class Parser {
                 Query query = parseSelectUnion();
                 read(")");
                 query = parseSelectUnionExtension(query, start, true);
-                ObjectArray<Parameter> params = ObjectArray.newInstance();
+                ArrayList<Parameter> params = New.arrayList();
                 for (int i = paramIndex; i < parameters.size(); i++) {
                     params.add(parameters.get(i));
                 }
@@ -1367,7 +1366,7 @@ public class Parser {
     private Query parseSelect() throws SQLException {
         int paramIndex = parameters.size();
         Query command = parseSelectUnion();
-        ObjectArray<Parameter> params = ObjectArray.newInstance();
+        ArrayList<Parameter> params = New.arrayList();
         for (int i = paramIndex; i < parameters.size(); i++) {
             params.add(parameters.get(i));
         }
@@ -1422,7 +1421,7 @@ public class Parser {
             if (command instanceof Select) {
                 currentSelect = (Select) command;
             }
-            ObjectArray<SelectOrderBy> orderList = ObjectArray.newInstance();
+            ArrayList<SelectOrderBy> orderList = New.arrayList();
             do {
                 boolean canBeNumber = true;
                 if (readIf("=")) {
@@ -1593,7 +1592,7 @@ public class Parser {
         } else {
             readIf("ALL");
         }
-        ObjectArray<Expression> expressions = ObjectArray.newInstance();
+        ArrayList<Expression> expressions = New.arrayList();
         do {
             if (readIf("*")) {
                 expressions.add(new Wildcard(null, null));
@@ -1649,7 +1648,7 @@ public class Parser {
         if (readIf("GROUP")) {
             read("BY");
             command.setGroupQuery();
-            ObjectArray<Expression> list = ObjectArray.newInstance();
+            ArrayList<Expression> list = New.arrayList();
             do {
                 Expression expr = readExpression();
                 list.add(expr);
@@ -1754,7 +1753,7 @@ public class Parser {
                         Query query = parseSelect();
                         r = new ConditionInSelect(database, r, query, false, Comparison.EQUAL);
                     } else {
-                        ObjectArray<Expression> v = ObjectArray.newInstance();
+                        ArrayList<Expression> v = New.arrayList();
                         Expression last;
                         do {
                             last = readExpression();
@@ -1801,7 +1800,7 @@ public class Parser {
                         if (r instanceof ExpressionColumn && right instanceof ExpressionColumn) {
                             ExpressionColumn leftCol = (ExpressionColumn) r;
                             ExpressionColumn rightCol = (ExpressionColumn) right;
-                            ObjectArray<TableFilter> filters = currentSelect.getTopFilters();
+                            ArrayList<TableFilter> filters = currentSelect.getTopFilters();
                             for (TableFilter f : filters) {
                                 while (f != null) {
                                     leftCol.mapColumns(f, 0);
@@ -1926,8 +1925,8 @@ public class Parser {
         return r;
     }
 
-    private ObjectArray<SelectOrderBy> parseSimpleOrderList() throws SQLException {
-        ObjectArray<SelectOrderBy> orderList = ObjectArray.newInstance();
+    private ArrayList<SelectOrderBy> parseSimpleOrderList() throws SQLException {
+        ArrayList<SelectOrderBy> orderList = New.arrayList();
         do {
             SelectOrderBy order = new SelectOrderBy();
             Expression expr = readExpression();
@@ -1948,7 +1947,7 @@ public class Parser {
             throw Message.getSQLException(ErrorCode.FUNCTION_NOT_FOUND_1, name);
         }
         Expression[] args;
-        ObjectArray<Expression> argList = ObjectArray.newInstance();
+        ArrayList<Expression> argList = New.arrayList();
         int numArgs = 0;
         while (!readIf(")")) {
             if (numArgs++ > 0) {
@@ -1963,7 +1962,7 @@ public class Parser {
     }
 
     private JavaAggregate readJavaAggregate(UserAggregate aggregate) throws SQLException {
-        ObjectArray<Expression> params = ObjectArray.newInstance();
+        ArrayList<Expression> params = New.arrayList();
         do {
             params.add(readExpression());
         } while(readIf(","));
@@ -2086,7 +2085,7 @@ public class Parser {
         case Function.TABLE:
         case Function.TABLE_DISTINCT: {
             int i = 0;
-            ObjectArray<Column> columns = ObjectArray.newInstance();
+            ArrayList<Column> columns = New.arrayList();
             do {
                 String columnName = readAliasIdentifier();
                 Column column = parseColumn(columnName);
@@ -2207,14 +2206,17 @@ public class Parser {
                     } else if (parameters.size() > 0) {
                         throw Message.getSQLException(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
                     }
-                    indexedParameterList = ObjectArray.newInstance();
+                    indexedParameterList = New.arrayList();
                 }
                 int index = currentValue.getInt() - 1;
                 if (index < 0 || index >= Constants.MAX_PARAMETER_INDEX) {
                     throw Message.getInvalidValueException("" + index, "Parameter Index");
                 }
                 if (indexedParameterList.size() <= index) {
-                    indexedParameterList.setSize(index + 1);
+                    indexedParameterList.ensureCapacity(index + 1);
+                    while (indexedParameterList.size() <= index) {
+                        indexedParameterList.add(null);
+                    }
                 }
                 p = indexedParameterList.get(index);
                 if (p == null) {
@@ -2330,7 +2332,7 @@ public class Parser {
             read();
             r = readExpression();
             if (readIf(",")) {
-                ObjectArray<Expression> list = ObjectArray.newInstance();
+                ArrayList<Expression> list = New.arrayList();
                 list.add(r);
                 do {
                     r = readExpression();
@@ -3857,7 +3859,7 @@ public class Parser {
         Schema schema = getSchema();
         TableData recursiveTable;
         read("(");
-        ObjectArray<Column> columns = ObjectArray.newInstance();
+        ArrayList<Column> columns = New.arrayList();
         String[] cols = parseColumnList();
         for (String c : cols) {
             columns.add(new Column(c, Value.STRING));
@@ -4209,7 +4211,7 @@ public class Parser {
         } else if (readIf("SEARCH_PATH") || readIf(SetTypes.getTypeName(SetTypes.SCHEMA_SEARCH_PATH))) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.SCHEMA_SEARCH_PATH);
-            ObjectArray<String> list = ObjectArray.newInstance();
+            ArrayList<String> list = New.arrayList();
             list.add(readAliasIdentifier());
             while (readIf(",")) {
                 list.add(readAliasIdentifier());
@@ -4869,7 +4871,7 @@ public class Parser {
      * @throws SQLException if the code snippet could not be parsed
      */
     public Expression parseExpression(String sql) throws SQLException {
-        parameters = ObjectArray.newInstance();
+        parameters = New.arrayList();
         initialize(sql);
         read();
         return readExpression();

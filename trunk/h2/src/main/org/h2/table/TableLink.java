@@ -13,6 +13,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -107,7 +108,7 @@ public class TableLink extends Table {
         rs.close();
         rs = meta.getColumns(null, originalSchema, originalTable, null);
         int i = 0;
-        ObjectArray<Column> columnList = ObjectArray.newInstance();
+        ArrayList<Column> columnList = New.arrayList();
         HashMap<String, Column> columnMap = New.hashMap();
         String catalog = null, schema = null;
         while (rs.next()) {

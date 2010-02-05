@@ -17,12 +17,12 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.command.Command;
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
@@ -46,7 +46,6 @@ import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -110,7 +109,7 @@ public class Function extends Expression implements FunctionCall {
     protected Expression[] args;
 
     private FunctionInfo info;
-    private ObjectArray<Expression> varArgs;
+    private ArrayList<Expression> varArgs;
     private int dataType, scale;
     private long precision = PRECISION_UNKNOWN;
     private int displaySize;
@@ -328,7 +327,7 @@ public class Function extends Expression implements FunctionCall {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
-            varArgs = ObjectArray.newInstance();
+            varArgs = New.arrayList();
         } else {
             args = new Expression[info.parameterCount];
         }

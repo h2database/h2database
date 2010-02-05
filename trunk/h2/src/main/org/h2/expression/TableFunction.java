@@ -7,7 +7,7 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -17,7 +17,6 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -69,7 +68,7 @@ public class TableFunction extends Function {
         return getTable(session, args, true, false);
     }
 
-    public void setColumns(ObjectArray<Column> columns) {
+    public void setColumns(ArrayList<Column> columns) {
         this.columnList = new Column[columns.size()];
         columns.toArray(columnList);
     }

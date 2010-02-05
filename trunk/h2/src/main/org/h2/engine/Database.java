@@ -1642,7 +1642,7 @@ public class Database implements DataHandler {
      *
      * @return the list
      */
-    public ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
+    public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
         return pageStore == null ? null : pageStore.getInDoubtTransactions();
     }
 

@@ -7,13 +7,13 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
+import java.util.List;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -26,7 +26,7 @@ public class ConditionIn extends Condition {
 
     private final Database database;
     private Expression left;
-    private final ObjectArray<Expression> valueList;
+    private final List<Expression> valueList;
     private int queryLevel;
 
     /**
@@ -36,7 +36,7 @@ public class ConditionIn extends Condition {
      * @param left the expression before IN
      * @param values the value list (at least one element)
      */
-    public ConditionIn(Database database, Expression left, ObjectArray<Expression> values) {
+    public ConditionIn(Database database, Expression left, List<Expression> values) {
         this.database = database;
         this.left = left;
         this.valueList = values;

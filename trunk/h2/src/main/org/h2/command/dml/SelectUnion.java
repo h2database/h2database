@@ -7,8 +7,8 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
@@ -25,7 +25,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -57,8 +57,8 @@ public class SelectUnion extends Query {
 
     private int unionType;
     private Query left, right;
-    private ObjectArray<Expression> expressions;
-    private ObjectArray<SelectOrderBy> orderList;
+    private ArrayList<Expression> expressions;
+    private ArrayList<SelectOrderBy> orderList;
     private SortOrder sort;
     private boolean distinct;
     private boolean isPrepared, checkInit;
@@ -81,7 +81,7 @@ public class SelectUnion extends Query {
         this.sqlStatement = sql;
     }
 
-    public void setOrder(ObjectArray<SelectOrderBy> order) {
+    public void setOrder(ArrayList<SelectOrderBy> order) {
         orderList = order;
     }
 
@@ -94,7 +94,7 @@ public class SelectUnion extends Query {
     }
 
     public ResultInterface queryMeta() throws SQLException {
-        ObjectArray<Expression> leftExpressions = left.getExpressions();
+        ArrayList<Expression> leftExpressions = left.getExpressions();
         int columnCount = left.getColumnCount();
         LocalResult result = new LocalResult(session, leftExpressions, columnCount);
         result.done();
@@ -194,10 +194,10 @@ public class SelectUnion extends Query {
         if (len != right.getColumnCount()) {
             throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
-        ObjectArray<Expression> le = left.getExpressions();
+        ArrayList<Expression> le = left.getExpressions();
         // set the expressions to get the right column count and names,
         // but can't validate at this time
-        expressions = ObjectArray.newInstance();
+        expressions = New.arrayList();
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             expressions.add(l);
@@ -217,9 +217,9 @@ public class SelectUnion extends Query {
         right.prepare();
         int len = left.getColumnCount();
         // set the correct expressions now
-        expressions = ObjectArray.newInstance();
-        ObjectArray<Expression> le = left.getExpressions();
-        ObjectArray<Expression> re = right.getExpressions();
+        expressions = New.arrayList();
+        ArrayList<Expression> le = left.getExpressions();
+        ArrayList<Expression> re = right.getExpressions();
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);
@@ -252,7 +252,7 @@ public class SelectUnion extends Query {
         distinct = b;
     }
 
-    public ObjectArray<Expression> getExpressions() {
+    public ArrayList<Expression> getExpressions() {
         return expressions;
     }
 

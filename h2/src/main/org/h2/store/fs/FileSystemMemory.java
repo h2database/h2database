@@ -10,12 +10,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
 import org.h2.message.Message;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 
 /**
  * This file system keeps files fully in memory.
@@ -102,7 +103,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public String[] listFiles(String path) {
-        ObjectArray<String> list = ObjectArray.newInstance();
+        ArrayList<String> list = New.arrayList();
         synchronized (MEMORY_FILES) {
             for (String name : MEMORY_FILES.tailMap(path).keySet()) {
                 if (name.startsWith(path)) {

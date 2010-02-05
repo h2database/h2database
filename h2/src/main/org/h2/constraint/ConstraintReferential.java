@@ -7,6 +7,7 @@
 package org.h2.constraint;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -23,7 +24,6 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -403,7 +403,7 @@ public class ConstraintReferential extends Constraint {
             } else {
                 Prepared updateCommand = getUpdate(session);
                 if (updateAction == CASCADE) {
-                    ObjectArray<Parameter> params = updateCommand.getParameters();
+                    ArrayList<Parameter> params = updateCommand.getParameters();
                     for (int i = 0; i < columns.length; i++) {
                         Parameter param = params.get(i);
                         Column refCol = refColumns[i].column;
@@ -433,7 +433,7 @@ public class ConstraintReferential extends Constraint {
         for (int i = 0; i < refColumns.length; i++) {
             int idx = refColumns[i].column.getColumnId();
             Value v = row.getValue(idx);
-            ObjectArray<Parameter> params = command.getParameters();
+            ArrayList<Parameter> params = command.getParameters();
             Parameter param = params.get(pos + i);
             param.setValue(v);
         }
@@ -519,7 +519,7 @@ public class ConstraintReferential extends Constraint {
     private Prepared prepare(Session session, String sql, int action) throws SQLException {
         Prepared command = session.prepare(sql);
         if (action != CASCADE) {
-            ObjectArray<Parameter> params = command.getParameters();
+            ArrayList<Parameter> params = command.getParameters();
             for (int i = 0; i < columns.length; i++) {
                 Column column = columns[i].column;
                 Parameter param = params.get(i);

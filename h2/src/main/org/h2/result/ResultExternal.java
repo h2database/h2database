@@ -7,8 +7,7 @@
 package org.h2.result;
 
 import java.sql.SQLException;
-
-import org.h2.util.ObjectArray;
+import java.util.ArrayList;
 import org.h2.value.Value;
 
 /**
@@ -34,7 +33,7 @@ public interface ResultExternal {
      *
      * @param rows the list of rows to add
      */
-    void addRows(ObjectArray<Value[]> rows) throws SQLException;
+    void addRows(ArrayList<Value[]> rows) throws SQLException;
 
     /**
      * This method is called after all rows have been added.

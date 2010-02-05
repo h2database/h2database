@@ -7,6 +7,7 @@
 package org.h2.command;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -16,7 +17,6 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
-import org.h2.util.ObjectArray;
 
 /**
  * Represents a SQL statement. This object is only used on the server side.
@@ -71,7 +71,7 @@ public abstract class Command implements CommandInterface {
      *
      * @return the list of parameters
      */
-    public abstract ObjectArray< ? extends ParameterInterface> getParameters();
+    public abstract ArrayList< ? extends ParameterInterface> getParameters();
 
     /**
      * Check if this command is read only.

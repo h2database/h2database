@@ -62,7 +62,7 @@ public class Session extends SessionWithState implements SessionFactory {
     private ConnectionInfo connectionInfo;
     private User user;
     private int id;
-    private ObjectArray<Table> locks = ObjectArray.newInstance();
+    private ArrayList<Table> locks = New.arrayList();
     private UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
@@ -655,7 +655,7 @@ public class Session extends SessionWithState implements SessionFactory {
     private void cleanTempTables(boolean closeSession) throws SQLException {
         if (localTempTables != null && localTempTables.size() > 0) {
             synchronized (database) {
-                for (Table table : ObjectArray.newInstance(localTempTables.values())) {
+                for (Table table : New.arrayList(localTempTables.values())) {
                     if (closeSession || table.getOnCommitDrop()) {
                         modificationId++;
                         table.setModified();
@@ -787,15 +787,16 @@ public class Session extends SessionWithState implements SessionFactory {
                 rollback();
             }
         } else {
-            ObjectArray<InDoubtTransaction> list = database.getInDoubtTransactions();
+            ArrayList<InDoubtTransaction> list = database.getInDoubtTransactions();
             int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
             boolean found = false;
-            for (int i = 0; list != null && i < list.size(); i++) {
-                InDoubtTransaction p = list.get(i);
-                if (p.getTransaction().equals(transactionName)) {
-                    p.setState(state);
-                    found = true;
-                    break;
+            if (list != null) {
+                for (InDoubtTransaction p: list) {
+                    if (p.getTransaction().equals(transactionName)) {
+                        p.setState(state);
+                        found = true;
+                        break;
+                    }
                 }
             }
             if (!found) {

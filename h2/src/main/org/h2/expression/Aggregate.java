@@ -7,6 +7,8 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import org.h2.command.dml.Select;
@@ -23,7 +25,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -119,7 +120,7 @@ public class Aggregate extends Expression {
 
     private Expression on;
     private Expression separator;
-    private ObjectArray<SelectOrderBy> orderList;
+    private ArrayList<SelectOrderBy> orderList;
     private SortOrder sort;
     private int dataType, scale;
     private long precision;
@@ -187,7 +188,7 @@ public class Aggregate extends Expression {
      *
      * @param orderBy the order by list
      */
-    public void setOrder(ObjectArray<SelectOrderBy> orderBy) {
+    public void setOrder(ArrayList<SelectOrderBy> orderBy) {
         this.orderList = orderBy;
     }
 
@@ -290,14 +291,14 @@ public class Aggregate extends Expression {
         }
         Value v = data.getValue(session.getDatabase(), distinct);
         if (type == GROUP_CONCAT) {
-            ObjectArray<Value> list = data.getList();
+            ArrayList<Value> list = data.getList();
             if (list == null || list.size() == 0) {
                 return ValueNull.INSTANCE;
             }
             if (orderList != null) {
                 try {
                     final SortOrder sortOrder = sort;
-                    list.sort(new Comparator<Value>() {
+                    Collections.sort(list, new Comparator<Value>() {
                         public int compare(Value v1, Value v2) {
                             try {
                                 Value[] a1 = ((ValueArray) v1).getList();

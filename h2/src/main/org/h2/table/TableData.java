@@ -7,6 +7,7 @@
 package org.h2.table;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -453,7 +454,7 @@ public class TableData extends Table {
             }
             session.setWaitForLock(this);
             if (checkDeadlock) {
-                ObjectArray<Session> sessions = checkDeadlock(session, null, null);
+                ArrayList<Session> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
                     throw Message.getSQLException(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions));
                 }
@@ -491,7 +492,7 @@ public class TableData extends Table {
         }
     }
 
-    private String getDeadlockDetails(ObjectArray<Session> sessions) {
+    private String getDeadlockDetails(ArrayList<Session> sessions) {
         StringBuilder buff = new StringBuilder();
         for (Session s : sessions) {
             Table lock = s.getWaitForLock();
@@ -519,7 +520,7 @@ public class TableData extends Table {
         return buff.toString();
     }
 
-    public ObjectArray<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
+    public ArrayList<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
         // only one deadlock check at any given time
         synchronized (TableData.class) {
             if (clash == null) {
@@ -528,7 +529,7 @@ public class TableData extends Table {
                 visited = New.hashSet();
             } else if (clash == session) {
                 // we found a circle where this session is involved
-                return ObjectArray.newInstance();
+                return New.arrayList();
             } else if (visited.contains(session)) {
                 // we have already checked this session.
                 // there is a circle, but the sessions in the circle need to
@@ -536,7 +537,7 @@ public class TableData extends Table {
                 return null;
             }
             visited.add(session);
-            ObjectArray<Session> error = null;
+            ArrayList<Session> error = null;
             for (Session s : lockShared) {
                 if (s == session) {
                     // it doesn't matter if we have locked the object already

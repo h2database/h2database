@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
@@ -186,7 +187,7 @@ public class CreateTable extends SchemaCommand {
 
     private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();
-        ObjectArray<Expression> expressions = asQuery.getExpressions();
+        ArrayList<Expression> expressions = asQuery.getExpressions();
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
             int type = expr.getType();

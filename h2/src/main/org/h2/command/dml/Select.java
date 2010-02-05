@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,14 +62,14 @@ import org.h2.value.ValueNull;
  */
 public class Select extends Query {
     private TableFilter topTableFilter;
-    private ObjectArray<TableFilter> filters = ObjectArray.newInstance();
-    private ObjectArray<TableFilter> topFilters = ObjectArray.newInstance();
-    private ObjectArray<Expression> expressions;
+    private ArrayList<TableFilter> filters = New.arrayList();
+    private ArrayList<TableFilter> topFilters = New.arrayList();
+    private ArrayList<Expression> expressions;
     private Expression having;
     private Expression condition;
     private int visibleColumnCount, distinctColumnCount;
-    private ObjectArray<SelectOrderBy> orderList;
-    private ObjectArray<Expression> group;
+    private ArrayList<SelectOrderBy> orderList;
+    private ArrayList<Expression> group;
     private int[] groupIndex;
     private boolean[] groupByExpression;
     private boolean distinct;
@@ -107,11 +108,11 @@ public class Select extends Query {
         }
     }
 
-    public ObjectArray<TableFilter> getTopFilters() {
+    public ArrayList<TableFilter> getTopFilters() {
         return topFilters;
     }
 
-    public void setExpressions(ObjectArray<Expression> expressions) {
+    public void setExpressions(ArrayList<Expression> expressions) {
         this.expressions = expressions;
     }
 
@@ -122,7 +123,7 @@ public class Select extends Query {
         isGroupQuery = true;
     }
 
-    public void setGroupBy(ObjectArray<Expression> group) {
+    public void setGroupBy(ArrayList<Expression> group) {
         this.group = group;
     }
 
@@ -134,7 +135,7 @@ public class Select extends Query {
         return currentGroupRowId;
     }
 
-    public void setOrder(ObjectArray<SelectOrderBy> order) {
+    public void setOrder(ArrayList<SelectOrderBy> order) {
         orderList = order;
     }
 
@@ -344,7 +345,7 @@ public class Select extends Query {
         if (groupIndex == null && groups.size() == 0) {
             groups.put(defaultGroup, new HashMap<Expression, Object>());
         }
-        ObjectArray<Value> keys = groups.keys();
+        ArrayList<Value> keys = groups.keys();
         for (Value v : keys) {
             ValueArray key = (ValueArray) v;
             currentGroup = groups.get(key);
@@ -380,7 +381,7 @@ public class Select extends Query {
         if (sort == null) {
             return null;
         }
-        ObjectArray<Column> sortColumns = ObjectArray.newInstance();
+        ArrayList<Column> sortColumns = New.arrayList();
         for (int idx : sort.getIndexes()) {
             if (idx < 0 || idx >= expressions.size()) {
                 throw Message.getInvalidValueException("" + (idx + 1), "ORDER BY");
@@ -617,9 +618,9 @@ public class Select extends Query {
         }
         expandColumnList();
         visibleColumnCount = expressions.size();
-        ObjectArray<String> expressionSQL;
+        ArrayList<String> expressionSQL;
         if (orderList != null || group != null) {
-            expressionSQL = ObjectArray.newInstance();
+            expressionSQL = New.arrayList();
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
@@ -959,7 +960,7 @@ public class Select extends Query {
         return topTableFilter;
     }
 
-    public ObjectArray<Expression> getExpressions() {
+    public ArrayList<Expression> getExpressions() {
         return expressions;
     }
 

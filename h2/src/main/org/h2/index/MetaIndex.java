@@ -7,6 +7,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -14,7 +15,6 @@ import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
-import org.h2.util.ObjectArray;
 
 /**
  * The index implementation for meta data tables.
@@ -43,7 +43,7 @@ public class MetaIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        ObjectArray<Row> rows = meta.generateRows(session, first, last);
+        ArrayList<Row> rows = meta.generateRows(session, first, last);
         return new MetaCursor(rows);
     }
 

@@ -12,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
-
+import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -20,7 +20,7 @@ import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 
 /**
  * Represents a statement.
@@ -37,7 +37,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected final int resultSetConcurrency;
     protected boolean closedByResultSet;
     private CommandInterface executingCommand;
-    private ObjectArray<String> batchCommands;
+    private ArrayList<String> batchCommands;
     private boolean escapeProcessing = true;
 
     JdbcStatement(JdbcConnection conn, int id, int resultSetType, int resultSetConcurrency, boolean closeWithResultSet) {
@@ -585,7 +585,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             checkClosed();
             sql = conn.translateSQL(sql, escapeProcessing);
             if (batchCommands == null) {
-                batchCommands = ObjectArray.newInstance();
+                batchCommands = New.arrayList();
             }
             batchCommands.add(sql);
         } catch (Exception e) {
@@ -618,7 +618,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             try {
                 if (batchCommands == null) {
                     // TODO batch: check what other database do if no commands are set
-                    batchCommands = ObjectArray.newInstance();
+                    batchCommands = New.arrayList();
                 }
                 int[] result = new int[batchCommands.size()];
                 boolean error = false;

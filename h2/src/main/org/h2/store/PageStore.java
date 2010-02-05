@@ -9,6 +9,7 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
@@ -190,7 +191,7 @@ public class PageStore implements CacheWriter {
     private Session systemSession;
     private BitField freed = new BitField();
 
-    private ObjectArray<PageFreeList> freeLists = ObjectArray.newInstance();
+    private ArrayList<PageFreeList> freeLists = New.arrayList();
 
     /**
      * The change count is something like a "micro-transaction-id".
@@ -1438,7 +1439,7 @@ public class PageStore implements CacheWriter {
      *
      * @return the list
      */
-    public ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
+    public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
         return log.getInDoubtTransactions();
     }
 

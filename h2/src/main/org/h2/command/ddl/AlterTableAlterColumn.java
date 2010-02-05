@@ -9,7 +9,6 @@ package org.h2.command.ddl;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;

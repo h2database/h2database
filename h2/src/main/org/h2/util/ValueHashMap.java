@@ -7,6 +7,7 @@
 package org.h2.util;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import org.h2.message.Message;
 import org.h2.store.DataHandler;
@@ -167,8 +168,8 @@ public class ValueHashMap<V> extends HashBase {
      *
      * @return all keys
      */
-    public ObjectArray<Value> keys() {
-        ObjectArray<Value> list = ObjectArray.newInstance(size);
+    public ArrayList<Value> keys() {
+        ArrayList<Value> list = New.arrayList(size);
         for (Value k : keys) {
             if (k != null && k != ValueNull.DELETED) {
                 list.add(k);
@@ -182,8 +183,8 @@ public class ValueHashMap<V> extends HashBase {
      *
      * @return all values
      */
-    public ObjectArray<V> values() {
-        ObjectArray<V> list = ObjectArray.newInstance(size);
+    public ArrayList<V> values() {
+        ArrayList<V> list = New.arrayList(size);
         for (int i = 0; i < keys.length; i++) {
             Value k = keys[i];
             if (k != null && k != ValueNull.DELETED) {

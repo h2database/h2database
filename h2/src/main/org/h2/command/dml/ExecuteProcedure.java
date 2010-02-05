@@ -7,13 +7,14 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.command.Prepared;
 import org.h2.engine.Procedure;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 
 /**
  * This class represents the statement
@@ -21,7 +22,7 @@ import org.h2.util.ObjectArray;
  */
 public class ExecuteProcedure extends Prepared {
 
-    private ObjectArray<Expression> expressions = ObjectArray.newInstance();
+    private ArrayList<Expression> expressions = New.arrayList();
     private Procedure procedure;
 
     public ExecuteProcedure(Session session) {
@@ -44,7 +45,7 @@ public class ExecuteProcedure extends Prepared {
 
     private void setParameters() throws SQLException {
         Prepared prepared = procedure.getPrepared();
-        ObjectArray<Parameter> params = prepared.getParameters();
+        ArrayList<Parameter> params = prepared.getParameters();
         for (int i = 0; params != null && i < params.size() && i < expressions.size(); i++) {
             Expression expr = expressions.get(i);
             Parameter p = params.get(i);

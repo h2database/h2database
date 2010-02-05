@@ -7,7 +7,7 @@
 package org.h2.table;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
@@ -23,7 +23,7 @@ import org.h2.index.IndexCursor;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -55,7 +55,7 @@ public class TableFilter implements ColumnResolver {
     /**
      * The index conditions used for direct index lookup (start or end).
      */
-    private final ObjectArray<IndexCondition> indexConditions = ObjectArray.newInstance();
+    private final ArrayList<IndexCondition> indexConditions = New.arrayList();
 
     /**
      * Additional conditions that can't be used for index lookup,
@@ -73,7 +73,7 @@ public class TableFilter implements ColumnResolver {
     private int state;
     private TableFilter join;
     private boolean outerJoin;
-    private ObjectArray<Column> naturalJoinColumns;
+    private ArrayList<Column> naturalJoinColumns;
     private boolean foundOne;
     private Expression fullCondition;
     private final int hashCode;
@@ -683,7 +683,7 @@ public class TableFilter implements ColumnResolver {
      */
     public void addNaturalJoinColumn(Column c) {
         if (naturalJoinColumns == null) {
-            naturalJoinColumns = ObjectArray.newInstance();
+            naturalJoinColumns = New.arrayList();
         }
         naturalJoinColumns.add(c);
     }

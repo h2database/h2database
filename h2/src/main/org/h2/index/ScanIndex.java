@@ -7,6 +7,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +23,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.value.ValueLob;
 
 /**
@@ -33,7 +33,7 @@ import org.h2.value.ValueLob;
  */
 public class ScanIndex extends BaseIndex {
     private long firstFree = -1;
-    private ObjectArray<Row> rows = ObjectArray.newInstance();
+    private ArrayList<Row> rows = New.arrayList();
     private TableData tableData;
     private int rowCountDiff;
     private HashMap<Integer, Integer> sessionRowCount;
@@ -53,7 +53,7 @@ public class ScanIndex extends BaseIndex {
     }
 
     public void truncate(Session session) throws SQLException {
-        rows = ObjectArray.newInstance();
+        rows = New.arrayList();
         firstFree = -1;
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
             ValueLob.removeAllForTable(database, table.getId());
@@ -127,7 +127,7 @@ public class ScanIndex extends BaseIndex {
     public void remove(Session session, Row row) {
         // in-memory
         if (!database.isMultiVersion() && rowCount == 1) {
-            rows = ObjectArray.newInstance();
+            rows = New.arrayList();
             firstFree = -1;
         } else {
             Row free = new Row(null, 0);

@@ -10,12 +10,12 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
 import org.h2.util.JdbcUtils;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -34,7 +34,7 @@ public class UpdatableRow {
     private final int columnCount;
     private String schemaName;
     private String tableName;
-    private ObjectArray<String> key;
+    private ArrayList<String> key;
     private boolean isUpdatable;
 
     /**
@@ -77,7 +77,7 @@ public class UpdatableRow {
             // system table
             return;
         }
-        key = ObjectArray.newInstance();
+        key = New.arrayList();
         rs = meta.getPrimaryKeys(null,
                 JdbcUtils.escapeMetaDataPattern(schemaName),
                 tableName);

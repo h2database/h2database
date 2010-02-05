@@ -7,13 +7,14 @@
 package org.h2.result;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
@@ -24,12 +25,12 @@ import org.h2.value.ValueLob;
 public class RowList {
 
     private final Session session;
-    private final ObjectArray<Row> list = ObjectArray.newInstance();
+    private final ArrayList<Row> list = New.arrayList();
     private int size;
     private int index, listIndex;
     private FileStore file;
     private Data rowBuff;
-    private ObjectArray<ValueLob> lobs;
+    private ArrayList<ValueLob> lobs;
     private int memory, maxMemory;
     private boolean written;
     private boolean readUncached;
@@ -68,7 +69,7 @@ public class RowList {
                     ValueLob lob = (ValueLob) v;
                     if (lob.getSmall() == null && lob.getTableId() == 0) {
                         if (lobs == null) {
-                            lobs = ObjectArray.newInstance();
+                            lobs = New.arrayList();
                         }
                         // need to create a copy, otherwise,
                         // if stored multiple times, it may be renamed

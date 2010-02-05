@@ -9,7 +9,7 @@ package org.h2.result;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -17,7 +17,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.message.Message;
 import org.h2.table.Column;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -36,7 +36,7 @@ public class LocalResult implements ResultInterface {
     private int visibleColumnCount;
     private Expression[] expressions;
     private int rowId, rowCount;
-    private ObjectArray<Value[]> rows;
+    private ArrayList<Value[]> rows;
     private SortOrder sort;
     private ValueHashMap<Value[]> distinctRows;
     private Value[] currentRow;
@@ -67,7 +67,7 @@ public class LocalResult implements ResultInterface {
         } else {
             this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
         }
-        rows = ObjectArray.newInstance();
+        rows = New.arrayList();
         this.visibleColumnCount = visibleColumnCount;
         rowId = -1;
         this.expressions = expressions;
@@ -80,7 +80,7 @@ public class LocalResult implements ResultInterface {
      * @param expressionList the expression list
      * @param visibleColumnCount the number of visible columns
      */
-    public LocalResult(Session session, ObjectArray<Expression> expressionList, int visibleColumnCount) {
+    public LocalResult(Session session, ArrayList<Expression> expressionList, int visibleColumnCount) {
         this(session, getList(expressionList), visibleColumnCount);
     }
 
@@ -93,7 +93,7 @@ public class LocalResult implements ResultInterface {
      * @return the local result set
      */
     public static LocalResult read(Session session, ResultSet rs, int maxrows) throws SQLException {
-        ObjectArray<Expression> cols = getExpressionColumns(session, rs);
+        ArrayList<Expression> cols = getExpressionColumns(session, rs);
         int columnCount = cols.size();
         LocalResult result = new LocalResult(session, cols, columnCount);
         for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
@@ -108,10 +108,10 @@ public class LocalResult implements ResultInterface {
         return result;
     }
 
-    private static ObjectArray<Expression> getExpressionColumns(Session session, ResultSet rs) throws SQLException {
+    private static ArrayList<Expression> getExpressionColumns(Session session, ResultSet rs) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
-        ObjectArray<Expression> cols = ObjectArray.newInstance(columnCount);
+        ArrayList<Expression> cols = New.arrayList(columnCount);
         Database db = session == null ? null : session.getDatabase();
         for (int i = 0; i < columnCount; i++) {
             String name = meta.getColumnLabel(i + 1);
@@ -156,7 +156,7 @@ public class LocalResult implements ResultInterface {
         return copy;
     }
 
-    private static Expression[] getList(ObjectArray<Expression> expressionList) {
+    private static Expression[] getList(ArrayList<Expression> expressionList) {
         Expression[] expressions = new Expression[expressionList.size()];
         expressionList.toArray(expressions);
         return expressions;
@@ -304,7 +304,7 @@ public class LocalResult implements ResultInterface {
                     ResultExternal temp = disk;
                     disk = null;
                     temp.reset();
-                    rows = ObjectArray.newInstance();
+                    rows = New.arrayList();
                     // TODO use offset directly if possible
                     while (true) {
                         Value[] list = temp.next();
@@ -357,7 +357,7 @@ public class LocalResult implements ResultInterface {
         }
         if (disk == null) {
             if (rows.size() > limit) {
-                rows.removeRange(limit, rows.size());
+                rows = New.arrayList(rows.subList(0, limit));
                 rowCount = limit;
             }
         } else {
@@ -439,7 +439,7 @@ public class LocalResult implements ResultInterface {
             } else {
                 // avoid copying the whole array for each row
                 int remove = Math.min(offset, rows.size());
-                rows.removeRange(0, remove);
+                rows = New.arrayList(rows.subList(remove, rows.size()));
                 rowCount -= remove;
             }
         } else {

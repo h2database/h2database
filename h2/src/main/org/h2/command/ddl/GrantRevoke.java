@@ -7,7 +7,7 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
@@ -16,7 +16,7 @@ import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 
 /**
  * This class represents the statements
@@ -37,10 +37,10 @@ public class GrantRevoke extends DefineCommand {
      */
     public static final int REVOKE = 1;
 
-    private ObjectArray<String> roleNames;
+    private ArrayList<String> roleNames;
     private int operationType;
     private int rightMask;
-    private ObjectArray<Table> tables = ObjectArray.newInstance();
+    private ArrayList<Table> tables = New.arrayList();
     private RightOwner grantee;
 
     public GrantRevoke(Session session) {
@@ -67,7 +67,7 @@ public class GrantRevoke extends DefineCommand {
      */
     public void addRoleName(String roleName) {
         if (roleNames == null) {
-            roleNames = ObjectArray.newInstance();
+            roleNames = New.arrayList();
         }
         roleNames.add(roleName);
     }

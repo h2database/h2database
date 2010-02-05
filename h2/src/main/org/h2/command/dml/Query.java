@@ -7,8 +7,8 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
@@ -26,7 +26,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -80,7 +80,7 @@ public abstract class Query extends Prepared {
      *
      * @return the list of expressions
      */
-    public abstract ObjectArray<Expression> getExpressions();
+    public abstract ArrayList<Expression> getExpressions();
 
     /**
      * Calculate the cost to execute this query.
@@ -101,7 +101,7 @@ public abstract class Query extends Prepared {
      *
      * @param order the order by list
      */
-    public abstract void setOrder(ObjectArray<SelectOrderBy> order);
+    public abstract void setOrder(ArrayList<SelectOrderBy> order);
 
     /**
      * Set the 'for update' flag.
@@ -208,9 +208,9 @@ public abstract class Query extends Prepared {
     }
 
     public final Value[] getParameterValues() {
-        ObjectArray<Parameter> list = getParameters();
+        ArrayList<Parameter> list = getParameters();
         if (list == null) {
-            list = ObjectArray.newInstance();
+            list = New.arrayList();
         }
         Value[] params = new Value[list.size()];
         for (int i = 0; i < list.size(); i++) {
@@ -261,7 +261,7 @@ public abstract class Query extends Prepared {
      * @param visible the number of visible columns in the select list
      * @param mustBeInResult all order by expressions must be in the select list
      */
-    void initOrder(ObjectArray<Expression> expressions, ObjectArray<String> expressionSQL, ObjectArray<SelectOrderBy> orderList, int visible,
+    void initOrder(ArrayList<Expression> expressions, ArrayList<String> expressionSQL, ArrayList<SelectOrderBy> orderList, int visible,
             boolean mustBeInResult) throws SQLException {
         for (SelectOrderBy o : orderList) {
             Expression e = o.expression;
@@ -345,7 +345,7 @@ public abstract class Query extends Prepared {
      * @param expressionCount the number of columns in the query
      * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ObjectArray<SelectOrderBy> orderList, int expressionCount) throws SQLException {
+    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) throws SQLException {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
         for (int i = 0; i < orderList.size(); i++) {
@@ -399,7 +399,7 @@ public abstract class Query extends Prepared {
      */
     void addParameter(Parameter param) {
         if (parameters == null) {
-            parameters = ObjectArray.newInstance();
+            parameters = New.arrayList();
         }
         parameters.add(param);
     }

@@ -8,7 +8,7 @@ package org.h2.result;
 
 import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -16,7 +16,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.value.Value;
 
 /**
@@ -28,7 +28,7 @@ class ResultDiskBuffer implements ResultExternal {
 
     private Data rowBuff;
     private FileStore file;
-    private ObjectArray<ResultDiskTape> tapes;
+    private ArrayList<ResultDiskTape> tapes;
     private ResultDiskTape mainTape;
     private SortOrder sort;
     private int columnCount;
@@ -57,7 +57,7 @@ class ResultDiskBuffer implements ResultExternal {
         /**
          * A list of rows in the buffer.
          */
-        ObjectArray<Value[]> buffer = ObjectArray.newInstance();
+        ArrayList<Value[]> buffer = New.arrayList();
     }
 
     ResultDiskBuffer(Session session, SortOrder sort, int columnCount) throws SQLException {
@@ -70,14 +70,14 @@ class ResultDiskBuffer implements ResultExternal {
         file.setCheckedWriting(false);
         file.seek(FileStore.HEADER_LENGTH);
         if (sort != null) {
-            tapes = ObjectArray.newInstance();
+            tapes = New.arrayList();
         } else {
             mainTape = new ResultDiskTape();
             mainTape.pos = FileStore.HEADER_LENGTH;
         }
     }
 
-    public void addRows(ObjectArray<Value[]> rows) throws SQLException {
+    public void addRows(ArrayList<Value[]> rows) throws SQLException {
         if (sort != null) {
             sort.sort(rows);
         }
@@ -133,11 +133,11 @@ class ResultDiskBuffer implements ResultExternal {
         if (sort != null) {
             for (ResultDiskTape tape : tapes) {
                 tape.pos = tape.start;
-                tape.buffer = ObjectArray.newInstance();
+                tape.buffer = New.arrayList();
             }
         } else {
             mainTape.pos = FileStore.HEADER_LENGTH;
-            mainTape.buffer = ObjectArray.newInstance();
+            mainTape.buffer = New.arrayList();
         }
     }
 

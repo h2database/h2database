@@ -6,10 +6,10 @@
  */
 package org.h2.index;
 
+import java.util.ArrayList;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.util.ObjectArray;
 
 /**
  * An index for a meta data table.
@@ -18,10 +18,10 @@ import org.h2.util.ObjectArray;
 public class MetaCursor implements Cursor {
 
     private Row current;
-    private ObjectArray<Row> rows;
+    private ArrayList<Row> rows;
     private int index;
 
-    MetaCursor(ObjectArray<Row> rows) {
+    MetaCursor(ArrayList<Row> rows) {
         this.rows = rows;
     }
 

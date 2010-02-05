@@ -7,7 +7,7 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
-
+import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
@@ -16,7 +16,6 @@ import org.h2.index.IndexCondition;
 import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -495,13 +494,13 @@ public class Comparison extends Condition {
                 // a=b OR a=c
                 Database db = session.getDatabase();
                 if (rc && r2c && l.equals(l2)) {
-                    return new ConditionIn(db, left, ObjectArray.newInstance(right, other.right));
+                    return new ConditionIn(db, left, Arrays.asList(right, other.right));
                 } else if (rc && l2c && l.equals(r2)) {
-                    return new ConditionIn(db, left, ObjectArray.newInstance(right, other.left));
+                    return new ConditionIn(db, left, Arrays.asList(right, other.left));
                 } else if (lc && r2c && r.equals(l2)) {
-                    return new ConditionIn(db, right, ObjectArray.newInstance(left, other.right));
+                    return new ConditionIn(db, right, Arrays.asList(left, other.right));
                 } else if (lc && l2c && r.equals(r2)) {
-                    return new ConditionIn(db, right, ObjectArray.newInstance(left, other.left));
+                    return new ConditionIn(db, right, Arrays.asList(left, other.left));
                 }
             }
         }

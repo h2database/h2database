@@ -9,6 +9,7 @@ package org.h2.store;
 import java.io.EOFException;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import org.h2.compress.CompressLZF;
@@ -22,7 +23,6 @@ import org.h2.util.BitField;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -801,8 +801,8 @@ public class PageLog {
         return pageOut == null ? 0 : pageOut.getSize();
     }
 
-    ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
-        ObjectArray<InDoubtTransaction> list = ObjectArray.newInstance();
+    ArrayList<InDoubtTransaction> getInDoubtTransactions() {
+        ArrayList<InDoubtTransaction> list = New.arrayList();
         for (SessionState state : sessionStates.values()) {
             InDoubtTransaction in = state.inDoubtTransaction;
             if (in != null) {

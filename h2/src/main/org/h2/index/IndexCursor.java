@@ -7,6 +7,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
@@ -18,7 +19,6 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -63,7 +63,7 @@ public class IndexCursor implements Cursor {
      * @param s the session
      * @param indexConditions the index conditions
      */
-    public void find(Session s, ObjectArray<IndexCondition> indexConditions) throws SQLException {
+    public void find(Session s, ArrayList<IndexCondition> indexConditions) throws SQLException {
         this.session = s;
         alwaysFalse = false;
         start = end = null;

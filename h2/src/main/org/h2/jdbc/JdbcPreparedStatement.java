@@ -13,17 +13,15 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
-//## Java 1.4 begin ##
 import java.sql.ParameterMetaData;
-import java.sql.Statement;
-//## Java 1.4 end ##
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Calendar;
-
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.expression.ParameterInterface;
@@ -32,7 +30,7 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -63,7 +61,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     private final String sqlStatement;
     private CommandInterface command;
-    private ObjectArray<Value[]> batchParameters;
+    private ArrayList<Value[]> batchParameters;
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int id, int resultSetType,
                 int resultSetConcurrency, boolean closeWithResultSet) throws SQLException {
@@ -202,7 +200,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             debugCodeCall("clearParameters");
             checkClosed();
-            ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
+            ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
             for (ParameterInterface param : parameters) {
                 // can only delete old temp files if they are not in the batch
                 param.setValue(null, batchParameters == null);
@@ -1083,7 +1081,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             debugCodeCall("executeBatch");
             if (batchParameters == null) {
                 // TODO batch: check what other database do if no parameters are set
-                batchParameters = ObjectArray.newInstance();
+                batchParameters = New.arrayList();
             }
             int[] result = new int[batchParameters.size()];
             boolean error = false;
@@ -1092,7 +1090,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             try {
                 for (int i = 0; i < batchParameters.size(); i++) {
                     Value[] set = batchParameters.get(i);
-                    ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
+                    ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
                     for (int j = 0; j < set.length; j++) {
                         Value value = set[j];
                         ParameterInterface param = parameters.get(j);
@@ -1137,7 +1135,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             debugCodeCall("addBatch");
             checkClosedForWrite();
             try {
-                ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
+                ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
                 Value[] set = new Value[parameters.size()];
                 for (int i = 0; i < parameters.size(); i++) {
                     ParameterInterface param = parameters.get(i);
@@ -1145,7 +1143,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                     set[i] = value;
                 }
                 if (batchParameters == null) {
-                    batchParameters = ObjectArray.newInstance();
+                    batchParameters = New.arrayList();
                 }
                 batchParameters.add(set);
             } finally {
@@ -1267,7 +1265,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     private void setParameter(int parameterIndex, Value value) throws SQLException {
         checkClosed();
         parameterIndex--;
-        ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
+        ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
         if (parameterIndex < 0 || parameterIndex >= parameters.size()) {
             throw Message.getInvalidValueException("" + (parameterIndex + 1), "parameterIndex");
         }
@@ -1494,9 +1492,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     protected boolean checkClosed(boolean write) throws SQLException {
         if (super.checkClosed(write)) {
             // if the session was re-connected, re-prepare the statement
-            ObjectArray< ? extends ParameterInterface> oldParams = command.getParameters();
+            ArrayList< ? extends ParameterInterface> oldParams = command.getParameters();
             command = conn.prepareCommand(sqlStatement, fetchSize);
-            ObjectArray< ? extends ParameterInterface> newParams = command.getParameters();
+            ArrayList< ? extends ParameterInterface> newParams = command.getParameters();
             for (int i = 0; i < oldParams.size(); i++) {
                 ParameterInterface old = oldParams.get(i);
                 Value value = old.getParamValue();

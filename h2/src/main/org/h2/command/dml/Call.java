@@ -8,6 +8,7 @@ package org.h2.command.dml;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -16,7 +17,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueResultSet;
@@ -26,8 +27,9 @@ import org.h2.value.ValueResultSet;
  * CALL.
  */
 public class Call extends Prepared {
+
     private Expression value;
-    private ObjectArray<Expression> expressions;
+    private ArrayList<Expression> expressions;
 
     public Call(Session session) {
         super(session);
@@ -64,7 +66,7 @@ public class Call extends Prepared {
             return LocalResult.read(session, rs, maxrows);
         } else if (v.getType() == Value.ARRAY) {
             Value[] list = ((ValueArray) v).getList();
-            ObjectArray<Expression> expr = ObjectArray.newInstance();
+            ArrayList<Expression> expr = New.arrayList();
             for (int i = 0; i < list.length; i++) {
                 Value e = list[i];
                 Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale(), e.getDisplaySize());
@@ -85,7 +87,7 @@ public class Call extends Prepared {
 
     public void prepare() throws SQLException {
         value = value.optimize(session);
-        expressions = ObjectArray.newInstance();
+        expressions = New.arrayList();
         expressions.add(value);
     }
 

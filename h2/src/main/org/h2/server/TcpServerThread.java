@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.command.Command;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -26,7 +27,6 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.ResultColumn;
 import org.h2.result.ResultInterface;
-import org.h2.util.ObjectArray;
 import org.h2.util.SmallMap;
 import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
@@ -207,7 +207,7 @@ public class TcpServerThread implements Runnable {
 
     private void setParameters(Command command) throws IOException, SQLException {
         int len = transfer.readInt();
-        ObjectArray< ? extends ParameterInterface> params = command.getParameters();
+        ArrayList< ? extends ParameterInterface> params = command.getParameters();
         for (int i = 0; i < len; i++) {
             Parameter p = (Parameter) params.get(i);
             p.setValue(transfer.readValue());
@@ -226,7 +226,7 @@ public class TcpServerThread implements Runnable {
             boolean readonly = command.isReadOnly();
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
-            ObjectArray< ? extends ParameterInterface> params = command.getParameters();
+            ArrayList< ? extends ParameterInterface> params = command.getParameters();
             transfer.writeInt(getState(old)).writeBoolean(isQuery).writeBoolean(readonly)
                     .writeInt(params.size());
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {

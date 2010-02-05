@@ -47,7 +47,6 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
@@ -931,7 +930,7 @@ public class WebApp implements DatabaseEventListener {
                 result = "${text.result.maxrowsSet}";
             } else {
                 ScriptReader r = new ScriptReader(new StringReader(sql));
-                ObjectArray<String> list = ObjectArray.newInstance();
+                ArrayList<String> list = New.arrayList();
                 while (true) {
                     String s = r.readStatement();
                     if (s == null) {

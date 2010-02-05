@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.Prepared;
@@ -22,7 +23,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
@@ -36,7 +37,7 @@ public class Merge extends Prepared {
     private Table table;
     private Column[] columns;
     private Column[] keys;
-    private ObjectArray<Expression[]> list = ObjectArray.newInstance();
+    private ArrayList<Expression[]> list = New.arrayList();
     private Query query;
     private Prepared update;
 
@@ -155,7 +156,7 @@ public class Merge extends Prepared {
     }
 
     private void merge(Row row) throws SQLException {
-        ObjectArray<Parameter> k = update.getParameters();
+        ArrayList<Parameter> k = update.getParameters();
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
             Value v = row.getValue(col.getColumnId());

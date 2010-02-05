@@ -297,7 +297,7 @@ public class ObjectArray<T> implements Iterable<T> {
         T[] d = data;
         while (right - left > 12) {
             // randomized pivot to avoid worst case
-            int i = RandomUtils.nextInt(right - left - 4) + left + 2;
+            int i = MathUtils.randomInt(right - left - 4) + left + 2;
             // d[left]: smallest, d[i]: highest, d[right]: median
             if (comp.compare(d[left], d[i]) > 0) {
                 swap(left, i);

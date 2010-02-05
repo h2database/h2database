@@ -86,7 +86,7 @@ public class ValueShort extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueShort v = (ValueShort) o;
-        return MathUtils.compare(value, v.value);
+        return MathUtils.compareInt(value, v.value);
     }
 
     public String getString() {

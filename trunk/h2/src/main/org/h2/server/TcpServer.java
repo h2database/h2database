@@ -27,7 +27,6 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.util.JdbcUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
 
@@ -152,7 +151,7 @@ public class TcpServer implements Service {
             } else if ("-tcpSSL".equals(a)) {
                 ssl = true;
             } else if ("-tcpPort".equals(a)) {
-                port = MathUtils.decodeInt(args[++i]);
+                port = Integer.decode(args[++i]);
             } else if ("-tcpPassword".equals(a)) {
                 managementPassword = args[++i];
             } else if ("-baseDir".equals(a)) {
@@ -381,7 +380,7 @@ public class TcpServer implements Service {
             if (idx >= 0) {
                 p = p.substring(0, idx);
             }
-            port = MathUtils.decodeInt(p);
+            port = Integer.decode(p);
         }
         String db = getManagementDbName(port);
         try {

@@ -28,7 +28,6 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
-import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
@@ -289,7 +288,7 @@ public class ValueLob extends Value {
             if (newId > Integer.MAX_VALUE / lobsPerDir) {
                 // this directory path is full: start from zero
                 newId = 0;
-                dirCounter = RandomUtils.nextInt(lobsPerDir - 1) * lobsPerDir;
+                dirCounter = MathUtils.randomInt(lobsPerDir - 1) * lobsPerDir;
             } else {
                 // calculate the directory
                 // start with 1 (otherwise we don't know the number of directories)

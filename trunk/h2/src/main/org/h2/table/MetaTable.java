@@ -38,7 +38,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
-import org.h2.log.InDoubtTransaction;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -48,6 +47,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.store.InDoubtTransaction;
 import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.MathUtils;
@@ -1251,7 +1251,7 @@ public class MetaTable extends Table {
             break;
         }
         case IN_DOUBT: {
-            ObjectArray<InDoubtTransaction> prepared = database.getLog().getInDoubtTransactions();
+            ObjectArray<InDoubtTransaction> prepared = database.getInDoubtTransactions();
             for (int i = 0; prepared != null && i < prepared.size(); i++) {
                 InDoubtTransaction prep = prepared.get(i);
                 add(rows,

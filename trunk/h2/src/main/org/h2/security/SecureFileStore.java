@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import org.h2.engine.Constants;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
-import org.h2.util.RandomUtils;
+import org.h2.util.MathUtils;
 
 /**
  * A file store that encrypts all data before writing,
@@ -37,7 +37,7 @@ public class SecureFileStore extends FileStore {
     }
 
     protected byte[] generateSalt() {
-        return RandomUtils.getSecureBytes(Constants.FILE_BLOCK_SIZE);
+        return MathUtils.secureRandomBytes(Constants.FILE_BLOCK_SIZE);
     }
 
     protected void initKey(byte[] salt) {

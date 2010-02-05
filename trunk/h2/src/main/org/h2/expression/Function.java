@@ -47,7 +47,6 @@ import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.RandomUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -501,7 +500,7 @@ public class Function extends Expression implements FunctionCall {
             result = ValueDouble.get(Math.tan(v0.getDouble()));
             break;
         case SECURE_RAND:
-            result = ValueBytes.getNoCopy(RandomUtils.getSecureBytes(v0.getInt()));
+            result = ValueBytes.getNoCopy(MathUtils.secureRandomBytes(v0.getInt()));
             break;
         case EXPAND:
             result = ValueBytes.getNoCopy(CompressTool.getInstance().expand(v0.getBytesNoCopy()));
@@ -1171,7 +1170,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
-        int size = MathUtils.roundUp(data.length, blockSize);
+        int size = MathUtils.roundUpInt(data.length, blockSize);
         byte[] newData = MemoryUtils.newBytes(size);
         System.arraycopy(data, 0, newData, 0, data.length);
         return newData;

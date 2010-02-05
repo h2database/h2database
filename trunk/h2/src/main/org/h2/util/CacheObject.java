@@ -21,7 +21,7 @@ public abstract class CacheObject {
      */
     static class CacheComparator implements Comparator<CacheObject> {
         public int compare(CacheObject a, CacheObject b) {
-            return MathUtils.compare(a.getPos(), b.getPos());
+            return MathUtils.compareInt(a.getPos(), b.getPos());
         }
     }
 

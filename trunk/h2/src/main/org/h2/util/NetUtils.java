@@ -86,7 +86,7 @@ public class NetUtils {
         int startIndex = server.startsWith("[") ? server.indexOf(']') : 0;
         int idx = server.indexOf(':', startIndex);
         if (idx >= 0) {
-            port = MathUtils.decodeInt(server.substring(idx + 1));
+            port = Integer.decode(server.substring(idx + 1));
             server = server.substring(0, idx);
         }
         InetAddress address = InetAddress.getByName(server);

@@ -131,7 +131,6 @@ import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
-import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -2616,7 +2615,7 @@ public class Parser {
                 }
                 i++;
             }
-            currentToken = StringCache.getNew(sqlCommand.substring(start, i));
+            currentToken = StringUtils.fromCacheOrNew(sqlCommand.substring(start, i));
             currentTokenType = getTokenType(currentToken);
             parseIndex = i;
             return;
@@ -2638,7 +2637,7 @@ public class Parser {
                 }
                 i++;
             }
-            currentToken = StringCache.getNew(result);
+            currentToken = StringUtils.fromCacheOrNew(result);
             parseIndex = i;
             currentTokenQuoted = true;
             currentTokenType = IDENTIFIER;
@@ -2737,7 +2736,7 @@ public class Parser {
             }
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(StringCache.getNew(result));
+            currentValue = ValueString.get(StringUtils.fromCacheOrNew(result));
             parseIndex = i;
             currentTokenType = VALUE;
             return;
@@ -2751,7 +2750,7 @@ public class Parser {
             result = sqlCommand.substring(begin, i);
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(StringCache.getNew(result));
+            currentValue = ValueString.get(StringUtils.fromCacheOrNew(result));
             parseIndex = i;
             currentTokenType = VALUE;
             return;
@@ -3873,7 +3872,7 @@ public class Parser {
         data.session = session;
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
-        String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));
+        String querySQL = StringUtils.fromCacheOrNew(sqlCommand.substring(parseIndex));
         read("AS");
         Query withQuery = parseSelect();
         withQuery.prepare();
@@ -3902,7 +3901,7 @@ public class Parser {
             String[] cols = parseColumnList();
             command.setColumnNames(cols);
         }
-        String select = StringCache.getNew(sqlCommand.substring(parseIndex));
+        String select = StringUtils.fromCacheOrNew(sqlCommand.substring(parseIndex));
         read("AS");
         try {
             Query query = parseSelect();

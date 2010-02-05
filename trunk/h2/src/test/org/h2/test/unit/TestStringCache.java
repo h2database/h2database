@@ -9,7 +9,7 @@ package org.h2.test.unit;
 import java.util.Random;
 
 import org.h2.test.TestBase;
-import org.h2.util.StringCache;
+import org.h2.util.StringUtils;
 
 /**
  * Tests the string cache facility.
@@ -37,11 +37,11 @@ public class TestStringCache extends TestBase {
 
     public void test() throws InterruptedException {
         returnNew = true;
-        StringCache.clearCache();
+        StringUtils.clearCache();
         testSingleThread(getSize(5000, 20000));
         testMultiThreads();
         returnNew = false;
-        StringCache.clearCache();
+        StringUtils.clearCache();
         testSingleThread(getSize(5000, 20000));
         testMultiThreads();
     }
@@ -80,7 +80,7 @@ public class TestStringCache extends TestBase {
     void testString() {
         String a = randomString();
         if (returnNew) {
-            String b = StringCache.getNew(a);
+            String b = StringUtils.fromCacheOrNew(a);
             try {
                 assertEquals(a, b);
             } catch (Exception e) {
@@ -94,7 +94,7 @@ public class TestStringCache extends TestBase {
             if (useIntern) {
                 b = a == null ? null : a.intern();
             } else {
-                b = StringCache.get(a);
+                b = StringUtils.cache(a);
             }
             try {
                 assertEquals(a, b);

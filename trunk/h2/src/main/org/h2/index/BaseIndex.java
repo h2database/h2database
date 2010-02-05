@@ -281,7 +281,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             if (isMultiVersion) {
                 int v1 = rowData.getVersion();
                 int v2 = compare.getVersion();
-                return MathUtils.compare(v2, v1);
+                return MathUtils.compareInt(v2, v1);
             }
             return 0;
         }

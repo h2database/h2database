@@ -20,7 +20,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
@@ -61,8 +60,7 @@ public class BackupCommand extends Prepared {
             name = FileUtils.getFileName(name);
             OutputStream zip = FileUtils.openFileOutputStream(fileName, false);
             ZipOutputStream out = new ZipOutputStream(zip);
-            LogSystem log = db.getLog();
-            log.flush();
+            db.flush();
             String fn;
             fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
             backupPageStore(out, fn, db.getPageStore());

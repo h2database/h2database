@@ -19,7 +19,6 @@ import org.h2.message.Message;
 import org.h2.security.SHA256;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -444,7 +443,7 @@ public class ConnectionInfo implements Cloneable {
         String key = SetTypes.getTypeName(setting);
         String s = getProperty(key, null);
         try {
-            return s == null ? defaultValue : MathUtils.decodeInt(s);
+            return s == null ? defaultValue : Integer.decode(s);
         } catch (NumberFormatException e) {
             return defaultValue;
         }

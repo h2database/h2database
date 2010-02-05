@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.h2.engine.Constants;
 import org.h2.server.Service;
-import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
 
@@ -82,7 +81,7 @@ public class PgServer implements Service {
             if ("-trace".equals(a)) {
                 trace = true;
             } else if ("-pgPort".equals(a)) {
-                port = MathUtils.decodeInt(args[++i]);
+                port = Integer.decode(args[++i]);
             } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
             } else if ("-pgAllowOthers".equals(a)) {

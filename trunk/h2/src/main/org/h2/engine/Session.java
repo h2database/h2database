@@ -21,10 +21,6 @@ import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.log.InDoubtTransaction;
-import org.h2.log.LogSystem;
-import org.h2.log.UndoLog;
-import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -32,6 +28,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
+import org.h2.store.InDoubtTransaction;
 import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
@@ -46,7 +43,12 @@ import org.h2.value.ValueString;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class Session extends SessionWithState {
+public class Session extends SessionWithState implements SessionFactory {
+
+    /**
+     * This special log position means that the log entry has been written.
+     */
+    public static final int LOG_WRITTEN = -1;
 
     /**
      * The prefix of generated identifiers. It may not have letters, because
@@ -64,12 +66,11 @@ public class Session extends SessionWithState {
     private UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
-    private LogSystem logSystem;
     private int lockTimeout;
     private Value lastIdentity = ValueLong.get(0);
     private Value scopeIdentity = ValueLong.get(0);
-    private int firstUncommittedLog = LogSystem.LOG_WRITTEN;
-    private int firstUncommittedPos = LogSystem.LOG_WRITTEN;
+    private int firstUncommittedLog = Session.LOG_WRITTEN;
+    private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Integer> savepoints;
     private Exception stackTrace = new Exception();
     private HashMap<String, Table> localTempTables;
@@ -102,15 +103,22 @@ public class Session extends SessionWithState {
     private int modificationIdState;
     private int objectId;
 
+    public Session() {
+        // to create a new session using the factory
+    }
+
     public Session(Database database, User user, int id) {
         this.database = database;
         this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;
-        this.logSystem = database.getLog();
         Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         this.lockTimeout = setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+    }
+
+    public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
+        return Engine.getInstance().getSession(ci);
     }
 
     public boolean setCommitOrRollbackDisabled(boolean x) {
@@ -441,7 +449,7 @@ public class Session extends SessionWithState {
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible
             // (create/drop table and so on)
-            logSystem.commit(this);
+            database.commit(this);
         }
         if (undoLog.size() > 0) {
             // commit the rows, even when not using MVCC
@@ -472,7 +480,7 @@ public class Session extends SessionWithState {
         if (unlinkMap != null && unlinkMap.size() > 0) {
             // need to flush the log file, because we can't unlink lobs if the
             // commit record is not written
-            logSystem.flush();
+            database.flush();
             for (Value v : unlinkMap.values()) {
                 v.unlink();
             }
@@ -499,7 +507,7 @@ public class Session extends SessionWithState {
             needCommit = true;
         }
         if (locks.size() > 0 || needCommit) {
-            logSystem.commit(this);
+            database.commit(this);
         }
         cleanTempTables(false);
         unlockAll();
@@ -695,7 +703,7 @@ public class Session extends SessionWithState {
      * @param pos the position of the log entry in the log file
      */
     public void addLogPos(int logId, int pos) {
-        if (firstUncommittedLog == LogSystem.LOG_WRITTEN) {
+        if (firstUncommittedLog == Session.LOG_WRITTEN) {
             firstUncommittedLog = logId;
             firstUncommittedPos = pos;
         }
@@ -713,12 +721,12 @@ public class Session extends SessionWithState {
      * This method is called after the log file has committed this session.
      */
     public void setAllCommitted() {
-        firstUncommittedLog = LogSystem.LOG_WRITTEN;
-        firstUncommittedPos = LogSystem.LOG_WRITTEN;
+        firstUncommittedLog = Session.LOG_WRITTEN;
+        firstUncommittedPos = Session.LOG_WRITTEN;
     }
 
     private boolean containsUncommitted() {
-        return firstUncommittedLog != LogSystem.LOG_WRITTEN;
+        return firstUncommittedLog != Session.LOG_WRITTEN;
     }
 
     /**
@@ -760,7 +768,7 @@ public class Session extends SessionWithState {
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible (create/drop
             // table and so on)
-            logSystem.prepareCommit(this, transactionName);
+            database.prepareCommit(this, transactionName);
         }
         currentTransactionName = transactionName;
     }
@@ -779,7 +787,7 @@ public class Session extends SessionWithState {
                 rollback();
             }
         } else {
-            ObjectArray<InDoubtTransaction> list = logSystem.getInDoubtTransactions();
+            ObjectArray<InDoubtTransaction> list = database.getInDoubtTransactions();
             int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
             boolean found = false;
             for (int i = 0; list != null && i < list.size(); i++) {

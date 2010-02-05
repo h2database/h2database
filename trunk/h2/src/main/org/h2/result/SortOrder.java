@@ -11,8 +11,8 @@ import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
-import org.h2.util.RandomUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -169,7 +169,7 @@ public class SortOrder {
         int i, j;
         while (r - l > 10) {
             // randomized pivot to avoid worst case
-            i = RandomUtils.nextInt(r - l - 4) + l + 2;
+            i = MathUtils.randomInt(r - l - 4) + l + 2;
             if (compare(rows.get(l), rows.get(r)) > 0) {
                 swap(rows, l, r);
             }

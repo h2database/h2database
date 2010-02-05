@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
@@ -25,7 +24,6 @@ import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -734,13 +732,13 @@ public abstract class Value {
                 }
             }
             case BYTE:
-                return ValueByte.get(MathUtils.decodeByte(s.trim()));
+                return ValueByte.get(Byte.decode(s.trim()));
             case SHORT:
-                return ValueShort.get(MathUtils.decodeShort(s.trim()));
+                return ValueShort.get(Short.decode(s.trim()));
             case INT:
-                return ValueInt.get(MathUtils.decodeInt(s.trim()));
+                return ValueInt.get(Integer.decode(s.trim()));
             case LONG:
-                return ValueLong.get(MathUtils.decodeLong(s.trim()));
+                return ValueLong.get(Long.decode(s.trim()));
             case DECIMAL:
                 return ValueDecimal.get(new BigDecimal(s.trim()));
             case TIME:

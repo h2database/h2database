@@ -61,7 +61,7 @@ public class ConnectionInfo implements Comparable<ConnectionInfo> {
     }
 
     public int compareTo(ConnectionInfo o) {
-        return MathUtils.compare(lastAccess, o.lastAccess);
+        return MathUtils.compareInt(lastAccess, o.lastAccess);
     }
 
 }

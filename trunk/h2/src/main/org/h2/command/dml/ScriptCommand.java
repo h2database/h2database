@@ -532,7 +532,7 @@ public class ScriptCommand extends ScriptBase {
         s += ";";
         if (out != null) {
             byte[] buff = StringUtils.utf8Encode(s);
-            int len = MathUtils.roundUp(buff.length + lineSeparator.length, Constants.FILE_BLOCK_SIZE);
+            int len = MathUtils.roundUpInt(buff.length + lineSeparator.length, Constants.FILE_BLOCK_SIZE);
             buffer = ByteUtils.copy(buff, buffer);
 
             if (len > buffer.length) {

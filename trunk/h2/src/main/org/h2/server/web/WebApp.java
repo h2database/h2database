@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.bnf.Bnf;
 import org.h2.constant.ErrorCode;
@@ -46,7 +45,6 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
@@ -310,7 +308,7 @@ public class WebApp implements DatabaseEventListener {
     private String adminSave() {
         try {
             Properties prop = new SortedProperties();
-            int port = MathUtils.decodeInt((String) attributes.get("port"));
+            int port = Integer.decode((String) attributes.get("port"));
             prop.setProperty("webPort", String.valueOf(port));
             server.setPort(port);
             boolean allowOthers = Boolean.valueOf((String) attributes.get("allowOthers")).booleanValue();
@@ -1285,7 +1283,7 @@ public class WebApp implements DatabaseEventListener {
             } else if (sql.startsWith("@LOOP")) {
                 sql = sql.substring("@LOOP".length()).trim();
                 int idx = sql.indexOf(' ');
-                int count = MathUtils.decodeInt(sql.substring(0, idx));
+                int count = Integer.decode(sql.substring(0, idx));
                 sql = sql.substring(idx).trim();
                 return executeLoop(conn, count, sql);
             } else if (sql.startsWith("@EDIT")) {

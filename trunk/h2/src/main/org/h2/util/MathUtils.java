@@ -6,8 +6,14 @@
  */
 package org.h2.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.sql.SQLException;
+import java.util.Random;
 
 import org.h2.message.Message;
 
@@ -17,12 +23,171 @@ import org.h2.message.Message;
 public class MathUtils {
 
     /**
+     * The secure random object.
+     */
+    static SecureRandom cachedSecureRandom;
+
+    /**
+     * True if the secure random object is seeded.
+     */
+    static volatile boolean seeded;
+
+    private static final Random RANDOM  = new Random();
+
+    /**
      * The maximum scale of a BigDecimal value.
      */
     private static final int BIG_DECIMAL_SCALE_MAX = 100000;
 
+
     private MathUtils() {
         // utility class
+    }
+
+    private static synchronized SecureRandom getSecureRandom() {
+        if (cachedSecureRandom != null) {
+            return cachedSecureRandom;
+        }
+        // Workaround for SecureRandom problem as described in
+        // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6202721
+        // Can not do that in a static initializer block, because
+        // threads are not started until after the initializer block exits
+        try {
+            cachedSecureRandom = SecureRandom.getInstance("SHA1PRNG");
+            // On some systems, secureRandom.generateSeed() is very slow.
+            // In this case it is initialized using our own seed implementation
+            // and afterwards (in the thread) using the regular algorithm.
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    try {
+                        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+                        byte[] seed = sr.generateSeed(20);
+                        synchronized (cachedSecureRandom) {
+                            cachedSecureRandom.setSeed(seed);
+                            seeded = true;
+                        }
+                    } catch (Exception e) {
+                        // NoSuchAlgorithmException
+                        warn("SecureRandom", e);
+                    }
+                }
+            };
+
+            try {
+                Thread t = new Thread(runnable);
+                // let the process terminate even if generating the seed is really slow
+                t.setDaemon(true);
+                t.start();
+                Thread.yield();
+                try {
+                    // normally, generateSeed takes less than 200 ms
+                    t.join(400);
+                } catch (InterruptedException e) {
+                    warn("InterruptedException", e);
+                }
+                if (!seeded) {
+                    byte[] seed = generateAlternativeSeed();
+                    // this never reduces randomness
+                    synchronized (cachedSecureRandom) {
+                        cachedSecureRandom.setSeed(seed);
+                    }
+                }
+            } catch (SecurityException e) {
+                // workaround for the Google App Engine: don't use a thread
+                runnable.run();
+                generateAlternativeSeed();
+            }
+
+        } catch (Exception e) {
+            // NoSuchAlgorithmException
+            warn("SecureRandom", e);
+            cachedSecureRandom = new SecureRandom();
+        }
+        return cachedSecureRandom;
+    }
+
+    private static byte[] generateAlternativeSeed() {
+        try {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            DataOutputStream out = new DataOutputStream(bout);
+
+            // milliseconds
+            out.writeLong(System.currentTimeMillis());
+
+            // nanoseconds if available
+            try {
+                Method m = System.class.getMethod("nanoTime");
+                if (m != null) {
+                    Object o = m.invoke(null);
+                    out.writeUTF(o.toString());
+                }
+            } catch (Exception e) {
+                // nanoTime not found, this is ok (only exists for JDK 1.5 and higher)
+            }
+
+            // memory
+            out.writeInt(new Object().hashCode());
+            Runtime runtime = Runtime.getRuntime();
+            out.writeLong(runtime.freeMemory());
+            out.writeLong(runtime.maxMemory());
+            out.writeLong(runtime.totalMemory());
+
+            // environment
+            try {
+                out.writeUTF(System.getProperties().toString());
+            } catch (Exception e) {
+                warn("generateAlternativeSeed", e);
+            }
+
+            // host name and ip addresses (if any)
+            try {
+                // workaround for the Google App Engine: don't use InetAddress
+                Class< ? > inetAddressClass = Class.forName("java.net.InetAddress");
+                Object localHost = inetAddressClass.getMethod("getLocalHost").invoke(null);
+                String hostName = inetAddressClass.getMethod("getHostName").invoke(localHost).toString();
+                out.writeUTF(hostName);
+                Object[] list = (Object[]) inetAddressClass.getMethod("getAllByName", String.class).invoke(null, hostName);
+                Method getAddress = inetAddressClass.getMethod("getAddress");
+                for (Object o : list) {
+                    out.write((byte[]) getAddress.invoke(o));
+                }
+            } catch (Throwable e) {
+                // on some system, InetAddress is not supported
+                // on some system, InetAddress.getLocalHost() doesn't work
+                // for some reason (incorrect configuration)
+            }
+
+            // timing (a second thread is already running usually)
+            for (int j = 0; j < 16; j++) {
+                int i = 0;
+                long end = System.currentTimeMillis();
+                while (end == System.currentTimeMillis()) {
+                    i++;
+                }
+                out.writeInt(i);
+            }
+
+            out.close();
+            return bout.toByteArray();
+        } catch (IOException e) {
+            warn("generateAlternativeSeed", e);
+            return new byte[1];
+        }
+    }
+
+    /**
+     * Print a message to system output if there was a problem initializing the
+     * random number generator.
+     *
+     * @param s the message to print
+     * @param t the stack trace
+     */
+    static void warn(String s, Throwable t) {
+        // not a fatal problem, but maybe reduced security
+        System.out.println("RandomUtils warning: " + s);
+        if (t != null) {
+            t.printStackTrace();
+        }
     }
 
     /**
@@ -35,7 +200,7 @@ public class MathUtils {
      * @param blockSizePowerOf2 the block size
      * @return the rounded value
      */
-    public static int roundUp(int x, int blockSizePowerOf2) {
+    public static int roundUpInt(int x, int blockSizePowerOf2) {
         return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
     }
 
@@ -97,50 +262,6 @@ public class MathUtils {
     }
 
     /**
-     * Parse a string to a byte. This method uses the decode method to support
-     * decimal, hexadecimal and octal values.
-     *
-     * @param s the string to parse
-     * @return the value
-     */
-    public static byte decodeByte(String s) {
-        return Byte.decode(s).byteValue();
-    }
-
-    /**
-     * Parse a string to a short. This method uses the decode method to support
-     * decimal, hexadecimal and octal values.
-     *
-     * @param s the string to parse
-     * @return the value
-     */
-    public static short decodeShort(String s) {
-        return Short.decode(s).shortValue();
-    }
-
-    /**
-     * Parse a string to an int. This method uses the decode method to support
-     * decimal, hexadecimal and octal values.
-     *
-     * @param s the string to parse
-     * @return the value
-     */
-    public static int decodeInt(String s) {
-        return Integer.decode(s).intValue();
-    }
-
-    /**
-     * Parse a string to a long. This method uses the decode method to support
-     * decimal, hexadecimal and octal values.
-     *
-     * @param s the string to parse
-     * @return the value
-     */
-    public static long decodeLong(String s) {
-        return Long.decode(s).longValue();
-    }
-
-    /**
      * Convert a long value to an int value. Values larger than the biggest int
      * value is converted to the biggest int value, and values smaller than the
      * smallest int value are converted to the smallest int value.
@@ -166,7 +287,7 @@ public class MathUtils {
      * @param x the original value
      * @return the value with reversed bits
      */
-    public static int reverse(int x) {
+    public static int reverseInt(int x) {
         x = (x & 0x55555555) << 1 | (x >>> 1) & 0x55555555;
         x = (x & 0x33333333) << 2 | (x >>> 2) & 0x33333333;
         x = (x & 0x0f0f0f0f) << 4 | (x >>> 4) & 0x0f0f0f0f;
@@ -181,8 +302,8 @@ public class MathUtils {
      * @param x the original value
      * @return the value with reversed bits
      */
-    public static long reverse(long x) {
-        return (reverse((int) (x >>> 32L)) & 0xffffffffL) ^ (((long) reverse((int) x)) << 32L);
+    public static long reverseLong(long x) {
+        return (reverseInt((int) (x >>> 32L)) & 0xffffffffL) ^ (((long) reverseInt((int) x)) << 32L);
     }
 
     /**
@@ -193,7 +314,7 @@ public class MathUtils {
      * @param b the second value
      * @return the result
      */
-    public static int compare(int a, int b) {
+    public static int compareInt(int a, int b) {
         return a == b ? 0 : a < b ? -1 : 1;
     }
 
@@ -205,8 +326,72 @@ public class MathUtils {
      * @param b the second value
      * @return the result
      */
-    public static int compare(long a, long b) {
+    public static int compareLong(long a, long b) {
         return a == b ? 0 : a < b ? -1 : 1;
+    }
+
+    /**
+     * Get a cryptographically secure pseudo random long value.
+     *
+     * @return the random long value
+     */
+    public static long secureRandomLong() {
+        SecureRandom sr = getSecureRandom();
+        synchronized (sr) {
+            return sr.nextLong();
+        }
+    }
+
+    /**
+     * Get a number of pseudo random bytes.
+     *
+     * @param bytes the target array
+     */
+    public static void randomBytes(byte[] bytes) {
+        RANDOM.nextBytes(bytes);
+    }
+
+    /**
+     * Get a number of cryptographically secure pseudo random bytes.
+     *
+     * @param len the number of bytes
+     * @return the random bytes
+     */
+    public static byte[] secureRandomBytes(int len) {
+        if (len <= 0) {
+            len = 1;
+        }
+        byte[] buff = new byte[len];
+        SecureRandom sr = getSecureRandom();
+        synchronized (sr) {
+            sr.nextBytes(buff);
+        }
+        return buff;
+    }
+
+    /**
+     * Get a pseudo random int value between 0 (including and the given value
+     * (excluding). The value is not cryptographically secure.
+     *
+     * @param lowerThan the value returned will be lower than this value
+     * @return the random long value
+     */
+    public static int randomInt(int lowerThan) {
+        return RANDOM.nextInt(lowerThan);
+    }
+
+    /**
+     * Get a cryptographically secure pseudo random int value between 0
+     * (including and the given value (excluding).
+     *
+     * @param lowerThan the value returned will be lower than this value
+     * @return the random long value
+     */
+    public static int secureRandomInt(int lowerThan) {
+        SecureRandom sr = getSecureRandom();
+        synchronized (sr) {
+            return sr.nextInt(lowerThan);
+        }
     }
 
 }

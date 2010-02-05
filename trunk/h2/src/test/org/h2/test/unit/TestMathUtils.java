@@ -31,35 +31,35 @@ public class TestMathUtils extends TestBase {
     }
 
     private void testReverse() {
-        assertEquals(Integer.reverse(0), MathUtils.reverse(0));
-        assertEquals(Integer.reverse(Integer.MAX_VALUE), MathUtils.reverse(Integer.MAX_VALUE));
-        assertEquals(Integer.reverse(Integer.MIN_VALUE), MathUtils.reverse(Integer.MIN_VALUE));
-        assertEquals(Long.reverse(0), MathUtils.reverse(0L));
-        assertEquals(Long.reverse(Long.MAX_VALUE), MathUtils.reverse(Long.MAX_VALUE));
-        assertEquals(Long.reverse(Long.MIN_VALUE), MathUtils.reverse(Long.MIN_VALUE));
+        assertEquals(Integer.reverse(0), MathUtils.reverseInt(0));
+        assertEquals(Integer.reverse(Integer.MAX_VALUE), MathUtils.reverseInt(Integer.MAX_VALUE));
+        assertEquals(Integer.reverse(Integer.MIN_VALUE), MathUtils.reverseInt(Integer.MIN_VALUE));
+        assertEquals(Long.reverse(0), MathUtils.reverseLong(0L));
+        assertEquals(Long.reverse(Long.MAX_VALUE), MathUtils.reverseLong(Long.MAX_VALUE));
+        assertEquals(Long.reverse(Long.MIN_VALUE), MathUtils.reverseLong(Long.MIN_VALUE));
         for (int i = Integer.MIN_VALUE; i < 0; i += 1019) {
-            int x = MathUtils.reverse(i);
+            int x = MathUtils.reverseInt(i);
             assertEquals(Integer.reverse(i), x);
         }
         for (int i = 0; i > 0; i += 1019) {
-            int x = MathUtils.reverse(i);
+            int x = MathUtils.reverseInt(i);
             assertEquals(Integer.reverse(i), x);
         }
         for (long i = Long.MIN_VALUE; i < 0; i += 1018764321251L) {
-            long x = MathUtils.reverse(i);
+            long x = MathUtils.reverseLong(i);
             assertEquals(Long.reverse(i), x);
         }
         for (long i = 0; i > 0; i += 1018764321251L) {
-            long x = MathUtils.reverse(i);
+            long x = MathUtils.reverseLong(i);
             assertEquals(Long.reverse(i), x);
         }
         Random random = new Random(10);
         for (int i = 0; i < 1000000; i++) {
             long x = random.nextLong();
-            long r = MathUtils.reverse(x);
+            long r = MathUtils.reverseLong(x);
             assertEquals(Long.reverse(x), r);
             int y = random.nextInt();
-            int s = MathUtils.reverse(y);
+            int s = MathUtils.reverseInt(y);
             assertEquals(Integer.reverse(y), s);
         }
     }

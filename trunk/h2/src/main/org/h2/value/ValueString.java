@@ -6,33 +6,73 @@
  */
 package org.h2.value;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.util.MathUtils;
-import org.h2.util.StringCache;
+import org.h2.util.StringUtils;
 
 /**
  * Implementation of the VARCHAR data type.
+ * It is also the base class for other ValueString* classes.
  */
-public class ValueString extends ValueStringBase {
+public class ValueString extends Value {
 
     private static final ValueString EMPTY = new ValueString("");
 
+    /**
+     * The string data.
+     */
+    protected final String value;
+
     protected ValueString(String value) {
-        super(value);
+        this.value = value;
     }
 
-    public int getType() {
-        return Value.STRING;
-    }
-
-    protected int compareSecure(Value o, CompareMode mode) {
-        // compatibility: the other object could be ValueStringFixed
-        ValueStringBase v = (ValueStringBase) o;
-        return mode.compareString(value, v.value, false);
+    public String getSQL() {
+        return StringUtils.quoteStringSQL(value);
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueStringBase && value.equals(((ValueStringBase) other).value);
+        return other instanceof ValueString && value.equals(((ValueString) other).value);
+    }
+
+    protected int compareSecure(Value o, CompareMode mode) {
+        // compatibility: the other object could be another type
+        ValueString v = (ValueString) o;
+        return mode.compareString(value, v.value, false);
+    }
+
+    public String getString() {
+        return value;
+    }
+
+    public long getPrecision() {
+        return value.length();
+    }
+
+    public Object getObject() {
+        return value;
+    }
+
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        prep.setString(parameterIndex, value);
+    }
+
+    public int getDisplaySize() {
+        return value.length();
+    }
+
+    public int getMemory() {
+        return value.length() * 2 + 30;
+    }
+
+    public Value convertPrecision(long precision) {
+        if (precision == 0 || value.length() <= precision) {
+            return this;
+        }
+        int p = MathUtils.convertLongToInt(precision);
+        return getNew(value.substring(0, p));
     }
 
     public int hashCode() {
@@ -66,12 +106,8 @@ public class ValueString extends ValueStringBase {
 
     }
 
-    public Value convertPrecision(long precision) {
-        if (precision == 0 || value.length() <= precision) {
-            return this;
-        }
-        int p = MathUtils.convertLongToInt(precision);
-        return ValueString.get(value.substring(0, p));
+    public int getType() {
+        return Value.STRING;
     }
 
     /**
@@ -84,13 +120,17 @@ public class ValueString extends ValueStringBase {
         if (s.length() == 0) {
             return EMPTY;
         }
-        ValueString obj = new ValueString(StringCache.get(s));
+        ValueString obj = new ValueString(StringUtils.cache(s));
         if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         return (ValueString) Value.cache(obj);
         // this saves memory, but is really slow
         // return new ValueString(s.intern());
+    }
+
+    protected Value getNew(String s) {
+        return ValueString.get(s);
     }
 
 }

@@ -14,8 +14,8 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import org.h2.message.Message;
 import org.h2.util.IOUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
-import org.h2.util.RandomUtils;
 
 /**
  * This file system keeps files fully in memory.
@@ -92,7 +92,7 @@ public class FileSystemMemory extends FileSystem {
         name += ".";
         synchronized (MEMORY_FILES) {
             for (int i = 0;; i++) {
-                String n = name + (RandomUtils.getSecureLong() >>> 1) + suffix;
+                String n = name + (MathUtils.secureRandomLong() >>> 1) + suffix;
                 if (!exists(n)) {
                     getMemoryFile(n);
                     return n;

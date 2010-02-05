@@ -497,7 +497,7 @@ public class Data {
                 writeByte((byte) (DOUBLE_0_1 + x));
             } else {
                 writeByte((byte) type);
-                writeVarLong(MathUtils.reverse(Double.doubleToLongBits(x)));
+                writeVarLong(MathUtils.reverseLong(Double.doubleToLongBits(x)));
             }
             break;
         }
@@ -507,7 +507,7 @@ public class Data {
                 writeByte((byte) (FLOAT_0_1 + x));
             } else {
                 writeByte((byte) type);
-                writeVarInt(MathUtils.reverse(Float.floatToIntBits(v.getFloat())));
+                writeVarInt(MathUtils.reverseInt(Float.floatToIntBits(v.getFloat())));
             }
             break;
         }
@@ -644,9 +644,9 @@ public class Data {
         case DOUBLE_0_1 + 1:
             return ValueDouble.get(1);
         case Value.DOUBLE:
-            return ValueDouble.get(Double.longBitsToDouble(MathUtils.reverse(readVarLong())));
+            return ValueDouble.get(Double.longBitsToDouble(MathUtils.reverseLong(readVarLong())));
         case Value.FLOAT:
-            return ValueFloat.get(Float.intBitsToFloat(MathUtils.reverse(readVarInt())));
+            return ValueFloat.get(Float.intBitsToFloat(MathUtils.reverseInt(readVarInt())));
         case Value.BLOB:
         case Value.CLOB: {
             int smallLen = readVarInt();
@@ -743,14 +743,14 @@ public class Data {
             if (x == 0.0 || x == 1.0) {
                 return 1;
             }
-            return 1 + getVarLongLen(MathUtils.reverse(Double.doubleToLongBits(x)));
+            return 1 + getVarLongLen(MathUtils.reverseLong(Double.doubleToLongBits(x)));
         }
         case Value.FLOAT: {
             float x = v.getFloat();
             if (x == 0.0f || x == 1.0f) {
                 return 1;
             }
-            return 1 + getVarIntLen(MathUtils.reverse(Float.floatToIntBits(v.getFloat())));
+            return 1 + getVarIntLen(MathUtils.reverseInt(Float.floatToIntBits(v.getFloat())));
         }
         case Value.STRING: {
             String s = v.getString();
@@ -1028,7 +1028,7 @@ public class Data {
      */
     public void fillAligned() {
         // 0..6 > 8, 7..14 > 16, 15..22 > 24, ...
-        fill(MathUtils.roundUp(pos + 2, Constants.FILE_BLOCK_SIZE));
+        fill(MathUtils.roundUpInt(pos + 2, Constants.FILE_BLOCK_SIZE));
     }
 
 }

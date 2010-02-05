@@ -34,7 +34,7 @@ import org.h2.util.ExactUTF8InputStreamReader;
 import org.h2.util.IOUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.StringCache;
+import org.h2.util.StringUtils;
 
 /**
  * The transfer class is used to send and receive Value objects.
@@ -241,7 +241,7 @@ public class Transfer {
             buff.append(in.readChar());
         }
         String s = buff.toString();
-        s = StringCache.get(s);
+        s = StringUtils.cache(s);
         return s;
     }
 

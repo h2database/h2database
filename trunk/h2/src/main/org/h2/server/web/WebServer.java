@@ -38,7 +38,6 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
-import org.h2.util.RandomUtils;
 import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
 
@@ -155,7 +154,7 @@ public class WebServer implements Service {
     }
 
     private String generateSessionId() {
-        byte[] buff = RandomUtils.getSecureBytes(16);
+        byte[] buff = MathUtils.secureRandomBytes(16);
         return ByteUtils.convertBytesToString(buff);
     }
 
@@ -225,7 +224,7 @@ public class WebServer implements Service {
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-webPort".equals(a)) {
-                port = MathUtils.decodeInt(args[++i]);
+                port = Integer.decode(args[++i]);
             } else if ("-webSSL".equals(a)) {
                 ssl = true;
             } else if ("-webAllowOthers".equals(a)) {

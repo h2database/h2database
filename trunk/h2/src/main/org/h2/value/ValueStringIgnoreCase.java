@@ -7,14 +7,12 @@
 package org.h2.value;
 
 import org.h2.constant.SysProperties;
-import org.h2.util.MathUtils;
-import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
 /**
  * Implementation of the VARCHAR_IGNORECASE data type.
  */
-public class ValueStringIgnoreCase extends ValueStringBase {
+public class ValueStringIgnoreCase extends ValueString {
 
     private static final ValueStringIgnoreCase EMPTY = new ValueStringIgnoreCase("");
     private int hash;
@@ -33,7 +31,7 @@ public class ValueStringIgnoreCase extends ValueStringBase {
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase) other).value);
+        return other instanceof ValueString && value.equalsIgnoreCase(((ValueString) other).value);
     }
 
     public int hashCode() {
@@ -59,7 +57,7 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         if (s.length() == 0) {
             return EMPTY;
         }
-        ValueStringIgnoreCase obj = new ValueStringIgnoreCase(StringCache.get(s));
+        ValueStringIgnoreCase obj = new ValueStringIgnoreCase(StringUtils.cache(s));
         if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
@@ -72,12 +70,8 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         return obj;
     }
 
-    public Value convertPrecision(long precision) {
-        if (precision == 0 || value.length() <= precision) {
-            return this;
-        }
-        int p = MathUtils.convertLongToInt(precision);
-        return ValueStringIgnoreCase.get(value.substring(0, p));
+    protected Value getNew(String s) {
+        return ValueString.get(s);
     }
 
 }

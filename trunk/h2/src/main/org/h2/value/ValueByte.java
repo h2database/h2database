@@ -86,7 +86,7 @@ public class ValueByte extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueByte v = (ValueByte) o;
-        return MathUtils.compare(value, v.value);
+        return MathUtils.compareInt(value, v.value);
     }
 
     public String getString() {

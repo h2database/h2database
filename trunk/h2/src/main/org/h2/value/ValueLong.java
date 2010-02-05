@@ -141,7 +141,7 @@ public class ValueLong extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueLong v = (ValueLong) o;
-        return MathUtils.compare(value, v.value);
+        return MathUtils.compareLong(value, v.value);
     }
 
     public String getString() {

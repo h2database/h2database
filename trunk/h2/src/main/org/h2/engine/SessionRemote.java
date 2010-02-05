@@ -27,9 +27,9 @@ import org.h2.store.FileStore;
 import org.h2.util.ByteUtils;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
-import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
@@ -231,7 +231,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                 backup = (ConnectionInfo) ci.clone();
                 connectionInfo = (ConnectionInfo) ci.clone();
             }
-            SessionFactory sf = (SessionFactory) ClassUtils.loadSystemClass("org.h2.engine.SessionFactoryEmbedded").newInstance();
+            SessionFactory sf = (SessionFactory) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
             if (openNew) {
                 ci.setProperty("OPEN_NEW", "true");
             }
@@ -317,7 +317,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         }
         cipher = ci.getProperty("CIPHER");
         if (cipher != null) {
-            fileEncryptionKey = RandomUtils.getSecureBytes(32);
+            fileEncryptionKey = MathUtils.secureRandomBytes(32);
         }
         String[] servers = StringUtils.arraySplit(server, ',', true);
         int len = servers.length;
@@ -366,7 +366,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             // ignore
         }
         if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
-            sessionId = ByteUtils.convertBytesToString(RandomUtils.getSecureBytes(32));
+            sessionId = ByteUtils.convertBytesToString(MathUtils.secureRandomBytes(32));
             synchronized (this) {
                 for (Transfer transfer : transferList) {
                     try {

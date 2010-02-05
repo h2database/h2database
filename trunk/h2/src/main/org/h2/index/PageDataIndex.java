@@ -15,7 +15,7 @@ import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.log.UndoLogRecord;
+import org.h2.engine.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;

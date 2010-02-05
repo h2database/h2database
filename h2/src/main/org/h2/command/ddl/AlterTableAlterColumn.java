@@ -31,7 +31,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.table.TableView;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 
 /**
  * This class represents the statements
@@ -207,7 +207,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         Database db = session.getDatabase();
         String tempName = db.getTempTableName(session);
         Column[] columns = table.getColumns();
-        ObjectArray<Column> newColumns = ObjectArray.newInstance();
+        ArrayList<Column> newColumns = New.arrayList();
         TableData newTable = cloneTableStructure(columns, db, tempName, newColumns);
         List<String> views;
         try {
@@ -247,7 +247,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private TableData cloneTableStructure(Column[] columns, Database db, String tempName, ObjectArray<Column> newColumns) throws SQLException {
+    private TableData cloneTableStructure(Column[] columns, Database db, String tempName, ArrayList<Column> newColumns) throws SQLException {
         for (Column col : columns) {
             newColumns.add(col.getClone());
         }
@@ -314,7 +314,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
         execute(newTableSQL, true);
         newTable = (TableData) newTableSchema.getTableOrView(session, newTableName);
-        ObjectArray<String> triggers = ObjectArray.newInstance();
+        ArrayList<String> triggers = New.arrayList();
         for (DbObject child : table.getChildren()) {
             if (child instanceof Sequence) {
                 continue;
@@ -427,7 +427,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
     private void dropSingleColumnIndexes() throws SQLException {
         Database db = session.getDatabase();
-        ObjectArray<Index> indexes = table.getIndexes();
+        ArrayList<Index> indexes = table.getIndexes();
         for (int i = 0; i < indexes.size(); i++) {
             Index index = indexes.get(i);
             if (index.getCreateSQL() == null) {

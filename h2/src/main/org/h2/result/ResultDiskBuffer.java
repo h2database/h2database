@@ -202,7 +202,11 @@ class ResultDiskBuffer implements ResultExternal {
     private int compareTapes(ResultDiskTape a, ResultDiskTape b) throws SQLException {
         Value[] va = a.buffer.get(0);
         Value[] vb = b.buffer.get(0);
-        return sort.compare(va, vb);
+        try {
+            return sort.compare(va, vb);
+        } catch (Exception e) {
+            throw Message.convert(e);
+        }
     }
 
     protected void finalize() {

@@ -8,6 +8,7 @@ package org.h2.table;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,7 +39,6 @@ import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -57,7 +57,7 @@ public class TableData extends Table {
     private HashSet<Session> lockShared = New.hashSet();
     private Trace traceLock;
     private boolean globalTemporary;
-    private final ObjectArray<Index> indexes = ObjectArray.newInstance();
+    private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private boolean containsLargeObject;
     private PageDataIndex mainIndex;
@@ -168,7 +168,7 @@ public class TableData extends Table {
         return null;
     }
 
-    public ObjectArray<Index> getIndexes() {
+    public ArrayList<Index> getIndexes() {
         return indexes;
     }
 
@@ -221,7 +221,7 @@ public class TableData extends Table {
                 Cursor cursor = scan.find(session, null, null);
                 long i = 0;
                 int bufferSize = Constants.DEFAULT_MAX_MEMORY_ROWS;
-                ObjectArray<Row> buffer = ObjectArray.newInstance(bufferSize);
+                ArrayList<Row> buffer = New.arrayList(bufferSize);
                 String n = getName() + ":" + index.getName();
                 int t = MathUtils.convertLongToInt(total);
                 while (cursor.next()) {
@@ -294,10 +294,10 @@ public class TableData extends Table {
         return true;
     }
 
-    private void addRowsToIndex(Session session, ObjectArray<Row> list, Index index) throws SQLException {
+    private void addRowsToIndex(Session session, ArrayList<Row> list, Index index) throws SQLException {
         final Index idx = index;
         try {
-            list.sort(new Comparator<Row>() {
+            Collections.sort(list, new Comparator<Row>() {
                 public int compare(Row r1, Row r2) {
                     try {
                         return idx.compareRows(r1, r2);
@@ -685,7 +685,7 @@ public class TableData extends Table {
     }
 
     public boolean canTruncate() {
-        ObjectArray<Constraint> constraints = getConstraints();
+        ArrayList<Constraint> constraints = getConstraints();
         for (int i = 0; constraints != null && i < constraints.size(); i++) {
             Constraint c = constraints.get(i);
             if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {

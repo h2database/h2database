@@ -8,10 +8,12 @@ package org.h2.result;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
-import org.h2.util.MathUtils;
+import org.h2.message.Message;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -20,7 +22,7 @@ import org.h2.value.ValueNull;
 /**
  * A sort order represents an ORDER BY clause in a query.
  */
-public class SortOrder {
+public class SortOrder implements Comparator<Value[]> {
 
     /**
      * This bit mask means the values should be sorted in ascending order.
@@ -127,25 +129,29 @@ public class SortOrder {
      * @param b the second expression list
      * @return the result of the comparison
      */
-    public int compare(Value[] a, Value[] b) throws SQLException {
-        for (int i = 0; i < len; i++) {
-            int idx = indexes[i];
-            int type = sortTypes[i];
-            Value ao = a[idx];
-            Value bo = b[idx];
-            boolean aNull = ao == ValueNull.INSTANCE, bNull = bo == ValueNull.INSTANCE;
-            if (aNull || bNull) {
-                if (aNull == bNull) {
-                    continue;
+    public int compare(Value[] a, Value[] b) {
+        try {
+            for (int i = 0; i < len; i++) {
+                int idx = indexes[i];
+                int type = sortTypes[i];
+                Value ao = a[idx];
+                Value bo = b[idx];
+                boolean aNull = ao == ValueNull.INSTANCE, bNull = bo == ValueNull.INSTANCE;
+                if (aNull || bNull) {
+                    if (aNull == bNull) {
+                        continue;
+                    }
+                    return compareNull(aNull, bNull, type);
                 }
-                return compareNull(aNull, bNull, type);
+                int comp = database.compare(ao, bo);
+                if (comp != 0) {
+                    return (type & DESCENDING) == 0 ? comp : -comp;
+                }
             }
-            int comp = database.compare(ao, bo);
-            if (comp != 0) {
-                return (type & DESCENDING) == 0 ? comp : -comp;
-            }
+            return 0;
+        } catch (SQLException e) {
+            throw Message.convertToInternal(e);
         }
-        return 0;
     }
 
     /**
@@ -154,56 +160,10 @@ public class SortOrder {
      * @param rows the list of rows
      */
     public void sort(ArrayList<Value[]> rows) throws SQLException {
-        int todoUseArraySort;
-        sort(rows, 0, rows.size() - 1);
-    }
-
-    private void swap(ArrayList<Value[]> rows, int a, int b) {
-        Value[] t = rows.get(a);
-        rows.set(a, rows.get(b));
-        rows.set(b, t);
-    }
-
-    private void sort(ArrayList<Value[]> rows, int l, int r) throws SQLException {
-        // quicksort
-        int i, j;
-        while (r - l > 10) {
-            // randomized pivot to avoid worst case
-            i = MathUtils.randomInt(r - l - 4) + l + 2;
-            if (compare(rows.get(l), rows.get(r)) > 0) {
-                swap(rows, l, r);
-            }
-            if (compare(rows.get(i), rows.get(l)) < 0) {
-                swap(rows, l, i);
-            } else if (compare(rows.get(i), rows.get(r)) > 0) {
-                swap(rows, i, r);
-            }
-            j = r - 1;
-            swap(rows, i, j);
-            Value[] p = rows.get(j);
-            i = l;
-            while (true) {
-                do {
-                    ++i;
-                } while (compare(rows.get(i), p) < 0);
-                do {
-                    --j;
-                } while (compare(rows.get(j), p) > 0);
-                if (i >= j) {
-                    break;
-                }
-                swap(rows, i, j);
-            }
-            swap(rows, i, r - 1);
-            sort(rows, l, i - 1);
-            l = i + 1;
-        }
-        for (i = l + 1; i <= r; i++) {
-            Value[] t = rows.get(i);
-            for (j = i - 1; j >= l && (compare(rows.get(j), t) > 0); j--) {
-                rows.set(j + 1, rows.get(j));
-            }
-            rows.set(j + 1, t);
+        try {
+            Collections.sort(rows, this);
+        } catch (Exception e) {
+            throw Message.convert(e);
         }
     }
 

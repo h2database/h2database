@@ -31,7 +31,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.table.Table;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
@@ -201,11 +200,11 @@ public class Session extends SessionWithState implements SessionFactory {
         return localTempTables.get(name);
     }
 
-    public ObjectArray<Table> getLocalTempTables() {
+    public ArrayList<Table> getLocalTempTables() {
         if (localTempTables == null) {
-            return ObjectArray.newInstance();
+            return New.arrayList();
         }
-        return ObjectArray.newInstance(localTempTables.values());
+        return New.arrayList(localTempTables.values());
     }
 
     /**

@@ -7,6 +7,7 @@
 package org.h2.util;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -44,7 +45,7 @@ class CacheSecondLevel implements Cache {
         return ret;
     }
 
-    public ObjectArray<CacheObject> getAllChanged() {
+    public ArrayList<CacheObject> getAllChanged() {
         return baseCache.getAllChanged();
     }
 

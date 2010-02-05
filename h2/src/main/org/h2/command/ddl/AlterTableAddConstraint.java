@@ -7,8 +7,8 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -28,7 +28,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 
 /**
  * This class represents the statement
@@ -114,7 +113,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         case PRIMARY_KEY: {
             IndexColumn.mapColumns(indexColumns, table);
             index = table.findPrimaryKey();
-            ObjectArray<Constraint> constraints = table.getConstraints();
+            ArrayList<Constraint> constraints = table.getConstraints();
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint c = constraints.get(i);
                 if (Constraint.PRIMARY_KEY.equals(c.getConstraintType())) {

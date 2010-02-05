@@ -7,6 +7,7 @@
 package org.h2.schema;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.command.ddl.CreateTableData;
@@ -25,7 +26,6 @@ import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.table.TableLink;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 
 /**
  * A schema as created by the SQL statement
@@ -450,9 +450,9 @@ public class Schema extends DbObjectBase {
      * @param type the object type
      * @return a  (possible empty) list of all objects
      */
-    public ObjectArray<SchemaObject> getAll(int type) {
+    public ArrayList<SchemaObject> getAll(int type) {
         HashMap<String, SchemaObject> map = getMap(type);
-        return ObjectArray.newInstance(map.values());
+        return New.arrayList(map.values());
     }
 
     /**
@@ -460,8 +460,8 @@ public class Schema extends DbObjectBase {
      *
      * @return a  (possible empty) list of all objects
      */
-    public ObjectArray<Table> getAllTablesAndViews() {
-        return ObjectArray.newInstance(tablesAndViews.values());
+    public ArrayList<Table> getAllTablesAndViews() {
+        return New.arrayList(tablesAndViews.values());
     }
 
     /**

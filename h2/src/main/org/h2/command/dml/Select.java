@@ -39,7 +39,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.ValueHashMap;
@@ -237,7 +236,7 @@ public class Select extends Query {
         if (groupIndex == null || groupByExpression == null) {
             return null;
         }
-        ObjectArray<Index> indexes = topTableFilter.getTable().getIndexes();
+        ArrayList<Index> indexes = topTableFilter.getTable().getIndexes();
         for (int i = 0; indexes != null && i < indexes.size(); i++) {
             Index index = indexes.get(i);
             if (index.getIndexType().isScan()) {
@@ -406,7 +405,7 @@ public class Select extends Query {
             // sort just on constants - can use scan index
             return topTableFilter.getTable().getScanIndex(session);
         }
-        ObjectArray<Index> list = topTableFilter.getTable().getIndexes();
+        ArrayList<Index> list = topTableFilter.getTable().getIndexes();
         for (int i = 0; list != null && i < list.size(); i++) {
             Index index = list.get(i);
             if (index.getCreateSQL() == null) {

@@ -300,13 +300,9 @@ public class Aggregate extends Expression {
                     final SortOrder sortOrder = sort;
                     Collections.sort(list, new Comparator<Value>() {
                         public int compare(Value v1, Value v2) {
-                            try {
-                                Value[] a1 = ((ValueArray) v1).getList();
-                                Value[] a2 = ((ValueArray) v2).getList();
-                                return sortOrder.compare(a1, a2);
-                            } catch (SQLException e) {
-                                throw Message.convertToInternal(e);
-                            }
+                            Value[] a1 = ((ValueArray) v1).getList();
+                            Value[] a2 = ((ValueArray) v2).getList();
+                            return sortOrder.compare(a1, a2);
                         }
                     });
                 } catch (Exception e) {

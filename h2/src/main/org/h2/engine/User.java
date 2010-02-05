@@ -7,7 +7,7 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -19,7 +19,7 @@ import org.h2.table.Table;
 import org.h2.table.TableView;
 import org.h2.util.ByteUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -186,8 +186,8 @@ public class User extends RightOwner {
         return DbObject.USER;
     }
 
-    public ObjectArray<DbObject> getChildren() {
-        ObjectArray<DbObject> children = ObjectArray.newInstance();
+    public ArrayList<DbObject> getChildren() {
+        ArrayList<DbObject> children = New.arrayList();
         for (Right right : database.getAllRights()) {
             if (right.getGrantee() == this) {
                 children.add(right);

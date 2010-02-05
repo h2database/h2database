@@ -288,10 +288,10 @@ java org.h2.test.TestAll timer
 /*
 check client jar file size
 simplify Message / ErrorCode / Resource
-remove ObjectArray, BitField
-flatten package hierarchy
+remove BitField
+flatten package hierarchy (remove constant package)
 Constants.FILE_BLOCK_SIZE and others
-simplify SysProperties
+simplify SysProperties; combine with Constants
 remove SortedProperties
 remove TempFileDeleter (UndoLog, ResultDiskBuffer, RowList, ValueLob)
 combine small classes (StringCache / utils...)

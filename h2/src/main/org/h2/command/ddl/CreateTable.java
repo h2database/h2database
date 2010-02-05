@@ -21,7 +21,7 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
-import org.h2.util.ObjectArray;
+import org.h2.util.New;
 import org.h2.value.DataType;
 
 /**
@@ -31,7 +31,7 @@ import org.h2.value.DataType;
 public class CreateTable extends SchemaCommand {
 
     private CreateTableData data = new CreateTableData();
-    private ObjectArray<Prepared> constraintCommands = ObjectArray.newInstance();
+    private ArrayList<Prepared> constraintCommands = New.arrayList();
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean globalTemporary;
@@ -124,7 +124,7 @@ public class CreateTable extends SchemaCommand {
                 }
             }
         }
-        ObjectArray<Sequence> sequences = ObjectArray.newInstance();
+        ArrayList<Sequence> sequences = New.arrayList();
         for (Column c : data.columns) {
             if (c.isAutoIncrement()) {
                 int objId = getObjectId();

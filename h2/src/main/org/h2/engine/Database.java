@@ -55,7 +55,6 @@ import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
@@ -554,7 +553,7 @@ public class Database implements DataHandler {
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
         CreateTableData data = new CreateTableData();
-        ObjectArray<Column> cols = data.columns;
+        ArrayList<Column> cols = data.columns;
         Column columnId = new Column("ID", Value.INT);
         columnId.setNullable(false);
         cols.add(columnId);
@@ -1183,16 +1182,16 @@ public class Database implements DataHandler {
         return i;
     }
 
-    public ObjectArray<UserAggregate> getAllAggregates() {
-        return ObjectArray.newInstance(aggregates.values());
+    public ArrayList<UserAggregate> getAllAggregates() {
+        return New.arrayList(aggregates.values());
     }
 
-    public ObjectArray<Comment> getAllComments() {
-        return ObjectArray.newInstance(comments.values());
+    public ArrayList<Comment> getAllComments() {
+        return New.arrayList(comments.values());
     }
 
-    public ObjectArray<FunctionAlias> getAllFunctionAliases() {
-        return ObjectArray.newInstance(functionAliases.values());
+    public ArrayList<FunctionAlias> getAllFunctionAliases() {
+        return New.arrayList(functionAliases.values());
     }
 
     public int getAllowLiterals() {
@@ -1202,12 +1201,12 @@ public class Database implements DataHandler {
         return allowLiterals;
     }
 
-    public ObjectArray<Right> getAllRights() {
-        return ObjectArray.newInstance(rights.values());
+    public ArrayList<Right> getAllRights() {
+        return New.arrayList(rights.values());
     }
 
-    public ObjectArray<Role> getAllRoles() {
-        return ObjectArray.newInstance(roles.values());
+    public ArrayList<Role> getAllRoles() {
+        return New.arrayList(roles.values());
     }
 
     /**
@@ -1216,11 +1215,11 @@ public class Database implements DataHandler {
      * @param type the object type
      * @return all objects of that type
      */
-    public ObjectArray<SchemaObject> getAllSchemaObjects(int type) {
+    public ArrayList<SchemaObject> getAllSchemaObjects(int type) {
         if (type == DbObject.TABLE_OR_VIEW) {
             initMetaTables();
         }
-        ObjectArray<SchemaObject> list = ObjectArray.newInstance();
+        ArrayList<SchemaObject> list = New.arrayList();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAll(type));
         }
@@ -1233,32 +1232,32 @@ public class Database implements DataHandler {
      * @param includeMeta whether to include the meta data tables
      * @return all objects of that type
      */
-    public ObjectArray<Table> getAllTablesAndViews(boolean includeMeta) {
+    public ArrayList<Table> getAllTablesAndViews(boolean includeMeta) {
         if (includeMeta) {
             initMetaTables();
         }
-        ObjectArray<Table> list = ObjectArray.newInstance();
+        ArrayList<Table> list = New.arrayList();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAllTablesAndViews());
         }
         return list;
     }
 
-    public ObjectArray<Schema> getAllSchemas() {
+    public ArrayList<Schema> getAllSchemas() {
         initMetaTables();
-        return ObjectArray.newInstance(schemas.values());
+        return New.arrayList(schemas.values());
     }
 
-    public ObjectArray<Setting> getAllSettings() {
-        return ObjectArray.newInstance(settings.values());
+    public ArrayList<Setting> getAllSettings() {
+        return New.arrayList(settings.values());
     }
 
-    public ObjectArray<UserDataType> getAllUserDataTypes() {
-        return ObjectArray.newInstance(userDataTypes.values());
+    public ArrayList<UserDataType> getAllUserDataTypes() {
+        return New.arrayList(userDataTypes.values());
     }
 
-    public ObjectArray<User> getAllUsers() {
-        return ObjectArray.newInstance(users.values());
+    public ArrayList<User> getAllUsers() {
+        return New.arrayList(users.values());
     }
 
     public String getCacheType() {
@@ -1346,7 +1345,7 @@ public class Database implements DataHandler {
     }
 
     private synchronized void updateWithChildren(Session session, DbObject obj) throws SQLException {
-        ObjectArray<DbObject> list = obj.getChildren();
+        ArrayList<DbObject> list = obj.getChildren();
         Comment comment = findComment(obj);
         if (comment != null) {
             Message.throwInternalError();

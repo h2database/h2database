@@ -12,7 +12,6 @@ import java.util.UUID;
 
 import org.h2.util.ByteUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -48,8 +47,8 @@ public class ValueUuid extends Value {
      * @return the new UUID
      */
     public static ValueUuid getNewRandom() {
-        long high = RandomUtils.getSecureLong();
-        long low = RandomUtils.getSecureLong();
+        long high = MathUtils.secureRandomLong();
+        long low = MathUtils.secureRandomLong();
         // version 4 (random)
         high = (high & (~0xf000L)) | 0x4000L;
         // variant (Leach-Salz)
@@ -151,7 +150,7 @@ public class ValueUuid extends Value {
         }
         ValueUuid v = (ValueUuid) o;
         if (high == v.high) {
-            return MathUtils.compare(low, v.low);
+            return MathUtils.compareLong(low, v.low);
         }
         return high > v.high ? 1 : -1;
     }

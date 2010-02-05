@@ -120,7 +120,7 @@ public class ValueInt extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueInt v = (ValueInt) o;
-        return MathUtils.compare(value, v.value);
+        return MathUtils.compareInt(value, v.value);
     }
 
     public String getString() {

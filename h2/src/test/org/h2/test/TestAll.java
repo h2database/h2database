@@ -287,9 +287,13 @@ java org.h2.test.TestAll timer
 
 /*
 check client jar file size
-remove ObjectArray
+simplify Message / ErrorCode / Resource
+remove ObjectArray, BitField
+flatten package hierarchy
 Constants.FILE_BLOCK_SIZE and others
 simplify SysProperties
+remove SortedProperties
+remove TempFileDeleter (UndoLog, ResultDiskBuffer, RowList, ValueLob)
 combine small classes (StringCache / utils...)
 document in performance section:
 PreparedStatement prep = conn.prepareStatement(

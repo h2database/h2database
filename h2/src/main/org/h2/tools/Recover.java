@@ -46,8 +46,8 @@ import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.TempFileDeleter;
@@ -937,7 +937,7 @@ public class Recover extends Tool implements DataHandler {
                             }
                             SHA256 sha = new SHA256();
                             byte[] userPasswordHash = sha.getKeyPasswordHash(userName, "".toCharArray());
-                            byte[] salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);
+                            byte[] salt = MathUtils.secureRandomBytes(Constants.SALT_LEN);
                             byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
                             StringBuilder buff = new StringBuilder();
                             buff.append("SALT '").

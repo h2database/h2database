@@ -11,7 +11,6 @@ import java.security.AccessControlException;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
-import org.h2.log.LogSystem;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 
@@ -47,14 +46,7 @@ public class WriterThread implements Runnable {
      * @param writeDelay the new write delay
      */
     public void setWriteDelay(int writeDelay) {
-        LogSystem log = getLog();
         this.writeDelay = writeDelay;
-        // TODO check if MIN_WRITE_DELAY is a good value
-        if (writeDelay < SysProperties.MIN_WRITE_DELAY) {
-            log.setFlushOnEachCommit(true);
-        } else {
-            log.setFlushOnEachCommit(false);
-        }
     }
 
     /**
@@ -79,33 +71,19 @@ public class WriterThread implements Runnable {
         }
     }
 
-    private LogSystem getLog() {
-        Database database = databaseRef.get();
-        if (database == null) {
-            return null;
-        }
-        LogSystem log = database.getLog();
-        return log;
-    }
-
     public void run() {
         while (!stop) {
             Database database = databaseRef.get();
             if (database == null) {
                 break;
             }
-
             int wait = writeDelay;
             try {
                 if (database.isFileLockSerialized()) {
                     wait = SysProperties.MIN_WRITE_DELAY;
                     database.checkpointIfRequired();
                 } else {
-                    LogSystem log = database.getLog();
-                    if (log == null) {
-                        break;
-                    }
-                    log.flush();
+                    database.flush();
                 }
             } catch (SQLException e) {
                 TraceSystem traceSystem = database.getTraceSystem();

@@ -36,7 +36,6 @@ import org.h2.util.Tool;
 import java.io.IOException;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
-import org.h2.util.StartBrowser;
 
 /**
  * Starts the H2 Console (web-) server, as well as the TCP and PG server.
@@ -166,7 +165,7 @@ ShutdownHandler {
         // because some people don't look at the output,
         // but are wondering why nothing happens
         if (browserStart) {
-            StartBrowser.openURL(web.getURL());
+            Server.openBrowser(web.getURL());
         }
 
         if (tcpStart) {
@@ -407,7 +406,7 @@ ShutdownHandler {
 
     private void startBrowser() {
         if (web != null) {
-            StartBrowser.openURL(web.getURL());
+            Server.openBrowser(web.getURL());
         }
     }
 //## AWT end ##

@@ -6,9 +6,12 @@
  */
 package org.h2.tools;
 
+import java.io.IOException;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
@@ -16,7 +19,7 @@ import org.h2.server.ShutdownHandler;
 import org.h2.server.TcpServer;
 import org.h2.server.pg.PgServer;
 import org.h2.server.web.WebServer;
-import org.h2.util.StartBrowser;
+import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 
 /**
@@ -202,7 +205,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             // because some people don't look at the output,
             // but are wondering why nothing happens
             if (browserStart) {
-                StartBrowser.openURL(web.getURL());
+                Server.openBrowser(web.getURL());
             }
             if (result != null) {
                 throw result;
@@ -439,6 +442,77 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     }
 
     /**
+     * Open a new browser tab or window with the given URL.
+     *
+     * @param url the URL to open
+     */
+    public static void openBrowser(String url) {
+        String osName = SysProperties.getStringSetting("os.name", "linux").toLowerCase();
+        Runtime rt = Runtime.getRuntime();
+        try {
+            String browser = SysProperties.BROWSER;
+            if (browser != null) {
+                if (browser.indexOf("%url") >= 0) {
+                    String[] args = StringUtils.arraySplit(browser, ',', false);
+                    for (int i = 0; i < args.length; i++) {
+                        args[i] = StringUtils.replaceAll(args[i], "%url", url);
+                    }
+                    rt.exec(args);
+                } else if (osName.indexOf("windows") >= 0) {
+                    rt.exec(new String[] { "cmd.exe", "/C",  browser, url });
+                } else {
+                    rt.exec(new String[] { browser, url });
+                }
+                return;
+            }
+            try {
+                Class< ? > desktopClass = Class.forName("java.awt.Desktop");
+                // Desktop.isDesktopSupported()
+                Boolean supported = (Boolean) desktopClass.
+                    getMethod("isDesktopSupported").
+                    invoke(null, new Object[0]);
+                URI uri = new URI(url);
+                if (supported) {
+                    // Desktop.getDesktop();
+                    Object desktop = desktopClass.getMethod("getDesktop").
+                        invoke(null, new Object[0]);
+                    // desktop.browse(uri);
+                    desktopClass.getMethod("browse", URI.class).
+                        invoke(desktop, uri);
+                    return;
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+            if (osName.indexOf("windows") >= 0) {
+                rt.exec(new String[] { "rundll32", "url.dll,FileProtocolHandler", url });
+            } else if (osName.indexOf("mac") >= 0) {
+                // Mac OS: to open a page with Safari, use "open -a Safari"
+                Runtime.getRuntime().exec(new String[] { "open", url });
+            } else {
+                String[] browsers = { "firefox", "mozilla-firefox", "mozilla", "konqueror", "netscape", "opera" };
+                boolean ok = false;
+                for (String b : browsers) {
+                    try {
+                        rt.exec(new String[] { b, url });
+                        ok = true;
+                        break;
+                    } catch (Exception e) {
+                        // ignore and try the next
+                    }
+                }
+                if (!ok) {
+                    // No success in detection.
+                    System.out.println("Please open a browser and go to " + url);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Failed to start a browser to open the URL " + url);
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Start a web server and a browser that uses the given connection. The
      * current transaction is preserved. This is specially useful to manually
      * inspect the database when debugging. This method return as soon as the
@@ -454,7 +528,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         server.web = web;
         webServer.setShutdownHandler(server);
         String url = webServer.addSession(conn);
-        StartBrowser.openURL(url);
+        Server.openBrowser(url);
         while (!webServer.isStopped()) {
             try {
                 Thread.sleep(1000);

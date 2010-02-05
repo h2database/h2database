@@ -6,19 +6,26 @@
  */
 package org.h2.value;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.util.ByteUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 
 /**
  * Implementation of the BINARY data type.
+ * It is also the base class for ValueJavaObject.
  */
-public class ValueBytes extends ValueBytesBase {
+public class ValueBytes extends Value {
 
     private static final ValueBytes EMPTY = new ValueBytes(MemoryUtils.EMPTY_BYTES);
 
+    private final byte[] value;
+    private int hash;
+
     protected ValueBytes(byte[] v) {
-        super(v);
+        this.value = v;
     }
 
     /**
@@ -56,6 +63,58 @@ public class ValueBytes extends ValueBytesBase {
 
     public int getType() {
         return Value.BYTES;
+    }
+
+    public String getSQL() {
+        return "X'" + getString() + "'";
+    }
+
+    public byte[] getBytesNoCopy() {
+        return value;
+    }
+
+    public byte[] getBytes() {
+        return ByteUtils.cloneByteArray(value);
+    }
+
+    protected int compareSecure(Value v, CompareMode mode) {
+        byte[] v2 = ((ValueBytes) v).value;
+        return ByteUtils.compareNotNull(value, v2);
+    }
+
+    public String getString() {
+        return ByteUtils.convertBytesToString(value);
+    }
+
+    public long getPrecision() {
+        return value.length;
+    }
+
+    public int hashCode() {
+        if (hash == 0) {
+            hash = ByteUtils.getByteArrayHash(value);
+        }
+        return hash;
+    }
+
+    public Object getObject() {
+        return getBytes();
+    }
+
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        prep.setBytes(parameterIndex, value);
+    }
+
+    public int getDisplaySize() {
+        return MathUtils.convertLongToInt(value.length * 2L);
+    }
+
+    public int getMemory() {
+        return value.length + 4;
+    }
+
+    public boolean equals(Object other) {
+        return other instanceof ValueBytes && ByteUtils.compareNotNull(value, ((ValueBytes) other).value) == 0;
     }
 
 }

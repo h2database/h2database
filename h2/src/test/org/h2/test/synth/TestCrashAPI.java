@@ -43,8 +43,8 @@ import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Restore;
 import org.h2.util.FileUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.RandomUtils;
 
 /**
  * A test that calls random methods with random parameters from JDBC objects.
@@ -121,7 +121,7 @@ public class TestCrashAPI extends TestBase {
         }
         int len = getSize(2, 6);
         for (int i = 0; i < len; i++) {
-            int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
+            int seed = MathUtils.randomInt(Integer.MAX_VALUE);
             testCase(seed);
             deleteDb();
         }

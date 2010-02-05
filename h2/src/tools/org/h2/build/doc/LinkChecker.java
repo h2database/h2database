@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import org.h2.tools.Server;
 import org.h2.util.IOUtils;
-import org.h2.util.StartBrowser;
 import org.h2.util.StringUtils;
 
 /**
@@ -60,7 +60,7 @@ public class LinkChecker {
                 }
                 if (OPEN_EXTERNAL_LINKS) {
                     System.out.println(link);
-                    StartBrowser.openURL(link);
+                    Server.openBrowser(link);
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {

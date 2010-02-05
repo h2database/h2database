@@ -17,8 +17,8 @@ import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.store.FileLock;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -226,7 +226,7 @@ public class Engine {
                 synchronized (INSTANCE) {
                     // delay up to the last delay
                     // an attacker can't know how long it will be
-                    delay = RandomUtils.nextSecureInt((int) delay);
+                    delay = MathUtils.secureRandomInt((int) delay);
                     try {
                         Thread.sleep(delay);
                     } catch (InterruptedException e) {
@@ -250,7 +250,7 @@ public class Engine {
                 }
                 if (min > 0) {
                     // a bit more to protect against timing attacks
-                    delay += Math.abs(RandomUtils.getSecureLong() % 100);
+                    delay += Math.abs(MathUtils.secureRandomLong() % 100);
                     try {
                         Thread.sleep(delay);
                     } catch (InterruptedException e) {

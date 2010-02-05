@@ -30,8 +30,6 @@ import org.h2.index.PageDataNode;
 import org.h2.index.PageDataOverflow;
 import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
-import org.h2.log.InDoubtTransaction;
-import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -560,7 +558,7 @@ public class PageStore implements CacheWriter {
         for (int i = 0; i < sessions.length; i++) {
             Session session = sessions[i];
             int firstUncommitted = session.getFirstUncommittedLog();
-            if (firstUncommitted != LogSystem.LOG_WRITTEN) {
+            if (firstUncommitted != Session.LOG_WRITTEN) {
                 if (firstUncommitted < firstUncommittedSection) {
                     firstUncommittedSection = firstUncommitted;
                 }

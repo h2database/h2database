@@ -23,7 +23,6 @@ import org.h2.store.fs.FileSystem;
 import org.h2.tools.Server;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.Tool;
@@ -328,7 +327,7 @@ public class FtpServer extends Tool implements Service {
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-ftpPort".equals(a)) {
-                port = MathUtils.decodeInt(args[++i]);
+                port = Integer.decode(args[++i]);
             } else if ("-ftpDir".equals(a)) {
                 root = FileUtils.normalize(args[++i]);
             } else if ("-ftpRead".equals(a)) {

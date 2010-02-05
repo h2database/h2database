@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import org.h2.test.TestBase;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
 
 /**
@@ -22,16 +23,16 @@ import org.h2.util.New;
 public class TestClearReferences extends TestBase {
 
     private static final String[] KNOWN_REFRESHED = {
+        "org.h2.compress.CompressLZF.cachedHashTable",
         "org.h2.util.DateTimeUtils.cachedCalendar",
-        "org.h2.util.StringCache.softCache",
+        "org.h2.util.StringUtils.softCache",
         "org.h2.value.Value.softCache",
         "org.h2.jdbcx.JdbcDataSourceFactory.cachedTraceSystem",
-        "org.h2.compress.CompressLZF.cachedHashTable",
         "org.h2.store.fs.FileObjectMemory.cachedCompressedEmptyBlock",
         "org.h2.tools.CompressTool.cachedBuffer",
         "org.h2.util.MemoryUtils.reserveMemory",
         "org.h2.util.NetUtils.cachedLocalAddress",
-        "org.h2.util.RandomUtils.cachedSecureRandom",
+        "org.h2.util.MathUtils.cachedSecureRandom",
         "org.h2.value.CompareMode.lastUsed"
     };
 
@@ -47,6 +48,9 @@ public class TestClearReferences extends TestBase {
     }
 
     public void test() throws Exception {
+        // initialize the known classes
+        MathUtils.secureRandomLong();
+
         ArrayList<Class < ? >> classes = New.arrayList();
         check(classes, new File("bin/org/h2"));
         for (Class< ? > clazz : classes) {
@@ -135,6 +139,13 @@ public class TestClearReferences extends TestBase {
             field.setAccessible(true);
             Object o = field.get(instance);
             if (o == null) {
+                continue;
+            }
+            // loadedByThisOrChild
+            if (o.getClass().getName().startsWith("java.lang.")) {
+                continue;
+            }
+            if (o.getClass().isArray() && o.getClass().getComponentType().isPrimitive()) {
                 continue;
             }
             clearField(instance.getClass().getName() + "." + field.getName() + " = " + o);

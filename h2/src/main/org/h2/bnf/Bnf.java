@@ -21,7 +21,6 @@ import org.h2.server.web.DbContextRule;
 import org.h2.tools.Csv;
 import org.h2.util.New;
 import org.h2.util.Resources;
-import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
 /**
@@ -323,7 +322,7 @@ public class Bnf {
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();
             // avoid duplicate strings
-            s = StringCache.get(s);
+            s = StringUtils.cache(s);
             if (s.length() == 1) {
                 if (" \r\n".indexOf(s.charAt(0)) >= 0) {
                     continue;

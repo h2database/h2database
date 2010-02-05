@@ -24,8 +24,6 @@ import org.h2.constraint.Constraint;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.log.LogSystem;
-import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -38,6 +36,7 @@ import org.h2.schema.TriggerObject;
 import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
 import org.h2.store.FileStore;
+import org.h2.store.InDoubtTransaction;
 import org.h2.store.PageStore;
 import org.h2.store.WriterThread;
 import org.h2.store.fs.FileSystemMemory;
@@ -115,7 +114,6 @@ public class Database implements DataHandler {
     private TableData meta;
     private Index metaIdIndex;
     private FileLock lock;
-    private LogSystem log;
     private WriterThread writer;
     private boolean starting;
     private TraceSystem traceSystem;
@@ -167,6 +165,7 @@ public class Database implements DataHandler {
     private boolean compactFully;
     private SourceCompiler compiler;
     private boolean metaTablesInitialized;
+    private boolean flushOnEachCommit;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = CompareMode.getInstance(null, 0);
@@ -317,7 +316,7 @@ public class Database implements DataHandler {
                 long now = System.currentTimeMillis();
                 if (now > reconnectCheckNext) {
                     if (pending) {
-                        String pos = log == null ? null : log.getWritePos();
+                        String pos = pageStore == null ? null : "" + pageStore.getWriteCountTotal();
                         lock.setProperty("logPos", pos);
                         lock.save();
                     }
@@ -338,7 +337,7 @@ public class Database implements DataHandler {
                     return false;
                 }
             }
-            String pos = log == null ? null : log.getWritePos();
+            String pos = pageStore == null ? null : "" + pageStore.getWriteCountTotal();
             lock.setProperty("logPos", pos);
             if (pending) {
                 lock.setProperty("changePending", "true-" + Math.random());
@@ -400,10 +399,7 @@ public class Database implements DataHandler {
         if (powerOffCount != -1) {
             try {
                 powerOffCount = -1;
-                if (log != null) {
-                    stopWriter();
-                    log = null;
-                }
+                stopWriter();
                 if (pageStore != null) {
                     try {
                         pageStore.close();
@@ -543,12 +539,10 @@ public class Database implements DataHandler {
             starting = true;
             getPageStore();
             starting = false;
-            log = new LogSystem(this, readOnly, pageStore);
             reserveLobFileObjectIds();
             writer = WriterThread.create(this, writeDelay);
         } else {
             traceSystem = new TraceSystem(null);
-            log = new LogSystem(null, false, null);
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);
@@ -1112,10 +1106,7 @@ public class Database implements DataHandler {
      * @param flush whether writing is allowed
      */
     private synchronized void closeOpenFilesAndUnlock(boolean flush) throws SQLException {
-        if (log != null) {
-            stopWriter();
-            log = null;
-        }
+        stopWriter();
         if (pageStore != null) {
             if (flush) {
                 try {
@@ -1303,10 +1294,6 @@ public class Database implements DataHandler {
 
     public String getName() {
         return databaseName;
-    }
-
-    public LogSystem getLog() {
-        return log;
     }
 
     /**
@@ -1636,6 +1623,70 @@ public class Database implements DataHandler {
         writeDelay = value;
         if (writer != null) {
             writer.setWriteDelay(value);
+            // TODO check if MIN_WRITE_DELAY is a good value
+            flushOnEachCommit = writeDelay < SysProperties.MIN_WRITE_DELAY;
+        }
+    }
+
+    /**
+     * Check if flush-on-each-commit is enabled.
+     *
+     * @return true if it is
+     */
+    public boolean getFlushOnEachCommit() {
+        return flushOnEachCommit;
+    }
+
+    /**
+     * Get the list of in-doubt transactions.
+     *
+     * @return the list
+     */
+    public ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
+        return pageStore == null ? null : pageStore.getInDoubtTransactions();
+    }
+
+    /**
+     * Prepare a transaction.
+     *
+     * @param session the session
+     * @param transaction the name of the transaction
+     */
+    public void prepareCommit(Session session, String transaction) throws SQLException {
+        if (readOnly) {
+            return;
+        }
+        synchronized (this) {
+            pageStore.prepareCommit(session, transaction);
+        }
+    }
+
+    /**
+     * Commit the current transaction of the given session.
+     *
+     * @param session the session
+     */
+    public void commit(Session session) throws SQLException {
+        if (readOnly) {
+            return;
+        }
+        synchronized (this) {
+            if (pageStore != null) {
+                pageStore.commit(session);
+            }
+            session.setAllCommitted();
+        }
+    }
+
+    /**
+     * Flush all pending changes to the transaction log files.
+     */
+    public void flush() throws SQLException {
+        if (readOnly) {
+            return;
+        }
+        synchronized (this) {
+            pageStore.flushLog();
         }
     }
 

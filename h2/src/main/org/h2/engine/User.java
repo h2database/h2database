@@ -18,8 +18,8 @@ import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableView;
 import org.h2.util.ByteUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
-import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -65,7 +65,7 @@ public class User extends RightOwner {
     public void setUserPasswordHash(byte[] userPasswordHash) {
         if (userPasswordHash != null) {
             salt = new byte[Constants.SALT_LEN];
-            RandomUtils.nextBytes(salt);
+            MathUtils.randomBytes(salt);
             SHA256 sha = new SHA256();
             this.passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
         }

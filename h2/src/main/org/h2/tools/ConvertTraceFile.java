@@ -46,9 +46,9 @@ public class ConvertTraceFile extends Tool {
             if (other == this) {
                 return 0;
             }
-            int c = MathUtils.compare(other.time, time);
+            int c = MathUtils.compareLong(other.time, time);
             if (c == 0) {
-                c = MathUtils.compare(other.executeCount, executeCount);
+                c = MathUtils.compareInt(other.executeCount, executeCount);
                 if (c == 0) {
                     c = sql.compareTo(other.sql);
                 }

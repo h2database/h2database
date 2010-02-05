@@ -18,7 +18,7 @@ import org.h2.store.fs.FileSystemMemory;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.util.RandomUtils;
+import org.h2.util.MathUtils;
 
 /**
  * This test executes random SQL statements generated using the BNF tool.
@@ -203,7 +203,7 @@ public class TestRandomSQL extends TestBase {
         exitOnError = false;
         showSQL = false;
         for (int a = 0; a < len; a++) {
-            int s = RandomUtils.nextInt(Integer.MAX_VALUE);
+            int s = MathUtils.randomInt(Integer.MAX_VALUE);
             testCase(s);
         }
     }

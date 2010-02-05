@@ -72,7 +72,7 @@ public class SortedProperties extends Properties {
     public static int getIntProperty(Properties prop, String key, int def) {
         String value = prop.getProperty(key, "" + def);
         try {
-            return MathUtils.decodeInt(value);
+            return Integer.decode(value);
         } catch (Exception e) {
             TraceSystem.traceThrowable(e);
             return def;

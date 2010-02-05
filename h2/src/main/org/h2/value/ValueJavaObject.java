@@ -17,7 +17,7 @@ import org.h2.util.MemoryUtils;
 /**
  * Implementation of the OBJECT data type.
  */
-public class ValueJavaObject extends ValueBytesBase {
+public class ValueJavaObject extends ValueBytes {
 
     private static final ValueJavaObject EMPTY = new ValueJavaObject(MemoryUtils.EMPTY_BYTES);
 

@@ -10,8 +10,8 @@ import java.util.ArrayList;
 
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.RandomUtils;
 
 /**
  * A test that generates random SQL statements against a number of databases
@@ -339,7 +339,7 @@ public class TestSynth extends TestBase {
 
     public void test() throws Exception {
         while (true) {
-            int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
+            int seed = MathUtils.randomInt(Integer.MAX_VALUE);
             testCase(seed);
         }
     }

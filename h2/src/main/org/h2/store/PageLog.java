@@ -15,9 +15,6 @@ import org.h2.compress.CompressLZF;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.log.InDoubtTransaction;
-import org.h2.log.LogSystem;
-import org.h2.log.SessionState;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -521,8 +518,7 @@ public class PageLog {
             if (trace.isDebugEnabled()) {
                 trace.debug("log commit s:" + sessionId);
             }
-            LogSystem log = store.getDatabase().getLog();
-            if (log == null) {
+            if (store.getDatabase().getPageStore() == null) {
                 // database already closed
                 return;
             }
@@ -530,7 +526,7 @@ public class PageLog {
             buffer.writeByte((byte) COMMIT);
             buffer.writeVarInt(sessionId);
             write(buffer);
-            if (log.getFlushOnEachCommit()) {
+            if (store.getDatabase().getFlushOnEachCommit()) {
                 flush();
             }
         } catch (IOException e) {
@@ -549,8 +545,7 @@ public class PageLog {
             if (trace.isDebugEnabled()) {
                 trace.debug("log prepare commit s:" + session.getId() + " " + transaction);
             }
-            LogSystem log = store.getDatabase().getLog();
-            if (log == null) {
+            if (store.getDatabase().getPageStore() == null) {
                 // database already closed
                 return;
             }
@@ -569,7 +564,7 @@ public class PageLog {
             // store it on a separate log page
             flushOut();
             pageOut.fillPage();
-            if (log.getFlushOnEachCommit()) {
+            if (store.getDatabase().getFlushOnEachCommit()) {
                 flush();
             }
         } catch (IOException e) {

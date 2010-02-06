@@ -102,13 +102,21 @@ public class NetUtils {
      * @return the socket
      */
     public static Socket createSocket(InetAddress address, int port, boolean ssl) throws IOException {
-        if (ssl) {
-            return SecureSocketFactory.createSocket(address, port);
+        for (;;) {
+            try {
+                if (ssl) {
+                    return SecureSocketFactory.createSocket(address, port);
+                }
+                Socket socket = new Socket();
+                socket.connect(new InetSocketAddress(address, port),
+                        SysProperties.SOCKET_CONNECT_TIMEOUT);
+                return socket;
+            } catch (BindException e) {
+                // Workaround for Windows problem with frequent connections: 
+                // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6213296
+                // trying to connect again
+            }
         }
-        Socket socket = new Socket();
-        socket.connect(new InetSocketAddress(address, port),
-                SysProperties.SOCKET_CONNECT_TIMEOUT);
-        return socket;
     }
 
     /**

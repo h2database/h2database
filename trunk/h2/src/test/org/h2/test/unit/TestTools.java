@@ -310,7 +310,7 @@ public class TestTools extends TestBase {
         stat.execute("create table test(id int primary key, name varchar, b blob, c clob)");
         stat.execute("create table \"test 2\"(id int primary key, name varchar)");
         stat.execute("comment on table test is ';-)'");
-        stat.execute("insert into test values(1, 'Hello', SECURE_RAND(2000), space(2000))");
+        stat.execute("insert into test values(1, 'Hello', SECURE_RAND(4100), '\u00e4' || space(4100))");
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
@@ -344,8 +344,9 @@ public class TestTools extends TestBase {
         assertEquals("Hello", rs.getString(2));
         byte[] b2 = rs.getBytes(3);
         String s2 = rs.getString(4);
-        assertEquals(2000, b2.length);
-        assertEquals(2000, s2.length());
+        assertEquals("\u00e4 ", s2.substring(0, 2));
+        assertEquals(4100, b2.length);
+        assertEquals(4101, s2.length());
         assertEquals(b1, b2);
         assertEquals(s1, s2);
         assertFalse(rs.next());

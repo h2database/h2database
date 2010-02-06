@@ -191,10 +191,6 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         return null;
     }
 
-    public int getChecksum(byte[] data, int start, int end) {
-        return session.getDatabase().getChecksum(data, start, end);
-    }
-
     public void checkPowerOff() throws SQLException {
         session.getDatabase().checkPowerOff();
     }

@@ -146,10 +146,6 @@ public class TestFile extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public int getChecksum(byte[] data, int s, int e) {
-        return 0;
-    }
-
     public String getDatabasePath() {
         return null;
     }

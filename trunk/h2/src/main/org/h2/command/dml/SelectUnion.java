@@ -349,10 +349,6 @@ public class SelectUnion extends Query {
         right.updateAggregate(s);
     }
 
-    public String getFirstColumnAlias(Session s) {
-        return null;
-    }
-
     public void fireBeforeSelectTriggers() throws SQLException {
         left.fireBeforeSelectTriggers();
         right.fireBeforeSelectTriggers();

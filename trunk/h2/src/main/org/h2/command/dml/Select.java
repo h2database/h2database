@@ -15,9 +15,7 @@ import org.h2.api.Trigger;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.engine.Mode;
 import org.h2.engine.Session;
-import org.h2.expression.Alias;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
@@ -1099,23 +1097,6 @@ public class Select extends Query {
 
     public boolean isReadOnly() {
         return isEverything(ExpressionVisitor.READONLY);
-    }
-
-    public String getFirstColumnAlias(Session s) {
-        if (SysProperties.CHECK) {
-            if (visibleColumnCount > 1) {
-                Message.throwInternalError("" + visibleColumnCount);
-            }
-        }
-        Expression expr = expressions.get(0);
-        if (expr instanceof Alias) {
-            return expr.getAlias();
-        }
-        Mode mode = s.getDatabase().getMode();
-        String name = s.getNextSystemIdentifier(getSQL());
-        expr = new Alias(expr,  name, mode.aliasColumnName);
-        expressions.set(0, expr);
-        return expr.getAlias();
     }
 
 }

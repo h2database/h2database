@@ -271,10 +271,6 @@ public class TestDataPage extends TestBase implements DataHandler {
         return null;
     }
 
-    public int getChecksum(byte[] data, int s, int e) {
-        return e - s;
-    }
-
     public void checkPowerOff() {
         // nothing to do
     }

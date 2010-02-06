@@ -120,10 +120,6 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         return null;
     }
 
-    public int getChecksum(byte[] data, int s, int e) {
-        return 0;
-    }
-
     public void checkPowerOff() {
         // nothing to do
     }

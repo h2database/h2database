@@ -48,13 +48,13 @@ public class TestNetUtils extends TestBase {
                 while (!isInterrupted()) {
                     try {
                         Socket socket = serverSocket.accept();
-                        System.out.println("opened " + counter);
+                        // System.out.println("opened " + counter);
                         socket.close();
                     } catch (Exception e) {
                         // ignore
                     }
                 }
-                System.out.println("stopped ");
+                // System.out.println("stopped ");
 
             }
         };

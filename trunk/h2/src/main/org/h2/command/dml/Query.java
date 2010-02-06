@@ -153,15 +153,6 @@ public abstract class Query extends Prepared {
     public abstract void setDistinct(boolean b);
 
     /**
-     * Get the alias (or column name) of the first column.
-     * This is used to convert IN(SELECT ...) queries to inner joins.
-     *
-     * @param s the session
-     * @return the alias or column name
-     */
-    public abstract String getFirstColumnAlias(Session s);
-
-    /**
      * Check if this expression and all sub-expressions can fulfill a criteria.
      * If any part returns false, the result is false.
      *

@@ -102,7 +102,7 @@ public class NetUtils {
      * @return the socket
      */
     public static Socket createSocket(InetAddress address, int port, boolean ssl) throws IOException {
-        for (;;) {
+        for (int i = 0;; i++) {
             try {
                 if (ssl) {
                     return SecureSocketFactory.createSocket(address, port);
@@ -112,9 +112,17 @@ public class NetUtils {
                         SysProperties.SOCKET_CONNECT_TIMEOUT);
                 return socket;
             } catch (BindException e) {
-                // Workaround for Windows problem with frequent connections: 
-                // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6213296
-                // trying to connect again
+                if (i >= SysProperties.SOCKET_CONNECT_RETRY) {
+                    throw e;
+                }
+                // wait a bit and retry
+                try {
+                    // sleep at most 256 ms
+                    long sleep = Math.min(256, i * i);
+                    Thread.sleep(sleep);
+                } catch (InterruptedException e2) {
+                    // ignore
+                }
             }
         }
     }

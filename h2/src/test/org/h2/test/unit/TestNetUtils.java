@@ -1,5 +1,8 @@
-/**
- * 
+/*
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: Sergi Vladykin
  */
 package org.h2.test.unit;
 
@@ -9,126 +12,114 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.util.NetUtils;
 
 /**
+ * Test the network utilities.
+ *
  * @author Sergi Vladykin
  */
 public class TestNetUtils extends TestBase {
 
+    private static final int PORT = 9111;
+
     /**
-     * @param args
+     * Run just this test.
+     *
+     * @param a ignored
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
-
     }
 
-    @Override
     public void test() throws Exception {
-        testFrequentConnections(false);
-        testFrequentConnections(true);
+        testFrequentConnections(false, 1000);
+        testFrequentConnections(true, 100);
+        testFrequentConnections(false, 1000);
+        testFrequentConnections(true, 100);
     }
 
-    private void testFrequentConnections(boolean ssl) throws Exception {
-        final ServerSocket serverSock = NetUtils.createServerSocket(Constants.DEFAULT_TCP_PORT, ssl);
+    private void testFrequentConnections(boolean ssl, int count) throws Exception {
+        final ServerSocket serverSocket = NetUtils.createServerSocket(PORT, ssl);
+        final AtomicInteger counter = new AtomicInteger(count);
         Thread serverThread = new Thread() {
-            @Override
             public void run() {
                 while (!isInterrupted()) {
                     try {
-                        Socket socket = serverSock.accept();
+                        Socket socket = serverSocket.accept();
+                        System.out.println("opened " + counter);
                         socket.close();
                     } catch (Exception e) {
                         // ignore
                     }
                 }
+                System.out.println("stopped ");
+
             }
         };
         serverThread.start();
-        // System.out.println("Server started.");
-        AtomicInteger counter = new AtomicInteger();
         try {
             Set<ConnectWorker> workers = new HashSet<ConnectWorker>();
-            for (int i = 0; i < 10; i++) {
-                workers.add(new ConnectWorker(ssl, workers, counter));
+            for (int i = 0; i < 1; i++) {
+                workers.add(new ConnectWorker(ssl, counter));
             }
+            // ensure the server is started
+            Thread.sleep(100);
             for (ConnectWorker worker : workers) {
                 worker.start();
             }
-            // System.out.println("Workers started.");
-            Exception exception = null;
             for (ConnectWorker worker : workers) {
                 worker.join();
-                if (exception == null) {
-                    exception = worker.getException();
-                    // if (exception != null) {
-                    // System.out.println("Exception set.");
-                    // }
+                Exception e = worker.getException();
+                if (e != null) {
+                    e.printStackTrace();
                 }
             }
-            // System.out.println("All joined.");
-            if (exception != null) {
-                throw exception;
-            }
         } finally {
-            serverThread.interrupt();
             try {
-                serverSock.close();
+                serverSocket.close();
             } catch (Exception e) {
                 // ignore
             }
-            // System.out.println("Server stopped.");
+            serverThread.interrupt();
+            serverThread.join();
         }
     }
 
     /**
-     * 
+     * A worker thread to test connecting.
      */
     private class ConnectWorker extends Thread {
 
-        private static final int MAX_CONNECT_COUNT = 10000;
-
         private final boolean ssl;
-        private final Set<ConnectWorker> workers;
         private final AtomicInteger counter;
+        private Exception exception;
 
-        private volatile Exception exception;
-
-        public ConnectWorker(boolean ssl, Set<ConnectWorker> workers, AtomicInteger counter) {
+        public ConnectWorker(boolean ssl, AtomicInteger counter) {
             this.ssl = ssl;
-            this.workers = workers;
             this.counter = counter;
         }
 
-        @Override
         public void run() {
             try {
-                while (!isInterrupted() && counter.incrementAndGet() < MAX_CONNECT_COUNT) {
-                    Socket sock = NetUtils.createSocket("127.0.0.1", Constants.DEFAULT_TCP_PORT, ssl);
-                    // System.out.println(COUNTER.get());
+                while (!isInterrupted() && counter.decrementAndGet() > 0) {
+                    Socket socket = NetUtils.createLoopbackSocket(PORT, ssl);
                     try {
-                        sock.close();
+                        socket.close();
                     } catch (IOException e) {
                         // ignore
                     }
                 }
             } catch (Exception e) {
-                this.exception = e;
-                for (ConnectWorker worker : workers) {
-                    worker.interrupt();
-                }
+                exception = new Exception("count: " + counter, e);
             }
         }
 
-        /**
-         * @return the exception
-         */
         public Exception getException() {
             return exception;
         }
+
     }
 
 }

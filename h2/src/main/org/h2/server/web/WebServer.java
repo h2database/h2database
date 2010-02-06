@@ -26,7 +26,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.Map.Entry;
-import org.h2.api.DatabaseEventListener;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
@@ -570,10 +569,9 @@ public class WebServer implements Service {
      * @param databaseUrl the database URL
      * @param user the user name
      * @param password the password
-     * @param listener the database event listener object
      * @return the database connection
      */
-    Connection getConnection(String driver, String databaseUrl, String user, String password, DatabaseEventListener listener) throws SQLException {
+    Connection getConnection(String driver, String databaseUrl, String user, String password) throws SQLException {
         driver = driver.trim();
         databaseUrl = databaseUrl.trim();
         org.h2.Driver.load();
@@ -586,7 +584,6 @@ public class WebServer implements Service {
             if (ifExists) {
                 databaseUrl += ";IFEXISTS=TRUE";
             }
-            p.put("DATABASE_EVENT_LISTENER_OBJECT", listener);
             // PostgreSQL would throw a NullPointerException
             // if it is loaded before the H2 driver
             // because it can't deal with non-String objects in the connection Properties

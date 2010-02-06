@@ -287,36 +287,16 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-check client jar file size
-simplify Message / ErrorCode / Resource
-remove BitField
-flatten package hierarchy (remove constant package)
-Constants.FILE_BLOCK_SIZE and others
-simplify SysProperties; combine with Constants
-remove SortedProperties
-remove TempFileDeleter (UndoLog, ResultDiskBuffer, RowList, ValueLob)
-combine small classes (StringCache / utils...)
+FileStore.sync, Database.sync() (CHECKPOINT SYNC)
 document in performance section:
 PreparedStatement prep = conn.prepareStatement(
 "select * from table(x int = ?) t inner join test on t.x = test.id");
 prep.setObject(1, new Object[] { "1", "2" });
 ResultSet rs = prep.executeQuery();
 
-remove unused methods
-cleanup SortedProperties
-headPos > boolean isNew?
-verify Row - Page
-fix class javadocs
-test remote lob (temp file) read write
+review package and class level javadocs
 TestAll deleteIndex
-FileStore.sync, Database.sync() (CHECKPOINT SYNC)
-data page > buffer
-try to reduce number of packages, classes
-rename Page classes to normal names
 use RuntimeException internally
-
-Verify that Tomcat memory leak protection don't cause exceptions:
-http://java.dzone.com/articles/memory-leak-protection-tomcat
 
 document FETCH FIRST
 

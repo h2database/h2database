@@ -11,19 +11,11 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
-
-import org.h2.api.DatabaseEventListener;
-import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.MemoryUtils;
@@ -283,135 +275,6 @@ class WebThread extends WebApp implements Runnable {
     protected String adminShutdown() {
         stopNow();
         return super.adminShutdown();
-    }
-
-    protected boolean loginAsync(final String driver, final String url, final String user, final String password) {
-        if (socket == null
-                || !url.startsWith("jdbc:h2:")
-                || url.startsWith("jdbc:h2:tcp:")
-                || url.startsWith("jdbc:h2:ssl:")
-                || url.startsWith("jdbc:h2:mem:")) {
-            // async login only possible for H2 embedded
-            return false;
-        }
-
-        /**
-         * This class is used for the asynchronous login.
-         */
-        class LoginTask implements Runnable, DatabaseEventListener {
-            private final PrintWriter writer;
-            private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-
-            LoginTask() throws IOException {
-                String message = "HTTP/1.1 200 OK\n";
-                message += "Content-Type: " + mimeType + "\n\n";
-                output.write(message.getBytes());
-                writer = new PrintWriter(output);
-                writer.println("<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"stylesheet.css\" /></head>");
-                writer.println("<body><h2>Opening Database</h2>URL: " + PageParser.escapeHtml(url) + "<br />");
-                writer.println("User: " + PageParser.escapeHtml(user) + "<br />");
-                writer.println("Version: " + Constants.getFullVersion() + "<br /><br />");
-                writer.flush();
-                log("Start...");
-            }
-
-            public void closingDatabase() {
-                log("Closing database");
-            }
-
-            public void diskSpaceIsLow(long stillAvailable) {
-                log("No more disk space is available");
-            }
-
-            public void exceptionThrown(SQLException e, String sql) {
-                log("Exception: " + PageParser.escapeHtml(e.toString()) + " SQL: " + PageParser.escapeHtml(sql));
-                server.traceError(e);
-            }
-
-            public void init(String databaseUrl) {
-                log("Init: " + PageParser.escapeHtml(databaseUrl));
-            }
-
-            public void opened() {
-                log("Database was opened");
-            }
-
-            public void setProgress(int state, String name, int x, int max) {
-                if (state == listenerLastState) {
-                    long time = System.currentTimeMillis();
-                    if (time < listenerLastEvent + 1000) {
-                        return;
-                    }
-                    listenerLastEvent = time;
-                } else {
-                    listenerLastState = state;
-                }
-                name = PageParser.escapeHtml(name);
-                switch (state) {
-                case DatabaseEventListener.STATE_BACKUP_FILE:
-                    log("Backing up " + name + " " + (100L * x / max) + "%");
-                    break;
-                case DatabaseEventListener.STATE_CREATE_INDEX:
-                    log("Creating index " + name + " " + (100L * x / max) + "%");
-                    break;
-                case DatabaseEventListener.STATE_RECOVER:
-                    log("Recovering " + name + " " + (100L * x / max) + "%");
-                    break;
-                case DatabaseEventListener.STATE_SCAN_FILE:
-                    log("Scanning file " + name + " " + (100L * x / max) + "%");
-                    break;
-                default:
-                    log("Unknown state: " + state);
-                }
-            }
-
-            private synchronized void log(String message) {
-                if (output != null) {
-                    message = dateFormat.format(new Date()) + ": " + message;
-                    writer.println(message + "<br />");
-                    writer.flush();
-                }
-                server.trace(message);
-            }
-
-            public void run() {
-                String sessionId = (String) session.get("sessionId");
-                boolean isH2 = url.startsWith("jdbc:h2:");
-                try {
-                    Connection conn = server.getConnection(driver, url, user, password, this);
-                    session.setConnection(conn);
-                    session.put("url", url);
-                    session.put("user", user);
-                    session.remove("error");
-                    settingSave();
-                    log("OK<script type=\"text/javascript\">top.location=\"frame.jsp?jsessionid=" + sessionId
-                            + "\"</script></body></htm>");
-                    // return "frame.jsp";
-                } catch (Exception e) {
-                    session.put("error", getLoginError(e, isH2));
-                    log("Error<script type=\"text/javascript\">top.location=\"index.jsp?jsessionid=" + sessionId
-                            + "\"</script></body></html>");
-                    // return "index.jsp";
-                }
-                synchronized (this) {
-                    IOUtils.closeSilently(output);
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        // ignore
-                    }
-                    output = null;
-                }
-            }
-        }
-        try {
-            LoginTask login = new LoginTask();
-            Thread t = new Thread(login);
-            t.start();
-        } catch (IOException e) {
-            // ignore
-        }
-        return true;
     }
 
     private boolean allow() {

@@ -44,7 +44,7 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueUuid;
 
 /**
- * A data page is a byte buffer that contains persistent data of a page.
+ * This class represents a byte buffer that contains persistent data of a page.
  */
 public class Data {
 
@@ -237,31 +237,31 @@ public class Data {
     }
 
     /**
-     * Create a new data page for the given handler. The
+     * Create a new buffer for the given handler. The
      * handler will decide what type of buffer is created.
      *
      * @param handler the data handler
      * @param capacity the initial capacity of the buffer
-     * @return the data page
+     * @return the buffer
      */
     public static Data create(DataHandler handler, int capacity) {
         return new Data(handler, new byte[capacity]);
     }
 
     /**
-     * Create a new data page using the given data for the given handler. The
+     * Create a new buffer using the given data for the given handler. The
      * handler will decide what type of buffer is created.
      *
      * @param handler the data handler
      * @param buff the data
-     * @return the data page
+     * @return the buffer
      */
     public static Data create(DataHandler handler, byte[] buff) {
         return new Data(handler, buff);
     }
 
     /**
-     * Get the current write position of this data page, which is the current
+     * Get the current write position of this buffer, which is the current
      * length.
      *
      * @return the length
@@ -287,7 +287,7 @@ public class Data {
     }
 
     /**
-     * Append a number of bytes to this data page.
+     * Append a number of bytes to this buffer.
      *
      * @param buff the data
      * @param off the offset in the data

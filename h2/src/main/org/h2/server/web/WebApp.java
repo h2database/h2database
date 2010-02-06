@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
-import org.h2.api.DatabaseEventListener;
 import org.h2.bnf.Bnf;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -58,14 +57,12 @@ import org.h2.util.Tool;
  * For each connection to a session, an object of this class is created.
  * This class is used by the H2 Console.
  */
-public class WebApp implements DatabaseEventListener {
+public class WebApp {
 
     protected WebServer server;
     protected WebSession session;
     protected Properties attributes;
     protected String mimeType;
-    protected long listenerLastEvent;
-    protected int listenerLastState;
     protected boolean cache;
     protected boolean stop;
     protected String headerLanguage;
@@ -792,7 +789,7 @@ public class WebApp implements DatabaseEventListener {
             prof.startCollecting();
             Connection conn;
             try {
-                conn = server.getConnection(driver, url, user, password, this);
+                conn = server.getConnection(driver, url, user, password);
             } finally {
                 prof.stopCollecting();
                 profOpen = prof.getTop(3);
@@ -854,7 +851,7 @@ public class WebApp implements DatabaseEventListener {
         }
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
-            Connection conn = server.getConnection(driver, url, user, password, this);
+            Connection conn = server.getConnection(driver, url, user, password);
             session.setConnection(conn);
             session.put("url", url);
             session.put("user", user);
@@ -1713,54 +1710,6 @@ public class WebApp implements DatabaseEventListener {
 
     WebSession getSession() {
         return session;
-    }
-
-    public void closingDatabase() {
-        trace("Closing database");
-    }
-
-    public void diskSpaceIsLow(long stillAvailable) {
-        trace("No more disk space is available");
-    }
-
-    public void exceptionThrown(SQLException e, String sql) {
-        trace("Exception: " + e.toString() + " SQL: " + sql);
-    }
-
-    public void init(String url) {
-        trace("Init: " + url);
-    }
-
-    public void opened() {
-        trace("Database was opened");
-    }
-
-    public void setProgress(int state, String name, int x, int max) {
-        if (state == listenerLastState) {
-            long time = System.currentTimeMillis();
-            if (listenerLastEvent + 500 < time) {
-                return;
-            }
-            listenerLastEvent = time;
-        } else {
-            listenerLastState = state;
-        }
-        switch (state) {
-        case DatabaseEventListener.STATE_BACKUP_FILE:
-            trace("Backing up " + name + " " + (100L * x / max) + "%");
-            break;
-        case DatabaseEventListener.STATE_CREATE_INDEX:
-            trace("Creating index " + name + " " + (100L * x / max) + "%");
-            break;
-        case DatabaseEventListener.STATE_RECOVER:
-            trace("Recovering " + name + " " + (100L * x / max) + "%");
-            break;
-        case DatabaseEventListener.STATE_SCAN_FILE:
-            trace("Scanning file " + name + " " + (100L * x / max) + "%");
-            break;
-        default:
-            trace("Unknown state: " + state);
-        }
     }
 
     private void trace(String s) {

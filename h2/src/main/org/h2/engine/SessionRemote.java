@@ -565,10 +565,6 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         // nothing to do
     }
 
-    public int getChecksum(byte[] data, int start, int end) {
-        return 0;
-    }
-
     public String getDatabasePath() {
         return "";
     }

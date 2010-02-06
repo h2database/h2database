@@ -54,10 +54,9 @@ public class Row implements SearchRow {
     }
 
     /**
-     * Get the number of bytes required for the data if the given data page
-     * would be used.
+     * Get the number of bytes required for the data.
      *
-     * @param dummy the template data page
+     * @param dummy the template buffer
      * @return the number of bytes
      */
     public int getByteCount(Data dummy) throws SQLException {

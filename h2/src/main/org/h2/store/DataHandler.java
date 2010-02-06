@@ -36,16 +36,6 @@ public interface DataHandler {
     FileStore openFile(String name, String mode, boolean mustExist) throws SQLException;
 
     /**
-     * Calculate the checksum for the byte array.
-     *
-     * @param data the byte array
-     * @param start the starting offset
-     * @param end the end offset
-     * @return the checksum
-     */
-    int getChecksum(byte[] data, int start, int end);
-
-    /**
      * Check if the simulated power failure occurred.
      * This call will decrement the countdown.
      *

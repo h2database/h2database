@@ -33,7 +33,7 @@ import org.h2.util.StringUtils;
 
 /**
  * Implementation of the BLOB and CLOB data types. Small objects are kept in
- * memory and stored in the data page of the record.
+ * memory and stored in the record.
  *
  * Large objects are stored in their own files. When large objects are set in a
  * prepared statement, they are first stored as 'temporary' files. Later, when

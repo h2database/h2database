@@ -691,7 +691,7 @@ public class Recover extends Tool implements DataHandler {
                             if (d == dataPage) {
                                 dataPage = 0;
                             } else {
-                                // ignore the pages before the starting data page
+                                // ignore the pages before the starting page
                                 continue;
                             }
                         }
@@ -1122,17 +1122,6 @@ public class Recover extends Tool implements DataHandler {
      */
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         return FileStore.open(this, name, "rw");
-    }
-
-    /**
-     * INTERNAL
-     */
-    public int getChecksum(byte[] data, int start, int end) {
-        int x = 0;
-        while (start < end) {
-            x += data[start++];
-        }
-        return x;
     }
 
     /**

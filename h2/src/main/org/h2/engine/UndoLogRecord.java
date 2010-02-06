@@ -137,7 +137,7 @@ public class UndoLogRecord {
     }
 
     /**
-     * Save the row in the file using the data page as a buffer.
+     * Save the row in the file using a buffer.
      *
      * @param buff the buffer
      * @param file the file
@@ -164,7 +164,7 @@ public class UndoLogRecord {
     }
 
     /**
-     * Load an undo log record row using the data page as a buffer.
+     * Load an undo log record row using a buffer.
      *
      * @param buff the buffer
      * @param file the source file

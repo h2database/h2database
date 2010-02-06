@@ -1264,14 +1264,6 @@ public class Database implements DataHandler {
         return cacheType;
     }
 
-    public int getChecksum(byte[] data, int start, int end) {
-        int x = 0;
-        while (start < end) {
-            x += data[start++];
-        }
-        return x;
-    }
-
     public String getCluster() {
         return cluster;
     }

@@ -140,7 +140,7 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     public static Reader readClob(String fileName) throws IOException {
-        return new BufferedReader(new InputStreamReader(readBlob(fileName)));
+        return new BufferedReader(new InputStreamReader(readBlob(fileName), "UTF-8"));
     }
 
     /**

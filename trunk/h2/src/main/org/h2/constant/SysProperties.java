@@ -497,6 +497,14 @@ public class SysProperties {
     public static final boolean SHARE_LINKED_CONNECTIONS = getBooleanSetting("h2.shareLinkedConnections", true);
 
     /**
+     * System property <code>h2.socketConnectRetry</code> (default: 16).<br />
+     * The number of times to retry opening a socket. Windows sometimes fails
+     * to open a socket, see bug
+     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6213296
+     */
+    public static final int SOCKET_CONNECT_RETRY = getIntSetting("h2.socketConnectRetry", 16);
+
+    /**
      * System property <code>h2.socketConnectTimeout</code> (default: 2000).<br />
      * The timeout in milliseconds to connect to a server.
      */

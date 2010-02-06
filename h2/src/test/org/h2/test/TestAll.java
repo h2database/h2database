@@ -117,6 +117,7 @@ import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestMathUtils;
+import org.h2.test.unit.TestNetUtils;
 import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPageStore;
 import org.h2.test.unit.TestPattern;
@@ -594,6 +595,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
         new TestMathUtils().runTest(this);
+        new TestNetUtils().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);
         new TestPageStore().runTest(this);

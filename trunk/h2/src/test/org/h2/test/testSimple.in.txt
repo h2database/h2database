@@ -1,3 +1,5 @@
+select cast(cast('01020304-0506-0708-090a-0b0c0d0e0f00' as uuid) as binary);
+> 0102030405060708090a0b0c0d0e0f00;
 create table test(name varchar(255)) as select 'Hello+World+';
 select count(*) from test where name like 'Hello++World++' escape '+';
 > 1;

@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
-import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -79,7 +78,7 @@ public class ConnectionInfo implements Cloneable {
         set.addAll(list);
         String[] connectionTime = new String[] { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
-                "PASSWORD", "RECOVER", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",
+                "PASSWORD", "RECOVER", "USER", "AUTO_SERVER",
                 "AUTO_RECONNECT", "OPEN_NEW" };
         for (String key : connectionTime) {
             if (SysProperties.CHECK && set.contains(key)) {
@@ -204,31 +203,6 @@ public class ConnectionInfo implements Cloneable {
                 prop.setProperty(key, value);
             }
         }
-    }
-
-    /**
-     * Removes the database event listener object.
-     */
-    void removeDatabaseEventListenerObject() {
-        prop.remove("DATABASE_EVENT_LISTENER_OBJECT");
-    }
-
-    /**
-     * Return the database event listener object set as a Java object. If the
-     * event listener is not set or set as a string (the class name), then this
-     * method returns null.
-     *
-     * @return the database event listener object or null
-     */
-    DatabaseEventListener getDatabaseEventListenerObject() throws SQLException {
-        Object p = prop.get("DATABASE_EVENT_LISTENER_OBJECT");
-        if (p == null) {
-            return null;
-        }
-        if (p instanceof DatabaseEventListener) {
-            return (DatabaseEventListener) p;
-        }
-        throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, p.getClass().getName());
     }
 
     private char[] removePassword() {

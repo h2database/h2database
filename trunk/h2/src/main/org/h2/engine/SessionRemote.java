@@ -300,18 +300,15 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             throw Message.getUnsupportedException("autoReconnect && serverList != null");
         }
         if (autoReconnect) {
-            eventListener = ci.getDatabaseEventListenerObject();
-            if (eventListener == null) {
-                String className = ci.getProperty("DATABASE_EVENT_LISTENER");
-                if (className != null) {
-                    className = StringUtils.trim(className, true, true, "'");
-                    try {
-                        eventListener = (DatabaseEventListener) ClassUtils.loadUserClass(className).newInstance();
-                    } catch (Exception e) {
-                        throw Message.convert(e);
-                    } catch (Throwable e) {
-                        throw Message.convertThrowable(e);
-                    }
+            String className = ci.getProperty("DATABASE_EVENT_LISTENER");
+            if (className != null) {
+                className = StringUtils.trim(className, true, true, "'");
+                try {
+                    eventListener = (DatabaseEventListener) ClassUtils.loadUserClass(className).newInstance();
+                } catch (Exception e) {
+                    throw Message.convert(e);
+                } catch (Throwable e) {
+                    throw Message.convertThrowable(e);
                 }
             }
         }

@@ -182,14 +182,10 @@ public class Database implements DataHandler {
         }
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         this.databaseURL = ci.getURL();
-        this.eventListener = ci.getDatabaseEventListenerObject();
-        ci.removeDatabaseEventListenerObject();
-        if (eventListener == null) {
-            String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
-            if (listener != null) {
-                listener = StringUtils.trim(listener, true, true, "'");
-                setEventListenerClass(listener);
-            }
+        String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
+        if (listener != null) {
+            listener = StringUtils.trim(listener, true, true, "'");
+            setEventListenerClass(listener);
         }
         this.multiVersion = ci.getProperty("MVCC", false);
         boolean closeAtVmShutdown = ci.getProperty("DB_CLOSE_ON_EXIT", true);

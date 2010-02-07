@@ -58,6 +58,14 @@ public class TriggerPassData implements Trigger {
         System.out.println(triggerData + ": " + row[0]);
     }
 
+    public void close() {
+        // ignore
+    }
+
+    public void remove() {
+        // ignore
+    }
+
     /**
      * Call this method to change a specific trigger.
      *

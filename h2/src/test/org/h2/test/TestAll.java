@@ -287,7 +287,9 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+Row.getMemorySize
 FileStore.sync, Database.sync() (CHECKPOINT SYNC)
+
 document in performance section:
 PreparedStatement prep = conn.prepareStatement(
 "select * from table(x int = ?) t inner join test on t.x = test.id");
@@ -296,7 +298,6 @@ ResultSet rs = prep.executeQuery();
 
 review package and class level javadocs
 TestAll deleteIndex
-use RuntimeException internally
 
 document FETCH FIRST
 

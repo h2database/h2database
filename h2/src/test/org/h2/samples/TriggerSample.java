@@ -95,6 +95,15 @@ public class TriggerSample {
             prep.setBigDecimal(1, diff);
             prep.execute();
         }
+
+        public void close() {
+            // ignore
+        }
+
+        public void remove() {
+            // ignore
+        }
+
     }
 
 }

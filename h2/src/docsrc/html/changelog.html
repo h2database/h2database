@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Converting a UUID to bytes was incorrect. Because of that, updatable result sets on
+<ul><li>The methods of the CloseListener are added to the Trigger interface. 
+    The interface CloseListener is removed.
+</li><li>Converting a UUID to bytes was incorrect. Because of that, updatable result sets on
     tables with UUID primary key did not work. 
 </li><li>The database URL property DATABASE_EVENT_LISTENER_OBJECT is no longer supported
     (there are problems passing objects when the PostgreSQL driver is installed as well).

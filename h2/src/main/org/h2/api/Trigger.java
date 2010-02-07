@@ -36,7 +36,8 @@ public interface Trigger {
 
     /**
      * This method is called by the database engine once when initializing the
-     * trigger.
+     * trigger. It is called when the trigger is created, as well as when the
+     * database is opened.
      *
      * @param conn a connection to the database
      * @param schemaName the name of the schema
@@ -66,5 +67,21 @@ public interface Trigger {
      * @throws SQLException if the operation must be undone
      */
     void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException;
+
+    /**
+     * This method is called when the database is closed.
+     * If the method throws an exception, it will be logged, but
+     * closing the database will continue.
+     *
+     * @throws SQLException
+     */
+    void close() throws SQLException;
+
+    /**
+     * This method is called when the trigger is dropped.
+     *
+     * @throws SQLException
+     */
+    void remove() throws SQLException;
 
 }

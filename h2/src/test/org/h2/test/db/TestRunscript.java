@@ -139,4 +139,12 @@ public class TestRunscript extends TestBase implements Trigger {
         // nothing to do
     }
 
+    public void close() {
+        // ignore
+    }
+
+    public void remove() {
+        // ignore
+    }
+
 }

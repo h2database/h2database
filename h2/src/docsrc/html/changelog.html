@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The Recover tool did not convert correctly convert CLOB data with non-ASCII characters.
+<ul><li>Converting a UUID to bytes was incorrect. Because of that, updatable result sets on
+    tables with UUID primary key did not work. 
+</li><li>The Recover tool did not convert correctly convert CLOB data with non-ASCII characters.
     This was also a problem when using the automatic upgrade to the page store file format.
 </li></ul>
 

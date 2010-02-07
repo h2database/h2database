@@ -166,8 +166,8 @@ public class ValueUuid extends Value {
     public byte[] getBytes() {
         byte[] buff = new byte[16];
         for (int i = 0; i < 8; i++) {
-            buff[i] = (byte) ((high >> (8 * (8 - i))) & 255);
-            buff[8 + i] = (byte) ((low >> (8 * (8 - i))) & 255);
+            buff[i] = (byte) ((high >> (8 * (7 - i))) & 255);
+            buff[8 + i] = (byte) ((low >> (8 * (7 - i))) & 255);
         }
         return buff;
     }

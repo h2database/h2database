@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
-import org.h2.api.CloseListener;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -773,7 +772,7 @@ public class FullText {
     /**
      * Trigger updates the index when a inserting, updating, or deleting a row.
      */
-    public static class FullTextTrigger implements Trigger, CloseListener {
+    public static class FullTextTrigger implements Trigger {
 
         protected FullTextSettings setting;
         protected IndexInfo index;

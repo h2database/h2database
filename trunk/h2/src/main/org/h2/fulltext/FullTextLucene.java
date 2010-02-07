@@ -30,7 +30,6 @@ import org.apache.lucene.search.Hits;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searcher;
-import org.h2.api.CloseListener;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -410,7 +409,7 @@ public class FullTextLucene extends FullText {
      */
     public static class FullTextTrigger
     //## Java 1.4 begin ##
-    implements Trigger, CloseListener
+    implements Trigger
     //## Java 1.4 end ##
     {
 

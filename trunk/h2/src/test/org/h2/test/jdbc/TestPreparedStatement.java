@@ -346,6 +346,14 @@ public class TestPreparedStatement extends TestBase {
             // ignore
         }
 
+        public void close() {
+            // ignore
+        }
+
+        public void remove() {
+            // ignore
+        }
+
     }
 
     private void testScopedGeneratedKey(Connection conn) throws SQLException {

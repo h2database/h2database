@@ -85,6 +85,14 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             prepInsert.execute();
         }
 
+        public void close() {
+            // ignore
+        }
+
+        public void remove() {
+            // ignore
+        }
+
     }
 
     private void testTriggerBeforeSelect() throws SQLException {
@@ -137,6 +145,14 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             prepMeta.execute();
         }
 
+        public void close() {
+            // ignore
+        }
+
+        public void remove() {
+            // ignore
+        }
+
     }
 
     /**
@@ -152,6 +168,15 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                 int type) {
             // nothing to do
         }
+
+        public void close() {
+            // ignore
+        }
+
+        public void remove() {
+            // ignore
+        }
+
     }
 
     private void testTriggerAlterTable() throws SQLException {
@@ -288,6 +313,14 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             }
             checkCommit(conn);
         }
+    }
+
+    public void close() {
+        // ignore
+    }
+
+    public void remove() {
+        // ignore
     }
 
     private void checkCommit(Connection conn) {

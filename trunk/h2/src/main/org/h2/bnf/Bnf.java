@@ -20,8 +20,8 @@ import java.util.StringTokenizer;
 import org.h2.server.web.DbContextRule;
 import org.h2.tools.Csv;
 import org.h2.util.New;
-import org.h2.util.Resources;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * This class can read a file that is similar to BNF (Backus-Naur form).
@@ -58,7 +58,7 @@ public class Bnf {
     public static Bnf getInstance(Reader csv) throws SQLException, IOException {
         Bnf bnf = new Bnf();
         if (csv == null) {
-            byte[] data = Resources.get("/org/h2/res/help.csv");
+            byte[] data = Utils.getResource("/org/h2/res/help.csv");
             csv = new InputStreamReader(new ByteArrayInputStream(data));
         }
         bnf.parse(csv);

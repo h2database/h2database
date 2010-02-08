@@ -9,7 +9,6 @@ package org.h2.engine;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.Parser;
-import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
@@ -164,50 +163,6 @@ public abstract class DbObjectBase implements DbObject {
 
     public String getComment() {
         return comment;
-    }
-
-    /**
-     * Get the sort order id for this object type. Objects are created in this
-     * order when opening a database.
-     *
-     * @param type the database object type
-     * @return the sort index
-     */
-    static int getCreateOrder(int type) {
-        switch(type) {
-        case SETTING:
-            return 0;
-        case USER:
-            return 1;
-        case SCHEMA:
-            return 2;
-        case USER_DATATYPE:
-            return 3;
-        case SEQUENCE:
-            return 4;
-        case CONSTANT:
-            return 5;
-        case FUNCTION_ALIAS:
-            return 6;
-        case TABLE_OR_VIEW:
-            return 7;
-        case INDEX:
-            return 8;
-        case CONSTRAINT:
-            return 9;
-        case TRIGGER:
-            return 10;
-        case ROLE:
-            return 11;
-        case RIGHT:
-            return 12;
-        case AGGREGATE:
-            return 13;
-        case COMMENT:
-            return 14;
-        default:
-            throw Message.throwInternalError("type="+type);
-        }
     }
 
     public String toString() {

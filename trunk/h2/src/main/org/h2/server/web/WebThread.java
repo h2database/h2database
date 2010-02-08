@@ -17,8 +17,8 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import org.h2.message.TraceSystem;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
-import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
 
@@ -262,7 +262,7 @@ class WebThread extends WebApp implements Runnable {
             }
         }
         if (session != null && len > 0) {
-            byte[] bytes = MemoryUtils.newBytes(len);
+            byte[] bytes = Utils.newBytes(len);
             for (int pos = 0; pos < len;) {
                 pos += input.read(bytes, pos, len - pos);
             }

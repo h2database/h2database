@@ -164,7 +164,7 @@ public class JdbcUtils {
         if (StringUtils.isNullOrEmpty(driver)) {
             JdbcUtils.load(url);
         } else {
-            Class< ? > d = ClassUtils.loadUserClass(driver);
+            Class< ? > d = Utils.loadUserClass(driver);
             if (java.sql.Driver.class.isAssignableFrom(d)) {
                 return DriverManager.getConnection(url, prop);
                 //## Java 1.4 begin ##
@@ -223,7 +223,7 @@ public class JdbcUtils {
     public static void load(String url) throws SQLException {
         String driver = getDriver(url);
         if (driver != null) {
-            ClassUtils.loadUserClass(driver);
+            Utils.loadUserClass(driver);
         }
     }
 

@@ -15,11 +15,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
-import org.h2.util.ClassUtils;
+import org.h2.util.Utils;
 import org.h2.util.New;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
@@ -125,7 +126,7 @@ public class FunctionAlias extends DbObjectBase {
     }
 
     private void loadClass() throws SQLException {
-        Class< ? > javaClass = ClassUtils.loadUserClass(className);
+        Class< ? > javaClass = Utils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
         ArrayList<JavaMethod> list = New.arrayList();
         for (int i = 0; i < methods.length; i++) {
@@ -275,7 +276,7 @@ public class FunctionAlias extends DbObjectBase {
             }
             if (paramCount > 0) {
                 Class< ? > lastArg = paramClasses[paramClasses.length - 1];
-                if (lastArg.isArray() && ClassUtils.isVarArgs(method)) {
+                if (lastArg.isArray() && FunctionAlias.isVarArgs(method)) {
                     varArgs = true;
                     varArgClass = lastArg.getComponentType();
                 }
@@ -420,5 +421,29 @@ public class FunctionAlias extends DbObjectBase {
     public String getSource() {
         return source;
     }
+
+    /**
+     * Checks if the given method takes a variable number of arguments. For Java
+     * 1.4 and older, false is returned. Example:
+     * <pre>
+     * public static double mean(double... values)
+     * </pre>
+     *
+     * @param m the method to test
+     * @return true if the method takes a variable number of arguments.
+     */
+    static boolean isVarArgs(Method m) {
+        if ("1.5".compareTo(SysProperties.JAVA_SPECIFICATION_VERSION) > 0) {
+            return false;
+        }
+        try {
+            Method isVarArgs = m.getClass().getMethod("isVarArgs");
+            Boolean result = (Boolean) isVarArgs.invoke(m);
+            return result.booleanValue();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
 }

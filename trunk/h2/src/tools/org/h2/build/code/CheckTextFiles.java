@@ -10,7 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.RandomAccessFile;
 
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 
 /**
  * This tool checks that source code files only contain the allowed set of
@@ -226,7 +226,7 @@ public class CheckTextFiles {
         }
         if (fix) {
             byte[] changed = out.toByteArray();
-            if (ByteUtils.compareNotNull(data, changed) != 0) {
+            if (Utils.compareNotNull(data, changed) != 0) {
                 RandomAccessFile f = new RandomAccessFile(file, "rw");
                 f.write(changed);
                 f.setLength(changed.length);

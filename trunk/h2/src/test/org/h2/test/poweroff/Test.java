@@ -19,7 +19,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * This application tests the durability / non-durability of file systems and
@@ -125,7 +125,7 @@ public class Test {
         RandomAccessFile write = new RandomAccessFile(file, "rws");
         // RandomAccessFile write = new RandomAccessFile(file, "rwd");
         int fileSize = 10 * 1024 * 1024;
-        FileUtils.setLength(write, fileSize);
+        IOUtils.setLength(write, fileSize);
         write.seek(0);
         int i = 0;
         FileDescriptor fd = write.getFD();

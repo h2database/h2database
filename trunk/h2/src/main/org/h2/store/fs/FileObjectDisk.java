@@ -10,7 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * This class is extends a java.io.RandomAccessFile.
@@ -29,7 +29,7 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
     }
 
     public void setFileLength(long newLength) throws IOException {
-        FileUtils.setLength(this, newLength);
+        IOUtils.setLength(this, newLength);
     }
 
     public String getName() {

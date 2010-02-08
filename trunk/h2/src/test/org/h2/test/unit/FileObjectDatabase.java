@@ -10,7 +10,7 @@ import java.io.EOFException;
 import java.io.IOException;
 
 import org.h2.store.fs.FileObject;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 
 /**
  * In this file system, files are kept fully in memory until stored.
@@ -58,7 +58,7 @@ public class FileObjectDatabase implements FileObject {
     public void setFileLength(long newLength) {
         this.length = (int) newLength;
         if (length != data.length) {
-            byte[] n = MemoryUtils.newBytes(length);
+            byte[] n = Utils.newBytes(length);
             System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
             data = n;
             changed = true;
@@ -76,7 +76,7 @@ public class FileObjectDatabase implements FileObject {
     public void write(byte[] b, int off, int len) {
         if (pos + len > data.length) {
             int newLen = Math.max(data.length * 2, pos + len);
-            byte[] n = MemoryUtils.newBytes(newLen);
+            byte[] n = Utils.newBytes(newLen);
             System.arraycopy(data, 0, n, 0, length);
             data = n;
         }

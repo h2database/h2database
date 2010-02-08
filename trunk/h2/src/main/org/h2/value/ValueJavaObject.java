@@ -11,15 +11,14 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.h2.constant.SysProperties;
-import org.h2.util.ByteUtils;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 
 /**
  * Implementation of the OBJECT data type.
  */
 public class ValueJavaObject extends ValueBytes {
 
-    private static final ValueJavaObject EMPTY = new ValueJavaObject(MemoryUtils.EMPTY_BYTES);
+    private static final ValueJavaObject EMPTY = new ValueJavaObject(Utils.EMPTY_BYTES);
 
     protected ValueJavaObject(byte[] v) {
         super(v);
@@ -48,7 +47,7 @@ public class ValueJavaObject extends ValueBytes {
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        Object obj = ByteUtils.deserialize(getBytesNoCopy());
+        Object obj = Utils.deserialize(getBytesNoCopy());
         prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);
     }
 

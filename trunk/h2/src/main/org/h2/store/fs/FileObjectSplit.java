@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import org.h2.message.Message;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * A file that may be split into multiple smaller files.
@@ -100,7 +100,7 @@ public class FileObjectSplit implements FileObject {
                 if (i >= newFileCount) {
                     list[i].close();
                     try {
-                        FileUtils.delete(list[i].getName());
+                        IOUtils.delete(list[i].getName());
                     } catch (SQLException e) {
                         throw Message.convertToIOException(e);
                     }

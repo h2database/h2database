@@ -14,8 +14,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import org.h2.constant.SysProperties;
 import org.h2.expression.ParameterInterface;
-import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -327,7 +326,7 @@ public class TraceObject {
         if (x == null) {
             return "null";
         }
-        return "org.h2.util.ByteUtils.convertStringToBytes(\"" + ByteUtils.convertBytesToString(x) + "\")";
+        return "org.h2.util.Utils.convertStringToBytes(\"" + Utils.convertBytesToString(x) + "\")";
     }
 
     /**
@@ -389,7 +388,7 @@ public class TraceObject {
             synchronized (TraceObject.class) {
                 // e.printStackTrace();
                 try {
-                    Writer writer = IOUtils.getWriter(FileUtils.openFileOutputStream(SysProperties.LOG_ALL_ERRORS_FILE, true));
+                    Writer writer = IOUtils.getWriter(IOUtils.openFileOutputStream(SysProperties.LOG_ALL_ERRORS_FILE, true));
                     PrintWriter p = new PrintWriter(writer);
                     e.printStackTrace(p);
                     p.close();

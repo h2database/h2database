@@ -174,7 +174,7 @@ public class Trace {
      * @param s the message
      * @param t the exception
      */
-    public void info(String s, Throwable t) {
+    void info(String s, Throwable t) {
         if (isEnabled(TraceSystem.INFO)) {
             traceWriter.write(TraceSystem.INFO, module, s, t);
         }
@@ -263,7 +263,7 @@ public class Trace {
      *
      * @param java the source code
      */
-    public void debugCode(String java) {
+    void debugCode(String java) {
         if (isEnabled(TraceSystem.DEBUG)) {
             traceWriter.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
         }

@@ -18,8 +18,6 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
-import org.h2.util.ClassUtils;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 
@@ -179,7 +177,7 @@ public class TraceSystem implements TraceWriter {
         if (level == ADAPTER) {
             String adapterClass = "org.h2.message.TraceWriterAdapter";
             try {
-                writer = (TraceWriter) ClassUtils.loadSystemClass(adapterClass).newInstance();
+                writer = (TraceWriter) Class.forName(adapterClass).newInstance();
             } catch (Throwable e) {
                 e = Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, adapterClass);
                 write(ERROR, Trace.DATABASE, adapterClass, e);
@@ -229,12 +227,12 @@ public class TraceSystem implements TraceWriter {
             if (checkSize++ >= CHECK_SIZE_EACH_WRITES) {
                 checkSize = 0;
                 closeWriter();
-                if (maxFileSize > 0 && FileUtils.length(fileName) > maxFileSize) {
+                if (maxFileSize > 0 && IOUtils.length(fileName) > maxFileSize) {
                     String old = fileName + ".old";
-                    if (FileUtils.exists(old)) {
-                        FileUtils.delete(old);
+                    if (IOUtils.exists(old)) {
+                        IOUtils.delete(old);
                     }
-                    FileUtils.rename(fileName, old);
+                    IOUtils.rename(fileName, old);
                 }
             }
             if (!openWriter()) {
@@ -278,13 +276,13 @@ public class TraceSystem implements TraceWriter {
     private boolean openWriter() {
         if (printWriter == null) {
             try {
-                FileUtils.createDirs(fileName);
-                if (FileUtils.exists(fileName) && FileUtils.isReadOnly(fileName)) {
+                IOUtils.createDirs(fileName);
+                if (IOUtils.exists(fileName) && IOUtils.isReadOnly(fileName)) {
                     // read only database: don't log error if the trace file
                     // can't be opened
                     return false;
                 }
-                fileWriter = IOUtils.getWriter(FileUtils.openFileOutputStream(fileName, true));
+                fileWriter = IOUtils.getWriter(IOUtils.openFileOutputStream(fileName, true));
                 printWriter = new PrintWriter(fileWriter, true);
             } catch (Exception e) {
                 logWritingError(e);

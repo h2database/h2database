@@ -15,7 +15,7 @@ import java.sql.Statement;
 
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * Access rights tests.
@@ -288,7 +288,7 @@ public class TestRights extends TestBase {
         conn.close();
         conn = getConnection("rights");
         conn.close();
-        FileUtils.delete(baseDir + "/rights.sql");
+        IOUtils.delete(baseDir + "/rights.sql");
     }
 
     private void testTableType(Connection conn, String type) throws SQLException {

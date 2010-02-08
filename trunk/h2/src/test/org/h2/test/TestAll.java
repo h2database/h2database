@@ -101,7 +101,6 @@ import org.h2.test.synth.TestTimer;
 import org.h2.test.synth.sql.TestSynth;
 import org.h2.test.synth.thread.TestMulti;
 import org.h2.test.unit.TestAutoReconnect;
-import org.h2.test.unit.TestBitField;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestClearReferences;
 import org.h2.test.unit.TestCompress;
@@ -139,7 +138,7 @@ import org.h2.test.utils.OutputCatcher;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 import org.h2.util.StringUtils;
 
 /**
@@ -456,7 +455,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     private void test() throws SQLException {
         System.out.println();
-        System.out.println("Test " + toString() + " (" + MemoryUtils.getMemoryUsed() + " KB used)");
+        System.out.println("Test " + toString() + " (" + Utils.getMemoryUsed() + " KB used)");
         beforeTest();
 
         // db
@@ -560,7 +559,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void testUnit() {
         new TestAutoReconnect().runTest(this);
-        new TestBitField().runTest(this);
         new TestCache().runTest(this);
         new TestClearReferences().runTest(this);
         new TestCompress().runTest(this);

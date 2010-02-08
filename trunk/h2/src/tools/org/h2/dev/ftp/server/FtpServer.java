@@ -21,7 +21,6 @@ import java.util.Properties;
 import org.h2.server.Service;
 import org.h2.store.fs.FileSystem;
 import org.h2.tools.Server;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.SortedProperties;
@@ -244,7 +243,7 @@ public class FtpServer extends Tool implements Service {
         }
         buff.append(date);
         buff.append(' ');
-        buff.append(FileUtils.getFileName(fileName));
+        buff.append(IOUtils.getFileName(fileName));
         buff.append("\r\n");
     }
 
@@ -329,7 +328,7 @@ public class FtpServer extends Tool implements Service {
             if ("-ftpPort".equals(a)) {
                 port = Integer.decode(args[++i]);
             } else if ("-ftpDir".equals(a)) {
-                root = FileUtils.normalize(args[++i]);
+                root = IOUtils.normalize(args[++i]);
             } else if ("-ftpRead".equals(a)) {
                 readUserName = args[++i];
             } else if ("-ftpWrite".equals(a)) {
@@ -469,7 +468,7 @@ public class FtpServer extends Tool implements Service {
         private void openOutput() {
             if (outFile != null) {
                 try {
-                    this.out = FileUtils.openFileOutputStream(outFile, false);
+                    this.out = IOUtils.openFileOutputStream(outFile, false);
                 } catch (SQLException e) {
                     // ignore
                 }

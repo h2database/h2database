@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import org.h2.compress.CompressLZF;
 import org.h2.constant.ErrorCode;
@@ -19,7 +20,6 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
-import org.h2.util.BitField;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
@@ -135,13 +135,13 @@ public class PageLog {
      * If the bit is set, the given page was written to the current log section.
      * The undo entry of these pages doesn't need to be written again.
      */
-    private BitField undo = new BitField();
+    private BitSet undo = new BitSet();
 
     /**
      * The undo entry of those pages was written in any log section.
      * These pages may not be used in the transaction log.
      */
-    private BitField undoAll = new BitField();
+    private BitSet undoAll = new BitSet();
 
     /**
      * The map of section ids (key) and data page where the section starts (value).
@@ -158,7 +158,7 @@ public class PageLog {
      * The map of pages used by the transaction log.
      * Only used during recovery.
      */
-    private BitField usedLogPages;
+    private BitSet usedLogPages;
 
     PageLog(PageStore store) {
         this.store = store;
@@ -377,7 +377,7 @@ public class PageLog {
         } catch (IOException e) {
             throw Message.convertIOException(e, "recover");
         }
-        undo = new BitField();
+        undo = new BitSet();
         if (stage == RECOVERY_STAGE_REDO) {
             usedLogPages = null;
         }
@@ -420,8 +420,7 @@ public class PageLog {
         for (int i = 0; i < columnCount; i++) {
             values[i] = data.readValue();
         }
-        // TODO maybe calculate the memory usage
-        Row row = new Row(values, 0);
+        Row row = new Row(values, Row.MEMORY_CALCULATE);
         row.setKey(key);
         return row;
     }
@@ -667,7 +666,7 @@ public class PageLog {
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
-        undo = new BitField();
+        undo = new BitSet();
         logSectionId++;
         logPos = 0;
         flushOut();

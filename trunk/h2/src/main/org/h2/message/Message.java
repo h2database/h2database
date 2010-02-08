@@ -16,9 +16,9 @@ import java.util.Properties;
 import java.util.Map.Entry;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
-import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Messages used in the database engine. Use the PropertiesToUTF8 tool to
@@ -32,13 +32,13 @@ public class Message {
 
     static {
         try {
-            byte[] messages = Resources.get("/org/h2/res/_messages_en.prop");
+            byte[] messages = Utils.getResource("/org/h2/res/_messages_en.prop");
             if (messages != null) {
                 MESSAGES.load(new ByteArrayInputStream(messages));
             }
             String language = Locale.getDefault().getLanguage();
             if (!"en".equals(language)) {
-                byte[] translations = Resources.get("/org/h2/res/_messages_" + language + ".prop");
+                byte[] translations = Utils.getResource("/org/h2/res/_messages_" + language + ".prop");
                 // message: translated message + english
                 // (otherwise certain applications don't work)
                 if (translations != null) {
@@ -262,7 +262,7 @@ public class Message {
      */
     public static SQLException convert(Exception e) {
         if (e instanceof InternalException) {
-            e = ((InternalException) e).getOriginalCause();
+            e = (Exception) ((InternalException) e).getCause();
         }
         if (e instanceof SQLException) {
             return (SQLException) e;

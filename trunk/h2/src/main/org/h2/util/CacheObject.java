@@ -6,35 +6,13 @@
  */
 package org.h2.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 /**
  * The base object for all cached objects.
  */
-public abstract class CacheObject {
-
-    /**
-     * Compare cache objects by position.
-     */
-    static class CacheComparator implements Comparator<CacheObject> {
-        public int compare(CacheObject a, CacheObject b) {
-            return MathUtils.compareInt(a.getPos(), b.getPos());
-        }
-    }
-
-    /**
-     * Ensure the class is loaded when initialized, so that sorting is possible
-     * even when loading new classes is not allowed any more. This can occur
-     * when stopping a web application.
-     */
-    static {
-        new CacheComparator();
-    }
+public abstract class CacheObject implements Comparable<CacheObject> {
 
     /**
      * The previous element in the LRU linked list. If the previous element is
@@ -53,12 +31,6 @@ public abstract class CacheObject {
      */
     public CacheObject cacheChained;
 
-    /**
-     * The cache queue identifier. This field is only used for the 2Q cache
-     * algorithm.
-     */
-    public int cacheQueue;
-
     private int pos;
     private boolean changed;
 
@@ -76,15 +48,6 @@ public abstract class CacheObject {
      * @return number of double words (4 bytes)
      */
     public abstract int getMemorySize();
-
-    /**
-     * Order the given list of cache objects by position.
-     *
-     * @param recordList the list of cache objects
-     */
-    public static void sort(ArrayList<CacheObject> recordList) {
-        Collections.sort(recordList, new CacheComparator());
-    }
 
     public void setPos(int pos) {
         if (SysProperties.CHECK && (cachePrevious != null || cacheNext != null || cacheChained != null)) {
@@ -109,6 +72,10 @@ public abstract class CacheObject {
 
     public void setChanged(boolean b) {
         changed = b;
+    }
+
+    public int compareTo(CacheObject other) {
+        return MathUtils.compareInt(getPos(), other.getPos());
     }
 
 }

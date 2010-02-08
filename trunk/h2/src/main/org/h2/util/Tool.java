@@ -78,7 +78,7 @@ public abstract class Tool {
             resources = new Properties();
             String resourceName = "/org/h2/res/javadoc.properties";
             try {
-                byte[] buff = Resources.get(resourceName);
+                byte[] buff = Utils.getResource(resourceName);
                 if (buff != null) {
                     resources.load(new ByteArrayInputStream(buff));
                 }

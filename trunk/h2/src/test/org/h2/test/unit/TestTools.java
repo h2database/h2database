@@ -34,7 +34,7 @@ import org.h2.tools.Restore;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.Server;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 
 /**
@@ -324,8 +324,8 @@ public class TestTools extends TestBase {
         // deleteDb("toolsRecover");
         ArrayList<String> list = FileLister.getDatabaseFiles(baseDir, "toolsRecover", true);
         for (String fileName : list) {
-            if (!FileUtils.isDirectory(fileName)) {
-                FileUtils.delete(fileName);
+            if (!IOUtils.isDirectory(fileName)) {
+                IOUtils.delete(fileName);
             }
         }
 

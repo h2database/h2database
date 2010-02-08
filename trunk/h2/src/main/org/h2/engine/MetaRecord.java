@@ -55,7 +55,6 @@ public class MetaRecord implements Comparable<MetaRecord> {
         try {
             Prepared command = systemSession.prepare(sql);
             command.setObjectId(id);
-            command.setCreate(false);
             command.update();
         } catch (Exception e) {
             SQLException s = Message.addSQL(Message.convert(e), sql);
@@ -88,12 +87,56 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * @return -1, 0, or 1
      */
     public int compareTo(MetaRecord other) {
-        int c1 = DbObjectBase.getCreateOrder(getObjectType());
-        int c2 = DbObjectBase.getCreateOrder(other.getObjectType());
+        int c1 = getCreateOrder(getObjectType());
+        int c2 = getCreateOrder(other.getObjectType());
         if (c1 != c2) {
             return c1 - c2;
         }
         return getId() - other.getId();
+    }
+
+    /**
+     * Get the sort order id for this object type. Objects are created in this
+     * order when opening a database.
+     *
+     * @param type the database object type
+     * @return the sort index
+     */
+    private int getCreateOrder(int type) {
+        switch(type) {
+        case DbObject.SETTING:
+            return 0;
+        case DbObject.USER:
+            return 1;
+        case DbObject.SCHEMA:
+            return 2;
+        case DbObject.USER_DATATYPE:
+            return 3;
+        case DbObject.SEQUENCE:
+            return 4;
+        case DbObject.CONSTANT:
+            return 5;
+        case DbObject.FUNCTION_ALIAS:
+            return 6;
+        case DbObject.TABLE_OR_VIEW:
+            return 7;
+        case DbObject.INDEX:
+            return 8;
+        case DbObject.CONSTRAINT:
+            return 9;
+        case DbObject.TRIGGER:
+            return 10;
+        case DbObject.ROLE:
+            return 11;
+        case DbObject.RIGHT:
+            return 12;
+        case DbObject.AGGREGATE:
+            return 13;
+        case DbObject.COMMENT:
+            return 14;
+        default:
+            throw Message.throwInternalError("type="+type);
+        }
     }
 
 }

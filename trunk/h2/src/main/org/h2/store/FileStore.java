@@ -17,7 +17,7 @@ import org.h2.message.Message;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.TempFileDeleter;
 
 /**
@@ -200,7 +200,7 @@ public class FileStore {
             seek(0);
             byte[] buff = new byte[len];
             readFullyDirect(buff, 0, len);
-            if (ByteUtils.compareNotNull(buff, magic) != 0) {
+            if (Utils.compareNotNull(buff, magic) != 0) {
                 throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, name);
             }
             salt = new byte[len];
@@ -211,7 +211,7 @@ public class FileStore {
             if (textMode) {
                 buff[10] = 'B';
             }
-            if (ByteUtils.compareNotNull(buff, magic) != 0) {
+            if (Utils.compareNotNull(buff, magic) != 0) {
                 throw Message.getSQLException(ErrorCode.FILE_ENCRYPTION_ERROR_1, name);
             }
         }

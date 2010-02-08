@@ -126,7 +126,7 @@ import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -150,7 +150,7 @@ import org.h2.value.ValueTimestamp;
 public class Parser {
 
     // used during the tokenizer phase
-    private static final int CHAR_END = -1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
+    private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
     private static final int CHAR_NAME = 4, CHAR_SPECIAL_1 = 5, CHAR_SPECIAL_2 = 6;
     private static final int CHAR_STRING = 7, CHAR_DECIMAL = 8, CHAR_DOLLAR_QUOTED_STRING = 9;
 
@@ -158,11 +158,9 @@ public class Parser {
     private static final int KEYWORD = 1, IDENTIFIER = 2, PARAMETER = 3, END = 4, VALUE = 5;
     private static final int EQUAL = 6, BIGGER_EQUAL = 7, BIGGER = 8;
     private static final int SMALLER = 9, SMALLER_EQUAL = 10, NOT_EQUAL = 11, AT = 12;
-    private static final int MINUS = 17, PLUS = 18;
-    private static final int STRING_CONCAT = 22;
-    private static final int OPEN = 31, CLOSE = 32, NULL = 34, TRUE = 40, FALSE = 41;
-
-    private static final int CURRENT_TIMESTAMP = 42, CURRENT_DATE = 43, CURRENT_TIME = 44, ROWNUM = 45;
+    private static final int MINUS = 13, PLUS = 14, STRING_CONCAT = 15;
+    private static final int OPEN = 16, CLOSE = 17, NULL = 18, TRUE = 19, FALSE = 20;
+    private static final int CURRENT_TIMESTAMP = 21, CURRENT_DATE = 22, CURRENT_TIME = 23, ROWNUM = 24;
 
     private final Database database;
     private final Session session;
@@ -2256,7 +2254,7 @@ public class Parser {
                 read();
                 if (equalsToken("X", name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
                     read();
-                    byte[] buffer = ByteUtils.convertStringToBytes(currentValue.getString());
+                    byte[] buffer = Utils.convertStringToBytes(currentValue.getString());
                     r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
                 } else if (readIf(".")) {
                     r = readTermObjectDot(name);

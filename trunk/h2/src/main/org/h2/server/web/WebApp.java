@@ -43,8 +43,8 @@ import org.h2.tools.Restore;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Utils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
@@ -1025,8 +1025,8 @@ public class WebApp {
             SimpleResultSet rs = new SimpleResultSet();
             rs.addColumn("Type", Types.VARCHAR, 0, 0);
             rs.addColumn("Value", Types.VARCHAR, 0, 0);
-            rs.addRow("Used Memory", "" + MemoryUtils.getMemoryUsed());
-            rs.addRow("Free Memory", "" + MemoryUtils.getMemoryFree());
+            rs.addRow("Used Memory", "" + Utils.getMemoryUsed());
+            rs.addRow("Free Memory", "" + Utils.getMemoryFree());
             return rs;
         } else if (sql.startsWith("@INFO")) {
             SimpleResultSet rs = new SimpleResultSet();

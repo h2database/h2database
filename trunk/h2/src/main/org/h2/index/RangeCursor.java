@@ -43,7 +43,7 @@ class RangeCursor implements Cursor {
         } else {
             current++;
         }
-        currentRow = new Row(new Value[]{ValueLong.get(current)}, 0);
+        currentRow = new Row(new Value[]{ValueLong.get(current)}, 1);
         return current <= max;
     }
 

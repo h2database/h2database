@@ -11,7 +11,7 @@ package org.h2.store;
  * The session state contains information about when was the last commit of a
  * session. It is only used during recovery.
  */
-public class SessionState {
+class SessionState {
 
     /**
      * The session id

@@ -8,6 +8,7 @@ package org.h2.engine;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -17,7 +18,7 @@ import org.h2.table.MetaTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableView;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -145,9 +146,9 @@ public class User extends RightOwner {
         }
         if (password) {
             buff.append(" SALT '").
-                append(ByteUtils.convertBytesToString(salt)).
+                append(Utils.convertBytesToString(salt)).
                 append("' HASH '").
-                append(ByteUtils.convertBytesToString(passwordHash)).
+                append(Utils.convertBytesToString(passwordHash)).
                 append('\'');
         } else {
             buff.append(" PASSWORD ''");
@@ -167,7 +168,7 @@ public class User extends RightOwner {
     public boolean validateUserPasswordHash(byte[] userPasswordHash) {
         SHA256 sha = new SHA256();
         byte[] hash = sha.getHashWithSalt(userPasswordHash, salt);
-        return ByteUtils.compareSecure(hash, passwordHash);
+        return Utils.compareSecure(hash, passwordHash);
     }
 
     /**
@@ -209,7 +210,7 @@ public class User extends RightOwner {
         }
         database.removeMeta(session, getId());
         salt = null;
-        ByteUtils.clear(passwordHash);
+        Arrays.fill(passwordHash, (byte) 0);
         passwordHash = null;
         invalidate();
     }

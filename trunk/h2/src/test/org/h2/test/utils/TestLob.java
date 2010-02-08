@@ -20,7 +20,7 @@ import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 
 /**
@@ -50,14 +50,14 @@ public class TestLob {
         }
 
         LobId(byte[] key) {
-            id = ByteUtils.readLong(key, 0);
-            length = ByteUtils.readLong(key, 8);
+            id = Utils.readLong(key, 0);
+            length = Utils.readLong(key, 8);
         }
 
         byte[] getKey() {
             byte[] key = new byte[16];
-            ByteUtils.writeLong(key, 0, id);
-            ByteUtils.writeLong(key, 0, length);
+            Utils.writeLong(key, 0, id);
+            Utils.writeLong(key, 0, length);
             return key;
         }
 

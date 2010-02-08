@@ -31,11 +31,10 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.MemoryUtils;
 import org.h2.util.New;
-import org.h2.util.Resources;
 import org.h2.util.ScriptReader;
 
 /**
@@ -128,7 +127,7 @@ public class PgServerThread implements Runnable {
         }
         int len = dataInRaw.readInt();
         len -= 4;
-        byte[] data = MemoryUtils.newBytes(len);
+        byte[] data = Utils.newBytes(len);
         dataInRaw.readFully(data, 0, len);
         dataIn = new DataInputStream(new ByteArrayInputStream(data, 0, len));
         switch (x) {
@@ -240,7 +239,7 @@ public class PgServerThread implements Runnable {
             int paramCount = readShort();
             for (int i = 0; i < paramCount; i++) {
                 int paramLen = readInt();
-                byte[] d2 = MemoryUtils.newBytes(paramLen);
+                byte[] d2 = Utils.newBytes(paramLen);
                 readFully(d2);
                 try {
                     setParameter(portal.prep, i, d2, formatCodes);
@@ -587,8 +586,8 @@ public class PgServerThread implements Runnable {
                 stat = conn.createStatement();
                 if (!tableFound) {
                     try {
-                        r = new InputStreamReader(new ByteArrayInputStream(Resources
-                                .get("/org/h2/server/pg/pg_catalog.sql")));
+                        r = new InputStreamReader(new ByteArrayInputStream(Utils
+                                .getResource("/org/h2/server/pg/pg_catalog.sql")));
                     } catch (IOException e) {
                         throw Message.convertIOException(e, "Can not read pg_catalog resource");
                     }

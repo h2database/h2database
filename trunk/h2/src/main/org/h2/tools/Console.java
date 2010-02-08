@@ -31,8 +31,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 //## AWT end ##
 import org.h2.server.ShutdownHandler;
-import org.h2.util.Resources;
 import org.h2.util.Tool;
+import org.h2.util.Utils;
 import java.io.IOException;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
@@ -206,7 +206,7 @@ ShutdownHandler {
 
     private Image loadImage(String name) {
         try {
-            byte[] imageData = Resources.get(name);
+            byte[] imageData = Utils.getResource(name);
             if (imageData == null) {
                 return null;
             }

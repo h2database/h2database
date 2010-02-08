@@ -30,7 +30,7 @@ import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -827,7 +827,7 @@ public class DataType {
             return ValueNull.INSTANCE;
         }
         if (type == Value.JAVA_OBJECT) {
-            return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
+            return ValueJavaObject.getNoCopy(Utils.serialize(x));
         }
         if (x instanceof String) {
             return ValueString.get((String) x);
@@ -885,7 +885,7 @@ public class DataType {
         } else if (x instanceof Character) {
             return ValueStringFixed.get(((Character) x).toString());
         } else {
-            return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
+            return ValueJavaObject.getNoCopy(Utils.serialize(x));
         }
     }
 

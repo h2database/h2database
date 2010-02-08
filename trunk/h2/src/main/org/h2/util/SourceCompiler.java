@@ -139,7 +139,7 @@ public class SourceCompiler {
         if (packageName != null) {
             dir = new File(dir, packageName.replace('.', '/'));
             try {
-                FileUtils.mkdirs(dir);
+                IOUtils.mkdirs(dir);
             } catch (IOException e) {
                 throw new InternalException(e);
             }

@@ -14,14 +14,9 @@ package org.h2.message;
 public class InternalException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
-    private Exception cause;
 
     public InternalException(Exception e) {
-        super(e.getMessage());
-        cause = e;
+        super(e.getMessage(), e);
     }
 
-    public Exception getOriginalCause() {
-        return cause;
-    }
 }

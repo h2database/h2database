@@ -21,7 +21,6 @@ import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -70,7 +69,7 @@ public class TestCsv extends TestBase {
     private void testSpaceSeparated() throws SQLException {
         deleteDb("csv");
         File f = new File(baseDir + "/testSpace.csv");
-        FileUtils.delete(f.getAbsolutePath());
+        IOUtils.delete(f.getAbsolutePath());
 
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
@@ -83,7 +82,7 @@ public class TestCsv extends TestBase {
         ResultSet rs2 = stat.executeQuery("select * from csvread('"+baseDir+"/test.tsv',null,null,' ')");
         assertResultSetOrdered(rs2, new String[][]{new String[]{"1", "2", "3"}, new String[]{"4", null, "5"}});
         conn.close();
-        FileUtils.delete(f.getAbsolutePath());
+        IOUtils.delete(f.getAbsolutePath());
     }
 
     /**
@@ -162,7 +161,7 @@ public class TestCsv extends TestBase {
         }
         assertFalse(rs.next());
         conn.close();
-        FileUtils.delete(baseDir + "/test.csv");
+        IOUtils.delete(baseDir + "/test.csv");
     }
 
     private String randomData(Random random) {
@@ -180,11 +179,11 @@ public class TestCsv extends TestBase {
 
     private void testEmptyFieldDelimiter() throws Exception {
         String fileName = baseDir + "/test.csv";
-        FileUtils.delete(fileName);
+        IOUtils.delete(fileName);
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         stat.execute("call csvwrite('"+fileName+"', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
-        InputStreamReader reader = new InputStreamReader(FileUtils.openFileInputStream(fileName));
+        InputStreamReader reader = new InputStreamReader(IOUtils.openFileInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
         text = StringUtils.replaceAll(text, "\n", " ");
         assertEquals("ID|NAME 1|Hello", text);
@@ -198,7 +197,7 @@ public class TestCsv extends TestBase {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
         conn.close();
-        FileUtils.delete(fileName);
+        IOUtils.delete(fileName);
     }
 
     private void testFieldDelimiter() throws Exception {
@@ -256,7 +255,7 @@ public class TestCsv extends TestBase {
         // rs = prep.executeQuery();
 
         conn.close();
-        FileUtils.delete(baseDir + "/test.csv");
+        IOUtils.delete(baseDir + "/test.csv");
     }
 
     private void testAsTable() throws SQLException {
@@ -348,7 +347,7 @@ public class TestCsv extends TestBase {
         assertFalse(rs.next());
         rs.close();
         conn.close();
-        FileUtils.delete(baseDir + "/testRW.csv");
+        IOUtils.delete(baseDir + "/testRW.csv");
     }
 
 }

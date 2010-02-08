@@ -19,8 +19,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
-import org.h2.util.ClassUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
@@ -114,7 +113,7 @@ public class RunScript extends Tool {
                 showTime = true;
             } else if (arg.equals("-driver")) {
                 String driver = args[++i];
-                ClassUtils.loadUserClass(driver);
+                Utils.loadUserClass(driver);
             } else if (arg.equals("-options")) {
                 StringBuilder buff = new StringBuilder();
                 i++;
@@ -178,8 +177,8 @@ public class RunScript extends Tool {
     }
 
     private void process(Connection conn, String fileName, boolean continueOnError, String charsetName) throws SQLException, IOException {
-        InputStream in = FileUtils.openFileInputStream(fileName);
-        String path = FileUtils.getParent(fileName);
+        InputStream in = IOUtils.openFileInputStream(fileName);
+        String path = IOUtils.getParent(fileName);
         try {
             in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
             Reader reader = new InputStreamReader(in, charsetName);
@@ -201,7 +200,7 @@ public class RunScript extends Tool {
             if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).startsWith("@INCLUDE")) {
                 sql = trim;
                 sql = sql.substring("@INCLUDE".length()).trim();
-                if (!FileUtils.isAbsolute(sql)) {
+                if (!IOUtils.isAbsolute(sql)) {
                     sql = path + File.separator + sql;
                 }
                 process(conn, sql, continueOnError, charsetName);

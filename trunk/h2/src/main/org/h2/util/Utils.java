@@ -8,21 +8,71 @@ package org.h2.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 /**
- * This utility class contains functions related to byte arrays.
+ * This utility class contains miscellaneous functions.
  */
-public class ByteUtils {
+public class Utils {
 
+    /**
+     * An 0-size byte array.
+     */
+    public static final byte[] EMPTY_BYTES = new byte[0];
+
+    /**
+     * An 0-size int array.
+     */
+    public static final int[] EMPTY_INT_ARRAY = new int[0];
+
+    /**
+     * An 0-size long array.
+     */
+    private static final long[] EMPTY_LONG_ARRAY = new long[0];
+
+    private static final int GC_DELAY = 50;
+    private static final int MAX_GC = 8;
     private static final char[] HEX = "0123456789abcdef".toCharArray();
 
-    private ByteUtils() {
+    private static long lastGC;
+
+    private static final boolean ALLOW_ALL_CLASSES;
+    private static final HashSet<String> ALLOWED_CLASS_NAMES = New.hashSet();
+    private static final String[] ALLOWED_CLASS_NAME_PREFIXES;
+
+    private static final HashMap<String, byte[]> RESOURCES = New.hashMap();
+
+    static {
+        String s = SysProperties.ALLOWED_CLASSES;
+        ArrayList<String> prefixes = New.arrayList();
+        boolean allowAll = false;
+        for (String p : StringUtils.arraySplit(s, ',', true)) {
+            if (p.equals("*")) {
+                allowAll = true;
+            } else if (p.endsWith("*")) {
+                prefixes.add(p.substring(0, p.length() - 1));
+            } else {
+                ALLOWED_CLASS_NAMES.add(p);
+            }
+        }
+        ALLOW_ALL_CLASSES = allowAll;
+        ALLOWED_CLASS_NAME_PREFIXES = new String[prefixes.size()];
+        prefixes.toArray(ALLOWED_CLASS_NAME_PREFIXES);
+    }
+
+    private Utils() {
         // utility class
     }
 
@@ -200,19 +250,6 @@ public class ByteUtils {
     }
 
     /**
-     * Set all elements of the array to zero.
-     *
-     * @param buff the byte array
-     */
-    public static void clear(byte[] buff) {
-        if (buff != null) {
-            for (int i = 0; i < buff.length; i++) {
-                buff[i] = 0;
-            }
-        }
-    }
-
-    /**
      * Compare the contents of two byte arrays. If the content or length of the
      * first array is smaller than the second array, -1 is returned. If the
      * content or length of the second array is smaller than the first array, 1
@@ -314,6 +351,185 @@ public class ByteUtils {
      */
     public static int hashCode(Object o) {
         return o == null ? 0 : o.hashCode();
+    }
+
+    /**
+     * Get the used memory in KB.
+     *
+     * @return the used memory
+     */
+    public static int getMemoryUsed() {
+        collectGarbage();
+        Runtime rt = Runtime.getRuntime();
+        long mem = rt.totalMemory() - rt.freeMemory();
+        return (int) (mem >> 10);
+    }
+
+    /**
+     * Get the free memory in KB.
+     *
+     * @return the used memory
+     */
+    public static int getMemoryFree() {
+        collectGarbage();
+        Runtime rt = Runtime.getRuntime();
+        long mem = rt.freeMemory();
+        return (int) (mem >> 10);
+    }
+
+    private static synchronized void collectGarbage() {
+        Runtime runtime = Runtime.getRuntime();
+        long total = runtime.totalMemory();
+        long time = System.currentTimeMillis();
+        if (lastGC + GC_DELAY < time) {
+            for (int i = 0; i < MAX_GC; i++) {
+                runtime.gc();
+                long now = runtime.totalMemory();
+                if (now == total) {
+                    lastGC = System.currentTimeMillis();
+                    break;
+                }
+                total = now;
+            }
+        }
+    }
+
+    /**
+     * Create an array of bytes with the given size. If this is not possible
+     * because not enough memory is available, an OutOfMemoryError with the
+     * requested size in the message is thrown.
+     *
+     * @param len the number of bytes requested
+     * @return the byte array
+     * @throws OutOfMemoryError
+     */
+    public static byte[] newBytes(int len) {
+        try {
+            if (len == 0) {
+                return EMPTY_BYTES;
+            }
+            return new byte[len];
+        } catch (OutOfMemoryError e) {
+            Error e2 = new OutOfMemoryError("Requested memory: " + len);
+            e2.initCause(e);
+            throw e2;
+        }
+    }
+
+    /**
+     * Create an int array with the given size.
+     *
+     * @param len the number of bytes requested
+     * @return the int array
+     */
+    public static int[] newIntArray(int len) {
+        if (len == 0) {
+            return EMPTY_INT_ARRAY;
+        }
+        return new int[len];
+    }
+
+    /**
+     * Create a long array with the given size.
+     *
+     * @param len the number of bytes requested
+     * @return the int array
+     */
+    public static long[] newLongArray(int len) {
+        if (len == 0) {
+            return EMPTY_LONG_ARRAY;
+        }
+        return new long[len];
+    }
+
+    /**
+     * Load a class, but check if it is allowed to load this class first. To
+     * perform access rights checking, the system property h2.allowedClasses
+     * needs to be set to a list of class file name prefixes.
+     *
+     * @param className the name of the class
+     * @return the class object
+     */
+    public static Class< ? > loadUserClass(String className) throws SQLException {
+        if (!ALLOW_ALL_CLASSES && !ALLOWED_CLASS_NAMES.contains(className)) {
+            boolean allowed = false;
+            for (String s : ALLOWED_CLASS_NAME_PREFIXES) {
+                if (className.startsWith(s)) {
+                    allowed = true;
+                }
+            }
+            if (!allowed) {
+                throw Message.getSQLException(ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
+            }
+        }
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            try {
+                return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+            } catch (Exception e2) {
+                throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+            }
+        } catch (NoClassDefFoundError e) {
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+        } catch (Error e) {
+            // UnsupportedClassVersionError
+            throw Message.getSQLException(ErrorCode.GENERAL_ERROR_1, e, className);
+        }
+    }
+
+    /**
+     * Get a resource from the resource map.
+     *
+     * @param name the name of the resource
+     * @return the resource data
+     */
+    public static byte[] getResource(String name) throws IOException {
+        byte[] data;
+        if (RESOURCES.size() == 0) {
+            // TODO web: security (check what happens with files like 'lpt1.txt' on windows)
+            InputStream in = Utils.class.getResourceAsStream(name);
+            if (in == null) {
+                data = null;
+            } else {
+                data = IOUtils.readBytesAndClose(in, 0);
+            }
+        } else {
+            data = RESOURCES.get(name);
+        }
+        return data == null ? EMPTY_BYTES : data;
+    }
+
+    static {
+        loadResourcesFromZip();
+    }
+
+    private static void loadResourcesFromZip() {
+        InputStream in = Utils.class.getResourceAsStream("data.zip");
+        if (in == null) {
+            return;
+        }
+        ZipInputStream zipIn = new ZipInputStream(in);
+        try {
+            while (true) {
+                ZipEntry entry = zipIn.getNextEntry();
+                if (entry == null) {
+                    break;
+                }
+                String entryName = entry.getName();
+                if (!entryName.startsWith("/")) {
+                    entryName = "/" + entryName;
+                }
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                IOUtils.copy(zipIn, out);
+                zipIn.closeEntry();
+                RESOURCES.put(entryName, out.toByteArray());
+            }
+            zipIn.close();
+        } catch (IOException e) {
+            // if this happens we have a real problem
+            e.printStackTrace();
+        }
     }
 
 }

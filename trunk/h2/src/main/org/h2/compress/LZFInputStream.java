@@ -8,7 +8,7 @@ package org.h2.compress;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 
 /**
  * An input stream to read from an LZF stream.
@@ -31,7 +31,7 @@ public class LZFInputStream extends InputStream {
     }
 
     private byte[] ensureSize(byte[] buff, int len) {
-        return buff == null || buff.length < len ? MemoryUtils.newBytes(len) : buff;
+        return buff == null || buff.length < len ? Utils.newBytes(len) : buff;
     }
 
     private void fillBuffer() throws IOException {

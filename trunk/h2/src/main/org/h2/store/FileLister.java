@@ -12,7 +12,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -75,15 +75,15 @@ public class FileLister {
         if (dir == null || dir.equals("")) {
             dir = ".";
         }
-        dir = FileUtils.normalize(dir);
+        dir = IOUtils.normalize(dir);
         ArrayList<String> files = New.arrayList();
-        String start = db == null ? null : FileUtils.normalize(dir + "/" + db);
-        String[] list = FileUtils.listFiles(dir);
+        String start = db == null ? null : IOUtils.normalize(dir + "/" + db);
+        String[] list = IOUtils.listFiles(dir);
         for (int i = 0; list != null && i < list.length; i++) {
             String f = list[i];
             boolean ok = false;
             if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
-                if (start == null || FileUtils.fileStartsWith(f, start + ".")) {
+                if (start == null || IOUtils.fileStartsWith(f, start + ".")) {
                     files.addAll(getDatabaseFiles(f, null, all));
                     ok = true;
                 }
@@ -101,7 +101,7 @@ public class FileLister {
                 }
             }
             if (ok) {
-                if (db == null || FileUtils.fileStartsWith(f, start + ".")) {
+                if (db == null || IOUtils.fileStartsWith(f, start + ".")) {
                     String fileName = f;
                     files.add(fileName);
                 }

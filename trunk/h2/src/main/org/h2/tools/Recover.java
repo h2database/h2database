@@ -17,6 +17,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,9 +42,7 @@ import org.h2.store.Page;
 import org.h2.store.PageFreeList;
 import org.h2.store.PageLog;
 import org.h2.store.PageStore;
-import org.h2.util.BitField;
-import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
@@ -147,7 +146,7 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     public static InputStream readBlob(String fileName) throws IOException {
-        return new BufferedInputStream(FileUtils.openFileInputStream(fileName));
+        return new BufferedInputStream(IOUtils.openFileInputStream(fileName));
     }
 
     private void trace(String message) {
@@ -192,7 +191,7 @@ public class Recover extends Tool implements DataHandler {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         trace("Created file: " + outputFile);
-        return new PrintWriter(IOUtils.getWriter(FileUtils.openFileOutputStream(outputFile, false)));
+        return new PrintWriter(IOUtils.getWriter(IOUtils.openFileOutputStream(outputFile, false)));
     }
 
     private void writeDataError(PrintWriter writer, String error, byte[] data) {
@@ -227,7 +226,7 @@ public class Recover extends Tool implements DataHandler {
         String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
         InputStream in = null;
         try {
-            fileOut = FileUtils.openFileOutputStream(n, false);
+            fileOut = IOUtils.openFileOutputStream(n, false);
             fileStore = FileStore.open(null, fileName, "r");
             fileStore.init();
             in = new BufferedInputStream(new FileStoreInputStream(fileStore, this, lobCompression, false));
@@ -251,7 +250,7 @@ public class Recover extends Tool implements DataHandler {
         }
         if (size == 0) {
             try {
-                FileUtils.delete(n);
+                IOUtils.delete(n);
             } catch (SQLException e) {
                 traceError(n, e);
             }
@@ -775,9 +774,14 @@ public class Recover extends Tool implements DataHandler {
 
     private int dumpPageFreeList(PrintWriter writer, Data s, long pageId, long pageCount) {
         int pagesAddressed = PageFreeList.getPagesAddressed(pageSize);
-        BitField used = new BitField();
+        BitSet used = new BitSet();
         for (int i = 0; i < pagesAddressed; i += 8) {
-            used.setByte(i, s.readByte() & 255);
+            int x = s.readByte() & 255;
+            for (int j = 0; j < 8; j++) {
+                if ((x & (1 << j)) != 0) {
+                    used.set(i + j);
+                }
+            }
         }
         int free = 0;
         for (long i = 0, j = pageId; i < pagesAddressed && j < pageCount; i++, j++) {
@@ -928,7 +932,7 @@ public class Recover extends Tool implements DataHandler {
                 if (remove && storageId == 0) {
                     String sql = data[3].getString();
                     if (sql.startsWith("CREATE USER ")) {
-                        int saltIndex = ByteUtils.indexOf(s.getBytes(), "SALT ".getBytes(), off);
+                        int saltIndex = Utils.indexOf(s.getBytes(), "SALT ".getBytes(), off);
                         if (saltIndex >= 0) {
                             String userName = sql.substring("CREATE USER ".length(), sql.indexOf("SALT ") - 1);
                             if (userName.startsWith("\"")) {
@@ -941,9 +945,9 @@ public class Recover extends Tool implements DataHandler {
                             byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
                             StringBuilder buff = new StringBuilder();
                             buff.append("SALT '").
-                                append(ByteUtils.convertBytesToString(salt)).
+                                append(Utils.convertBytesToString(salt)).
                                 append("' HASH '").
-                                append(ByteUtils.convertBytesToString(passwordHash)).
+                                append(Utils.convertBytesToString(passwordHash)).
                                 append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(), saltIndex, replacement.length);

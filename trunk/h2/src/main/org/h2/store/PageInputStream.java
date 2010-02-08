@@ -10,8 +10,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.BitSet;
 import org.h2.message.Trace;
-import org.h2.util.BitField;
 
 /**
  * An input stream that reads from a page store.
@@ -127,8 +127,8 @@ public class PageInputStream extends InputStream {
      *
      * @return the bit set
      */
-    BitField allocateAllPages() throws SQLException {
-        BitField pages = new BitField();
+    BitSet allocateAllPages() throws SQLException {
+        BitSet pages = new BitSet();
         int key = logKey;
         PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
         while (true) {

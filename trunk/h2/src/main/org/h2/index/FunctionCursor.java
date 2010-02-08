@@ -31,7 +31,7 @@ public class FunctionCursor implements Cursor {
             return null;
         }
         if (row == null) {
-            row = new Row(values, 0);
+            row = new Row(values, 1);
         }
         return row;
     }

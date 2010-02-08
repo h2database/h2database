@@ -23,11 +23,9 @@ import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
 import org.h2.store.fs.FileSystem;
-import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.MemoryUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
@@ -242,7 +240,7 @@ public class ValueLob extends Value {
             name = File.separator + f + Constants.SUFFIX_LOBS_DIRECTORY + name;
             objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         }
-        name = FileUtils.normalize(path + Constants.SUFFIX_LOBS_DIRECTORY + name);
+        name = IOUtils.normalize(path + Constants.SUFFIX_LOBS_DIRECTORY + name);
         return name;
     }
 
@@ -257,7 +255,7 @@ public class ValueLob extends Value {
             boolean[] used = new boolean[lobsPerDir];
             for (String name : list) {
                 if (name.endsWith(Constants.SUFFIX_DB_FILE)) {
-                    name = FileUtils.getFileName(name);
+                    name = IOUtils.getFileName(name);
                     String n = name.substring(0, name.indexOf('.'));
                     int id;
                     try {
@@ -324,12 +322,12 @@ public class ValueLob extends Value {
         SmallLRUCache<String, String[]> cache = h.getLobFileListCache();
         String[] list;
         if (cache == null) {
-            list = FileUtils.listFiles(dir);
+            list = IOUtils.listFiles(dir);
         } else {
             synchronized (cache) {
                 list = cache.get(dir);
                 if (list == null) {
-                    list = FileUtils.listFiles(dir);
+                    list = IOUtils.listFiles(dir);
                     cache.put(dir, list);
                 }
             }
@@ -358,11 +356,11 @@ public class ValueLob extends Value {
                 buff = IOUtils.readBytesAndClose(in, -1);
                 len = buff.length;
             } else {
-                buff = MemoryUtils.newBytes(len);
+                buff = Utils.newBytes(len);
                 len = IOUtils.readFully(in, buff, 0, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = MemoryUtils.newBytes(len);
+                byte[] small = Utils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
                 return ValueLob.createSmallLob(Value.BLOB, small);
             }
@@ -550,7 +548,7 @@ public class ValueLob extends Value {
             } else {
                 buff = IOUtils.readBytesAndClose(getInputStream(), len);
             }
-            return ByteUtils.convertBytesToString(buff);
+            return Utils.convertBytesToString(buff);
         } catch (IOException e) {
             throw Message.convertToInternal(Message.convertIOException(e, fileName));
         } catch (SQLException e) {
@@ -564,7 +562,7 @@ public class ValueLob extends Value {
             return super.getBytes();
         }
         byte[] data = getBytesNoCopy();
-        return ByteUtils.cloneByteArray(data);
+        return Utils.cloneByteArray(data);
     }
 
     public byte[] getBytesNoCopy() throws SQLException {
@@ -593,7 +591,7 @@ public class ValueLob extends Value {
                 if (type == CLOB) {
                     hash = getString().hashCode();
                 } else {
-                    hash = ByteUtils.getByteArrayHash(getBytes());
+                    hash = Utils.getByteArrayHash(getBytes());
                 }
             } catch (SQLException e) {
                 throw Message.convertToInternal(e);
@@ -607,7 +605,7 @@ public class ValueLob extends Value {
             return Integer.signum(getString().compareTo(v.getString()));
         }
         byte[] v2 = v.getBytesNoCopy();
-        return ByteUtils.compareNotNull(getBytes(), v2);
+        return Utils.compareNotNull(getBytes(), v2);
     }
 
     public Object getObject() {
@@ -659,7 +657,7 @@ public class ValueLob extends Value {
                 return StringUtils.quoteStringSQL(s);
             }
             byte[] buff = getBytes();
-            s = ByteUtils.convertBytesToString(buff);
+            s = Utils.convertBytesToString(buff);
             return "X'" + s + "'";
         } catch (SQLException e) {
             throw Message.convertToInternal(e);
@@ -713,7 +711,7 @@ public class ValueLob extends Value {
             int len = getBufferSize(h, compress, Long.MAX_VALUE);
             int tabId = tableId;
             if (type == Value.BLOB) {
-                createFromStream(MemoryUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
+                createFromStream(Utils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
             } else {
                 createFromReader(new char[len], 0, getReader(), Long.MAX_VALUE, h);
             }
@@ -736,8 +734,8 @@ public class ValueLob extends Value {
     }
 
     private static void removeAllForTable(DataHandler handler, String dir, int tableId) throws SQLException {
-        for (String name : FileUtils.listFiles(dir)) {
-            if (FileUtils.isDirectory(name)) {
+        for (String name : IOUtils.listFiles(dir)) {
+            if (IOUtils.isDirectory(name)) {
                 removeAllForTable(handler, name, tableId);
             } else {
                 if (name.endsWith(".t" + tableId + Constants.SUFFIX_LOB_FILE)) {
@@ -764,14 +762,14 @@ public class ValueLob extends Value {
         // synchronize on the database, to avoid concurrent temp file creation /
         // deletion / backup
         synchronized (handler.getLobSyncObject()) {
-            FileUtils.delete(fileName);
+            IOUtils.delete(fileName);
         }
     }
 
     private static synchronized void renameFile(DataHandler handler, String oldName, String newName)
             throws SQLException {
         synchronized (handler.getLobSyncObject()) {
-            FileUtils.rename(oldName, newName);
+            IOUtils.rename(oldName, newName);
         }
     }
 

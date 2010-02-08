@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 import org.h2.engine.Constants;
 import org.h2.store.FileLister;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
 /**
@@ -99,13 +99,13 @@ public class DeleteDbFiles extends Tool {
     }
 
     private void process(String fileName, boolean quiet) throws SQLException {
-        if (FileUtils.isDirectory(fileName)) {
+        if (IOUtils.isDirectory(fileName)) {
             // only delete empty directories
-            FileUtils.tryDelete(fileName);
+            IOUtils.tryDelete(fileName);
         } else if (quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
-            FileUtils.tryDelete(fileName);
+            IOUtils.tryDelete(fileName);
         } else {
-            FileUtils.delete(fileName);
+            IOUtils.delete(fileName);
         }
     }
 

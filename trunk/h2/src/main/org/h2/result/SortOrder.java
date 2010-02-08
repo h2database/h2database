@@ -52,7 +52,6 @@ public class SortOrder implements Comparator<Value[]> {
     private static final int DEFAULT_NULL_SORT = SysProperties.SORT_NULLS_HIGH ? 1 : -1;
 
     private final Database database;
-    private final int len;
     private final int[] indexes;
     private final int[] sortTypes;
 
@@ -67,7 +66,6 @@ public class SortOrder implements Comparator<Value[]> {
         this.database = database;
         this.indexes = index;
         this.sortTypes = sortType;
-        len = index.length;
     }
 
     /**
@@ -131,7 +129,7 @@ public class SortOrder implements Comparator<Value[]> {
      */
     public int compare(Value[] a, Value[] b) {
         try {
-            for (int i = 0; i < len; i++) {
+            for (int i = 0; i < indexes.length; i++) {
                 int idx = indexes[i];
                 int type = sortTypes[i];
                 Value ao = a[idx];

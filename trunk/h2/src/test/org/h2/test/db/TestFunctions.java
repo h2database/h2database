@@ -26,7 +26,6 @@ import java.util.UUID;
 import org.h2.api.AggregateFunction;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 
@@ -227,12 +226,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Statement stat = conn.createStatement();
         String fileName = baseDir + "/test.txt";
         Properties prop = System.getProperties();
-        OutputStream out = FileUtils.openFileOutputStream(fileName, false);
+        OutputStream out = IOUtils.openFileOutputStream(fileName, false);
         prop.store(out, "");
         out.close();
         ResultSet rs = stat.executeQuery("SELECT LENGTH(FILE_READ('" + fileName + "')) LEN");
         rs.next();
-        assertEquals(FileUtils.length(fileName), rs.getInt(1));
+        assertEquals(IOUtils.length(fileName), rs.getInt(1));
         rs = stat.executeQuery("SELECT FILE_READ('" + fileName + "') PROP");
         rs.next();
         Properties p2 = new Properties();
@@ -241,10 +240,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs = stat.executeQuery("SELECT FILE_READ('" + fileName + "', NULL) PROP");
         rs.next();
         String ps = rs.getString(1);
-        InputStreamReader r = new InputStreamReader(FileUtils.openFileInputStream(fileName));
+        InputStreamReader r = new InputStreamReader(IOUtils.openFileInputStream(fileName));
         String ps2 = IOUtils.readStringAndClose(r, -1);
         assertEquals(ps, ps2);
-        FileUtils.delete(fileName);
+        IOUtils.delete(fileName);
         conn.close();
     }
 

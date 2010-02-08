@@ -11,7 +11,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
 
@@ -126,7 +126,7 @@ public class CreateCluster extends Tool {
             RunScript runscript = new RunScript();
             runscript.setOut(out);
             runscript.process(urlTarget, user, password, scriptFile, null, false);
-            FileUtils.delete(scriptFile);
+            IOUtils.delete(scriptFile);
 
             // set the cluster to the serverList on both databases
             conn = DriverManager.getConnection(urlSource, user, password);

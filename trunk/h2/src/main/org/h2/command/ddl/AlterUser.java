@@ -15,7 +15,7 @@ import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 
 /**
  * This class represents the statements
@@ -85,7 +85,7 @@ public class AlterUser extends DefineCommand {
     }
 
     private byte[] getByteArray(Expression e) throws SQLException {
-        return ByteUtils.convertStringToBytes(e.optimize(session).getValue(session).getString());
+        return Utils.convertStringToBytes(e.optimize(session).getValue(session).getString());
     }
 
     public int update() throws SQLException {

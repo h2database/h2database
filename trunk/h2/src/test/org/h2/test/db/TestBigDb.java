@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 
 /**
  * Test for big databases.
@@ -76,8 +76,8 @@ public class TestBigDb extends TestBase {
                     long t = System.currentTimeMillis();
                     if (t - time > 1000) {
                         time = t;
-                        int free = MemoryUtils.getMemoryFree();
-                        println("i: " + i + " free: " + free + " used: " + MemoryUtils.getMemoryUsed());
+                        int free = Utils.getMemoryFree();
+                        println("i: " + i + " free: " + free + " used: " + Utils.getMemoryUsed());
                     }
                 }
                 prep.setInt(1, i);

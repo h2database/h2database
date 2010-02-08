@@ -13,7 +13,7 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 import org.h2.tools.Backup;
 import org.h2.tools.Restore;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * Test for the BACKUP SQL statement.
@@ -90,7 +90,7 @@ public class TestBackup extends TestBase {
         conn2.close();
         conn3.close();
         deleteDb("restored");
-        FileUtils.delete(baseDir + "/backup.zip");
+        IOUtils.delete(baseDir + "/backup.zip");
     }
 
 }

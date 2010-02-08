@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.Random;
 
 import org.h2.test.TestBase;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.StringUtils;
 
 /**
@@ -41,18 +41,18 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testHex() throws SQLException {
-        assertEquals("face", ByteUtils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("face"));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("fAcE"));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("FaCe"));
+        assertEquals("face", Utils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, Utils.convertStringToBytes("face"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, Utils.convertStringToBytes("fAcE"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, Utils.convertStringToBytes("FaCe"));
         try {
-            ByteUtils.convertStringToBytes("120");
+            Utils.convertStringToBytes("120");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
-            ByteUtils.convertStringToBytes("fast");
+            Utils.convertStringToBytes("fast");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

@@ -16,7 +16,7 @@ import java.sql.Statement;
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * Tests opening and closing a database.
@@ -81,7 +81,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         assertEquals(10000, rs.getString(1).length());
         assertFalse(rs.next());
         conn.close();
-        FileUtils.delete(baseDir + "/test.zip");
+        IOUtils.delete(baseDir + "/test.zip");
     }
 
     private void testReconnectFast() throws SQLException {

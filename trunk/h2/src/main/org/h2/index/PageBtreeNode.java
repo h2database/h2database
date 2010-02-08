@@ -16,7 +16,7 @@ import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 
 /**
  * A b-tree node page that contains index data. Format:
@@ -102,7 +102,7 @@ public class PageBtreeNode extends PageBtree {
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
         rows = PageStore.newSearchRows(entryCount);
-        offsets = MemoryUtils.newIntArray(entryCount);
+        offsets = Utils.newIntArray(entryCount);
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
             offsets[i] = data.readShortInt();
@@ -279,7 +279,7 @@ public class PageBtreeNode extends PageBtree {
         entryCount = 0;
         childPageIds = new int[] { page1.getPos() };
         rows = new SearchRow[0];
-        offsets = MemoryUtils.EMPTY_INT_ARRAY;
+        offsets = Utils.EMPTY_INT_ARRAY;
         addChild(0, page2.getPos(), pivot);
         if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
             rowCount = page1.getRowCount() + page2.getRowCount();
@@ -453,7 +453,7 @@ public class PageBtreeNode extends PageBtree {
             Message.throwInternalError();
         }
         SearchRow[] newRows = PageStore.newSearchRows(entryCount);
-        int[] newOffsets = MemoryUtils.newIntArray(entryCount);
+        int[] newOffsets = Utils.newIntArray(entryCount);
         int[] newChildPageIds = new int[entryCount + 1];
         System.arraycopy(offsets, 0, newOffsets, 0, Math.min(entryCount, i));
         System.arraycopy(rows, 0, newRows, 0, Math.min(entryCount, i));

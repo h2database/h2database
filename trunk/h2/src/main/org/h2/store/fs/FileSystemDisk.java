@@ -21,7 +21,6 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
@@ -183,7 +182,7 @@ public class FileSystemDisk extends FileSystem {
             dir = null;
         } else {
             dir = new File(name).getAbsoluteFile().getParentFile();
-            FileUtils.mkdirs(dir);
+            IOUtils.mkdirs(dir);
         }
         if (prefix.length() < 3) {
             prefix += "0";
@@ -224,7 +223,7 @@ public class FileSystemDisk extends FileSystem {
 
     public void deleteRecursive(String fileName, boolean tryOnly) throws SQLException {
         fileName = translateFileName(fileName);
-        if (FileUtils.isDirectory(fileName)) {
+        if (IOUtils.isDirectory(fileName)) {
             String[] list = listFiles(fileName);
             for (int i = 0; list != null && i < list.length; i++) {
                 deleteRecursive(list[i], tryOnly);
@@ -321,8 +320,8 @@ public class FileSystemDisk extends FileSystem {
         OutputStream out = null;
         InputStream in = null;
         try {
-            out = FileUtils.openFileOutputStream(copy, false);
-            in = FileUtils.openFileInputStream(original);
+            out = IOUtils.openFileOutputStream(copy, false);
+            in = IOUtils.openFileInputStream(original);
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
             while (true) {
                 int len = in.read(buffer);

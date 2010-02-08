@@ -17,7 +17,7 @@ import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 
 /**
  * A leaf page that contains data of one or multiple rows. Format:
@@ -101,7 +101,7 @@ public class PageDataNode extends PageData {
         entryCount = data.readShortInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        keys = MemoryUtils.newLongArray(entryCount);
+        keys = Utils.newLongArray(entryCount);
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
             keys[i] = data.readVarLong();
@@ -367,7 +367,7 @@ public class PageDataNode extends PageData {
         if (entryCount < 0) {
             Message.throwInternalError();
         }
-        long[] newKeys = MemoryUtils.newLongArray(entryCount);
+        long[] newKeys = Utils.newLongArray(entryCount);
         int[] newChildPageIds = new int[entryCount + 1];
         System.arraycopy(keys, 0, newKeys, 0, Math.min(entryCount, i));
         System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);

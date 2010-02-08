@@ -14,7 +14,7 @@ import java.sql.Statement;
 import java.util.Random;
 
 import org.h2.test.TestBase;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 
 /**
  * Tests the memory usage of the cache.
@@ -54,12 +54,12 @@ public class TestMemoryUsage extends TestBase {
             stat.execute("CREATE TABLE TEST(ID INT)");
             stat.execute("DROP TABLE TEST");
         }
-        int used = MemoryUtils.getMemoryUsed();
+        int used = Utils.getMemoryUsed();
         for (int i = 0; i < 1000; i++) {
             stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
             stat.execute("DROP TABLE TEST");
         }
-        int usedNow = MemoryUtils.getMemoryUsed();
+        int usedNow = Utils.getMemoryUsed();
         if (usedNow > used * 1.3) {
             assertEquals(used, usedNow);
         }
@@ -88,11 +88,11 @@ public class TestMemoryUsage extends TestBase {
         stat.execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
         freeSoftReferences();
         try {
-            int base = MemoryUtils.getMemoryUsed();
+            int base = Utils.getMemoryUsed();
             for (int i = 0; i < 4; i++) {
                 stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(32000) FROM SYSTEM_RANGE(1, 200)");
                 freeSoftReferences();
-                int used = MemoryUtils.getMemoryUsed();
+                int used = Utils.getMemoryUsed();
                 if ((used - base) > 16000) {
                     fail("Used: " + (used - base));
                 }
@@ -134,11 +134,11 @@ public class TestMemoryUsage extends TestBase {
             prep.setInt(1, i);
             prep.executeUpdate();
         }
-        int base = MemoryUtils.getMemoryUsed();
+        int base = Utils.getMemoryUsed();
         stat.execute("create index idx_test_id on test(id)");
         System.gc();
         System.gc();
-        int used = MemoryUtils.getMemoryUsed();
+        int used = Utils.getMemoryUsed();
         if ((used - base) > getSize(7500, 12000)) {
             fail("Used: " + (used - base));
         }

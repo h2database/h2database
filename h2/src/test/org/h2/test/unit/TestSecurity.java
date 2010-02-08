@@ -12,7 +12,7 @@ import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
 import org.h2.test.TestBase;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 
 /**
  * Tests various security primitives.
@@ -44,7 +44,7 @@ public class TestSecurity extends TestBase {
         if (data.length > 0) {
             assertEquals(0, data[0]);
         }
-        return ByteUtils.convertBytesToString(result);
+        return Utils.convertBytesToString(result);
     }
 
     private void testOneSHA(SHA256 sha) {
@@ -71,7 +71,7 @@ public class TestSecurity extends TestBase {
 
     private void checkSHA256(String message, String expected) {
         SHA256 sha = new SHA256();
-        String hash = ByteUtils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
+        String hash = Utils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
         assertEquals(expected, hash);
     }
 
@@ -86,13 +86,13 @@ public class TestSecurity extends TestBase {
 
     private void testAES() throws SQLException {
         BlockCipher test = CipherFactory.getBlockCipher("AES");
-        test.setKey(ByteUtils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
+        test.setKey(Utils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
 
         byte[] in = new byte[128];
         byte[] enc = new byte[128];
         test.encrypt(enc, 0, 128);
         test.decrypt(enc, 0, 128);
-        if (ByteUtils.compareNotNull(in, enc) != 0) {
+        if (Utils.compareNotNull(in, enc) != 0) {
             throw new AssertionError();
         }
 

@@ -19,7 +19,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -109,9 +109,9 @@ public class TestKillRestartMulti extends TestBase {
                 conn.close();
                 conn = openConnection();
                 conn.close();
-                FileUtils.delete(backup);
+                IOUtils.delete(backup);
             } catch (SQLException e) {
-                FileUtils.rename(backup, backup + ".error");
+                IOUtils.rename(backup, backup + ".error");
                 throw e;
             }
         }

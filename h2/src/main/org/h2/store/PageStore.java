@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
@@ -40,12 +42,11 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableData;
-import org.h2.util.BitField;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
@@ -188,7 +189,7 @@ public class PageStore implements CacheWriter {
     // TODO reduce DEFAULT_MAX_LOG_SIZE, and don't divide here
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE / 10;
     private Session systemSession;
-    private BitField freed = new BitField();
+    private BitSet freed = new BitSet();
 
     private ArrayList<PageFreeList> freeLists = New.arrayList();
 
@@ -254,8 +255,8 @@ public class PageStore implements CacheWriter {
     public void open() throws SQLException {
         try {
             metaRootPageId.put(META_TABLE_ID, PAGE_ID_META_ROOT);
-            if (FileUtils.exists(fileName)) {
-                if (FileUtils.length(fileName) < MIN_PAGE_COUNT * PAGE_SIZE_MIN) {
+            if (IOUtils.exists(fileName)) {
+                if (IOUtils.length(fileName) < MIN_PAGE_COUNT * PAGE_SIZE_MIN) {
                     // the database was not fully created
                     openNew();
                 } else {
@@ -320,7 +321,7 @@ public class PageStore implements CacheWriter {
 
     private void writeBack() throws SQLException {
         ArrayList<CacheObject> list = cache.getAllChanged();
-        CacheObject.sort(list);
+        Collections.sort(list);
         for (CacheObject rec : list) {
             writeBack(rec);
         }
@@ -422,7 +423,7 @@ public class PageStore implements CacheWriter {
         }
         int newPageCount = lastUsed + 1;
         if (newPageCount < pageCount) {
-            freed.setRange(newPageCount, pageCount - newPageCount, false);
+            freed.set(newPageCount, pageCount, false);
         }
         pageCount = newPageCount;
         // the easiest way to remove superfluous entries
@@ -838,7 +839,7 @@ public class PageStore implements CacheWriter {
      * @param exclude the exclude list
      * @param after all allocated pages are higher than this page
      */
-    void allocatePages(IntArray list, int pagesToAllocate, BitField exclude, int after) throws SQLException {
+    void allocatePages(IntArray list, int pagesToAllocate, BitSet exclude, int after) throws SQLException {
         for (int i = 0; i < pagesToAllocate; i++) {
             int page = allocatePage(exclude, after);
             after = page;
@@ -859,7 +860,7 @@ public class PageStore implements CacheWriter {
         return pos;
     }
 
-    private int allocatePage(BitField exclude, int first) throws SQLException {
+    private int allocatePage(BitSet exclude, int first) throws SQLException {
         int page;
         synchronized (database) {
             // TODO could remember the first possible free list page

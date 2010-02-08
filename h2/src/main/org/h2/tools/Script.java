@@ -13,7 +13,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -152,7 +151,7 @@ public class Script extends Tool {
     void process(String url, String user, String password, String fileName) throws SQLException {
         OutputStream o = null;
         try {
-            o = FileUtils.openFileOutputStream(fileName, false);
+            o = IOUtils.openFileOutputStream(fileName, false);
             process(url, user, password, o);
         } finally {
             IOUtils.closeSilently(o);

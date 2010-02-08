@@ -16,7 +16,7 @@ import java.util.Random;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
-import org.h2.util.MemoryUtils;
+import org.h2.util.Utils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
@@ -68,7 +68,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
     private void testType(int type) throws SQLException {
         System.gc();
         System.gc();
-        long first = MemoryUtils.getMemoryUsed();
+        long first = Utils.getMemoryUsed();
         ArrayList<Value> list = new ArrayList<Value>();
         long memory = 0;
         for (int i = 0; memory < 1000000; i++) {
@@ -87,7 +87,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         list = null;
         System.gc();
         System.gc();
-        long used = MemoryUtils.getMemoryUsed() - first;
+        long used = Utils.getMemoryUsed() - first;
         memory /= 1024;
         if (used > memory * 3) {
             fail("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length + " size: " + size);

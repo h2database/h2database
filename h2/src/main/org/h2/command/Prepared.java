@@ -278,15 +278,7 @@ public abstract class Prepared {
      */
     public void setObjectId(int i) {
         this.objectId = i;
-    }
-
-    /**
-     * Set whether to create a new object.
-     *
-     * @param create the new value
-     */
-    public void setCreate(boolean create) {
-        this.create = create;
+        this.create = false;
     }
 
     /**

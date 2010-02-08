@@ -55,11 +55,11 @@ public class TempFileDeleter {
      * @return the reference that can be used to stop deleting the file
      */
     public synchronized Reference< ? > addFile(String fileName, Object file) {
-        FileUtils.trace("TempFileDeleter.addFile", fileName, file);
+        IOUtils.trace("TempFileDeleter.addFile", fileName, file);
         PhantomReference< ? > ref = new PhantomReference<Object>(file, queue);
         TempFile f = new TempFile();
         f.fileName = fileName;
-        f.lastModified = FileUtils.getLastModified(fileName);
+        f.lastModified = IOUtils.getLastModified(fileName);
         refMap.put(ref, f);
         deleteUnused();
         return ref;
@@ -76,7 +76,7 @@ public class TempFileDeleter {
         TempFile f2 = refMap.get(ref);
         if (f2 != null) {
             String fileName = f2.fileName;
-            long mod = FileUtils.getLastModified(fileName);
+            long mod = IOUtils.getLastModified(fileName);
             f2.lastModified = mod;
         }
     }
@@ -95,7 +95,7 @@ public class TempFileDeleter {
                     Message.throwInternalError("f2:" + f2.fileName + " f:" + fileName);
                 }
                 fileName = f2.fileName;
-                long mod = FileUtils.getLastModified(fileName);
+                long mod = IOUtils.getLastModified(fileName);
                 if (mod != f2.lastModified) {
                     // the file has been deleted and a new one created
                     // or it has been modified afterwards
@@ -103,10 +103,10 @@ public class TempFileDeleter {
                 }
             }
         }
-        if (fileName != null && FileUtils.exists(fileName)) {
+        if (fileName != null && IOUtils.exists(fileName)) {
             try {
-                FileUtils.trace("TempFileDeleter.deleteFile", fileName, null);
-                FileUtils.tryDelete(fileName);
+                IOUtils.trace("TempFileDeleter.deleteFile", fileName, null);
+                IOUtils.tryDelete(fileName);
             } catch (Exception e) {
                 // TODO log such errors?
             }
@@ -144,7 +144,7 @@ public class TempFileDeleter {
      * @param fileName the file name
      */
     public void stopAutoDelete(Reference< ? > ref, String fileName) {
-        FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
+        IOUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {
             TempFile f2 = refMap.remove(ref);
             if (SysProperties.CHECK && (f2 == null || !f2.fileName.equals(fileName))) {

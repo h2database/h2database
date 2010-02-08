@@ -32,8 +32,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
-import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 
 /**
@@ -113,7 +112,7 @@ public class SecureSocketFactory {
 
 //## Java 1.4 begin ##
     private static byte[] getBytes(String hex) throws SQLException {
-        return ByteUtils.convertStringToBytes(hex);
+        return Utils.convertStringToBytes(hex);
     }
 
     private static byte[] getKeyStoreBytes(KeyStore store, String password) throws IOException {
@@ -169,27 +168,27 @@ public class SecureSocketFactory {
     private static void setKeystore() throws IOException {
         Properties p = System.getProperties();
         if (p.getProperty(KEYSTORE_KEY) == null) {
-            String fileName = FileUtils.getFileInUserHome(KEYSTORE);
+            String fileName = IOUtils.getFileInUserHome(KEYSTORE);
             byte[] data = getKeyStoreBytes(getKeyStore(KEYSTORE_PASSWORD), KEYSTORE_PASSWORD);
             boolean needWrite = true;
-            if (FileUtils.exists(fileName) && FileUtils.length(fileName) == data.length) {
+            if (IOUtils.exists(fileName) && IOUtils.length(fileName) == data.length) {
                 // don't need to overwrite the file if it did not change
-                InputStream fin = FileUtils.openFileInputStream(fileName);
+                InputStream fin = IOUtils.openFileInputStream(fileName);
                 byte[] now = IOUtils.readBytesAndClose(fin, 0);
-                if (now != null && ByteUtils.compareNotNull(data, now) == 0) {
+                if (now != null && Utils.compareNotNull(data, now) == 0) {
                     needWrite = false;
                 }
             }
             if (needWrite) {
                 try {
-                    OutputStream out = FileUtils.openFileOutputStream(fileName, false);
+                    OutputStream out = IOUtils.openFileOutputStream(fileName, false);
                     out.write(data);
                     out.close();
                 } catch (SQLException e) {
                     throw Message.convertToIOException(e);
                 }
             }
-            String absolutePath = FileUtils.getAbsolutePath(fileName);
+            String absolutePath = IOUtils.getAbsolutePath(fileName);
             System.setProperty(KEYSTORE_KEY, absolutePath);
         }
         if (p.getProperty(KEYSTORE_PASSWORD_KEY) == null) {

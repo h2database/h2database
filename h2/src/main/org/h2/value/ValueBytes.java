@@ -9,9 +9,8 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.MathUtils;
-import org.h2.util.MemoryUtils;
 
 /**
  * Implementation of the BINARY data type.
@@ -19,7 +18,7 @@ import org.h2.util.MemoryUtils;
  */
 public class ValueBytes extends Value {
 
-    private static final ValueBytes EMPTY = new ValueBytes(MemoryUtils.EMPTY_BYTES);
+    private static final ValueBytes EMPTY = new ValueBytes(Utils.EMPTY_BYTES);
 
     private final byte[] value;
     private int hash;
@@ -39,7 +38,7 @@ public class ValueBytes extends Value {
         if (b.length == 0) {
             return EMPTY;
         }
-        b = ByteUtils.cloneByteArray(b);
+        b = Utils.cloneByteArray(b);
         return getNoCopy(b);
     }
 
@@ -74,16 +73,16 @@ public class ValueBytes extends Value {
     }
 
     public byte[] getBytes() {
-        return ByteUtils.cloneByteArray(value);
+        return Utils.cloneByteArray(value);
     }
 
     protected int compareSecure(Value v, CompareMode mode) {
         byte[] v2 = ((ValueBytes) v).value;
-        return ByteUtils.compareNotNull(value, v2);
+        return Utils.compareNotNull(value, v2);
     }
 
     public String getString() {
-        return ByteUtils.convertBytesToString(value);
+        return Utils.convertBytesToString(value);
     }
 
     public long getPrecision() {
@@ -92,7 +91,7 @@ public class ValueBytes extends Value {
 
     public int hashCode() {
         if (hash == 0) {
-            hash = ByteUtils.getByteArrayHash(value);
+            hash = Utils.getByteArrayHash(value);
         }
         return hash;
     }
@@ -114,7 +113,7 @@ public class ValueBytes extends Value {
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueBytes && ByteUtils.compareNotNull(value, ((ValueBytes) other).value) == 0;
+        return other instanceof ValueBytes && Utils.compareNotNull(value, ((ValueBytes) other).value) == 0;
     }
 
 }

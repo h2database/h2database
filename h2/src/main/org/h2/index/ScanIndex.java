@@ -130,7 +130,7 @@ public class ScanIndex extends BaseIndex {
             rows = New.arrayList();
             firstFree = -1;
         } else {
-            Row free = new Row(null, 0);
+            Row free = new Row(null, 1);
             free.setKey(firstFree);
             long key = row.getKey();
             rows.set((int) key, free);

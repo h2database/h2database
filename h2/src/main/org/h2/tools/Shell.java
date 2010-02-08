@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
-import org.h2.util.ClassUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.SortedProperties;
@@ -120,7 +120,7 @@ public class Shell extends Tool implements Runnable {
                 password = args[++i];
             } else if (arg.equals("-driver")) {
                 String driver = args[++i];
-                ClassUtils.loadUserClass(driver);
+                Utils.loadUserClass(driver);
             } else if (arg.equals("-help") || arg.equals("-?")) {
                 showUsage();
                 return;
@@ -326,7 +326,7 @@ public class Shell extends Tool implements Runnable {
     }
 
     private void connect() throws IOException, SQLException {
-        String propertiesFileName = FileUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
+        String propertiesFileName = IOUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
         String url = "jdbc:h2:~/test";
         String user = "sa";
         String driver = null;

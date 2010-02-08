@@ -15,6 +15,7 @@ import org.h2.value.Value;
  * Represents a row in a table.
  */
 public class Row implements SearchRow {
+
     public static final int MEMORY_CALCULATE = -1;
     private long key;
     private final Value[] data;

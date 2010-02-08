@@ -24,9 +24,8 @@ import org.h2.message.TraceSystem;
 import org.h2.result.ResultInterface;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
-import org.h2.util.ByteUtils;
-import org.h2.util.ClassUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
+import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
@@ -231,7 +230,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                 backup = (ConnectionInfo) ci.clone();
                 connectionInfo = (ConnectionInfo) ci.clone();
             }
-            SessionFactory sf = (SessionFactory) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
+            SessionFactory sf = (SessionFactory) Class.forName("org.h2.engine.Session").newInstance();
             if (openNew) {
                 ci.setProperty("OPEN_NEW", "true");
             }
@@ -275,7 +274,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             if (traceLevelFile != null) {
                 int level = Integer.parseInt(traceLevelFile);
                 String prefix = getFilePrefix(SysProperties.CLIENT_TRACE_DIRECTORY);
-                String file = FileUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
+                String file = IOUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
                 traceSystem.setFileName(file);
                 traceSystem.setLevelFile(level);
             }
@@ -304,7 +303,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             if (className != null) {
                 className = StringUtils.trim(className, true, true, "'");
                 try {
-                    eventListener = (DatabaseEventListener) ClassUtils.loadUserClass(className).newInstance();
+                    eventListener = (DatabaseEventListener) Utils.loadUserClass(className).newInstance();
                 } catch (Exception e) {
                     throw Message.convert(e);
                 } catch (Throwable e) {
@@ -363,7 +362,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             // ignore
         }
         if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
-            sessionId = ByteUtils.convertBytesToString(MathUtils.secureRandomBytes(32));
+            sessionId = Utils.convertBytesToString(MathUtils.secureRandomBytes(32));
             synchronized (this) {
                 for (Transfer transfer : transferList) {
                     try {
@@ -575,7 +574,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     }
 
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
-        if (mustExist && !FileUtils.exists(name)) {
+        if (mustExist && !IOUtils.exists(name)) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, name);
         }
         FileStore store;

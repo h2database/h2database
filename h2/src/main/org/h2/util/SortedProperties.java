@@ -87,10 +87,10 @@ public class SortedProperties extends Properties {
      */
     public static synchronized SortedProperties loadProperties(String fileName) throws IOException {
         SortedProperties prop = new SortedProperties();
-        if (FileUtils.exists(fileName)) {
+        if (IOUtils.exists(fileName)) {
             InputStream in = null;
             try {
-                in = FileUtils.openFileInputStream(fileName);
+                in = IOUtils.openFileInputStream(fileName);
                 prop.load(in);
             } finally {
                 if (in != null) {
@@ -114,7 +114,7 @@ public class SortedProperties extends Properties {
         LineNumberReader r = new LineNumberReader(reader);
         Writer w;
         try {
-            w = new OutputStreamWriter(FileUtils.openFileOutputStream(fileName, false));
+            w = new OutputStreamWriter(IOUtils.openFileOutputStream(fileName, false));
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }

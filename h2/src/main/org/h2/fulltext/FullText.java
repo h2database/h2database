@@ -34,7 +34,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
@@ -450,7 +450,7 @@ public class FullText {
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BINARY:
-            return "'" + ByteUtils.convertBytesToString((byte[]) data) + "'";
+            return "'" + Utils.convertBytesToString((byte[]) data) + "'";
         case Types.CLOB:
         case Types.JAVA_OBJECT:
         case Types.OTHER:

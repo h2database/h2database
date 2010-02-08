@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import org.h2.constant.SysProperties;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * FileObject which is using NIO MappedByteBuffer mapped to memory from file.
@@ -127,7 +127,7 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     public void setFileLength(long newLength) throws IOException {
-        FileUtils.setLength(file, newLength);
+        IOUtils.setLength(file, newLength);
         reMap();
     }
 

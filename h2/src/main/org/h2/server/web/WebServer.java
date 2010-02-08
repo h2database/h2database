@@ -31,13 +31,12 @@ import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
-import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
-import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
 
 /**
@@ -134,7 +133,7 @@ public class WebServer implements Service {
      */
     byte[] getFile(String file) throws IOException {
         trace("getFile <" + file + ">");
-        byte[] data = Resources.get("/org/h2/server/web/res/" + file);
+        byte[] data = Utils.getResource("/org/h2/server/web/res/" + file);
         if (data == null) {
             trace(" null");
         } else {
@@ -154,7 +153,7 @@ public class WebServer implements Service {
 
     private String generateSessionId() {
         byte[] buff = MathUtils.secureRandomBytes(16);
-        return ByteUtils.convertBytesToString(buff);
+        return Utils.convertBytesToString(buff);
     }
 
     /**
@@ -472,7 +471,7 @@ public class WebServer implements Service {
 
     private String getPropertiesFileName() {
         // store the properties in the user directory
-        return FileUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
+        return IOUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
     }
 
     private Properties loadProperties() {
@@ -554,7 +553,7 @@ public class WebServer implements Service {
                     prop.setProperty(String.valueOf(len - i - 1), info.getString());
                 }
             }
-            OutputStream out = FileUtils.openFileOutputStream(getPropertiesFileName(), false);
+            OutputStream out = IOUtils.openFileOutputStream(getPropertiesFileName(), false);
             prop.store(out, "H2 Server Properties");
             out.close();
         } catch (Exception e) {
@@ -659,11 +658,11 @@ public class WebServer implements Service {
                 try {
                     SortedProperties sp = new SortedProperties();
                     if (file.exists()) {
-                        InputStream in = FileUtils.openFileInputStream(file.getName());
+                        InputStream in = IOUtils.openFileInputStream(file.getName());
                         sp.load(in);
                         translation.putAll(sp);
                     } else {
-                        OutputStream out = FileUtils.openFileOutputStream(file.getName(), false);
+                        OutputStream out = IOUtils.openFileOutputStream(file.getName(), false);
                         sp.putAll(translation);
                         sp.store(out, "Translation");
                     }

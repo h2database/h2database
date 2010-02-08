@@ -22,7 +22,7 @@ import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
@@ -748,9 +748,9 @@ public abstract class Value {
             case TIMESTAMP:
                 return ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(s.trim()));
             case BYTES:
-                return ValueBytes.getNoCopy(ByteUtils.convertStringToBytes(s.trim()));
+                return ValueBytes.getNoCopy(Utils.convertStringToBytes(s.trim()));
             case JAVA_OBJECT:
-                return ValueJavaObject.getNoCopy(ByteUtils.convertStringToBytes(s.trim()));
+                return ValueJavaObject.getNoCopy(Utils.convertStringToBytes(s.trim()));
             case STRING:
                 return ValueString.get(s);
             case STRING_IGNORECASE:
@@ -764,7 +764,7 @@ public abstract class Value {
             case CLOB:
                 return ValueLob.createSmallLob(CLOB, StringUtils.utf8Encode(s));
             case BLOB:
-                return ValueLob.createSmallLob(BLOB, ByteUtils.convertStringToBytes(s.trim()));
+                return ValueLob.createSmallLob(BLOB, Utils.convertStringToBytes(s.trim()));
             case ARRAY:
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {

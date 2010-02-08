@@ -321,7 +321,8 @@ public abstract class Table extends SchemaObjectBase {
         if (columnMap.size() > 0) {
             columnMap.clear();
         }
-        int memory = 0;
+        // a row needs memory even if there are no columns
+        int memory = 1;
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
             int dataType = col.getType();
@@ -488,7 +489,7 @@ public abstract class Table extends SchemaObjectBase {
     Row getNullRow() {
         synchronized (this) {
             if (nullRow == null) {
-                nullRow = new Row(new Value[columns.length], 0);
+                nullRow = new Row(new Value[columns.length], 1);
                 for (int i = 0; i < columns.length; i++) {
                     nullRow.setValue(i, ValueNull.INSTANCE);
                 }

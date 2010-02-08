@@ -18,7 +18,6 @@ import org.h2.command.dml.BackupCommand;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.store.FileLister;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
@@ -107,27 +106,27 @@ public class Backup extends Tool {
             }
             return;
         }
-        zipFileName = FileUtils.normalize(zipFileName);
-        if (FileUtils.exists(zipFileName)) {
-            FileUtils.delete(zipFileName);
+        zipFileName = IOUtils.normalize(zipFileName);
+        if (IOUtils.exists(zipFileName)) {
+            IOUtils.delete(zipFileName);
         }
         OutputStream fileOut = null;
         try {
-            fileOut = FileUtils.openFileOutputStream(zipFileName, false);
+            fileOut = IOUtils.openFileOutputStream(zipFileName, false);
             ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             String base = "";
             for (String fileName : list) {
                 if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-                    base = FileUtils.getParent(fileName);
+                    base = IOUtils.getParent(fileName);
                     break;
                 }
             }
             for (String fileName : list) {
-                String f = FileUtils.getAbsolutePath(fileName);
+                String f = IOUtils.getAbsolutePath(fileName);
                 if (!f.startsWith(base)) {
                     Message.throwInternalError(f + " does not start with " + base);
                 }
-                if (FileUtils.isDirectory(fileName)) {
+                if (IOUtils.isDirectory(fileName)) {
                     continue;
                 }
                 f = f.substring(base.length());
@@ -136,7 +135,7 @@ public class Backup extends Tool {
                 zipOut.putNextEntry(entry);
                 InputStream in = null;
                 try {
-                    in = FileUtils.openFileInputStream(fileName);
+                    in = IOUtils.openFileInputStream(fileName);
                     IOUtils.copyAndCloseInput(in, zipOut);
                 } catch (FileNotFoundException e) {
                     // the file could have been deleted in the meantime

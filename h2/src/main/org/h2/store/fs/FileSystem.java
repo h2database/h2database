@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import org.h2.util.ClassUtils;
 import org.h2.util.New;
 
 /**
@@ -54,7 +53,7 @@ public abstract class FileSystem {
                     "org.h2.store.fs.FileSystemDiskNioMapped"
             }) {
                 try {
-                    ClassUtils.loadSystemClass(c);
+                    Class.forName(c);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

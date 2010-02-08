@@ -48,7 +48,7 @@ import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
@@ -349,7 +349,7 @@ public class ScriptCommand extends ScriptBase {
                     if (len <= 0) {
                         break;
                     }
-                    buff.append(ByteUtils.convertBytesToString(bytes, len)).append("')");
+                    buff.append(Utils.convertBytesToString(bytes, len)).append("')");
                     String sql = buff.toString();
                     add(sql, true);
                 }
@@ -534,7 +534,7 @@ public class ScriptCommand extends ScriptBase {
         if (out != null) {
             byte[] buff = StringUtils.utf8Encode(s);
             int len = MathUtils.roundUpInt(buff.length + lineSeparator.length, Constants.FILE_BLOCK_SIZE);
-            buffer = ByteUtils.copy(buff, buffer);
+            buffer = Utils.copy(buff, buffer);
 
             if (len > buffer.length) {
                 buffer = new byte[len];

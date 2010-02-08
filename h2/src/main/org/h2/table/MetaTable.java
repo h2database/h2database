@@ -52,9 +52,9 @@ import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.Resources;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -917,7 +917,7 @@ public class MetaTable extends Table {
         case HELP: {
             String resource = "/org/h2/res/help.csv";
             try {
-                byte[] data = Resources.get(resource);
+                byte[] data = Utils.getResource(resource);
                 Reader reader = new InputStreamReader(new ByteArrayInputStream(data));
                 ResultSet rs = Csv.getInstance().read(reader, null);
                 for (int i = 0; rs.next(); i++) {
@@ -1674,7 +1674,7 @@ public class MetaTable extends Table {
             v = col.convert(v);
             values[i] = v;
         }
-        Row row = new Row(values, 0);
+        Row row = new Row(values, 1);
         row.setKey(rows.size());
         rows.add(row);
     }

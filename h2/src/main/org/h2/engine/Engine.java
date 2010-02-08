@@ -30,7 +30,7 @@ public class Engine {
 
     private static final Engine INSTANCE = new Engine();
     private static final HashMap<String, Database> DATABASES = New.hashMap();
-    private static volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
+    private volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
 
     private Engine() {
         // don't allow others to instantiate
@@ -216,7 +216,7 @@ public class Engine {
      * @param correct if the user name or the password was correct
      * @throws SQLException the exception 'wrong user or password'
      */
-    private static void validateUserAndPassword(boolean correct) throws SQLException {
+    private void validateUserAndPassword(boolean correct) throws SQLException {
         int min = SysProperties.DELAY_WRONG_PASSWORD_MIN;
         if (correct) {
             long delay = wrongPasswordDelay;

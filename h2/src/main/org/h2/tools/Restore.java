@@ -16,7 +16,6 @@ import java.util.zip.ZipInputStream;
 
 import org.h2.message.Message;
 import org.h2.store.FileLister;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
@@ -75,7 +74,7 @@ public class Restore extends Tool {
     private static String getOriginalDbName(String fileName, String db) throws IOException {
         InputStream in = null;
         try {
-            in = FileUtils.openFileInputStream(fileName);
+            in = IOUtils.openFileInputStream(fileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             String originalDbName = null;
             boolean multiple = false;
@@ -137,7 +136,7 @@ public class Restore extends Tool {
     private void process(String zipFileName, String directory, String db) throws SQLException {
         InputStream in = null;
         try {
-            if (!FileUtils.exists(zipFileName)) {
+            if (!IOUtils.exists(zipFileName)) {
                 throw new IOException("File not found: " + zipFileName);
             }
             String originalDbName = null;
@@ -152,7 +151,7 @@ public class Restore extends Tool {
                 }
                 originalDbLen = originalDbName.length();
             }
-            in = FileUtils.openFileInputStream(zipFileName);
+            in = IOUtils.openFileInputStream(zipFileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             while (true) {
                 ZipEntry entry = zipIn.getNextEntry();
@@ -176,7 +175,7 @@ public class Restore extends Tool {
                 if (copy) {
                     OutputStream o = null;
                     try {
-                        o = FileUtils.openFileOutputStream(directory + File.separator + fileName, false);
+                        o = IOUtils.openFileOutputStream(directory + File.separator + fileName, false);
                         IOUtils.copy(zipIn, o);
                         o.close();
                     } finally {

@@ -28,8 +28,7 @@ import org.h2.store.FileLister;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.ValueLob;
@@ -83,8 +82,8 @@ public class TestLob extends TestBase {
     private void testTempFilesDeleted() throws Exception {
         String[] list;
         FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, false);
-        FileUtils.mkdirs(new File(TEMP_DIR));
-        list = FileUtils.listFiles(TEMP_DIR);
+        IOUtils.mkdirs(new File(TEMP_DIR));
+        list = IOUtils.listFiles(TEMP_DIR);
         if (list.length > 0) {
             fail("Unexpected temp file: " + list[0]);
         }
@@ -100,7 +99,7 @@ public class TestLob extends TestBase {
         rs.getCharacterStream("name").close();
         rs.close();
         conn.close();
-        list = FileUtils.listFiles(TEMP_DIR);
+        list = IOUtils.listFiles(TEMP_DIR);
         if (list.length > 0) {
             fail("Unexpected temp file: " + list[0]);
         }
@@ -143,10 +142,10 @@ public class TestLob extends TestBase {
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("create table test(data clob) as select space(100000) from dual");
-        assertEquals(1, FileUtils.listFiles(baseDir + "/lob.lobs.db").length);
+        assertEquals(1, IOUtils.listFiles(baseDir + "/lob.lobs.db").length);
         stat.execute("delete from test");
         conn.close();
-        assertEquals(0, FileUtils.listFiles(baseDir + "/lob.lobs.db").length);
+        assertEquals(0, IOUtils.listFiles(baseDir + "/lob.lobs.db").length);
     }
 
     private void testLobServerMemory() throws SQLException {
@@ -875,7 +874,7 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("drop table test");
         stat.execute("create table test(value other)");
         prep = conn.prepareStatement("insert into test values(?)");
-        prep.setObject(1, ByteUtils.serialize(""));
+        prep.setObject(1, Utils.serialize(""));
         prep.execute();
         rs = stat.executeQuery("select value from test");
         while (rs.next()) {

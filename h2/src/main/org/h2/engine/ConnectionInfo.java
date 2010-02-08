@@ -16,8 +16,8 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
-import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.Utils;
+import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -95,8 +95,8 @@ public class ConnectionInfo implements Cloneable {
     public Object clone() throws CloneNotSupportedException {
         ConnectionInfo clone = (ConnectionInfo) super.clone();
         clone.prop = (Properties) prop.clone();
-        clone.filePasswordHash = ByteUtils.cloneByteArray(filePasswordHash);
-        clone.userPasswordHash = ByteUtils.cloneByteArray(userPasswordHash);
+        clone.filePasswordHash = Utils.cloneByteArray(filePasswordHash);
+        clone.userPasswordHash = Utils.cloneByteArray(userPasswordHash);
         return clone;
     }
 
@@ -300,13 +300,13 @@ public class ConnectionInfo implements Cloneable {
     String getName() throws SQLException {
         if (persistent) {
             String suffix = Constants.SUFFIX_PAGE_FILE;
-            String n = FileUtils.normalize(name + suffix);
-            String fileName = FileUtils.getFileName(n);
+            String n = IOUtils.normalize(name + suffix);
+            String fileName = IOUtils.getFileName(n);
             if (fileName.length() < suffix.length() + 1) {
                 throw Message.getSQLException(ErrorCode.INVALID_DATABASE_NAME_1, name);
             }
             n = n.substring(0, n.length() - suffix.length());
-            return FileUtils.normalize(n);
+            return IOUtils.normalize(n);
         }
         return name;
     }

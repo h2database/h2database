@@ -10,7 +10,7 @@ import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
- * Represents a simple row that is not cached separately.
+ * Represents a simple row without state.
  */
 public class SimpleRow implements SearchRow {
 

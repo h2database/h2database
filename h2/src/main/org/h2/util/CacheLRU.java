@@ -8,6 +8,7 @@ package org.h2.util;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -164,7 +165,7 @@ public class CacheLRU implements Cache {
             }
         }
         if (changed.size() > 0) {
-            CacheObject.sort(changed);
+            Collections.sort(changed);
             int max = maxSize;
             try {
                 // temporary disable size checking,

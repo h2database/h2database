@@ -16,7 +16,7 @@ import java.security.cert.CertificateEncodingException;
 import java.util.Enumeration;
 
 import org.h2.security.SecureSocketFactory;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 
 /**
  * Tool to generate source code for the SecureSocketFactory. First, create a
@@ -57,20 +57,20 @@ public class SecureKeyStoreBuilder {
             System.out.println("KeyFactory keyFactory = KeyFactory.getInstance(\"" + key.getAlgorithm() + "\");");
             System.out.println("store.load(null, password.toCharArray());");
             String pkFormat = key.getFormat();
-            String encoded = ByteUtils.convertBytesToString(key.getEncoded());
+            String encoded = Utils.convertBytesToString(key.getEncoded());
             System.out.println(pkFormat + "EncodedKeySpec keySpec = new " + pkFormat + "EncodedKeySpec(getBytes(\""
                     + encoded + "\"));");
             System.out.println("PrivateKey privateKey = keyFactory.generatePrivate(keySpec);");
             System.out.println("Certificate[] certs = new Certificate[] {");
             for (Certificate cert : store.getCertificateChain(alias)) {
                 System.out.println("  CertificateFactory.getInstance(\""+cert.getType()+"\").");
-                String enc = ByteUtils.convertBytesToString(cert.getEncoded());
+                String enc = Utils.convertBytesToString(cert.getEncoded());
                 System.out.println("        generateCertificate(new ByteArrayInputStream(getBytes(\""+enc+"\"))),");
                 // PublicKey pubKey = cert.getPublicKey();
                 // System.out.println("    pubKey algorithm="+pubKey.getAlgorithm());
                 // System.out.println("    pubKey format="+pubKey.getFormat());
                 // System.out.println("    pubKey format="+
-                //     ByteUtils.convertBytesToString(pubKey.getEncoded()));
+                //     Utils.convertBytesToString(pubKey.getEncoded()));
             }
             System.out.println("};");
             System.out.println("store.setKeyEntry(\""+alias+"\", privateKey, password.toCharArray(), certs);");

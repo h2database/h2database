@@ -23,8 +23,8 @@ import org.h2.index.ViewIndex;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.util.Utils;
 import org.h2.util.IntArray;
-import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
@@ -142,7 +142,7 @@ public class TableView extends Table {
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks);
-        IntArray masksArray = new IntArray(masks == null ? MemoryUtils.EMPTY_INT_ARRAY : masks);
+        IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
         ViewIndex i2 = indexCache.get(masksArray);
         if (i2 == null || i2.getSession() != session) {
             i2 = new ViewIndex(this, index, session, masks);

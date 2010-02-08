@@ -27,7 +27,6 @@ import org.h2.dev.ftp.FtpClient;
 import org.h2.engine.Constants;
 import org.h2.test.utils.OutputCatcher;
 import org.h2.tools.RunScript;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
@@ -64,9 +63,9 @@ public class UploadBuild {
         new File("details").mkdir();
         zip("details/coverage_files.zip", "coverage", true);
         zip("coverage.zip", "details", false);
-        FileUtils.delete("coverage.txt");
-        FileUtils.delete("details/coverage_files.zip");
-        FileUtils.delete("details");
+        IOUtils.delete("coverage.txt");
+        IOUtils.delete("details/coverage_files.zip");
+        IOUtils.delete("details");
         String password = System.getProperty("h2.ftpPassword");
         if (password == null) {
             return;
@@ -118,12 +117,12 @@ public class UploadBuild {
         ftp.store("/httpdocs/html/testOutput.html", new ByteArrayInputStream(testOutput.getBytes()));
         ftp.store("/httpdocs/coverage/overview.html", new FileInputStream("coverage/overview.html"));
         String jarFileName = "bin/h2-" + Constants.getVersion() + ".jar";
-        if (FileUtils.exists(jarFileName)) {
+        if (IOUtils.exists(jarFileName)) {
             ftp.store("/httpdocs/automated/h2-latest.jar", new FileInputStream(jarFileName));
         }
         ftp.store("/httpdocs/coverage/coverage.zip", new FileInputStream("coverage.zip"));
         ftp.close();
-        FileUtils.delete("coverage.zip");
+        IOUtils.delete("coverage.zip");
     }
 
     private static void zip(String destFile, String directory, boolean storeOnly) throws IOException {

@@ -12,7 +12,7 @@ import java.sql.Statement;
 
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * Tests the RUNSCRIPT SQL statement.
@@ -121,8 +121,8 @@ public class TestRunscript extends TestBase implements Trigger {
         conn1.close();
         conn2.close();
         deleteDb("runscriptRestore");
-        FileUtils.delete(baseDir + "/backup.2.sql");
-        FileUtils.delete(baseDir + "/backup.3.sql");
+        IOUtils.delete(baseDir + "/backup.2.sql");
+        IOUtils.delete(baseDir + "/backup.3.sql");
 
     }
 

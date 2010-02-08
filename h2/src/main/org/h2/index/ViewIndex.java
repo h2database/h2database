@@ -19,8 +19,8 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.TableView;
+import org.h2.util.Utils;
 import org.h2.util.IntArray;
-import org.h2.util.MemoryUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
 
@@ -99,7 +99,7 @@ public class ViewIndex extends BaseIndex {
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {
-        IntArray masksArray = new IntArray(masks == null ? MemoryUtils.EMPTY_INT_ARRAY : masks);
+        IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
         CostElement cachedCost = costCache.get(masksArray);
         if (cachedCost != null) {
             long time = System.currentTimeMillis();

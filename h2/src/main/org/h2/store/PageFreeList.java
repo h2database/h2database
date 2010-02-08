@@ -6,8 +6,8 @@
 package org.h2.store;
 
 import java.sql.SQLException;
+import java.util.BitSet;
 import org.h2.engine.Session;
-import org.h2.util.BitField;
 
 /**
  * The list of free pages of a page store. The format of a free list trunk page
@@ -23,7 +23,7 @@ public class PageFreeList extends Page {
     private static final int DATA_START = 3;
 
     private final PageStore store;
-    private final BitField used = new BitField();
+    private final BitSet used = new BitSet();
     private final int pageCount;
     private boolean full;
     private Data data;
@@ -68,7 +68,7 @@ public class PageFreeList extends Page {
      * @param first the first page to look for
      * @return the page, or -1 if all pages are used
      */
-    int allocate(BitField exclude, int first) throws SQLException {
+    int allocate(BitSet exclude, int first) throws SQLException {
         if (full) {
             return -1;
         }
@@ -111,8 +111,8 @@ public class PageFreeList extends Page {
     }
 
     int getLastUsed() {
-        int last = used.getLastSetBit();
-        return last == 0 ? -1 : last + getPos();
+        int last = used.length() - 1;
+        return last <= 0 ? -1 : last + getPos();
     }
 
     /**
@@ -154,7 +154,12 @@ public class PageFreeList extends Page {
         data.readByte();
         data.readShortInt();
         for (int i = 0; i < pageCount; i += 8) {
-            used.setByte(i, data.readByte() & 255);
+            int x = data.readByte() & 255;
+            for (int j = 0; j < 8; j++) {
+                if ((x & (1 << j)) != 0) {
+                    used.set(i + j);
+                }
+            }
         }
         full = false;
     }
@@ -164,7 +169,13 @@ public class PageFreeList extends Page {
         data.writeByte((byte) Page.TYPE_FREE_LIST);
         data.writeShortInt(0);
         for (int i = 0; i < pageCount; i += 8) {
-            data.writeByte((byte) used.getByte(i));
+            int x = 0;
+            for (int j = 0; j < 8; j++) {
+                if (used.get(i + j)) {
+                    x += 1 << j;
+                }
+            }
+            data.writeByte((byte) x);
         }
         store.writePage(getPos(), data);
     }

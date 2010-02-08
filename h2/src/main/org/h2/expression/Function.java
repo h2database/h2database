@@ -41,10 +41,10 @@ import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
+import org.h2.util.Utils;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -711,11 +711,11 @@ public class Function extends Expression implements FunctionCall {
         }
         case MEMORY_FREE:
             session.getUser().checkAdmin();
-            result = ValueInt.get(MemoryUtils.getMemoryFree());
+            result = ValueInt.get(Utils.getMemoryFree());
             break;
         case MEMORY_USED:
             session.getUser().checkAdmin();
-            result = ValueInt.get(MemoryUtils.getMemoryUsed());
+            result = ValueInt.get(Utils.getMemoryUsed());
             break;
         case LOCK_MODE:
             result = ValueInt.get(database.getLockMode());
@@ -1103,7 +1103,7 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v0.getString();
             boolean blob = argList.length == 1;
             try {
-                InputStream in = new AutoCloseInputStream(FileUtils.openFileInputStream(fileName));
+                InputStream in = new AutoCloseInputStream(IOUtils.openFileInputStream(fileName));
                 if (blob) {
                     result = ValueLob.createBlob(in, -1, database);
                 } else {
@@ -1170,7 +1170,7 @@ public class Function extends Expression implements FunctionCall {
 
     private byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
         int size = MathUtils.roundUpInt(data.length, blockSize);
-        byte[] newData = MemoryUtils.newBytes(size);
+        byte[] newData = Utils.newBytes(size);
         System.arraycopy(data, 0, newData, 0, data.length);
         return newData;
     }

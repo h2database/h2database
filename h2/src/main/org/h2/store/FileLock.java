@@ -24,7 +24,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileSystem;
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.SortedProperties;
@@ -292,7 +292,7 @@ public class FileLock implements Runnable {
 
     private void setUniqueId() {
         byte[] bytes = MathUtils.secureRandomBytes(RANDOM_BYTES);
-        String random = ByteUtils.convertBytesToString(bytes);
+        String random = Utils.convertBytesToString(bytes);
         uniqueId = Long.toHexString(System.currentTimeMillis()) + random;
         properties.setProperty("id", uniqueId);
     }

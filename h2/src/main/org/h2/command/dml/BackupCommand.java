@@ -24,7 +24,6 @@ import org.h2.message.Message;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
 import org.h2.store.PageStore;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 
 /**
@@ -57,8 +56,8 @@ public class BackupCommand extends Prepared {
         }
         try {
             String name = db.getName();
-            name = FileUtils.getFileName(name);
-            OutputStream zip = FileUtils.openFileOutputStream(fileName, false);
+            name = IOUtils.getFileName(name);
+            OutputStream zip = IOUtils.openFileOutputStream(fileName, false);
             ZipOutputStream out = new ZipOutputStream(zip);
             db.flush();
             String fn;
@@ -66,10 +65,10 @@ public class BackupCommand extends Prepared {
             backupPageStore(out, fn, db.getPageStore());
             // synchronize on the database, to avoid concurrent temp file
             // creation / deletion / backup
-            String base = FileUtils.getParent(fn);
+            String base = IOUtils.getParent(fn);
             synchronized (db.getLobSyncObject()) {
                 String prefix = db.getDatabasePath();
-                String dir = FileUtils.getParent(prefix);
+                String dir = IOUtils.getParent(prefix);
                 ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
                 for (String n : fileList) {
                     if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
@@ -86,7 +85,7 @@ public class BackupCommand extends Prepared {
 
     private void backupPageStore(ZipOutputStream out, String fileName, PageStore store) throws SQLException, IOException {
         Database db = session.getDatabase();
-        fileName = FileUtils.getFileName(fileName);
+        fileName = IOUtils.getFileName(fileName);
         out.putNextEntry(new ZipEntry(fileName));
         int max = store.getPageCount();
         int pos = 0;
@@ -101,15 +100,15 @@ public class BackupCommand extends Prepared {
     }
 
     private void backupFile(ZipOutputStream out, String base, String fn) throws IOException {
-        String f = FileUtils.getAbsolutePath(fn);
-        base = FileUtils.getAbsolutePath(base);
+        String f = IOUtils.getAbsolutePath(fn);
+        base = IOUtils.getAbsolutePath(base);
         if (!f.startsWith(base)) {
             Message.throwInternalError(f + " does not start with " + base);
         }
         f = f.substring(base.length());
         f = correctFileName(f);
         out.putNextEntry(new ZipEntry(f));
-        InputStream in = FileUtils.openFileInputStream(fn);
+        InputStream in = IOUtils.openFileInputStream(fn);
         IOUtils.copyAndCloseInput(in, out);
         out.closeEntry();
     }

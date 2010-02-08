@@ -10,7 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.UUID;
 
-import org.h2.util.ByteUtils;
+import org.h2.util.Utils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
@@ -64,10 +64,10 @@ public class ValueUuid extends Value {
      */
     public static ValueUuid get(byte[] binary) {
         if (binary.length < 32) {
-            return get(ByteUtils.convertBytesToString(binary));
+            return get(Utils.convertBytesToString(binary));
         }
-        long high = ByteUtils.readLong(binary, 0);
-        long low = ByteUtils.readLong(binary, 16);
+        long high = Utils.readLong(binary, 0);
+        long low = Utils.readLong(binary, 16);
         return (ValueUuid) Value.cache(new ValueUuid(high, low));
     }
 

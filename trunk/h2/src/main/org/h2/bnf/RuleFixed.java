@@ -7,21 +7,20 @@
 package org.h2.bnf;
 
 import java.util.HashMap;
-import java.util.Random;
 
 /**
  * Represents a hard coded terminal rule in a BNF object.
  */
 public class RuleFixed implements Rule {
-    static final int YMD = 0, HMS = 1, NANOS = 2;
-    static final int ANY_EXCEPT_SINGLE_QUOTE = 3;
-    static final int ANY_EXCEPT_DOUBLE_QUOTE = 4;
-    static final int ANY_UNTIL_EOL = 5;
-    static final int ANY_UNTIL_END = 6;
-    static final int ANY_WORD = 7;
-    static final int ANY_EXCEPT_2_DOLLAR = 8;
-    static final int HEX_START = 10, CONCAT = 11, AZ_UNDERSCORE = 12, AF = 13, DIGIT = 14;
-    static final int OPEN_BRACKET = 15, CLOSE_BRACKET = 16;
+    public static final int YMD = 0, HMS = 1, NANOS = 2;
+    public static final int ANY_EXCEPT_SINGLE_QUOTE = 3;
+    public static final int ANY_EXCEPT_DOUBLE_QUOTE = 4;
+    public static final int ANY_UNTIL_EOL = 5;
+    public static final int ANY_UNTIL_END = 6;
+    public static final int ANY_WORD = 7;
+    public static final int ANY_EXCEPT_2_DOLLAR = 8;
+    public static final int HEX_START = 10, CONCAT = 11, AZ_UNDERSCORE = 12, AF = 13, DIGIT = 14;
+    public static final int OPEN_BRACKET = 15, CLOSE_BRACKET = 16;
 
     private final int type;
 
@@ -64,92 +63,12 @@ public class RuleFixed implements Rule {
         }
     }
 
-    public String getHtmlRailroad(Bnf config, boolean topLevel) {
-        return getHtmlText();
-    }
-
-    public String getHtmlText() {
-        switch(type) {
-        case YMD:
-            return "2000-01-01";
-        case HMS:
-            return "12:00:00";
-        case NANOS:
-            return "000000000";
-        case ANY_UNTIL_EOL:
-        case ANY_EXCEPT_SINGLE_QUOTE:
-        case ANY_EXCEPT_DOUBLE_QUOTE:
-        case ANY_WORD:
-        case ANY_EXCEPT_2_DOLLAR:
-        case ANY_UNTIL_END: {
-            return "anything";
-        }
-        case HEX_START:
-            return "0x";
-        case CONCAT:
-            return "||";
-        case AZ_UNDERSCORE:
-            return "A-Z | _";
-        case AF:
-            return "A-F";
-        case DIGIT:
-            return "0-9";
-        case OPEN_BRACKET:
-            return "[";
-        case CLOSE_BRACKET:
-            return "]";
-        default:
-            throw new AssertionError("type="+type);
-        }
-    }
-
-    public String random(Bnf config, int level) {
-        Random r = config.getRandom();
-        switch (type) {
-        case YMD:
-            return (1800 + r.nextInt(200)) + "-" + (1 + r.nextInt(12)) + "-" + (1 + r.nextInt(31));
-        case HMS:
-            return (r.nextInt(24)) + "-" + (r.nextInt(60)) + "-" + (r.nextInt(60));
-        case NANOS:
-            return "" + (r.nextInt(100000) + r.nextInt(10000));
-        case ANY_UNTIL_EOL:
-        case ANY_EXCEPT_SINGLE_QUOTE:
-        case ANY_EXCEPT_DOUBLE_QUOTE:
-        case ANY_WORD:
-        case ANY_EXCEPT_2_DOLLAR:
-        case ANY_UNTIL_END: {
-            StringBuilder buff = new StringBuilder();
-            int len = r.nextBoolean() ? 1 : r.nextInt(5);
-            for (int i = 0; i < len; i++) {
-                buff.append((char) ('A' + r.nextInt('C' - 'A')));
-            }
-            return buff.toString();
-        }
-        case HEX_START:
-            return "0x";
-        case CONCAT:
-            return "||";
-        case AZ_UNDERSCORE:
-            return "" + (char) ('A' + r.nextInt('C' - 'A'));
-        case AF:
-            return "" + (char) ('A' + r.nextInt('F' - 'A'));
-        case DIGIT:
-            return "" + (char) ('0' + r.nextInt(10));
-        case OPEN_BRACKET:
-            return "[";
-        case CLOSE_BRACKET:
-            return "]";
-        default:
-            throw new AssertionError("type="+type);
-        }
+    public void accept(BnfVisitor visitor) {
+        visitor.visitRuleFixed(type);
     }
 
     public String name() {
         return "type="+type;
-    }
-
-    public Rule last() {
-        return this;
     }
 
     public void setLinks(HashMap<String, RuleHead> ruleMap) {

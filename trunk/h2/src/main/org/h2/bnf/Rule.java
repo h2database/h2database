@@ -21,22 +21,6 @@ public interface Rule {
     String name();
 
     /**
-     * Get a random entry.
-     *
-     * @param config the configuration
-     * @param level the call level
-     * @return the entry
-     */
-    String random(Bnf config, int level);
-
-    /**
-     * Get the last entry.
-     *
-     * @return the last entry
-     */
-    Rule last();
-
-    /**
      * Update cross references.
      *
      * @param ruleMap the reference map
@@ -63,12 +47,10 @@ public interface Rule {
     boolean matchRemove(Sentence sentence);
 
     /**
-     * Get the HTML railroad.
+     * Call the visit method in the given visitor.
      *
-     * @param config the configuration
-     * @param topLevel true if line break are permitted
-     * @return the railroad
+     * @param visitor the visitor
      */
-    String getHtmlRailroad(Bnf config, boolean topLevel);
+    void accept(BnfVisitor visitor);
 
 }

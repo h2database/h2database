@@ -9,10 +9,6 @@ package org.h2.test.synth;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-
-import org.h2.bnf.Bnf;
-import org.h2.bnf.RuleHead;
 import org.h2.constant.SysProperties;
 import org.h2.store.fs.FileSystemMemory;
 import org.h2.test.TestAll;
@@ -26,11 +22,9 @@ import org.h2.util.MathUtils;
 public class TestRandomSQL extends TestBase {
 
     private int dbId;
-    private boolean showSQL;
-    private ArrayList<RuleHead> statements;
     private int seed;
     private boolean exitOnError = true;
-    private Bnf bnfSyntax;
+    private BnfRandom bnfRandom;
     private int success, total;
 
     /**
@@ -99,40 +93,12 @@ public class TestRandomSQL extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        bnfSyntax = Bnf.getInstance(null);
-        bnfSyntax.linkStatements();
-        statements = bnfSyntax.getStatements();
-
-        // go backwards so we can append at the end
-        for (int i = statements.size() - 1; i >= 0; i--) {
-            RuleHead r = statements.get(i);
-            String topic = r.getTopic();
-            int weight = 0;
-            if (topic.equals("select")) {
-                weight = 10;
-            } else if (topic.equals("createtable")) {
-                weight = 20;
-            } else if (topic.equals("insert")) {
-                weight = 5;
-            } else if (topic.startsWith("update")) {
-                weight = 3;
-            } else if (topic.startsWith("delete")) {
-                weight = 3;
-            } else if (topic.startsWith("drop")) {
-                weight = 2;
-            }
-            if (showSQL) {
-                System.out.println(r.getTopic());
-            }
-            for (int j = 0; j < weight; j++) {
-                statements.add(r);
-            }
-        }
+        bnfRandom = new BnfRandom();
         return this;
     }
 
-    private void testWithSeed(Bnf bnf) throws SQLException {
-        bnf.getRandom().setSeed(seed);
+    private void testWithSeed() throws SQLException {
+        bnfRandom.setSeed(seed);
         Connection conn = null;
         try {
             conn = connect();
@@ -141,28 +107,20 @@ public class TestRandomSQL extends TestBase {
             conn = connect();
         }
         Statement stat = conn.createStatement();
-        for (int i = 0; i < statements.size(); i++) {
-            int sid = bnf.getRandom().nextInt(statements.size());
-            RuleHead r = statements.get(sid);
-            String rand = r.getRule().random(bnf, 0).trim();
-            if (rand.length() > 0) {
+
+        for (int i = 0; i < bnfRandom.getStatementCount(); i++) {
+            String sql = bnfRandom.getRandomSQL();
+            if (sql != null) {
                 try {
                     Thread.yield();
-                    if (rand.indexOf("TRACE_LEVEL_") < 0 && rand.indexOf("COLLATION") < 0
-                            && rand.indexOf("SCRIPT ") < 0 && rand.indexOf("CSVWRITE") < 0
-                            && rand.indexOf("BACKUP") < 0 && rand.indexOf("DB_CLOSE_DELAY") < 0) {
-                        if (showSQL) {
-                            System.out.println(i + "  " + rand);
-                        }
-                        total++;
-                        if (total % 100 == 0) {
-                            printTime("total: " + total + " success: " + (100 * success / total) + "%");
-                        }
-                        stat.execute(rand);
-                        success++;
+                    total++;
+                    if (total % 100 == 0) {
+                        printTime("total: " + total + " success: " + (100 * success / total) + "%");
                     }
+                    stat.execute(sql);
+                    success++;
                 } catch (SQLException e) {
-                    processException(rand, e);
+                    processException(sql, e);
                 }
             }
         }
@@ -184,7 +142,7 @@ public class TestRandomSQL extends TestBase {
             } catch (SQLException e) {
                 processException("deleteDb", e);
             }
-            testWithSeed(bnfSyntax);
+            testWithSeed();
         } finally {
             System.setProperty(SysProperties.H2_SCRIPT_DIRECTORY, old);
         }
@@ -201,7 +159,6 @@ public class TestRandomSQL extends TestBase {
         }
         int len = getSize(2, 6);
         exitOnError = false;
-        showSQL = false;
         for (int a = 0; a < len; a++) {
             int s = MathUtils.randomInt(Integer.MAX_VALUE);
             testCase(s);

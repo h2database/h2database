@@ -33,32 +33,12 @@ public class RuleElement implements Rule {
         return name;
     }
 
-    public String getHtmlRailroad(Bnf config, boolean topLevel) {
-        String x;
-        if (keyword) {
-            x = StringUtils.xmlText(name.trim());
-        } else {
-            x = config.getLink(name.trim());
-        }
-        return "<code class=\"c\">" + x + "</code>";
-    }
-
-    public String random(Bnf config, int level) {
-        if (keyword) {
-            return name.length() > 1 ? " " + name + " " : name;
-        }
-        if (link != null) {
-            return link.random(config, level + 1);
-        }
-        throw new AssertionError(name);
+    public void accept(BnfVisitor visitor) {
+        visitor.visitRuleElement(keyword, name, link);
     }
 
     public String name() {
         return name;
-    }
-
-    public Rule last() {
-        return this;
     }
 
     public void setLinks(HashMap<String, RuleHead> ruleMap) {

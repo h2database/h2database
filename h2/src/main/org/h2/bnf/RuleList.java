@@ -53,69 +53,12 @@ public class RuleList implements Rule {
         return buff.toString();
     }
 
-    public String getHtmlRailroad(Bnf config, boolean topLevel) {
-        StringBuilder buff = new StringBuilder();
-        if (or) {
-            buff.append("<table class=\"railroad\">");
-            int i = 0;
-            for (Rule r : list) {
-                String a = i == 0 ? "t" : i == list.size() - 1 ? "l" : "k";
-                i++;
-                buff.append("<tr class=\"railroad\"><td class=\"" + a + "s\"></td><td class=\"d\">");
-                buff.append(r.getHtmlRailroad(config, false));
-                buff.append("</td><td class=\"" + a + "e\"></td></tr>");
-            }
-            buff.append("</table>");
-        } else {
-            if (!topLevel) {
-                buff.append("<table class=\"railroad\">");
-                buff.append("<tr class=\"railroad\">");
-            }
-            for (Rule r : list) {
-                if (!topLevel) {
-                    buff.append("<td class=\"d\">");
-                }
-                buff.append(r.getHtmlRailroad(config, false));
-                if (!topLevel) {
-                    buff.append("</td>");
-                }
-            }
-            if (!topLevel) {
-                buff.append("</tr></table>");
-            }
-        }
-        return buff.toString();
-    }
-
-    public String random(Bnf config, int level) {
-        if (or) {
-            if (level > 10) {
-                if (level > 1000) {
-                    // better than stack overflow
-                    throw new AssertionError();
-                }
-                return get(0).random(config, level);
-            }
-            int idx = config.getRandom().nextInt(list.size());
-            return get(idx).random(config, level + 1);
-        }
-        StringBuilder buff = new StringBuilder();
-        for (Rule r : list) {
-            buff.append(r.random(config, level+1));
-        }
-        return buff.toString();
-    }
-
-    private Rule get(int idx) {
-        return list.get(idx);
+    public void accept(BnfVisitor visitor) {
+        visitor.visitRuleList(or, list);
     }
 
     public String name() {
         return null;
-    }
-
-    public Rule last() {
-        return get(list.size() - 1);
     }
 
     public void setLinks(HashMap<String, RuleHead> ruleMap) {

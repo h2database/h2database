@@ -137,11 +137,13 @@ public class GenerateDoc {
                 String topic = rs.getString("TOPIC");
                 String syntax = rs.getString("SYNTAX").trim();
                 if (railroads) {
-                    String railroad = bnf.getRailroadHtml(syntax);
+                    BnfRailroad r = new BnfRailroad();
+                    String railroad = r.getHtml(bnf, syntax);
                     map.put("railroad", railroad);
                 }
-                syntax = bnf.getSyntaxHtml(syntax);
-                map.put("syntax", syntax);
+                BnfSyntax visitor = new BnfSyntax();
+                String syntaxHtml = visitor.getHtml(bnf, syntax);
+                map.put("syntax", syntaxHtml);
 
                 // remove newlines in the regular text
                 String text = map.get("text");

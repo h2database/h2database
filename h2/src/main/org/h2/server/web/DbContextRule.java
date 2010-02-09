@@ -9,8 +9,7 @@ package org.h2.server.web;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
-import org.h2.bnf.Bnf;
+import org.h2.bnf.BnfVisitor;
 import org.h2.bnf.Rule;
 import org.h2.bnf.RuleHead;
 import org.h2.bnf.Sentence;
@@ -59,14 +58,6 @@ public class DbContextRule implements Rule {
 
     public String name() {
         return null;
-    }
-
-    public String random(Bnf config, int level) {
-        return null;
-    }
-
-    public Rule last() {
-        return this;
     }
 
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
@@ -477,8 +468,8 @@ public class DbContextRule implements Rule {
         return best;
     }
 
-    public String getHtmlRailroad(Bnf config, boolean topLevel) {
-        return null;
+    public void accept(BnfVisitor visitor) {
+        // nothing to do
     }
 
 }

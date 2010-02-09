@@ -23,29 +23,12 @@ public class RuleOptional implements Rule {
         return "[" + rule.toString() + "]";
     }
 
-    public String getHtmlRailroad(Bnf config, boolean topLevel) {
-        StringBuilder buff = new StringBuilder();
-        buff.append("<table class=\"railroad\">");
-        buff.append("<tr class=\"railroad\"><td class=\"ts\"></td><td class=\"d\">&nbsp;</td><td class=\"te\"></td></tr>");
-        buff.append("<tr class=\"railroad\"><td class=\"ls\"></td><td class=\"d\">");
-        buff.append(rule.getHtmlRailroad(config, false));
-        buff.append("</td><td class=\"le\"></td></tr></table>");
-        return buff.toString();
+    public void accept(BnfVisitor visitor) {
+        visitor.visitRuleOptional(rule);
     }
 
     public String name() {
         return null;
-    }
-
-    public String random(Bnf config, int level) {
-        if (level > 10 ? config.getRandom().nextInt(level) == 1 : config.getRandom().nextInt(4) == 1) {
-            return rule.random(config, level + 1);
-        }
-        return "";
-    }
-
-    public Rule last() {
-        return this;
     }
 
     public void setLinks(HashMap<String, RuleHead> ruleMap) {

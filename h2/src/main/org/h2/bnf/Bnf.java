@@ -14,9 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.StringTokenizer;
-
 import org.h2.server.web.DbContextRule;
 import org.h2.tools.Csv;
 import org.h2.util.New;
@@ -28,8 +26,6 @@ import org.h2.util.Utils;
  * It is made specially to support SQL grammar.
  */
 public class Bnf {
-
-    private final Random random = new Random();
 
     /**
      * The rule map. The key is lowercase, and all spaces
@@ -44,10 +40,6 @@ public class Bnf {
     private Rule lastRepeat;
     private ArrayList<RuleHead> statements;
     private String currentTopic;
-
-    Bnf() {
-        random.setSeed(1);
-    }
 
     /**
      * Create an instance using the grammar specified in the CSV file.
@@ -78,10 +70,6 @@ public class Bnf {
         }
         ruleMap.put(key, head);
         return head;
-    }
-
-    public Random getRandom() {
-        return random;
     }
 
     private void parse(Reader csv) throws SQLException, IOException {
@@ -132,54 +120,13 @@ public class Bnf {
         addFixedRule("@close_bracket@", RuleFixed.CLOSE_BRACKET);
     }
 
-    /**
-     * Get the HTML railroad for a given syntax.
-     *
-     * @param bnf the syntax
-     * @return the HTML formatted railroad
-     */
-    public String getRailroadHtml(String bnf) {
-        bnf = StringUtils.replaceAll(bnf, "\n    ", " ");
-        String[] syntaxList = StringUtils.arraySplit(bnf, '\n', true);
-        StringBuilder buff = new StringBuilder();
-        for (String s : syntaxList) {
-            this.syntax = s;
-            tokens = tokenize();
-            index = 0;
-            Rule rule = parseRule();
-            rule.setLinks(ruleMap);
-            String html = rule.getHtmlRailroad(this, false);
-            html = StringUtils.replaceAll(html, "</code></td><td class=\"d\"><code class=\"c\">", " ");
-            if (buff.length() > 0) {
-                buff.append("<br />");
-            }
-            buff.append(html);
-        }
-        return buff.toString();
-    }
-
-    /**
-     * Get the HTML documentation for a given syntax.
-     *
-     * @param bnf the BNF syntax
-     * @return the HTML formatted text
-     */
-    public String getSyntaxHtml(String bnf) {
-        bnf = StringUtils.replaceAll(bnf, "\n    ", "\n");
-        StringTokenizer tokenizer = getTokenizer(bnf);
-        StringBuilder buff = new StringBuilder();
-        while (tokenizer.hasMoreTokens()) {
-            String s = tokenizer.nextToken();
-            if (s.length() == 1 || StringUtils.toUpperEnglish(s).equals(s)) {
-                buff.append(StringUtils.xmlText(s));
-                continue;
-            }
-            buff.append(getLink(s));
-        }
-        String s = buff.toString();
-        // ensure it works within XHTML comments
-        s = StringUtils.replaceAll(s, "--", "&#45;-");
-        return s;
+    public void visit(BnfVisitor visitor, String s) {
+        this.syntax = s;
+        tokens = tokenize();
+        index = 0;
+        Rule rule = parseRule();
+        rule.setLinks(ruleMap);
+        rule.accept(visitor);
     }
 
     /**
@@ -188,7 +135,7 @@ public class Bnf {
      * @param token the token
      * @return the rule map key
      */
-    static String getRuleMapKey(String token) {
+    public static String getRuleMapKey(String token) {
         StringBuilder buff = new StringBuilder();
         for (char ch : token.toCharArray()) {
             if (Character.isUpperCase(ch)) {
@@ -201,39 +148,13 @@ public class Bnf {
     }
 
     /**
-     * Get the HTML link for the given token, or the token itself if no link
-     * exists.
+     * Get the rule head for the given title.
      *
-     * @param token the token
-     * @return the HTML link
+     * @param title
+     * @return the rule head, or null
      */
-    String getLink(String token) {
-        RuleHead found = null;
-        String key = getRuleMapKey(token);
-        for (int i = 0; i < token.length(); i++) {
-            String test = StringUtils.toLowerEnglish(key.substring(i));
-            RuleHead r = ruleMap.get(test);
-            if (r != null) {
-                found = r;
-                break;
-            }
-        }
-        if (found == null) {
-            return token;
-        }
-        String page = "grammar.html";
-        if (found.getSection().startsWith("Data Types")) {
-            page = "datatypes.html";
-        } else if (found.getSection().startsWith("Functions")) {
-            page = "functions.html";
-        } else if (token.equals("@func@")) {
-            return "<a href=\"functions.html\">Function</a>";
-        } else if (found.getRule() instanceof RuleFixed) {
-            return found.getRule().getHtmlRailroad(this, false);
-        }
-        String link = found.getTopic().toLowerCase().replace(' ', '_');
-        link = page + "#" + StringUtils.urlEncode(link);
-        return "<a href=\"" + link + "\">" + token + "</a>";
+    public RuleHead getRuleHead(String title) {
+        return ruleMap.get(title);
     }
 
     private Rule parseRule() {
@@ -396,7 +317,13 @@ public class Bnf {
         return statements;
     }
 
-    private StringTokenizer getTokenizer(String s) {
+    /**
+     * Get the tokenizer for the given syntax.
+     *
+     * @param s the syntax
+     * @return the tokenizer
+     */
+    public StringTokenizer getTokenizer(String s) {
         return new StringTokenizer(s, " [](){}|.,\r\n<>:-+*/=<\">!'$", true);
     }
 

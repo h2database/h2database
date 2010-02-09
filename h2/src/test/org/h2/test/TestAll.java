@@ -288,6 +288,7 @@ java org.h2.test.TestAll timer
 /*
 Row.getMemorySize
 FileStore.sync, Database.sync() (CHECKPOINT SYNC)
+H2 Console: use reflection for @INFO; maybe compiler for loop
 
 document in performance section:
 PreparedStatement prep = conn.prepareStatement(

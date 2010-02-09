@@ -13,8 +13,6 @@ import java.util.HashMap;
  */
 public class RuleRepeat implements Rule {
 
-    private static final boolean RAILROAD_DOTS = true;
-
     private final Rule rule;
     private final boolean comma;
 
@@ -27,41 +25,16 @@ public class RuleRepeat implements Rule {
         return "...";
     }
 
-    public String getHtmlRailroad(Bnf config, boolean topLevel) {
-        StringBuilder buff = new StringBuilder();
-        if (RAILROAD_DOTS) {
-            buff.append("<code class=\"c\">");
-            if (comma) {
-                buff.append(", ");
-            }
-            buff.append("...</code>");
-        } else {
-            buff.append("<table class=\"railroad\">");
-            buff.append("<tr class=\"railroad\"><td class=\"te\"></td>");
-            buff.append("<td class=\"d\">");
-            buff.append(rule.getHtmlRailroad(config, false));
-            buff.append("</td><td class=\"ts\"></td></tr>");
-            buff.append("<tr class=\"railroad\"><td class=\"ls\"></td>");
-            buff.append("<td class=\"d\">&nbsp;</td>");
-            buff.append("<td class=\"le\"></td></tr></table>");
-        }
-        return buff.toString();
+    public void accept(BnfVisitor visitor) {
+        visitor.visitRuleRepeat(comma, rule);
     }
 
     public String name() {
         return rule.name();
     }
 
-    public Rule last() {
-        return this;
-    }
-
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // rule.setLinks(ruleMap);
-    }
-
-    public String random(Bnf config, int level) {
-        return rule.random(config, level);
     }
 
     public boolean matchRemove(Sentence sentence) {

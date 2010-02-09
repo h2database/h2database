@@ -213,7 +213,7 @@ public class Sentence {
      *
      * @return the next token map
      */
-    public HashMap<String, String> getNext() {
+    HashMap<String, String> getNext() {
         return next;
     }
 

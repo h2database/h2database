@@ -28,7 +28,7 @@ public class RuleHead {
         return rule;
     }
 
-    public void setRule(Rule rule) {
+    void setRule(Rule rule) {
         this.rule = rule;
     }
 

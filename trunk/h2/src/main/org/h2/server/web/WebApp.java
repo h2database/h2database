@@ -11,6 +11,8 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ParameterMetaData;
@@ -1044,100 +1046,10 @@ public class WebApp {
             }
             rs.addRow("conn.getTypeMap", "" + map);
             rs.addRow("conn.isReadOnly", "" + conn.isReadOnly());
-            rs.addRow("meta.getCatalogSeparator", "" + meta.getCatalogSeparator());
-            rs.addRow("meta.getCatalogTerm", "" + meta.getCatalogTerm());
-            rs.addRow("meta.getDatabaseProductName", "" + meta.getDatabaseProductName());
-            rs.addRow("meta.getDatabaseProductVersion", "" + meta.getDatabaseProductVersion());
-            rs.addRow("meta.getDefaultTransactionIsolation", "" + meta.getDefaultTransactionIsolation());
-            rs.addRow("meta.getDriverMajorVersion", "" + meta.getDriverMajorVersion());
-            rs.addRow("meta.getDriverMinorVersion", "" + meta.getDriverMinorVersion());
-            rs.addRow("meta.getDriverName", "" + meta.getDriverName());
-            rs.addRow("meta.getDriverVersion", "" + meta.getDriverVersion());
-            rs.addRow("meta.getExtraNameCharacters", "" + meta.getExtraNameCharacters());
-            rs.addRow("meta.getIdentifierQuoteString", "" + meta.getIdentifierQuoteString());
-            rs.addRow("meta.getMaxBinaryLiteralLength", "" + meta.getMaxBinaryLiteralLength());
-            rs.addRow("meta.getMaxCatalogNameLength", "" + meta.getMaxCatalogNameLength());
-            rs.addRow("meta.getMaxCharLiteralLength", "" + meta.getMaxCharLiteralLength());
-            rs.addRow("meta.getMaxColumnNameLength", "" + meta.getMaxColumnNameLength());
-            rs.addRow("meta.getMaxColumnsInGroupBy", "" + meta.getMaxColumnsInGroupBy());
-            rs.addRow("meta.getMaxColumnsInIndex", "" + meta.getMaxColumnsInIndex());
-            rs.addRow("meta.getMaxColumnsInOrderBy", "" + meta.getMaxColumnsInOrderBy());
-            rs.addRow("meta.getMaxColumnsInSelect", "" + meta.getMaxColumnsInSelect());
-            rs.addRow("meta.getMaxColumnsInTable", "" + meta.getMaxColumnsInTable());
-            rs.addRow("meta.getMaxConnections", "" + meta.getMaxConnections());
-            rs.addRow("meta.getMaxCursorNameLength", "" + meta.getMaxCursorNameLength());
-            rs.addRow("meta.getMaxIndexLength", "" + meta.getMaxIndexLength());
-            rs.addRow("meta.getMaxProcedureNameLength", "" + meta.getMaxProcedureNameLength());
-            rs.addRow("meta.getMaxRowSize", "" + meta.getMaxRowSize());
-            rs.addRow("meta.getMaxSchemaNameLength", "" + meta.getMaxSchemaNameLength());
-            rs.addRow("meta.getMaxStatementLength", "" + meta.getMaxStatementLength());
-            rs.addRow("meta.getMaxStatements", "" + meta.getMaxStatements());
-            rs.addRow("meta.getMaxTableNameLength", "" + meta.getMaxTableNameLength());
-            rs.addRow("meta.getMaxTablesInSelect", "" + meta.getMaxTablesInSelect());
-            rs.addRow("meta.getMaxUserNameLength", "" + meta.getMaxUserNameLength());
-            rs.addRow("meta.getNumericFunctions", "" + meta.getNumericFunctions());
-            rs.addRow("meta.getProcedureTerm", "" + meta.getProcedureTerm());
-            rs.addRow("meta.getSchemaTerm", "" + meta.getSchemaTerm());
-            rs.addRow("meta.getSearchStringEscape", "" + meta.getSearchStringEscape());
-            rs.addRow("meta.getSQLKeywords", "" + meta.getSQLKeywords());
-            rs.addRow("meta.getStringFunctions", "" + meta.getStringFunctions());
-            rs.addRow("meta.getSystemFunctions", "" + meta.getSystemFunctions());
-            rs.addRow("meta.getTimeDateFunctions", "" + meta.getTimeDateFunctions());
-            rs.addRow("meta.getURL", "" + meta.getURL());
-            rs.addRow("meta.getUserName", "" + meta.getUserName());
-            rs.addRow("meta.isCatalogAtStart", "" + meta.isCatalogAtStart());
-            rs.addRow("meta.isReadOnly", "" + meta.isReadOnly());
-            rs.addRow("meta.allProceduresAreCallable", "" + meta.allProceduresAreCallable());
-            rs.addRow("meta.allTablesAreSelectable", "" + meta.allTablesAreSelectable());
-            rs.addRow("meta.dataDefinitionCausesTransactionCommit", "" + meta.dataDefinitionCausesTransactionCommit());
-            rs.addRow("meta.dataDefinitionIgnoredInTransactions", "" + meta.dataDefinitionIgnoredInTransactions());
-            rs.addRow("meta.doesMaxRowSizeIncludeBlobs", "" + meta.doesMaxRowSizeIncludeBlobs());
-            rs.addRow("meta.nullPlusNonNullIsNull", "" + meta.nullPlusNonNullIsNull());
-            rs.addRow("meta.nullsAreSortedAtEnd", "" + meta.nullsAreSortedAtEnd());
-            rs.addRow("meta.nullsAreSortedAtStart", "" + meta.nullsAreSortedAtStart());
-            rs.addRow("meta.nullsAreSortedHigh", "" + meta.nullsAreSortedHigh());
-            rs.addRow("meta.nullsAreSortedLow", "" + meta.nullsAreSortedLow());
-            rs.addRow("meta.storesLowerCaseIdentifiers", "" + meta.storesLowerCaseIdentifiers());
-            rs.addRow("meta.storesLowerCaseQuotedIdentifiers", "" + meta.storesLowerCaseQuotedIdentifiers());
-            rs.addRow("meta.storesMixedCaseIdentifiers", "" + meta.storesMixedCaseIdentifiers());
-            rs.addRow("meta.storesMixedCaseQuotedIdentifiers", "" + meta.storesMixedCaseQuotedIdentifiers());
-            rs.addRow("meta.storesUpperCaseIdentifiers", "" + meta.storesUpperCaseIdentifiers());
-            rs.addRow("meta.storesUpperCaseQuotedIdentifiers", "" + meta.storesUpperCaseQuotedIdentifiers());
-            rs.addRow("meta.supportsAlterTableWithAddColumn", "" + meta.supportsAlterTableWithAddColumn());
-            rs.addRow("meta.supportsAlterTableWithDropColumn", "" + meta.supportsAlterTableWithDropColumn());
-            rs.addRow("meta.supportsANSI92EntryLevelSQL", "" + meta.supportsANSI92EntryLevelSQL());
-            rs.addRow("meta.supportsANSI92FullSQL", "" + meta.supportsANSI92FullSQL());
-            rs.addRow("meta.supportsANSI92IntermediateSQL", "" + meta.supportsANSI92IntermediateSQL());
-            rs.addRow("meta.supportsBatchUpdates", "" + meta.supportsBatchUpdates());
-            rs.addRow("meta.supportsCatalogsInDataManipulation", "" + meta.supportsCatalogsInDataManipulation());
-            rs.addRow("meta.supportsCatalogsInIndexDefinitions", "" + meta.supportsCatalogsInIndexDefinitions());
-            rs.addRow("meta.supportsCatalogsInPrivilegeDefinitions", "" + meta.supportsCatalogsInPrivilegeDefinitions());
-            rs.addRow("meta.supportsCatalogsInProcedureCalls", "" + meta.supportsCatalogsInProcedureCalls());
-            rs.addRow("meta.supportsCatalogsInTableDefinitions", "" + meta.supportsCatalogsInTableDefinitions());
-            rs.addRow("meta.supportsColumnAliasing", "" + meta.supportsColumnAliasing());
-            rs.addRow("meta.supportsConvert", "" + meta.supportsConvert());
-            rs.addRow("meta.supportsCoreSQLGrammar", "" + meta.supportsCoreSQLGrammar());
-            rs.addRow("meta.supportsCorrelatedSubqueries", "" + meta.supportsCorrelatedSubqueries());
-            rs.addRow("meta.supportsDataDefinitionAndDataManipulationTransactions", "" + meta.supportsDataDefinitionAndDataManipulationTransactions());
-            rs.addRow("meta.supportsDataManipulationTransactionsOnly", "" + meta.supportsDataManipulationTransactionsOnly());
-            rs.addRow("meta.supportsDifferentTableCorrelationNames", "" + meta.supportsDifferentTableCorrelationNames());
-            rs.addRow("meta.supportsExpressionsInOrderBy", "" + meta.supportsExpressionsInOrderBy());
-            rs.addRow("meta.supportsExtendedSQLGrammar", "" + meta.supportsExtendedSQLGrammar());
-            rs.addRow("meta.supportsFullOuterJoins", "" + meta.supportsFullOuterJoins());
-            rs.addRow("meta.supportsGroupBy", "" + meta.supportsGroupBy());
-            rs.addRow("meta.usesLocalFilePerTable", "" + meta.usesLocalFilePerTable());
-            rs.addRow("meta.usesLocalFiles", "" + meta.usesLocalFiles());
 //## Java 1.4 begin ##
             rs.addRow("conn.getHoldability", "" + conn.getHoldability());
-            rs.addRow("meta.getDatabaseMajorVersion", "" + meta.getDatabaseMajorVersion());
-            rs.addRow("meta.getDatabaseMinorVersion", "" + meta.getDatabaseMinorVersion());
-            rs.addRow("meta.getJDBCMajorVersion", "" + meta.getJDBCMajorVersion());
-            rs.addRow("meta.getJDBCMinorVersion", "" + meta.getJDBCMinorVersion());
-            rs.addRow("meta.getResultSetHoldability", "" + meta.getResultSetHoldability());
-            rs.addRow("meta.getSQLStateType", "" + meta.getSQLStateType());
-            rs.addRow("meta.supportsGetGeneratedKeys", "" + meta.supportsGetGeneratedKeys());
-            rs.addRow("meta.locatorsUpdateCopy", "" + meta.locatorsUpdateCopy());
 //## Java 1.4 end ##
+            addDatabaseMetaData(rs, meta);
             return rs;
         } else if (sql.startsWith("@CATALOGS")) {
             return meta.getCatalogs();
@@ -1209,6 +1121,21 @@ public class WebApp {
             }
         }
         return null;
+    }
+
+    private void addDatabaseMetaData(SimpleResultSet rs, DatabaseMetaData meta) throws SQLException {
+        for (Method m : DatabaseMetaData.class.getDeclaredMethods()) {
+            if (m.getParameterTypes().length == 0) {
+                try {
+                    Object o = m.invoke(meta);
+                    rs.addRow("meta." + m.getName(), "" + o);
+                } catch (InvocationTargetException e) {
+                    rs.addRow("meta." + m.getName(), e.getTargetException().toString());
+                } catch (Exception e) {
+                    rs.addRow("meta." + m.getName(), e.toString());
+                }
+            }
+        }
     }
 
     private String[] split(String s) {

@@ -633,4 +633,5 @@ slowly prefs precedence mat verbose nonce complicate speedup replay
 profiles superinterfaces conventions brace indentations increments
 explicitconstructorcall switchstatements members parens alignment declarations
 jdt continuation codegen parenthesized tabulation ellipsis imple inits guardian
-postfix
+postfix iconified deiconified deactivated activated worker frequent utilities
+workers appender recovers

@@ -17,6 +17,7 @@ import org.h2.store.FileStore;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -44,6 +45,7 @@ import org.h2.value.ValueUuid;
 public class TestDataPage extends TestBase implements DataHandler {
 
     private boolean testPerformance;
+    private CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     /**
      * Run just this test.
@@ -203,7 +205,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         data.reset();
         Value v2 = data.readValue();
         assertEquals(v.getType(), v2.getType());
-        assertTrue(v.compareEqual(v2));
+        assertEquals(0, v.compareTo(v2, compareMode));
         assertEquals(123, data.readInt());
     }
 

@@ -22,6 +22,13 @@ public class BnfSyntax implements BnfVisitor {
 
     private String html;
 
+    /**
+     * Get the HTML syntax for the given syntax.
+     *
+     * @param bnf the BNF
+     * @param syntaxLines the syntax
+     * @return the HTML
+     */
     public String getHtml(Bnf bnf, String syntaxLines) {
         syntaxLines = StringUtils.replaceAll(syntaxLines, "\n    ", "\n");
         StringTokenizer tokenizer = bnf.getTokenizer(syntaxLines);
@@ -40,6 +47,13 @@ public class BnfSyntax implements BnfVisitor {
         return s;
     }
 
+    /**
+     * Get the HTML link to the given token.
+     *
+     * @param bnf the BNF
+     * @param token the token
+     * @return the HTML link
+     */
     String getLink(Bnf bnf, String token) {
         RuleHead found = null;
         String key = Bnf.getRuleMapKey(token);

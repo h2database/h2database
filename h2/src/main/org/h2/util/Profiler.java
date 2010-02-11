@@ -8,7 +8,6 @@ package org.h2.util;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import org.h2.engine.Constants;
 
@@ -145,15 +144,6 @@ public class Profiler implements Runnable {
                 minCount++;
             }
         }
-    }
-
-    public static void main(String... args) {
-        Profiler p = new Profiler();
-        p.startCollecting();
-        org.h2.Driver.load();
-        Locale.getAvailableLocales();
-        p.stopCollecting();
-        System.out.println(p.getTop(10));
     }
 
     /**

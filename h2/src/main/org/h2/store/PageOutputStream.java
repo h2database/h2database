@@ -105,6 +105,13 @@ public class PageOutputStream {
         data.initWrite();
     }
 
+    /**
+     * Write the data.
+     *
+     * @param b the buffer
+     * @param off the offset
+     * @param len the length
+     */
     public void write(byte[] b, int off, int len) throws IOException {
         if (len <= 0) {
             return;
@@ -145,6 +152,9 @@ public class PageOutputStream {
         }
     }
 
+    /**
+     * Write all data.
+     */
     public void flush() throws IOException {
         if (needFlush) {
             storePage();
@@ -152,6 +162,9 @@ public class PageOutputStream {
         }
     }
 
+    /**
+     * Close the stream.
+     */
     public void close() {
         store = null;
     }

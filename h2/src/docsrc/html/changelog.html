@@ -18,22 +18,24 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The BNF parser now uses the visitor pattern.
-</li><li>The methods of the CloseListener are added to the Trigger interface. 
+<ul><li>When doing an index lookup, decimal values with the same value but different scale
+    (for example 0.00 and 0.0) where not considered equal in version 1.2.128.
+    Now they are (unlike BigDecimal.equals()).
+</li><li>The BNF parser now uses the visitor pattern.
+</li><li>The methods of the CloseListener are added to the Trigger interface.
     The interface CloseListener is removed.
 </li><li>Converting a UUID to bytes was incorrect. Because of that, updatable result sets on
-    tables with UUID primary key did not work. 
+    tables with UUID primary key did not work.
 </li><li>The database URL property DATABASE_EVENT_LISTENER_OBJECT is no longer supported
     (there are problems passing objects when the PostgreSQL driver is installed as well).
 </li><li>H2 Console: asynchronous login (using a DatabaseEventListener) is no longer supported.
 </li><li>A workaround for a Windows socket problem has been implemented. Thanks a lot to Sergi Vladykin.
 </li><li>The Recover tool did not convert correctly convert CLOB data with non-ASCII characters.
-</li><li>Tools: the method run(String... args) has been renamed to runTool(String... args)
-    so it can't be confused with run().
+</li><li>Tools: the method run(String... args) has been renamed to runTool(String... args).
 </li><li>Server.startWebServer(Connection) was not working as expected.
 </li><li>The database URL option ACCESS_MODE_LOG is no longer supported.
 </li><li>The database URL option RECOVER has currently no effect.
-</li><li>Converting an old (non-page store) database is no longer supported using this version. 
+</li><li>Converting an old (non-page store) database is no longer supported using this version.
 </li><li>The system property "h2.overflowExceptions" is no longer supported.
 </li><li>The system property "h2.optimizeDropDependencies" is no longer supported.
 </li><li>The system property "h2.optimizeGroupSorted" is no longer supported.
@@ -43,9 +45,9 @@ Change Log
 </li><li>The system property "h2.optimizeInJoin" is no longer supported.
 </li><li>The system properties "h2.reuseSpace..." are no longer supported.
 </li><li>The setting LOG has currently no effect.
-</li><li>Disabling the page store is no longer supported. The old storage mechanism 
-	has been removed, shrinking the jar file size by about 5%. Older databases can still be opened
-	(the database will be converted automatically).
+</li><li>Disabling the page store is no longer supported. The old storage mechanism
+    has been removed, shrinking the jar file size by about 5%. Older databases can still be opened
+    (the database will be converted automatically).
 </li><li>The translated resources are now stored in UTF-8 format.
 </li><li>The Windows service wrapper now detects if multiple versions of H2 are installed.
 </li></ul>

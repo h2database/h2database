@@ -60,9 +60,17 @@ public class TestValueMemory extends TestBase implements DataHandler {
     }
 
     public void test() throws SQLException {
+        testCompare();
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
             testType(i);
         }
+    }
+
+    private void testCompare() {
+        ValueDecimal a = ValueDecimal.get(new BigDecimal("0.0"));
+        ValueDecimal b = ValueDecimal.get(new BigDecimal("-0.00"));
+        assertTrue(a.hashCode() != b.hashCode());
+        assertFalse(a.equals(b));
     }
 
     private void testType(int type) throws SQLException {

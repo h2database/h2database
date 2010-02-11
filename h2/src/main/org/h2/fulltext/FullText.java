@@ -748,7 +748,9 @@ public class FullText {
     }
 
     /**
-     * Check if a the indexed columns of a row have changed.
+     * Check if a the indexed columns of a row probably have changed. It may
+     * return true even if the change was minimal (for example from 0.0 to
+     * 0.00).
      *
      * @param oldRow the old row
      * @param newRow the new row

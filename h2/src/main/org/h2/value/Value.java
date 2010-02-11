@@ -227,9 +227,10 @@ public abstract class Value {
     public abstract int hashCode();
 
     /**
-     * Check if the two values are equal.
-     * No data conversion is made; this method returns false
-     * if the other object is not of the same class.
+     * Check if the two values have the same hash code. No data conversion is
+     * made; this method returns false if the other object is not of the same
+     * class. For some values, compareTo may return 0 even if equals return
+     * false. Example: ValueDecimal 0.0 and 0.00.
      *
      * @param other the other value
      * @return true if they are equal
@@ -799,25 +800,6 @@ public abstract class Value {
             return 1;
         }
         return compareSecure(v, mode);
-    }
-
-    /**
-     * Compare two values and return true if they contain the same data.
-     *
-     * @param v the value to compare against
-     * @return true if both values are the same     * @throws SQLException
-     */
-    public final boolean compareEqual(Value v) throws SQLException {
-        if (this == ValueNull.INSTANCE) {
-            return v == ValueNull.INSTANCE;
-        } else if (v == ValueNull.INSTANCE) {
-            return false;
-        }
-        if (getType() == v.getType()) {
-            return equals(v);
-        }
-        int t2 = Value.getHigherOrder(getType(), v.getType());
-        return convertTo(t2).equals(v.convertTo(t2));
     }
 
     /**

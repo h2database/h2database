@@ -253,14 +253,7 @@ public class Database implements DataHandler {
      * @return true if both objects are equal
      */
     public boolean areEqual(Value a, Value b) throws SQLException {
-        // TODO optimization possible
-        // boolean is = a.compareEqual(b);
-        // boolean is2 = a.compareTo(b, compareMode) == 0;
-        // if(is != is2) {
-        // is = a.compareEqual(b);
-        // System.out.println("hey!");
-        // }
-        // return a.compareEqual(b);
+        // can not use compareEqual because ValueDecimal 0.0 is not equal to 0.00.
         return a.compareTo(b, compareMode) == 0;
     }
 
@@ -1171,6 +1164,11 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Allocate a new object id.
+     *
+     * @return the id
+     */
     public synchronized int allocateObjectId() {
         int i = objectIds.nextClearBit(0);
         objectIds.set(i);
@@ -1375,6 +1373,11 @@ public class Database implements DataHandler {
         updateWithChildren(session, obj);
     }
 
+    /**
+     * Create a temporary file in the database folder.
+     *
+     * @return the file name
+     */
     public String createTempFile() throws SQLException {
         try {
             boolean inTempDir = readOnly;

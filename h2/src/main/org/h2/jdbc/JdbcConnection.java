@@ -34,6 +34,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.Utils;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
@@ -85,6 +86,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private boolean isInternal;
     private String catalog;
     private Statement executingStatement;
+    private CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     /**
      * INTERNAL
@@ -1479,7 +1481,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosedForWrite();
-            ValueLob v = ValueLob.createSmallLob(Value.CLOB, MemoryUtils.EMPTY_BYTES);
+            ValueLob v = ValueLob.createSmallLob(Value.CLOB, Utils.EMPTY_BYTES);
             return new JdbcClob(this, v, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1684,6 +1686,10 @@ public class JdbcConnection extends TraceObject implements Connection {
             o = v.getObject();
         }
         return o;
+    }
+
+    CompareMode getCompareMode() {
+        return compareMode;
     }
 
 }

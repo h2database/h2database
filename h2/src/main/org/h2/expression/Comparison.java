@@ -163,7 +163,7 @@ public class Comparison extends Condition {
                             return ValueExpression.getNull();
                         }
                         Expression test = getCast(right, left.getType(), left.getPrecision(), left.getScale(), left.getDisplaySize(), session);
-                        if (!r.compareEqual(test.getValue(session))) {
+                        if (!database.areEqual(r, test.getValue(session))) {
                             return ValueExpression.get(ValueBoolean.get(false));
                         }
                         right = test;

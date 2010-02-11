@@ -151,10 +151,12 @@ public class ResultTempTable implements ResultExternal {
 
     private Cursor find(Row row) throws SQLException {
         Cursor cursor = index.find(session, row, row);
+        Value a = row.getValue(0);
         while (cursor.next()) {
             SearchRow found;
             found = cursor.getSearchRow();
-            if (found.getValue(0).equals(row.getValue(0))) {
+            Value b = found.getValue(0);
+            if (session.getDatabase().areEqual(a, b)) {
                 return cursor;
             }
         }

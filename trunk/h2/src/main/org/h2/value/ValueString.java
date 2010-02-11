@@ -129,6 +129,13 @@ public class ValueString extends Value {
         // return new ValueString(s.intern());
     }
 
+    /**
+     * Create a new String value of the current class.
+     * This method is meant to be overridden by subclasses.
+     *
+     * @param s the string
+     * @return the value
+     */
     protected Value getNew(String s) {
         return ValueString.get(s);
     }

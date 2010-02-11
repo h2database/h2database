@@ -286,7 +286,7 @@ public class ConstraintReferential extends Constraint {
                 return;
             }
             if (constraintColumnsEqual) {
-                if (!v.compareEqual(oldRow.getValue(idx))) {
+                if (!database.areEqual(v, oldRow.getValue(idx))) {
                     constraintColumnsEqual = false;
                 }
             }

@@ -43,6 +43,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -3524,8 +3525,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private void patchCurrentRow(Value[] row) throws SQLException {
         boolean changed = false;
         Value[] current = result.currentRow();
+        CompareMode mode = conn.getCompareMode();
         for (int i = 0; i < row.length; i++) {
-            if (!row[i].compareEqual(current[i])) {
+            if (row[i].compareTo(current[i], mode) != 0) {
                 changed = true;
                 break;
             }

@@ -204,6 +204,10 @@ public class ValueDecimal extends Value {
     }
 
     public boolean equals(Object other) {
+        // Two BigDecimal objects are considered equal only if they are equal in
+        // value and scale (thus 2.0 is not equal to 2.00 when using equals;
+        // however -0.0 and 0.0 are). Can not use compareTo because 2.0 and 2.00
+        // have different hash codes
         return other instanceof ValueDecimal && value.equals(((ValueDecimal) other).value);
     }
 

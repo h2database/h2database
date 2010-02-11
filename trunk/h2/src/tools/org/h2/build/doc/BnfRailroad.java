@@ -84,6 +84,12 @@ public class BnfRailroad implements BnfVisitor {
         html = getHtmlText(type);
     }
 
+    /**
+     * Get the HTML text for the given fixed rule.
+     *
+     * @param type the fixed rule type
+     * @return the HTML text
+     */
     static String getHtmlText(int type) {
         switch(type) {
         case RuleFixed.YMD:

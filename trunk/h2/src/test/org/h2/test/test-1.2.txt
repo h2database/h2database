@@ -1,4 +1,22 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id decimal(10, 2) primary key) as select 0;
+> ok
+
+select * from test where id = 0.00;
+> ID
+> ----
+> 0.00
+> rows: 1
+
+select * from test where id = 0.0;
+> ID
+> ----
+> 0.00
+> rows: 1
+
+drop table test;
+> ok
+
 select count(*) from (select 1 union (select 2 intersect select 2)) x;
 > COUNT(*)
 > --------

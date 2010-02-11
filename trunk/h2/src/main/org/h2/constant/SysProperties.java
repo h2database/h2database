@@ -78,7 +78,7 @@ public class SysProperties {
      * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in
      * getTableName(). If disabled, the real column name (ID in this case) and
      * table name is returned. This setting only affects the default mode.
-     * <p>
+     * <br />
      * When using different modes, this feature is disabled for compatibility
      * for all databases except MySQL. For MySQL, it is always enabled.
      */

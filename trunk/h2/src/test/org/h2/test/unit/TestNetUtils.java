@@ -22,6 +22,7 @@ import org.h2.util.NetUtils;
  */
 public class TestNetUtils extends TestBase {
 
+    private static final int WORKER_COUNT = 10;
     private static final int PORT = 9111;
 
     /**
@@ -34,10 +35,8 @@ public class TestNetUtils extends TestBase {
     }
 
     public void test() throws Exception {
-        testFrequentConnections(false, 1000);
         testFrequentConnections(true, 100);
-        testFrequentConnections(false, 1000);
-        testFrequentConnections(true, 100);
+        testFrequentConnections(false, 2000);
     }
 
     private void testFrequentConnections(boolean ssl, int count) throws Exception {
@@ -61,7 +60,7 @@ public class TestNetUtils extends TestBase {
         serverThread.start();
         try {
             Set<ConnectWorker> workers = new HashSet<ConnectWorker>();
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < WORKER_COUNT; i++) {
                 workers.add(new ConnectWorker(ssl, counter));
             }
             // ensure the server is started

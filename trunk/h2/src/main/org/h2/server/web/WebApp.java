@@ -61,14 +61,42 @@ import org.h2.util.Tool;
  */
 public class WebApp {
 
+    /**
+     * The web server.
+     */
     protected WebServer server;
+
+    /**
+     * The session.
+     */
     protected WebSession session;
+
+    /**
+     * The session attributes
+     */
     protected Properties attributes;
+
+    /**
+     * The mime type of the current response.
+     */
     protected String mimeType;
+
+    /**
+     * Whether the response can be cached.
+     */
     protected boolean cache;
+
+    /**
+     * Whether to close the connection.
+     */
     protected boolean stop;
+
+    /**
+     * The language in the HTTP header.
+     */
     protected String headerLanguage;
-    protected Profiler profiler;
+
+    private Profiler profiler;
 
     WebApp(WebServer server) {
         this.server = server;

@@ -120,6 +120,12 @@ public class Bnf {
         addFixedRule("@close_bracket@", RuleFixed.CLOSE_BRACKET);
     }
 
+    /**
+     * Parse the syntax and let the rule call the visitor.
+     *
+     * @param visitor the visitor
+     * @param s the syntax to parse
+     */
     public void visit(BnfVisitor visitor, String s) {
         this.syntax = s;
         tokens = tokenize();
@@ -150,7 +156,7 @@ public class Bnf {
     /**
      * Get the rule head for the given title.
      *
-     * @param title
+     * @param title the title
      * @return the rule head, or null
      */
     public RuleHead getRuleHead(String title) {

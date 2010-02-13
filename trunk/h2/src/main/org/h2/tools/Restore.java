@@ -14,7 +14,7 @@ import java.sql.SQLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.FileLister;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
@@ -187,7 +187,7 @@ public class Restore extends Tool {
             zipIn.closeEntry();
             zipIn.close();
         } catch (IOException e) {
-            throw Message.convertIOException(e, zipFileName);
+            throw DbException.convertIOException(e, zipFileName);
         } finally {
             IOUtils.closeSilently(in);
         }

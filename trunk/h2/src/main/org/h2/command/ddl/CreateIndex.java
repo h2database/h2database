@@ -6,15 +6,13 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.index.IndexType;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -52,7 +50,7 @@ public class CreateIndex extends SchemaCommand {
         this.indexColumns = columns;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         boolean persistent = db.isPersistent();
@@ -74,12 +72,12 @@ public class CreateIndex extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.INDEX_ALREADY_EXISTS_1, indexName);
+            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, indexName);
         }
         IndexType indexType;
         if (primaryKey) {
             if (table.findPrimaryKey() != null) {
-                throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
+                throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
             }
             indexType = IndexType.createPrimaryKey(persistent, hash);
         } else if (unique) {

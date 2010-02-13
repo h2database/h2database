@@ -6,11 +6,10 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
@@ -36,13 +35,13 @@ public class PageBtreeIndex extends PageIndex {
     private long rowCount;
 
     public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
-            IndexType indexType, boolean create, Session session) throws SQLException {
+            IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, indexName, columns, indexType);
         // int test;
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
         if (!database.isPersistent() || id < 0) {
-            throw Message.throwInternalError("" + indexName);
+            throw DbException.throwInternalError("" + indexName);
         }
         this.store = database.getPageStore();
         store.addIndex(this);
@@ -70,7 +69,7 @@ public class PageBtreeIndex extends PageIndex {
         }
     }
 
-    public void add(Session session, Row row) throws SQLException {
+    public void add(Session session, Row row) {
         if (trace.isDebugEnabled()) {
             trace.debug(getName() + " add " + row);
         }
@@ -83,7 +82,7 @@ public class PageBtreeIndex extends PageIndex {
         }
     }
 
-    private void addRow(SearchRow newRow) throws SQLException {
+    private void addRow(SearchRow newRow) {
         while (true) {
             PageBtree root = getPage(rootPageId);
             int splitPoint = root.addRowTry(newRow);
@@ -136,7 +135,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param id the page id
      * @return the page
      */
-    PageBtree getPage(int id) throws SQLException {
+    PageBtree getPage(int id) {
         Page p = store.getPage(id);
         if (p == null) {
             PageBtreeLeaf empty = PageBtreeLeaf.create(this, id, PageBtree.ROOT);
@@ -145,7 +144,7 @@ public class PageBtreeIndex extends PageIndex {
             store.update(empty);
             return empty;
         } else if (!(p instanceof PageBtree)) {
-            throw Message.throwInternalError("" + p);
+            throw DbException.throwInternalError("" + p);
         }
         return (PageBtree) p;
     }
@@ -154,17 +153,17 @@ public class PageBtreeIndex extends PageIndex {
         return true;
     }
 
-    public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor findNext(Session session, SearchRow first, SearchRow last) {
         return find(session, first, true, last);
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         return find(session, first, false, last);
     }
 
-    private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) throws SQLException {
+    private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) {
         if (SysProperties.CHECK && store == null) {
-            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
         PageBtree root = getPage(rootPageId);
         PageBtreeCursor cursor = new PageBtreeCursor(session, this, last);
@@ -172,7 +171,7 @@ public class PageBtreeIndex extends PageIndex {
         return cursor;
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
+    public Cursor findFirstOrLast(Session session, boolean first) {
         if (first) {
             // TODO optimization: this loops through NULL elements
             Cursor cursor = find(session, null, false, null);
@@ -211,7 +210,7 @@ public class PageBtreeIndex extends PageIndex {
         return needRebuild;
     }
 
-    public void remove(Session session, Row row) throws SQLException {
+    public void remove(Session session, Row row) {
         if (trace.isDebugEnabled()) {
             trace.debug(getName() + " remove " + row);
         }
@@ -239,7 +238,7 @@ public class PageBtreeIndex extends PageIndex {
         }
     }
 
-    public void remove(Session session) throws SQLException {
+    public void remove(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
         }
@@ -248,7 +247,7 @@ public class PageBtreeIndex extends PageIndex {
         store.removeMeta(this, session);
     }
 
-    public void truncate(Session session) throws SQLException {
+    public void truncate(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("truncate");
         }
@@ -259,7 +258,7 @@ public class PageBtreeIndex extends PageIndex {
         tableData.setRowCount(0);
     }
 
-    private void removeAllRows() throws SQLException {
+    private void removeAllRows() {
         try {
             PageBtree root = getPage(rootPageId);
             root.freeRecursive();
@@ -283,7 +282,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param key the row key
      * @return the row
      */
-    public Row getRow(Session session, long key) throws SQLException {
+    public Row getRow(Session session, long key) {
         return tableData.getRow(session, key);
     }
 
@@ -299,7 +298,7 @@ public class PageBtreeIndex extends PageIndex {
         return rowCount;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
@@ -321,7 +320,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param needData whether the row data is required
      * @return the row
      */
-    SearchRow readRow(Data data, int offset, boolean onlyPosition, boolean needData) throws SQLException {
+    SearchRow readRow(Data data, int offset, boolean onlyPosition, boolean needData) {
         data.setPos(offset);
         long key = data.readVarLong();
         if (onlyPosition) {
@@ -347,7 +346,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param key the key
      * @return the row
      */
-    SearchRow readRow(long key) throws SQLException {
+    SearchRow readRow(long key) {
         return tableData.getRow(null, key);
     }
 
@@ -359,7 +358,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param onlyPosition whether only the position of the row is stored
      * @param row the row to write
      */
-    void writeRow(Data data, int offset, SearchRow row, boolean onlyPosition) throws SQLException {
+    void writeRow(Data data, int offset, SearchRow row, boolean onlyPosition) {
         data.setPos(offset);
         data.writeVarLong(row.getKey());
         if (!onlyPosition) {
@@ -378,7 +377,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param onlyPosition whether only the position of the row is stored
      * @return the number of bytes
      */
-    int getRowSize(Data dummy, SearchRow row, boolean onlyPosition) throws SQLException {
+    int getRowSize(Data dummy, SearchRow row, boolean onlyPosition) {
         int rowsize = dummy.getVarLongLen(row.getKey());
         if (!onlyPosition) {
             for (Column col : columns) {
@@ -399,19 +398,19 @@ public class PageBtreeIndex extends PageIndex {
      * @param session the session
      * @param newPos the new position
      */
-    void setRootPageId(Session session, int newPos) throws SQLException {
+    void setRootPageId(Session session, int newPos) {
         store.removeMeta(this, session);
         this.rootPageId = newPos;
         store.addMeta(this, session);
         store.addIndex(this);
     }
 
-    private void invalidateRowCount() throws SQLException {
+    private void invalidateRowCount() {
         PageBtree root = getPage(rootPageId);
         root.setRowCountStored(PageData.UNKNOWN_ROWCOUNT);
     }
 
-    public void writeRowCount() throws SQLException {
+    public void writeRowCount() {
         PageBtree root = getPage(rootPageId);
         root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
     }

@@ -6,11 +6,10 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
@@ -87,7 +86,7 @@ public class PageDataOverflow extends Page {
      * @param pageId the page id
      * @return the page
      */
-    public static Page read(PageStore store, Data data, int pageId) throws SQLException {
+    public static Page read(PageStore store, Data data, int pageId) {
         PageDataOverflow p = new PageDataOverflow(store, pageId, data);
         p.read();
         return p;
@@ -106,7 +105,7 @@ public class PageDataOverflow extends Page {
      * @param size the number of bytes
      * @return the page
      */
-    static PageDataOverflow create(PageStore store, int page, int type, int parentPageId, int next, Data all, int offset, int size) throws SQLException {
+    static PageDataOverflow create(PageStore store, int page, int type, int parentPageId, int next, Data all, int offset, int size) {
         Data data = store.createData();
         PageDataOverflow p = new PageDataOverflow(store, page, data);
         store.logUndo(p, null);
@@ -130,7 +129,7 @@ public class PageDataOverflow extends Page {
     /**
      * Read the page.
      */
-    private void read() throws SQLException {
+    private void read() {
         data.reset();
         type = data.readByte();
         data.readShortInt();
@@ -142,7 +141,7 @@ public class PageDataOverflow extends Page {
             nextPage = data.readInt();
             size = store.getPageSize() - data.length();
         } else {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page:" + getPos() + " type:" + type);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "page:" + getPos() + " type:" + type);
         }
         start = data.length();
     }
@@ -173,7 +172,7 @@ public class PageDataOverflow extends Page {
         data.writeInt(parentPageId);
     }
 
-    public void write() throws SQLException {
+    public void write() {
         writeData();
         store.writePage(getPos(), data);
     }
@@ -204,17 +203,17 @@ public class PageDataOverflow extends Page {
         return store.getPageSize() >> 1;
     }
 
-    void setParentPageId(int parent) throws SQLException {
+    void setParentPageId(int parent) {
         store.logUndo(this, data);
         this.parentPageId = parent;
     }
 
-    public void moveTo(Session session, int newPos) throws SQLException {
+    public void moveTo(Session session, int newPos) {
         // load the pages into the cache, to ensure old pages
         // are written
         Page parent = store.getPage(parentPageId);
         if (parent == null) {
-            throw Message.throwInternalError();
+            throw DbException.throwInternalError();
         }
         PageDataOverflow next = null;
         if (nextPage != 0) {
@@ -238,9 +237,9 @@ public class PageDataOverflow extends Page {
         store.free(getPos());
     }
 
-    private void setNext(int old, int nextPage) throws SQLException {
+    private void setNext(int old, int nextPage) {
         if (SysProperties.CHECK && old != this.nextPage) {
-            Message.throwInternalError("move " + this + " " + nextPage);
+            DbException.throwInternalError("move " + this + " " + nextPage);
         }
         store.logUndo(this, data);
         this.nextPage = nextPage;
@@ -250,7 +249,7 @@ public class PageDataOverflow extends Page {
     /**
      * Free this page.
      */
-    void free() throws SQLException {
+    void free() {
         store.logUndo(this, data);
         store.free(getPos());
     }

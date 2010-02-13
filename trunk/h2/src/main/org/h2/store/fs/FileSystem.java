@@ -9,7 +9,6 @@ package org.h2.store.fs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.util.New;
 
@@ -101,9 +100,8 @@ public abstract class FileSystem {
      *
      * @param oldName the old fully qualified file name
      * @param newName the new fully qualified file name
-     * @throws SQLException
      */
-    public abstract void rename(String oldName, String newName) throws SQLException;
+    public abstract void rename(String oldName, String newName);
 
     /**
      * Create a new file.
@@ -111,7 +109,7 @@ public abstract class FileSystem {
      * @param fileName the file name
      * @return true if creating was successful
      */
-    public abstract boolean createNewFile(String fileName) throws SQLException;
+    public abstract boolean createNewFile(String fileName);
 
     /**
      * Checks if a file exists.
@@ -126,7 +124,7 @@ public abstract class FileSystem {
      *
      * @param fileName the file name
      */
-    public abstract void delete(String fileName) throws SQLException;
+    public abstract void delete(String fileName);
 
     /**
      * Try to delete a file.
@@ -155,7 +153,7 @@ public abstract class FileSystem {
      * @param directory the directory
      * @return the list of fully qualified file names
      */
-    public abstract String[] listFiles(String directory) throws SQLException;
+    public abstract String[] listFiles(String directory);
 
     /**
      * Delete a directory or file and all subdirectories and files.
@@ -163,7 +161,7 @@ public abstract class FileSystem {
      * @param directory the directory
      * @param tryOnly whether errors should  be ignored
      */
-    public abstract void deleteRecursive(String directory, boolean tryOnly) throws SQLException;
+    public abstract void deleteRecursive(String directory, boolean tryOnly);
 
     /**
      * Check if a file is read-only.
@@ -179,7 +177,7 @@ public abstract class FileSystem {
      * @param fileName the file name
      * @return the normalized file name
      */
-    public abstract String normalize(String fileName) throws SQLException;
+    public abstract String normalize(String fileName);
 
     /**
      * Get the parent directory of a file or directory.
@@ -235,14 +233,14 @@ public abstract class FileSystem {
      * @param original the original file name
      * @param copy the file name of the copy
      */
-    public abstract void copy(String original, String copy) throws SQLException;
+    public abstract void copy(String original, String copy);
 
     /**
      * Create all required directories.
      *
      * @param directoryName the directory name
      */
-    public void mkdirs(String directoryName) throws SQLException {
+    public void mkdirs(String directoryName) {
         createDirs(directoryName + "/x");
     }
 
@@ -251,7 +249,7 @@ public abstract class FileSystem {
      *
      * @param fileName the file name (not directory name)
      */
-    public abstract void createDirs(String fileName) throws SQLException;
+    public abstract void createDirs(String fileName);
 
     /**
      * Get the file name (without directory part).
@@ -278,7 +276,7 @@ public abstract class FileSystem {
      *            truncated first
      * @return the output stream
      */
-    public abstract OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException;
+    public abstract OutputStream openFileOutputStream(String fileName, boolean append);
 
     /**
      * Open a random access file object.

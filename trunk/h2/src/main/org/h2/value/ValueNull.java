@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * Implementation of NULL. NULL is not a regular data type.
@@ -120,7 +120,7 @@ public class ValueNull extends Value {
     }
 
     protected int compareSecure(Value v, CompareMode mode) {
-        throw Message.throwInternalError("compare null");
+        throw DbException.throwInternalError("compare null");
     }
 
     public long getPrecision() {

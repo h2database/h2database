@@ -10,12 +10,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.New;
 
 /**
@@ -34,16 +33,16 @@ public class FileSystemZip extends FileSystem {
         return false;
     }
 
-    public void copy(String original, String copy) throws SQLException {
-        throw Message.getUnsupportedException("write");
+    public void copy(String original, String copy) {
+        throw DbException.getUnsupportedException("write");
     }
 
     public void createDirs(String fileName) {
         // ignore
     }
 
-    public boolean createNewFile(String fileName) throws SQLException {
-        throw Message.getUnsupportedException("write");
+    public boolean createNewFile(String fileName) {
+        throw DbException.getUnsupportedException("write");
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
@@ -53,12 +52,12 @@ public class FileSystemZip extends FileSystem {
         return FileSystemDisk.getInstance().createTempFile(prefix, suffix, deleteOnExit, true);
     }
 
-    public void delete(String fileName) throws SQLException {
-        throw Message.getUnsupportedException("write");
+    public void delete(String fileName) {
+        throw DbException.getUnsupportedException("write");
     }
 
-    public void deleteRecursive(String fileName, boolean tryOnly) throws SQLException {
-        throw Message.getUnsupportedException("write");
+    public void deleteRecursive(String fileName, boolean tryOnly) {
+        throw DbException.getUnsupportedException("write");
     }
 
     public boolean exists(String fileName) {
@@ -151,7 +150,7 @@ public class FileSystemZip extends FileSystem {
         }
     }
 
-    public String[] listFiles(String path) throws SQLException {
+    public String[] listFiles(String path) {
         try {
             if (path.indexOf('!') < 0) {
                 path += "!";
@@ -182,7 +181,7 @@ public class FileSystemZip extends FileSystem {
             list.toArray(result);
             return result;
         } catch (IOException e) {
-            throw Message.convertIOException(e, "listFiles " + path);
+            throw DbException.convertIOException(e, "listFiles " + path);
         }
     }
 
@@ -204,12 +203,12 @@ public class FileSystemZip extends FileSystem {
         return new FileObjectZip(file, entry);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
-        throw Message.getUnsupportedException("write");
+    public OutputStream openFileOutputStream(String fileName, boolean append) {
+        throw DbException.getUnsupportedException("write");
     }
 
-    public void rename(String oldName, String newName) throws SQLException {
-        throw Message.getUnsupportedException("write");
+    public void rename(String oldName, String newName) {
+        throw DbException.getUnsupportedException("write");
     }
 
     public boolean tryDelete(String fileName) {

@@ -6,7 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -32,7 +31,7 @@ public class Analyze extends DefineCommand {
         super(session);
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();

@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import org.h2.Driver;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileObjectInputStream;
 import org.h2.store.fs.FileObjectOutputStream;
@@ -77,18 +77,22 @@ public class FileSystemDatabase extends FileSystem {
         return fileName.startsWith(url);
     }
 
-    public static synchronized FileSystemDatabase register(String url) throws SQLException {
+    public static synchronized FileSystemDatabase register(String url) {
         Connection conn;
-        if (url.startsWith("jdbc:h2:")) {
-            // avoid using DriverManager if possible
-            conn = Driver.load().connect(url, new Properties());
-        } else {
-            conn = JdbcUtils.getConnection(null, url, new Properties());
+        try {
+            if (url.startsWith("jdbc:h2:")) {
+                // avoid using DriverManager if possible
+                conn = Driver.load().connect(url, new Properties());
+            } else {
+                conn = JdbcUtils.getConnection(null, url, new Properties());
+            }
+            boolean log = url.toUpperCase().indexOf("TRACE_") >= 0;
+            FileSystemDatabase fs = new FileSystemDatabase(url, conn, log);
+            FileSystem.register(fs);
+            return fs;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        boolean log = url.toUpperCase().indexOf("TRACE_") >= 0;
-        FileSystemDatabase fs = new FileSystemDatabase(url, conn, log);
-        FileSystem.register(fs);
-        return fs;
     }
 
     /**
@@ -178,14 +182,14 @@ public class FileSystemDatabase extends FileSystem {
         return true;
     }
 
-    public void copy(String original, String copy) throws SQLException {
+    public void copy(String original, String copy) {
         try {
             OutputStream out = openFileOutputStream(copy, false);
             InputStream in = openFileInputStream(original);
             IOUtils.copyAndClose(in, out);
         } catch (IOException e) {
             rollback();
-            throw Message.convertIOException(e, "Can not copy " + original + " to " + copy);
+            throw DbException.convertIOException(e, "Can not copy " + original + " to " + copy);
         }
     }
 
@@ -224,7 +228,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public boolean createNewFile(String fileName) throws SQLException {
+    public boolean createNewFile(String fileName) {
         try {
             if (exists(fileName)) {
                 return false;
@@ -232,7 +236,7 @@ public class FileSystemDatabase extends FileSystem {
             openFileObject(fileName, "rw").close();
             return true;
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw DbException.convertIOException(e, fileName);
         }
     }
 
@@ -264,8 +268,8 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public void deleteRecursive(String fileName, boolean tryOnly) throws SQLException {
-        throw Message.getUnsupportedException("db");
+    public void deleteRecursive(String fileName, boolean tryOnly) {
+        throw DbException.getUnsupportedException("db");
     }
 
     public boolean exists(String fileName) {
@@ -390,11 +394,11 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
+    public OutputStream openFileOutputStream(String fileName, boolean append) {
         try {
             return new FileObjectOutputStream(openFileObject(fileName, "rw"), append);
         } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
+            throw DbException.convertIOException(e, fileName);
         }
     }
 
@@ -403,7 +407,7 @@ public class FileSystemDatabase extends FileSystem {
             long parentOld = getId(oldName, true);
             long parentNew = getId(newName, true);
             if (parentOld != parentNew) {
-                throw Message.getUnsupportedException("different parents");
+                throw DbException.getUnsupportedException("different parents");
             }
             newName = getFileName(newName);
             long id = getId(oldName, false);

@@ -6,10 +6,9 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -39,7 +38,7 @@ public class ConditionAndOr extends Condition {
         this.left = left;
         this.right = right;
         if (SysProperties.CHECK && (left == null || right == null)) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
     }
 
@@ -53,12 +52,12 @@ public class ConditionAndOr extends Condition {
             sql = left.getSQL() + " OR " + right.getSQL();
             break;
         default:
-            throw Message.throwInternalError("andOrType=" + andOrType);
+            throw DbException.throwInternalError("andOrType=" + andOrType);
         }
         return "(" + sql + ")";
     }
 
-    public void createIndexConditions(Session session, TableFilter filter) throws SQLException {
+    public void createIndexConditions(Session session, TableFilter filter) {
         if (andOrType == AND) {
             left.createIndexConditions(session, filter);
             right.createIndexConditions(session, filter);
@@ -80,7 +79,7 @@ public class ConditionAndOr extends Condition {
         return new ConditionAndOr(reversed, l, r);
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         Value l = left.getValue(session);
         Value r;
         switch (andOrType) {
@@ -117,11 +116,11 @@ public class ConditionAndOr extends Condition {
             return ValueBoolean.get(false);
         }
         default:
-            throw Message.throwInternalError("type=" + andOrType);
+            throw DbException.throwInternalError("type=" + andOrType);
         }
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         // NULL handling: see wikipedia,
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
         left = left.optimize(session);
@@ -215,7 +214,7 @@ public class ConditionAndOr extends Condition {
             }
             break;
         default:
-            Message.throwInternalError("type=" + andOrType);
+            DbException.throwInternalError("type=" + andOrType);
         }
         return this;
     }
@@ -229,7 +228,7 @@ public class ConditionAndOr extends Condition {
         }
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         right.mapColumns(resolver, level);
     }
@@ -239,7 +238,7 @@ public class ConditionAndOr extends Condition {
         right.setEvaluatable(tableFilter, b);
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         left.updateAggregate(session);
         right.updateAggregate(session);
     }

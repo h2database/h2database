@@ -14,7 +14,7 @@ import org.h2.bnf.Rule;
 import org.h2.bnf.RuleHead;
 import org.h2.bnf.Sentence;
 import org.h2.command.Parser;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -290,7 +290,7 @@ public class DbContextRule implements Rule {
             s = matchColumn(sentence);
             break;
         default:
-            throw Message.throwInternalError("type=" + type);
+            throw DbException.throwInternalError("type=" + type);
         }
         if (s == null) {
             return false;

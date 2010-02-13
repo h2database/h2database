@@ -5,7 +5,6 @@
  */
 package org.h2.store;
 
-import java.sql.SQLException;
 import java.util.BitSet;
 import org.h2.engine.Session;
 
@@ -68,7 +67,7 @@ public class PageFreeList extends Page {
      * @param first the first page to look for
      * @return the page, or -1 if all pages are used
      */
-    int allocate(BitSet exclude, int first) throws SQLException {
+    int allocate(BitSet exclude, int first) {
         if (full) {
             return -1;
         }
@@ -121,7 +120,7 @@ public class PageFreeList extends Page {
      * @param pageId the page id
      * @return the page id, or -1
      */
-    int allocate(int pageId) throws SQLException {
+    int allocate(int pageId) {
         int idx = pageId - getPos();
         if (idx >= 0 && !used.get(idx)) {
             // set the bit first, because logUndo can
@@ -139,7 +138,7 @@ public class PageFreeList extends Page {
      *
      * @param pageId the page id to add
      */
-    void free(int pageId) throws SQLException {
+    void free(int pageId) {
         full = false;
         store.logUndo(this, data);
         used.clear(pageId - getPos());
@@ -164,7 +163,7 @@ public class PageFreeList extends Page {
         full = false;
     }
 
-    public void write() throws SQLException {
+    public void write() {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_FREE_LIST);
         data.writeShortInt(0);
@@ -209,7 +208,7 @@ public class PageFreeList extends Page {
         return used.get(pageId - getPos());
     }
 
-    public void moveTo(Session session, int newPos) throws SQLException {
+    public void moveTo(Session session, int newPos) {
         // the old data does not need to be copied, as free-list pages
         // at the end of the file are not required
         store.free(getPos(), false);

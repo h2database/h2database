@@ -30,7 +30,7 @@ import java.util.HashSet;
 import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -191,7 +191,7 @@ public class PgServerThread implements Runnable {
                 // conn = DriverManager.getConnection(url, userName, password);
                 initDb();
                 sendAuthenticationOk();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 stop = true;
             }
@@ -213,7 +213,7 @@ public class PgServerThread implements Runnable {
                 p.prep = conn.prepareStatement(p.sql);
                 prepared.put(p.name, p);
                 sendParseComplete();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 sendErrorResponse(e);
             }
             break;
@@ -243,7 +243,7 @@ public class PgServerThread implements Runnable {
                 readFully(d2);
                 try {
                     setParameter(portal.prep, i, d2, formatCodes);
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     sendErrorResponse(e);
                 }
             }
@@ -275,7 +275,7 @@ public class PgServerThread implements Runnable {
                     try {
                         ResultSetMetaData meta = prep.getMetaData();
                         sendRowDescription(meta);
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         sendErrorResponse(e);
                     }
                 }
@@ -308,13 +308,13 @@ public class PgServerThread implements Runnable {
                             sendDataRow(rs);
                         }
                         sendCommandComplete(p.sql, 0);
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         sendErrorResponse(e);
                     }
                 } else {
                     sendCommandComplete(p.sql, prep.getUpdateCount());
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 sendErrorResponse(e);
             }
             break;
@@ -426,7 +426,7 @@ public class PgServerThread implements Runnable {
                 }
             }
             sendMessage();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             sendErrorResponse(e);
         }
     }
@@ -458,7 +458,8 @@ public class PgServerThread implements Runnable {
         prep.setString(i + 1, s);
     }
 
-    private void sendErrorResponse(SQLException e) throws IOException {
+    private void sendErrorResponse(Exception re) throws IOException {
+        SQLException e = DbException.toSQLException(re);
         server.traceError(e);
         startMessage('E');
         write('S');
@@ -491,7 +492,7 @@ public class PgServerThread implements Runnable {
                 writeInt(type);
             }
             sendMessage();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             sendErrorResponse(e);
         }
     }
@@ -537,7 +538,7 @@ public class PgServerThread implements Runnable {
                 }
                 sendMessage();
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             sendErrorResponse(e);
         }
     }
@@ -589,7 +590,7 @@ public class PgServerThread implements Runnable {
                         r = new InputStreamReader(new ByteArrayInputStream(Utils
                                 .getResource("/org/h2/server/pg/pg_catalog.sql")));
                     } catch (IOException e) {
-                        throw Message.convertIOException(e, "Can not read pg_catalog resource");
+                        throw DbException.convertIOException(e, "Can not read pg_catalog resource");
                     }
                     ScriptReader reader = new ScriptReader(r);
                     while (true) {
@@ -605,7 +606,7 @@ public class PgServerThread implements Runnable {
 
             rs = stat.executeQuery("SELECT VERSION FROM PG_CATALOG.PG_VERSION");
             if (!rs.next() || rs.getInt(1) != 1) {
-                throw Message.throwInternalError("Invalid PG_VERSION");
+                throw DbException.throwInternalError("Invalid PG_VERSION");
             }
             stat.execute("set search_path = PUBLIC, pg_catalog");
 

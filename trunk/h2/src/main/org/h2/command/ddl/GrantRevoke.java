@@ -6,7 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
@@ -14,7 +13,7 @@ import org.h2.engine.Right;
 import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.Table;
 import org.h2.util.New;
 
@@ -72,18 +71,18 @@ public class GrantRevoke extends DefineCommand {
         roleNames.add(roleName);
     }
 
-    public void setGranteeName(String granteeName) throws SQLException {
+    public void setGranteeName(String granteeName) {
         Database db = session.getDatabase();
         grantee = db.findUser(granteeName);
         if (grantee == null) {
             grantee = db.findRole(granteeName);
             if (grantee == null) {
-                throw Message.getSQLException(ErrorCode.USER_OR_ROLE_NOT_FOUND_1, granteeName);
+                throw DbException.get(ErrorCode.USER_OR_ROLE_NOT_FOUND_1, granteeName);
             }
         }
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
@@ -91,14 +90,14 @@ public class GrantRevoke extends DefineCommand {
             for (String name : roleNames) {
                 Role grantedRole = db.findRole(name);
                 if (grantedRole == null) {
-                    throw Message.getSQLException(ErrorCode.ROLE_NOT_FOUND_1, name);
+                    throw DbException.get(ErrorCode.ROLE_NOT_FOUND_1, name);
                 }
                 if (operationType == GRANT) {
                     grantRole(grantedRole);
                 } else if (operationType == REVOKE) {
                     revokeRole(grantedRole);
                 } else {
-                    Message.throwInternalError("type=" + operationType);
+                    DbException.throwInternalError("type=" + operationType);
                 }
             }
         } else {
@@ -107,13 +106,13 @@ public class GrantRevoke extends DefineCommand {
             } else if (operationType == REVOKE) {
                 revokeRight();
             } else {
-                Message.throwInternalError("type=" + operationType);
+                DbException.throwInternalError("type=" + operationType);
             }
         }
         return 0;
     }
 
-    private void grantRight() throws SQLException {
+    private void grantRight() {
         Database db = session.getDatabase();
         for (Table table : tables) {
             Right right = grantee.getRightForTable(table);
@@ -128,7 +127,7 @@ public class GrantRevoke extends DefineCommand {
         }
     }
 
-    private void grantRole(Role grantedRole) throws SQLException {
+    private void grantRole(Role grantedRole) {
         if (grantedRole != grantee && grantee.isRoleGranted(grantedRole)) {
             return;
         }
@@ -136,7 +135,7 @@ public class GrantRevoke extends DefineCommand {
             Role granteeRole = (Role) grantee;
             if (grantedRole.isRoleGranted(granteeRole)) {
                 // cyclic role grants are not allowed
-                throw Message.getSQLException(ErrorCode.ROLE_ALREADY_GRANTED_1, grantedRole.getSQL());
+                throw DbException.get(ErrorCode.ROLE_ALREADY_GRANTED_1, grantedRole.getSQL());
             }
         }
         Database db = session.getDatabase();
@@ -146,7 +145,7 @@ public class GrantRevoke extends DefineCommand {
         grantee.grantRole(grantedRole, right);
     }
 
-    private void revokeRight() throws SQLException {
+    private void revokeRight() {
         for (Table table : tables) {
             Right right = grantee.getRightForTable(table);
             if (right == null) {
@@ -164,7 +163,7 @@ public class GrantRevoke extends DefineCommand {
         }
     }
 
-    private void revokeRole(Role grantedRole) throws SQLException {
+    private void revokeRole(Role grantedRole) {
         Right right = grantee.getRightForRole(grantedRole);
         if (right == null) {
             return;

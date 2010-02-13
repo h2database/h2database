@@ -6,11 +6,9 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
-
 import org.h2.api.AggregateFunction;
 import org.h2.command.Parser;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.Utils;
@@ -23,7 +21,7 @@ public class UserAggregate extends DbObjectBase {
     private String className;
     private Class< ? > javaClass;
 
-    public UserAggregate(Database db, int id, String name, String className, boolean force) throws SQLException {
+    public UserAggregate(Database db, int id, String name, String className, boolean force) {
         initDbObjectBase(db, id, name, Trace.FUNCTION);
         this.className = className;
         if (!force) {
@@ -31,7 +29,7 @@ public class UserAggregate extends DbObjectBase {
         }
     }
 
-    public AggregateFunction getInstance() throws SQLException {
+    public AggregateFunction getInstance() {
         if (javaClass == null) {
             javaClass = Utils.loadUserClass(className);
         }
@@ -41,12 +39,12 @@ public class UserAggregate extends DbObjectBase {
             AggregateFunction agg = (AggregateFunction) obj;
             return agg;
         } catch (Exception e) {
-            throw Message.convert(e);
+            throw DbException.convert(e);
         }
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public String getDropSQL() {
@@ -61,15 +59,15 @@ public class UserAggregate extends DbObjectBase {
         return DbObject.AGGREGATE;
     }
 
-    public synchronized void removeChildrenAndResources(Session session) throws SQLException {
+    public synchronized void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
         className = null;
         javaClass = null;
         invalidate();
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("AGGREGATE");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("AGGREGATE");
     }
 
     public String getJavaClassName() {

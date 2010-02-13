@@ -6,12 +6,10 @@
  */
 package org.h2.schema;
 
-import java.sql.SQLException;
-
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.ValueExpression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.value.Value;
@@ -30,7 +28,7 @@ public class Constant extends SchemaObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public String getDropSQL() {
@@ -45,7 +43,7 @@ public class Constant extends SchemaObjectBase {
         return DbObject.CONSTANT;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
         invalidate();
     }

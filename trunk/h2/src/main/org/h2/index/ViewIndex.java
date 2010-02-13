@@ -6,22 +6,21 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.expression.Parameter;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.TableView;
-import org.h2.util.Utils;
 import org.h2.util.IntArray;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -49,7 +48,7 @@ public class ViewIndex extends BaseIndex {
         columns = new Column[0];
     }
 
-    public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) throws SQLException {
+    public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = index.querySQL;
@@ -74,12 +73,12 @@ public class ViewIndex extends BaseIndex {
         // nothing to do
     }
 
-    public void add(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("VIEW");
+    public void add(Session session, Row row) {
+        throw DbException.getUnsupportedException("VIEW");
     }
 
-    public void remove(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("VIEW");
+    public void remove(Session session, Row row) {
+        throw DbException.getUnsupportedException("VIEW");
     }
 
     /**
@@ -98,7 +97,7 @@ public class ViewIndex extends BaseIndex {
         double cost;
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
         CostElement cachedCost = costCache.get(masksArray);
         if (cachedCost != null) {
@@ -150,7 +149,7 @@ public class ViewIndex extends BaseIndex {
         return cost;
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         ArrayList<Parameter> paramList = query.getParameters();
         for (int i = 0; originalParameters != null && i < originalParameters.size(); i++) {
             Parameter orig = originalParameters.get(i);
@@ -193,7 +192,7 @@ public class ViewIndex extends BaseIndex {
         return new ViewCursor(table, result);
     }
 
-    private Query getQuery(Session session, int[] masks) throws SQLException {
+    private Query getQuery(Session session, int[] masks) {
         Query q = (Query) session.prepare(querySQL, true);
         if (masks == null) {
             return q;
@@ -241,16 +240,16 @@ public class ViewIndex extends BaseIndex {
         return q;
     }
 
-    public void remove(Session session) throws SQLException {
-        throw Message.getUnsupportedException("VIEW");
+    public void remove(Session session) {
+        throw DbException.getUnsupportedException("VIEW");
     }
 
-    public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException("VIEW");
+    public void truncate(Session session) {
+        throw DbException.getUnsupportedException("VIEW");
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("VIEW");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("VIEW");
     }
 
     public boolean needRebuild() {
@@ -261,8 +260,8 @@ public class ViewIndex extends BaseIndex {
         return false;
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException("VIEW");
+    public Cursor findFirstOrLast(Session session, boolean first) {
+        throw DbException.getUnsupportedException("VIEW");
     }
 
     public void setRecursive(boolean value) {

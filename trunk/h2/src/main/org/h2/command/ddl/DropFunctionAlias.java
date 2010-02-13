@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This class represents the statement
@@ -27,14 +25,14 @@ public class DropFunctionAlias extends DefineCommand {
         super(session);
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
         FunctionAlias functionAlias = db.findFunctionAlias(aliasName);
         if (functionAlias == null) {
             if (!ifExists) {
-                throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, aliasName);
+                throw DbException.get(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, aliasName);
             }
         } else {
             db.removeDatabaseObject(session, functionAlias);

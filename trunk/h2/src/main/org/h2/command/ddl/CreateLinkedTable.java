@@ -6,12 +6,10 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.TableLink;
 
@@ -63,7 +61,7 @@ public class CreateLinkedTable extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
@@ -71,7 +69,7 @@ public class CreateLinkedTable extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
                     tableName);
         }
         int id = getObjectId();

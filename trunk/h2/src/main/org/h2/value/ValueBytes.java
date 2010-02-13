@@ -9,8 +9,8 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
-import org.h2.util.Utils;
 import org.h2.util.MathUtils;
+import org.h2.util.Utils;
 
 /**
  * Implementation of the BINARY data type.

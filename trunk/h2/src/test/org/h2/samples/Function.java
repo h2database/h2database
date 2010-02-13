@@ -99,7 +99,7 @@ public class Function {
      *
      * @return the result set
      */
-    public static ResultSet simpleResultSet() throws SQLException {
+    public static ResultSet simpleResultSet() {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);

@@ -13,7 +13,7 @@ import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.table.Table;
@@ -59,7 +59,7 @@ public class TriggerObject extends SchemaObjectBase {
         this.insteadOf = insteadOf;
     }
 
-    private synchronized void load(Session session) throws SQLException {
+    private synchronized void load(Session session) {
         if (triggerCallback != null) {
             return;
         }
@@ -71,7 +71,7 @@ public class TriggerObject extends SchemaObjectBase {
         } catch (Throwable e) {
             // try again later
             triggerCallback = null;
-            throw Message.getSQLException(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3, e, getName(),
+            throw DbException.get(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3, e, getName(),
                             triggerClassName, e.toString());
         }
     }
@@ -84,11 +84,11 @@ public class TriggerObject extends SchemaObjectBase {
      * @param force whether exceptions (due to missing class or access rights)
      *            should be ignored
      */
-    public void setTriggerClassName(Session session, String triggerClassName, boolean force) throws SQLException {
+    public void setTriggerClassName(Session session, String triggerClassName, boolean force) {
         this.triggerClassName = triggerClassName;
         try {
             load(session);
-        } catch (SQLException e) {
+        } catch (DbException e) {
             if (!force) {
                 throw e;
             }
@@ -104,7 +104,7 @@ public class TriggerObject extends SchemaObjectBase {
      * @param type the trigger type
      * @param beforeAction if this method is called before applying the changes
      */
-    public void fire(Session session, int type, boolean beforeAction) throws SQLException {
+    public void fire(Session session, int type, boolean beforeAction) {
         if (rowBased || before != beforeAction || (typeMask & type) == 0) {
             return;
         }
@@ -118,7 +118,7 @@ public class TriggerObject extends SchemaObjectBase {
         try {
             triggerCallback.fire(c2, null, null);
         } catch (Throwable e) {
-            throw Message.getSQLException(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
+            throw DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
                             triggerClassName, e.toString());
         } finally {
             session.setScopeIdentity(identity);
@@ -154,7 +154,7 @@ public class TriggerObject extends SchemaObjectBase {
      * @param rollback when the operation occurred within a rollback
      * @return true if no further action is required (for 'instead of' triggers)
      */
-    public boolean fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) throws SQLException {
+    public boolean fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) {
         if (!rowBased || before != beforeAction) {
             return false;
         }
@@ -210,11 +210,11 @@ public class TriggerObject extends SchemaObjectBase {
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             if (onRollback) {
                 // ignore
             } else {
-                throw e;
+                throw DbException.convert(e);
             }
         } finally {
             session.setScopeIdentity(identity);
@@ -318,11 +318,15 @@ public class TriggerObject extends SchemaObjectBase {
         return DbObject.TRIGGER;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         table.removeTrigger(this);
         database.removeMeta(session, getId());
         if (triggerCallback != null) {
-            triggerCallback.remove();
+            try {
+                triggerCallback.remove();
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
         }
         table = null;
         triggerClassName = null;

@@ -15,7 +15,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.util.New;
 import org.h2.util.ValueHashMap;
@@ -92,20 +92,24 @@ public class LocalResult implements ResultInterface {
      * @param maxrows the maximum number of rows to read (0 for no limit)
      * @return the local result set
      */
-    public static LocalResult read(Session session, ResultSet rs, int maxrows) throws SQLException {
-        ArrayList<Expression> cols = getExpressionColumns(session, rs);
-        int columnCount = cols.size();
-        LocalResult result = new LocalResult(session, cols, columnCount);
-        for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
-            Value[] list = new Value[columnCount];
-            for (int j = 0; j < columnCount; j++) {
-                int type = result.getColumnType(j);
-                list[j] = DataType.readValue(session, rs, j + 1, type);
+    public static LocalResult read(Session session, ResultSet rs, int maxrows) {
+        try {
+            ArrayList<Expression> cols = getExpressionColumns(session, rs);
+            int columnCount = cols.size();
+            LocalResult result = new LocalResult(session, cols, columnCount);
+            for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
+                Value[] list = new Value[columnCount];
+                for (int j = 0; j < columnCount; j++) {
+                    int type = result.getColumnType(j);
+                    list[j] = DataType.readValue(session, rs, j + 1, type);
+                }
+                result.addRow(list);
             }
-            result.addRow(list);
+            result.done();
+            return result;
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
-        result.done();
-        return result;
     }
 
     private static ArrayList<Expression> getExpressionColumns(Session session, ResultSet rs) throws SQLException {
@@ -184,9 +188,9 @@ public class LocalResult implements ResultInterface {
      *
      * @param values the row
      */
-    public void removeDistinct(Value[] values) throws SQLException {
+    public void removeDistinct(Value[] values) {
         if (!distinct) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         if (distinctRows != null) {
             ValueArray array = ValueArray.get(values);
@@ -203,9 +207,9 @@ public class LocalResult implements ResultInterface {
      * @param values the row
      * @return true if the row exists
      */
-    public boolean containsDistinct(Value[] values) throws SQLException {
+    public boolean containsDistinct(Value[] values) {
         if (!distinct) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         if (distinctRows != null) {
             ValueArray array = ValueArray.get(values);
@@ -214,7 +218,7 @@ public class LocalResult implements ResultInterface {
         return disk.contains(values);
     }
 
-    public void reset() throws SQLException {
+    public void reset() {
         rowId = -1;
         if (disk != null) {
             disk.reset();
@@ -230,7 +234,7 @@ public class LocalResult implements ResultInterface {
         return currentRow;
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         if (rowId < rowCount) {
             rowId++;
             if (rowId < rowCount) {
@@ -255,7 +259,7 @@ public class LocalResult implements ResultInterface {
      *
      * @param values the row to add
      */
-    public void addRow(Value[] values) throws SQLException {
+    public void addRow(Value[] values) {
         if (distinct) {
             if (distinctRows != null) {
                 ValueArray array = ValueArray.get(values);
@@ -281,7 +285,7 @@ public class LocalResult implements ResultInterface {
         }
     }
 
-    private void addRowsToDisk() throws SQLException {
+    private void addRowsToDisk() {
         disk.addRows(rows);
         rows.clear();
     }
@@ -293,7 +297,7 @@ public class LocalResult implements ResultInterface {
     /**
      * This method is called after all rows have been added.
      */
-    public void done() throws SQLException {
+    public void done() {
         if (distinct) {
             if (distinctRows != null) {
                 rows = distinctRows.values();

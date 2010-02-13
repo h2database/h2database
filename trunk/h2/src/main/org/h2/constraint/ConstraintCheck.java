@@ -6,12 +6,11 @@
  */
 package org.h2.constraint;
 
-import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -66,7 +65,7 @@ public class ConstraintCheck extends Constraint {
         return getCreateSQLForCopy(table, getSQL());
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         table.removeConstraint(this);
         database.removeMeta(session, getId());
         filter = null;
@@ -75,14 +74,14 @@ public class ConstraintCheck extends Constraint {
         invalidate();
     }
 
-    public void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException {
+    public void checkRow(Session session, Table t, Row oldRow, Row newRow) {
         if (newRow == null) {
             return;
         }
         filter.set(newRow);
         // Both TRUE and NULL are ok
         if (Boolean.FALSE.equals(expr.getValue(session).getBoolean())) {
-            throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
+            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
         }
     }
 
@@ -91,7 +90,7 @@ public class ConstraintCheck extends Constraint {
     }
 
     public void setIndexOwner(Index index) {
-        Message.throwInternalError();
+        DbException.throwInternalError();
     }
 
     public boolean containsColumn(Column col) {
@@ -110,7 +109,7 @@ public class ConstraintCheck extends Constraint {
         return true;
     }
 
-    public void checkExistingData(Session session) throws SQLException {
+    public void checkExistingData(Session session) {
         if (session.getDatabase().isStarting()) {
             // don't check at startup
             return;
@@ -118,7 +117,7 @@ public class ConstraintCheck extends Constraint {
         String sql = "SELECT 1 FROM " + filter.getTable().getSQL() + " WHERE NOT(" + expr.getSQL() + ")";
         ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {
-            throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());
+            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());
         }
     }
 

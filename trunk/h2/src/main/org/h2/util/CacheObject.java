@@ -7,7 +7,7 @@
 package org.h2.util;
 
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * The base object for all cached objects.
@@ -51,7 +51,7 @@ public abstract class CacheObject implements Comparable<CacheObject> {
 
     public void setPos(int pos) {
         if (SysProperties.CHECK && (cachePrevious != null || cacheNext != null || cacheChained != null)) {
-            Message.throwInternalError("setPos too late");
+            DbException.throwInternalError("setPos too late");
         }
         this.pos = pos;
     }

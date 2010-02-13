@@ -6,7 +6,6 @@
  */
 package org.h2.result;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.value.Value;
 
@@ -19,26 +18,26 @@ public interface ResultExternal {
     /**
      * Reset the current position of this object.
      */
-    void reset() throws SQLException;
+    void reset();
 
     /**
      * Get the next row from the result.
      *
      * @return the next row or null
      */
-    Value[] next() throws SQLException;
+    Value[] next();
 
     /**
      * Add a number of rows to the result.
      *
      * @param rows the list of rows to add
      */
-    void addRows(ArrayList<Value[]> rows) throws SQLException;
+    void addRows(ArrayList<Value[]> rows);
 
     /**
      * This method is called after all rows have been added.
      */
-    void done() throws SQLException;
+    void done();
 
     /**
      * Close this object and delete the temporary file.
@@ -52,7 +51,7 @@ public interface ResultExternal {
      * @param values the row
      * @return the new row count
      */
-    int removeRow(Value[] values) throws SQLException;
+    int removeRow(Value[] values);
 
     /**
      * Check if the given row exists in this object.
@@ -60,7 +59,7 @@ public interface ResultExternal {
      * @param values the row
      * @return true if it exists
      */
-    boolean contains(Value[] values) throws SQLException;
+    boolean contains(Value[] values);
 
     /**
      * Add a row to this object.
@@ -68,6 +67,6 @@ public interface ResultExternal {
      * @param values the row to add
      * @return the new number of rows in this object
      */
-    int addRow(Value[] values) throws SQLException;
+    int addRow(Value[] values);
 
 }

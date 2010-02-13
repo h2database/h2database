@@ -6,8 +6,6 @@
  */
 package org.h2.table;
 
-import java.sql.SQLException;
-
 import org.h2.command.dml.Select;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -53,7 +51,7 @@ public interface ColumnResolver {
      * @param column the column
      * @return the value
      */
-    Value getValue(Column column) throws SQLException;
+    Value getValue(Column column);
 
     /**
      * Get the table filter.

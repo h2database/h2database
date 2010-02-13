@@ -6,7 +6,6 @@
  */
 package org.h2.result;
 
-import java.sql.SQLException;
 import org.h2.store.Data;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -60,7 +59,7 @@ public class Row implements SearchRow {
      * @param dummy the template buffer
      * @return the number of bytes
      */
-    public int getByteCount(Data dummy) throws SQLException {
+    public int getByteCount(Data dummy) {
         int size = 0;
         for (Value v : data) {
             size += dummy.getValueLen(v);

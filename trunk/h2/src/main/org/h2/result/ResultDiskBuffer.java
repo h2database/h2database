@@ -7,13 +7,12 @@
 package org.h2.result;
 
 import java.io.ByteArrayOutputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.util.New;
@@ -60,7 +59,7 @@ class ResultDiskBuffer implements ResultExternal {
         ArrayList<Value[]> buffer = New.arrayList();
     }
 
-    ResultDiskBuffer(Session session, SortOrder sort, int columnCount) throws SQLException {
+    ResultDiskBuffer(Session session, SortOrder sort, int columnCount) {
         this.sort = sort;
         this.columnCount = columnCount;
         Database db = session.getDatabase();
@@ -77,7 +76,7 @@ class ResultDiskBuffer implements ResultExternal {
         }
     }
 
-    public void addRows(ArrayList<Value[]> rows) throws SQLException {
+    public void addRows(ArrayList<Value[]> rows) {
         if (sort != null) {
             sort.sort(rows);
         }
@@ -124,7 +123,7 @@ class ResultDiskBuffer implements ResultExternal {
         }
     }
 
-    public void done() throws SQLException {
+    public void done() {
         file.seek(FileStore.HEADER_LENGTH);
         file.autoDelete();
     }
@@ -141,7 +140,7 @@ class ResultDiskBuffer implements ResultExternal {
         }
     }
 
-    private void readRow(ResultDiskTape tape) throws SQLException {
+    private void readRow(ResultDiskTape tape) {
         int min = Constants.FILE_BLOCK_SIZE;
         Data buff = rowBuff;
         buff.reset();
@@ -159,11 +158,11 @@ class ResultDiskBuffer implements ResultExternal {
         tape.buffer.add(row);
     }
 
-    public Value[] next() throws SQLException {
+    public Value[] next() {
         return sort != null ? nextSorted() : nextUnsorted();
     }
 
-    private Value[] nextUnsorted() throws SQLException {
+    private Value[] nextUnsorted() {
         file.seek(mainTape.pos);
         if (mainTape.buffer.size() == 0) {
             for (int j = 0; mainTape.pos < mainTape.end && j < READ_AHEAD; j++) {
@@ -175,7 +174,7 @@ class ResultDiskBuffer implements ResultExternal {
         return row;
     }
 
-    private Value[] nextSorted() throws SQLException {
+    private Value[] nextSorted() {
         int next = -1;
         for (int i = 0; i < tapes.size(); i++) {
             ResultDiskTape tape = tapes.get(i);
@@ -199,14 +198,10 @@ class ResultDiskBuffer implements ResultExternal {
         return row;
     }
 
-    private int compareTapes(ResultDiskTape a, ResultDiskTape b) throws SQLException {
+    private int compareTapes(ResultDiskTape a, ResultDiskTape b) {
         Value[] va = a.buffer.get(0);
         Value[] vb = b.buffer.get(0);
-        try {
-            return sort.compare(va, vb);
-        } catch (Exception e) {
-            throw Message.convert(e);
-        }
+        return sort.compare(va, vb);
     }
 
     protected void finalize() {
@@ -224,15 +219,15 @@ class ResultDiskBuffer implements ResultExternal {
     }
 
     public int removeRow(Value[] values) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public boolean contains(Value[] values) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public int addRow(Value[] values) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
 }

@@ -90,7 +90,7 @@ public class FunctionMultiReturn {
      * @param alpha the angle
      * @return a result set with two columns: x and y
      */
-    public static ResultSet polar2Cartesian(Double r, Double alpha) throws SQLException {
+    public static ResultSet polar2Cartesian(Double r, Double alpha) {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("X", Types.DOUBLE, 0, 0);
         rs.addColumn("Y", Types.DOUBLE, 0, 0);

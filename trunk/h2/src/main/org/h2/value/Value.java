@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Utils;
@@ -222,7 +222,7 @@ public abstract class Value {
      * @return 0 if both values are equal, -1 if the other value is smaller, and
      *         1 otherwise
      */
-    protected abstract int compareSecure(Value v, CompareMode mode) throws SQLException;
+    protected abstract int compareSecure(Value v, CompareMode mode);
 
     public abstract int hashCode();
 
@@ -292,7 +292,7 @@ public abstract class Value {
         case RESULT_SET:
             return 51;
         default:
-            throw Message.throwInternalError("type:"+type);
+            throw DbException.throwInternalError("type:"+type);
         }
     }
 
@@ -305,10 +305,10 @@ public abstract class Value {
      * @param t2 the second value type
      * @return the higher value type of the two
      */
-    public static int getHigherOrder(int t1, int t2) throws SQLException {
+    public static int getHigherOrder(int t1, int t2) {
         if (t1 == t2) {
             if (t1 == Value.UNKNOWN) {
-                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
             }
             return t1;
         }
@@ -352,71 +352,71 @@ public abstract class Value {
         return v;
     }
 
-    public Boolean getBoolean() throws SQLException {
+    public Boolean getBoolean() {
         return ((ValueBoolean) convertTo(Value.BOOLEAN)).getBoolean();
     }
 
-    public Date getDate() throws SQLException {
+    public Date getDate() {
         return ((ValueDate) convertTo(Value.DATE)).getDate();
     }
 
-    public Date getDateNoCopy() throws SQLException {
+    public Date getDateNoCopy() {
         return ((ValueDate) convertTo(Value.DATE)).getDateNoCopy();
     }
 
-    public Time getTime() throws SQLException {
+    public Time getTime() {
         return ((ValueTime) convertTo(Value.TIME)).getTime();
     }
 
-    public Time getTimeNoCopy() throws SQLException {
+    public Time getTimeNoCopy() {
         return ((ValueTime) convertTo(Value.TIME)).getTimeNoCopy();
     }
 
-    public Timestamp getTimestamp() throws SQLException {
+    public Timestamp getTimestamp() {
         return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestamp();
     }
 
-    public Timestamp getTimestampNoCopy() throws SQLException {
+    public Timestamp getTimestampNoCopy() {
         return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestampNoCopy();
     }
 
-    public byte[] getBytes() throws SQLException {
+    public byte[] getBytes() {
         return ((ValueBytes) convertTo(Value.BYTES)).getBytes();
     }
 
-    public byte[] getBytesNoCopy() throws SQLException {
+    public byte[] getBytesNoCopy() {
         return ((ValueBytes) convertTo(Value.BYTES)).getBytesNoCopy();
     }
 
-    public byte getByte() throws SQLException {
+    public byte getByte() {
         return ((ValueByte) convertTo(Value.BYTE)).getByte();
     }
 
-    public short getShort() throws SQLException {
+    public short getShort() {
         return ((ValueShort) convertTo(Value.SHORT)).getShort();
     }
 
-    public BigDecimal getBigDecimal() throws SQLException {
+    public BigDecimal getBigDecimal() {
         return ((ValueDecimal) convertTo(Value.DECIMAL)).getBigDecimal();
     }
 
-    public double getDouble() throws SQLException {
+    public double getDouble() {
         return ((ValueDouble) convertTo(Value.DOUBLE)).getDouble();
     }
 
-    public float getFloat() throws SQLException {
+    public float getFloat() {
         return ((ValueFloat) convertTo(Value.FLOAT)).getFloat();
     }
 
-    public int getInt() throws SQLException {
+    public int getInt() {
         return ((ValueInt) convertTo(Value.INT)).getInt();
     }
 
-    public long getLong() throws SQLException {
+    public long getLong() {
         return ((ValueLong) convertTo(Value.LONG)).getLong();
     }
 
-    public InputStream getInputStream() throws SQLException {
+    public InputStream getInputStream() {
         return new ByteArrayInputStream(getBytesNoCopy());
     }
 
@@ -430,11 +430,11 @@ public abstract class Value {
      * @param v the value to add
      * @return the result
      */
-    public Value add(Value v) throws SQLException {
+    public Value add(Value v) {
         throw throwUnsupportedExceptionForType();
     }
 
-    public int getSignum() throws SQLException {
+    public int getSignum() {
         throw throwUnsupportedExceptionForType();
     }
 
@@ -443,7 +443,7 @@ public abstract class Value {
      *
      * @return the negative
      */
-    public Value negate() throws SQLException {
+    public Value negate() {
         throw throwUnsupportedExceptionForType();
     }
 
@@ -453,7 +453,7 @@ public abstract class Value {
      * @param v the value to subtract
      * @return the result
      */
-    public Value subtract(Value v) throws SQLException {
+    public Value subtract(Value v) {
         throw throwUnsupportedExceptionForType();
     }
 
@@ -463,7 +463,7 @@ public abstract class Value {
      * @param v the value to divide by
      * @return the result
      */
-    public Value divide(Value v) throws SQLException {
+    public Value divide(Value v) {
         throw throwUnsupportedExceptionForType();
     }
 
@@ -473,7 +473,7 @@ public abstract class Value {
      * @param v the value to multiply with
      * @return the result
      */
-    public Value multiply(Value v) throws SQLException {
+    public Value multiply(Value v) {
         throw throwUnsupportedExceptionForType();
     }
 
@@ -483,7 +483,7 @@ public abstract class Value {
      * @param type the value type
      * @return the value
      */
-    public Value convertTo(int type) throws SQLException {
+    public Value convertTo(int type) {
         // converting NULL done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getType() == type) {
@@ -507,7 +507,7 @@ public abstract class Value {
             case BYTES:
             case JAVA_OBJECT:
             case UUID:
-                throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
             }
             break;
         }
@@ -603,14 +603,14 @@ public abstract class Value {
             case DOUBLE: {
                 double d = getDouble();
                 if (Double.isInfinite(d) || Double.isNaN(d)) {
-                    throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, "" + d);
+                    throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "" + d);
                 }
                 return ValueDecimal.get(new BigDecimal(d));
             }
             case FLOAT: {
                 float f = getFloat();
                 if (Float.isInfinite(f) || Float.isNaN(f)) {
-                    throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, "" + f);
+                    throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "" + f);
                 }
                 return ValueDecimal.get(new BigDecimal(f));
             }
@@ -777,10 +777,10 @@ public abstract class Value {
             case UUID:
                 return ValueUuid.get(s);
             default:
-                throw Message.throwInternalError("type=" + type);
+                throw DbException.throwInternalError("type=" + type);
             }
         } catch (NumberFormatException e) {
-            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
         }
     }
 
@@ -793,7 +793,7 @@ public abstract class Value {
      * @return 0 if both values are equal, -1 if the other value is smaller, and
      *         1 otherwise
      */
-    public final int compareTypeSave(Value v, CompareMode mode) throws SQLException {
+    public final int compareTypeSave(Value v, CompareMode mode) {
         if (this == ValueNull.INSTANCE) {
             return v == ValueNull.INSTANCE ? 0 : -1;
         } else if (v == ValueNull.INSTANCE) {
@@ -811,7 +811,7 @@ public abstract class Value {
      * @return 0 if both values are equal, -1 if the other value is smaller, and
      *         1 otherwise
      */
-    public final int compareTo(Value v, CompareMode mode) throws SQLException {
+    public final int compareTo(Value v, CompareMode mode) {
         if (this == v) {
             return 0;
         }
@@ -839,7 +839,7 @@ public abstract class Value {
      * @return the value
      * @throws SQLException
      */
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) throws SQLException {
+    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         return this;
     }
 
@@ -850,42 +850,42 @@ public abstract class Value {
      * @return the new value
      * @throws SQLException
      */
-    public Value convertPrecision(long precision) throws SQLException {
+    public Value convertPrecision(long precision) {
         return this;
     }
 
-    private byte convertToByte(long x) throws SQLException {
+    private byte convertToByte(long x) {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
-            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         return (byte) x;
     }
 
-    private short convertToShort(long x) throws SQLException {
+    private short convertToShort(long x) {
         if (x > Short.MAX_VALUE || x < Short.MIN_VALUE) {
-            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         return (short) x;
     }
 
-    private int convertToInt(long x) throws SQLException {
+    private int convertToInt(long x) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
-            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         return (int) x;
     }
 
-    private long convertToLong(double x) throws SQLException {
+    private long convertToLong(double x) {
         if (x > Long.MAX_VALUE || x < Long.MIN_VALUE) {
             // TODO document that +Infinity, -Infinity throw an exception and NaN returns 0
-            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         return Math.round(x);
     }
 
-    private long convertToLong(BigDecimal x) throws SQLException {
+    private long convertToLong(BigDecimal x) {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 || x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
-            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
     }
@@ -899,7 +899,7 @@ public abstract class Value {
      * @return the new value or itself
      * @throws SQLException
      */
-    public Value link(DataHandler handler, int tableId) throws SQLException {
+    public Value link(DataHandler handler, int tableId) {
         return this;
     }
 
@@ -919,7 +919,7 @@ public abstract class Value {
      *
      * @throws SQLException
      */
-    public void unlink() throws SQLException {
+    public void unlink() {
         // nothing to do
     }
 
@@ -939,7 +939,7 @@ public abstract class Value {
      *
      * @throws SQLException
      */
-    public void close() throws SQLException {
+    public void close() {
         // nothing to do
     }
 
@@ -972,10 +972,10 @@ public abstract class Value {
      * Throw the exception that the feature is not support for the given data type.
      *
      * @return the exception
-     * @throws SQLException
+     * @throws the exception
      */
-    protected SQLException throwUnsupportedExceptionForType() throws SQLException {
-        throw Message.getUnsupportedException(DataType.getDataType(getType()).name);
+    protected DbException throwUnsupportedExceptionForType() {
+        throw DbException.getUnsupportedException(DataType.getDataType(getType()).name);
     }
 
 }

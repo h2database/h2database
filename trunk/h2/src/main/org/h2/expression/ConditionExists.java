@@ -6,7 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import org.h2.command.dml.Query;
 import org.h2.engine.Session;
 import org.h2.result.ResultInterface;
@@ -26,7 +25,7 @@ public class ConditionExists extends Condition {
         this.query = query;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         query.setSession(session);
         ResultInterface result = query.query(1);
         session.addTemporaryResult(result);
@@ -34,7 +33,7 @@ public class ConditionExists extends Condition {
         return ValueBoolean.get(r);
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         query.prepare();
         return this;
     }
@@ -50,7 +49,7 @@ public class ConditionExists extends Condition {
         // where id=count(test.id))
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         query.mapColumns(resolver, level + 1);
     }
 

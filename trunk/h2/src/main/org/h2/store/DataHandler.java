@@ -6,8 +6,6 @@
  */
 package org.h2.store;
 
-import java.sql.SQLException;
-
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
@@ -33,7 +31,7 @@ public interface DataHandler {
      * @param mustExist whether the file must already exist
      * @return the file
      */
-    FileStore openFile(String name, String mode, boolean mustExist) throws SQLException;
+    FileStore openFile(String name, String mode, boolean mustExist);
 
     /**
      * Check if the simulated power failure occurred.
@@ -41,14 +39,14 @@ public interface DataHandler {
      *
      * @throws SQLException if the simulated power failure occurred
      */
-    void checkPowerOff() throws SQLException;
+    void checkPowerOff();
 
     /**
      * Check if writing is allowed.
      *
      * @throws SQLException if it is not allowed
      */
-    void checkWritingAllowed() throws SQLException;
+    void checkWritingAllowed();
 
     /**
      * Free up disk space if possible.
@@ -56,7 +54,7 @@ public interface DataHandler {
      *
      * @throws SQLException if no more space could be freed
      */
-    void freeUpDiskSpace() throws SQLException;
+    void freeUpDiskSpace();
 
     /**
      * Compare two values.
@@ -65,7 +63,7 @@ public interface DataHandler {
      * @param b the second value
      * @return 0 for equal, 1 if a is larger than b, and -1 otherwise
      */
-    int compareTypeSave(Value a, Value b) throws SQLException;
+    int compareTypeSave(Value a, Value b);
 
     /**
      * Get the maximum length of a in-place large object

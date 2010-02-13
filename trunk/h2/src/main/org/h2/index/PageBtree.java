@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.Page;
@@ -82,14 +81,14 @@ public abstract class PageBtree extends Page {
      *
      * @return the row count
      */
-    abstract int getRowCount() throws SQLException;
+    abstract int getRowCount();
 
     /**
      * Set the stored row count. This will write the page.
      *
      * @param rowCount the stored row count
      */
-    abstract void setRowCountStored(int rowCount) throws SQLException;
+    abstract void setRowCountStored(int rowCount);
 
     /**
      * Find an entry.
@@ -100,7 +99,7 @@ public abstract class PageBtree extends Page {
      * @param compareKeys compare the row keys as well
      * @return the index of the found row
      */
-    int find(SearchRow compare, boolean bigger, boolean add, boolean compareKeys) throws SQLException {
+    int find(SearchRow compare, boolean bigger, boolean add, boolean compareKeys) {
         if (compare == null) {
             return 0;
         }
@@ -139,7 +138,7 @@ public abstract class PageBtree extends Page {
      * @param row the row to add
      * @return the split point of this page, or -1 if no split is required
      */
-    abstract int addRowTry(SearchRow row) throws SQLException;
+    abstract int addRowTry(SearchRow row);
 
     /**
      * Find the first row.
@@ -148,14 +147,14 @@ public abstract class PageBtree extends Page {
      * @param first the row to find
      * @param if the row should be bigger
      */
-    abstract void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException;
+    abstract void find(PageBtreeCursor cursor, SearchRow first, boolean bigger);
 
     /**
      * Find the last row.
      *
      * @param cursor the cursor
      */
-    abstract void last(PageBtreeCursor cursor) throws SQLException;
+    abstract void last(PageBtreeCursor cursor);
 
     /**
      * Get the row at this position.
@@ -163,7 +162,7 @@ public abstract class PageBtree extends Page {
      * @param at the index
      * @return the row
      */
-    SearchRow getRow(int at) throws SQLException {
+    SearchRow getRow(int at) {
         SearchRow row = rows[at];
         if (row == null) {
             row = index.readRow(data, offsets[at], onlyPosition, true);
@@ -181,14 +180,14 @@ public abstract class PageBtree extends Page {
      * @param splitPoint the index where to split
      * @return the new page that contains about half the entries
      */
-    abstract PageBtree split(int splitPoint) throws SQLException;
+    abstract PageBtree split(int splitPoint);
 
     /**
      * Change the page id.
      *
      * @param id the new page id
      */
-    void setPageId(int id) throws SQLException {
+    void setPageId(int id) {
         changeCount = index.getPageStore().getChangeCount();
         written = false;
         index.getPageStore().removeRecord(getPos());
@@ -202,21 +201,21 @@ public abstract class PageBtree extends Page {
      *
      * @return the page
      */
-    abstract PageBtreeLeaf getFirstLeaf() throws SQLException;
+    abstract PageBtreeLeaf getFirstLeaf();
 
     /**
      * Get the first child leaf page of a page.
      *
      * @return the page
      */
-    abstract PageBtreeLeaf getLastLeaf() throws SQLException;
+    abstract PageBtreeLeaf getLastLeaf();
 
     /**
      * Change the parent page id.
      *
      * @param id the new parent page id
      */
-    void setParentPageId(int id) throws SQLException {
+    void setParentPageId(int id) {
         index.getPageStore().logUndo(this, data);
         changeCount = index.getPageStore().getChangeCount();
         written = false;
@@ -226,7 +225,7 @@ public abstract class PageBtree extends Page {
     /**
      * Update the parent id of all children.
      */
-    abstract void remapChildren() throws SQLException;
+    abstract void remapChildren();
 
     /**
      * Remove a row.
@@ -236,17 +235,17 @@ public abstract class PageBtree extends Page {
      *          the deleted row if the page is now empty,
      *          otherwise the new last row of this page
      */
-    abstract SearchRow remove(SearchRow row) throws SQLException;
+    abstract SearchRow remove(SearchRow row);
 
     /**
      * Free this page and all child pages.
      */
-    abstract void freeRecursive() throws SQLException;
+    abstract void freeRecursive();
 
     /**
      * Ensure all rows are read in memory.
      */
-    protected void readAllRows() throws SQLException {
+    protected void readAllRows() {
         for (int i = 0; i < entryCount; i++) {
             SearchRow row = rows[i];
             if (row == null) {

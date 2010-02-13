@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Map;
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.tools.SimpleResultSet;
 import org.h2.value.Value;
@@ -39,7 +39,6 @@ public class JdbcArray extends TraceObject implements Array {
      * This method always returns an Object[].
      *
      * @return the Object array
-     * @throws SQLException
      */
     public Object getArray() throws SQLException {
         try {
@@ -57,7 +56,6 @@ public class JdbcArray extends TraceObject implements Array {
      *
      * @param map is ignored. Only empty or null maps are supported
      * @return the Object array
-     * @throws SQLException
      */
     public Object getArray(Map<String, Class< ? >> map) throws SQLException {
         try {
@@ -78,7 +76,6 @@ public class JdbcArray extends TraceObject implements Array {
      * @param index the start index of the subset (starting with 1)
      * @param count the maximum number of values
      * @return the Object array
-     * @throws SQLException
      */
     public Object getArray(long index, int count) throws SQLException {
         try {
@@ -99,7 +96,6 @@ public class JdbcArray extends TraceObject implements Array {
      * @param count the maximum number of values
      * @param map is ignored. Only empty or null maps are supported
      * @return the Object array
-     * @throws SQLException
      */
     public Object getArray(long index, int count, Map<String, Class< ? >> map) throws SQLException {
         try {
@@ -117,7 +113,6 @@ public class JdbcArray extends TraceObject implements Array {
      * arrays and therefore there is no base type.
      *
      * @return Types.NULL
-     * @throws SQLException
      */
     public int getBaseType() throws SQLException {
         try {
@@ -134,7 +129,6 @@ public class JdbcArray extends TraceObject implements Array {
      * type arrays and therefore there is no base type.
      *
      * @return "NULL"
-     * @throws SQLException
      */
     public String getBaseTypeName() throws SQLException {
         try {
@@ -152,7 +146,6 @@ public class JdbcArray extends TraceObject implements Array {
      * (starting with 1) and the second column the value.
      *
      * @return the result set
-     * @throws SQLException
      */
     public ResultSet getResultSet() throws SQLException {
         try {
@@ -170,7 +163,6 @@ public class JdbcArray extends TraceObject implements Array {
      *
      * @param map is ignored. Only empty or null maps are supported
      * @return the result set
-     * @throws SQLException
      */
     public ResultSet getResultSet(Map<String, Class< ? >> map) throws SQLException {
         try {
@@ -192,7 +184,6 @@ public class JdbcArray extends TraceObject implements Array {
      * @param index the start index of the subset (starting with 1)
      * @param count the maximum number of values
      * @return the result set
-     * @throws SQLException
      */
     public ResultSet getResultSet(long index, int count) throws SQLException {
         try {
@@ -215,7 +206,6 @@ public class JdbcArray extends TraceObject implements Array {
      * @param count the maximum number of values
      * @param map is ignored. Only empty or null maps are supported
      * @return the result set
-     * @throws SQLException
      */
     public ResultSet getResultSet(long index, int count, Map<String, Class< ? >> map) throws SQLException {
         try {
@@ -236,7 +226,7 @@ public class JdbcArray extends TraceObject implements Array {
         value = null;
     }
 
-    private ResultSet getResultSet(Object[] array, long offset) throws SQLException {
+    private ResultSet getResultSet(Object[] array, long offset) {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("INDEX", Types.BIGINT, 0, 0);
         // TODO array result set: there are multiple data types possible
@@ -250,22 +240,22 @@ public class JdbcArray extends TraceObject implements Array {
     private void checkClosed() throws SQLException {
         conn.checkClosed();
         if (value == null) {
-            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
     }
 
-    private Object[] get() throws SQLException {
+    private Object[] get() {
         return (Object[]) value.convertTo(Value.ARRAY).getObject();
     }
 
-    private Object[] get(long index, int count) throws SQLException {
+    private Object[] get(long index, int count) {
         Object[] array = get();
         if (count < 0 || count > array.length) {
-            throw Message.getInvalidValueException("" + count, "count (1.."
+            throw DbException.getInvalidValueException("" + count, "count (1.."
                     + array.length + ")");
         }
         if (index < 1 || index > array.length) {
-            throw Message.getInvalidValueException("" + index, "index (1.."
+            throw DbException.getInvalidValueException("" + index, "index (1.."
                     + array.length + ")");
         }
         Object[] subset = new Object[count];
@@ -273,9 +263,9 @@ public class JdbcArray extends TraceObject implements Array {
         return subset;
     }
 
-    private void checkMap(Map<String, Class< ? >> map) throws SQLException {
+    private void checkMap(Map<String, Class< ? >> map) {
         if (map != null && map.size() > 0) {
-            throw Message.getUnsupportedException("map.size > 0");
+            throw DbException.getUnsupportedException("map.size > 0");
         }
     }
 

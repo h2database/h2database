@@ -107,7 +107,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         return DriverManager.getConnection(url, "sa", "");
     }
 
-    public void diskSpaceIsLow(long stillAvailable) {
+    public void diskSpaceIsLow() {
         // nothing to do
     }
 

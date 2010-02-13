@@ -6,15 +6,13 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
-
 import org.h2.command.ddl.SchemaCommand;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
@@ -43,11 +41,11 @@ public class AlterSequence extends SchemaCommand {
         return true;
     }
 
-    public void setColumn(Column column) throws SQLException {
+    public void setColumn(Column column) {
         table = column.getTable();
         sequence = column.getSequence();
         if (sequence == null) {
-            throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL());
+            throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL());
         }
     }
 
@@ -59,7 +57,7 @@ public class AlterSequence extends SchemaCommand {
         this.increment = increment;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         Database db = session.getDatabase();
         if (table != null) {
             session.getUser().checkRight(table, Right.ALL);
@@ -71,7 +69,7 @@ public class AlterSequence extends SchemaCommand {
         if (increment != null) {
             long incrementValue = increment.optimize(session).getValue(session).getLong();
             if (incrementValue == 0) {
-                throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, "0", "INCREMENT");
+                throw DbException.get(ErrorCode.INVALID_VALUE_2, "0", "INCREMENT");
             }
             sequence.setIncrement(incrementValue);
         }

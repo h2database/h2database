@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.expression.ParameterInterface;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.util.MathUtils;
@@ -205,7 +205,7 @@ implements ParameterMetaData
     private ParameterInterface getParameter(int param) throws SQLException {
         checkClosed();
         if (param < 1 || param > paramCount) {
-            throw Message.getInvalidValueException("" + param, "param");
+            throw DbException.getInvalidValueException("" + param, "param");
         }
         return parameters.get(param - 1);
     }
@@ -219,8 +219,7 @@ implements ParameterMetaData
      */
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        debugCodeCall("unwrap");
-        throw Message.getUnsupportedException("unwrap");
+        throw unsupported("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -229,8 +228,7 @@ implements ParameterMetaData
      */
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        debugCodeCall("isWrapperFor");
-        throw Message.getUnsupportedException("isWrapperFor");
+        throw unsupported("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 

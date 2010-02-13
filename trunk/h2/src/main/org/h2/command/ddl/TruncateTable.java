@@ -6,12 +6,10 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.Table;
 
 /**
@@ -30,10 +28,10 @@ public class TruncateTable extends DefineCommand {
         this.table = table;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         if (!table.canTruncate()) {
-            throw Message.getSQLException(ErrorCode.CANNOT_TRUNCATE_1, table.getSQL());
+            throw DbException.get(ErrorCode.CANNOT_TRUNCATE_1, table.getSQL());
         }
         session.getUser().checkRight(table, Right.DELETE);
         table.lock(session, true, true);

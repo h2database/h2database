@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -104,14 +104,14 @@ public class UpdatableRow {
         return isUpdatable;
     }
 
-    private int getColumnIndex(String columnName) throws SQLException {
+    private int getColumnIndex(String columnName) {
         for (int i = 0; i < columnCount; i++) {
             String col = result.getColumnName(i);
             if (col.equals(columnName)) {
                 return i;
             }
         }
-        throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
     }
 
     private void appendColumnList(StatementBuilder buff, boolean set) {
@@ -143,7 +143,7 @@ public class UpdatableRow {
             if (v == null || v == ValueNull.INSTANCE) {
                 // rows with a unique key containing NULL are not supported,
                 // as multiple such rows could exist
-                throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
+                throw DbException.get(ErrorCode.NO_DATA_AVAILABLE);
             }
             v.set(prep, start + i);
         }
@@ -184,7 +184,7 @@ public class UpdatableRow {
         setKey(prep, 1, row);
         ResultSet rs = prep.executeQuery();
         if (!rs.next()) {
-            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
+            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE);
         }
         Value[] newRow = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
@@ -209,7 +209,7 @@ public class UpdatableRow {
         int count = prep.executeUpdate();
         if (count != 1) {
             // the row has already been deleted
-            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
+            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE);
         }
     }
 
@@ -242,7 +242,7 @@ public class UpdatableRow {
         int count = prep.executeUpdate();
         if (count != 1) {
             // the row has been deleted
-            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
+            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE);
         }
     }
 
@@ -274,7 +274,7 @@ public class UpdatableRow {
         }
         int count = prep.executeUpdate();
         if (count != 1) {
-            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
+            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE);
         }
     }
 

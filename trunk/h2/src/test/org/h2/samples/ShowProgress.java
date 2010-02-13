@@ -86,10 +86,8 @@ public class ShowProgress implements DatabaseEventListener {
 
     /**
      * This method is called by the database if disk space is low.
-     *
-     * @param stillAvailable the number of bytes still available
      */
-    public void diskSpaceIsLow(long stillAvailable) {
+    public void diskSpaceIsLow() {
         System.out.println("diskSpaceIsLow");
     }
 

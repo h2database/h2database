@@ -14,7 +14,7 @@ import java.util.Properties;
 
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 
 /**
@@ -57,7 +57,7 @@ public class Driver implements java.sql.Driver {
             }
             return new JdbcConnection(url, info);
         } catch (Exception e) {
-            throw Message.convert(e);
+            throw DbException.toSQLException(e);
         }
     }
 

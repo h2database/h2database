@@ -9,14 +9,15 @@
 package org.h2.util;
 
 import java.sql.Date;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.TimeZone;
-
-import org.h2.message.Message;
+import org.h2.constant.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
@@ -59,7 +60,7 @@ public class DateTimeUtils {
      * @param calendar the calendar
      * @return the timestamp using the correct time zone
      */
-    public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) throws SQLException {
+    public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) {
         if (x != null) {
             Timestamp y = new Timestamp(getLocalTime(x, calendar));
             // fix the nano seconds
@@ -121,7 +122,7 @@ public class DateTimeUtils {
      * @param source the calendar
      * @return the date in UTC
      */
-    public static Value convertDateToUniversal(Date x, Calendar source) throws SQLException {
+    public static Value convertDateToUniversal(Date x, Calendar source) {
         return ValueDate.get(new Date(getUniversalTime(source, x)));
     }
 
@@ -132,7 +133,7 @@ public class DateTimeUtils {
      * @param source the calendar
      * @return the time in UTC
      */
-    public static Value convertTimeToUniversal(Time x, Calendar source) throws SQLException {
+    public static Value convertTimeToUniversal(Time x, Calendar source) {
         return ValueTime.get(new Time(getUniversalTime(source, x)));
     }
 
@@ -143,7 +144,7 @@ public class DateTimeUtils {
      * @param source the calendar
      * @return the timestamp in UTC
      */
-    public static Value convertTimestampToUniversal(Timestamp x, Calendar source) throws SQLException {
+    public static Value convertTimestampToUniversal(Timestamp x, Calendar source) {
         Timestamp y = new Timestamp(getUniversalTime(source, x));
         // fix the nano seconds
         y.setNanos(x.getNanos());
@@ -157,9 +158,9 @@ public class DateTimeUtils {
      * @param x the date
      * @return the UTC number of milliseconds.
      */
-    private static long getUniversalTime(Calendar source, java.util.Date x) throws SQLException {
+    private static long getUniversalTime(Calendar source, java.util.Date x) {
         if (source == null) {
-            throw Message.getInvalidValueException("calendar", null);
+            throw DbException.getInvalidValueException("calendar", null);
         }
         source = (Calendar) source.clone();
         Calendar universal = getCalendar();
@@ -170,9 +171,9 @@ public class DateTimeUtils {
         }
     }
 
-    private static long getLocalTime(java.util.Date x, Calendar target) throws SQLException {
+    private static long getLocalTime(java.util.Date x, Calendar target) {
         if (target == null) {
-            throw Message.getInvalidValueException("calendar", null);
+            throw DbException.getInvalidValueException("calendar", null);
         }
         target = (Calendar) target.clone();
         Calendar local = Calendar.getInstance();
@@ -200,7 +201,7 @@ public class DateTimeUtils {
      * @param calendar the calendar
      * @return the date using the correct time zone
      */
-    public static Date convertDateToCalendar(Date x, Calendar calendar) throws SQLException {
+    public static Date convertDateToCalendar(Date x, Calendar calendar) {
         return x == null ? null : new Date(getLocalTime(x, calendar));
     }
 
@@ -211,7 +212,7 @@ public class DateTimeUtils {
      * @param calendar the calendar
      * @return the time using the correct time zone
      */
-    public static Time convertTimeToCalendar(Time x, Calendar calendar) throws SQLException {
+    public static Time convertTimeToCalendar(Time x, Calendar calendar) {
         return x == null ? null : new Time(getLocalTime(x, calendar));
     }
 
@@ -225,7 +226,7 @@ public class DateTimeUtils {
      * @param errorCode the error code to use if an error occurs
      * @return the date object
      */
-    public static java.util.Date parseDateTime(String original, int type, int errorCode) throws SQLException {
+    public static java.util.Date parseDateTime(String original, int type, int errorCode) {
         String s = original;
         if (s == null) {
             return null;
@@ -253,7 +254,7 @@ public class DateTimeUtils {
                 int s1 = s.indexOf('-', 1);
                 int s2 = s.indexOf('-', s1 + 1);
                 if (s1 <= 0 || s2 <= s1) {
-                    throw Message.getSQLException(errorCode, s, "format yyyy-mm-dd");
+                    throw DbException.get(errorCode, s, "format yyyy-mm-dd");
                 }
                 year = Integer.parseInt(s.substring(0, s1));
                 month = Integer.parseInt(s.substring(s1 + 1, s2));
@@ -266,7 +267,7 @@ public class DateTimeUtils {
                 int s2 = s.indexOf(':', s1 + 1);
                 int s3 = s.indexOf('.', s2 + 1);
                 if (s1 <= 0 || s2 <= s1) {
-                    throw Message.getSQLException(errorCode, s, "format hh:mm:ss");
+                    throw DbException.get(errorCode, s, "format hh:mm:ss");
                 }
 
                 if (s.endsWith("Z")) {
@@ -281,7 +282,7 @@ public class DateTimeUtils {
                         String tzName = "GMT" + s.substring(timeZoneStart);
                         tz = TimeZone.getTimeZone(tzName);
                         if (!tz.getID().startsWith(tzName)) {
-                            throw Message.getSQLException(errorCode, new String[] { s, tz.getID() + " <>" + tzName });
+                            throw DbException.get(errorCode, new String[] { s, tz.getID() + " <>" + tzName });
                         }
                         s = s.substring(0, timeZoneStart).trim();
                     }
@@ -339,10 +340,10 @@ public class DateTimeUtils {
                 return ts;
             }
             default:
-                throw Message.throwInternalError("type:" + type);
+                throw DbException.throwInternalError("type:" + type);
             }
         } catch (IllegalArgumentException e) {
-            throw Message.getSQLException(errorCode, e, original, e.toString());
+            throw DbException.get(errorCode, e, original, e.toString());
         }
     }
 
@@ -491,6 +492,68 @@ public class DateTimeUtils {
             year++;
         }
         return year;
+    }
+
+    /**
+     * Formats a date using a format string.
+     *
+     * @param date the date to format
+     * @param format the format string
+     * @param locale the locale
+     * @param timeZone the timezone
+     * @return the formatted date
+     */
+    public static String formatDateTime(java.util.Date date, String format, String locale, String timeZone) {
+        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
+        synchronized (dateFormat) {
+            return dateFormat.format(date);
+        }
+    }
+
+    /**
+     * Parses a date using a format string.
+     *
+     * @param date the date to parse
+     * @param format the parsing format
+     * @param locale the locale
+     * @param timeZone the timeZone
+     * @return the parsed date
+     */
+    public static java.util.Date parseDateTime(String date, String format, String locale, String timeZone) {
+        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
+        try {
+            synchronized (dateFormat) {
+                return dateFormat.parse(date);
+            }
+        } catch (Exception e) {
+            // ParseException
+            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, date);
+        }
+    }
+
+    private static SimpleDateFormat getDateFormat(String format, String locale, String timeZone) {
+        try {
+            // currently, a new instance is create for each call
+            // however, could cache the last few instances
+            SimpleDateFormat df;
+            if (locale == null) {
+                df = new SimpleDateFormat(format);
+            } else {
+                //## Java 1.4 begin ##
+                Locale l = new Locale(locale);
+                //## Java 1.4 end ##
+                /*## Java 1.3 only begin ##
+                Locale l = new Locale(locale, "");
+                ## Java 1.3 only end ##*/
+                df = new SimpleDateFormat(format, l);
+            }
+            if (timeZone != null) {
+                df.setTimeZone(TimeZone.getTimeZone(timeZone));
+            }
+            return df;
+        } catch (Exception e) {
+            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, format + "/" + locale + "/" + timeZone);
+        }
     }
 
 }

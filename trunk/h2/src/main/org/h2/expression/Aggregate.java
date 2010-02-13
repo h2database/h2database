@@ -6,7 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,7 +16,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
@@ -213,7 +212,7 @@ public class Aggregate extends Expression {
         return new SortOrder(session.getDatabase(), index, sortType);
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         // TODO aggregates: check nested MIN(MAX(ID)) and so on
         // if(on != null) {
         // on.updateAggregate();
@@ -254,7 +253,7 @@ public class Aggregate extends Expression {
         data.add(session.getDatabase(), distinct, v);
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         if (select.isQuickAggregateQuery()) {
             switch (type) {
             case COUNT_ALL:
@@ -278,12 +277,12 @@ public class Aggregate extends Expression {
                 }
                 return v;
             default:
-                Message.throwInternalError("type=" + type);
+                DbException.throwInternalError("type=" + type);
             }
         }
         HashMap<Expression, Object> group = select.getCurrentGroup();
         if (group == null) {
-            throw Message.getSQLException(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
         AggregateData data = (AggregateData) group.get(this);
         if (data == null) {
@@ -296,18 +295,14 @@ public class Aggregate extends Expression {
                 return ValueNull.INSTANCE;
             }
             if (orderList != null) {
-                try {
-                    final SortOrder sortOrder = sort;
-                    Collections.sort(list, new Comparator<Value>() {
-                        public int compare(Value v1, Value v2) {
-                            Value[] a1 = ((ValueArray) v1).getList();
-                            Value[] a2 = ((ValueArray) v2).getList();
-                            return sortOrder.compare(a1, a2);
-                        }
-                    });
-                } catch (Exception e) {
-                    throw Message.convert(e);
-                }
+                final SortOrder sortOrder = sort;
+                Collections.sort(list, new Comparator<Value>() {
+                    public int compare(Value v1, Value v2) {
+                        Value[] a1 = ((ValueArray) v1).getList();
+                        Value[] a2 = ((ValueArray) v2).getList();
+                        return sortOrder.compare(a1, a2);
+                    }
+                });
             }
             StatementBuilder buff = new StatementBuilder();
             String sep = separator == null ? "," : separator.getValue(session).getString();
@@ -335,7 +330,7 @@ public class Aggregate extends Expression {
         return dataType;
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         if (on != null) {
             on.mapColumns(resolver, level);
         }
@@ -349,7 +344,7 @@ public class Aggregate extends Expression {
         }
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         if (on != null) {
             on = on.optimize(session);
             dataType = on.getType();
@@ -388,13 +383,13 @@ public class Aggregate extends Expression {
             break;
         case SUM:
             if (!DataType.supportsAdd(dataType)) {
-                throw Message.getSQLException(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
             }
             dataType = DataType.getAddProofType(dataType);
             break;
         case AVG:
             if (!DataType.supportsAdd(dataType)) {
-                throw Message.getSQLException(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
             }
             break;
         case MIN:
@@ -417,7 +412,7 @@ public class Aggregate extends Expression {
             scale = 0;
             break;
         default:
-            Message.throwInternalError("type=" + type);
+            DbException.throwInternalError("type=" + type);
         }
         return this;
     }
@@ -511,7 +506,7 @@ public class Aggregate extends Expression {
             text = "BOOL_OR";
             break;
         default:
-            throw Message.throwInternalError("type=" + type);
+            throw DbException.throwInternalError("type=" + type);
         }
         if (distinct) {
             return text + "(DISTINCT " + on.getSQL() + ")";

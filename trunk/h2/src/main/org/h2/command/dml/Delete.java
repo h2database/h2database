@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import org.h2.api.Trigger;
 import org.h2.command.Prepared;
 import org.h2.engine.Right;
@@ -42,7 +41,7 @@ public class Delete extends Prepared {
         this.condition = condition;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         tableFilter.startQuery(session);
         tableFilter.reset();
         Table table = tableFilter.getTable();
@@ -96,7 +95,7 @@ public class Delete extends Prepared {
         return buff.toString();
     }
 
-    public void prepare() throws SQLException {
+    public void prepare() {
         if (condition != null) {
             condition.mapColumns(tableFilter, 0);
             condition = condition.optimize(session);

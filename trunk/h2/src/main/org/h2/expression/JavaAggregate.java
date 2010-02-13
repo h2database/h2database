@@ -9,14 +9,13 @@ package org.h2.expression;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
-
 import org.h2.api.AggregateFunction;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.engine.UserAggregate;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
@@ -100,13 +99,13 @@ public class JavaAggregate extends Expression {
         return true;
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         for (int i = 0; i < args.length; i++) {
             args[i].mapColumns(resolver, level);
         }
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         userConnection = session.createConnection(false);
         argTypes = new int[args.length];
         int[] argSqlTypes = new int[args.length];
@@ -117,8 +116,12 @@ public class JavaAggregate extends Expression {
             argTypes[i] = type;
             argSqlTypes[i] = DataType.convertTypeToSQLType(type);
         }
-        aggregate = getInstance();
-        dataType = DataType.convertSQLTypeToValueType(aggregate.getType(argSqlTypes));
+        try {
+            aggregate = getInstance();
+            dataType = DataType.convertSQLTypeToValueType(aggregate.getType(argSqlTypes));
+        } catch (SQLException e) {
+            throw DbException.convert(e);
+        }
         return this;
     }
 
@@ -134,23 +137,27 @@ public class JavaAggregate extends Expression {
         return agg;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         HashMap<Expression, Object> group = select.getCurrentGroup();
         if (group == null) {
-            throw Message.getSQLException(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        AggregateFunction agg = (AggregateFunction) group.get(this);
-        if (agg == null) {
-            agg = getInstance();
+        try {
+            AggregateFunction agg = (AggregateFunction) group.get(this);
+            if (agg == null) {
+                agg = getInstance();
+            }
+            Object obj = agg.getResult();
+            if (obj == null) {
+                return ValueNull.INSTANCE;
+            }
+            return DataType.convertToValue(session, obj, dataType);
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
-        Object obj = agg.getResult();
-        if (obj == null) {
-            return ValueNull.INSTANCE;
-        }
-        return DataType.convertToValue(session, obj, dataType);
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         HashMap<Expression, Object> group = select.getCurrentGroup();
         if (group == null) {
             // this is a different level (the enclosing query)
@@ -165,22 +172,26 @@ public class JavaAggregate extends Expression {
         lastGroupRowId = groupRowId;
 
         AggregateFunction agg = (AggregateFunction) group.get(this);
-        if (agg == null) {
-            agg = getInstance();
-            group.put(this, agg);
-        }
-        Object[] argValues = new Object[args.length];
-        Object arg = null;
-        for (int i = 0; i < args.length; i++) {
-            Value v = args[i].getValue(session);
-            v = v.convertTo(argTypes[i]);
-            arg = v.getObject();
-            argValues[i] = arg;
-        }
-        if (args.length == 1) {
-            agg.add(arg);
-        } else {
-            agg.add(argValues);
+        try {
+            if (agg == null) {
+                agg = getInstance();
+                group.put(this, agg);
+            }
+            Object[] argValues = new Object[args.length];
+            Object arg = null;
+            for (int i = 0; i < args.length; i++) {
+                Value v = args[i].getValue(session);
+                v = v.convertTo(argTypes[i]);
+                arg = v.getObject();
+                argValues[i] = arg;
+            }
+            if (args.length == 1) {
+                agg.add(arg);
+            } else {
+                agg.add(argValues);
+            }
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
     }
 

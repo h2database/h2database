@@ -8,10 +8,9 @@ package org.h2.util;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.sql.SQLException;
 import java.util.Arrays;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This class can split SQL scripts to single SQL statements.
@@ -43,11 +42,11 @@ public class ScriptReader {
     /**
      * Close the underlying reader.
      */
-    public void close() throws SQLException {
+    public void close() {
         try {
             reader.close();
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 
@@ -57,14 +56,14 @@ public class ScriptReader {
      *
      * @return the SQL statement or null
      */
-    public String readStatement() throws SQLException {
+    public String readStatement() {
         if (endOfFile) {
             return null;
         }
         try {
             return readStatementLoop();
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 

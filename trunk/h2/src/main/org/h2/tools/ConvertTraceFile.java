@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -98,7 +98,7 @@ public class ConvertTraceFile extends Tool {
         try {
             convertFile(traceFile, javaClass, script);
         } catch (IOException e) {
-            throw Message.convertIOException(e, traceFile);
+            throw DbException.convertIOException(e, traceFile);
         }
     }
 
@@ -109,7 +109,7 @@ public class ConvertTraceFile extends Tool {
      * @param javaClassName
      * @throws IOException
      */
-    private void convertFile(String traceFileName, String javaClassName, String script) throws IOException, SQLException {
+    private void convertFile(String traceFileName, String javaClassName, String script) throws IOException {
         LineNumberReader reader = new LineNumberReader(IOUtils.getReader(IOUtils.openFileInputStream(traceFileName)));
         PrintWriter javaWriter = new PrintWriter(IOUtils.getWriter(IOUtils.openFileOutputStream(javaClassName + ".java", false)));
         PrintWriter scriptWriter = new PrintWriter(IOUtils.getWriter(IOUtils.openFileOutputStream(script, false)));

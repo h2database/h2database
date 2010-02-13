@@ -6,12 +6,10 @@
  */
 package org.h2.schema;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
@@ -50,9 +48,9 @@ public class Sequence extends SchemaObjectBase {
         return increment;
     }
 
-    public void setIncrement(long inc) throws SQLException {
+    public void setIncrement(long inc) {
         if (inc == 0) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, "0", "INCREMENT");
+            throw DbException.get(ErrorCode.INVALID_VALUE_2, "0", "INCREMENT");
         }
         this.increment = inc;
     }
@@ -65,7 +63,7 @@ public class Sequence extends SchemaObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public synchronized String getCreateSQL() {
@@ -89,7 +87,7 @@ public class Sequence extends SchemaObjectBase {
      * @param session the session
      * @return the next value
      */
-    public synchronized long getNext(Session session) throws SQLException {
+    public synchronized long getNext(Session session) {
         if ((increment > 0 && value >= valueWithMargin) || (increment < 0 && value <= valueWithMargin)) {
             valueWithMargin += increment * cacheSize;
             flush(session);
@@ -102,7 +100,7 @@ public class Sequence extends SchemaObjectBase {
     /**
      * Flush the current value to disk.
      */
-    public void flushWithoutMargin() throws SQLException {
+    public void flushWithoutMargin() {
         if (valueWithMargin != value) {
             valueWithMargin = value;
             flush(null);
@@ -114,7 +112,7 @@ public class Sequence extends SchemaObjectBase {
      *
      * @param session the session
      */
-    public synchronized void flush(Session session) throws SQLException {
+    public synchronized void flush(Session session) {
         Session sysSession = database.getSystemSession();
         if (session == null || !database.isSysTableLocked()) {
             // this session may not lock the sys table (except if it already has locked it)
@@ -142,7 +140,7 @@ public class Sequence extends SchemaObjectBase {
     /**
      * Flush the current value to disk and close this object.
      */
-    public void close() throws SQLException {
+    public void close() {
         flushWithoutMargin();
     }
 
@@ -150,7 +148,7 @@ public class Sequence extends SchemaObjectBase {
         return DbObject.SEQUENCE;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
         invalidate();
     }

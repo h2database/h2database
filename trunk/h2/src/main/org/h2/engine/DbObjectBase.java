@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.message.Trace;
@@ -92,12 +91,12 @@ public abstract class DbObjectBase implements DbObject {
      *
      * @param session the session
      */
-    public abstract void removeChildrenAndResources(Session session) throws SQLException;
+    public abstract void removeChildrenAndResources(Session session);
 
     /**
      * Check if this object can be renamed. System objects may not be renamed.
      */
-    public abstract void checkRename() throws SQLException;
+    public abstract void checkRename();
 
     public void setModified() {
         this.modificationId = database == null ? -1 : database.getNextModificationMetaId();
@@ -143,7 +142,7 @@ public abstract class DbObjectBase implements DbObject {
         objectName = null;
     }
 
-    public void rename(String newName) throws SQLException {
+    public void rename(String newName) {
         checkRename();
         objectName = newName;
         setModified();

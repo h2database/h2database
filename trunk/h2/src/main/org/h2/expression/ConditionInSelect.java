@@ -6,14 +6,13 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -40,7 +39,7 @@ public class ConditionInSelect extends Condition {
         this.compareType = compareType;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         query.setSession(session);
         ResultInterface rows = query.query(0);
         session.addTemporaryResult(rows);
@@ -80,18 +79,18 @@ public class ConditionInSelect extends Condition {
         return ValueBoolean.get(result);
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         query.mapColumns(resolver, level + 1);
         this.queryLevel = Math.max(level, this.queryLevel);
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         left = left.optimize(session);
         query.setDistinct(true);
         query.prepare();
         if (query.getColumnCount() != 1) {
-            throw Message.getSQLException(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
+            throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
         }
         // Can not optimize: the data may change
         return this;

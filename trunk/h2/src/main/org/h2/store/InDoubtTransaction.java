@@ -6,9 +6,7 @@
  */
 package org.h2.store;
 
-import java.sql.SQLException;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * Represents an in-doubt transaction (a transaction in the prepare phase).
@@ -61,7 +59,7 @@ public class InDoubtTransaction {
      *
      * @param state the new state
      */
-    public void setState(int state) throws SQLException {
+    public void setState(int state) {
         switch(state) {
         case COMMIT:
             store.setInDoubtTransactionState(sessionId, pos, true);
@@ -70,7 +68,7 @@ public class InDoubtTransaction {
             store.setInDoubtTransactionState(sessionId, pos, false);
             break;
         default:
-            Message.throwInternalError("state="+state);
+            DbException.throwInternalError("state="+state);
         }
         this.state = state;
     }
@@ -89,7 +87,7 @@ public class InDoubtTransaction {
         case ROLLBACK:
             return "ROLLBACK";
         default:
-            throw Message.throwInternalError("state="+state);
+            throw DbException.throwInternalError("state="+state);
         }
     }
 

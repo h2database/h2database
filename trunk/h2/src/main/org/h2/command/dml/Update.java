@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import org.h2.api.Trigger;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -15,7 +14,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowList;
@@ -57,11 +56,10 @@ public class Update extends Prepared {
      * @param column the column
      * @param expression the expression
      */
-    public void setAssignment(Column column, Expression expression)
-            throws SQLException {
+    public void setAssignment(Column column, Expression expression) {
         int id = column.getColumnId();
         if (expressions[id] != null) {
-            throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1, column
+            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column
                     .getName());
         }
         expressions[id] = expression;
@@ -71,7 +69,7 @@ public class Update extends Prepared {
         }
     }
 
-    public int update() throws SQLException {
+    public int update() {
         tableFilter.startQuery(session);
         tableFilter.reset();
         RowList rows = new RowList(session);
@@ -158,7 +156,7 @@ public class Update extends Prepared {
         return buff.toString();
     }
 
-    public void prepare() throws SQLException {
+    public void prepare() {
         if (condition != null) {
             condition.mapColumns(tableFilter, 0);
             condition = condition.optimize(session);

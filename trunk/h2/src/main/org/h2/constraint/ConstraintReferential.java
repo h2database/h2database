@@ -6,7 +6,6 @@
  */
 package org.h2.constraint;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -16,7 +15,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -86,7 +85,7 @@ public class ConstraintReferential extends Constraint {
             buff.append("SET NULL");
             break;
         default:
-            Message.throwInternalError("action=" + action);
+            DbException.throwInternalError("action=" + action);
         }
     }
 
@@ -235,7 +234,7 @@ public class ConstraintReferential extends Constraint {
         this.refIndexOwner = isRefOwner;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         table.removeConstraint(this);
         refTable.removeConstraint(this);
         if (indexOwner) {
@@ -256,7 +255,7 @@ public class ConstraintReferential extends Constraint {
         invalidate();
     }
 
-    public void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException {
+    public void checkRow(Session session, Table t, Row oldRow, Row newRow) {
         if (!database.getReferentialIntegrity()) {
             return;
         }
@@ -273,7 +272,7 @@ public class ConstraintReferential extends Constraint {
         }
     }
 
-    private void checkRowOwnTable(Session session, Row oldRow, Row newRow) throws SQLException {
+    private void checkRowOwnTable(Session session, Row oldRow, Row newRow) {
         if (newRow == null) {
             return;
         }
@@ -323,12 +322,12 @@ public class ConstraintReferential extends Constraint {
             check.setValue(refIdx, refCol.convert(v));
         }
         if (!existsRow(session, refIndex, check, null)) {
-            throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
+            throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
                     getShortDescription());
         }
     }
 
-    private boolean existsRow(Session session, Index searchIndex, SearchRow check, Row excluding) throws SQLException {
+    private boolean existsRow(Session session, Index searchIndex, SearchRow check, Row excluding) {
         Table searchTable = searchIndex.getTable();
         searchTable.lock(session, false, false);
         Cursor cursor = searchIndex.find(session, check, check);
@@ -356,11 +355,11 @@ public class ConstraintReferential extends Constraint {
         return false;
     }
 
-    private boolean isEqual(Row oldRow, Row newRow) throws SQLException {
+    private boolean isEqual(Row oldRow, Row newRow) {
         return refIndex.compareRows(oldRow, newRow) == 0;
     }
 
-    private void checkRow(Session session, Row oldRow) throws SQLException {
+    private void checkRow(Session session, Row oldRow) {
         SearchRow check = table.getTemplateSimpleRow(false);
         for (int i = 0; i < columns.length; i++) {
             Column refCol = refColumns[i].column;
@@ -372,12 +371,12 @@ public class ConstraintReferential extends Constraint {
         // exclude the row only for self-referencing constraints
         Row excluding = (refTable == table) ? oldRow : null;
         if (existsRow(session, index, check, excluding)) {
-            throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1,
+            throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1,
                     getShortDescription());
         }
     }
 
-    private void checkRowRefTable(Session session, Row oldRow, Row newRow) throws SQLException {
+    private void checkRowRefTable(Session session, Row oldRow, Row newRow) {
         if (oldRow == null) {
             // this is an insert
             return;
@@ -416,7 +415,7 @@ public class ConstraintReferential extends Constraint {
         }
     }
 
-    private void updateWithSkipCheck(Prepared prep) throws SQLException {
+    private void updateWithSkipCheck(Prepared prep) {
         // TODO constraints: maybe delay the update or support delayed checks
         // (until commit)
         try {
@@ -448,12 +447,12 @@ public class ConstraintReferential extends Constraint {
      *
      * @param action the action
      */
-    public void setDeleteAction(int action) throws SQLException {
+    public void setDeleteAction(int action) {
         if (action == deleteAction && deleteSQL == null) {
             return;
         }
         if (deleteAction != RESTRICT) {
-            throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON DELETE");
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON DELETE");
         }
         this.deleteAction = action;
         buildDeleteSQL();
@@ -473,11 +472,11 @@ public class ConstraintReferential extends Constraint {
         deleteSQL = buff.toString();
     }
 
-    private Prepared getUpdate(Session session) throws SQLException {
+    private Prepared getUpdate(Session session) {
         return prepare(session, updateSQL, updateAction);
     }
 
-    private Prepared getDelete(Session session) throws SQLException {
+    private Prepared getDelete(Session session) {
         return prepare(session, deleteSQL, deleteAction);
     }
 
@@ -490,12 +489,12 @@ public class ConstraintReferential extends Constraint {
      *
      * @param action the action
      */
-    public void setUpdateAction(int action) throws SQLException {
+    public void setUpdateAction(int action) {
         if (action == updateAction && updateSQL == null) {
             return;
         }
         if (updateAction != RESTRICT) {
-            throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON UPDATE");
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON UPDATE");
         }
         this.updateAction = action;
         buildUpdateSQL();
@@ -516,7 +515,7 @@ public class ConstraintReferential extends Constraint {
         buildDeleteSQL();
     }
 
-    private Prepared prepare(Session session, String sql, int action) throws SQLException {
+    private Prepared prepare(Session session, String sql, int action) {
         Prepared command = session.prepare(sql);
         if (action != CASCADE) {
             ArrayList<Parameter> params = command.getParameters();
@@ -529,7 +528,7 @@ public class ConstraintReferential extends Constraint {
                 } else {
                     Expression expr = column.getDefaultExpression();
                     if (expr == null) {
-                        throw Message.getSQLException(ErrorCode.NO_DEFAULT_SET_1, column.getName());
+                        throw DbException.get(ErrorCode.NO_DEFAULT_SET_1, column.getName());
                     }
                     value = expr.getValue(session);
                 }
@@ -571,7 +570,7 @@ public class ConstraintReferential extends Constraint {
         } else if (this.refIndex == index) {
             refIndexOwner = true;
         } else {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
     }
 
@@ -593,7 +592,7 @@ public class ConstraintReferential extends Constraint {
         return false;
     }
 
-    public void checkExistingData(Session session) throws SQLException {
+    public void checkExistingData(Session session) {
         if (session.getDatabase().isStarting()) {
             // don't check at startup
             return;
@@ -628,7 +627,7 @@ public class ConstraintReferential extends Constraint {
         String sql = buff.toString();
         ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {
-            throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
+            throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
                     getShortDescription());
         }
     }

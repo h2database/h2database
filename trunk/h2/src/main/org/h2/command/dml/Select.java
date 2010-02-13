@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,7 +25,7 @@ import org.h2.expression.Wildcard;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.SearchRow;
@@ -149,7 +148,7 @@ public class Select extends Query {
         }
     }
 
-    private void queryGroupSorted(int columnCount, LocalResult result) throws SQLException {
+    private void queryGroupSorted(int columnCount, LocalResult result) {
         int rowNumber = 0;
         setCurrentRowNumber(0);
         Value[] previousKeyValues = null;
@@ -188,7 +187,7 @@ public class Select extends Query {
         }
     }
 
-    private void addGroupSortedRow(Value[] keyValues, int columnCount, LocalResult result) throws SQLException {
+    private void addGroupSortedRow(Value[] keyValues, int columnCount, LocalResult result) {
         Value[] row = new Value[columnCount];
         for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
             row[groupIndex[j]] = keyValues[j];
@@ -217,7 +216,7 @@ public class Select extends Query {
         return r2;
     }
 
-    private boolean isHavingNullOrFalse(Value[] row) throws SQLException {
+    private boolean isHavingNullOrFalse(Value[] row) {
         if (havingIndex >= 0) {
             Value v = row[havingIndex];
             if (v == ValueNull.INSTANCE) {
@@ -298,7 +297,7 @@ public class Select extends Query {
         return count;
     }
 
-    private void queryGroup(int columnCount, LocalResult result) throws SQLException {
+    private void queryGroup(int columnCount, LocalResult result) {
         ValueHashMap<HashMap<Expression, Object>> groups = ValueHashMap.newInstance(session.getDatabase());
         int rowNumber = 0;
         setCurrentRowNumber(0);
@@ -374,14 +373,14 @@ public class Select extends Query {
      *
      * @return the index if one is found
      */
-    private Index getSortIndex() throws SQLException {
+    private Index getSortIndex() {
         if (sort == null) {
             return null;
         }
         ArrayList<Column> sortColumns = New.arrayList();
         for (int idx : sort.getIndexes()) {
             if (idx < 0 || idx >= expressions.size()) {
-                throw Message.getInvalidValueException("" + (idx + 1), "ORDER BY");
+                throw DbException.getInvalidValueException("" + (idx + 1), "ORDER BY");
             }
             Expression expr = expressions.get(idx);
             expr = expr.getNonAliasExpression();
@@ -441,7 +440,7 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryDistinct(LocalResult result, long limitRows) throws SQLException {
+    private void queryDistinct(LocalResult result, long limitRows) {
         if (limitRows != 0 && offsetExpr != null) {
             // limitRows must be long, otherwise we get an int overflow
             // if limitRows is at or near Integer.MAX_VALUE
@@ -477,7 +476,7 @@ public class Select extends Query {
         }
     }
 
-    private void queryFlat(int columnCount, LocalResult result, long limitRows) throws SQLException {
+    private void queryFlat(int columnCount, LocalResult result, long limitRows) {
         if (limitRows != 0 && offsetExpr != null) {
             // limitRows must be long, otherwise we get an int overflow
             // if limitRows is at or near Integer.MAX_VALUE
@@ -505,7 +504,7 @@ public class Select extends Query {
         }
     }
 
-    private void queryQuick(int columnCount, LocalResult result) throws SQLException {
+    private void queryQuick(int columnCount, LocalResult result) {
         Value[] row = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
@@ -514,13 +513,13 @@ public class Select extends Query {
         result.addRow(row);
     }
 
-    public ResultInterface queryMeta() throws SQLException {
+    public ResultInterface queryMeta() {
         LocalResult result = new LocalResult(session, expressions, visibleColumnCount);
         result.done();
         return result;
     }
 
-    protected LocalResult queryWithoutCache(int maxRows) throws SQLException {
+    protected LocalResult queryWithoutCache(int maxRows) {
         int limitRows = maxRows;
         if (limitExpr != null) {
             int l = limitExpr.getValue(session).getInt();
@@ -564,7 +563,7 @@ public class Select extends Query {
         return result;
     }
 
-    private void expandColumnList() throws SQLException {
+    private void expandColumnList() {
         for (int i = 0; i < expressions.size(); i++) {
             Expression expr = expressions.get(i);
             if (!expr.isWildcard()) {
@@ -591,7 +590,7 @@ public class Select extends Query {
                     }
                 }
                 if (filter == null) {
-                    throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
+                    throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
                 }
                 Table t = filter.getTable();
                 String alias = filter.getTableAlias();
@@ -609,9 +608,9 @@ public class Select extends Query {
         }
     }
 
-    public void init() throws SQLException {
+    public void init() {
         if (SysProperties.CHECK && checkInit) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         expandColumnList();
         visibleColumnCount = expressions.size();
@@ -697,13 +696,13 @@ public class Select extends Query {
         checkInit = true;
     }
 
-    public void prepare() throws SQLException {
+    public void prepare() {
         if (isPrepared) {
             // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
             return;
         }
         if (SysProperties.CHECK && !checkInit) {
-            Message.throwInternalError("not initialized");
+            DbException.throwInternalError("not initialized");
         }
         if (orderList != null) {
             sort = prepareOrder(orderList, expressions.size());
@@ -786,13 +785,13 @@ public class Select extends Query {
         return set;
     }
 
-    public void fireBeforeSelectTriggers() throws SQLException {
+    public void fireBeforeSelectTriggers() {
         for (TableFilter filter : filters) {
             filter.getTable().fire(session, Trigger.SELECT, true);
         }
     }
 
-    private double preparePlan() throws SQLException {
+    private double preparePlan() {
         TableFilter[] topArray = topFilters.toArray(new TableFilter[topFilters.size()]);
         for (TableFilter t : topArray) {
             t.setFullCondition(condition);
@@ -816,7 +815,7 @@ public class Select extends Query {
                         // this will check if all columns exist - it may or may not throw an exception
                         on = on.optimize(session);
                         // it is not supported even if the columns exist
-                        throw Message.getSQLException(ErrorCode.UNSUPPORTED_OUTER_JOIN_CONDITION_1, on.getSQL());
+                        throw DbException.get(ErrorCode.UNSUPPORTED_OUTER_JOIN_CONDITION_1, on.getSQL());
                     }
                     f.removeJoinCondition();
                     // need to check that all added are bound to a table
@@ -965,7 +964,7 @@ public class Select extends Query {
         this.isForUpdate = b;
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : expressions) {
             e.mapColumns(resolver, level);
         }
@@ -994,7 +993,7 @@ public class Select extends Query {
         return isQuickAggregateQuery;
     }
 
-    public void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException {
+    public void addGlobalCondition(Parameter param, int columnId, int comparisonType) {
         addParameter(param);
         Expression col = expressions.get(columnId);
         col = col.getNonAliasExpression();
@@ -1029,7 +1028,7 @@ public class Select extends Query {
         }
     }
 
-    public void updateAggregate(Session s) throws SQLException {
+    public void updateAggregate(Session s) {
         for (Expression e : expressions) {
             e.updateAggregate(s);
         }

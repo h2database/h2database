@@ -6,14 +6,12 @@
  */
 package org.h2.result;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -128,28 +126,24 @@ public class SortOrder implements Comparator<Value[]> {
      * @return the result of the comparison
      */
     public int compare(Value[] a, Value[] b) {
-        try {
-            for (int i = 0; i < indexes.length; i++) {
-                int idx = indexes[i];
-                int type = sortTypes[i];
-                Value ao = a[idx];
-                Value bo = b[idx];
-                boolean aNull = ao == ValueNull.INSTANCE, bNull = bo == ValueNull.INSTANCE;
-                if (aNull || bNull) {
-                    if (aNull == bNull) {
-                        continue;
-                    }
-                    return compareNull(aNull, bNull, type);
+        for (int i = 0; i < indexes.length; i++) {
+            int idx = indexes[i];
+            int type = sortTypes[i];
+            Value ao = a[idx];
+            Value bo = b[idx];
+            boolean aNull = ao == ValueNull.INSTANCE, bNull = bo == ValueNull.INSTANCE;
+            if (aNull || bNull) {
+                if (aNull == bNull) {
+                    continue;
                 }
-                int comp = database.compare(ao, bo);
-                if (comp != 0) {
-                    return (type & DESCENDING) == 0 ? comp : -comp;
-                }
+                return compareNull(aNull, bNull, type);
             }
-            return 0;
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
+            int comp = database.compare(ao, bo);
+            if (comp != 0) {
+                return (type & DESCENDING) == 0 ? comp : -comp;
+            }
         }
+        return 0;
     }
 
     /**
@@ -157,12 +151,8 @@ public class SortOrder implements Comparator<Value[]> {
      *
      * @param rows the list of rows
      */
-    public void sort(ArrayList<Value[]> rows) throws SQLException {
-        try {
-            Collections.sort(rows, this);
-        } catch (Exception e) {
-            throw Message.convert(e);
-        }
+    public void sort(ArrayList<Value[]> rows) {
+        Collections.sort(rows, this);
     }
 
     /**

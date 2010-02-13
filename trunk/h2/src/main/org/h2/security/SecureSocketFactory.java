@@ -21,7 +21,6 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.sql.SQLException;
 import java.util.Properties;
 
 import javax.net.ServerSocketFactory;
@@ -31,7 +30,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 
@@ -111,7 +110,7 @@ public class SecureSocketFactory {
     }
 
 //## Java 1.4 begin ##
-    private static byte[] getBytes(String hex) throws SQLException {
+    private static byte[] getBytes(String hex) {
         return Utils.convertStringToBytes(hex);
     }
 
@@ -120,7 +119,7 @@ public class SecureSocketFactory {
         try {
             store.store(bout, password.toCharArray());
         } catch (Exception e) {
-            throw Message.convertToIOException(e);
+            throw DbException.convertToIOException(e);
         }
         return bout.toByteArray();
     }
@@ -161,7 +160,7 @@ public class SecureSocketFactory {
             // --- generated code end ---
             return store;
         } catch (Exception e) {
-            throw Message.convertToIOException(e);
+            throw DbException.convertToIOException(e);
         }
     }
 
@@ -184,8 +183,8 @@ public class SecureSocketFactory {
                     OutputStream out = IOUtils.openFileOutputStream(fileName, false);
                     out.write(data);
                     out.close();
-                } catch (SQLException e) {
-                    throw Message.convertToIOException(e);
+                } catch (Exception e) {
+                    throw DbException.convertToIOException(e);
                 }
             }
             String absolutePath = IOUtils.getAbsolutePath(fileName);

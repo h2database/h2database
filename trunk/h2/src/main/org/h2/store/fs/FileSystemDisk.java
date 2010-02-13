@@ -15,12 +15,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
-import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
@@ -77,21 +76,21 @@ public class FileSystemDisk extends FileSystem {
         return fileName;
     }
 
-    public void rename(String oldName, String newName) throws SQLException {
+    public void rename(String oldName, String newName) {
         oldName = translateFileName(oldName);
         newName = translateFileName(newName);
         File oldFile = new File(oldName);
         File newFile = new File(newName);
         if (oldFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
-            Message.throwInternalError("rename file old=new");
+            DbException.throwInternalError("rename file old=new");
         }
         if (!oldFile.exists()) {
-            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2,
+            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
                     oldName + " (not found)",
                     newName);
         }
         if (newFile.exists()) {
-            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2,
+            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
                     new String[] { oldName, newName + " (exists)" });
         }
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
@@ -102,7 +101,7 @@ public class FileSystemDisk extends FileSystem {
             }
             wait(i);
         }
-        throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
+        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
     }
 
     /**
@@ -150,7 +149,7 @@ public class FileSystemDisk extends FileSystem {
         return new File(fileName).exists();
     }
 
-    public void delete(String fileName) throws SQLException {
+    public void delete(String fileName) {
         fileName = translateFileName(fileName);
         File file = new File(fileName);
         if (file.exists()) {
@@ -162,7 +161,7 @@ public class FileSystemDisk extends FileSystem {
                 }
                 wait(i);
             }
-            throw Message.getSQLException(ErrorCode.FILE_DELETE_FAILED_1, fileName);
+            throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, fileName);
         }
     }
 
@@ -200,7 +199,7 @@ public class FileSystemDisk extends FileSystem {
         return f.getCanonicalPath();
     }
 
-    public String[] listFiles(String path) throws SQLException {
+    public String[] listFiles(String path) {
         path = translateFileName(path);
         File f = new File(path);
         try {
@@ -217,11 +216,11 @@ public class FileSystemDisk extends FileSystem {
             }
             return list;
         } catch (IOException e) {
-            throw Message.convertIOException(e, path);
+            throw DbException.convertIOException(e, path);
         }
     }
 
-    public void deleteRecursive(String fileName, boolean tryOnly) throws SQLException {
+    public void deleteRecursive(String fileName, boolean tryOnly) {
         fileName = translateFileName(fileName);
         if (IOUtils.isDirectory(fileName)) {
             String[] list = listFiles(fileName);
@@ -242,13 +241,13 @@ public class FileSystemDisk extends FileSystem {
         return f.exists() && !canWriteInternal(f);
     }
 
-    public String normalize(String fileName) throws SQLException {
+    public String normalize(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);
         try {
             return f.getCanonicalPath();
         } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
+            throw DbException.convertIOException(e, fileName);
         }
     }
 
@@ -314,7 +313,7 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public void copy(String original, String copy) throws SQLException {
+    public void copy(String original, String copy) {
         original = translateFileName(original);
         copy = translateFileName(copy);
         OutputStream out = null;
@@ -332,14 +331,14 @@ public class FileSystemDisk extends FileSystem {
             }
             out.close();
         } catch (IOException e) {
-            throw Message.convertIOException(e, "original: " + original + " copy: " + copy);
+            throw DbException.convertIOException(e, "original: " + original + " copy: " + copy);
         } finally {
             IOUtils.closeSilently(in);
             IOUtils.closeSilently(out);
         }
     }
 
-    public void createDirs(String fileName) throws SQLException {
+    public void createDirs(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);
         if (!f.exists()) {
@@ -354,7 +353,7 @@ public class FileSystemDisk extends FileSystem {
                 }
                 wait(i);
             }
-            throw Message.getSQLException(ErrorCode.FILE_CREATION_FAILED_1, parent);
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, parent);
         }
     }
 
@@ -372,7 +371,7 @@ public class FileSystemDisk extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
+    public OutputStream openFileOutputStream(String fileName, boolean append) {
         fileName = translateFileName(fileName);
         try {
             File file = new File(fileName);
@@ -385,7 +384,7 @@ public class FileSystemDisk extends FileSystem {
             try {
                 return new FileOutputStream(fileName);
             } catch (IOException e2) {
-                throw Message.convertIOException(e, fileName);
+                throw DbException.convertIOException(e, fileName);
             }
         }
     }

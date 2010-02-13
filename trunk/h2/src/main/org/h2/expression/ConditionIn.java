@@ -6,7 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import java.util.List;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
@@ -42,7 +41,7 @@ public class ConditionIn extends Condition {
         this.valueList = values;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
             return l;
@@ -67,7 +66,7 @@ public class ConditionIn extends Condition {
         return ValueBoolean.get(result);
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         for (Expression e : valueList) {
             e.mapColumns(resolver, level);
@@ -75,7 +74,7 @@ public class ConditionIn extends Condition {
         this.queryLevel = Math.max(level, this.queryLevel);
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         left = left.optimize(session);
         boolean constant = left.isConstant();
         if (constant && left == ValueExpression.getNull()) {
@@ -140,7 +139,7 @@ public class ConditionIn extends Condition {
         return buff.append("))").toString();
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         left.updateAggregate(session);
         for (Expression e : valueList) {
             e.updateAggregate(session);

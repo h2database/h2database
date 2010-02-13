@@ -9,8 +9,7 @@ package org.h2.test.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.SQLException;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 
@@ -63,20 +62,20 @@ public class FileSystemDebug extends FileSystem {
         return FileSystem.getInstance(fileName).canWrite(fileName);
     }
 
-    public void copy(String original, String copy) throws SQLException {
+    public void copy(String original, String copy) {
         original = translateFileName(original);
         copy = translateFileName(copy);
         trace("copy", original, copy);
         FileSystem.getInstance(original).copy(original, copy);
     }
 
-    public void createDirs(String fileName) throws SQLException {
+    public void createDirs(String fileName) {
         fileName = translateFileName(fileName);
         trace("createDirs", fileName);
         FileSystem.getInstance(fileName).createDirs(fileName);
     }
 
-    public boolean createNewFile(String fileName) throws SQLException {
+    public boolean createNewFile(String fileName) {
         fileName = translateFileName(fileName);
         trace("createNewFile", fileName);
         return FileSystem.getInstance(fileName).createNewFile(fileName);
@@ -89,13 +88,13 @@ public class FileSystemDebug extends FileSystem {
         return PREFIX + FileSystem.getInstance(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
     }
 
-    public void delete(String fileName) throws SQLException {
+    public void delete(String fileName) {
         fileName = translateFileName(fileName);
         trace("fileName", fileName);
         FileSystem.getInstance(fileName).delete(fileName);
     }
 
-    public void deleteRecursive(String directory, boolean tryOnly) throws SQLException {
+    public void deleteRecursive(String directory, boolean tryOnly) {
         directory = translateFileName(directory);
         trace("deleteRecursive", directory);
         FileSystem.getInstance(directory).deleteRecursive(directory, tryOnly);
@@ -162,7 +161,7 @@ public class FileSystemDebug extends FileSystem {
         return FileSystem.getInstance(fileName).length(fileName);
     }
 
-    public String[] listFiles(String directory) throws SQLException {
+    public String[] listFiles(String directory) {
         directory = translateFileName(directory);
         trace("listFiles", directory);
         String[] list = FileSystem.getInstance(directory).listFiles(directory);
@@ -172,7 +171,7 @@ public class FileSystemDebug extends FileSystem {
         return list;
     }
 
-    public String normalize(String fileName) throws SQLException {
+    public String normalize(String fileName) {
         fileName = translateFileName(fileName);
         trace("normalize", fileName);
         return PREFIX + FileSystem.getInstance(fileName).normalize(fileName);
@@ -190,13 +189,13 @@ public class FileSystemDebug extends FileSystem {
         return new FileObjectDebug(this, FileSystem.getInstance(fileName).openFileObject(fileName, mode));
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
+    public OutputStream openFileOutputStream(String fileName, boolean append) {
         fileName = translateFileName(fileName);
         trace("openFileOutputStream", fileName, append);
         return FileSystem.getInstance(fileName).openFileOutputStream(fileName, append);
     }
 
-    public void rename(String oldName, String newName) throws SQLException {
+    public void rename(String oldName, String newName) {
         oldName = translateFileName(oldName);
         newName = translateFileName(newName);
         trace("rename", oldName, newName);
@@ -215,7 +214,7 @@ public class FileSystemDebug extends FileSystem {
 
     private String translateFileName(String fileName) {
         if (!fileName.startsWith(PREFIX)) {
-            Message.throwInternalError(fileName + " doesn't start with " + PREFIX);
+            DbException.throwInternalError(fileName + " doesn't start with " + PREFIX);
         }
         return fileName.substring(PREFIX.length());
     }

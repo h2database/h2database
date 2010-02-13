@@ -6,8 +6,6 @@
  */
 package org.h2.table;
 
-import java.sql.SQLException;
-
 import org.h2.result.SortOrder;
 
 /**
@@ -72,7 +70,7 @@ public class IndexColumn {
      * @param indexColumns the column list with column names set
      * @param table the table from where to map the column names to columns
      */
-    public static void mapColumns(IndexColumn[] indexColumns, Table table) throws SQLException {
+    public static void mapColumns(IndexColumn[] indexColumns, Table table) {
         for (IndexColumn col : indexColumns) {
             col.column = table.getColumn(col.columnName);
         }

@@ -6,11 +6,9 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
@@ -36,7 +34,7 @@ public class TreeIndex extends BaseIndex {
         root = null;
     }
 
-    public void add(Session session, Row row) throws SQLException {
+    public void add(Session session, Row row) {
         TreeNode i = new TreeNode(row);
         TreeNode n = root, x = n;
         boolean isLeft = true;
@@ -100,7 +98,7 @@ public class TreeIndex extends BaseIndex {
                 }
                 return;
             default:
-                Message.throwInternalError("b:" + x.balance * sign);
+                DbException.throwInternalError("b:" + x.balance * sign);
             }
             if (x == root) {
                 return;
@@ -136,10 +134,10 @@ public class TreeIndex extends BaseIndex {
         }
     }
 
-    public void remove(Session session, Row row) throws SQLException {
+    public void remove(Session session, Row row) {
         TreeNode x = findFirstNode(row, true);
         if (x == null) {
-            throw Message.throwInternalError("not found!");
+            throw DbException.throwInternalError("not found!");
         }
         TreeNode n;
         if (x.left == null) {
@@ -191,7 +189,7 @@ public class TreeIndex extends BaseIndex {
             }
 
             if (SysProperties.CHECK && x.right == null) {
-                Message.throwInternalError("tree corrupted");
+                DbException.throwInternalError("tree corrupted");
             }
             x.right.parent = x;
             x.left.parent = x;
@@ -248,14 +246,14 @@ public class TreeIndex extends BaseIndex {
                 }
                 break;
             default:
-                Message.throwInternalError("b: " + x.balance * sign);
+                DbException.throwInternalError("b: " + x.balance * sign);
             }
             isLeft = x.isFromLeft();
             n = x.parent;
         }
     }
 
-    private TreeNode findFirstNode(SearchRow row, boolean withKey) throws SQLException {
+    private TreeNode findFirstNode(SearchRow row, boolean withKey) {
         TreeNode x = root, result = x;
         while (x != null) {
             result = x;
@@ -277,7 +275,7 @@ public class TreeIndex extends BaseIndex {
         return result;
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (first == null) {
             TreeNode x = root, n;
             while (x != null) {
@@ -376,7 +374,7 @@ public class TreeIndex extends BaseIndex {
         return true;
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
+    public Cursor findFirstOrLast(Session session, boolean first) {
         if (first) {
             // TODO optimization: this loops through NULL values
             Cursor cursor = find(session, null, null);

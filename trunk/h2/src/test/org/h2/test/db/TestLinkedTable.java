@@ -203,6 +203,12 @@ public class TestLinkedTable extends TestBase {
         assertSingleValue(sb, "SELECT * FROM T2", 2);
         sa.execute("DROP ALL OBJECTS");
         sb.execute("DROP ALL OBJECTS");
+        try {
+            assertSingleValue(sa, "SELECT * FROM TEST", 0);
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
         ca.close();
         cb.close();
     }

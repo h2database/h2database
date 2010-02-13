@@ -6,10 +6,8 @@
  */
 package org.h2.store;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.BitSet;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.util.IntArray;
 
@@ -60,7 +58,7 @@ public class PageOutputStream {
      *
      * @param minBuffer the number of bytes to allocate
      */
-    void reserve(int minBuffer) throws SQLException {
+    void reserve(int minBuffer) {
         if (reserved < minBuffer) {
             int pageSize = store.getPageSize();
             int capacityPerPage = PageStreamData.getCapacity(pageSize);
@@ -80,7 +78,7 @@ public class PageOutputStream {
         }
     }
 
-    private void initNextData() throws SQLException {
+    private void initNextData() {
         int nextData = trunk == null ? -1 : trunk.getNextPageData();
         if (nextData == -1) {
             int parent = trunkPageId;
@@ -112,12 +110,12 @@ public class PageOutputStream {
      * @param off the offset
      * @param len the length
      */
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(byte[] b, int off, int len) {
         if (len <= 0) {
             return;
         }
         if (writing) {
-            Message.throwInternalError("writing while still writing");
+            DbException.throwInternalError("writing while still writing");
         }
         try {
             reserve(len);
@@ -134,28 +132,22 @@ public class PageOutputStream {
             }
             needFlush = true;
             remaining -= len;
-        } catch (SQLException e) {
-            throw Message.convertToIOException(e);
         } finally {
             writing = false;
         }
     }
 
-    private void storePage() throws IOException {
-        try {
-            if (trace.isDebugEnabled()) {
-                trace.debug("pageOut.storePage " + data);
-            }
-            data.write();
-        } catch (SQLException e) {
-            throw Message.convertToIOException(e);
+    private void storePage() {
+        if (trace.isDebugEnabled()) {
+            trace.debug("pageOut.storePage " + data);
         }
+        data.write();
     }
 
     /**
      * Write all data.
      */
-    public void flush() throws IOException {
+    public void flush() {
         if (needFlush) {
             storePage();
             needFlush = false;
@@ -177,7 +169,7 @@ public class PageOutputStream {
      * Fill the data page with zeros and write it.
      * This is required for a checkpoint.
      */
-    void fillPage() throws SQLException {
+    void fillPage() {
         if (trace.isDebugEnabled()) {
             trace.debug("pageOut.storePage fill " + data.getPos());
         }
@@ -196,14 +188,14 @@ public class PageOutputStream {
      *
      * @param t the trunk page
      */
-    void free(PageStreamTrunk t) throws SQLException {
+    void free(PageStreamTrunk t) {
         pageCount -= t.free();
     }
 
     /**
      * Free up all reserved pages.
      */
-    void freeReserved() throws SQLException {
+    void freeReserved() {
         if (reservedPages.size() > 0) {
             int[] array = new int[reservedPages.size()];
             reservedPages.toArray(array);

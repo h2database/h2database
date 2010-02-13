@@ -6,15 +6,13 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.HashMap;
-
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.store.FileLock;
 import org.h2.util.MathUtils;
@@ -40,7 +38,7 @@ public class Engine {
         return INSTANCE;
     }
 
-    private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) throws SQLException {
+    private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) {
         String name = ci.getName();
         Database database;
         boolean openNew = ci.getProperty("OPEN_NEW", false);
@@ -53,7 +51,7 @@ public class Engine {
         boolean opened = false;
         if (database == null) {
             if (ifExists && !Database.exists(name)) {
-                throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, name);
+                throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, name);
             }
             database = new Database(name, ci, cipher);
             opened = true;
@@ -91,7 +89,7 @@ public class Engine {
             }
             if (user == null) {
                 database.removeSession(null);
-                throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
+                throw DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
             }
             checkClustering(ci, database);
             Session session = database.createSession(user);
@@ -105,7 +103,7 @@ public class Engine {
      * @param ci the connection information
      * @return the session
      */
-    public Session getSession(ConnectionInfo ci) throws SQLException {
+    public Session getSession(ConnectionInfo ci) {
         try {
             ConnectionInfo backup = null;
             String lockMethodName = ci.getProperty("FILE_LOCK", null);
@@ -116,7 +114,7 @@ public class Engine {
                 try {
                     backup = (ConnectionInfo) ci.clone();
                 } catch (CloneNotSupportedException e) {
-                    throw Message.getInternalError("clone failed", e);
+                    throw DbException.convert(e);
                 }
             }
             Session session = openSession(ci);
@@ -125,7 +123,7 @@ public class Engine {
                 session.setConnectionInfo(backup);
             }
             return session;
-        } catch (SQLException e) {
+        } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.WRONG_USER_OR_PASSWORD) {
                 validateUserAndPassword(false);
             }
@@ -133,7 +131,7 @@ public class Engine {
         }
     }
 
-    private synchronized Session openSession(ConnectionInfo ci) throws SQLException {
+    private synchronized Session openSession(ConnectionInfo ci) {
         boolean ifExists = ci.removeProperty("IFEXISTS", false);
         boolean ignoreUnknownSetting = ci.removeProperty("IGNORE_UNKNOWN_SETTINGS", false);
         String cipher = ci.removeProperty("CIPHER", null);
@@ -158,7 +156,7 @@ public class Engine {
                 CommandInterface command = session.prepareCommand("SET " + Parser.quoteIdentifier(setting) + " "
                         + value, Integer.MAX_VALUE);
                 command.executeUpdate();
-            } catch (SQLException e) {
+            } catch (DbException e) {
                 if (!ignoreUnknownSetting) {
                     session.close();
                     throw e;
@@ -171,7 +169,7 @@ public class Engine {
         return session;
     }
 
-    private void checkClustering(ConnectionInfo ci, Database database) throws SQLException {
+    private void checkClustering(ConnectionInfo ci, Database database) {
         String clusterSession = ci.getProperty(SetTypes.CLUSTER, null);
         if (Constants.CLUSTERING_DISABLED.equals(clusterSession)) {
             // in this case, no checking is made
@@ -182,9 +180,9 @@ public class Engine {
         if (!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
             if (!StringUtils.equals(clusterSession, clusterDb)) {
                 if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
-                    throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
+                    throw DbException.get(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
                 }
-                throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
+                throw DbException.get(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
             }
         }
     }
@@ -216,7 +214,7 @@ public class Engine {
      * @param correct if the user name or the password was correct
      * @throws SQLException the exception 'wrong user or password'
      */
-    private void validateUserAndPassword(boolean correct) throws SQLException {
+    private void validateUserAndPassword(boolean correct) {
         int min = SysProperties.DELAY_WRONG_PASSWORD_MIN;
         if (correct) {
             long delay = wrongPasswordDelay;
@@ -257,7 +255,7 @@ public class Engine {
                         // ignore
                     }
                 }
-                throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
+                throw DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
             }
         }
     }

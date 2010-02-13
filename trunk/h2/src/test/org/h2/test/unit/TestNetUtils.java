@@ -36,7 +36,7 @@ public class TestNetUtils extends TestBase {
 
     public void test() throws Exception {
         testFrequentConnections(true, 100);
-        testFrequentConnections(false, 2000);
+        testFrequentConnections(false, 1000);
     }
 
     private void testFrequentConnections(boolean ssl, int count) throws Exception {

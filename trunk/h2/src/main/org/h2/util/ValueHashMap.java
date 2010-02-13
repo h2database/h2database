@@ -6,10 +6,8 @@
  */
 package org.h2.util;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -53,7 +51,7 @@ public class ValueHashMap<V> extends HashBase {
         values = (V[]) new Object[len];
     }
 
-    protected void rehash(int newLevel) throws SQLException {
+    protected void rehash(int newLevel) {
         Value[] oldKeys = keys;
         V[] oldValues = values;
         reset(newLevel);
@@ -75,7 +73,7 @@ public class ValueHashMap<V> extends HashBase {
      * @param key the key
      * @param value the new value
      */
-    public void put(Value key, V value) throws SQLException {
+    public void put(Value key, V value) {
         checkSizePut();
         int index = getIndex(key);
         int plus = 1;
@@ -105,7 +103,7 @@ public class ValueHashMap<V> extends HashBase {
             index = (index + plus++) & mask;
         } while (plus <= len);
         // no space
-        Message.throwInternalError("hashmap is full");
+        DbException.throwInternalError("hashmap is full");
     }
 
     /**
@@ -113,7 +111,7 @@ public class ValueHashMap<V> extends HashBase {
      *
      * @param key the key
      */
-    public void remove(Value key) throws SQLException {
+    public void remove(Value key) {
         checkSizeRemove();
         int index = getIndex(key);
         int plus = 1;
@@ -144,7 +142,7 @@ public class ValueHashMap<V> extends HashBase {
      * @param key the key
      * @return the value for the given key
      */
-    public V get(Value key) throws SQLException {
+    public V get(Value key) {
         int index = getIndex(key);
         int plus = 1;
         do {

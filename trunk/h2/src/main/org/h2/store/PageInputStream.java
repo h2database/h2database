@@ -9,8 +9,8 @@ package org.h2.store;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.BitSet;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 
 /**
@@ -76,12 +76,12 @@ public class PageInputStream extends InputStream {
             data.read(buff, off, l);
             remaining -= l;
             return l;
-        } catch (SQLException e) {
+        } catch (DbException e) {
             throw new EOFException();
         }
     }
 
-    private void fillBuffer() throws SQLException {
+    private void fillBuffer() {
         if (remaining > 0 || endOfFile) {
             return;
         }
@@ -127,7 +127,7 @@ public class PageInputStream extends InputStream {
      *
      * @return the bit set
      */
-    BitSet allocateAllPages() throws SQLException {
+    BitSet allocateAllPages() {
         BitSet pages = new BitSet();
         int key = logKey;
         PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);

@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.value.Value;
 import org.h2.value.ValueResultSet;
@@ -30,7 +28,7 @@ public interface FunctionCall {
      *
      * @return the number of parameters
      */
-    int getParameterCount() throws SQLException;
+    int getParameterCount();
 
     /**
      * Get an empty result set with the column names set.
@@ -39,7 +37,7 @@ public interface FunctionCall {
      * @param nullArgs the argument list (some arguments may be null)
      * @return the empty result set
      */
-    ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) throws SQLException;
+    ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs);
 
     /**
      * Get the data type.
@@ -54,7 +52,7 @@ public interface FunctionCall {
      * @param session the session
      * @return the optimized expression
      */
-    Expression optimize(Session session) throws SQLException;
+    Expression optimize(Session session);
 
     /**
      * Calculate the result.
@@ -62,7 +60,7 @@ public interface FunctionCall {
      * @param session the session
      * @return the result
      */
-    Value getValue(Session session) throws SQLException;
+    Value getValue(Session session);
 
     /**
      * Get the function arguments.

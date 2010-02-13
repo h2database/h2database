@@ -10,7 +10,7 @@ import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
@@ -47,7 +47,7 @@ public class ValueLong extends Value {
         this.value = value;
     }
 
-    public Value add(Value v) throws SQLException {
+    public Value add(Value v) {
         ValueLong other = (ValueLong) v;
         long result = value + other.value;
         int sv = Long.signum(value);
@@ -67,18 +67,18 @@ public class ValueLong extends Value {
         return Long.signum(value);
     }
 
-    public Value negate() throws SQLException {
+    public Value negate() {
         if (value == Long.MIN_VALUE) {
             throw getOverflow();
         }
         return ValueLong.get(-value);
     }
 
-    private SQLException getOverflow() {
-        return Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.LONG).name);
+    private DbException getOverflow() {
+        return DbException.get(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.LONG).name);
     }
 
-    public Value subtract(Value v) throws SQLException {
+    public Value subtract(Value v) {
         ValueLong other = (ValueLong) v;
         int sv = Long.signum(value);
         int so = Long.signum(other.value);
@@ -96,7 +96,7 @@ public class ValueLong extends Value {
         return a >= Integer.MIN_VALUE && a <= Integer.MAX_VALUE;
     }
 
-    public Value multiply(Value v) throws SQLException {
+    public Value multiply(Value v) {
         ValueLong other = (ValueLong) v;
         long result = value * other.value;
         if (value == 0 || value == 1 || other.value == 0 || other.value == 1) {
@@ -119,10 +119,10 @@ public class ValueLong extends Value {
         return ValueLong.get(br.longValue());
     }
 
-    public Value divide(Value v) throws SQLException {
+    public Value divide(Value v) {
         ValueLong other = (ValueLong) v;
         if (other.value == 0) {
-            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         return ValueLong.get(value / other.value);
     }

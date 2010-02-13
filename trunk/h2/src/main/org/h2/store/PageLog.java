@@ -6,9 +6,7 @@
  */
 package org.h2.store;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -17,7 +15,7 @@ import org.h2.compress.CompressLZF;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.util.IntArray;
@@ -175,7 +173,7 @@ public class PageLog {
      * @param newFirstTrunkPage the first trunk page
      * @param atEnd whether only pages at the end of the file should be used
      */
-    void openForWriting(int newFirstTrunkPage, boolean atEnd) throws SQLException {
+    void openForWriting(int newFirstTrunkPage, boolean atEnd) {
         trace.debug("log openForWriting firstPage:" + newFirstTrunkPage);
         this.firstTrunkPage = newFirstTrunkPage;
         logKey++;
@@ -189,7 +187,7 @@ public class PageLog {
     /**
      * Free up all pages allocated by the log.
      */
-    void free() throws SQLException {
+    void free() {
         if (pageOut != null) {
             pageOut.freeReserved();
         }
@@ -228,7 +226,7 @@ public class PageLog {
      *
      * @param stage the recovery stage
      */
-    void recover(int stage) throws SQLException {
+    void recover(int stage) {
         if (trace.isDebugEnabled()) {
             trace.debug("log recover stage:" + stage);
         }
@@ -366,16 +364,14 @@ public class PageLog {
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.FILE_CORRUPTED_1) {
                 trace.debug("log recovery stopped: " + e.toString());
             } else {
                 throw e;
             }
-        } catch (EOFException e) {
-            trace.debug("log recovery stopped: " + e.toString());
         } catch (IOException e) {
-            throw Message.convertIOException(e, "recover");
+            trace.debug("log recovery stopped: " + e.toString());
         }
         undo = new BitSet();
         if (stage == RECOVERY_STAGE_REDO) {
@@ -409,7 +405,7 @@ public class PageLog {
      * @param data a temporary buffer
      * @return the row
      */
-    public static Row readRow(DataReader in, Data data) throws IOException, SQLException {
+    public static Row readRow(DataReader in, Data data) throws IOException {
         long key = in.readVarLong();
         int len = in.readVarInt();
         data.reset();
@@ -442,67 +438,59 @@ public class PageLog {
      * @param pageId the page id
      * @param page the old page data
      */
-    void addUndo(int pageId, Data page) throws SQLException {
-        try {
-            if (undo.get(pageId)) {
-                return;
-            }
-            if (trace.isDebugEnabled()) {
-                trace.debug("log undo " + pageId);
-            }
-            if (SysProperties.CHECK && page == null) {
-                Message.throwInternalError("Undo entry not written");
-            }
-            undo.set(pageId);
-            undoAll.set(pageId);
-            Data buffer = getBuffer();
-            buffer.writeByte((byte) UNDO);
-            buffer.writeVarInt(pageId);
-            if (page.getBytes()[0] == 0) {
-                buffer.writeVarInt(1);
-            } else {
-                int pageSize = store.getPageSize();
-                if (COMPRESS_UNDO) {
-                    int size = compress.compress(page.getBytes(), pageSize, compressBuffer, 0);
-                    if (size < pageSize) {
-                        buffer.writeVarInt(size);
-                        buffer.checkCapacity(size);
-                        buffer.write(compressBuffer, 0, size);
-                    } else {
-                        buffer.writeVarInt(0);
-                        buffer.checkCapacity(pageSize);
-                        buffer.write(page.getBytes(), 0, pageSize);
-                    }
+    void addUndo(int pageId, Data page) {
+        if (undo.get(pageId)) {
+            return;
+        }
+        if (trace.isDebugEnabled()) {
+            trace.debug("log undo " + pageId);
+        }
+        if (SysProperties.CHECK && page == null) {
+            DbException.throwInternalError("Undo entry not written");
+        }
+        undo.set(pageId);
+        undoAll.set(pageId);
+        Data buffer = getBuffer();
+        buffer.writeByte((byte) UNDO);
+        buffer.writeVarInt(pageId);
+        if (page.getBytes()[0] == 0) {
+            buffer.writeVarInt(1);
+        } else {
+            int pageSize = store.getPageSize();
+            if (COMPRESS_UNDO) {
+                int size = compress.compress(page.getBytes(), pageSize, compressBuffer, 0);
+                if (size < pageSize) {
+                    buffer.writeVarInt(size);
+                    buffer.checkCapacity(size);
+                    buffer.write(compressBuffer, 0, size);
                 } else {
                     buffer.writeVarInt(0);
                     buffer.checkCapacity(pageSize);
                     buffer.write(page.getBytes(), 0, pageSize);
                 }
+            } else {
+                buffer.writeVarInt(0);
+                buffer.checkCapacity(pageSize);
+                buffer.write(page.getBytes(), 0, pageSize);
             }
-            write(buffer);
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
         }
+        write(buffer);
     }
 
-    private void freeLogPages(IntArray pages) throws SQLException {
-        try {
-            if (trace.isDebugEnabled()) {
-                trace.debug("log frees " + pages.get(0) + ".." + pages.get(pages.size() - 1));
-            }
-            Data buffer = getBuffer();
-            buffer.writeByte((byte) FREE_LOG);
-            buffer.writeVarInt(pages.size());
-            for (int i = 0; i < pages.size(); i++) {
-                buffer.writeVarInt(pages.get(i));
-            }
-            write(buffer);
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+    private void freeLogPages(IntArray pages) {
+        if (trace.isDebugEnabled()) {
+            trace.debug("log frees " + pages.get(0) + ".." + pages.get(pages.size() - 1));
         }
+        Data buffer = getBuffer();
+        buffer.writeByte((byte) FREE_LOG);
+        buffer.writeVarInt(pages.size());
+        for (int i = 0; i < pages.size(); i++) {
+            buffer.writeVarInt(pages.get(i));
+        }
+        write(buffer);
     }
 
-    private void write(Data data) throws IOException {
+    private void write(Data data) {
         pageOut.write(data.getBytes(), 0, data.length());
         data.reset();
     }
@@ -512,24 +500,20 @@ public class PageLog {
      *
      * @param session the session
      */
-    void commit(int sessionId) throws SQLException {
-        try {
-            if (trace.isDebugEnabled()) {
-                trace.debug("log commit s:" + sessionId);
-            }
-            if (store.getDatabase().getPageStore() == null) {
-                // database already closed
-                return;
-            }
-            Data buffer = getBuffer();
-            buffer.writeByte((byte) COMMIT);
-            buffer.writeVarInt(sessionId);
-            write(buffer);
-            if (store.getDatabase().getFlushOnEachCommit()) {
-                flush();
-            }
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+    void commit(int sessionId) {
+        if (trace.isDebugEnabled()) {
+            trace.debug("log commit s:" + sessionId);
+        }
+        if (store.getDatabase().getPageStore() == null) {
+            // database already closed
+            return;
+        }
+        Data buffer = getBuffer();
+        buffer.writeByte((byte) COMMIT);
+        buffer.writeVarInt(sessionId);
+        write(buffer);
+        if (store.getDatabase().getFlushOnEachCommit()) {
+            flush();
         }
     }
 
@@ -539,35 +523,31 @@ public class PageLog {
      * @param session the session
      * @param transaction the name of the transaction
      */
-    void prepareCommit(Session session, String transaction) throws SQLException {
-        try {
-            if (trace.isDebugEnabled()) {
-                trace.debug("log prepare commit s:" + session.getId() + " " + transaction);
-            }
-            if (store.getDatabase().getPageStore() == null) {
-                // database already closed
-                return;
-            }
-            // store it on a separate log page
-            int pageSize = store.getPageSize();
-            flushOut();
-            pageOut.fillPage();
-            Data buffer = getBuffer();
-            buffer.writeByte((byte) PREPARE_COMMIT);
-            buffer.writeVarInt(session.getId());
-            buffer.writeString(transaction);
-            if (buffer.length()  >= PageStreamData.getCapacity(pageSize)) {
-                throw Message.getInvalidValueException(transaction, "transaction name (too long)");
-            }
-            write(buffer);
-            // store it on a separate log page
-            flushOut();
-            pageOut.fillPage();
-            if (store.getDatabase().getFlushOnEachCommit()) {
-                flush();
-            }
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+    void prepareCommit(Session session, String transaction) {
+        if (trace.isDebugEnabled()) {
+            trace.debug("log prepare commit s:" + session.getId() + " " + transaction);
+        }
+        if (store.getDatabase().getPageStore() == null) {
+            // database already closed
+            return;
+        }
+        // store it on a separate log page
+        int pageSize = store.getPageSize();
+        flushOut();
+        pageOut.fillPage();
+        Data buffer = getBuffer();
+        buffer.writeByte((byte) PREPARE_COMMIT);
+        buffer.writeVarInt(session.getId());
+        buffer.writeString(transaction);
+        if (buffer.length()  >= PageStreamData.getCapacity(pageSize)) {
+            throw DbException.getInvalidValueException(transaction, "transaction name (too long)");
+        }
+        write(buffer);
+        // store it on a separate log page
+        flushOut();
+        pageOut.fillPage();
+        if (store.getDatabase().getFlushOnEachCommit()) {
+            flush();
         }
     }
 
@@ -579,47 +559,43 @@ public class PageLog {
      * @param row the row to add
      * @param add true if the row is added, false if it is removed
      */
-    void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) throws SQLException {
-        try {
-            if (trace.isDebugEnabled()) {
-                trace.debug("log " + (add?"+":"-") + " s:" + session.getId() + " table:" + tableId +
-                        " row:" + row);
-            }
-            session.addLogPos(logSectionId, logPos);
-            logPos++;
-            Data data = dataBuffer;
-            data.reset();
-            int columns = row.getColumnCount();
-            data.writeVarInt(columns);
-            data.checkCapacity(row.getByteCount(data));
-            if (session.isRedoLogBinaryEnabled()) {
-                for (int i = 0; i < columns; i++) {
-                    data.writeValue(row.getValue(i));
-                }
-            } else {
-                for (int i = 0; i < columns; i++) {
-                    Value v = row.getValue(i);
-                    if (v.getType() == Value.BYTES) {
-                        data.writeValue(ValueNull.INSTANCE);
-                    } else {
-                        data.writeValue(v);
-                    }
-                }
-            }
-            Data buffer = getBuffer();
-            buffer.writeByte((byte) (add ? ADD : REMOVE));
-            buffer.writeVarInt(session.getId());
-            buffer.writeVarInt(tableId);
-            buffer.writeVarLong(row.getKey());
-            if (add) {
-                buffer.writeVarInt(data.length());
-                buffer.checkCapacity(data.length());
-                buffer.write(data.getBytes(), 0, data.length());
-            }
-            write(buffer);
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+    void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) {
+        if (trace.isDebugEnabled()) {
+            trace.debug("log " + (add?"+":"-") + " s:" + session.getId() + " table:" + tableId +
+                    " row:" + row);
         }
+        session.addLogPos(logSectionId, logPos);
+        logPos++;
+        Data data = dataBuffer;
+        data.reset();
+        int columns = row.getColumnCount();
+        data.writeVarInt(columns);
+        data.checkCapacity(row.getByteCount(data));
+        if (session.isRedoLogBinaryEnabled()) {
+            for (int i = 0; i < columns; i++) {
+                data.writeValue(row.getValue(i));
+            }
+        } else {
+            for (int i = 0; i < columns; i++) {
+                Value v = row.getValue(i);
+                if (v.getType() == Value.BYTES) {
+                    data.writeValue(ValueNull.INSTANCE);
+                } else {
+                    data.writeValue(v);
+                }
+            }
+        }
+        Data buffer = getBuffer();
+        buffer.writeByte((byte) (add ? ADD : REMOVE));
+        buffer.writeVarInt(session.getId());
+        buffer.writeVarInt(tableId);
+        buffer.writeVarLong(row.getKey());
+        if (add) {
+            buffer.writeVarInt(data.length());
+            buffer.checkCapacity(data.length());
+            buffer.write(data.getBytes(), 0, data.length());
+        }
+        write(buffer);
     }
 
     /**
@@ -628,28 +604,23 @@ public class PageLog {
      * @param session the session
      * @param tableId the table id
      */
-    void logTruncate(Session session, int tableId) throws SQLException {
-        try {
-            if (trace.isDebugEnabled()) {
-                trace.debug("log truncate s:" + session.getId() + " table:" + tableId);
-            }
-            session.addLogPos(logSectionId, logPos);
-            logPos++;
-            Data buffer = getBuffer();
-            buffer.writeByte((byte) TRUNCATE);
-            buffer.writeVarInt(session.getId());
-            buffer.writeVarInt(tableId);
-            write(buffer);
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+    void logTruncate(Session session, int tableId) {
+        if (trace.isDebugEnabled()) {
+            trace.debug("log truncate s:" + session.getId() + " table:" + tableId);
         }
+        session.addLogPos(logSectionId, logPos);
+        logPos++;
+        Data buffer = getBuffer();
+        buffer.writeByte((byte) TRUNCATE);
+        buffer.writeVarInt(session.getId());
+        buffer.writeVarInt(tableId);
+        write(buffer);
     }
-
 
     /**
      * Flush the transaction log.
      */
-    void flush() throws SQLException {
+    void flush() {
         if (pageOut != null) {
             flushOut();
         }
@@ -658,14 +629,10 @@ public class PageLog {
     /**
      * Switch to a new log section.
      */
-    void checkpoint() throws SQLException {
-        try {
-            Data buffer = getBuffer();
-            buffer.writeByte((byte) CHECKPOINT);
-            write(buffer);
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
+    void checkpoint() {
+        Data buffer = getBuffer();
+        buffer.writeByte((byte) CHECKPOINT);
+        write(buffer);
         undo = new BitSet();
         logSectionId++;
         logPos = 0;
@@ -688,7 +655,7 @@ public class PageLog {
      *
      * @param firstUncommittedSection the first log section to keep
      */
-    void removeUntil(int firstUncommittedSection) throws SQLException {
+    void removeUntil(int firstUncommittedSection) {
         if (firstUncommittedSection == 0) {
             return;
         }
@@ -711,7 +678,7 @@ public class PageLog {
      * @param firstDataPageToKeep the first data page to keep
      * @return the trunk page of the data page to keep
      */
-    private int removeUntil(int trunkPage, int firstDataPageToKeep) throws SQLException {
+    private int removeUntil(int trunkPage, int firstDataPageToKeep) {
         trace.debug("log.removeUntil " + firstDataPageToKeep);
         while (true) {
             Page p = store.getPage(trunkPage);
@@ -818,7 +785,7 @@ public class PageLog {
      * @param pageId the page where the commit was prepared
      * @param commit whether the transaction should be committed
      */
-    void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) throws SQLException {
+    void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) {
         PageStreamData d = (PageStreamData) store.getPage(pageId);
         d.initWrite();
         Data buff = store.createData();
@@ -838,12 +805,8 @@ public class PageLog {
         sessionStates = New.hashMap();
     }
 
-    private void flushOut() throws SQLException {
-        try {
-            pageOut.flush();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
+    private void flushOut() {
+        pageOut.flush();
     }
 
     private Data getBuffer() {

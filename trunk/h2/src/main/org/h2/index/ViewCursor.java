@@ -6,8 +6,7 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -37,7 +36,7 @@ public class ViewCursor implements Cursor {
         return current;
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         boolean res = result.next();
         if (!res) {
             result.close();
@@ -54,7 +53,7 @@ public class ViewCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
 }

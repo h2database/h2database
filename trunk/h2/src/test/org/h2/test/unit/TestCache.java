@@ -42,7 +42,7 @@ public class TestCache extends TestBase implements CacheWriter {
         testCacheDb(true);
     }
 
-    private void testCache(boolean lru) throws SQLException {
+    private void testCache(boolean lru) {
         out = "";
         Cache c = CacheLRU.getCache(this, lru ? "LRU" : "TQ", 16);
         for (int i = 0; i < 20; i++) {

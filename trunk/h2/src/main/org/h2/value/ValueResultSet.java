@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StatementBuilder;
 
@@ -47,26 +47,30 @@ public class ValueResultSet extends Value {
      *            meta data)
      * @return the value
      */
-    public static ValueResultSet getCopy(ResultSet rs, int maxrows) throws SQLException {
-        ResultSetMetaData meta = rs.getMetaData();
-        int columnCount = meta.getColumnCount();
-        SimpleResultSet simple = new SimpleResultSet();
-        ValueResultSet val = new ValueResultSet(simple);
-        for (int i = 0; i < columnCount; i++) {
-            String name = meta.getColumnLabel(i + 1);
-            int sqlType = meta.getColumnType(i + 1);
-            int precision = meta.getPrecision(i + 1);
-            int scale = meta.getScale(i + 1);
-            simple.addColumn(name, sqlType, precision, scale);
-        }
-        for (int i = 0; i < maxrows && rs.next(); i++) {
-            Object[] list = new Object[columnCount];
-            for (int j = 0; j < columnCount; j++) {
-                list[j] = rs.getObject(j + 1);
+    public static ValueResultSet getCopy(ResultSet rs, int maxrows) {
+        try {
+            ResultSetMetaData meta = rs.getMetaData();
+            int columnCount = meta.getColumnCount();
+            SimpleResultSet simple = new SimpleResultSet();
+            ValueResultSet val = new ValueResultSet(simple);
+            for (int i = 0; i < columnCount; i++) {
+                String name = meta.getColumnLabel(i + 1);
+                int sqlType = meta.getColumnType(i + 1);
+                int precision = meta.getPrecision(i + 1);
+                int scale = meta.getScale(i + 1);
+                simple.addColumn(name, sqlType, precision, scale);
             }
-            simple.addRow(list);
+            for (int i = 0; i < maxrows && rs.next(); i++) {
+                Object[] list = new Object[columnCount];
+                for (int j = 0; j < columnCount; j++) {
+                    list[j] = rs.getObject(j + 1);
+                }
+                simple.addRow(list);
+            }
+            return val;
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
-        return val;
     }
 
     public int getType() {
@@ -105,11 +109,11 @@ public class ValueResultSet extends Value {
             result.beforeFirst();
             return buff.append(')').toString();
         } catch (SQLException e) {
-            throw Message.convertToInternal(e);
+            throw DbException.convert(e);
         }
     }
 
-    protected int compareSecure(Value v, CompareMode mode) throws SQLException {
+    protected int compareSecure(Value v, CompareMode mode) {
         throw throwUnsupportedExceptionForType();
     }
 
@@ -129,7 +133,7 @@ public class ValueResultSet extends Value {
         return result;
     }
 
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex) {
         throw throwUnsupportedExceptionForType();
     }
 

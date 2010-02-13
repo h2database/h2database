@@ -6,10 +6,9 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
@@ -34,15 +33,15 @@ public class MetaIndex extends BaseIndex {
         // nothing to do
     }
 
-    public void add(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void add(Session session, Row row) {
+        throw DbException.getUnsupportedException("META");
     }
 
-    public void remove(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void remove(Session session, Row row) {
+        throw DbException.getUnsupportedException("META");
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         ArrayList<Row> rows = meta.generateRows(session, first, last);
         return new MetaCursor(rows);
     }
@@ -54,12 +53,12 @@ public class MetaIndex extends BaseIndex {
         return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION);
     }
 
-    public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void truncate(Session session) {
+        throw DbException.getUnsupportedException("META");
     }
 
-    public void remove(Session session) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void remove(Session session) {
+        throw DbException.getUnsupportedException("META");
     }
 
     public int getColumnIndex(Column col) {
@@ -70,8 +69,8 @@ public class MetaIndex extends BaseIndex {
         return super.getColumnIndex(col);
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("META");
     }
 
     public boolean needRebuild() {
@@ -86,8 +85,8 @@ public class MetaIndex extends BaseIndex {
         return false;
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public Cursor findFirstOrLast(Session session, boolean first) {
+        throw DbException.getUnsupportedException("META");
     }
 
     public long getRowCount(Session session) {

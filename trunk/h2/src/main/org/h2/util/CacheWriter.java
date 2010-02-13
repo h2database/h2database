@@ -6,8 +6,6 @@
  */
 package org.h2.util;
 
-import java.sql.SQLException;
-
 import org.h2.message.Trace;
 
 /**
@@ -21,7 +19,7 @@ public interface CacheWriter {
      *
      * @param entry the cache entry
      */
-    void writeBack(CacheObject entry) throws SQLException;
+    void writeBack(CacheObject entry);
 
     /**
      * Flush the log file, so that entries can be removed from the cache. This
@@ -29,7 +27,7 @@ public interface CacheWriter {
      * written to the log file. It is required to write the log entries to the
      * log file first, because the log file is 'write ahead'.
      */
-    void flushLog() throws SQLException;
+    void flushLog();
 
     /**
      * Get the trace writer.

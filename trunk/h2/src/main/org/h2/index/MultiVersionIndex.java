@@ -6,12 +6,11 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
@@ -45,7 +44,7 @@ public class MultiVersionIndex implements Index {
         this.firstColumn = base.getColumns()[0];
     }
 
-    public void add(Session session, Row row) throws SQLException {
+    public void add(Session session, Row row) {
         synchronized (sync) {
             base.add(session, row);
             if (removeIfExists(session, row)) {
@@ -61,13 +60,13 @@ public class MultiVersionIndex implements Index {
         return base.getRootPageId();
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         synchronized (sync) {
             base.close(session);
         }
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         synchronized (sync) {
             Cursor baseCursor = base.find(session, first, last);
             Cursor deltaCursor = delta.find(session, first, last);
@@ -76,7 +75,7 @@ public class MultiVersionIndex implements Index {
     }
 
     public Cursor findNext(Session session, SearchRow first, SearchRow last) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public boolean canFindNext() {
@@ -88,7 +87,7 @@ public class MultiVersionIndex implements Index {
         return base.canGetFirstOrLast() && delta.canGetFirstOrLast();
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
+    public Cursor findFirstOrLast(Session session, boolean first) {
         if (first) {
             // TODO optimization: this loops through NULL elements
             Cursor cursor = find(session, null, null);
@@ -119,7 +118,7 @@ public class MultiVersionIndex implements Index {
         return cursor;
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         return base.getCost(session, masks);
     }
 
@@ -127,7 +126,7 @@ public class MultiVersionIndex implements Index {
         return base.needRebuild();
     }
 
-    private boolean removeIfExists(Session session, Row row) throws SQLException {
+    private boolean removeIfExists(Session session, Row row) {
         // maybe it was inserted by the same session just before
         Cursor c = delta.find(session, row, row);
         while (c.next()) {
@@ -144,7 +143,7 @@ public class MultiVersionIndex implements Index {
         return false;
     }
 
-    public void remove(Session session, Row row) throws SQLException {
+    public void remove(Session session, Row row) {
         synchronized (sync) {
             base.remove(session, row);
             if (removeIfExists(session, row)) {
@@ -155,20 +154,20 @@ public class MultiVersionIndex implements Index {
         }
     }
 
-    public void remove(Session session) throws SQLException {
+    public void remove(Session session) {
         synchronized (sync) {
             base.remove(session);
         }
     }
 
-    public void truncate(Session session) throws SQLException {
+    public void truncate(Session session) {
         synchronized (sync) {
             delta.truncate(session);
             base.truncate(session);
         }
     }
 
-    public void commit(int operation, Row row) throws SQLException {
+    public void commit(int operation, Row row) {
         synchronized (sync) {
             removeIfExists(null, row);
         }
@@ -178,7 +177,7 @@ public class MultiVersionIndex implements Index {
         return base.compareKeys(rowData, compare);
     }
 
-    public int compareRows(SearchRow rowData, SearchRow compare) throws SQLException {
+    public int compareRows(SearchRow rowData, SearchRow compare) {
         return base.compareRows(rowData, compare);
     }
 
@@ -198,7 +197,7 @@ public class MultiVersionIndex implements Index {
         return base.getIndexColumns();
     }
 
-    public long getCostRangeIndex(int[] masks, long rowCount) throws SQLException {
+    public long getCostRangeIndex(int[] masks, long rowCount) {
         return base.getCostRangeIndex(masks, rowCount);
     }
 
@@ -214,7 +213,7 @@ public class MultiVersionIndex implements Index {
         return base.getDropSQL();
     }
 
-    public SQLException getDuplicateKeyException() {
+    public DbException getDuplicateKeyException() {
         return base.getDuplicateKeyException();
     }
 
@@ -246,7 +245,7 @@ public class MultiVersionIndex implements Index {
         return base.containsNullAndAllowMultipleNull(newRow);
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         synchronized (sync) {
             table.removeIndex(this);
             remove(session);
@@ -261,7 +260,7 @@ public class MultiVersionIndex implements Index {
         return base.getSchema();
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
         base.checkRename();
     }
 
@@ -293,7 +292,7 @@ public class MultiVersionIndex implements Index {
         return base.isTemporary();
     }
 
-    public void rename(String newName) throws SQLException {
+    public void rename(String newName) {
         base.rename(newName);
     }
 
@@ -317,7 +316,7 @@ public class MultiVersionIndex implements Index {
         return base;
     }
 
-    public Row getRow(Session session, long key) throws SQLException {
+    public Row getRow(Session session, long key) {
         return base.getRow(session, key);
     }
 

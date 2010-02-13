@@ -6,14 +6,13 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Comment;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.Table;
 
 /**
@@ -33,7 +32,7 @@ public class SetComment extends DefineCommand {
         super(session);
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
@@ -89,7 +88,7 @@ public class SetComment extends DefineCommand {
         default:
         }
         if (object == null) {
-            throw Message.getSQLException(errorCode, objectName);
+            throw DbException.get(errorCode, objectName);
         }
         String text = expr.optimize(session).getValue(session).getString();
         if (column) {

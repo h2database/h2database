@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.TriggerObject;
 import org.h2.table.Table;
@@ -38,13 +36,13 @@ public class DropTrigger extends SchemaCommand {
         this.triggerName = triggerName;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         TriggerObject trigger = getSchema().findTrigger(triggerName);
         if (trigger == null) {
             if (!ifExists) {
-                throw Message.getSQLException(ErrorCode.TRIGGER_NOT_FOUND_1, triggerName);
+                throw DbException.get(ErrorCode.TRIGGER_NOT_FOUND_1, triggerName);
             }
         } else {
             Table table = trigger.getTable();

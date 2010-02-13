@@ -6,7 +6,6 @@
  */
 package org.h2.result;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
@@ -16,7 +15,6 @@ import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.PageBtreeIndex;
-import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -36,7 +34,7 @@ public class ResultTempTable implements ResultExternal {
     private Index index;
     private Cursor resultCursor;
 
-    public ResultTempTable(Session session, SortOrder sort) throws SQLException {
+    public ResultTempTable(Session session, SortOrder sort) {
         this.session = session;
         this.sort = sort;
         Schema schema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
@@ -64,7 +62,7 @@ public class ResultTempTable implements ResultExternal {
         table.getIndexes().add(index);
     }
 
-    public int removeRow(Value[] values) throws SQLException {
+    public int removeRow(Value[] values) {
         Row row = convertToRow(values);
         Cursor cursor = find(row);
         if (cursor != null) {
@@ -74,11 +72,11 @@ public class ResultTempTable implements ResultExternal {
         return (int) table.getRowCount(session);
     }
 
-    public boolean contains(Value[] values) throws SQLException {
+    public boolean contains(Value[] values) {
         return find(convertToRow(values)) != null;
     }
 
-    public int addRow(Value[] values) throws SQLException {
+    public int addRow(Value[] values) {
         Row row = convertToRow(values);
         Cursor cursor = find(row);
         if (cursor == null) {
@@ -87,7 +85,7 @@ public class ResultTempTable implements ResultExternal {
         return (int) table.getRowCount(session);
     }
 
-    public void addRows(ArrayList<Value[]> rows) throws SQLException {
+    public void addRows(ArrayList<Value[]> rows) {
         if (sort != null) {
             sort.sort(rows);
         }
@@ -120,8 +118,6 @@ public class ResultTempTable implements ResultExternal {
                     }
                 }
             }
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
         } finally {
             table = null;
         }
@@ -131,7 +127,7 @@ public class ResultTempTable implements ResultExternal {
         // nothing to do
     }
 
-    public Value[] next() throws SQLException {
+    public Value[] next() {
         if (!resultCursor.next()) {
             return null;
         }
@@ -140,7 +136,7 @@ public class ResultTempTable implements ResultExternal {
         return data.getList();
     }
 
-    public void reset() throws SQLException {
+    public void reset() {
         resultCursor = index.find(session, null, null);
     }
 
@@ -149,7 +145,7 @@ public class ResultTempTable implements ResultExternal {
         return new Row(new Value[]{data}, data.getMemory());
     }
 
-    private Cursor find(Row row) throws SQLException {
+    private Cursor find(Row row) {
         Cursor cursor = index.find(session, row, row);
         Value a = row.getValue(0);
         while (cursor.next()) {

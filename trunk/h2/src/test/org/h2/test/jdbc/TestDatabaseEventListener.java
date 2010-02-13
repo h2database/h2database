@@ -67,7 +67,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
             // nothing to do
         }
 
-        public void diskSpaceIsLow(long stillAvailable) {
+        public void diskSpaceIsLow() {
             // nothing to do
         }
 
@@ -215,7 +215,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         calledClosingDatabase = true;
     }
 
-    public void diskSpaceIsLow(long stillAvailable) {
+    public void diskSpaceIsLow() {
         // nothing to do
     }
 

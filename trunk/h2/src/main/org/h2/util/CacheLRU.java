@@ -6,15 +6,13 @@
  */
 package org.h2.util;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * A cache implementation based on the last recently used (LRU) algorithm.
@@ -49,7 +47,7 @@ public class CacheLRU implements Cache {
      * @param cacheSize the size
      * @return the cache object
      */
-    public static Cache getCache(CacheWriter writer, String cacheType, int cacheSize) throws SQLException {
+    public static Cache getCache(CacheWriter writer, String cacheType, int cacheSize) {
         Map<Integer, CacheObject> secondLevel = null;
         if (cacheType.startsWith("SOFT_")) {
             secondLevel = new SoftHashMap<Integer, CacheObject>();
@@ -65,7 +63,7 @@ public class CacheLRU implements Cache {
         } else if (CacheLRU.TYPE_NAME.equals(cacheType)) {
             cache = new CacheLRU(writer, cacheSize);
         } else {
-            throw Message.getInvalidValueException(cacheType, "CACHE_TYPE");
+            throw DbException.getInvalidValueException(cacheType, "CACHE_TYPE");
         }
         if (secondLevel != null) {
             cache = new CacheSecondLevel(cache, secondLevel);
@@ -82,12 +80,12 @@ public class CacheLRU implements Cache {
         sizeMemory = 0;
     }
 
-    public void put(CacheObject rec) throws SQLException {
+    public void put(CacheObject rec) {
         if (SysProperties.CHECK) {
             int pos = rec.getPos();
             CacheObject old = find(pos);
             if (old != null) {
-                Message.throwInternalError("try to add a record twice pos:" + pos);
+                DbException.throwInternalError("try to add a record twice pos:" + pos);
             }
         }
         int index = rec.getPos() & mask;
@@ -99,14 +97,14 @@ public class CacheLRU implements Cache {
         removeOldIfRequired();
     }
 
-    public CacheObject update(int pos, CacheObject rec) throws SQLException {
+    public CacheObject update(int pos, CacheObject rec) {
         CacheObject old = find(pos);
         if (old == null) {
             put(rec);
         } else {
             if (SysProperties.CHECK) {
                 if (old != rec) {
-                    Message.throwInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
+                    DbException.throwInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
                 }
             }
             removeFromLinkedList(rec);
@@ -115,14 +113,14 @@ public class CacheLRU implements Cache {
         return old;
     }
 
-    private void removeOldIfRequired() throws SQLException {
+    private void removeOldIfRequired() {
         // a small method, to allow inlining
         if (sizeMemory >= maxSize) {
             removeOld();
         }
     }
 
-    private void removeOld() throws SQLException {
+    private void removeOld() {
         int i = 0;
         ArrayList<CacheObject> changed = New.arrayList();
         int mem = sizeMemory;
@@ -146,7 +144,7 @@ public class CacheLRU implements Cache {
                 }
             }
             if (SysProperties.CHECK && check == head) {
-                Message.throwInternalError("try to remove head");
+                DbException.throwInternalError("try to remove head");
             }
             // we are not allowed to remove it if the log is not yet written
             // (because we need to log before writing the data)
@@ -183,7 +181,7 @@ public class CacheLRU implements Cache {
                 remove(rec.getPos());
                 if (SysProperties.CHECK) {
                     if (rec.cacheNext != null) {
-                        throw Message.throwInternalError();
+                        throw DbException.throwInternalError();
                     }
                 }
             }
@@ -192,7 +190,7 @@ public class CacheLRU implements Cache {
 
     private void addToFront(CacheObject rec) {
         if (SysProperties.CHECK && rec == head) {
-            Message.throwInternalError("try to move head");
+            DbException.throwInternalError("try to move head");
         }
         rec.cacheNext = head;
         rec.cachePrevious = head.cachePrevious;
@@ -202,7 +200,7 @@ public class CacheLRU implements Cache {
 
     private void removeFromLinkedList(CacheObject rec) {
         if (SysProperties.CHECK && rec == head) {
-            Message.throwInternalError("try to remove head");
+            DbException.throwInternalError("try to remove head");
         }
         rec.cachePrevious.cacheNext = rec.cacheNext;
         rec.cacheNext.cachePrevious = rec.cachePrevious;
@@ -238,7 +236,7 @@ public class CacheLRU implements Cache {
             rec.cacheChained = null;
             CacheObject o = find(pos);
             if (o != null) {
-                Message.throwInternalError("not removed: " + o);
+                DbException.throwInternalError("not removed: " + o);
             }
         }
     }
@@ -304,7 +302,7 @@ public class CacheLRU implements Cache {
         return list;
     }
 
-    public void setMaxSize(int maxKb) throws SQLException {
+    public void setMaxSize(int maxKb) {
         int newSize = maxKb * 1024 / 4;
         maxSize = newSize < 0 ? 0 : newSize;
         // can not resize, otherwise existing records are lost

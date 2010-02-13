@@ -8,16 +8,12 @@ package org.h2.util;
 
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * A few String utility functions.
@@ -189,8 +185,8 @@ public class StringUtils {
         return s;
     }
 
-    private static SQLException getFormatException(String s, int i) {
-        return Message.getSQLException(ErrorCode.STRING_FORMAT_ERROR_1, addAsterisk(s, i));
+    private static DbException getFormatException(String s, int i) {
+        return DbException.get(ErrorCode.STRING_FORMAT_ERROR_1, addAsterisk(s, i));
     }
 
     /**
@@ -200,7 +196,7 @@ public class StringUtils {
      * @param s the encoded string
      * @return the string
      */
-    public static String javaDecode(String s) throws SQLException {
+    public static String javaDecode(String s) {
         StringBuilder buff = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
@@ -301,7 +297,7 @@ public class StringUtils {
             return s.getBytes(Constants.UTF8);
         } catch (Exception e) {
             // UnsupportedEncodingException
-            throw Message.convertToInternal(e);
+            throw DbException.convert(e);
         }
     }
 
@@ -316,7 +312,7 @@ public class StringUtils {
             return new String(utf8, Constants.UTF8);
         } catch (Exception e) {
             // UnsupportedEncodingException
-            throw Message.convertToInternal(e);
+            throw DbException.convert(e);
         }
     }
 
@@ -334,7 +330,7 @@ public class StringUtils {
             return new String(bytes, offset, length, Constants.UTF8);
         } catch (Exception e) {
             // UnsupportedEncodingException
-            throw Message.convertToInternal(e);
+            throw DbException.convert(e);
         }
     }
 
@@ -414,7 +410,7 @@ public class StringUtils {
             return URLEncoder.encode(s, "UTF-8");
         } catch (Exception e) {
             // UnsupportedEncodingException
-            throw Message.convertToInternal(e);
+            throw DbException.convert(e);
         }
 //## Java 1.4 end ##
 /*## Java 1.3 only begin ##
@@ -520,68 +516,6 @@ public class StringUtils {
             }
         }
         return buff.toString();
-    }
-
-    /**
-     * Formats a date using a format string.
-     *
-     * @param date the date to format
-     * @param format the format string
-     * @param locale the locale
-     * @param timeZone the timezone
-     * @return the formatted date
-     */
-    public static String formatDateTime(Date date, String format, String locale, String timeZone) throws SQLException {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
-        synchronized (dateFormat) {
-            return dateFormat.format(date);
-        }
-    }
-
-    /**
-     * Parses a date using a format string.
-     *
-     * @param date the date to parse
-     * @param format the parsing format
-     * @param locale the locale
-     * @param timeZone the timeZone
-     * @return the parsed date
-     */
-    public static Date parseDateTime(String date, String format, String locale, String timeZone) throws SQLException {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
-        try {
-            synchronized (dateFormat) {
-                return dateFormat.parse(date);
-            }
-        } catch (Exception e) {
-            // ParseException
-            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, e, date);
-        }
-    }
-
-    private static SimpleDateFormat getDateFormat(String format, String locale, String timeZone) throws SQLException {
-        try {
-            // currently, a new instance is create for each call
-            // however, could cache the last few instances
-            SimpleDateFormat df;
-            if (locale == null) {
-                df = new SimpleDateFormat(format);
-            } else {
-                //## Java 1.4 begin ##
-                Locale l = new Locale(locale);
-                //## Java 1.4 end ##
-                /*## Java 1.3 only begin ##
-                Locale l = new Locale(locale, "");
-                ## Java 1.3 only end ##*/
-                df = new SimpleDateFormat(format, l);
-            }
-            if (timeZone != null) {
-                df.setTimeZone(TimeZone.getTimeZone(timeZone));
-            }
-            return df;
-        } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, e, format + "/" + locale + "/" + timeZone);
-        }
     }
 
     /**

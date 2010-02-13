@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * A simple hash table with an optimization for the last recently used object.
@@ -88,7 +88,7 @@ public class SmallMap {
         }
         Object obj = map.get(id);
         if (obj == null && !ifAvailable) {
-            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
         return obj;
     }

@@ -10,11 +10,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.New;
 
 /**
@@ -37,7 +36,7 @@ public class FileSystemSplit extends FileSystem {
         return getFileSystem(fileName).canWrite(fileName);
     }
 
-    public void copy(String original, String copy) throws SQLException {
+    public void copy(String original, String copy) {
         original = translateFileName(original);
         copy = translateFileName(copy);
         getFileSystem(original).copy(original, copy);
@@ -52,12 +51,12 @@ public class FileSystemSplit extends FileSystem {
         }
     }
 
-    public void createDirs(String fileName) throws SQLException {
+    public void createDirs(String fileName) {
         fileName = translateFileName(fileName);
         getFileSystem(fileName).createDirs(fileName);
     }
 
-    public boolean createNewFile(String fileName) throws SQLException {
+    public boolean createNewFile(String fileName) {
         fileName = translateFileName(fileName);
         return getFileSystem(fileName).createNewFile(fileName);
     }
@@ -68,7 +67,7 @@ public class FileSystemSplit extends FileSystem {
         return PREFIX + getFileSystem(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
     }
 
-    public void delete(String fileName) throws SQLException {
+    public void delete(String fileName) {
         fileName = translateFileName(fileName);
         for (int i = 0;; i++) {
             String f = getFileName(fileName, i);
@@ -80,7 +79,7 @@ public class FileSystemSplit extends FileSystem {
         }
     }
 
-    public void deleteRecursive(String directory, boolean tryOnly) throws SQLException {
+    public void deleteRecursive(String directory, boolean tryOnly) {
         directory = translateFileName(directory);
         getFileSystem(directory).deleteRecursive(directory, tryOnly);
     }
@@ -155,7 +154,7 @@ public class FileSystemSplit extends FileSystem {
         return length;
     }
 
-    public String[] listFiles(String directory) throws SQLException {
+    public String[] listFiles(String directory) {
         directory = translateFileName(directory);
         String[] array = getFileSystem(directory).listFiles(directory);
         ArrayList<String> list = New.arrayList();
@@ -174,7 +173,7 @@ public class FileSystemSplit extends FileSystem {
         return array;
     }
 
-    public String normalize(String fileName) throws SQLException {
+    public String normalize(String fileName) {
         fileName = translateFileName(fileName);
         return PREFIX + getFileSystem(fileName).normalize(fileName);
     }
@@ -236,13 +235,13 @@ public class FileSystemSplit extends FileSystem {
         return fo;
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
+    public OutputStream openFileOutputStream(String fileName, boolean append) {
         fileName = translateFileName(fileName);
         // TODO the output stream is not split
         return getFileSystem(fileName).openFileOutputStream(fileName, append);
     }
 
-    public void rename(String oldName, String newName) throws SQLException {
+    public void rename(String oldName, String newName) {
         oldName = translateFileName(oldName);
         newName = translateFileName(newName);
         for (int i = 0;; i++) {
@@ -274,7 +273,7 @@ public class FileSystemSplit extends FileSystem {
 
     private String translateFileName(String fileName) {
         if (!fileName.startsWith(PREFIX)) {
-            Message.throwInternalError(fileName + " doesn't start with " + PREFIX);
+            DbException.throwInternalError(fileName + " doesn't start with " + PREFIX);
         }
         fileName = fileName.substring(PREFIX.length());
         if (fileName.length() > 0 && Character.isDigit(fileName.charAt(0))) {

@@ -9,7 +9,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * Implementation of the DOUBLE data type.
@@ -58,10 +58,10 @@ public class ValueDouble extends Value {
         return ValueDouble.get(value * v2.value);
     }
 
-    public Value divide(Value v) throws SQLException {
+    public Value divide(Value v) {
         ValueDouble v2 = (ValueDouble) v;
         if (v2.value == 0.0) {
-            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         return ValueDouble.get(value / v2.value);
     }

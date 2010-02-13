@@ -6,11 +6,10 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.New;
 import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
@@ -45,7 +44,7 @@ class AggregateData {
      * @param distinct if the calculation should be distinct
      * @param v the value
      */
-    void add(Database database, boolean distinct, Value v) throws SQLException {
+    void add(Database database, boolean distinct, Value v) {
         if (aggregateType == Aggregate.SELECTIVITY) {
             count++;
             if (distinctValues == null) {
@@ -142,7 +141,7 @@ class AggregateData {
             }
             break;
         default:
-            Message.throwInternalError("type=" + aggregateType);
+            DbException.throwInternalError("type=" + aggregateType);
         }
     }
 
@@ -157,7 +156,7 @@ class AggregateData {
      * @param distinct if distinct is used
      * @return the value
      */
-    Value getValue(Database database, boolean distinct) throws SQLException {
+    Value getValue(Database database, boolean distinct) {
         if (distinct) {
             count = 0;
             groupDistinct(database);
@@ -224,12 +223,12 @@ class AggregateData {
             break;
         }
         default:
-            Message.throwInternalError("type=" + aggregateType);
+            DbException.throwInternalError("type=" + aggregateType);
         }
         return v == null ? ValueNull.INSTANCE : v.convertTo(dataType);
     }
 
-    private Value divide(Value a, long by) throws SQLException {
+    private Value divide(Value a, long by) {
         if (by == 0) {
             return ValueNull.INSTANCE;
         }
@@ -239,7 +238,7 @@ class AggregateData {
         return a;
     }
 
-    private void groupDistinct(Database database) throws SQLException {
+    private void groupDistinct(Database database) {
         if (distinctValues == null) {
             return;
         }

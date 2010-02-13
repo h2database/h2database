@@ -6,10 +6,8 @@
  */
 package org.h2.security;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * A factory to create new block cipher objects.
@@ -26,13 +24,13 @@ public class CipherFactory {
      * @param algorithm the algorithm
      * @return a new cipher object
      */
-    public static BlockCipher getBlockCipher(String algorithm) throws SQLException {
+    public static BlockCipher getBlockCipher(String algorithm) {
         if ("XTEA".equalsIgnoreCase(algorithm)) {
             return new XTEA();
         } else if ("AES".equalsIgnoreCase(algorithm)) {
             return new AES();
         }
-        throw Message.getSQLException(ErrorCode.UNSUPPORTED_CIPHER, algorithm);
+        throw DbException.get(ErrorCode.UNSUPPORTED_CIPHER, algorithm);
     }
 
     /**
@@ -41,11 +39,11 @@ public class CipherFactory {
      * @param algorithm the algorithm
      * @return a new hash object
      */
-    public static SHA256 getHash(String algorithm) throws SQLException {
+    public static SHA256 getHash(String algorithm) {
         if ("SHA256".equalsIgnoreCase(algorithm)) {
             return new SHA256();
         }
-        throw Message.getInvalidValueException(algorithm, "algorithm");
+        throw DbException.getInvalidValueException(algorithm, "algorithm");
     }
 
 }

@@ -12,7 +12,7 @@ import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
 
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This class deletes temporary files when they are not used any longer.
@@ -92,7 +92,7 @@ public class TempFileDeleter {
             TempFile f2 = refMap.remove(ref);
             if (f2 != null) {
                 if (SysProperties.CHECK && fileName != null && !f2.fileName.equals(fileName)) {
-                    Message.throwInternalError("f2:" + f2.fileName + " f:" + fileName);
+                    DbException.throwInternalError("f2:" + f2.fileName + " f:" + fileName);
                 }
                 fileName = f2.fileName;
                 long mod = IOUtils.getLastModified(fileName);
@@ -148,7 +148,7 @@ public class TempFileDeleter {
         if (ref != null) {
             TempFile f2 = refMap.remove(ref);
             if (SysProperties.CHECK && (f2 == null || !f2.fileName.equals(fileName))) {
-                Message.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2.fileName) + " f:" + fileName);
+                DbException.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2.fileName) + " f:" + fileName);
             }
         }
         deleteUnused();

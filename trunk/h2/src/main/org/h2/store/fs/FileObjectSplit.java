@@ -7,9 +7,7 @@
 package org.h2.store.fs;
 
 import java.io.IOException;
-import java.sql.SQLException;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 
 /**
@@ -101,8 +99,8 @@ public class FileObjectSplit implements FileObject {
                     list[i].close();
                     try {
                         IOUtils.delete(list[i].getName());
-                    } catch (SQLException e) {
-                        throw Message.convertToIOException(e);
+                    } catch (DbException e) {
+                        throw DbException.convertToIOException(e);
                     }
                 } else if (i >= list.length) {
                     String fileName = FileSystemSplit.getFileName(name, i);

@@ -6,9 +6,7 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import java.util.HashMap;
-
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectListColumnResolver;
@@ -16,7 +14,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -71,7 +69,7 @@ public class ExpressionColumn extends Expression {
         return columnResolver == null ? null : columnResolver.getTableFilter();
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         if (tableAlias != null && !tableAlias.equals(resolver.getTableAlias())) {
             return;
         }
@@ -94,7 +92,7 @@ public class ExpressionColumn extends Expression {
         }
     }
 
-    private void mapColumn(ColumnResolver resolver, Column col, int level) throws SQLException {
+    private void mapColumn(ColumnResolver resolver, Column col, int level) {
         if (this.columnResolver == null) {
             queryLevel = level;
             column = col;
@@ -103,12 +101,12 @@ public class ExpressionColumn extends Expression {
             if (resolver instanceof SelectListColumnResolver) {
                 // ignore - already mapped, that's ok
             } else {
-                throw Message.getSQLException(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
+                throw DbException.get(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
             }
         }
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         if (columnResolver == null) {
             Schema schema = session.getDatabase().findSchema(
                     tableAlias == null ? session.getCurrentSchemaName() : tableAlias);
@@ -125,16 +123,16 @@ public class ExpressionColumn extends Expression {
                     name = schemaName + "." + name;
                 }
             }
-            throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, name);
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, name);
         }
         return columnResolver.optimize(this, column);
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         Value now = columnResolver.getValue(column);
         Select select = columnResolver.getSelect();
         if (select == null) {
-            throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+            throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         HashMap<Expression, Object> values = select.getCurrentGroup();
         if (values == null) {
@@ -146,12 +144,12 @@ public class ExpressionColumn extends Expression {
             values.put(this, now);
         } else {
             if (!database.areEqual(now, v)) {
-                throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
             }
         }
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         // TODO refactor: simplify check if really part of an aggregated value /
         // detection of
         // usage of non-grouped by columns without aggregate function
@@ -167,7 +165,7 @@ public class ExpressionColumn extends Expression {
         }
         Value value = columnResolver.getValue(column);
         if (value == null) {
-            throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+            throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         return value;
     }
@@ -255,7 +253,7 @@ public class ExpressionColumn extends Expression {
             visitor.addDependency(column.getTable());
             return true;
         default:
-            throw Message.throwInternalError("type=" + visitor.getType());
+            throw DbException.throwInternalError("type=" + visitor.getType());
         }
     }
 

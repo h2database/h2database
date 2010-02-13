@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When doing an index lookup, decimal values with the same value but different scale
+<ul><li>The file system abstraction no longer throws SQL exceptions.
+</li><li>DatabaseEventListener.diskSpaceIsLow has changed.
+</li><li>The CompressTool no longer throw as SQL exceptions. Instead, it throws runtime exceptions.
+</li><li>SimpleResultSet.addColumn and addRow now can throw a IllegalStateException
+    instead of a SQLException.
+</li><li>When doing an index lookup, decimal values with the same value but different scale
     (for example 0.00 and 0.0) where not considered equal in version 1.2.128.
     Now they are (unlike BigDecimal.equals()).
 </li><li>The BNF parser now uses the visitor pattern.

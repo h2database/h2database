@@ -12,7 +12,7 @@ import java.io.RandomAccessFile;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.Tool;
 
 
@@ -84,7 +84,7 @@ public class FileViewer extends Tool {
         try {
             process(file, find, head, tail, start, lines, quiet);
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw DbException.toSQLException(e);
         }
     }
 

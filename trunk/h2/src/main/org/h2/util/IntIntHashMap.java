@@ -6,9 +6,7 @@
  */
 package org.h2.util;
 
-import java.sql.SQLException;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * A hash map with int key and int values. There is a restriction: the
@@ -47,7 +45,7 @@ public class IntIntHashMap extends HashBase {
         }
         try {
             checkSizePut();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             // in fact, it is never thrown
             // TODO hash: maybe optimize it
         }
@@ -80,7 +78,7 @@ public class IntIntHashMap extends HashBase {
             index = (index + plus++) & mask;
         } while(plus <= len);
         // no space
-        Message.throwInternalError("hashmap is full");
+        DbException.throwInternalError("hashmap is full");
     }
 
     /**
@@ -95,7 +93,7 @@ public class IntIntHashMap extends HashBase {
         }
         try {
             checkSizeRemove();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             // in fact, it is never thrown
             // TODO hash: maybe optimize it
         }

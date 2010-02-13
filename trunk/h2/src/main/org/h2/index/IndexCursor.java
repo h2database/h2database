@@ -6,12 +6,11 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -63,7 +62,7 @@ public class IndexCursor implements Cursor {
      * @param s the session
      * @param indexConditions the index conditions
      */
-    public void find(Session s, ArrayList<IndexCondition> indexConditions) throws SQLException {
+    public void find(Session s, ArrayList<IndexCondition> indexConditions) {
         this.session = s;
         alwaysFalse = false;
         start = end = null;
@@ -129,7 +128,7 @@ public class IndexCursor implements Cursor {
         }
     }
 
-    private SearchRow getSearchRow(SearchRow row, int id, Value v, boolean max) throws SQLException {
+    private SearchRow getSearchRow(SearchRow row, int id, Value v, boolean max) {
         if (row == null) {
             row = table.getTemplateRow();
         } else {
@@ -139,7 +138,7 @@ public class IndexCursor implements Cursor {
         return row;
     }
 
-    private Value getMax(Value a, Value b, boolean bigger) throws SQLException {
+    private Value getMax(Value a, Value b, boolean bigger) {
         if (a == null) {
             return b;
         } else if (b == null) {
@@ -161,15 +160,15 @@ public class IndexCursor implements Cursor {
         return alwaysFalse;
     }
 
-    public Row get() throws SQLException {
+    public Row get() {
         return cursor.get();
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         return cursor.getSearchRow();
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         while (true) {
             if (cursor == null) {
                 nextCursor();
@@ -184,7 +183,7 @@ public class IndexCursor implements Cursor {
         }
     }
 
-    private void nextCursor() throws SQLException {
+    private void nextCursor() {
         if (inList != null) {
             if (inListIndex < inList.length) {
                 Value v = inList[inListIndex++];
@@ -202,7 +201,7 @@ public class IndexCursor implements Cursor {
         }
     }
 
-    private void find(Value v) throws SQLException {
+    private void find(Value v) {
         v = inColumn.convert(v);
         int id = inColumn.getColumnId();
         if (start == null) {
@@ -213,7 +212,7 @@ public class IndexCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
 }

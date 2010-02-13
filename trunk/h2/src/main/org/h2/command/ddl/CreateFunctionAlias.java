@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This class represents the statement
@@ -31,13 +29,13 @@ public class CreateFunctionAlias extends DefineCommand {
         super(session);
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
         if (db.findFunctionAlias(aliasName) != null) {
             if (!ifNotExists) {
-                throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
+                throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
             }
         } else {
             int id = getObjectId();

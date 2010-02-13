@@ -8,7 +8,6 @@ package org.h2.store;
 
 import java.lang.ref.WeakReference;
 import java.security.AccessControlException;
-import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.message.Trace;
@@ -85,12 +84,7 @@ public class WriterThread implements Runnable {
                 } else {
                     database.flush();
                 }
-            } catch (SQLException e) {
-                TraceSystem traceSystem = database.getTraceSystem();
-                if (traceSystem != null) {
-                    traceSystem.getTrace(Trace.LOG).error("flush", e);
-                }
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 TraceSystem traceSystem = database.getTraceSystem();
                 if (traceSystem != null) {
                     traceSystem.getTrace(Trace.LOG).error("flush", e);

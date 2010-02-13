@@ -6,7 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -40,7 +39,7 @@ public class AlterTableRenameColumn extends DefineCommand {
         this.newName = newName;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkRight(table, Right.ALL);

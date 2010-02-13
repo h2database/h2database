@@ -25,7 +25,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
@@ -89,7 +89,7 @@ public class Csv implements SimpleRowSource {
             output.close();
             return rows;
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         } finally {
             close();
             JdbcUtils.closeSilently(rs);
@@ -194,13 +194,13 @@ public class Csv implements SimpleRowSource {
      * @return the result set
      * @throws SQLException, IOException
      */
-    public ResultSet read(Reader reader, String[] colNames) throws SQLException, IOException {
+    public ResultSet read(Reader reader, String[] colNames) throws IOException {
         init(null, null);
         this.input = reader;
         return readResultSet(colNames);
     }
 
-    private ResultSet readResultSet(String[] colNames) throws SQLException, IOException {
+    private ResultSet readResultSet(String[] colNames) throws IOException {
         this.columnNames = colNames;
         initRead();
         SimpleResultSet result = new SimpleResultSet(this);
@@ -241,9 +241,9 @@ public class Csv implements SimpleRowSource {
                 OutputStream out = IOUtils.openFileOutputStream(fileName, false);
                 out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE);
                 output = new BufferedWriter(new OutputStreamWriter(out, streamCharset));
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 close();
-                throw Message.convertToIOException(e);
+                throw DbException.convertToIOException(e);
             }
         }
     }

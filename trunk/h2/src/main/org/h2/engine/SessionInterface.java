@@ -6,8 +6,6 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
-
 import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
@@ -24,12 +22,12 @@ public interface SessionInterface {
      * @param fetchSize the number of rows to fetch in one step
      * @return the prepared command
      */
-    CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException;
+    CommandInterface prepareCommand(String sql, int fetchSize);
 
     /**
      * Roll back pending transactions and close the session.
      */
-    void close() throws SQLException;
+    void close();
 
     /**
      * Get the trace object
@@ -59,7 +57,7 @@ public interface SessionInterface {
      *
      * @param i the number of operations
      */
-    void setPowerOffCount(int i) throws SQLException;
+    void setPowerOffCount(int i);
 
     /**
      * Get the data handler object.
@@ -87,7 +85,7 @@ public interface SessionInterface {
      * @param write if the next operation may be writing
      * @return the new connection
      */
-    SessionInterface reconnect(boolean write) throws SQLException;
+    SessionInterface reconnect(boolean write);
 
     /**
      * Called after writing has ended. It needs to be called after

@@ -286,9 +286,10 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-Row.getMemorySize
-FileStore.sync, Database.sync() (CHECKPOINT SYNC)
-H2 Console: use reflection for @INFO; maybe compiler for loop
+implement FileStore.sync, Database.sync() (CHECKPOINT SYNC)
+try to replace 'catch Exception' with 'catch DbException'
+try again with -verbose:classes
+test Row.getMemorySize
 
 document in performance section:
 PreparedStatement prep = conn.prepareStatement(
@@ -503,6 +504,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestTempTables().runTest(this);
         new TestTransaction().runTest(this);
         new TestTriggersConstraints().runTest(this);
+
         new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
         new TestViewAlterTable().runTest(this);

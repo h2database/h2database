@@ -9,7 +9,7 @@ package org.h2.engine;
 import java.sql.SQLException;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.Prepared;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.SearchRow;
 import org.h2.value.ValueInt;
@@ -25,7 +25,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
     private int objectType;
     private String sql;
 
-    public MetaRecord(SearchRow r) throws SQLException {
+    public MetaRecord(SearchRow r) {
         id = r.getValue(0).getInt();
         objectType = r.getValue(2).getInt();
         sql = r.getValue(3).getString();
@@ -51,19 +51,20 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * @param systemSession the system session
      * @param listener the database event listener
      */
-    void execute(Database db, Session systemSession, DatabaseEventListener listener) throws SQLException {
+    void execute(Database db, Session systemSession, DatabaseEventListener listener) {
         try {
             Prepared command = systemSession.prepare(sql);
             command.setObjectId(id);
             command.update();
-        } catch (Exception e) {
-            SQLException s = Message.addSQL(Message.convert(e), sql);
+        } catch (DbException e) {
+            e = e.addSQL(sql);
+            SQLException s = e.getSQLException();
             db.getTrace(Trace.DATABASE).error(sql, s);
             if (listener != null) {
                 listener.exceptionThrown(s, sql);
                 // continue startup in this case
             } else {
-                throw s;
+                throw e;
             }
         }
     }
@@ -135,7 +136,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
         case DbObject.COMMENT:
             return 14;
         default:
-            throw Message.throwInternalError("type="+type);
+            throw DbException.throwInternalError("type="+type);
         }
     }
 

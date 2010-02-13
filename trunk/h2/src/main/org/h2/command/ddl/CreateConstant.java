@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
 import org.h2.value.Value;
@@ -35,7 +33,7 @@ public class CreateConstant extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
@@ -43,7 +41,7 @@ public class CreateConstant extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.CONSTANT_ALREADY_EXISTS_1, constantName);
+            throw DbException.get(ErrorCode.CONSTANT_ALREADY_EXISTS_1, constantName);
         }
         int id = getObjectId();
         Constant constant = new Constant(getSchema(), id, constantName);

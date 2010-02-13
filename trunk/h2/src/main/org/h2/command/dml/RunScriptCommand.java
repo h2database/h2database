@@ -9,11 +9,10 @@ package org.h2.command.dml;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.sql.SQLException;
 import org.h2.command.Prepared;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.util.ScriptReader;
 
@@ -29,7 +28,7 @@ public class RunScriptCommand extends ScriptBase {
         super(session);
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.getUser().checkAdmin();
         int count = 0;
         try {
@@ -46,14 +45,14 @@ public class RunScriptCommand extends ScriptBase {
             }
             reader.close();
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         } finally {
             closeIO();
         }
         return count;
     }
 
-    private void execute(String sql) throws SQLException {
+    private void execute(String sql) {
         try {
             Prepared command = session.prepare(sql);
             if (command.isQuery()) {
@@ -64,8 +63,8 @@ public class RunScriptCommand extends ScriptBase {
             if (session.getAutoCommit()) {
                 session.commit(false);
             }
-        } catch (SQLException e) {
-            throw Message.addSQL(e, sql);
+        } catch (DbException e) {
+            throw e.addSQL(sql);
         }
     }
 

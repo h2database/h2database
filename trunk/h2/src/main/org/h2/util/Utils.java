@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,7 +19,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This utility class contains miscellaneous functions.
@@ -141,10 +140,10 @@ public class Utils {
      * @param s the hex encoded string
      * @return the byte array
      */
-    public static byte[] convertStringToBytes(String s) throws SQLException {
+    public static byte[] convertStringToBytes(String s) {
         int len = s.length();
         if (len % 2 != 0) {
-            throw Message.getSQLException(ErrorCode.HEX_STRING_ODD_1, s);
+            throw DbException.get(ErrorCode.HEX_STRING_ODD_1, s);
         }
         len /= 2;
         byte[] buff = new byte[len];
@@ -154,7 +153,7 @@ public class Utils {
         return buff;
     }
 
-    private static int getHexDigit(String s, int i) throws SQLException {
+    private static int getHexDigit(String s, int i) {
         char c = s.charAt(i);
         if (c >= '0' && c <= '9') {
             return c - '0';
@@ -163,7 +162,7 @@ public class Utils {
         } else if (c >= 'A' && c <= 'F') {
             return c - 'A' + 0xa;
         } else {
-            throw Message.getSQLException(ErrorCode.HEX_STRING_WRONG_1, s);
+            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
         }
     }
 
@@ -314,14 +313,14 @@ public class Utils {
      * @param obj the object to serialize
      * @return the byte array
      */
-    public static byte[] serialize(Object obj) throws SQLException {
+    public static byte[] serialize(Object obj) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ObjectOutputStream os = new ObjectOutputStream(out);
             os.writeObject(obj);
             return out.toByteArray();
         } catch (Throwable e) {
-            throw Message.getSQLException(ErrorCode.SERIALIZATION_FAILED_1, e, e.toString());
+            throw DbException.get(ErrorCode.SERIALIZATION_FAILED_1, e, e.toString());
         }
     }
 
@@ -332,14 +331,14 @@ public class Utils {
      * @return the object
      * @throws SQLException
      */
-    public static Object deserialize(byte[] data) throws SQLException {
+    public static Object deserialize(byte[] data) {
         try {
             ByteArrayInputStream in = new ByteArrayInputStream(data);
             ObjectInputStream is = new ObjectInputStream(in);
             Object obj = is.readObject();
             return obj;
         } catch (Throwable e) {
-            throw Message.getSQLException(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());
+            throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());
         }
     }
 
@@ -450,7 +449,7 @@ public class Utils {
      * @param className the name of the class
      * @return the class object
      */
-    public static Class< ? > loadUserClass(String className) throws SQLException {
+    public static Class< ? > loadUserClass(String className) {
         if (!ALLOW_ALL_CLASSES && !ALLOWED_CLASS_NAMES.contains(className)) {
             boolean allowed = false;
             for (String s : ALLOWED_CLASS_NAME_PREFIXES) {
@@ -459,7 +458,7 @@ public class Utils {
                 }
             }
             if (!allowed) {
-                throw Message.getSQLException(ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
+                throw DbException.get(ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
             }
         }
         try {
@@ -468,13 +467,13 @@ public class Utils {
             try {
                 return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
             } catch (Exception e2) {
-                throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+                throw DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, className);
             }
         } catch (NoClassDefFoundError e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+            throw DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, className);
         } catch (Error e) {
             // UnsupportedClassVersionError
-            throw Message.getSQLException(ErrorCode.GENERAL_ERROR_1, e, className);
+            throw DbException.get(ErrorCode.GENERAL_ERROR_1, e, className);
         }
     }
 

@@ -9,13 +9,13 @@ package org.h2.test.unit;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.Random;
-
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
-import org.h2.util.Utils;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Tests string utility methods.
@@ -40,7 +40,7 @@ public class TestStringUtils extends TestBase {
         testPad();
     }
 
-    private void testHex() throws SQLException {
+    private void testHex() {
         assertEquals("face", Utils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, Utils.convertStringToBytes("face"));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, Utils.convertStringToBytes("fAcE"));
@@ -48,14 +48,14 @@ public class TestStringUtils extends TestBase {
         try {
             Utils.convertStringToBytes("120");
             fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
+        } catch (DbException e) {
+            assertKnownException(DbException.toSQLException(e));
         }
         try {
             Utils.convertStringToBytes("fast");
             fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
+        } catch (DbException e) {
+            assertKnownException(DbException.toSQLException(e));
         }
     }
 
@@ -66,13 +66,13 @@ public class TestStringUtils extends TestBase {
         assertEquals("+++++short", StringUtils.pad("short", 10, "+", false));
     }
 
-    private void testXML() throws SQLException {
+    private void testXML() {
         assertEquals("<!-- - - - - - -abc- - - - - - -->\n", StringUtils.xmlComment("------abc------"));
         assertEquals("<test/>\n", StringUtils.xmlNode("test", null, null));
         assertEquals("<test>Gr&#xfc;bel</test>\n", StringUtils.xmlNode("test", null, StringUtils.xmlText("Gr\u00fcbel")));
         assertEquals("Rand&amp;Blue", StringUtils.xmlText("Rand&Blue"));
         assertEquals("&lt;&lt;[[[]]]&gt;&gt;", StringUtils.xmlCData("<<[[[]]]>>"));
-        Date dt = StringUtils.parseDateTime("2001-02-03 04:05:06 GMT", "yyyy-MM-dd HH:mm:ss z", "en", "GMT");
+        Date dt = DateTimeUtils.parseDateTime("2001-02-03 04:05:06 GMT", "yyyy-MM-dd HH:mm:ss z", "en", "GMT");
         String s = StringUtils.xmlStartDoc()
                 + StringUtils.xmlComment("Test Comment")
                 + StringUtils.xmlNode("rss", StringUtils.xmlAttr("version", "2.0"), StringUtils
@@ -81,9 +81,9 @@ public class TestStringUtils extends TestBase {
                                 + StringUtils.xmlNode("link", null, "http://www.h2database.com")
                                 + StringUtils.xmlNode("description", null, "H2 Database Engine")
                                 + StringUtils.xmlNode("language", null, "en-us")
-                                + StringUtils.xmlNode("pubDate", null, StringUtils.formatDateTime(dt,
+                                + StringUtils.xmlNode("pubDate", null, DateTimeUtils.formatDateTime(dt,
                                         "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
-                                + StringUtils.xmlNode("lastBuildDate", null, StringUtils.formatDateTime(dt,
+                                + StringUtils.xmlNode("lastBuildDate", null, DateTimeUtils.formatDateTime(dt,
                                         "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
                                 + StringUtils.xmlNode("item", null, StringUtils.xmlNode("title", null,
                                         "New Version 0.9.9.9.9")
@@ -124,7 +124,7 @@ public class TestStringUtils extends TestBase {
         }
     }
 
-    private void testJavaString() throws SQLException {
+    private void testJavaString() {
         Random random = new Random(1);
         for (int i = 0; i < 1000; i++) {
             int len = random.nextInt(10);

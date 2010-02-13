@@ -6,9 +6,8 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
@@ -44,7 +43,7 @@ public class HashIndex extends BaseHashIndex {
         reset();
     }
 
-    public void add(Session session, Row row) throws SQLException {
+    public void add(Session session, Row row) {
         if (intMap != null) {
             int key = row.getValue(columns[0].getColumnId()).getInt();
             intMap.put(key, (int) row.getKey());
@@ -59,7 +58,7 @@ public class HashIndex extends BaseHashIndex {
         }
     }
 
-    public void remove(Session session, Row row) throws SQLException {
+    public void remove(Session session, Row row) {
         if (intMap != null) {
             int key = row.getValue(columns[0].getColumnId()).getInt();
             intMap.remove(key);
@@ -68,10 +67,10 @@ public class HashIndex extends BaseHashIndex {
         }
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (first == null || last == null) {
             // TODO hash index: should additionally check if values are the same
-            throw Message.throwInternalError();
+            throw DbException.throwInternalError();
         }
         Row result;
         if (intMap != null) {

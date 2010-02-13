@@ -6,7 +6,6 @@
  */
 package org.h2.util;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
@@ -41,7 +40,7 @@ public interface Cache {
      *
      * @param r the object
      */
-    void put(CacheObject r) throws SQLException;
+    void put(CacheObject r);
 
     /**
      * Update an element in the cache.
@@ -51,7 +50,7 @@ public interface Cache {
      * @param record the element
      * @return the element
      */
-    CacheObject update(int pos, CacheObject record) throws SQLException;
+    CacheObject update(int pos, CacheObject record);
 
     /**
      * Remove an object from the cache.
@@ -74,7 +73,7 @@ public interface Cache {
      *
      * @param size in number of double words (4 bytes)
      */
-    void setMaxSize(int size) throws SQLException;
+    void setMaxSize(int size);
 
     /**
      * Get the maximum size in words (4 bytes).

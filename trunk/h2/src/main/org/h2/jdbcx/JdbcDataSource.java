@@ -12,7 +12,6 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
-
 import javax.naming.Reference;
 import javax.naming.Referenceable;
 import javax.naming.StringRefAddr;
@@ -21,13 +20,8 @@ import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
-
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
-
-/*## Java 1.6 begin ##
-import org.h2.message.Message;
-## Java 1.6 end ##*/
 import org.h2.util.StringUtils;
 
 /**
@@ -343,7 +337,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw Message.getUnsupportedException("unwrap");
+        throw unsupported("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -354,7 +348,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        throw Message.getUnsupportedException("isWrapperFor");
+        throw unsupported("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 

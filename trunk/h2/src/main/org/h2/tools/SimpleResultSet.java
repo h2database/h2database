@@ -203,15 +203,16 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     /**
      * Adds a column to the result set.
+     * All columns must be added before adding rows.
      *
      * @param name null is replaced with C1, C2,...
      * @param sqlType the value returned in getColumnType(..) (ignored internally)
      * @param precision the precision
      * @param scale the scale
      */
-    public void addColumn(String name, int sqlType, int precision, int scale) throws SQLException {
+    public void addColumn(String name, int sqlType, int precision, int scale) {
         if (rows != null && rows.size() > 0) {
-            throw new SQLException("Cannot add a column after adding rows", "21S02");
+            throw new IllegalStateException("Cannot add a column after adding rows");
         }
         if (name == null) {
             name = "C" + (columns.size() + 1);
@@ -226,12 +227,13 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     /**
      * Add a new row to the result set.
+     * Do not use this method when using a RowSource.
      *
      * @param row the row as an array of objects
      */
-    public void addRow(Object... row) throws SQLException {
+    public void addRow(Object... row) {
         if (rows == null) {
-            throw new SQLException("Cannot add a row when using RowSource", "21S02");
+            throw new IllegalStateException("Cannot add a row when using RowSource");
         }
         rows.add(row);
     }

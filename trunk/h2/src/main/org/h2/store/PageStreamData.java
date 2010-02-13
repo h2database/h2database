@@ -6,7 +6,6 @@
  */
 package org.h2.store;
 
-import java.sql.SQLException;
 import org.h2.engine.Session;
 
 /**
@@ -102,7 +101,7 @@ public class PageStreamData extends Page {
         return max;
     }
 
-    public void write() throws SQLException {
+    public void write() {
         store.writePage(getPos(), data);
     }
 

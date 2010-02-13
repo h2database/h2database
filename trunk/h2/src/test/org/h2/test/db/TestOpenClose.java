@@ -175,8 +175,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         return nextId++;
     }
 
-    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
-        throw new SQLException("unexpected");
+    public void diskSpaceIsLow() {
+        throw new RuntimeException("unexpected");
     }
 
     public void exceptionThrown(SQLException e, String sql) {

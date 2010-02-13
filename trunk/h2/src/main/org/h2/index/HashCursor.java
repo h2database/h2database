@@ -6,7 +6,7 @@
  */
 package org.h2.index;
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
@@ -40,7 +40,7 @@ public class HashCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
 }

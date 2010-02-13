@@ -141,7 +141,7 @@ public abstract class TestBase {
             try {
                 FileSystem.getInstance("memFS:").deleteRecursive("memFS:", false);
                 FileSystem.getInstance("memLZF:").deleteRecursive("memLZF:", false);
-            } catch (SQLException e) {
+            } catch (RuntimeException e) {
                 e.printStackTrace();
             }
         }
@@ -999,7 +999,7 @@ public abstract class TestBase {
      *
      * @param conn the database connection
      */
-    protected void crash(Connection conn) throws SQLException {
+    protected void crash(Connection conn) {
         ((JdbcConnection) conn).setPowerOffCount(1);
         try {
             conn.createStatement().execute("SET WRITE_DELAY 0");

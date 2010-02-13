@@ -8,10 +8,8 @@ package org.h2.expression;
 
 import java.io.IOException;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
@@ -31,7 +29,7 @@ public class ParameterRemote implements ParameterInterface {
         this.index = index;
     }
 
-    public void setValue(Value newValue, boolean closeOld) throws SQLException {
+    public void setValue(Value newValue, boolean closeOld) {
         if (closeOld && value != null) {
             value.close();
         }
@@ -42,9 +40,9 @@ public class ParameterRemote implements ParameterInterface {
         return value;
     }
 
-    public void checkSet() throws SQLException {
+    public void checkSet() {
         if (value == null) {
-            throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
+            throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
         }
     }
 

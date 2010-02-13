@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.value.ValueLob;
@@ -57,17 +55,17 @@ public class DropTable extends SchemaCommand {
         this.tableName = tableName;
     }
 
-    private void prepareDrop() throws SQLException {
+    private void prepareDrop() {
         table = getSchema().findTableOrView(session, tableName);
         if (table == null) {
             if (!ifExists) {
-                throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+                throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
             }
         } else {
             dropTableId = table.getId();
             session.getUser().checkRight(table, Right.ALL);
             if (!table.canDrop()) {
-                throw Message.getSQLException(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
+                throw DbException.get(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
             table.lock(session, true, true);
         }
@@ -76,7 +74,7 @@ public class DropTable extends SchemaCommand {
         }
     }
 
-    private void executeDrop() throws SQLException {
+    private void executeDrop() {
         // need to get the table again, because it may be dropped already
         // meanwhile (dependent object, or same object)
         table = getSchema().findTableOrView(session, tableName);
@@ -92,7 +90,7 @@ public class DropTable extends SchemaCommand {
         }
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         prepareDrop();
         executeDrop();

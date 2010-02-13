@@ -22,7 +22,6 @@
 package org.h2.test.trace;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.h2.util.New;
@@ -179,11 +178,7 @@ class Parser {
     private Arg parseValue() {
         if (tokenType == STRING) {
             String s = readToken();
-            try {
-                s = StringUtils.javaDecode(s.substring(1, s.length() - 1));
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            s = StringUtils.javaDecode(s.substring(1, s.length() - 1));
             return new Arg(String.class, s);
         } else if (tokenType == NUMBER) {
             String number = readToken().toLowerCase();

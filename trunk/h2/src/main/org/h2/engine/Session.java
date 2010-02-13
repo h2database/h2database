@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +20,7 @@ import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.result.ResultInterface;
@@ -71,7 +70,7 @@ public class Session extends SessionWithState implements SessionFactory {
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Integer> savepoints;
-    private Exception stackTrace = new Exception();
+    private Exception openStackTrace = new Exception();
     private HashMap<String, Table> localTempTables;
     private HashMap<String, Index> localTempTableIndexes;
     private HashMap<String, Constraint> localTempTableConstraints;
@@ -116,7 +115,7 @@ public class Session extends SessionWithState implements SessionFactory {
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
-    public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
+    public SessionInterface createSession(ConnectionInfo ci) {
         return Engine.getInstance().getSession(ci);
     }
 
@@ -138,7 +137,7 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param name the name of the variable (may not be null)
      * @param value the new value (may not be null)
      */
-    public void setVariable(String name, Value value) throws SQLException {
+    public void setVariable(String name, Value value) {
         initVariables();
         modificationId++;
         Value old;
@@ -213,12 +212,12 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param table the table to add
      * @throws SQLException if a table with this name already exists
      */
-    public void addLocalTempTable(Table table) throws SQLException {
+    public void addLocalTempTable(Table table) {
         if (localTempTables == null) {
             localTempTables = New.hashMap();
         }
         if (localTempTables.get(table.getName()) != null) {
-            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
         }
         modificationId++;
         localTempTables.put(table.getName(), table);
@@ -229,7 +228,7 @@ public class Session extends SessionWithState implements SessionFactory {
      *
      * @param table the table
      */
-    public void removeLocalTempTable(Table table) throws SQLException {
+    public void removeLocalTempTable(Table table) {
         modificationId++;
         localTempTables.remove(table.getName());
         synchronized (database) {
@@ -264,12 +263,12 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param index the index to add
      * @throws SQLException if a index with this name already exists
      */
-    public void addLocalTempTableIndex(Index index) throws SQLException {
+    public void addLocalTempTableIndex(Index index) {
         if (localTempTableIndexes == null) {
             localTempTableIndexes = New.hashMap();
         }
         if (localTempTableIndexes.get(index.getName()) != null) {
-            throw Message.getSQLException(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getSQL());
+            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getSQL());
         }
         localTempTableIndexes.put(index.getName(), index);
     }
@@ -279,7 +278,7 @@ public class Session extends SessionWithState implements SessionFactory {
      *
      * @param index the index
      */
-    public void removeLocalTempTableIndex(Index index) throws SQLException {
+    public void removeLocalTempTableIndex(Index index) {
         if (localTempTableIndexes != null) {
             localTempTableIndexes.remove(index.getName());
             synchronized (database) {
@@ -321,13 +320,13 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param constraint the constraint to add
      * @throws SQLException if a constraint with the same name already exists
      */
-    public void addLocalTempTableConstraint(Constraint constraint) throws SQLException {
+    public void addLocalTempTableConstraint(Constraint constraint) {
         if (localTempTableConstraints == null) {
             localTempTableConstraints = New.hashMap();
         }
         String name = constraint.getName();
         if (localTempTableConstraints.get(name) != null) {
-            throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraint.getSQL());
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraint.getSQL());
         }
         localTempTableConstraints.put(name, constraint);
     }
@@ -337,7 +336,7 @@ public class Session extends SessionWithState implements SessionFactory {
      *
      * @param constraint the constraint
      */
-    public void removeLocalTempTableConstraint(Constraint constraint) throws SQLException {
+    public void removeLocalTempTableConstraint(Constraint constraint) {
         if (localTempTableConstraints != null) {
             localTempTableConstraints.remove(constraint.getName());
             synchronized (database) {
@@ -351,7 +350,7 @@ public class Session extends SessionWithState implements SessionFactory {
             return;
         }
         if (!closed) {
-            throw Message.getInternalError("not closed", stackTrace);
+            throw new RuntimeException("Not closed", openStackTrace);
         }
     }
 
@@ -380,7 +379,7 @@ public class Session extends SessionWithState implements SessionFactory {
         this.lockTimeout = lockTimeout;
     }
 
-    public CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException {
+    public CommandInterface prepareCommand(String sql, int fetchSize) {
         return prepareLocal(sql);
     }
 
@@ -391,7 +390,7 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param sql the SQL statement
      * @return the prepared statement
      */
-    public Prepared prepare(String sql) throws SQLException {
+    public Prepared prepare(String sql) {
         return prepare(sql, false);
     }
 
@@ -402,7 +401,7 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param rightsChecked true if the rights have already been checked
      * @return the prepared statement
      */
-    public Prepared prepare(String sql, boolean rightsChecked) throws SQLException {
+    public Prepared prepare(String sql, boolean rightsChecked) {
         Parser parser = new Parser(this);
         parser.setRightsChecked(rightsChecked);
         return parser.prepare(sql);
@@ -415,9 +414,9 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param sql the SQL statement
      * @return the prepared statement
      */
-    public Command prepareLocal(String sql) throws SQLException {
+    public Command prepareLocal(String sql) {
         if (closed) {
-            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "session closed");
+            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "session closed");
         }
         Parser parser = new Parser(this);
         return parser.prepareCommand(sql);
@@ -442,7 +441,7 @@ public class Session extends SessionWithState implements SessionFactory {
      *
      * @param ddl if the statement was a data definition statement
      */
-    public void commit(boolean ddl) throws SQLException {
+    public void commit(boolean ddl) {
         checkCommitRollback();
         currentTransactionName = null;
         if (containsUncommitted()) {
@@ -488,16 +487,16 @@ public class Session extends SessionWithState implements SessionFactory {
         unlockAll();
     }
 
-    private void checkCommitRollback() throws SQLException {
+    private void checkCommitRollback() {
         if (commitOrRollbackDisabled && locks.size() > 0) {
-            throw Message.getSQLException(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED);
+            throw DbException.get(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED);
         }
     }
 
     /**
      * Fully roll back the current transaction.
      */
-    public void rollback() throws SQLException {
+    public void rollback() {
         checkCommitRollback();
         currentTransactionName = null;
         boolean needCommit = false;
@@ -522,7 +521,7 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param index the position to which should be rolled back
      * @param trimToSize if the list should be trimmed
      */
-    public void rollbackTo(int index, boolean trimToSize) throws SQLException {
+    public void rollbackTo(int index, boolean trimToSize) {
         while (undoLog.size() > index) {
             UndoLogRecord entry = undoLog.getLast();
             entry.undo(this);
@@ -552,7 +551,7 @@ public class Session extends SessionWithState implements SessionFactory {
         cancelAt = System.currentTimeMillis();
     }
 
-    public void close() throws SQLException {
+    public void close() {
         if (!closed) {
             try {
                 database.checkPowerOff();
@@ -573,7 +572,7 @@ public class Session extends SessionWithState implements SessionFactory {
     public void addLock(Table table) {
         if (SysProperties.CHECK) {
             if (locks.indexOf(table) >= 0) {
-                Message.throwInternalError();
+                DbException.throwInternalError();
             }
         }
         locks.add(table);
@@ -586,18 +585,18 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param type the operation type (see {@link UndoLogRecord})
      * @param row the row
      */
-    public void log(Table table, short type, Row row) throws SQLException {
+    public void log(Table table, short type, Row row) {
         log(new UndoLogRecord(table, type, row));
     }
 
-    private void log(UndoLogRecord log) throws SQLException {
+    private void log(UndoLogRecord log) {
         // called _after_ the row was inserted successfully into the table,
         // otherwise rollback will try to rollback a not-inserted row
         if (SysProperties.CHECK) {
             int lockMode = database.getLockMode();
             if (lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
                 if (locks.indexOf(log.getTable()) < 0 && !Table.TABLE_LINK.equals(log.getTable().getTableType())) {
-                    Message.throwInternalError();
+                    DbException.throwInternalError();
                 }
             }
         }
@@ -633,7 +632,7 @@ public class Session extends SessionWithState implements SessionFactory {
     private void unlockAll() {
         if (SysProperties.CHECK) {
             if (undoLog.size() > 0) {
-                Message.throwInternalError();
+                DbException.throwInternalError();
             }
         }
         if (locks.size() > 0) {
@@ -651,7 +650,7 @@ public class Session extends SessionWithState implements SessionFactory {
         }
     }
 
-    private void cleanTempTables(boolean closeSession) throws SQLException {
+    private void cleanTempTables(boolean closeSession) {
         if (localTempTables != null && localTempTables.size() > 0) {
             synchronized (database) {
                 for (Table table : New.arrayList(localTempTables.values())) {
@@ -745,14 +744,14 @@ public class Session extends SessionWithState implements SessionFactory {
      *
      * @param name the savepoint name
      */
-    public void rollbackToSavepoint(String name) throws SQLException {
+    public void rollbackToSavepoint(String name) {
         checkCommitRollback();
         if (savepoints == null) {
-            throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
+            throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
         Integer savepointIndex = savepoints.get(name);
         if (savepointIndex == null) {
-            throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
+            throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
         int i = savepointIndex.intValue();
         rollbackTo(i, false);
@@ -763,7 +762,7 @@ public class Session extends SessionWithState implements SessionFactory {
      *
      * @param transactionName the name of the transaction
      */
-    public void prepareCommit(String transactionName) throws SQLException {
+    public void prepareCommit(String transactionName) {
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible (create/drop
             // table and so on)
@@ -778,7 +777,7 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param transactionName the name of the transaction
      * @param commit true for commit, false for rollback
      */
-    public void setPreparedTransaction(String transactionName, boolean commit) throws SQLException {
+    public void setPreparedTransaction(String transactionName, boolean commit) {
         if (currentTransactionName != null && currentTransactionName.equals(transactionName)) {
             if (commit) {
                 commit(false);
@@ -799,7 +798,7 @@ public class Session extends SessionWithState implements SessionFactory {
                 }
             }
             if (!found) {
-                throw Message.getSQLException(ErrorCode.TRANSACTION_NOT_FOUND_1, transactionName);
+                throw DbException.get(ErrorCode.TRANSACTION_NOT_FOUND_1, transactionName);
             }
         }
     }
@@ -827,7 +826,7 @@ public class Session extends SessionWithState implements SessionFactory {
         try {
             Thread.sleep(throttle);
         } catch (Exception e) {
-            // ignore
+            // ignore InterruptedException
         }
     }
 
@@ -852,7 +851,7 @@ public class Session extends SessionWithState implements SessionFactory {
      *
      * @throws SQLException if the transaction is canceled
      */
-    public void checkCanceled() throws SQLException {
+    public void checkCanceled() {
         throttle();
         if (cancelAt == 0) {
             return;
@@ -860,7 +859,7 @@ public class Session extends SessionWithState implements SessionFactory {
         long time = System.currentTimeMillis();
         if (time >= cancelAt) {
             cancelAt = 0;
-            throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELED);
+            throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
         }
     }
 
@@ -918,7 +917,7 @@ public class Session extends SessionWithState implements SessionFactory {
      */
     public void unlinkAtCommit(ValueLob v) {
         if (SysProperties.CHECK && !v.isLinked()) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         if (unlinkMap == null) {
             unlinkMap = New.hashMap();
@@ -1137,7 +1136,7 @@ public class Session extends SessionWithState implements SessionFactory {
         database.afterWriting();
     }
 
-    public SessionInterface reconnect(boolean write) throws SQLException {
+    public SessionInterface reconnect(boolean write) {
         readSessionState();
         close();
         Session newSession = Engine.getInstance().getSession(connectionInfo);

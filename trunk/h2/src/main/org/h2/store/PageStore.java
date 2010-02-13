@@ -8,7 +8,6 @@ package org.h2.store;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -33,7 +32,7 @@ import org.h2.index.PageDataNode;
 import org.h2.index.PageDataOverflow;
 import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -212,7 +211,7 @@ public class PageStore implements CacheWriter {
      * @param accessMode the access mode
      * @param cacheSizeDefault the default cache size
      */
-    public PageStore(Database database, String fileName, String accessMode, int cacheSizeDefault) throws SQLException {
+    public PageStore(Database database, String fileName, String accessMode, int cacheSizeDefault) {
         this.fileName = fileName;
         this.accessMode = accessMode;
         this.database = database;
@@ -231,28 +230,24 @@ public class PageStore implements CacheWriter {
      * @param out the output stream
      * @return the new position, or -1 if there is no more data to copy
      */
-    public int copyDirect(int pageId, OutputStream out) throws SQLException {
+    public int copyDirect(int pageId, OutputStream out) throws IOException {
         synchronized (database) {
             byte[] buffer = new byte[pageSize];
-            try {
-                if (pageId >= pageCount) {
-                    return -1;
-                }
-                file.seek((long) pageId << pageSizeShift);
-                file.readFullyDirect(buffer, 0, pageSize);
-                readCount++;
-                out.write(buffer, 0, pageSize);
-                return pageId + 1;
-            } catch (IOException e) {
-                throw Message.convertIOException(e, fileName);
+            if (pageId >= pageCount) {
+                return -1;
             }
+            file.seek((long) pageId << pageSizeShift);
+            file.readFullyDirect(buffer, 0, pageSize);
+            readCount++;
+            out.write(buffer, 0, pageSize);
+            return pageId + 1;
         }
     }
 
     /**
      * Open the file and read the header.
      */
-    public void open() throws SQLException {
+    public void open() {
         try {
             metaRootPageId.put(META_TABLE_ID, PAGE_ID_META_ROOT);
             if (IOUtils.exists(fileName)) {
@@ -265,13 +260,13 @@ public class PageStore implements CacheWriter {
             } else {
                 openNew();
             }
-        } catch (SQLException e) {
+        } catch (DbException e) {
             close();
             throw e;
         }
     }
 
-    private void openNew() throws SQLException {
+    private void openNew() {
         setPageSize(SysProperties.PAGE_SIZE);
         freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
         file = database.openFile(fileName, accessMode, false);
@@ -288,7 +283,7 @@ public class PageStore implements CacheWriter {
         increaseFileSize(INCREMENT_PAGES);
     }
 
-    private void openExisting() throws SQLException {
+    private void openExisting() {
         file = database.openFile(fileName, accessMode, true);
         readStaticHeader();
         freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
@@ -313,13 +308,13 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void writeIndexRowCounts() throws SQLException {
+    private void writeIndexRowCounts() {
         for (PageIndex index: metaObjects.values()) {
             index.writeRowCount();
         }
     }
 
-    private void writeBack() throws SQLException {
+    private void writeBack() {
         ArrayList<CacheObject> list = cache.getAllChanged();
         Collections.sort(list);
         for (CacheObject rec : list) {
@@ -330,7 +325,7 @@ public class PageStore implements CacheWriter {
     /**
      * Flush all pending changes to disk, and re-open the log file.
      */
-    public void checkpoint() throws SQLException {
+    public void checkpoint() {
         trace.debug("checkpoint");
         if (log == null || database.isReadOnly()) {
             // the file was never fully opened
@@ -366,7 +361,7 @@ public class PageStore implements CacheWriter {
      *
      * @param fully if the database should be fully compressed
      */
-    public void compact(boolean fully) throws SQLException {
+    public void compact(boolean fully) {
         if (!SysProperties.PAGE_STORE_TRIM) {
             return;
         }
@@ -436,7 +431,7 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void compact(int full) throws SQLException {
+    private void compact(int full) {
         int free = -1;
         for (int i = 0; i < pageCount; i++) {
             free = getFreeList(i).getFirstFree();
@@ -449,7 +444,7 @@ public class PageStore implements CacheWriter {
         }
         Page f = (Page) cache.get(free);
         if (f != null) {
-            Message.throwInternalError("not free: " + f);
+            DbException.throwInternalError("not free: " + f);
         }
         if (isUsed(full)) {
             Page p = getPage(full);
@@ -476,7 +471,7 @@ public class PageStore implements CacheWriter {
      * @param pageId the page id
      * @return the page
      */
-    public Page getPage(int pageId) throws SQLException {
+    public Page getPage(int pageId) {
         synchronized (database) {
             Page p = (Page) cache.find(pageId);
             if (p != null) {
@@ -492,7 +487,7 @@ public class PageStore implements CacheWriter {
         data.readShortInt();
         data.readInt();
         if (!checksumTest(data.getBytes(), pageId, pageSize)) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
         }
         Page p;
         switch (type & ~Page.FLAG_LAST) {
@@ -503,7 +498,7 @@ public class PageStore implements CacheWriter {
             int indexId = data.readVarInt();
             PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
             if (index == null) {
-                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
             }
             p = PageDataLeaf.read(index, data, pageId);
             break;
@@ -512,7 +507,7 @@ public class PageStore implements CacheWriter {
             int indexId = data.readVarInt();
             PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
             if (index == null) {
-                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
             }
             p = PageDataNode.read(index, data, pageId);
             break;
@@ -525,7 +520,7 @@ public class PageStore implements CacheWriter {
             int indexId = data.readVarInt();
             PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
             if (index == null) {
-                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
             }
             p = PageBtreeLeaf.read(index, data, pageId);
             break;
@@ -534,7 +529,7 @@ public class PageStore implements CacheWriter {
             int indexId = data.readVarInt();
             PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
             if (index == null) {
-                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
             }
             p = PageBtreeNode.read(index, data, pageId);
             break;
@@ -546,13 +541,13 @@ public class PageStore implements CacheWriter {
             p = PageStreamData.read(this, data, pageId);
             break;
         default:
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page=" + pageId + " type=" + type);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "page=" + pageId + " type=" + type);
         }
         cache.put(p);
         return p;
     }
 
-    private void switchLog() throws SQLException {
+    private void switchLog() {
         trace.debug("switchLog");
         Session[] sessions = database.getSessions(true);
         int firstUncommittedSection = log.getLogSectionId();
@@ -568,7 +563,7 @@ public class PageStore implements CacheWriter {
         log.removeUntil(firstUncommittedSection);
     }
 
-    private void readStaticHeader() throws SQLException {
+    private void readStaticHeader() {
         long length = file.length();
         database.notifyFileSize(length);
         file.seek(FileStore.HEADER_LENGTH);
@@ -579,7 +574,7 @@ public class PageStore implements CacheWriter {
         int writeVersion = page.readByte();
         int readVersion = page.readByte();
         if (readVersion > READ_VERSION) {
-            throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, fileName);
+            throw DbException.get(ErrorCode.FILE_VERSION_ERROR_1, fileName);
         }
         if (writeVersion > WRITE_VERSION) {
             close();
@@ -589,11 +584,11 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void readVariableHeader() throws SQLException {
+    private void readVariableHeader() {
         Data page = createData();
         for (int i = 1;; i++) {
             if (i == 3) {
-                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName);
             }
             page.reset();
             readPage(i, page);
@@ -617,9 +612,9 @@ public class PageStore implements CacheWriter {
      *
      * @param size the page size
      */
-    private void setPageSize(int size) throws SQLException {
+    private void setPageSize(int size) {
         if (size < PAGE_SIZE_MIN || size > PAGE_SIZE_MAX) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName);
         }
         boolean good = false;
         int shift = 0;
@@ -632,14 +627,14 @@ public class PageStore implements CacheWriter {
             i += i;
         }
         if (!good) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName);
         }
         pageSize = size;
         emptyPage = createData();
         pageSizeShift = shift;
     }
 
-    private void writeStaticHeader() throws SQLException {
+    private void writeStaticHeader() {
         Data page = Data.create(database, new byte[pageSize - FileStore.HEADER_LENGTH]);
         page.writeInt(pageSize);
         page.writeByte((byte) WRITE_VERSION);
@@ -656,7 +651,7 @@ public class PageStore implements CacheWriter {
      * @param trunkPageId the trunk page id
      * @param dataPageId the data page id
      */
-    void setLogFirstPage(int logKey, int trunkPageId, int dataPageId) throws SQLException {
+    void setLogFirstPage(int logKey, int trunkPageId, int dataPageId) {
         if (trace.isDebugEnabled()) {
             trace.debug("setLogFirstPage key: " + logKey + " trunk: " + trunkPageId + " data: " + dataPageId);
         }
@@ -666,7 +661,7 @@ public class PageStore implements CacheWriter {
         writeVariableHeader();
     }
 
-    private void writeVariableHeader() throws SQLException {
+    private void writeVariableHeader() {
         Data page = createData();
         page.writeInt(0);
         page.writeLong(getWriteCountTotal());
@@ -686,7 +681,7 @@ public class PageStore implements CacheWriter {
     /**
      * Close the file without further writing.
      */
-    public void close() throws SQLException {
+    public void close() {
         trace.debug("close");
         if (log != null) {
             log.close();
@@ -695,15 +690,13 @@ public class PageStore implements CacheWriter {
         if (file != null) {
             try {
                 file.close();
-            } catch (IOException e) {
-                throw Message.convert(e);
             } finally {
                 file = null;
             }
         }
     }
 
-    public void flushLog() throws SQLException {
+    public void flushLog() {
         if (file != null) {
             synchronized (database) {
                 log.flush();
@@ -715,7 +708,7 @@ public class PageStore implements CacheWriter {
         return trace;
     }
 
-    public void writeBack(CacheObject obj) throws SQLException {
+    public void writeBack(CacheObject obj) {
         synchronized (database) {
             Page record = (Page) obj;
             if (trace.isDebugEnabled()) {
@@ -732,7 +725,7 @@ public class PageStore implements CacheWriter {
      * @param page the page
      * @param old the old data (if known) or null
      */
-    public void logUndo(Page page, Data old) throws SQLException {
+    public void logUndo(Page page, Data old) {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
                 // if (!record.isChanged()) {
@@ -758,7 +751,7 @@ public class PageStore implements CacheWriter {
      *
      * @param page the page
      */
-    public void update(Page page) throws SQLException {
+    public void update(Page page) {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
                 if (!page.isChanged()) {
@@ -782,11 +775,11 @@ public class PageStore implements CacheWriter {
         return (pageId - PAGE_ID_FREE_LIST_ROOT) / freeListPagesPerList;
     }
 
-    private PageFreeList getFreeListForPage(int pageId) throws SQLException {
+    private PageFreeList getFreeListForPage(int pageId) {
         return getFreeList(getFreeListId(pageId));
     }
 
-    private PageFreeList getFreeList(int i) throws SQLException {
+    private PageFreeList getFreeList(int i) {
         PageFreeList list = null;
         if (i < freeLists.size()) {
             list = freeLists.get(i);
@@ -812,7 +805,7 @@ public class PageStore implements CacheWriter {
         return list;
     }
 
-    private void freePage(int pageId) throws SQLException {
+    private void freePage(int pageId) {
         PageFreeList list = getFreeListForPage(pageId);
         list.free(pageId);
     }
@@ -822,12 +815,12 @@ public class PageStore implements CacheWriter {
      *
      * @param pageId the page to allocate
      */
-    void allocatePage(int pageId) throws SQLException {
+    void allocatePage(int pageId) {
         PageFreeList list = getFreeListForPage(pageId);
         list.allocate(pageId);
     }
 
-    private boolean isUsed(int pageId) throws SQLException {
+    private boolean isUsed(int pageId) {
         return getFreeListForPage(pageId).isUsed(pageId);
     }
 
@@ -839,7 +832,7 @@ public class PageStore implements CacheWriter {
      * @param exclude the exclude list
      * @param after all allocated pages are higher than this page
      */
-    void allocatePages(IntArray list, int pagesToAllocate, BitSet exclude, int after) throws SQLException {
+    void allocatePages(IntArray list, int pagesToAllocate, BitSet exclude, int after) {
         for (int i = 0; i < pagesToAllocate; i++) {
             int page = allocatePage(exclude, after);
             after = page;
@@ -852,7 +845,7 @@ public class PageStore implements CacheWriter {
      *
      * @return the page id
      */
-    public int allocatePage() throws SQLException {
+    public int allocatePage() {
         int pos = allocatePage(null, 0);
         if (!recoveryRunning) {
             log.addUndo(pos, emptyPage);
@@ -860,7 +853,7 @@ public class PageStore implements CacheWriter {
         return pos;
     }
 
-    private int allocatePage(BitSet exclude, int first) throws SQLException {
+    private int allocatePage(BitSet exclude, int first) {
         int page;
         synchronized (database) {
             // TODO could remember the first possible free list page
@@ -881,7 +874,7 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void increaseFileSize(int increment) throws SQLException {
+    private void increaseFileSize(int increment) {
         for (int i = pageCount; i < pageCount + increment; i++) {
             freed.set(i);
         }
@@ -897,7 +890,7 @@ public class PageStore implements CacheWriter {
      *
      * @param pageId the page id
      */
-    public void free(int pageId) throws SQLException {
+    public void free(int pageId) {
         free(pageId, true);
     }
 
@@ -907,7 +900,7 @@ public class PageStore implements CacheWriter {
      * @param pageId the page id
      * @param undo if the undo record must have been written
      */
-    void free(int pageId, boolean undo) throws SQLException {
+    void free(int pageId, boolean undo) {
         if (trace.isDebugEnabled()) {
             // trace.debug("freePage " + pageId);
         }
@@ -939,7 +932,7 @@ public class PageStore implements CacheWriter {
      * @param pos the page id
      * @return the page
      */
-    public Data readPage(int pos) throws SQLException {
+    public Data readPage(int pos) {
         Data page = createData();
         readPage(pos, page);
         return page;
@@ -951,10 +944,10 @@ public class PageStore implements CacheWriter {
      * @param pos the page id
      * @param page the page
      */
-    void readPage(int pos, Data page) throws SQLException {
+    void readPage(int pos, Data page) {
         synchronized (database) {
             if (pos < 0 || pos >= pageCount) {
-                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);
             }
             file.seek((long) pos << pageSizeShift);
             file.readFully(page.getBytes(), 0, pageSize);
@@ -986,16 +979,16 @@ public class PageStore implements CacheWriter {
      * @param pageId the page id
      * @param data the data
      */
-    public void writePage(int pageId, Data data) throws SQLException {
+    public void writePage(int pageId, Data data) {
         if (pageId <= 0) {
-            Message.throwInternalError("write to page " + pageId);
+            DbException.throwInternalError("write to page " + pageId);
         }
         byte[] bytes = data.getBytes();
         if (SysProperties.CHECK) {
             boolean shouldBeFreeList = (pageId - PAGE_ID_FREE_LIST_ROOT) % freeListPagesPerList == 0;
             boolean isFreeList = bytes[0] == Page.TYPE_FREE_LIST;
             if (bytes[0] != 0 && shouldBeFreeList != isFreeList) {
-                throw Message.throwInternalError();
+                throw DbException.throwInternalError();
             }
         }
         checksumSet(bytes, pageId);
@@ -1024,7 +1017,7 @@ public class PageStore implements CacheWriter {
     /**
      * Run recovery.
      */
-    private void recover() throws SQLException {
+    private void recover() {
         trace.debug("log recover");
         recoveryRunning = true;
         log.recover(PageLog.RECOVERY_STAGE_UNDO);
@@ -1083,7 +1076,7 @@ public class PageStore implements CacheWriter {
      * @param row the row to add
      * @param add true if the row is added, false if it is removed
      */
-    public void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) throws SQLException {
+    public void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) {
         synchronized (database) {
             if (!recoveryRunning) {
                 log.logAddOrRemoveRow(session, tableId, row, add);
@@ -1096,7 +1089,7 @@ public class PageStore implements CacheWriter {
      *
      * @param session the session
      */
-    public void commit(Session session) throws SQLException {
+    public void commit(Session session) {
         synchronized (database) {
             checkOpen();
             log.commit(session.getId());
@@ -1112,7 +1105,7 @@ public class PageStore implements CacheWriter {
      * @param session the session
      * @param transaction the name of the transaction
      */
-    public void prepareCommit(Session session, String transaction) throws SQLException {
+    public void prepareCommit(Session session, String transaction) {
         synchronized (database) {
             log.prepareCommit(session, transaction);
         }
@@ -1134,7 +1127,7 @@ public class PageStore implements CacheWriter {
      * @param tableId the table id
      * @param row the row
      */
-    void allocateIfIndexRoot(int logPos, int tableId, Row row) throws SQLException {
+    void allocateIfIndexRoot(int logPos, int tableId, Row row) {
         if (tableId == META_TABLE_ID) {
             int rootPageId = row.getValue(3).getInt();
             if (reservedPages == null) {
@@ -1151,7 +1144,7 @@ public class PageStore implements CacheWriter {
      * @param tableId the object id of the table
      * @param key the key of the row to delete
      */
-    void redoDelete(int logPos, int tableId, long key) throws SQLException {
+    void redoDelete(int logPos, int tableId, long key) {
         Index index = metaObjects.get(tableId);
         PageDataIndex scan = (PageDataIndex) index;
         Row row = scan.getRow(key);
@@ -1166,7 +1159,7 @@ public class PageStore implements CacheWriter {
      * @param row the row
      * @param add true if the record is added, false if deleted
      */
-    void redo(int logPos, int tableId, Row row, boolean add) throws SQLException {
+    void redo(int logPos, int tableId, Row row, boolean add) {
         if (tableId == META_TABLE_ID) {
             if (add) {
                 addMeta(row, systemSession, true);
@@ -1176,7 +1169,7 @@ public class PageStore implements CacheWriter {
         }
         Index index = metaObjects.get(tableId);
         if (index == null) {
-            throw Message.throwInternalError("Table not found: " + tableId + " " + row + " " + add);
+            throw DbException.throwInternalError("Table not found: " + tableId + " " + row + " " + add);
         }
         Table table = index.getTable();
         if (add) {
@@ -1191,13 +1184,13 @@ public class PageStore implements CacheWriter {
      *
      * @param tableId the object id of the table
      */
-    void redoTruncate(int tableId) throws SQLException {
+    void redoTruncate(int tableId) {
         Index index = metaObjects.get(tableId);
         Table table = index.getTable();
         table.truncate(systemSession);
     }
 
-    private void openMetaIndex() throws SQLException {
+    private void openMetaIndex() {
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
         cols.add(new Column("ID", Value.INT));
@@ -1222,7 +1215,7 @@ public class PageStore implements CacheWriter {
         metaObjects.put(-1, metaIndex);
     }
 
-    private void readMetaData() throws SQLException {
+    private void readMetaData() {
         Cursor cursor = metaIndex.find(systemSession, null, null);
         while (cursor.next()) {
             Row row = cursor.get();
@@ -1230,7 +1223,7 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void removeMeta(int logPos, Row row) throws SQLException {
+    private void removeMeta(int logPos, Row row) {
         int id = row.getValue(0).getInt();
         PageIndex index = metaObjects.get(id);
         int rootPageId = index.getRootPageId();
@@ -1255,7 +1248,7 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void addMeta(Row row, Session session, boolean redo) throws SQLException {
+    private void addMeta(Row row, Session session, boolean redo) {
         int id = row.getValue(0).getInt();
         int type = row.getValue(1).getInt();
         int parent = row.getValue(2).getInt();
@@ -1295,7 +1288,7 @@ public class PageStore implements CacheWriter {
         } else {
             Index p = metaObjects.get(parent);
             if (p == null) {
-                throw Message.throwInternalError("parent not found:" + parent);
+                throw DbException.throwInternalError("parent not found:" + parent);
             }
             TableData table = (TableData) p.getTable();
             Column[] tableCols = table.getColumns();
@@ -1349,7 +1342,7 @@ public class PageStore implements CacheWriter {
      * @param index the index to add
      * @param session the session
      */
-    public void addMeta(PageIndex index, Session session) throws SQLException {
+    public void addMeta(PageIndex index, Session session) {
         int type = index instanceof PageDataIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
         IndexColumn[] columns = index.getIndexColumns();
         StatementBuilder buff = new StatementBuilder();
@@ -1391,18 +1384,18 @@ public class PageStore implements CacheWriter {
      * @param index the index to remove
      * @param session the session
      */
-    public void removeMeta(Index index, Session session) throws SQLException {
+    public void removeMeta(Index index, Session session) {
         if (!recoveryRunning) {
             removeMetaIndex(index, session);
             metaObjects.remove(index.getId());
         }
     }
 
-    private void removeMetaIndex(Index index, Session session) throws SQLException {
+    private void removeMetaIndex(Index index, Session session) {
         int key = index.getId() + 1;
         Row row = metaIndex.getRow(session, key);
         if (row.getKey() != key) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         metaIndex.remove(session, row);
     }
@@ -1424,7 +1417,7 @@ public class PageStore implements CacheWriter {
      * @param pageId the page where the transaction was prepared
      * @param commit if the transaction should be committed
      */
-    public void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) throws SQLException {
+    public void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) {
         boolean old = database.isReadOnly();
         try {
             database.setReadOnly(false);
@@ -1452,9 +1445,9 @@ public class PageStore implements CacheWriter {
         return this.recoveryRunning;
     }
 
-    private void checkOpen() throws SQLException {
+    private void checkOpen() {
         if (file == null) {
-            throw Message.getSQLException(ErrorCode.DATABASE_IS_CLOSED);
+            throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
         }
     }
 
@@ -1504,7 +1497,7 @@ public class PageStore implements CacheWriter {
      * @param session the session
      * @param tableId the table id
      */
-    public void logTruncate(Session session, int tableId) throws SQLException {
+    public void logTruncate(Session session, int tableId) {
         synchronized (database) {
             if (!recoveryRunning) {
                 log.logTruncate(session, tableId);

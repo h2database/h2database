@@ -6,8 +6,6 @@
  */
 package org.h2.test.unit;
 
-import java.sql.SQLException;
-
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
@@ -28,7 +26,7 @@ public class TestSecurity extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() {
         testSHA();
         testAES();
         testXTEA();
@@ -75,7 +73,7 @@ public class TestSecurity extends TestBase {
         assertEquals(expected, hash);
     }
 
-    private void testXTEA() throws SQLException {
+    private void testXTEA() {
         byte[] test = new byte[4096];
         BlockCipher xtea = CipherFactory.getBlockCipher("XTEA");
         xtea.setKey("abcdefghijklmnop".getBytes());
@@ -84,7 +82,7 @@ public class TestSecurity extends TestBase {
         }
     }
 
-    private void testAES() throws SQLException {
+    private void testAES() {
         BlockCipher test = CipherFactory.getBlockCipher("AES");
         test.setKey(Utils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
 

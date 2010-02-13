@@ -6,10 +6,9 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.util.MathUtils;
@@ -43,7 +42,7 @@ public class MultiVersionCursor implements Cursor {
     /**
      * Load the current row.
      */
-    void loadCurrent() throws SQLException {
+    void loadCurrent() {
         synchronized (sync) {
             baseRow = baseCursor.getSearchRow();
             deltaRow = deltaCursor.get();
@@ -52,7 +51,7 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
-    private void loadNext(boolean base) throws SQLException {
+    private void loadNext(boolean base) {
         synchronized (sync) {
             if (base) {
                 if (step(baseCursor)) {
@@ -70,11 +69,11 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
-    private boolean step(Cursor cursor) throws SQLException {
+    private boolean step(Cursor cursor) {
         return reverse ? cursor.previous() : cursor.next();
     }
 
-    public Row get() throws SQLException {
+    public Row get() {
         synchronized (sync) {
             if (end) {
                 return null;
@@ -83,7 +82,7 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         synchronized (sync) {
             if (end) {
                 return null;
@@ -92,10 +91,10 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         synchronized (sync) {
             if (SysProperties.CHECK && end) {
-                Message.throwInternalError();
+                DbException.throwInternalError();
             }
             while (true) {
                 if (needNewDelta) {
@@ -133,7 +132,7 @@ public class MultiVersionCursor implements Cursor {
                         needNewDelta = true;
                         return true;
                     }
-                    Message.throwInternalError();
+                    DbException.throwInternalError();
                 }
                 int compare = index.compareRows(deltaRow, baseRow);
                 if (compare == 0) {
@@ -146,7 +145,7 @@ public class MultiVersionCursor implements Cursor {
                 if (compare == 0) {
                     if (isDeleted) {
                         if (isThisSession) {
-                            Message.throwInternalError();
+                            DbException.throwInternalError();
                         }
                         // another session updated the row
                     } else {
@@ -174,7 +173,7 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
-    public boolean previous() throws SQLException {
+    public boolean previous() {
         reverse = true;
         try {
             return next();

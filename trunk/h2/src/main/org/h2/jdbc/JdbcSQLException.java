@@ -30,7 +30,6 @@ public class JdbcSQLException extends SQLException {
     private final String stackTrace;
     private String message;
     private String sql;
-    private volatile Object payload;
 
     /**
      * Creates a SQLException.
@@ -181,24 +180,6 @@ public class JdbcSQLException extends SQLException {
             return super.toString();
         }
         return stackTrace;
-    }
-
-    /**
-     * Get the error related payload object.
-     *
-     * @return the payload
-     */
-    public Object getPayload() {
-        return payload;
-    }
-
-    /**
-     * Set the error related payload object.
-     *
-     * @param payload the new payload
-     */
-    public void setPayload(Object payload) {
-        this.payload = payload;
     }
 
 }

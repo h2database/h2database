@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
@@ -55,9 +55,8 @@ public class ValueDecimal extends Value {
         if (value == null) {
             throw new IllegalArgumentException();
         } else if (!SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS && !value.getClass().equals(BigDecimal.class)) {
-            SQLException e = Message.getSQLException(ErrorCode.INVALID_CLASS_2,
+            throw DbException.get(ErrorCode.INVALID_CLASS_2,
                     BigDecimal.class.getName(), value.getClass().getName());
-            throw Message.convertToInternal(e);
         }
         this.value = value;
     }
@@ -81,10 +80,10 @@ public class ValueDecimal extends Value {
         return ValueDecimal.get(value.multiply(dec.value));
     }
 
-    public Value divide(Value v) throws SQLException {
+    public Value divide(Value v) {
         ValueDecimal dec = (ValueDecimal) v;
         if (dec.value.signum() == 0) {
-            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         BigDecimal bd = value.divide(dec.value, value.scale() + DIVIDE_SCALE_ADD, BigDecimal.ROUND_HALF_DOWN);
         if (bd.signum() == 0) {
@@ -163,7 +162,7 @@ public class ValueDecimal extends Value {
         prep.setBigDecimal(parameterIndex, value);
     }
 
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) throws SQLException {
+    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         if (value.scale() == targetScale) {
             return this;
         }
@@ -176,11 +175,11 @@ public class ValueDecimal extends Value {
         return ValueDecimal.get(bd);
     }
 
-    public Value convertPrecision(long newPrecision) throws SQLException {
+    public Value convertPrecision(long newPrecision) {
         if (getPrecision() <= newPrecision) {
             return this;
         }
-        throw Message.getSQLException(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + newPrecision);
+        throw DbException.get(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + newPrecision);
     }
 
     /**

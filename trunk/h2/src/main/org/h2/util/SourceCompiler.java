@@ -19,7 +19,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
-import org.h2.message.InternalException;
+import org.h2.message.DbException;
 
 /**
  * This class allows to convert source code to a class. It uses one class loader
@@ -141,7 +141,7 @@ public class SourceCompiler {
             try {
                 IOUtils.mkdirs(dir);
             } catch (IOException e) {
-                throw new InternalException(e);
+                throw DbException.convertIOException(e, compileDir);
             }
         }
         File javaFile = new File(dir, className + ".java");

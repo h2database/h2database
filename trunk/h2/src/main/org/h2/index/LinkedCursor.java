@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
@@ -39,11 +39,6 @@ public class LinkedCursor implements Cursor {
         this.prep = prep;
     }
 
-    private void closeResultSetAndReusePreparedStatement() throws SQLException {
-        rs.close();
-        tableLink.reusePreparedStatement(prep, sql);
-    }
-
     public Row get() {
         return current;
     }
@@ -52,12 +47,17 @@ public class LinkedCursor implements Cursor {
         return current;
     }
 
-    public boolean next() throws SQLException {
-        boolean result = rs.next();
-        if (!result) {
-            closeResultSetAndReusePreparedStatement();
-            current = null;
-            return false;
+    public boolean next() {
+        try {
+            boolean result = rs.next();
+            if (!result) {
+                rs.close();
+                tableLink.reusePreparedStatement(prep, sql);
+                current = null;
+                return false;
+            }
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
         current = tableLink.getTemplateRow();
         for (int i = 0; i < current.getColumnCount(); i++) {
@@ -69,7 +69,7 @@ public class LinkedCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
 }

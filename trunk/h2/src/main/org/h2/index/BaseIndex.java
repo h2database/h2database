@@ -6,14 +6,12 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -75,7 +73,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *
      * @param session the session
      */
-    public abstract void close(Session session) throws SQLException;
+    public abstract void close(Session session);
 
     /**
      * Add a row to this index.
@@ -83,7 +81,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param session the session
      * @param row the row to add
      */
-    public abstract void add(Session session, Row row) throws SQLException;
+    public abstract void add(Session session, Row row);
 
     /**
      * Remove a row from the index.
@@ -91,7 +89,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param session the session
      * @param row the row
      */
-    public abstract void remove(Session session, Row row) throws SQLException;
+    public abstract void remove(Session session, Row row);
 
     /**
      * Create a cursor to iterate over a number of rows.
@@ -101,7 +99,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param last the last  row to return (null if no limit)
      * @return the cursor to iterate over the results
      */
-    public abstract Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException;
+    public abstract Cursor find(Session session, SearchRow first, SearchRow last);
 
     /**
      * Calculate the cost to find rows.
@@ -110,21 +108,21 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param masks the condition mask
      * @return the cost
      */
-    public abstract double getCost(Session session, int[] masks) throws SQLException;
+    public abstract double getCost(Session session, int[] masks);
 
     /**
      * Remove the index.
      *
      * @param session the session
      */
-    public abstract void remove(Session session) throws SQLException;
+    public abstract void remove(Session session);
 
     /**
      * Truncate the index.
      *
      * @param session the session
      */
-    public abstract void truncate(Session session) throws SQLException;
+    public abstract void truncate(Session session);
 
     /**
      * Check if this index can quickly find the first or last value.
@@ -141,7 +139,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param first true for the first value, false for the last
      * @return a cursor (never null)
      */
-    public abstract Cursor findFirstOrLast(Session session, boolean first) throws SQLException;
+    public abstract Cursor findFirstOrLast(Session session, boolean first);
 
     /**
      * Check if this index needs to be re-built.
@@ -154,16 +152,16 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return null;
     }
 
-    public SQLException getDuplicateKeyException() {
+    public DbException getDuplicateKeyException() {
         String sql = getName() + " ON " + table.getSQL() + "(" + getColumnListSQL() + ")";
-        return Message.getSQLException(ErrorCode.DUPLICATE_KEY_1, sql);
+        return DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
     }
 
     public String getPlanSQL() {
         return getSQL();
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         table.removeIndex(this);
         remove(session);
         database.removeMeta(session, getId());
@@ -183,8 +181,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return the cursor
      * @throws SQLException
      */
-    public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) throws SQLException {
-        throw Message.throwInternalError();
+    public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
+        throw DbException.throwInternalError();
     }
 
     public int getLookupCost(long rowCount) {
@@ -236,7 +234,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return cost;
     }
 
-    public int compareRows(SearchRow rowData, SearchRow compare) throws SQLException {
+    public int compareRows(SearchRow rowData, SearchRow compare) {
         for (int i = 0; i < indexColumns.length; i++) {
             int index = columnIds[i];
             Value v = compare.getValue(index);
@@ -288,7 +286,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return k1 > k2 ? 1 : -1;
     }
 
-    private int compareValues(Value a, Value b, int sortType) throws SQLException {
+    private int compareValues(Value a, Value b, int sortType) {
         boolean aNull = a == null, bNull = b == null;
         if (aNull || bNull) {
             if (aNull == bNull) {
@@ -365,8 +363,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         this.isMultiVersion = multiVersion;
     }
 
-    public Row getRow(Session session, long key) throws SQLException {
-        throw Message.getUnsupportedException(toString());
+    public Row getRow(Session session, long key) {
+        throw DbException.getUnsupportedException(toString());
     }
 
 }

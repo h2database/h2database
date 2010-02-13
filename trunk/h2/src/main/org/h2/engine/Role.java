@@ -6,9 +6,7 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
@@ -25,7 +23,7 @@ public class Role extends RightOwner {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public String getDropSQL() {
@@ -58,7 +56,7 @@ public class Role extends RightOwner {
         return DbObject.ROLE;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         for (User user : database.getAllUsers()) {
             Right right = user.getRightForRole(this);
             if (right != null) {

@@ -6,8 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
@@ -28,7 +26,7 @@ public interface Cursor {
      *
      * @return the complete row
      */
-    Row get() throws SQLException;
+    Row get();
 
     /**
      * Get the current row.
@@ -36,14 +34,14 @@ public interface Cursor {
      *
      * @return the search row
      */
-    SearchRow getSearchRow() throws SQLException;
+    SearchRow getSearchRow();
 
     /**
      * Skip to the next row if one is available.
      *
      * @return true if another row is available
      */
-    boolean next() throws SQLException;
+    boolean next();
 
     /**
      * Skip to the previous row if one is available.
@@ -51,6 +49,6 @@ public interface Cursor {
      *
      * @return true if another row is available
      */
-    boolean previous() throws SQLException;
+    boolean previous();
 
 }

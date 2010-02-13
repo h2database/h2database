@@ -12,10 +12,8 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.sql.SQLException;
 import java.util.Random;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This is a utility class with mathematical helper functions.
@@ -226,7 +224,7 @@ public class MathUtils {
      */
     public static void checkPowerOf2(int len) {
         if ((len & (len - 1)) != 0 && len > 0) {
-            Message.throwInternalError("not a power of 2: " + len);
+            DbException.throwInternalError("not a power of 2: " + len);
         }
     }
 
@@ -252,11 +250,11 @@ public class MathUtils {
      * @param scale the new scale
      * @return the scaled value
      */
-    public static BigDecimal setScale(BigDecimal bd, int scale) throws SQLException {
+    public static BigDecimal setScale(BigDecimal bd, int scale) {
         if (scale > BIG_DECIMAL_SCALE_MAX) {
-            throw Message.getInvalidValueException("" + scale, "scale");
+            throw DbException.getInvalidValueException("" + scale, "scale");
         } else if (scale < -BIG_DECIMAL_SCALE_MAX) {
-            throw Message.getInvalidValueException("" + scale, "scale");
+            throw DbException.getInvalidValueException("" + scale, "scale");
         }
         return bd.setScale(scale, BigDecimal.ROUND_HALF_UP);
     }

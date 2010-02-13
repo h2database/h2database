@@ -218,7 +218,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return 100;
     }
 
-    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) {
         return FileStore.open(this, name, mode);
     }
 

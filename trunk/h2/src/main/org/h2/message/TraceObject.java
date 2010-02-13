@@ -380,10 +380,11 @@ public class TraceObject {
     /**
      * Log an exception and convert it to a SQL exception if required.
      *
-     * @param e the exception
+     * @param ex the exception
      * @return the SQL exception object
      */
-    protected SQLException logAndConvert(Exception e) {
+    protected SQLException logAndConvert(Exception ex) {
+        SQLException e = DbException.toSQLException(ex);
         if (SysProperties.LOG_ALL_ERRORS) {
             synchronized (TraceObject.class) {
                 // e.printStackTrace();
@@ -401,19 +402,29 @@ public class TraceObject {
         if (trace == null) {
             TraceSystem.traceThrowable(e);
         } else {
-            if (e instanceof SQLException) {
-                SQLException e2 = (SQLException) e;
-                int errorCode = e2.getErrorCode();
-                if (errorCode >= 23000 && errorCode < 24000) {
-                    trace.info("SQLException", e);
-                } else {
-                    trace.error("SQLException", e);
-                }
-                return (SQLException) e;
+            int errorCode = e.getErrorCode();
+            if (errorCode >= 23000 && errorCode < 24000) {
+                trace.info("SQLException", e);
+            } else {
+                trace.error("SQLException", e);
             }
-            trace.error("Uncaught Exception", e);
         }
-        return Message.convert(e);
+        return e;
+    }
+
+    /**
+     * Get and throw a SQL exception meaning this feature is not supported.
+     *
+     * @param message the message
+     * @return never returns normally
+     * @throws SQLException the exception
+     */
+    protected SQLException unsupported(String message) throws SQLException {
+        try {
+            throw DbException.getUnsupportedException(message);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -434,7 +445,7 @@ public class TraceObject {
                     } else {
                         buff.append(p.getParamValue().getSQL());
                     }
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     buff.append("/* ").append(i).append(": ").append(e.toString()).append("*/ ");
                 }
             }

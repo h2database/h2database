@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.value.Value;
 
 /**
@@ -21,21 +19,21 @@ public interface ParameterInterface {
      * @param value the new value
      * @param closeOld if the old value (if one is set) should be closed
      */
-    void setValue(Value value, boolean closeOld) throws SQLException;
+    void setValue(Value value, boolean closeOld);
 
     /**
      * Get the value of the parameter if set.
      *
      * @return the value or null
      */
-    Value getParamValue() throws SQLException;
+    Value getParamValue();
 
     /**
      * Check if the value is set.
      *
      * @throws SQLException if not set.
      */
-    void checkSet() throws SQLException;
+    void checkSet();
 
     /**
      * Get the expected data type of the parameter if no value is set, or the

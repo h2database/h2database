@@ -7,7 +7,6 @@
 package org.h2.command.dml;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
@@ -35,13 +34,13 @@ public class Call extends Prepared {
         super(session);
     }
 
-    public ResultInterface queryMeta() throws SQLException {
+    public ResultInterface queryMeta() {
         LocalResult result = new LocalResult(session, expressions, 1);
         result.done();
         return result;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         Value v = value.getValue(session);
         int type = v.getType();
         switch(type) {
@@ -58,7 +57,7 @@ public class Call extends Prepared {
         }
     }
 
-    public ResultInterface query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) {
         setCurrentRowNumber(1);
         Value v = value.getValue(session);
         if (v.getType() == Value.RESULT_SET) {
@@ -85,7 +84,7 @@ public class Call extends Prepared {
         return result;
     }
 
-    public void prepare() throws SQLException {
+    public void prepare() {
         value = value.optimize(session);
         expressions = New.arrayList();
         expressions.add(value);

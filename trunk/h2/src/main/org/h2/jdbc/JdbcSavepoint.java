@@ -12,7 +12,7 @@ import java.sql.Savepoint;
 //## Java 1.4 end ##
 
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.util.StringUtils;
@@ -67,14 +67,14 @@ implements Savepoint
     /**
      * Roll back to this savepoint.
      */
-    void rollback() throws SQLException {
+    void rollback() {
         checkValid();
         conn.prepareCommand("ROLLBACK TO SAVEPOINT " + getName(name, savepointId), Integer.MAX_VALUE).executeUpdate();
     }
 
-    private void checkValid() throws SQLException {
+    private void checkValid() {
         if (conn == null) {
-            throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, getName(name, savepointId));
+            throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, getName(name, savepointId));
         }
     }
 
@@ -87,7 +87,7 @@ implements Savepoint
             debugCodeCall("getSavepointId");
             checkValid();
             if (name != null) {
-                throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_NAMED);
+                throw DbException.get(ErrorCode.SAVEPOINT_IS_NAMED);
             }
             return savepointId;
         } catch (Exception e) {
@@ -104,7 +104,7 @@ implements Savepoint
             debugCodeCall("getSavepointName");
             checkValid();
             if (name == null) {
-                throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_UNNAMED);
+                throw DbException.get(ErrorCode.SAVEPOINT_IS_UNNAMED);
             }
             return name;
         } catch (Exception e) {

@@ -36,7 +36,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -48,11 +48,11 @@ import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueString;
@@ -105,7 +105,7 @@ public class ScriptCommand extends ScriptBase {
         this.drop = drop;
     }
 
-    public ResultInterface queryMeta() throws SQLException {
+    public ResultInterface queryMeta() {
         LocalResult r = createResult();
         r.done();
         return r;
@@ -117,7 +117,7 @@ public class ScriptCommand extends ScriptBase {
         return new LocalResult(session, expressions, 1);
     }
 
-    public ResultInterface query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) {
         session.getUser().checkAdmin();
         reset();
         try {
@@ -318,7 +318,7 @@ public class ScriptCommand extends ScriptBase {
                 out.close();
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, getFileName());
+            throw DbException.convertIOException(e, getFileName());
         } finally {
             closeIO();
         }
@@ -328,7 +328,7 @@ public class ScriptCommand extends ScriptBase {
         return r;
     }
 
-    private int writeLobStream(ValueLob v) throws IOException, SQLException {
+    private int writeLobStream(ValueLob v) throws IOException {
         if (!tempLobTableCreated) {
             add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA BINARY)", true);
             add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART)", true);
@@ -380,7 +380,7 @@ public class ScriptCommand extends ScriptBase {
             break;
         }
         default:
-            Message.throwInternalError("type:" + v.getType());
+            DbException.throwInternalError("type:" + v.getType());
         }
         return id;
     }
@@ -422,7 +422,7 @@ public class ScriptCommand extends ScriptBase {
                         }
                         current = null;
                     } catch (SQLException e) {
-                        throw Message.convertToIOException(e);
+                        throw DbException.convertToIOException(e);
                     }
                 }
             }
@@ -434,7 +434,7 @@ public class ScriptCommand extends ScriptBase {
                 try {
                     rs.close();
                 } catch (SQLException e) {
-                    throw Message.convertToIOException(e);
+                    throw DbException.convertToIOException(e);
                 }
             }
         };
@@ -476,7 +476,7 @@ public class ScriptCommand extends ScriptBase {
                         }
                         current = null;
                     } catch (SQLException e) {
-                        throw Message.convertToIOException(e);
+                        throw DbException.convertToIOException(e);
                     }
                 }
             }
@@ -488,7 +488,7 @@ public class ScriptCommand extends ScriptBase {
                 try {
                     rs.close();
                 } catch (SQLException e) {
-                    throw Message.convertToIOException(e);
+                    throw DbException.convertToIOException(e);
                 }
             }
             public int read(char[] buffer, int off, int len) throws IOException {
@@ -526,7 +526,7 @@ public class ScriptCommand extends ScriptBase {
         lineSeparator = StringUtils.utf8Encode(SysProperties.LINE_SEPARATOR);
     }
 
-    private void add(String s, boolean insert) throws SQLException, IOException {
+    private void add(String s, boolean insert) throws IOException {
         if (s == null) {
             return;
         }

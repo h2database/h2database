@@ -6,12 +6,10 @@
  */
 package org.h2.constraint;
 
-import java.sql.SQLException;
-
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -71,7 +69,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
      * @param oldRow the old row
      * @param newRow the new row
      */
-    public abstract void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException;
+    public abstract void checkRow(Session session, Table t, Row oldRow, Row newRow);
 
     /**
      * Check if this constraint needs the specified index.
@@ -116,13 +114,13 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
      *
      * @param session the session
      */
-    public abstract void checkExistingData(Session session) throws SQLException;
+    public abstract void checkExistingData(Session session);
 
     /**
      * This method is called after a related table has changed
      * (the table was renamed, or columns have been renamed).
      */
-    public abstract void rebuild() throws SQLException;
+    public abstract void rebuild();
 
     /**
      * Get the unique index used to enforce this constraint, or null if no index
@@ -163,7 +161,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
         } else if (REFERENTIAL.equals(constraintType)) {
             return 3;
         } else {
-            throw Message.throwInternalError("type: " + constraintType);
+            throw DbException.throwInternalError("type: " + constraintType);
         }
     }
 

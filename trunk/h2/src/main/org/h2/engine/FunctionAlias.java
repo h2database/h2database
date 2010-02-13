@@ -10,14 +10,13 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.Utils;
@@ -57,12 +56,12 @@ public class FunctionAlias extends DbObjectBase {
      * @param force create the object even if the class or method does not exist
      * @return the database object
      */
-    public static FunctionAlias newInstance(Database db, int id, String name, String javaClassMethod, boolean force) throws SQLException {
+    public static FunctionAlias newInstance(Database db, int id, String name, String javaClassMethod, boolean force) {
         FunctionAlias alias = new FunctionAlias(db, id, name);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
         if (lastDot < 0) {
-            throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, javaClassMethod);
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, javaClassMethod);
         }
         alias.className = javaClassMethod.substring(0, lastDot);
         alias.methodName = javaClassMethod.substring(lastDot + 1);
@@ -80,26 +79,26 @@ public class FunctionAlias extends DbObjectBase {
      * @param force create the object even if the class or method does not exist
      * @return the database object
      */
-    public static FunctionAlias newInstanceFromSource(Database db, int id, String name, String source, boolean force) throws SQLException {
+    public static FunctionAlias newInstanceFromSource(Database db, int id, String name, String source, boolean force) {
         FunctionAlias alias = new FunctionAlias(db, id, name);
         alias.source = source;
         alias.init(force);
         return alias;
     }
 
-    private void init(boolean force) throws SQLException {
+    private void init(boolean force) {
         try {
             // at least try to compile the class, otherwise the data type is not
             // initialized if it could be
             load();
-        } catch (SQLException e) {
+        } catch (DbException e) {
             if (!force) {
                 throw e;
             }
         }
     }
 
-    private synchronized void load() throws SQLException {
+    private synchronized void load() {
         if (javaMethods != null) {
             return;
         }
@@ -110,7 +109,7 @@ public class FunctionAlias extends DbObjectBase {
         }
     }
 
-    private void loadFromSource() throws SQLException {
+    private void loadFromSource() {
         SourceCompiler compiler = database.getCompiler();
         String fullClassName = Constants.USER_PACKAGE + "." + getName();
         compiler.setSource(fullClassName, source);
@@ -121,11 +120,11 @@ public class FunctionAlias extends DbObjectBase {
                     method
             };
         } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, e, source);
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, e, source);
         }
     }
 
-    private void loadClass() throws SQLException {
+    private void loadClass() {
         Class< ? > javaClass = Utils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
         ArrayList<JavaMethod> list = New.arrayList();
@@ -138,7 +137,7 @@ public class FunctionAlias extends DbObjectBase {
                 JavaMethod javaMethod = new JavaMethod(m, i);
                 for (JavaMethod old : list) {
                     if (old.getParameterCount() == javaMethod.getParameterCount()) {
-                        throw Message.getSQLException(
+                        throw DbException.get(
                                 ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2,
                                 old.toString(), javaMethod.toString()
                         );
@@ -148,7 +147,7 @@ public class FunctionAlias extends DbObjectBase {
             }
         }
         if (list.size() == 0) {
-            throw Message.getSQLException(ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
+            throw DbException.get(ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
         }
         javaMethods = new JavaMethod[list.size()];
         list.toArray(javaMethods);
@@ -174,7 +173,7 @@ public class FunctionAlias extends DbObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public String getDropSQL() {
@@ -199,7 +198,7 @@ public class FunctionAlias extends DbObjectBase {
         return DbObject.FUNCTION_ALIAS;
     }
 
-    public synchronized void removeChildrenAndResources(Session session) throws SQLException {
+    public synchronized void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
         className = null;
         methodName = null;
@@ -207,8 +206,8 @@ public class FunctionAlias extends DbObjectBase {
         invalidate();
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("RENAME");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("RENAME");
     }
 
     /**
@@ -218,7 +217,7 @@ public class FunctionAlias extends DbObjectBase {
      * @return the Java method
      * @throws SQLException if no matching method could be found
      */
-    public JavaMethod findJavaMethod(Expression[] args) throws SQLException {
+    public JavaMethod findJavaMethod(Expression[] args) {
         load();
         int parameterCount = args.length;
         for (JavaMethod m : javaMethods) {
@@ -227,7 +226,7 @@ public class FunctionAlias extends DbObjectBase {
                 return m;
             }
         }
-        throw Message.getSQLException(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ", parameter count: " + parameterCount + ")");
+        throw DbException.get(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ", parameter count: " + parameterCount + ")");
     }
 
     public String getJavaClassName() {
@@ -243,7 +242,7 @@ public class FunctionAlias extends DbObjectBase {
      *
      * @return the Java methods.
      */
-    public JavaMethod[] getJavaMethods() throws SQLException {
+    public JavaMethod[] getJavaMethods() {
         load();
         return javaMethods;
     }
@@ -262,7 +261,7 @@ public class FunctionAlias extends DbObjectBase {
         private Class< ? > varArgClass;
         private int paramCount;
 
-        JavaMethod(Method method, int id) throws SQLException {
+        JavaMethod(Method method, int id) {
             this.method = method;
             this.id = id;
             Class< ? >[] paramClasses = method.getParameterTypes();
@@ -306,7 +305,7 @@ public class FunctionAlias extends DbObjectBase {
          * @param columnList true if the function should only return the column list
          * @return the value
          */
-        public Value getValue(Session session, Expression[] args, boolean columnList) throws SQLException {
+        public Value getValue(Session session, Expression[] args, boolean columnList) {
             Class< ? >[] paramClasses = method.getParameterTypes();
             Object[] params = new Object[paramClasses.length];
             int p = 0;
@@ -362,17 +361,17 @@ public class FunctionAlias extends DbObjectBase {
             Value identity = session.getScopeIdentity();
             try {
                 session.setAutoCommit(false);
+                Object returnValue;
                 try {
-                    Object returnValue;
                     returnValue = method.invoke(null, params);
                     if (returnValue == null) {
                         return ValueNull.INSTANCE;
                     }
-                    Value ret = DataType.convertToValue(session, returnValue, dataType);
-                    return ret.convertTo(dataType);
                 } catch (Exception e) {
-                    throw Message.convert(e);
+                    throw DbException.convert(e);
                 }
+                Value ret = DataType.convertToValue(session, returnValue, dataType);
+                return ret.convertTo(dataType);
             } finally {
                 session.setScopeIdentity(identity);
                 session.setAutoCommit(old);

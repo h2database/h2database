@@ -99,7 +99,7 @@ public class FullTextLucene extends FullText {
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" + FullTextLucene.class.getName() + ".dropAll\"");
         try {
             getIndexModifier(conn);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convertException(e);
         }
     }

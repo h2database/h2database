@@ -6,12 +6,10 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
-
 import org.h2.command.ddl.SchemaCommand;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 
@@ -52,7 +50,7 @@ public class AlterTableSet extends SchemaCommand {
         this.tableName = tableName;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         Table table = getSchema().getTableOrView(session, tableName);
         session.getUser().checkRight(table, Right.ALL);
         table.lock(session, true, true);
@@ -64,7 +62,7 @@ public class AlterTableSet extends SchemaCommand {
             table.setCheckForeignKeyConstraints(session, false, false);
             break;
         default:
-            Message.throwInternalError("type="+type);
+            DbException.throwInternalError("type="+type);
         }
         return 0;
     }

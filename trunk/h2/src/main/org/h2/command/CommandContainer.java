@@ -6,7 +6,6 @@
  */
 package org.h2.command;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
@@ -39,7 +38,7 @@ public class CommandContainer extends Command {
         return prepared.isQuery();
     }
 
-    private void recompileIfRequired() throws SQLException {
+    private void recompileIfRequired() {
         if (prepared.needRecompile()) {
             // TODO test with 'always recompile'
             prepared.setModificationMetaId(0);
@@ -63,7 +62,7 @@ public class CommandContainer extends Command {
         }
     }
 
-    public int update() throws SQLException {
+    public int update() {
         recompileIfRequired();
         // TODO query time: should keep lock time separate from running time
         start();
@@ -73,7 +72,7 @@ public class CommandContainer extends Command {
         return updateCount;
     }
 
-    public ResultInterface query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) {
         recompileIfRequired();
         // TODO query time: should keep lock time separate from running time
         start();
@@ -87,7 +86,7 @@ public class CommandContainer extends Command {
         return prepared.isReadOnly();
     }
 
-    public ResultInterface queryMeta() throws SQLException {
+    public ResultInterface queryMeta() {
         return prepared.queryMeta();
     }
 

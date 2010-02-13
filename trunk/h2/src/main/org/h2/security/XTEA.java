@@ -7,7 +7,7 @@
 package org.h2.security;
 
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * An implementation of the XTEA block cipher algorithm.
@@ -43,7 +43,7 @@ public class XTEA implements BlockCipher {
 
     public void encrypt(byte[] bytes, int off, int len) {
         if (SysProperties.CHECK && (len % ALIGN != 0)) {
-            Message.throwInternalError("unaligned len " + len);
+            DbException.throwInternalError("unaligned len " + len);
         }
         for (int i = off; i < off + len; i += 8) {
             encryptBlock(bytes, bytes, i);
@@ -52,7 +52,7 @@ public class XTEA implements BlockCipher {
 
     public void decrypt(byte[] bytes, int off, int len) {
         if (SysProperties.CHECK && (len % ALIGN != 0)) {
-            Message.throwInternalError("unaligned len " + len);
+            DbException.throwInternalError("unaligned len " + len);
         }
         for (int i = off; i < off + len; i += 8) {
             decryptBlock(bytes, bytes, i);

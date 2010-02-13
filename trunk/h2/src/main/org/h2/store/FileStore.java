@@ -8,17 +8,15 @@ package org.h2.store;
 
 import java.io.IOException;
 import java.lang.ref.Reference;
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
-import org.h2.util.Utils;
 import org.h2.util.TempFileDeleter;
+import org.h2.util.Utils;
 
 /**
  * This class is an abstraction of a random access file.
@@ -71,7 +69,7 @@ public class FileStore {
      * @param name the file name
      * @param mode the access mode ("r", "rw", "rws", "rwd")
      */
-    protected FileStore(DataHandler handler, String name, String mode) throws SQLException {
+    protected FileStore(DataHandler handler, String name, String mode) {
         FileSystem fs = FileSystem.getInstance(name);
         this.handler = handler;
         this.name = name;
@@ -91,7 +89,7 @@ public class FileStore {
             }
             fileLength = file.length();
         } catch (IOException e) {
-            throw Message.convertIOException(e, "name: " + name + " mode: " + mode);
+            throw DbException.convertIOException(e, "name: " + name + " mode: " + mode);
         }
     }
 
@@ -103,7 +101,7 @@ public class FileStore {
      * @param mode the access mode (r, rw, rws, rwd)
      * @return the created object
      */
-    public static FileStore open(DataHandler handler, String name, String mode) throws SQLException {
+    public static FileStore open(DataHandler handler, String name, String mode) {
         return open(handler, name, mode, null, null, 0);
     }
 
@@ -117,7 +115,7 @@ public class FileStore {
      * @param key the encryption key
      * @return the created object
      */
-    public static FileStore open(DataHandler handler, String name, String mode, String cipher, byte[] key) throws SQLException {
+    public static FileStore open(DataHandler handler, String name, String mode, String cipher, byte[] key) {
         return open(handler, name, mode, cipher, key, Constants.ENCRYPTION_KEY_HASH_ITERATIONS);
     }
 
@@ -133,7 +131,7 @@ public class FileStore {
      * @return the created object
      */
     public static FileStore open(DataHandler handler, String name, String mode, String cipher,
-            byte[] key, int keyIterations) throws SQLException {
+            byte[] key, int keyIterations) {
         FileStore store;
         if (cipher == null) {
             store = new FileStore(handler, name, mode);
@@ -165,13 +163,13 @@ public class FileStore {
         this.checkedWriting = value;
     }
 
-    private void checkWritingAllowed() throws SQLException {
+    private void checkWritingAllowed() {
         if (handler != null && checkedWriting) {
             handler.checkWritingAllowed();
         }
     }
 
-    private void checkPowerOff() throws SQLException {
+    private void checkPowerOff() {
         if (handler != null) {
             handler.checkPowerOff();
         }
@@ -181,7 +179,7 @@ public class FileStore {
      * Initialize the file. This method will write or check the file header if
      * required.
      */
-    public void init() throws SQLException {
+    public void init() {
         int len = Constants.FILE_BLOCK_SIZE;
         byte[] salt;
         byte[] magic = HEADER.getBytes();
@@ -201,7 +199,7 @@ public class FileStore {
             byte[] buff = new byte[len];
             readFullyDirect(buff, 0, len);
             if (Utils.compareNotNull(buff, magic) != 0) {
-                throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, name);
+                throw DbException.get(ErrorCode.FILE_VERSION_ERROR_1, name);
             }
             salt = new byte[len];
             readFullyDirect(salt, 0, len);
@@ -212,7 +210,7 @@ public class FileStore {
                 buff[10] = 'B';
             }
             if (Utils.compareNotNull(buff, magic) != 0) {
-                throw Message.getSQLException(ErrorCode.FILE_ENCRYPTION_ERROR_1, name);
+                throw DbException.get(ErrorCode.FILE_ENCRYPTION_ERROR_1, name);
             }
         }
     }
@@ -220,11 +218,13 @@ public class FileStore {
     /**
      * Close the file.
      */
-    public void close() throws IOException {
+    public void close() {
         if (file != null) {
             try {
                 trace("close", name, file);
                 file.close();
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, name);
             } finally {
                 file = null;
             }
@@ -238,7 +238,7 @@ public class FileStore {
     public void closeSilently() {
         try {
             close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             // ignore
         }
     }
@@ -262,7 +262,7 @@ public class FileStore {
      * @param off the offset
      * @param len the number of bytes to read
      */
-    protected void readFullyDirect(byte[] b, int off, int len) throws SQLException {
+    protected void readFullyDirect(byte[] b, int off, int len) {
         readFully(b, off, len);
     }
 
@@ -273,15 +273,15 @@ public class FileStore {
      * @param off the offset
      * @param len the number of bytes to read
      */
-    public void readFully(byte[] b, int off, int len) throws SQLException {
+    public void readFully(byte[] b, int off, int len) {
         if (SysProperties.CHECK && (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0)) {
-            Message.throwInternalError("unaligned read " + name + " len " + len);
+            DbException.throwInternalError("unaligned read " + name + " len " + len);
         }
         checkPowerOff();
         try {
             file.readFully(b, off, len);
         } catch (IOException e) {
-            throw Message.convertIOException(e, name);
+            throw DbException.convertIOException(e, name);
         }
         filePos += len;
     }
@@ -291,9 +291,9 @@ public class FileStore {
      *
      * @param pos the location
      */
-    public void seek(long pos) throws SQLException {
+    public void seek(long pos) {
         if (SysProperties.CHECK && pos % Constants.FILE_BLOCK_SIZE != 0) {
-            Message.throwInternalError("unaligned seek " + name + " pos " + pos);
+            DbException.throwInternalError("unaligned seek " + name + " pos " + pos);
         }
         try {
             if (pos != filePos) {
@@ -301,7 +301,7 @@ public class FileStore {
                 filePos = pos;
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, name);
+            throw DbException.convertIOException(e, name);
         }
     }
 
@@ -312,7 +312,7 @@ public class FileStore {
      * @param off the offset
      * @param len the number of bytes to write
      */
-    protected void writeDirect(byte[] b, int off, int len) throws SQLException {
+    protected void writeDirect(byte[] b, int off, int len) {
         write(b, off, len);
     }
 
@@ -323,9 +323,9 @@ public class FileStore {
      * @param off the offset
      * @param len the number of bytes to write
      */
-    public void write(byte[] b, int off, int len) throws SQLException {
+    public void write(byte[] b, int off, int len) {
         if (SysProperties.CHECK && (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0)) {
-            Message.throwInternalError("unaligned write " + name + " len " + len);
+            DbException.throwInternalError("unaligned write " + name + " len " + len);
         }
         checkWritingAllowed();
         checkPowerOff();
@@ -336,17 +336,17 @@ public class FileStore {
                 try {
                     file.write(b, off, len);
                 } catch (IOException e2) {
-                    throw Message.convertIOException(e2, name);
+                    throw DbException.convertIOException(e2, name);
                 }
             } else {
-                throw Message.convertIOException(e, name);
+                throw DbException.convertIOException(e, name);
             }
         }
         filePos += len;
         fileLength = Math.max(filePos, fileLength);
     }
 
-    private boolean freeUpDiskSpace() throws SQLException {
+    private boolean freeUpDiskSpace() {
         if (handler == null) {
             return false;
         }
@@ -374,9 +374,9 @@ public class FileStore {
      *
      * @param newLength the new file size
      */
-    public void setLength(long newLength) throws SQLException {
+    public void setLength(long newLength) {
         if (SysProperties.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
-            Message.throwInternalError("unaligned setLength " + name + " pos " + newLength);
+            DbException.throwInternalError("unaligned setLength " + name + " pos " + newLength);
         }
         checkPowerOff();
         checkWritingAllowed();
@@ -392,10 +392,10 @@ public class FileStore {
                 try {
                     file.setFileLength(newLength);
                 } catch (IOException e2) {
-                    throw Message.convertIOException(e2, name);
+                    throw DbException.convertIOException(e2, name);
                 }
             } else {
-                throw Message.convertIOException(e, name);
+                throw DbException.convertIOException(e, name);
             }
         }
     }
@@ -405,24 +405,24 @@ public class FileStore {
      *
      * @return the file size
      */
-    public long length() throws SQLException {
+    public long length() {
         try {
             long len = fileLength;
             if (SysProperties.CHECK2) {
                 len = file.length();
                 if (len != fileLength) {
-                    Message.throwInternalError("file " + name + " length " + len + " expected " + fileLength);
+                    DbException.throwInternalError("file " + name + " length " + len + " expected " + fileLength);
                 }
             }
             if (SysProperties.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
                 long newLength = len + Constants.FILE_BLOCK_SIZE - (len % Constants.FILE_BLOCK_SIZE);
                 file.setFileLength(newLength);
                 fileLength = newLength;
-                Message.throwInternalError("unaligned file length " + name + " len " + len);
+                DbException.throwInternalError("unaligned file length " + name + " len " + len);
             }
             return len;
         } catch (IOException e) {
-            throw Message.convertIOException(e, name);
+            throw DbException.convertIOException(e, name);
         }
     }
 
@@ -431,14 +431,14 @@ public class FileStore {
      *
      * @return the location
      */
-    public long getFilePointer() throws SQLException {
+    public long getFilePointer() {
         if (SysProperties.CHECK2) {
             try {
                 if (file.getFilePointer() != filePos) {
-                    Message.throwInternalError();
+                    DbException.throwInternalError();
                 }
             } catch (IOException e) {
-                throw Message.convertIOException(e, name);
+                throw DbException.convertIOException(e, name);
             }
         }
         return filePos;

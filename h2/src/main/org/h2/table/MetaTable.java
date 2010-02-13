@@ -7,12 +7,10 @@
 package org.h2.table;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -38,7 +36,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -114,7 +112,7 @@ public class MetaTable extends Table {
      * @param id the object id
      * @param type the meta table type
      */
-    public MetaTable(Schema schema, int id, int type) throws SQLException {
+    public MetaTable(Schema schema, int id, int type) {
         // tableName will be set later
         super(schema, id, null, true, true);
         this.type = type;
@@ -505,7 +503,7 @@ public class MetaTable extends Table {
             break;
         }
         default:
-            throw Message.throwInternalError("type="+type);
+            throw DbException.throwInternalError("type="+type);
         }
         setColumns(cols);
 
@@ -546,8 +544,8 @@ public class MetaTable extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) throws SQLException {
-        throw Message.getUnsupportedException("META");
+            boolean create, String indexComment) {
+        throw DbException.getUnsupportedException("META");
     }
 
     public void lock(Session session, boolean exclusive, boolean force) {
@@ -572,7 +570,7 @@ public class MetaTable extends Table {
         return tables;
     }
 
-    private boolean checkIndex(Session session, String value, Value indexFrom, Value indexTo) throws SQLException {
+    private boolean checkIndex(Session session, String value, Value indexFrom, Value indexTo) {
         if (value == null || (indexFrom == null && indexTo == null)) {
             return true;
         }
@@ -600,7 +598,7 @@ public class MetaTable extends Table {
      * @param last the last row to return
      * @return the generated rows
      */
-    public ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last) {
         Value indexFrom = null, indexTo = null;
 
         if (indexColumn >= 0) {
@@ -934,8 +932,8 @@ public class MetaTable extends Table {
                         rs.getString(4).trim()
                     );
                 }
-            } catch (IOException e) {
-                throw Message.convertIOException(e, resource);
+            } catch (Exception e) {
+                throw DbException.convert(e);
             }
             break;
         }
@@ -1560,7 +1558,7 @@ public class MetaTable extends Table {
             break;
         }
         default:
-            Message.throwInternalError("type="+type);
+            DbException.throwInternalError("type="+type);
         }
         return rows;
     }
@@ -1576,20 +1574,20 @@ public class MetaTable extends Table {
         case ConstraintReferential.SET_NULL:
             return DatabaseMetaData.importedKeySetNull;
         default:
-            throw Message.throwInternalError("action="+action);
+            throw DbException.throwInternalError("action="+action);
         }
     }
 
-    public void removeRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void removeRow(Session session, Row row) {
+        throw DbException.getUnsupportedException("META");
     }
 
-    public void addRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void addRow(Session session, Row row) {
+        throw DbException.getUnsupportedException("META");
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void removeChildrenAndResources(Session session) {
+        throw DbException.getUnsupportedException("META");
     }
 
     public void close(Session session) {
@@ -1601,7 +1599,7 @@ public class MetaTable extends Table {
     }
 
     private void addPrivileges(ArrayList<Row> rows, DbObject grantee, String catalog, Table table, String column,
-            int rightMask) throws SQLException {
+            int rightMask) {
         if ((rightMask & Right.SELECT) != 0) {
             addPrivilege(rows, grantee, catalog, table, column, "SELECT");
         }
@@ -1617,7 +1615,7 @@ public class MetaTable extends Table {
     }
 
     private void addPrivilege(ArrayList<Row> rows, DbObject grantee, String catalog, Table table, String column,
-            String right) throws SQLException {
+            String right) {
         String isGrantable = "NO";
         if (grantee.getType() == DbObject.USER) {
             User user = (User) grantee;
@@ -1665,7 +1663,7 @@ public class MetaTable extends Table {
         }
     }
 
-    private void add(ArrayList<Row> rows, String... strings) throws SQLException {
+    private void add(ArrayList<Row> rows, String... strings) {
         Value[] values = new Value[strings.length];
         for (int i = 0; i < strings.length; i++) {
             String s = strings[i];
@@ -1679,20 +1677,20 @@ public class MetaTable extends Table {
         rows.add(row);
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("META");
     }
 
-    public void checkSupportAlter() throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void checkSupportAlter() {
+        throw DbException.getUnsupportedException("META");
     }
 
-    public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException("META");
+    public void truncate(Session session) {
+        throw DbException.getUnsupportedException("META");
     }
 
     public long getRowCount(Session session) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public boolean canGetRowCount() {

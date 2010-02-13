@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.UserDataType;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.value.DataType;
@@ -43,7 +41,7 @@ public class CreateUserDataType extends DefineCommand {
         this.ifNotExists = ifNotExists;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
@@ -52,16 +50,16 @@ public class CreateUserDataType extends DefineCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
+            throw DbException.get(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
         }
         DataType builtIn = DataType.getTypeByName(typeName);
         if (builtIn != null) {
             if (!builtIn.hidden) {
-                throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
+                throw DbException.get(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
             }
             Table table = session.getDatabase().getFirstUserTable();
             if (table != null) {
-                throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName + " (" + table.getSQL() + ")");
+                throw DbException.get(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName + " (" + table.getSQL() + ")");
             }
         }
         int id = getObjectId();

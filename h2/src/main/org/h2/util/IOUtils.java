@@ -21,13 +21,10 @@ import java.io.RandomAccessFile;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
 
 /**
@@ -352,8 +349,9 @@ public class IOUtils {
         try {
             // InputStreamReader may read some more bytes
             return in == null ? null : new BufferedReader(new InputStreamReader(in, Constants.UTF8));
-        } catch (UnsupportedEncodingException e) {
-            throw Message.convertToInternal(e);
+        } catch (Exception e) {
+            // UnsupportedEncodingException
+            throw DbException.convert(e);
         }
     }
 
@@ -367,8 +365,9 @@ public class IOUtils {
     public static Writer getWriter(OutputStream out) {
         try {
             return out == null ? null : new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
-        } catch (UnsupportedEncodingException e) {
-            throw Message.convertToInternal(e);
+        } catch (Exception e) {
+            // UnsupportedEncodingException
+            throw DbException.convert(e);
         }
     }
 
@@ -408,8 +407,9 @@ public class IOUtils {
     public static Reader getAsciiReader(InputStream in) {
         try {
             return in == null ? null : new InputStreamReader(in, "US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw Message.convertToInternal(e);
+        } catch (Exception e) {
+            // UnsupportedEncodingException
+            throw DbException.convert(e);
         }
     }
 
@@ -497,7 +497,7 @@ public class IOUtils {
      * @param fileName the file name
      * @return the normalized file name
      */
-    public static String normalize(String fileName) throws SQLException {
+    public static String normalize(String fileName) {
         return FileSystem.getInstance(fileName).normalize(fileName);
     }
 
@@ -573,7 +573,7 @@ public class IOUtils {
      * @param path the directory
      * @return the list of fully qualified file names
      */
-    public static String[] listFiles(String path) throws SQLException {
+    public static String[] listFiles(String path) {
         return FileSystem.getInstance(path).listFiles(path);
     }
 
@@ -636,7 +636,7 @@ public class IOUtils {
      *            truncated first
      * @return the output stream
      */
-    public static OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
+    public static OutputStream openFileOutputStream(String fileName, boolean append) {
         return FileSystem.getInstance(fileName).openFileOutputStream(fileName, append);
     }
 
@@ -645,9 +645,8 @@ public class IOUtils {
      *
      * @param oldName the old fully qualified file name
      * @param newName the new fully qualified file name
-     * @throws SQLException
      */
-    public static void rename(String oldName, String newName) throws SQLException {
+    public static void rename(String oldName, String newName) {
         FileSystem.getInstance(oldName).rename(oldName, newName);
     }
 
@@ -656,7 +655,7 @@ public class IOUtils {
      *
      * @param fileName the file name (not directory name)
      */
-    public static void createDirs(String fileName) throws SQLException {
+    public static void createDirs(String fileName) {
         FileSystem.getInstance(fileName).createDirs(fileName);
     }
 
@@ -665,7 +664,7 @@ public class IOUtils {
      *
      * @param fileName the file name
      */
-    public static void delete(String fileName) throws SQLException {
+    public static void delete(String fileName) {
         FileSystem.getInstance(fileName).delete(fileName);
     }
 

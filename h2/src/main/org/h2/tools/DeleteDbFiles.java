@@ -98,7 +98,7 @@ public class DeleteDbFiles extends Tool {
         }
     }
 
-    private void process(String fileName, boolean quiet) throws SQLException {
+    private void process(String fileName, boolean quiet) {
         if (IOUtils.isDirectory(fileName)) {
             // only delete empty directories
             IOUtils.tryDelete(fileName);

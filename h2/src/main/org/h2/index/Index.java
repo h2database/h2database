@@ -6,9 +6,8 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.SchemaObject;
@@ -26,7 +25,7 @@ public interface Index extends SchemaObject {
      *
      * @return the exception
      */
-    SQLException getDuplicateKeyException();
+    DbException getDuplicateKeyException();
 
     /**
      * Get the message to show in a EXPLAIN statement.
@@ -40,7 +39,7 @@ public interface Index extends SchemaObject {
      *
      * @param session the session used to write data
      */
-    void close(Session session) throws SQLException;
+    void close(Session session);
 
     /**
      * Add a row to the index.
@@ -48,7 +47,7 @@ public interface Index extends SchemaObject {
      * @param session the session to use
      * @param row the data
      */
-    void add(Session session, Row row) throws SQLException;
+    void add(Session session, Row row);
 
     /**
      * Remove a row from the index.
@@ -56,7 +55,7 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @param row the data
      */
-    void remove(Session session, Row row) throws SQLException;
+    void remove(Session session, Row row);
 
     /**
      * Find a row or a list of rows and create a cursor to iterate over the result.
@@ -66,7 +65,7 @@ public interface Index extends SchemaObject {
      * @param last the last row, or null for no limit
      * @return the cursor
      */
-    Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException;
+    Cursor find(Session session, SearchRow first, SearchRow last);
 
     /**
      * Estimate the cost to search for rows given the search mask.
@@ -77,21 +76,21 @@ public interface Index extends SchemaObject {
      * @param masks the search mask
      * @return the estimated cost
      */
-    double getCost(Session session, int[] masks) throws SQLException;
+    double getCost(Session session, int[] masks);
 
     /**
      * Remove the index.
      *
      * @param session the session
      */
-    void remove(Session session) throws SQLException;
+    void remove(Session session);
 
     /**
      * Remove all rows from the index.
      *
      * @param session the session
      */
-    void truncate(Session session) throws SQLException;
+    void truncate(Session session);
 
     /**
      * Check if the index can directly look up the lowest or highest value of a
@@ -117,7 +116,7 @@ public interface Index extends SchemaObject {
      * @param last the last row, or null for no limit
      * @return the cursor
      */
-    Cursor findNext(Session session, SearchRow higherThan, SearchRow last) throws SQLException;
+    Cursor findNext(Session session, SearchRow higherThan, SearchRow last);
 
     /**
      * Find the lowest or highest value of a column.
@@ -127,7 +126,7 @@ public interface Index extends SchemaObject {
      *            value should be returned
      * @return a cursor or null
      */
-    Cursor findFirstOrLast(Session session, boolean first) throws SQLException;
+    Cursor findFirstOrLast(Session session, boolean first);
 
     /**
      * Check if the index needs to be rebuilt.
@@ -168,7 +167,7 @@ public interface Index extends SchemaObject {
      * @param rowCount the row count
      * @return the estimated cost
      */
-    long getCostRangeIndex(int[] masks, long rowCount) throws SQLException;
+    long getCostRangeIndex(int[] masks, long rowCount);
 
     /**
      * Compare two rows.
@@ -177,7 +176,7 @@ public interface Index extends SchemaObject {
      * @param compare the second row
      * @return 0 if both rows are equal, -1 if the first row is smaller, otherwise 1
      */
-    int compareRows(SearchRow rowData, SearchRow compare) throws SQLException;
+    int compareRows(SearchRow rowData, SearchRow compare);
 
     /**
      * Check if one of the columns is NULL and multiple rows with NULL are
@@ -249,7 +248,7 @@ public interface Index extends SchemaObject {
      * @param operation the operation type
      * @param row the row
      */
-    void commit(int operation, Row row) throws SQLException;
+    void commit(int operation, Row row);
 
     /**
      * Get the root page of this index.
@@ -266,6 +265,6 @@ public interface Index extends SchemaObject {
      * @param key the unique key
      * @return the row
      */
-    Row getRow(Session session, long key) throws SQLException;
+    Row getRow(Session session, long key);
 
 }

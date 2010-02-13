@@ -6,14 +6,13 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -124,13 +123,13 @@ public class Comparison extends Condition {
             sql = left.getSQL() + " IS NOT NULL";
             break;
         default:
-            throw Message.throwInternalError("compareType=" + compareType);
+            throw DbException.throwInternalError("compareType=" + compareType);
         }
         return "(" + sql + ")";
     }
 
     private Expression getCast(Expression expr, int targetDataType, long precision, int scale, int displaySize, Session session)
-            throws SQLException {
+            {
         if (expr == ValueExpression.getNull()) {
             return expr;
         }
@@ -141,7 +140,7 @@ public class Comparison extends Condition {
         return function.optimize(session);
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         left = left.optimize(session);
         if (right == null) {
             dataType = left.getType();
@@ -172,20 +171,17 @@ public class Comparison extends Condition {
                     }
 
                 }
-            } catch (SQLException e) {
-                int code = e.getErrorCode();
-                switch(code) {
-                case ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE:
+            } catch (DbException e) {
+                if (e.getErrorCode() == ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE) {
                     // WHERE ID=100000000000
                     return ValueExpression.get(ValueBoolean.get(false));
-                default:
-                    throw e;
                 }
+                throw e;
             }
             int lt = left.getType(), rt = right.getType();
             if (lt == rt) {
                 if (lt == Value.UNKNOWN) {
-                    throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, getSQL());
+                    throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, getSQL());
                 }
                 dataType = lt;
             } else {
@@ -207,7 +203,7 @@ public class Comparison extends Condition {
             }
         } else {
             if (SysProperties.CHECK && (left == null || right == null)) {
-                Message.throwInternalError();
+                DbException.throwInternalError();
             }
             if (left == ValueExpression.getNull() || right == ValueExpression.getNull()) {
                 // TODO NULL handling: maybe issue a warning when comparing with
@@ -221,7 +217,7 @@ public class Comparison extends Condition {
         return this;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         Value l = left.getValue(session);
         if (right == null) {
             boolean result;
@@ -233,7 +229,7 @@ public class Comparison extends Condition {
                 result = !(l == ValueNull.INSTANCE);
                 break;
             default:
-                throw Message.throwInternalError("type=" + compareType);
+                throw DbException.throwInternalError("type=" + compareType);
             }
             return ValueBoolean.get(result);
         }
@@ -260,7 +256,7 @@ public class Comparison extends Condition {
      * @return the result of the comparison (1 if the first value is bigger, -1
      *         if smaller, 0 if both are equal)
      */
-    static boolean compareNotNull(Database database, Value l, Value r, int compareType) throws SQLException {
+    static boolean compareNotNull(Database database, Value l, Value r, int compareType) {
         boolean result;
         switch (compareType) {
         case EQUAL:
@@ -282,7 +278,7 @@ public class Comparison extends Condition {
             result = database.compare(l, r) < 0;
             break;
         default:
-            throw Message.throwInternalError("type=" + compareType);
+            throw DbException.throwInternalError("type=" + compareType);
         }
         return result;
     }
@@ -301,7 +297,7 @@ public class Comparison extends Condition {
         case SMALLER:
             return BIGGER;
         default:
-            throw Message.throwInternalError("type=" + compareType);
+            throw DbException.throwInternalError("type=" + compareType);
         }
     }
 
@@ -324,7 +320,7 @@ public class Comparison extends Condition {
         case IS_NOT_NULL:
             return IS_NULL;
         default:
-            throw Message.throwInternalError("type=" + compareType);
+            throw DbException.throwInternalError("type=" + compareType);
         }
     }
 
@@ -388,7 +384,7 @@ public class Comparison extends Condition {
             addIndex = true;
             break;
         default:
-            throw Message.throwInternalError("type=" + compareType);
+            throw DbException.throwInternalError("type=" + compareType);
         }
         if (addIndex) {
             if (l != null) {
@@ -408,7 +404,7 @@ public class Comparison extends Condition {
         }
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         left.updateAggregate(session);
         if (right != null) {
             right.updateAggregate(session);
@@ -426,7 +422,7 @@ public class Comparison extends Condition {
         super.addFilterConditions(filter, outerJoin);
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         if (right != null) {
             right.mapColumns(resolver, level);

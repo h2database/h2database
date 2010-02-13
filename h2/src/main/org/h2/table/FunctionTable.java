@@ -18,7 +18,7 @@ import org.h2.expression.TableFunction;
 import org.h2.index.FunctionIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -38,7 +38,7 @@ public class FunctionTable extends Table {
     private LocalResult cachedResult;
     private Value cachedValue;
 
-    public FunctionTable(Schema schema, Session session, Expression functionExpr, FunctionCall function) throws SQLException {
+    public FunctionTable(Schema schema, Session session, Expression functionExpr, FunctionCall function) {
         super(schema, 0, function.getName(), false, true);
         this.functionExpr = functionExpr;
         this.function = function;
@@ -50,7 +50,7 @@ public class FunctionTable extends Table {
         function.optimize(session);
         int type = function.getType();
         if (type != Value.RESULT_SET) {
-            throw Message.getSQLException(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
+            throw DbException.get(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         int params = function.getParameterCount();
         Expression[] columnListArgs = new Expression[params];
@@ -61,17 +61,21 @@ public class FunctionTable extends Table {
         }
         ValueResultSet template = function.getValueForColumnList(session, columnListArgs);
         if (template == null) {
-            throw Message.getSQLException(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
+            throw DbException.get(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         ResultSet rs = template.getResultSet();
-        ResultSetMetaData meta = rs.getMetaData();
-        int columnCount = meta.getColumnCount();
-        Column[] cols = new Column[columnCount];
-        for (int i = 0; i < columnCount; i++) {
-            cols[i] = new Column(meta.getColumnName(i + 1), DataType.convertSQLTypeToValueType(meta
-                    .getColumnType(i + 1)), meta.getPrecision(i + 1), meta.getScale(i + 1), meta.getColumnDisplaySize(i + 1));
+        try {
+            ResultSetMetaData meta = rs.getMetaData();
+            int columnCount = meta.getColumnCount();
+            Column[] cols = new Column[columnCount];
+            for (int i = 0; i < columnCount; i++) {
+                cols[i] = new Column(meta.getColumnName(i + 1), DataType.convertSQLTypeToValueType(meta
+                        .getColumnType(i + 1)), meta.getPrecision(i + 1), meta.getScale(i + 1), meta.getColumnDisplaySize(i + 1));
+            }
+            setColumns(cols);
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
-        setColumns(cols);
     }
 
     public void lock(Session session, boolean exclusive, boolean force) {
@@ -91,28 +95,28 @@ public class FunctionTable extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+            boolean create, String indexComment) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
-    public void removeRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void removeRow(Session session, Row row) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
-    public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void truncate(Session session) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
     public boolean canDrop() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
-    public void addRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void addRow(Session session, Row row) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
-    public void checkSupportAlter() throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void checkSupportAlter() {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
     public String getTableType() {
@@ -143,8 +147,8 @@ public class FunctionTable extends Table {
         return null;
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
     /**
@@ -153,7 +157,7 @@ public class FunctionTable extends Table {
      * @param session the session
      * @return the result set
      */
-    public LocalResult getResult(Session session) throws SQLException {
+    public LocalResult getResult(Session session) {
         functionExpr = functionExpr.optimize(session);
         Value v = functionExpr.getValue(session);
         if (cachedResult != null && cachedValue == v) {

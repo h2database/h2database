@@ -8,9 +8,9 @@ package org.h2.test.unit;
 
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
@@ -56,7 +56,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() {
         if (testPerformance) {
             testPerformance();
             System.exit(0);
@@ -114,7 +114,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         }
     }
 
-    private void testValues() throws SQLException {
+    private void testValues() {
         testValue(ValueNull.INSTANCE);
         testValue(ValueBoolean.get(false));
         testValue(ValueBoolean.get(true));
@@ -197,7 +197,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         testValue(ValueArray.get(new Value[] {ValueBoolean.get(true), ValueInt.get(10)}));
     }
 
-    private void testValue(Value v) throws SQLException {
+    private void testValue(Value v) {
         Data data = Data.create(null, 1024);
         data.checkCapacity((int) v.getPrecision());
         data.writeValue(v);
@@ -210,7 +210,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
 
-    private void testAll() throws SQLException {
+    private void testAll() {
         Data page = Data.create(this, 128);
 
         char[] data = new char[0x10000];
@@ -285,8 +285,8 @@ public class TestDataPage extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public int compareTypeSave(Value a, Value b) throws SQLException {
-        throw new SQLException();
+    public int compareTypeSave(Value a, Value b) {
+        throw DbException.throwInternalError();
     }
 
     public int getMaxLengthInplaceLob() {

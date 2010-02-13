@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,7 +15,7 @@ import java.util.List;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
@@ -48,11 +47,11 @@ public class ScanIndex extends BaseIndex {
         tableData = table;
     }
 
-    public void remove(Session session) throws SQLException {
+    public void remove(Session session) {
         truncate(session);
     }
 
-    public void truncate(Session session) throws SQLException {
+    public void truncate(Session session) {
         rows = New.arrayList();
         firstFree = -1;
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
@@ -201,8 +200,8 @@ public class ScanIndex extends BaseIndex {
         return -1;
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("SCAN");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("SCAN");
     }
 
     public boolean needRebuild() {
@@ -213,8 +212,8 @@ public class ScanIndex extends BaseIndex {
         return false;
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException("SCAN");
+    public Cursor findFirstOrLast(Session session, boolean first) {
+        throw DbException.getUnsupportedException("SCAN");
     }
 
     Iterator<Row> getDelta() {

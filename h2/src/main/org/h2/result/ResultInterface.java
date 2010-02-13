@@ -6,8 +6,6 @@
  */
 package org.h2.result;
 
-import java.sql.SQLException;
-
 import org.h2.value.Value;
 
 /**
@@ -20,7 +18,7 @@ public interface ResultInterface {
      * Go to the beginning of the result, that means
      * before the first row.
      */
-    void reset() throws SQLException;
+    void reset();
 
     /**
      * Get the current row.
@@ -34,7 +32,7 @@ public interface ResultInterface {
      *
      * @return true if a row exists
      */
-    boolean next() throws SQLException;
+    boolean next();
 
     /**
      * Get the current row id, starting with 0.

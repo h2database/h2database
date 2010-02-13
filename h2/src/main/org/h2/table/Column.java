@@ -7,7 +7,6 @@
 package org.h2.table;
 
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 
@@ -21,7 +20,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.ValueExpression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -143,12 +142,12 @@ public class Column {
      * @param v the value
      * @return the value
      */
-    public Value convert(Value v) throws SQLException {
+    public Value convert(Value v) {
         try {
             return v.convertTo(type);
-        } catch (SQLException e) {
+        } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
-                e = Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, v.getSQL() + " (" + getCreateSQL() + ")");
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, v.getSQL() + " (" + getCreateSQL() + ")");
             }
             throw e;
         }
@@ -165,7 +164,7 @@ public class Column {
      * @param row the row
      * @return the value
      */
-    Value computeValue(Session session, Row row) throws SQLException {
+    Value computeValue(Session session, Row row) {
         synchronized (this) {
             computeTableFilter.setSession(session);
             computeTableFilter.set(row);
@@ -205,7 +204,7 @@ public class Column {
      * @param session the session
      * @param defaultExpression the default expression
      */
-    public void setDefaultExpression(Session session, Expression defaultExpression) throws SQLException {
+    public void setDefaultExpression(Session session, Expression defaultExpression) {
         // also to test that no column names are used
         if (defaultExpression != null) {
             defaultExpression = defaultExpression.optimize(session);
@@ -257,7 +256,7 @@ public class Column {
      * @param value the value or null
      * @return the new or converted value
      */
-    public Value validateConvertUpdateSequence(Session session, Value value) throws SQLException {
+    public Value validateConvertUpdateSequence(Session session, Value value) {
         if (value == null) {
             if (defaultExpression == null) {
                 value = ValueNull.INSTANCE;
@@ -293,7 +292,7 @@ public class Column {
                         value = ValueString.get("").convertTo(type);
                     }
                 } else {
-                    throw Message.getSQLException(ErrorCode.NULL_NOT_ALLOWED, name);
+                    throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
                 }
             }
         }
@@ -305,7 +304,7 @@ public class Column {
             }
             // Both TRUE and NULL are ok
             if (Boolean.FALSE.equals(v.getBoolean())) {
-                throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL());
+                throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL());
             }
         }
         value = value.convertScale(mode.convertOnlyToSmallerScale, scale);
@@ -315,7 +314,7 @@ public class Column {
                 if (s.length() > 127) {
                     s = s.substring(0, 128) + "...";
                 }
-                throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_2,
+                throw DbException.get(ErrorCode.VALUE_TOO_LONG_2,
                         getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
         }
@@ -323,7 +322,7 @@ public class Column {
         return value;
     }
 
-    private void updateSequenceIfRequired(Session session, Value value) throws SQLException {
+    private void updateSequenceIfRequired(Session session, Value value) {
         if (sequence != null) {
             long current = sequence.getCurrentValue();
             long inc = sequence.getIncrement();
@@ -352,10 +351,9 @@ public class Column {
      * @param temporary true if the sequence is temporary and does not need to
      *            be stored
      */
-    public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary)
-            throws SQLException {
+    public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary) {
         if (!autoIncrement) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         if ("IDENTITY".equals(originalSQL)) {
             originalSQL = "BIGINT";
@@ -387,7 +385,7 @@ public class Column {
      *
      * @param session the session
      */
-    public void prepareExpression(Session session) throws SQLException {
+    public void prepareExpression(Session session) {
         if (defaultExpression != null) {
             computeTableFilter = new TableFilter(session, table, null, false, null);
             defaultExpression.mapColumns(computeTableFilter, 0);
@@ -536,7 +534,7 @@ public class Column {
      * @param session the session
      * @param expr the (additional) constraint
      */
-    public void addCheckConstraint(Session session, Expression expr) throws SQLException {
+    public void addCheckConstraint(Session session, Expression expr) {
         resolver = new SingleColumnResolver(this);
         synchronized (this) {
             String oldName = name;
@@ -567,7 +565,7 @@ public class Column {
      * @param asColumnName the column name to use
      * @return the constraint expression
      */
-    public Expression getCheckConstraint(Session session, String asColumnName) throws SQLException {
+    public Expression getCheckConstraint(Session session, String asColumnName) {
         if (checkConstraint == null) {
             return null;
         }
@@ -602,7 +600,7 @@ public class Column {
      * @param asColumnName the column name to use
      * @return the SQL snippet
      */
-    String getCheckConstraintSQL(Session session, String asColumnName) throws SQLException {
+    String getCheckConstraintSQL(Session session, String asColumnName) {
         Expression constraint = getCheckConstraint(session, asColumnName);
         return constraint == null ? "" : constraint.getSQL();
     }

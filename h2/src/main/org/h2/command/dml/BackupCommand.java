@@ -9,7 +9,6 @@ package org.h2.command.dml;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -20,7 +19,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
 import org.h2.store.PageStore;
@@ -42,17 +41,17 @@ public class BackupCommand extends Prepared {
         this.fileNameExpr = fileName;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         String name = fileNameExpr.getValue(session).getString();
         session.getUser().checkAdmin();
         backupTo(name);
         return 0;
     }
 
-    private void backupTo(String fileName) throws SQLException {
+    private void backupTo(String fileName) {
         Database db = session.getDatabase();
         if (!db.isPersistent()) {
-            throw Message.getSQLException(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
+            throw DbException.get(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
         }
         try {
             String name = db.getName();
@@ -79,11 +78,11 @@ public class BackupCommand extends Prepared {
             out.close();
             zip.close();
         } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
+            throw DbException.convertIOException(e, fileName);
         }
     }
 
-    private void backupPageStore(ZipOutputStream out, String fileName, PageStore store) throws SQLException, IOException {
+    private void backupPageStore(ZipOutputStream out, String fileName, PageStore store) throws IOException {
         Database db = session.getDatabase();
         fileName = IOUtils.getFileName(fileName);
         out.putNextEntry(new ZipEntry(fileName));
@@ -103,7 +102,7 @@ public class BackupCommand extends Prepared {
         String f = IOUtils.getAbsolutePath(fn);
         base = IOUtils.getAbsolutePath(base);
         if (!f.startsWith(base)) {
-            Message.throwInternalError(f + " does not start with " + base);
+            DbException.throwInternalError(f + " does not start with " + base);
         }
         f = f.substring(base.length());
         f = correctFileName(f);

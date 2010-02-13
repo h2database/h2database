@@ -6,15 +6,10 @@
  */
 package org.h2.jdbcx;
 
-import java.sql.SQLException;
 import java.util.StringTokenizer;
-
-//## Java 1.4 begin ##
 import javax.transaction.xa.Xid;
-//## Java 1.4 end ##
-
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.util.Utils;
 
@@ -33,19 +28,19 @@ implements Xid
     private byte[] branchQualifier;
     private byte[] globalTransactionId;
 
-    JdbcXid(JdbcDataSourceFactory factory, int id, String tid) throws SQLException {
+    JdbcXid(JdbcDataSourceFactory factory, int id, String tid) {
         setTrace(factory.getTrace(), TraceObject.XID, id);
         try {
             StringTokenizer tokenizer = new StringTokenizer(tid, "_");
             String prefix = tokenizer.nextToken();
             if (!PREFIX.equals(prefix)) {
-                throw Message.getSQLException(ErrorCode.WRONG_XID_FORMAT_1, tid);
+                throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
             }
             formatId = Integer.parseInt(tokenizer.nextToken());
             branchQualifier = Utils.convertStringToBytes(tokenizer.nextToken());
             globalTransactionId = Utils.convertStringToBytes(tokenizer.nextToken());
         } catch (RuntimeException e) {
-            throw Message.getSQLException(ErrorCode.WRONG_XID_FORMAT_1, tid);
+            throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
         }
     }
 

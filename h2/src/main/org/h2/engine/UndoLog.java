@@ -6,10 +6,9 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.util.New;
@@ -42,7 +41,7 @@ public class UndoLog {
      */
     public int size() {
         if (SysProperties.CHECK && memoryUndo > records.size()) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         return records.size();
     }
@@ -66,7 +65,7 @@ public class UndoLog {
      *
      * @return the last record
      */
-    public UndoLogRecord getLast() throws SQLException {
+    public UndoLogRecord getLast() {
         int i = records.size() - 1;
         UndoLogRecord entry = records.get(i);
         if (entry.isStored()) {
@@ -112,7 +111,7 @@ public class UndoLog {
      *
      * @param entry the entry
      */
-    public void add(UndoLogRecord entry) throws SQLException {
+    public void add(UndoLogRecord entry) {
         records.add(entry);
         if (!entry.isStored()) {
             memoryUndo++;
@@ -135,7 +134,7 @@ public class UndoLog {
         }
     }
 
-    private void saveIfPossible(UndoLogRecord r, Data buff) throws SQLException {
+    private void saveIfPossible(UndoLogRecord r, Data buff) {
         if (!r.isStored() && r.canStore()) {
             r.save(buff, file);
             memoryUndo--;

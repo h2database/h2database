@@ -27,7 +27,7 @@ import java.sql.Timestamp;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Utils;
@@ -299,7 +299,7 @@ public class Transfer {
      *
      * @param v the value
      */
-    public void writeValue(Value v) throws IOException, SQLException {
+    public void writeValue(Value v) throws IOException {
         int type = v.getType();
         writeInt(type);
         switch (type) {
@@ -359,12 +359,12 @@ public class Transfer {
         case Value.BLOB: {
             long length = v.getPrecision();
             if (length < 0) {
-                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
+                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
             }
             writeLong(length);
             long written = IOUtils.copyAndCloseInput(v.getInputStream(), out);
             if (written != length) {
-                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length:" + length + " written:" + written);
+                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "length:" + length + " written:" + written);
             }
             writeInt(LOB_MAGIC);
             break;
@@ -372,7 +372,7 @@ public class Transfer {
         case Value.CLOB: {
             long length = v.getPrecision();
             if (length < 0) {
-                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
+                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
             }
             writeLong(length);
             Reader reader = v.getReader();
@@ -387,7 +387,7 @@ public class Transfer {
             Writer writer = new BufferedWriter(new OutputStreamWriter(out2, Constants.UTF8));
             long written = IOUtils.copyAndCloseInput(reader, writer);
             if (written != length) {
-                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "length:" + length + " written:" + written);
+                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "length:" + length + " written:" + written);
             }
             writer.flush();
             writeInt(LOB_MAGIC);
@@ -402,31 +402,35 @@ public class Transfer {
             break;
         }
         case Value.RESULT_SET: {
-            ResultSet rs = ((ValueResultSet) v).getResultSet();
-            rs.beforeFirst();
-            ResultSetMetaData meta = rs.getMetaData();
-            int columnCount = meta.getColumnCount();
-            writeInt(columnCount);
-            for (int i = 0; i < columnCount; i++) {
-                writeString(meta.getColumnName(i + 1));
-                writeInt(meta.getColumnType(i + 1));
-                writeInt(meta.getPrecision(i + 1));
-                writeInt(meta.getScale(i + 1));
-            }
-            while (rs.next()) {
-                writeBoolean(true);
+            try {
+                ResultSet rs = ((ValueResultSet) v).getResultSet();
+                rs.beforeFirst();
+                ResultSetMetaData meta = rs.getMetaData();
+                int columnCount = meta.getColumnCount();
+                writeInt(columnCount);
                 for (int i = 0; i < columnCount; i++) {
-                    int t = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
-                    Value val = DataType.readValue(session, rs, i + 1, t);
-                    writeValue(val);
+                    writeString(meta.getColumnName(i + 1));
+                    writeInt(meta.getColumnType(i + 1));
+                    writeInt(meta.getPrecision(i + 1));
+                    writeInt(meta.getScale(i + 1));
                 }
+                while (rs.next()) {
+                    writeBoolean(true);
+                    for (int i = 0; i < columnCount; i++) {
+                        int t = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
+                        Value val = DataType.readValue(session, rs, i + 1, t);
+                        writeValue(val);
+                    }
+                }
+                writeBoolean(false);
+                rs.beforeFirst();
+            } catch (SQLException e) {
+                throw DbException.convertToIOException(e);
             }
-            writeBoolean(false);
-            rs.beforeFirst();
             break;
         }
         default:
-            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
+            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }
 
@@ -435,7 +439,7 @@ public class Transfer {
      *
      * @return the value
      */
-    public Value readValue() throws IOException, SQLException {
+    public Value readValue() throws IOException {
         int type = readInt();
         switch(type) {
         case Value.NULL:
@@ -482,7 +486,7 @@ public class Transfer {
             ValueLob v = ValueLob.createBlob(in, length, session.getDataHandler());
             int magic = readInt();
             if (magic != LOB_MAGIC) {
-                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
+                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
             }
             return v;
         }
@@ -491,7 +495,7 @@ public class Transfer {
             ValueLob v = ValueLob.createClob(new ExactUTF8InputStreamReader(in), length, session.getDataHandler());
             int magic = readInt();
             if (magic != LOB_MAGIC) {
-                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
+                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
             }
             return v;
         }
@@ -522,7 +526,7 @@ public class Transfer {
             return ValueResultSet.get(rs);
         }
         default:
-            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
+            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }
 

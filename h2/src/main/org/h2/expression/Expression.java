@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -28,7 +26,7 @@ public abstract class Expression {
      * @param session the session
      * @return the result
      */
-    public abstract Value getValue(Session session) throws SQLException;
+    public abstract Value getValue(Session session);
 
     /**
      * Return the data type. The data type may not be known before the
@@ -44,7 +42,7 @@ public abstract class Expression {
      * @param resolver the column resolver
      * @param level the subquery nesting level
      */
-    public abstract void mapColumns(ColumnResolver resolver, int level) throws SQLException;
+    public abstract void mapColumns(ColumnResolver resolver, int level);
 
     /**
      * Try to optimize the expression.
@@ -52,7 +50,7 @@ public abstract class Expression {
      * @param session the session
      * @return the optimized expression
      */
-    public abstract Expression optimize(Session session) throws SQLException;
+    public abstract Expression optimize(Session session);
 
     /**
      * Tell the expression columns whether the table filter can return values now.
@@ -103,7 +101,7 @@ public abstract class Expression {
      *
      * @param session the session
      */
-    public abstract void updateAggregate(Session session) throws SQLException;
+    public abstract void updateAggregate(Session session);
 
     /**
      * Check if this expression and all sub-expressions can fulfill a criteria.
@@ -183,7 +181,7 @@ public abstract class Expression {
      * @param session the session
      * @return the result
      */
-    public Boolean getBooleanValue(Session session) throws SQLException {
+    public Boolean getBooleanValue(Session session) {
         return getValue(session).getBoolean();
     }
 
@@ -194,7 +192,7 @@ public abstract class Expression {
      * @param filter the table filter
      * @throws SQLException
      */
-    public void createIndexConditions(Session session, TableFilter filter) throws SQLException {
+    public void createIndexConditions(Session session, TableFilter filter) {
         // default is do nothing
     }
 

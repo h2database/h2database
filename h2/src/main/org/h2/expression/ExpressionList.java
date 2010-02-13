@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -27,7 +25,7 @@ public class ExpressionList extends Expression {
         this.list = list;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         Value[] v = new Value[list.length];
         for (int i = 0; i < list.length; i++) {
             v[i] = list[i].getValue(session);
@@ -39,13 +37,13 @@ public class ExpressionList extends Expression {
         return Value.ARRAY;
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : list) {
             e.mapColumns(resolver, level);
         }
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         boolean allConst = true;
         for (int i = 0; i < list.length; i++) {
             Expression e = list[i].optimize(session);
@@ -87,7 +85,7 @@ public class ExpressionList extends Expression {
         return buff.append(')').toString();
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         for (Expression e : list) {
             e.updateAggregate(session);
         }

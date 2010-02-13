@@ -6,7 +6,6 @@
  */
 package org.h2.util;
 
-import java.sql.SQLException;
 
 /**
  * The base for other hash classes.
@@ -56,7 +55,7 @@ public abstract class HashBase {
      *
      * @param newLevel the new level
      */
-    protected abstract void rehash(int newLevel) throws SQLException;
+    protected abstract void rehash(int newLevel);
 
     /**
      * Get the size of the map.
@@ -71,7 +70,7 @@ public abstract class HashBase {
      * Check the size before adding an entry. This method resizes the map if
      * required.
      */
-    void checkSizePut() throws SQLException {
+    void checkSizePut() {
         if (deletedCount > size) {
             rehash(level);
         }
@@ -84,7 +83,7 @@ public abstract class HashBase {
      * Check the size before removing an entry. This method resizes the map if
      * required.
      */
-    protected void checkSizeRemove() throws SQLException {
+    protected void checkSizeRemove() {
         if (size < minSize && level > 0) {
             rehash(level - 1);
         } else if (deletedCount > maxDeleted) {

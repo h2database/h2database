@@ -6,8 +6,6 @@
  */
 package org.h2.test.unit;
 
-import java.sql.SQLException;
-
 import org.h2.test.TestBase;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
@@ -28,13 +26,13 @@ public class TestValue extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() {
         testUUID();
         testDouble(false);
         testDouble(true);
     }
 
-    private void testDouble(boolean useFloat) throws SQLException {
+    private void testDouble(boolean useFloat) {
         double[] d = new double[]{
                 Double.NEGATIVE_INFINITY,
                 -1,

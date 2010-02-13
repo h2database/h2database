@@ -29,7 +29,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
@@ -41,6 +41,7 @@ import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
+import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
@@ -396,12 +397,12 @@ public class Function extends Expression implements FunctionCall {
      * @param index the index (0, 1,...)
      * @param param the expression
      */
-    public void setParameter(int index, Expression param) throws SQLException {
+    public void setParameter(int index, Expression param) {
         if (varArgs != null) {
             varArgs.add(param);
         } else {
             if (index >= args.length) {
-                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name,
+                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name,
                         "" + args.length);
             }
             args[index] = param;
@@ -412,11 +413,11 @@ public class Function extends Expression implements FunctionCall {
         return roundmagic(StrictMath.log(value) / StrictMath.log(10));
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         return getValueWithArgs(session, args);
     }
 
-    private Value getNullOrValue(Session session, Expression[] x, int i) throws SQLException {
+    private Value getNullOrValue(Session session, Expression[] x, int i) {
         if (i < x.length) {
             Expression e = x[i];
             if (e != null) {
@@ -426,7 +427,7 @@ public class Function extends Expression implements FunctionCall {
         return null;
     }
 
-    private Value getSimpleValue(Session session, Value v0, Expression[] argList) throws SQLException {
+    private Value getSimpleValue(Session session, Value v0, Expression[] argList) {
         Value result;
         switch (info.type) {
         case ABS:
@@ -450,7 +451,7 @@ public class Function extends Expression implements FunctionCall {
         case COT: {
             double d = Math.tan(v0.getDouble());
             if (d == 0.0) {
-                throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
             }
             result = ValueDouble.get(1. / d);
             break;
@@ -826,7 +827,7 @@ public class Function extends Expression implements FunctionCall {
         return result;
     }
 
-    private boolean cancelStatement(Session session, int targetSessionId) throws SQLException {
+    private boolean cancelStatement(Session session, int targetSessionId) {
         session.getUser().checkAdmin();
         Session[] sessions = session.getDatabase().getSessions(false);
         for (Session s : sessions) {
@@ -842,7 +843,7 @@ public class Function extends Expression implements FunctionCall {
         return false;
     }
 
-    private Value getValueWithArgs(Session session, Expression[] argList) throws SQLException {
+    private Value getValueWithArgs(Session session, Expression[] argList) {
         if (info.nullIfParameterIsNull) {
             for (int i = 0; i < argList.length; i++) {
                 if (getNullOrValue(session, argList, i) == ValueNull.INSTANCE) {
@@ -877,7 +878,7 @@ public class Function extends Expression implements FunctionCall {
         case MOD: {
             long x = v1.getLong();
             if (x == 0) {
-                throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
             }
             result = ValueLong.get(v0.getLong() % x);
             break;
@@ -987,7 +988,7 @@ public class Function extends Expression implements FunctionCall {
             try {
                 result = ValueString.get(v0.getString().replaceAll(regexp, v2.getString()));
             } catch (PatternSyntaxException e) {
-                throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
+                throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
             }
             break;
         }
@@ -1015,7 +1016,7 @@ public class Function extends Expression implements FunctionCall {
             } else {
                 String locale = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
                 String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
-                result = ValueString.get(StringUtils.formatDateTime(v0.getTimestamp(), v1.getString(), locale, tz));
+                result = ValueString.get(DateTimeUtils.formatDateTime(v0.getTimestamp(), v1.getString(), locale, tz));
             }
             break;
         }
@@ -1025,7 +1026,7 @@ public class Function extends Expression implements FunctionCall {
             } else {
                 String locale = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
                 String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
-                java.util.Date d = StringUtils.parseDateTime(v0.getString(), v1.getString(), locale, tz);
+                java.util.Date d = DateTimeUtils.parseDateTime(v0.getString(), v1.getString(), locale, tz);
                 result = ValueTimestamp.getNoCopy(new Timestamp(d.getTime()));
             }
             break;
@@ -1059,8 +1060,12 @@ public class Function extends Expression implements FunctionCall {
             csv.setNullString(nullString);
             char fieldSeparator = csv.getFieldSeparatorRead();
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
-            ValueResultSet vr = ValueResultSet.get(csv.read(fileName, columns, charset));
-            result = vr;
+            try {
+                ValueResultSet vr = ValueResultSet.get(csv.read(fileName, columns, charset));
+                result = vr;
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
             break;
         }
         case LINK_SCHEMA: {
@@ -1088,8 +1093,12 @@ public class Function extends Expression implements FunctionCall {
             if (lineSeparator != null) {
                 csv.setLineSeparator(lineSeparator);
             }
-            int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
-            result = ValueInt.get(rows);
+            try {
+                int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
+                result = ValueInt.get(rows);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
             break;
         }
         case SET: {
@@ -1116,17 +1125,17 @@ public class Function extends Expression implements FunctionCall {
                     result = ValueLob.createClob(reader, -1, database);
                 }
             } catch (IOException e) {
-                throw Message.convertIOException(e, fileName);
+                throw DbException.convertIOException(e, fileName);
             }
             break;
         }
         default:
-            throw Message.throwInternalError("type=" + info.type);
+            throw DbException.throwInternalError("type=" + info.type);
         }
         return result;
     }
 
-    private Sequence getSequence(Session session, Value v0, Value v1) throws SQLException {
+    private Sequence getSequence(Session session, Value v0, Value v1) {
         String schemaName, sequenceName;
         if (v1 == null) {
             Parser p = new Parser(session);
@@ -1147,7 +1156,7 @@ public class Function extends Expression implements FunctionCall {
                     sequenceName = StringUtils.toUpperEnglish(sequenceName);
                 }
             } else {
-                throw Message.getSyntaxError(sql, 1);
+                throw DbException.getSyntaxError(sql, 1);
             }
         } else {
             schemaName = v0.getString();
@@ -1175,7 +1184,7 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private byte[] decrypt(String algorithm, byte[] key, byte[] data) throws SQLException {
+    private byte[] decrypt(String algorithm, byte[] key, byte[] data) {
         BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
         byte[] newKey = getPaddedArrayCopy(key, cipher.getKeyLength());
         cipher.setKey(newKey);
@@ -1184,7 +1193,7 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private byte[] encrypt(String algorithm, byte[] key, byte[] data) throws SQLException {
+    private byte[] encrypt(String algorithm, byte[] key, byte[] data) {
         BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
         byte[] newKey = getPaddedArrayCopy(key, cipher.getKeyLength());
         cipher.setKey(newKey);
@@ -1193,7 +1202,7 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private byte[] getHash(String algorithm, byte[] bytes, int iterations) throws SQLException {
+    private byte[] getHash(String algorithm, byte[] bytes, int iterations) {
         SHA256 hash = CipherFactory.getHash(algorithm);
         for (int i = 0; i < iterations; i++) {
             bytes = hash.getHash(bytes, false);
@@ -1212,15 +1221,15 @@ public class Function extends Expression implements FunctionCall {
         return p != null;
     }
 
-    private static int getDatePart(String part) throws SQLException {
+    private static int getDatePart(String part) {
         Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         if (p == null) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, "date part", part);
+            throw DbException.get(ErrorCode.INVALID_VALUE_2, "date part", part);
         }
         return p.intValue();
     }
 
-    private static Timestamp dateadd(String part, int count, Timestamp d) throws SQLException {
+    private static Timestamp dateadd(String part, int count, Timestamp d) {
         int field = getDatePart(part);
         Calendar calendar = Calendar.getInstance();
         int nanos = d.getNanos() % 1000000;
@@ -1232,7 +1241,7 @@ public class Function extends Expression implements FunctionCall {
         return ts;
     }
 
-    private static long datediff(String part, Timestamp d1, Timestamp d2) throws SQLException {
+    private static long datediff(String part, Timestamp d1, Timestamp d2) {
         // diff (yy, 31.12.2004, 1.1.2005) = 1
         int field = getDatePart(part);
         Calendar calendar = Calendar.getInstance();
@@ -1267,7 +1276,7 @@ public class Function extends Expression implements FunctionCall {
             case Calendar.HOUR_OF_DAY:
                 return t2 / hour - t1 / hour;
             default:
-                throw Message.throwInternalError("field:" + field);
+                throw DbException.throwInternalError("field:" + field);
             }
         }
         case Calendar.DATE:
@@ -1390,11 +1399,11 @@ public class Function extends Expression implements FunctionCall {
         return s1.substring(0, start) + s2 + s1.substring(start + length);
     }
 
-    private static String hexToRaw(String s) throws SQLException {
+    private static String hexToRaw(String s) {
         // TODO function hextoraw compatibility with oracle
         int len = s.length();
         if (len % 4 != 0) {
-            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, s);
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
         }
         StringBuilder buff = new StringBuilder(len / 4);
         for (int i = 0; i < len; i += 4) {
@@ -1402,7 +1411,7 @@ public class Function extends Expression implements FunctionCall {
                 char raw = (char) Integer.parseInt(s.substring(i, i + 4), 16);
                 buff.append(raw);
             } catch (NumberFormatException e) {
-                throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, s);
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
             }
         }
         return buff.toString();
@@ -1484,7 +1493,7 @@ public class Function extends Expression implements FunctionCall {
         return dataType;
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : args) {
             e.mapColumns(resolver, level);
         }
@@ -1496,7 +1505,7 @@ public class Function extends Expression implements FunctionCall {
      * @param len the number of parameters set
      * @throws SQLException if the parameter count is incorrect
      */
-    protected void checkParameterCount(int len) throws SQLException {
+    protected void checkParameterCount(int len) {
         int min = 0, max = Integer.MAX_VALUE;
         switch (info.type) {
         case COALESCE:
@@ -1548,11 +1557,11 @@ public class Function extends Expression implements FunctionCall {
             max = 2;
             break;
         default:
-            Message.throwInternalError("type=" + info.type);
+            DbException.throwInternalError("type=" + info.type);
         }
         boolean ok = (len >= min) && (len <= max);
         if (!ok) {
-            throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
+            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
         }
     }
 
@@ -1562,7 +1571,7 @@ public class Function extends Expression implements FunctionCall {
      *
      * @throws SQLException if the parameter count is incorrect.
      */
-    public void doneWithParameters() throws SQLException {
+    public void doneWithParameters() {
         if (info.parameterCount == VAR_ARGS) {
             int len = varArgs.size();
             checkParameterCount(len);
@@ -1572,8 +1581,8 @@ public class Function extends Expression implements FunctionCall {
         } else {
             int len = args.length;
             if (len > 0 && args[len - 1] == null) {
-                throw Message
-                        .getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "" + len);
+                throw DbException
+                        .get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "" + len);
             }
         }
     }
@@ -1600,7 +1609,7 @@ public class Function extends Expression implements FunctionCall {
         scale = col.getScale();
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         boolean allConst = info.deterministic;
         for (int i = 0; i < args.length; i++) {
             Expression e = args[i].optimize(session);
@@ -1676,7 +1685,7 @@ public class Function extends Expression implements FunctionCall {
             s = p1.getScale();
             d = p1.getDisplaySize();
             if (!(p0 instanceof Variable)) {
-                throw Message.getSQLException(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
+                throw DbException.get(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
             }
             break;
         }
@@ -1845,7 +1854,7 @@ public class Function extends Expression implements FunctionCall {
         return buff.append(')').toString();
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         for (Expression e : args) {
             if (e != null) {
                 e.updateAggregate(session);
@@ -1865,12 +1874,12 @@ public class Function extends Expression implements FunctionCall {
         return args.length;
     }
 
-    public ValueResultSet getValueForColumnList(Session session, Expression[] argList) throws SQLException {
+    public ValueResultSet getValueForColumnList(Session session, Expression[] argList) {
         switch (info.type) {
         case CSVREAD: {
             String fileName = argList[0].getValue(session).getString();
             if (fileName == null) {
-                throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "fileName");
+                throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "fileName");
             }
             String columnList = argList.length < 2 ? null : argList[1].getValue(session).getString();
             String charset = argList.length < 3 ? null : argList[2].getValue(session).getString();
@@ -1881,14 +1890,17 @@ public class Function extends Expression implements FunctionCall {
             setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
             char fieldSeparator = csv.getFieldSeparatorRead();
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
-            ResultSet rs = csv.read(fileName, columns, charset);
-            ValueResultSet vr;
+            ResultSet rs = null;
+            ValueResultSet x;
             try {
-                vr = ValueResultSet.getCopy(rs, 0);
+                rs = csv.read(fileName, columns, charset);
+                x = ValueResultSet.getCopy(rs, 0);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
             } finally {
-                rs.close();
+                JdbcUtils.closeSilently(rs);
             }
-            return vr;
+            return x;
         }
         default:
             break;

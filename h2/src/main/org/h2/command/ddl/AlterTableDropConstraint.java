@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 
 /**
@@ -33,12 +31,12 @@ public class AlterTableDropConstraint extends SchemaCommand {
         constraintName = string;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Constraint constraint = getSchema().findConstraint(session, constraintName);
         if (constraint == null) {
             if (!ifExists) {
-                throw Message.getSQLException(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
+                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
             }
         } else {
             session.getUser().checkRight(constraint.getTable(), Right.ALL);

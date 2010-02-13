@@ -6,7 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
@@ -15,7 +14,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
@@ -74,7 +73,7 @@ public class CreateTable extends SchemaCommand {
      *
      * @param command the statement to add
      */
-    public void addConstraintCommand(Prepared command) throws SQLException {
+    public void addConstraintCommand(Prepared command) {
         if (command instanceof CreateIndex) {
             constraintCommands.add(command);
         } else {
@@ -95,7 +94,7 @@ public class CreateTable extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         if (!db.isPersistent()) {
@@ -105,14 +104,14 @@ public class CreateTable extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.tableName);
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.tableName);
         }
         if (asQuery != null) {
             asQuery.prepare();
             if (data.columns.size() == 0) {
                 generateColumnsFromQuery();
             } else if (data.columns.size() != asQuery.getColumnCount()) {
-                throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
         if (pkColumns != null) {
@@ -177,7 +176,7 @@ public class CreateTable extends SchemaCommand {
                     session.setUndoLogEnabled(old);
                 }
             }
-        } catch (SQLException e) {
+        } catch (DbException e) {
             db.checkPowerOff();
             db.removeSchemaObject(session, table);
             throw e;
@@ -215,14 +214,14 @@ public class CreateTable extends SchemaCommand {
      * @param columns the primary key columns
      * @return true if the same primary key columns where already set
      */
-    private boolean setPrimaryKeyColumns(IndexColumn[] columns) throws SQLException {
+    private boolean setPrimaryKeyColumns(IndexColumn[] columns) {
         if (pkColumns != null) {
             if (columns.length != pkColumns.length) {
-                throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
+                throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
             }
             for (int i = 0; i < columns.length; i++) {
                 if (!columns[i].columnName.equals(pkColumns[i].columnName)) {
-                    throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
+                    throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }
             return true;

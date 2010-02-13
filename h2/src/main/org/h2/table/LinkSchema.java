@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
+import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -38,7 +39,7 @@ public class LinkSchema {
      * @return a result set with the created tables
      */
     public static ResultSet linkSchema(Connection conn, String targetSchema, String driver, String url, String user,
-            String password, String sourceSchema) throws SQLException {
+            String password, String sourceSchema) {
         Connection c2 = null;
         Statement stat = null;
         ResultSet rs = null;
@@ -76,6 +77,8 @@ public class LinkSchema {
                 stat.execute(buff.toString());
                 result.addRow(table);
             }
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         } finally {
             JdbcUtils.closeSilently(rs);
             JdbcUtils.closeSilently(c2);

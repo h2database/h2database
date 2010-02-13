@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +15,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
@@ -46,10 +45,10 @@ public class PageDataIndex extends PageIndex {
     private int rowCountDiff;
     private HashMap<Integer, Integer> sessionRowCount;
     private int mainIndexColumn = -1;
-    private SQLException fastDuplicateKeyException;
+    private DbException fastDuplicateKeyException;
     private int memorySizePerPage;
 
-    public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) throws SQLException {
+    public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
 
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
@@ -62,7 +61,7 @@ public class PageDataIndex extends PageIndex {
         this.store = database.getPageStore();
         store.addIndex(this);
         if (!database.isPersistent()) {
-            throw Message.throwInternalError(table.getName());
+            throw DbException.throwInternalError(table.getName());
         }
         if (create) {
             rootPageId = store.allocatePage();
@@ -79,7 +78,6 @@ public class PageDataIndex extends PageIndex {
             trace.debug(this + " opened rows:" + rowCount);
         }
         table.setRowCount(rowCount);
-        fastDuplicateKeyException = super.getDuplicateKeyException();
         // estimate the memory usage as follows:
         // the less column, the more memory is required,
         // because the more rows fit on a page
@@ -88,11 +86,14 @@ public class PageDataIndex extends PageIndex {
         memorySizePerPage += estimatedRowsPerPage * 64;
     }
 
-    public SQLException getDuplicateKeyException() {
+    public DbException getDuplicateKeyException() {
+        if (fastDuplicateKeyException == null) {
+            fastDuplicateKeyException = super.getDuplicateKeyException();
+        }
         return fastDuplicateKeyException;
     }
 
-    public void add(Session session, Row row) throws SQLException {
+    public void add(Session session, Row row) {
         boolean retry = false;
         if (mainIndexColumn != -1) {
             row.setKey(row.getValue(mainIndexColumn).getLong());
@@ -124,7 +125,7 @@ public class PageDataIndex extends PageIndex {
             try {
                 addTry(session, row);
                 break;
-            } catch (SQLException e) {
+            } catch (DbException e) {
                 if (e != fastDuplicateKeyException) {
                     throw e;
                 }
@@ -146,7 +147,7 @@ public class PageDataIndex extends PageIndex {
         lastKey = Math.max(lastKey, row.getKey() + 1);
     }
 
-    private void addTry(Session session, Row row) throws SQLException {
+    private void addTry(Session session, Row row) {
         while (true) {
             PageData root = getPage(rootPageId, 0);
             int splitPoint = root.addRowTry(row);
@@ -192,12 +193,12 @@ public class PageDataIndex extends PageIndex {
      * @param id the page id
      * @return the page
      */
-    PageDataOverflow getPageOverflow(int id) throws SQLException {
+    PageDataOverflow getPageOverflow(int id) {
         Page p = store.getPage(id);
         if (p instanceof PageDataOverflow) {
             return (PageDataOverflow) p;
         }
-        throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, p.toString());
+        throw DbException.get(ErrorCode.FILE_CORRUPTED_1, p.toString());
     }
 
     /**
@@ -207,7 +208,7 @@ public class PageDataIndex extends PageIndex {
      * @param parent the parent, or -1 if unknown
      * @return the page
      */
-    PageData getPage(int id, int parent) throws SQLException {
+    PageData getPage(int id, int parent) {
         Page pd = store.getPage(id);
         PageData p = (PageData) pd;
         if (p == null) {
@@ -219,7 +220,7 @@ public class PageDataIndex extends PageIndex {
         }
         if (parent != -1) {
             if (p.getParentPageId() != parent) {
-                throw Message.throwInternalError(p + " parent " + p.getParentPageId() + " expected " + parent);
+                throw DbException.throwInternalError(p + " parent " + p.getParentPageId() + " expected " + parent);
             }
         }
         return p;
@@ -236,7 +237,7 @@ public class PageDataIndex extends PageIndex {
      * @param ifEmpty the value to use if the row is empty
      * @return the key
      */
-    long getLong(SearchRow row, long ifEmpty) throws SQLException {
+    long getLong(SearchRow row, long ifEmpty) {
         if (row == null) {
             return ifEmpty;
         }
@@ -247,7 +248,7 @@ public class PageDataIndex extends PageIndex {
         return v.getLong();
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         // ignore first and last
         PageData root = getPage(rootPageId, 0);
         return root.find(session, Long.MIN_VALUE, Long.MAX_VALUE, isMultiVersion);
@@ -262,16 +263,16 @@ public class PageDataIndex extends PageIndex {
      * @param multiVersion if mvcc should be used
      * @return the cursor
      */
-    Cursor find(Session session, long first, long last, boolean multiVersion) throws SQLException {
+    Cursor find(Session session, long first, long last, boolean multiVersion) {
         PageData root = getPage(rootPageId, 0);
         return root.find(session, first, last, multiVersion);
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
-    long getLastKey() throws SQLException {
+    long getLastKey() {
         PageData root = getPage(rootPageId, 0);
         return root.getLastKey();
     }
@@ -285,7 +286,7 @@ public class PageDataIndex extends PageIndex {
         return false;
     }
 
-    public void remove(Session session, Row row) throws SQLException {
+    public void remove(Session session, Row row) {
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {
                 Value v = row.getValue(i);
@@ -325,7 +326,7 @@ public class PageDataIndex extends PageIndex {
         store.logAddOrRemoveRow(session, tableData.getId(), row, false);
     }
 
-    public void remove(Session session) throws SQLException {
+    public void remove(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug(this + " remove");
         }
@@ -334,7 +335,7 @@ public class PageDataIndex extends PageIndex {
         store.removeMeta(this, session);
     }
 
-    public void truncate(Session session) throws SQLException {
+    public void truncate(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug(this + " truncate");
         }
@@ -349,7 +350,7 @@ public class PageDataIndex extends PageIndex {
         tableData.setRowCount(0);
     }
 
-    private void removeAllRows() throws SQLException {
+    private void removeAllRows() {
         try {
             PageData root = getPage(rootPageId, 0);
             root.freeRecursive();
@@ -363,11 +364,11 @@ public class PageDataIndex extends PageIndex {
         }
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("PAGE");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("PAGE");
     }
 
-    public Row getRow(Session session, long key) throws SQLException {
+    public Row getRow(Session session, long key) {
         return getRow(key);
     }
 
@@ -377,7 +378,7 @@ public class PageDataIndex extends PageIndex {
      * @param key the key
      * @return the row
      */
-    public Row getRow(long key) throws SQLException {
+    public Row getRow(long key) {
         PageData root = getPage(rootPageId, 0);
         return root.getRow(key);
     }
@@ -393,7 +394,7 @@ public class PageDataIndex extends PageIndex {
      * @param columnCount the number of columns
      * @return the row
      */
-    Row readRow(Data data, int columnCount) throws SQLException {
+    Row readRow(Data data, int columnCount) {
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             values[i] = data.readValue();
@@ -427,7 +428,7 @@ public class PageDataIndex extends PageIndex {
         return -1;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug(this + " close");
         }
@@ -476,7 +477,7 @@ public class PageDataIndex extends PageIndex {
      * @param session the session
      * @param newPos the new position
      */
-    void setRootPageId(Session session, int newPos) throws SQLException {
+    void setRootPageId(Session session, int newPos) {
         store.removeMeta(this, session);
         this.rootPageId = newPos;
         store.addMeta(this, session);
@@ -499,12 +500,12 @@ public class PageDataIndex extends PageIndex {
         return getName();
     }
 
-    private void invalidateRowCount() throws SQLException {
+    private void invalidateRowCount() {
         PageData root = getPage(rootPageId, 0);
         root.setRowCountStored(PageData.UNKNOWN_ROWCOUNT);
     }
 
-    public void writeRowCount() throws SQLException {
+    public void writeRowCount() {
         try {
             PageData root = getPage(rootPageId, 0);
             root.setRowCountStored(MathUtils.convertLongToInt(rowCount));

@@ -28,7 +28,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
@@ -169,10 +169,14 @@ public class Recover extends Tool implements DataHandler {
      * @param db the database name (null for all databases)
      */
     public static void execute(String dir, String db) throws SQLException {
-        new Recover().process(dir, db);
+        try {
+            new Recover().process(dir, db);
+        } catch (DbException e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
-    private void process(String dir, String db) throws SQLException {
+    private void process(String dir, String db) {
         ArrayList<String> list = FileLister.getDatabaseFiles(dir, db, true);
         if (list.size() == 0) {
             printNoDatabaseFilesFound(dir, db);
@@ -187,7 +191,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private PrintWriter getWriter(String fileName, String suffix) throws SQLException {
+    private PrintWriter getWriter(String fileName, String suffix) {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         trace("Created file: " + outputFile);
@@ -251,7 +255,7 @@ public class Recover extends Tool implements DataHandler {
         if (size == 0) {
             try {
                 IOUtils.delete(n);
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 traceError(n, e);
             }
         }
@@ -468,7 +472,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageLogStream(PrintWriter writer, int logKey, int logFirstTrunkPage, int logFirstDataPage) throws IOException, SQLException {
+    private void dumpPageLogStream(PrintWriter writer, int logKey, int logFirstTrunkPage, int logFirstDataPage) throws IOException {
         Data s = Data.create(this, pageSize);
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey, logFirstTrunkPage, logFirstDataPage, pageSize)
@@ -613,17 +617,17 @@ public class Recover extends Tool implements DataHandler {
             page = Data.create(handler, pageSize);
         }
 
-        public int read() throws IOException {
+        public int read() {
             byte[] b = new byte[1];
             int len = read(b);
             return len < 0 ? -1 : (b[0] & 255);
         }
 
-        public int read(byte[] b) throws IOException {
+        public int read(byte[] b) {
             return read(b, 0, b.length);
         }
 
-        public int read(byte[] b, int off, int len) throws IOException {
+        public int read(byte[] b, int off, int len) {
             if (len == 0) {
                 return 0;
             }
@@ -640,7 +644,7 @@ public class Recover extends Tool implements DataHandler {
             return read == 0 ? -1 : read;
         }
 
-        private int readBlock(byte[] buff, int off, int len) throws IOException {
+        private int readBlock(byte[] buff, int off, int len) {
             fillBuffer();
             if (endOfFile) {
                 return -1;
@@ -651,83 +655,79 @@ public class Recover extends Tool implements DataHandler {
             return l;
         }
 
-        private void fillBuffer() throws IOException {
+        private void fillBuffer() {
             if (remaining > 0 || endOfFile) {
                 return;
             }
-            try {
-                while (dataPages.size() == 0) {
-                    if (trunkPage == 0) {
-                        endOfFile = true;
-                        return;
-                    }
-                    store.seek((long) trunkPage * pageSize);
-                    store.readFully(page.getBytes(), 0, pageSize);
-                    page.reset();
-                    if (!PageStore.checksumTest(page.getBytes(), trunkPage, pageSize)) {
-                        writer.println("-- ERROR: checksum mismatch page: " +trunkPage);
-                        endOfFile = true;
-                        return;
-                    }
-                    int t = page.readByte();
-                    page.readShortInt();
-                    if (t != Page.TYPE_STREAM_TRUNK) {
-                        writer.println("-- eof  page: " + trunkPage + " type: " + t + " expected type: " + Page.TYPE_STREAM_TRUNK);
-                        endOfFile = true;
-                        return;
-                    }
-                    page.readInt();
-                    int key = page.readInt();
-                    logKey++;
-                    if (key != logKey) {
-                        writer.println("-- eof  page: " + trunkPage + " type: " + t + " expected key: " + logKey + " got: " + key);
-                    }
-                    trunkPage = page.readInt();
-                    int pageCount = page.readShortInt();
-                    for (int i = 0; i < pageCount; i++) {
-                        int d = page.readInt();
-                        if (dataPage != 0) {
-                            if (d == dataPage) {
-                                dataPage = 0;
-                            } else {
-                                // ignore the pages before the starting page
-                                continue;
-                            }
+            while (dataPages.size() == 0) {
+                if (trunkPage == 0) {
+                    endOfFile = true;
+                    return;
+                }
+                store.seek((long) trunkPage * pageSize);
+                store.readFully(page.getBytes(), 0, pageSize);
+                page.reset();
+                if (!PageStore.checksumTest(page.getBytes(), trunkPage, pageSize)) {
+                    writer.println("-- ERROR: checksum mismatch page: " +trunkPage);
+                    endOfFile = true;
+                    return;
+                }
+                int t = page.readByte();
+                page.readShortInt();
+                if (t != Page.TYPE_STREAM_TRUNK) {
+                    writer.println("-- eof  page: " + trunkPage + " type: " + t + " expected type: " + Page.TYPE_STREAM_TRUNK);
+                    endOfFile = true;
+                    return;
+                }
+                page.readInt();
+                int key = page.readInt();
+                logKey++;
+                if (key != logKey) {
+                    writer.println("-- eof  page: " + trunkPage + " type: " + t + " expected key: " + logKey + " got: " + key);
+                }
+                trunkPage = page.readInt();
+                int pageCount = page.readShortInt();
+                for (int i = 0; i < pageCount; i++) {
+                    int d = page.readInt();
+                    if (dataPage != 0) {
+                        if (d == dataPage) {
+                            dataPage = 0;
+                        } else {
+                            // ignore the pages before the starting page
+                            continue;
                         }
-                        dataPages.add(d);
                     }
+                    dataPages.add(d);
                 }
-                if (dataPages.size() > 0) {
-                    page.reset();
-                    int nextPage = dataPages.get(0);
-                    dataPages.remove(0);
-                    store.seek((long) nextPage * pageSize);
-                    store.readFully(page.getBytes(), 0, pageSize);
-                    page.reset();
-                    int t = page.readByte();
-                    if (t != 0 && !PageStore.checksumTest(page.getBytes(), nextPage, pageSize)) {
-                        writer.println("-- ERROR: checksum mismatch page: " +nextPage);
-                        endOfFile = true;
-                        return;
-                    }
-                    page.readShortInt();
-                    int p = page.readInt();
-                    int k = page.readInt();
-                    if (t != Page.TYPE_STREAM_DATA) {
-                        writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
-                                " expected type: " + Page.TYPE_STREAM_DATA);
-                        endOfFile = true;
-                        return;
-                    } else if (k != logKey) {
-                        writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
-                                " expected key: " + logKey + " got: " + k);
-                        endOfFile = true;
-                        return;
-                    }
-                    remaining = pageSize - page.length();
+            }
+            if (dataPages.size() > 0) {
+                page.reset();
+                int nextPage = dataPages.get(0);
+                dataPages.remove(0);
+                store.seek((long) nextPage * pageSize);
+                store.readFully(page.getBytes(), 0, pageSize);
+                page.reset();
+                int t = page.readByte();
+                if (t != 0 && !PageStore.checksumTest(page.getBytes(), nextPage, pageSize)) {
+                    writer.println("-- ERROR: checksum mismatch page: " +nextPage);
+                    endOfFile = true;
+                    return;
                 }
-            } catch (SQLException e) {
-                throw Message.convertToIOException(e);
+                page.readShortInt();
+                int p = page.readInt();
+                int k = page.readInt();
+                if (t != Page.TYPE_STREAM_DATA) {
+                    writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
+                            " expected type: " + Page.TYPE_STREAM_DATA);
+                    endOfFile = true;
+                    return;
+                } else if (k != logKey) {
+                    writer.println("-- eof  page: " +nextPage+ " type: " + t + " parent: " + p +
+                            " expected key: " + logKey + " got: " + k);
+                    endOfFile = true;
+                    return;
+                }
+                remaining = pageSize - page.length();
             }
         }
     }
@@ -861,7 +861,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- [" + entryCount + "] child: " + children[entryCount]);
     }
 
-    private void dumpPageDataLeaf(PrintWriter writer, Data s, boolean last, long pageId, int columnCount, int entryCount) throws SQLException {
+    private void dumpPageDataLeaf(PrintWriter writer, Data s, boolean last, long pageId, int columnCount, int entryCount) {
         long[] keys = new long[entryCount];
         int[] offsets = new int[entryCount];
         long next = 0;
@@ -1124,7 +1124,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) {
         return FileStore.open(this, name, "rw");
     }
 
@@ -1153,14 +1153,14 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     public int compareTypeSave(Value a, Value b) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     /**
      * INTERNAL
      */
     public int getMaxLengthInplaceLob() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     /**

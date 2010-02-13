@@ -8,7 +8,6 @@ package org.h2.store.fs;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 
 /**
  * This file system stores files on disk and uses java.nio to access the files.
@@ -39,11 +38,11 @@ public class FileSystemDiskNio extends FileSystemDisk {
         return super.openFileInputStream(translateFileName(fileName));
     }
 
-    public String normalize(String fileName) throws SQLException {
+    public String normalize(String fileName) {
         return getPrefix() + super.normalize(fileName);
     }
 
-    public String[] listFiles(String path) throws SQLException {
+    public String[] listFiles(String path) {
         String[] list = super.listFiles(path);
         for (int i = 0; list != null && i < list.length; i++) {
             list[i] = getPrefix() + list[i];

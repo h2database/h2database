@@ -32,7 +32,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ValueExpression;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
@@ -262,7 +262,11 @@ public class FullText {
      * @return the result set
      */
     public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
-        return search(conn, text, limit, offset, false);
+        try {
+            return search(conn, text, limit, offset, false);
+        } catch (DbException e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
     /**
@@ -288,7 +292,11 @@ public class FullText {
      * @return the result set
      */
     public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
-        return search(conn, text, limit, offset, true);
+        try {
+            return search(conn, text, limit, offset, true);
+        } catch (DbException e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
     /**
@@ -301,14 +309,18 @@ public class FullText {
      * @param commaSeparatedList the list
      */
     public static void setIgnoreList(Connection conn, String commaSeparatedList) throws SQLException {
-        init(conn);
-        FullTextSettings setting = FullTextSettings.getInstance(conn);
-        setIgnoreList(setting, commaSeparatedList);
-        Statement stat = conn.createStatement();
-        stat.execute("TRUNCATE TABLE " + SCHEMA + ".IGNORELIST");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA + ".IGNORELIST VALUES(?)");
-        prep.setString(1, commaSeparatedList);
-        prep.execute();
+        try {
+            init(conn);
+            FullTextSettings setting = FullTextSettings.getInstance(conn);
+            setIgnoreList(setting, commaSeparatedList);
+            Statement stat = conn.createStatement();
+            stat.execute("TRUNCATE TABLE " + SCHEMA + ".IGNORELIST");
+            PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA + ".IGNORELIST VALUES(?)");
+            prep.setString(1, commaSeparatedList);
+            prep.execute();
+        } catch (DbException e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
     /**
@@ -349,7 +361,7 @@ public class FullText {
                 }
                 return IOUtils.readStringAndClose((Reader) data, -1);
             } catch (IOException e) {
-                throw Message.convert(e);
+                throw DbException.toSQLException(e);
             }
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
@@ -376,7 +388,7 @@ public class FullText {
      *            an array.
      * @return the empty result set
      */
-    protected static SimpleResultSet createResultSet(boolean data) throws SQLException {
+    protected static SimpleResultSet createResultSet(boolean data) {
         SimpleResultSet result = new SimpleResultSet();
         if (data) {
             result.addColumn(FullText.FIELD_SCHEMA, Types.VARCHAR, 0, 0);
@@ -397,7 +409,7 @@ public class FullText {
      * @param key the primary key condition as a string
      * @return an array containing the column name list and the data list
      */
-    protected static Object[][] parseKey(Connection conn, String key) throws SQLException {
+    protected static Object[][] parseKey(Connection conn, String key) {
         ArrayList<String> columns = New.arrayList();
         ArrayList<String> data = New.arrayList();
         JdbcConnection c = (JdbcConnection) conn;
@@ -624,7 +636,7 @@ public class FullText {
      * @param set the hash set
      * @param reader the reader
      */
-    protected static void addWords(FullTextSettings setting, HashSet<String> set, Reader reader) throws SQLException {
+    protected static void addWords(FullTextSettings setting, HashSet<String> set, Reader reader) {
         StreamTokenizer tokenizer = new StreamTokenizer(reader);
         tokenizer.resetSyntax();
         tokenizer.wordChars(' ' + 1, 255);
@@ -645,7 +657,7 @@ public class FullText {
                 }
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, "Tokenizer error");
+            throw DbException.convertIOException(e, "Tokenizer error");
         }
     }
 

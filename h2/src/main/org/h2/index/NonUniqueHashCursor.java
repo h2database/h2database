@@ -6,12 +6,11 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-import org.h2.util.IntArray;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.TableData;
+import org.h2.util.IntArray;
 
 /**
  * Cursor implementation for non-unique hash index
@@ -32,14 +31,14 @@ public class NonUniqueHashCursor implements Cursor {
         this.positions = positions;
     }
 
-    public Row get() throws SQLException {
+    public Row get() {
         if (index < 0 || index >= positions.size()) {
             return null;
         }
         return tableData.getRow(session, positions.get(index));
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         return get();
     }
 

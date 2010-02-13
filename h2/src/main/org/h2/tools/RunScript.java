@@ -18,7 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -249,11 +249,11 @@ public class RunScript extends Tool {
                             stat.execute(sql);
                         }
                     }
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     if (continueOnError) {
                         e.printStackTrace(out);
                     } else {
-                        throw e;
+                        throw DbException.toSQLException(e);
                     }
                 }
             }
@@ -312,7 +312,7 @@ public class RunScript extends Tool {
                 conn.close();
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
+            throw DbException.convertIOException(e, fileName);
         }
     }
 

@@ -6,8 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
@@ -36,7 +34,7 @@ public class TreeCursor implements Cursor {
         return get();
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         if (beforeFirst) {
             beforeFirst = false;
             if (node == null) {

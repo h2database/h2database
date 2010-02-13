@@ -6,7 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.h2.command.Parser;
@@ -21,7 +20,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -106,7 +105,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         this.addBefore = before;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkRight(table, Right.ALL);
@@ -161,7 +160,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
         case DROP: {
             if (table.getColumns().length == 1) {
-                throw Message.getSQLException(ErrorCode.CANNOT_DROP_LAST_COLUMN, oldColumn.getSQL());
+                throw DbException.get(ErrorCode.CANNOT_DROP_LAST_COLUMN, oldColumn.getSQL());
             }
             table.checkColumnIsNotReferenced(oldColumn);
             dropSingleColumnIndexes();
@@ -175,12 +174,12 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         default:
-            Message.throwInternalError("type=" + type);
+            DbException.throwInternalError("type=" + type);
         }
         return 0;
     }
 
-    private void convertAutoIncrementColumn(Column c) throws SQLException {
+    private void convertAutoIncrementColumn(Column c) {
         if (c.isAutoIncrement()) {
             if (c.isPrimaryKey()) {
                 c.setOriginalSQL("IDENTITY");
@@ -191,7 +190,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void removeSequence(Sequence sequence) throws SQLException {
+    private void removeSequence(Sequence sequence) {
         if (sequence != null) {
             table.removeSequence(session, sequence);
             sequence.setBelongsToTable(false);
@@ -200,9 +199,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void copyData() throws SQLException {
+    private void copyData() {
         if (table.isTemporary()) {
-            throw Message.getUnsupportedException("TEMP TABLE");
+            throw DbException.getUnsupportedException("TEMP TABLE");
         }
         Database db = session.getDatabase();
         String tempName = db.getTempTableName(session);
@@ -212,9 +211,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
         List<String> views;
         try {
             views = checkViews(table, newTable);
-        } catch (SQLException e) {
+        } catch (DbException e) {
             execute("DROP TABLE " + newTable.getName(), true);
-            throw Message.getSQLException(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
+            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
         }
         String tableName = table.getName();
         execute("DROP TABLE " + table.getSQL(), true);
@@ -247,7 +246,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private TableData cloneTableStructure(Column[] columns, Database db, String tempName, ArrayList<Column> newColumns) throws SQLException {
+    private TableData cloneTableStructure(Column[] columns, Database db, String tempName, ArrayList<Column> newColumns) {
         for (Column col : columns) {
             newColumns.add(col.getClone());
         }
@@ -331,7 +330,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (child instanceof TableView) {
                 continue;
             } else if (child.getType() == DbObject.TABLE_OR_VIEW) {
-                Message.throwInternalError();
+                DbException.throwInternalError();
             }
             String quotedName = Parser.quoteIdentifier(tempName + "_" + child.getName());
             String sql = null;
@@ -373,7 +372,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
      *
      * @param the list of SQL statements to re-create views that depend on this table
      */
-    private List<String> checkViews(SchemaObject sourceTable, SchemaObject newTable) throws SQLException {
+    private List<String> checkViews(SchemaObject sourceTable, SchemaObject newTable) {
         List<String> viewSql = new ArrayList<String>();
         String sourceTableName = sourceTable.getName();
         String newTableName = newTable.getName();
@@ -402,7 +401,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
      * @param recreate the list of SQL statements to re-create views that depend
      *            on this table
      */
-    private void checkViewsAreValid(DbObject tableOrView, List<String> recreate) throws SQLException {
+    private void checkViewsAreValid(DbObject tableOrView, List<String> recreate) {
         for (DbObject view : tableOrView.getChildren()) {
             if (view instanceof TableView) {
                 String sql = ((TableView) view).getQuery();
@@ -417,7 +416,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void execute(String sql, boolean ddl) throws SQLException {
+    private void execute(String sql, boolean ddl) {
         Prepared command = session.prepare(sql);
         command.update();
         if (ddl) {
@@ -425,7 +424,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void dropSingleColumnIndexes() throws SQLException {
+    private void dropSingleColumnIndexes() {
         Database db = session.getDatabase();
         ArrayList<Index> indexes = table.getIndexes();
         for (int i = 0; i < indexes.size(); i++) {
@@ -440,7 +439,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                     if (cols.length == 1) {
                         dropIndex = true;
                     } else {
-                        throw Message.getSQLException(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
+                        throw DbException.get(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
                     }
                 }
             }
@@ -452,25 +451,25 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void checkNullable() throws SQLException {
+    private void checkNullable() {
         for (Index index : table.getIndexes()) {
             if (index.getColumnIndex(oldColumn) < 0) {
                 continue;
             }
             IndexType indexType = index.getIndexType();
             if (indexType.isPrimaryKey() || indexType.isHash()) {
-                throw Message.getSQLException(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
+                throw DbException.get(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
             }
         }
     }
 
-    private void checkNoNullValues() throws SQLException {
+    private void checkNoNullValues() {
         String sql = "SELECT COUNT(*) FROM " + table.getSQL() + " WHERE " + oldColumn.getSQL() + " IS NULL";
         Prepared command = session.prepare(sql);
         ResultInterface result = command.query(0);
         result.next();
         if (result.currentRow()[0].getInt() > 0) {
-            throw Message.getSQLException(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, oldColumn.getSQL());
+            throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, oldColumn.getSQL());
         }
     }
 

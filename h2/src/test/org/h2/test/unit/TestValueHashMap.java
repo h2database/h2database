@@ -6,7 +6,6 @@
  */
 package org.h2.test.unit;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,12 +39,12 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() {
         testNotANumber();
         testRandomized();
     }
 
-    private void testNotANumber() throws SQLException {
+    private void testNotANumber() {
         ValueHashMap<Integer> map = ValueHashMap.newInstance(this);
         for (int i = 1; i < 100; i++) {
             double d = Double.longBitsToDouble(0x7ff0000000000000L | i);
@@ -55,17 +54,13 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         }
     }
 
-    private void testRandomized() throws SQLException {
+    private void testRandomized() {
         ValueHashMap<Value> map = ValueHashMap.newInstance(this);
         HashMap<Value, Value> hash = New.hashMap();
         Random random = new Random(1);
         Comparator<Value> vc = new Comparator<Value>() {
             public int compare(Value v1, Value v2) {
-                try {
-                    return v1.compareTo(v2, compareMode);
-                } catch (SQLException e) {
-                    throw new AssertionError(e);
-                }
+                return v1.compareTo(v2, compareMode);
             }
         };
         for (int i = 0; i < 10000; i++) {
@@ -132,7 +127,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public int compareTypeSave(Value a, Value b) throws SQLException {
+    public int compareTypeSave(Value a, Value b) {
         return a.compareTo(b, compareMode);
     }
 

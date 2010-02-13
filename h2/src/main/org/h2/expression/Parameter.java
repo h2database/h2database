@@ -6,11 +6,9 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -70,9 +68,9 @@ public class Parameter extends Expression implements ParameterInterface {
         // can't map
     }
 
-    public void checkSet() throws SQLException {
+    public void checkSet() {
         if (value == null) {
-            throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
+            throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
         }
     }
 
@@ -146,7 +144,7 @@ public class Parameter extends Expression implements ParameterInterface {
         case ExpressionVisitor.GET_DEPENDENCIES:
             return true;
         default:
-            throw Message.throwInternalError("type="+visitor.getType());
+            throw DbException.throwInternalError("type="+visitor.getType());
         }
     }
 

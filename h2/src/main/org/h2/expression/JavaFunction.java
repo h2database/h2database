@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.command.Parser;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
@@ -28,13 +26,13 @@ public class JavaFunction extends Expression implements FunctionCall {
     private FunctionAlias.JavaMethod javaMethod;
     private Expression[] args;
 
-    public JavaFunction(FunctionAlias functionAlias, Expression[] args) throws SQLException {
+    public JavaFunction(FunctionAlias functionAlias, Expression[] args) {
         this.functionAlias = functionAlias;
         this.javaMethod = functionAlias.findJavaMethod(args);
         this.args = args;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         return javaMethod.getValue(session, args, false);
     }
 
@@ -42,13 +40,13 @@ public class JavaFunction extends Expression implements FunctionCall {
         return javaMethod.getDataType();
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : args) {
             e.mapColumns(resolver, level);
         }
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         boolean allConst = isDeterministic();
         for (int i = 0; i < args.length; i++) {
             Expression e = args[i].optimize(session);
@@ -91,7 +89,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         return buff.append(')').toString();
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         for (Expression e : args) {
             if (e != null) {
                 e.updateAggregate(session);
@@ -107,7 +105,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         return javaMethod.getParameterCount();
     }
 
-    public ValueResultSet getValueForColumnList(Session session, Expression[] argList) throws SQLException {
+    public ValueResultSet getValueForColumnList(Session session, Expression[] argList) {
         Value v = javaMethod.getValue(session, argList, true);
         return v == ValueNull.INSTANCE ? null : (ValueResultSet) v;
     }

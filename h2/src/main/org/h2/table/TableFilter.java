@@ -6,7 +6,6 @@
  */
 package org.h2.table;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
@@ -20,7 +19,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.util.New;
@@ -87,8 +86,7 @@ public class TableFilter implements ColumnResolver {
      * @param rightsChecked true if rights are already checked
      * @param select the select statement
      */
-    public TableFilter(Session session, Table table, String alias, boolean rightsChecked, Select select)
-            throws SQLException {
+    public TableFilter(Session session, Table table, String alias, boolean rightsChecked, Select select) {
         this.session = session;
         this.table = table;
         this.alias = alias;
@@ -115,7 +113,7 @@ public class TableFilter implements ColumnResolver {
      * @param exclusive true if an exclusive lock is required
      * @param force lock even in the MVCC mode
      */
-    public void lock(Session s, boolean exclusive, boolean force) throws SQLException {
+    public void lock(Session s, boolean exclusive, boolean force) {
         table.lock(s, exclusive, force);
         if (join != null) {
             join.lock(s, exclusive, force);
@@ -129,7 +127,7 @@ public class TableFilter implements ColumnResolver {
      * @param level 1 for the first table in a join, 2 for the second, and so on
      * @return the best plan item
      */
-    public PlanItem getBestPlanItem(Session s, int level) throws SQLException {
+    public PlanItem getBestPlanItem(Session s, int level) {
         PlanItem item;
         if (indexConditions.size() == 0) {
             item = new PlanItem();
@@ -193,7 +191,7 @@ public class TableFilter implements ColumnResolver {
      * Prepare reading rows. This method will remove all index conditions that
      * can not be used, and optimize the conditions.
      */
-    public void prepare() throws SQLException {
+    public void prepare() {
         // forget all unused index conditions
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition condition = indexConditions.get(i);
@@ -207,7 +205,7 @@ public class TableFilter implements ColumnResolver {
         }
         if (join != null) {
             if (SysProperties.CHECK && join == this) {
-                Message.throwInternalError("self join");
+                DbException.throwInternalError("self join");
             }
             join.prepare();
         }
@@ -248,7 +246,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @return true if there are
      */
-    public boolean next() throws SQLException {
+    public boolean next() {
         if (state == AFTER_LAST) {
             return false;
         } else if (state == BEFORE_FIRST) {
@@ -320,12 +318,12 @@ public class TableFilter implements ColumnResolver {
         return false;
     }
 
-    private void checkTimeout() throws SQLException {
+    private void checkTimeout() {
         session.checkCanceled();
         // System.out.println(this.alias+ " " + table.getName() + ": " + scanCount);
     }
 
-    private boolean isOk(Expression condition) throws SQLException {
+    private boolean isOk(Expression condition) {
         if (condition == null) {
             return true;
         }
@@ -337,7 +335,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @return the current row, or null
      */
-    public Row get() throws SQLException {
+    public Row get() {
         if (current == null && currentSearchRow != null) {
             current = cursor.get();
         }
@@ -407,7 +405,7 @@ public class TableFilter implements ColumnResolver {
      * @param outer if this is an outer join
      * @param on the join condition
      */
-    public void addJoin(TableFilter filter, boolean outer, Expression on) throws SQLException {
+    public void addJoin(TableFilter filter, boolean outer, Expression on) {
         if (on != null) {
             on.mapColumns(this, 0);
         }
@@ -435,7 +433,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @param on the condition
      */
-    public void mapAndAddFilter(Expression on) throws SQLException {
+    public void mapAndAddFilter(Expression on) {
         on.mapColumns(this, 0);
         addFilterCondition(on, true);
         on.createIndexConditions(session, this);
@@ -645,7 +643,7 @@ public class TableFilter implements ColumnResolver {
         return sys;
     }
 
-    public Value getValue(Column column) throws SQLException {
+    public Value getValue(Column column) {
         if (currentSearchRow == null) {
             return null;
         }

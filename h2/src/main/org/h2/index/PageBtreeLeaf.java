@@ -6,11 +6,10 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.Page;
@@ -44,7 +43,7 @@ public class PageBtreeLeaf extends PageBtree {
      * @param pageId the page id
      * @return the page
      */
-    public static Page read(PageBtreeIndex index, Data data, int pageId) throws SQLException {
+    public static Page read(PageBtreeIndex index, Data data, int pageId) {
         PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, data);
         p.read();
         return p;
@@ -58,7 +57,7 @@ public class PageBtreeLeaf extends PageBtree {
      * @param parentPageId the parent
      * @return the page
      */
-    static PageBtreeLeaf create(PageBtreeIndex index, int pageId, int parentPageId) throws SQLException {
+    static PageBtreeLeaf create(PageBtreeIndex index, int pageId, int parentPageId) {
         PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, index.getPageStore().createData());
         index.getPageStore().logUndo(p, null);
         p.parentPageId = parentPageId;
@@ -67,7 +66,7 @@ public class PageBtreeLeaf extends PageBtree {
         return p;
     }
 
-    private void read() throws SQLException {
+    private void read() {
         data.reset();
         int type = data.readByte();
         data.readShortInt();
@@ -75,7 +74,7 @@ public class PageBtreeLeaf extends PageBtree {
         onlyPosition = (type & Page.FLAG_LAST) == 0;
         int indexId = data.readVarInt();
         if (indexId != index.getId()) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1,
                     "page:" + getPos() + " expected index:" + index.getId() +
                     "got:" + indexId);
         }
@@ -89,11 +88,11 @@ public class PageBtreeLeaf extends PageBtree {
         written = true;
     }
 
-    int addRowTry(SearchRow row) throws SQLException {
+    int addRowTry(SearchRow row) {
         return addRow(row, true);
     }
 
-    private int addRow(SearchRow row, boolean tryOnly) throws SQLException {
+    private int addRow(SearchRow row, boolean tryOnly) {
         int rowLength = index.getRowSize(data, row, onlyPosition);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
@@ -121,7 +120,7 @@ public class PageBtreeLeaf extends PageBtree {
             last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
             rowLength = index.getRowSize(data, row, true);
             if (SysProperties.CHECK && last - rowLength < start + OFFSET_LENGTH) {
-                throw Message.throwInternalError();
+                throw DbException.throwInternalError();
             }
         }
         index.getPageStore().logUndo(this, data);
@@ -156,14 +155,14 @@ public class PageBtreeLeaf extends PageBtree {
         return -1;
     }
 
-    private void removeRow(int at) throws SQLException {
+    private void removeRow(int at) {
         readAllRows();
         index.getPageStore().logUndo(this, data);
         entryCount--;
         written = false;
         changeCount = index.getPageStore().getChangeCount();
         if (entryCount <= 0) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         int[] newOffsets = new int[entryCount];
         SearchRow[] newRows = new SearchRow[entryCount];
@@ -184,7 +183,7 @@ public class PageBtreeLeaf extends PageBtree {
         return entryCount;
     }
 
-    PageBtree split(int splitPoint) throws SQLException {
+    PageBtree split(int splitPoint) {
         int newPageId = index.getPageStore().allocatePage();
         PageBtreeLeaf p2 = PageBtreeLeaf.create(index, newPageId, parentPageId);
         for (int i = splitPoint; i < entryCount;) {
@@ -202,11 +201,11 @@ public class PageBtreeLeaf extends PageBtree {
         return this;
     }
 
-    SearchRow remove(SearchRow row) throws SQLException {
+    SearchRow remove(SearchRow row) {
         int at = find(row, false, false, true);
         SearchRow delete = getRow(at);
         if (index.compareRows(row, delete) != 0 || delete.getKey() != row.getKey()) {
-            throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + row);
+            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + row);
         }
         index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {
@@ -223,7 +222,7 @@ public class PageBtreeLeaf extends PageBtree {
         return null;
     }
 
-    void freeRecursive() throws SQLException {
+    void freeRecursive() {
         index.getPageStore().logUndo(this, data);
         index.getPageStore().free(getPos());
     }
@@ -236,7 +235,7 @@ public class PageBtreeLeaf extends PageBtree {
         // ignore
     }
 
-    public void write() throws SQLException {
+    public void write() {
         writeData();
         index.getPageStore().writePage(getPos(), data);
     }
@@ -250,7 +249,7 @@ public class PageBtreeLeaf extends PageBtree {
         data.writeShortInt(entryCount);
     }
 
-    private void writeData() throws SQLException {
+    private void writeData() {
         if (written) {
             return;
         }
@@ -265,7 +264,7 @@ public class PageBtreeLeaf extends PageBtree {
         written = true;
     }
 
-    void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
+    void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) {
         int i = find(first, bigger, false, false);
         if (i > entryCount) {
             if (parentPageId == PageBtree.ROOT) {
@@ -291,7 +290,7 @@ public class PageBtreeLeaf extends PageBtree {
      *
      * @param cursor the cursor
      */
-    void nextPage(PageBtreeCursor cursor) throws SQLException {
+    void nextPage(PageBtreeCursor cursor) {
         if (parentPageId == PageBtree.ROOT) {
             cursor.setCurrent(null, 0);
             return;
@@ -305,7 +304,7 @@ public class PageBtreeLeaf extends PageBtree {
      *
      * @param cursor the cursor
      */
-    void previousPage(PageBtreeCursor cursor) throws SQLException {
+    void previousPage(PageBtreeCursor cursor) {
         if (parentPageId == PageBtree.ROOT) {
             cursor.setCurrent(null, 0);
             return;
@@ -318,7 +317,7 @@ public class PageBtreeLeaf extends PageBtree {
         return "page[" + getPos() + "] b-tree leaf table:" + index.getId() + " entries:" + entryCount;
     }
 
-    public void moveTo(Session session, int newPos) throws SQLException {
+    public void moveTo(Session session, int newPos) {
         PageStore store = index.getPageStore();
         readAllRows();
         PageBtreeLeaf p2 = PageBtreeLeaf.create(index, newPos, parentPageId);

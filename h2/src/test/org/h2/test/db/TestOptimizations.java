@@ -202,7 +202,7 @@ public class TestOptimizations extends TestBase {
      *
      * @return a result set
      */
-    public static ResultSet optimizeInJoinSelect() throws SQLException {
+    public static ResultSet optimizeInJoinSelect() {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("X", Types.INTEGER, 0, 0);
         rs.addRow(1);

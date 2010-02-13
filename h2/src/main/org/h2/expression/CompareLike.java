@@ -6,15 +6,13 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.CompareMode;
@@ -75,7 +73,7 @@ public class CompareLike extends Condition {
         return "(" + sql + ")";
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
         if (left.getType() == Value.STRING_IGNORECASE) {
@@ -124,7 +122,7 @@ public class CompareLike extends Condition {
         return this;
     }
 
-    private Character getEscapeChar(Value e) throws SQLException {
+    private Character getEscapeChar(Value e) {
         if (e == null) {
             return DEFAULT_ESCAPE_CHAR;
         }
@@ -135,14 +133,14 @@ public class CompareLike extends Condition {
         } else if (es.length() == 0) {
             esc = null;
         } else if (es.length() > 1) {
-            throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, es);
+            throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, es);
         } else {
             esc = es.charAt(0);
         }
         return esc;
     }
 
-    public void createIndexConditions(Session session, TableFilter filter) throws SQLException {
+    public void createIndexConditions(Session session, TableFilter filter) {
         if (regexp) {
             return;
         }
@@ -168,7 +166,7 @@ public class CompareLike extends Condition {
         Value e = escape == null ? null : escape.getValue(session);
         if (e == ValueNull.INSTANCE) {
             // should already be optimized
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         initPattern(p, getEscapeChar(e));
         if (invalidPattern) {
@@ -214,7 +212,7 @@ public class CompareLike extends Condition {
         }
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
             return l;
@@ -274,7 +272,7 @@ public class CompareLike extends Condition {
                 }
                 return false;
             default:
-                Message.throwInternalError();
+                DbException.throwInternalError();
             }
         }
         return si == sLen;
@@ -288,7 +286,7 @@ public class CompareLike extends Condition {
      * @param escapeChar the escape character
      * @return true if the value matches
      */
-    public boolean test(String testPattern, String value, char escapeChar) throws SQLException {
+    public boolean test(String testPattern, String value, char escapeChar) {
         initPattern(testPattern, escapeChar);
         if (invalidPattern) {
             return false;
@@ -296,7 +294,7 @@ public class CompareLike extends Condition {
         return compareAt(value, 0, 0, value.length(), patternChars, patternTypes);
     }
 
-    private void initPattern(String p, Character escapeChar) throws SQLException {
+    private void initPattern(String p, Character escapeChar) {
         if (compareMode.getName().equals(CompareMode.OFF) && !ignoreCase) {
             fastCompare = true;
         }
@@ -309,7 +307,7 @@ public class CompareLike extends Condition {
                     patternRegexp = Pattern.compile(p);
                 }
             } catch (PatternSyntaxException e) {
-                throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, e, p);
+                throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, p);
             }
             return;
         }
@@ -370,7 +368,7 @@ public class CompareLike extends Condition {
         return true;
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         right.mapColumns(resolver, level);
         if (escape != null) {
@@ -386,7 +384,7 @@ public class CompareLike extends Condition {
         }
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         left.updateAggregate(session);
         right.updateAggregate(session);
         if (escape != null) {

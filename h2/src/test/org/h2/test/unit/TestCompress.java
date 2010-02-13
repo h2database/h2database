@@ -9,7 +9,6 @@ package org.h2.test.unit;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
@@ -180,7 +179,7 @@ public class TestCompress extends TestBase {
         }
     }
 
-    private void test(int len) throws SQLException {
+    private void test(int len) {
         Random r = new Random(len);
         for (int pattern = 0; pattern < 4; pattern++) {
             byte[] buff = new byte[len];

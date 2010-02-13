@@ -8,11 +8,9 @@ package org.h2.store;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.tools.CompressTool;
 import org.h2.util.Utils;
 
@@ -28,7 +26,7 @@ public class FileStoreInputStream extends InputStream {
     private boolean endOfFile;
     private boolean alwaysClose;
 
-    public FileStoreInputStream(FileStore store, DataHandler handler, boolean compression, boolean alwaysClose) throws SQLException {
+    public FileStoreInputStream(FileStore store, DataHandler handler, boolean compression, boolean alwaysClose) {
         this.store = store;
         this.alwaysClose = alwaysClose;
         if (compression) {
@@ -42,7 +40,7 @@ public class FileStoreInputStream extends InputStream {
                 fillBuffer();
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, store.name);
+            throw DbException.convertIOException(e, store.name);
         }
     }
 
@@ -87,16 +85,12 @@ public class FileStoreInputStream extends InputStream {
             return;
         }
         page.reset();
-        try {
-            store.openFile();
-            if (store.length() == store.getFilePointer()) {
-                close();
-                return;
-            }
-            store.readFully(page.getBytes(), 0, Constants.FILE_BLOCK_SIZE);
-        } catch (SQLException e) {
-            throw Message.convertToIOException(e);
+        store.openFile();
+        if (store.length() == store.getFilePointer()) {
+            close();
+            return;
         }
+        store.readFully(page.getBytes(), 0, Constants.FILE_BLOCK_SIZE);
         page.reset();
         remainingInBuffer = readInt();
         if (remainingInBuffer < 0) {
@@ -114,28 +108,24 @@ public class FileStoreInputStream extends InputStream {
         int len = page.length() - Constants.FILE_BLOCK_SIZE;
         page.reset();
         readInt();
-        try {
-            store.readFully(page.getBytes(), Constants.FILE_BLOCK_SIZE, len);
+        store.readFully(page.getBytes(), Constants.FILE_BLOCK_SIZE, len);
+        page.reset();
+        readInt();
+        if (compress != null) {
+            int uncompressed = readInt();
+            byte[] buff = Utils.newBytes(remainingInBuffer);
+            page.read(buff, 0, remainingInBuffer);
             page.reset();
-            readInt();
-            if (compress != null) {
-                int uncompressed = readInt();
-                byte[] buff = Utils.newBytes(remainingInBuffer);
-                page.read(buff, 0, remainingInBuffer);
-                page.reset();
-                page.checkCapacity(uncompressed);
-                compress.expand(buff, page.getBytes(), 0);
-                remainingInBuffer = uncompressed;
-            }
-        } catch (SQLException e) {
-            throw Message.convertToIOException(e);
+            page.checkCapacity(uncompressed);
+            compress.expand(buff, page.getBytes(), 0);
+            remainingInBuffer = uncompressed;
         }
         if (alwaysClose) {
             store.closeFile();
         }
     }
 
-    public void close() throws IOException {
+    public void close() {
         if (store != null) {
             try {
                 store.close();
@@ -150,11 +140,7 @@ public class FileStoreInputStream extends InputStream {
         if (!SysProperties.runFinalize) {
             return;
         }
-        try {
-            close();
-        } catch (IOException e) {
-            // ignore
-        }
+        close();
     }
 
     public int read() throws IOException {

@@ -7,7 +7,6 @@
 package org.h2.test.unit;
 
 import java.math.BigInteger;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 import org.h2.test.TestBase;
@@ -35,14 +34,14 @@ public class TestOverflow extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() {
         test(Value.BYTE, Byte.MIN_VALUE, Byte.MAX_VALUE);
         test(Value.INT, Integer.MIN_VALUE, Integer.MAX_VALUE);
         test(Value.LONG, Long.MIN_VALUE, Long.MAX_VALUE);
         test(Value.SHORT, Short.MIN_VALUE, Short.MAX_VALUE);
     }
 
-    private void test(int type, long minValue, long maxValue) throws SQLException {
+    private void test(int type, long minValue, long maxValue) {
         values = New.arrayList();
         this.dataType = type;
         this.min = new BigInteger("" + minValue);
@@ -94,28 +93,28 @@ public class TestOverflow extends TestBase {
         try {
             checkIfExpected(va.negate().getString(), a.negate().toString());
             onSuccess();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             onError();
         }
         successExpected = inRange(a.add(b));
         try {
             checkIfExpected(va.add(vb).getString(), a.add(b).toString());
             onSuccess();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             onError();
         }
         successExpected = inRange(a.subtract(b));
         try {
             checkIfExpected(va.subtract(vb).getString(), a.subtract(b).toString());
             onSuccess();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             onError();
         }
         successExpected = inRange(a.multiply(b));
         try {
             checkIfExpected(va.multiply(vb).getString(), a.multiply(b).toString());
             onSuccess();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             onError();
         }
     }
@@ -124,7 +123,7 @@ public class TestOverflow extends TestBase {
         return v.compareTo(min) >= 0 && v.compareTo(max) <= 0;
     }
 
-    private void add(long l) throws SQLException {
+    private void add(long l) {
         values.add(ValueString.get("" + l).convertTo(dataType));
     }
 

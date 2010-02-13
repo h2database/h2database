@@ -6,7 +6,6 @@
  */
 package org.h2.table;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.h2.engine.Session;
@@ -100,7 +99,7 @@ public class Plan {
      * @param session the session
      * @return the cost
      */
-    public double calculateCost(Session session) throws SQLException {
+    public double calculateCost(Session session) {
         double cost = 1;
         boolean invalidPlan = false;
         int level = 1;

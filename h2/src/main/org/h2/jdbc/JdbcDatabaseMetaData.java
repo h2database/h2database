@@ -17,7 +17,6 @@ import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.util.StatementBuilder;
@@ -2575,17 +2574,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public ResultSet getSuperTypes(String catalog, String schemaPattern,
             String typeNamePattern) throws SQLException {
-        try {
-            if (isDebugEnabled()) {
-                debugCode("getSuperTypes("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(typeNamePattern)+");");
-            }
-            throw Message.getUnsupportedException("superTypes");
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
+        throw unsupported("superTypes");
     }
 
     /**
@@ -2634,18 +2623,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getAttributes(String catalog, String schemaPattern,
             String typeNamePattern, String attributeNamePattern)
             throws SQLException {
-        try {
-            if (isDebugEnabled()) {
-                debugCode("getAttributes("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(typeNamePattern)+", "
-                        +quote(attributeNamePattern)+");");
-            }
-            throw Message.getUnsupportedException("attributes");
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
+        throw unsupported("attributes");
     }
 
     /**
@@ -2655,12 +2633,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *            CLOSE_CURSORS_AT_COMMIT
      * @return true if the holdability is ResultSet.CLOSE_CURSORS_AT_COMMIT
      */
-    //## Java 1.4 begin ##
+//## Java 1.4 begin ##
     public boolean supportsResultSetHoldability(int holdability) {
         debugCodeCall("supportsResultSetHoldability", holdability);
         return holdability == ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
-    //## Java 1.4 end ##
+//## Java 1.4 end ##
 
     /**
      * Gets the result set holdability.
@@ -2783,8 +2761,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 /*## Java 1.6 begin ##
     public ResultSet getSchemas(String catalog, String schemaPattern)
             throws SQLException {
-        debugCodeCall("getSchemas");
-        throw Message.getUnsupportedException("getSchemas(., .)");
+        throw unsupported("getSchemas(., .)");
     }
 ## Java 1.6 end ##*/
 
@@ -2812,8 +2789,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * [Not supported] Returns the client info properties.
      */
     public ResultSet getClientInfoProperties() throws SQLException {
-        debugCodeCall("getClientInfoProperties");
-        throw Message.getUnsupportedException("clientInfoProperties");
+        throw unsupported("clientInfoProperties");
     }
 
     /**
@@ -2821,8 +2797,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        debugCodeCall("unwrap");
-        throw Message.getUnsupportedException("unwrap");
+        throw unsupported("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -2831,8 +2806,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        debugCodeCall("isWrapperFor");
-        throw Message.getUnsupportedException("isWrapperFor");
+        throw unsupported("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 
@@ -2843,8 +2817,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getFunctionColumns(String catalog, String schemaPattern,
             String functionNamePattern, String columnNamePattern)
             throws SQLException {
-        debugCodeCall("getFunctionColumns");
-        throw Message.getUnsupportedException("getFunctionColumns");
+        throw unsupported("getFunctionColumns");
     }
 ## Java 1.6 end ##*/
 
@@ -2854,8 +2827,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 /*## Java 1.6 begin ##
     public ResultSet getFunctions(String catalog, String schemaPattern,
             String functionNamePattern) throws SQLException {
-        debugCodeCall("getFunctions");
-        throw Message.getUnsupportedException("getFunctions");
+        throw unsupported("getFunctions");
     }
 ## Java 1.6 end ##*/
 

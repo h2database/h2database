@@ -24,7 +24,7 @@ import java.util.Set;
 import org.h2.Driver;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.util.JdbcUtils;
 import org.h2.util.NetUtils;
@@ -372,51 +372,53 @@ public class TcpServer implements Service {
      * @param force if the server should be stopped immediately
      */
     public static synchronized void shutdown(String url, String password, boolean force) throws SQLException {
-        int port = Constants.DEFAULT_TCP_PORT;
-        int idx = url.indexOf(':', "jdbc:h2:".length());
-        if (idx >= 0) {
-            String p = url.substring(idx + 1);
-            idx = p.indexOf('/');
-            if (idx >= 0) {
-                p = p.substring(0, idx);
-            }
-            port = Integer.decode(p);
-        }
-        String db = getManagementDbName(port);
         try {
-            org.h2.Driver.load();
-        } catch (Exception e) {
-            throw Message.convert(e);
-        } catch (Throwable e) {
-            throw Message.convertThrowable(e);
-        }
-        for (int i = 0; i < 2; i++) {
-            Connection conn = null;
-            PreparedStatement prep = null;
+            int port = Constants.DEFAULT_TCP_PORT;
+            int idx = url.indexOf(':', "jdbc:h2:".length());
+            if (idx >= 0) {
+                String p = url.substring(idx + 1);
+                idx = p.indexOf('/');
+                if (idx >= 0) {
+                    p = p.substring(0, idx);
+                }
+                port = Integer.decode(p);
+            }
+            String db = getManagementDbName(port);
             try {
-                conn = DriverManager.getConnection("jdbc:h2:" + url + "/" + db, "sa", password);
-                prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
-                prep.setInt(1, port);
-                prep.setString(2, password);
-                prep.setInt(3, force ? SHUTDOWN_FORCE : SHUTDOWN_NORMAL);
+                org.h2.Driver.load();
+            } catch (Throwable e) {
+                throw DbException.convert(e);
+            }
+            for (int i = 0; i < 2; i++) {
+                Connection conn = null;
+                PreparedStatement prep = null;
                 try {
-                    prep.execute();
+                    conn = DriverManager.getConnection("jdbc:h2:" + url + "/" + db, "sa", password);
+                    prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
+                    prep.setInt(1, port);
+                    prep.setString(2, password);
+                    prep.setInt(3, force ? SHUTDOWN_FORCE : SHUTDOWN_NORMAL);
+                    try {
+                        prep.execute();
+                    } catch (SQLException e) {
+                        if (force) {
+                            // ignore
+                        } else {
+                            throw e;
+                        }
+                    }
+                    break;
                 } catch (SQLException e) {
-                    if (force) {
-                        // ignore
-                    } else {
+                    if (i == 1) {
                         throw e;
                     }
+                } finally {
+                    JdbcUtils.closeSilently(prep);
+                    JdbcUtils.closeSilently(conn);
                 }
-                break;
-            } catch (SQLException e) {
-                if (i == 1) {
-                    throw e;
-                }
-            } finally {
-                JdbcUtils.closeSilently(prep);
-                JdbcUtils.closeSilently(conn);
             }
+        } catch (Exception e) {
+            throw DbException.toSQLException(e);
         }
     }
 
@@ -450,7 +452,7 @@ public class TcpServer implements Service {
         if (key.equals(db)) {
             return keyDatabase;
         }
-        throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
+        throw DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
     }
 
 }

@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.store.Data;
@@ -73,14 +72,14 @@ abstract class PageData extends Page {
      *
      * @return the row count
      */
-    abstract int getRowCount() throws SQLException;
+    abstract int getRowCount();
 
     /**
      * Set the stored row count. This will write the page.
      *
      * @param rowCount the stored row count
      */
-    abstract void setRowCountStored(int rowCount) throws SQLException;
+    abstract void setRowCountStored(int rowCount);
 
     /**
      * Find an entry by key.
@@ -111,7 +110,7 @@ abstract class PageData extends Page {
      * @param row the now to add
      * @return the split point of this page, or -1 if no split is required
      */
-    abstract int addRowTry(Row row) throws SQLException;
+    abstract int addRowTry(Row row);
 
     /**
      * Get a cursor.
@@ -122,7 +121,7 @@ abstract class PageData extends Page {
      * @param multiVersion if the delta should be used
      * @return the cursor
      */
-    abstract Cursor find(Session session, long min, long max, boolean multiVersion) throws SQLException;
+    abstract Cursor find(Session session, long min, long max, boolean multiVersion);
 
     /**
      * Get the key at this position.
@@ -140,14 +139,14 @@ abstract class PageData extends Page {
      * @param splitPoint the index where to split
      * @return the new page that contains about half the entries
      */
-    abstract PageData split(int splitPoint) throws SQLException;
+    abstract PageData split(int splitPoint);
 
     /**
      * Change the page id.
      *
      * @param id the new page id
      */
-    void setPageId(int id) throws SQLException {
+    void setPageId(int id) {
         int old = getPos();
         index.getPageStore().removeRecord(getPos());
         setPos(id);
@@ -160,21 +159,21 @@ abstract class PageData extends Page {
      *
      * @return the last key
      */
-    abstract long getLastKey() throws SQLException;
+    abstract long getLastKey();
 
     /**
      * Get the first child leaf page of a page.
      *
      * @return the page
      */
-    abstract PageDataLeaf getFirstLeaf() throws SQLException;
+    abstract PageDataLeaf getFirstLeaf();
 
     /**
      * Change the parent page id.
      *
      * @param id the new parent page id
      */
-    void setParentPageId(int id) throws SQLException {
+    void setParentPageId(int id) {
         index.getPageStore().logUndo(this, data);
         parentPageId = id;
         if (written) {
@@ -188,7 +187,7 @@ abstract class PageData extends Page {
      *
      * @param old the previous position
      */
-    abstract void remapChildren(int old) throws SQLException;
+    abstract void remapChildren(int old);
 
     /**
      * Remove a row.
@@ -196,12 +195,12 @@ abstract class PageData extends Page {
      * @param key the key of the row to remove
      * @return true if this page is now empty
      */
-    abstract boolean remove(long key) throws SQLException;
+    abstract boolean remove(long key);
 
     /**
      * Free this page and all child pages.
      */
-    abstract void freeRecursive() throws SQLException;
+    abstract void freeRecursive();
 
     /**
      * Get the row for the given key.
@@ -209,7 +208,7 @@ abstract class PageData extends Page {
      * @param key the key
      * @return the row
      */
-    abstract Row getRow(long key) throws SQLException;
+    abstract Row getRow(long key);
 
     /**
      * Get the estimated memory size.

@@ -215,7 +215,7 @@ public class FtpServer extends Tool implements Service {
      *
      * @return the server socket
      */
-    ServerSocket createDataSocket() throws SQLException {
+    ServerSocket createDataSocket() {
         return NetUtils.createServerSocket(0, false);
     }
 
@@ -291,7 +291,7 @@ public class FtpServer extends Tool implements Service {
      * @param listDirectories if sub-directories should be listed
      * @return the list
      */
-    String getDirectoryListing(String directory, boolean listDirectories) throws SQLException {
+    String getDirectoryListing(String directory, boolean listDirectories) {
         StringBuilder buff = new StringBuilder();
         for (String fileName : fs.listFiles(directory)) {
             if (!fs.isDirectory(fileName) || (fs.isDirectory(fileName) && listDirectories)) {
@@ -322,7 +322,7 @@ public class FtpServer extends Tool implements Service {
         return userName.equals(this.readUserName);
     }
 
-    public void init(String... args) throws SQLException {
+    public void init(String... args) {
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-ftpPort".equals(a)) {
@@ -351,7 +351,7 @@ public class FtpServer extends Tool implements Service {
         return port;
     }
 
-    public void start() throws SQLException {
+    public void start() {
         fs = FileSystem.getInstance(root);
         root = fs.normalize(root);
         fs.mkdirs(root);
@@ -469,7 +469,7 @@ public class FtpServer extends Tool implements Service {
             if (outFile != null) {
                 try {
                     this.out = IOUtils.openFileOutputStream(outFile, false);
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     // ignore
                 }
                 outFile = null;

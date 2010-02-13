@@ -18,7 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
@@ -140,13 +140,13 @@ public class TestLob {
                 prepSelectBlock.setLong(1, next);
                 ResultSet rs = prepSelectBlock.executeQuery();
                 if (!rs.next()) {
-                    SQLException e = Message.getSQLException(ErrorCode.IO_EXCEPTION_1, "block: "+ next);
+                    SQLException e = DbException.get(ErrorCode.IO_EXCEPTION_1, "block: "+ next).getSQLException();
                     IOException io = new EOFException("Unexpected end of stream");
                     io.initCause(e);
                     throw e;
                 }
             } catch (SQLException e) {
-                throw Message.convertToIOException(e);
+                throw DbException.convertToIOException(e);
             }
             int todo;
 //
@@ -290,7 +290,7 @@ public class TestLob {
             return new LobId(lob, length);
         } catch (IOException e) {
             deleteBlocks(firstBlock, nextBlock - 1);
-            throw Message.convertIOException(e, "adding blob");
+            throw DbException.convertIOException(e, "adding blob");
         }
     }
 

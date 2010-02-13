@@ -9,11 +9,10 @@ package org.h2.store.fs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -179,13 +178,13 @@ public class FileSystemMemory extends FileSystem {
         return true;
     }
 
-    public void copy(String original, String copy) throws SQLException {
+    public void copy(String original, String copy) {
         try {
             OutputStream out = openFileOutputStream(copy, false);
             InputStream in = openFileInputStream(original);
             IOUtils.copyAndClose(in, out);
         } catch (IOException e) {
-            throw Message.convertIOException(e, "Can not copy " + original + " to " + copy);
+            throw DbException.convertIOException(e, "Can not copy " + original + " to " + copy);
         }
     }
 
@@ -204,13 +203,13 @@ public class FileSystemMemory extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
+    public OutputStream openFileOutputStream(String fileName, boolean append) {
         try {
             FileObjectMemory obj = getMemoryFile(fileName);
             obj.seek(0);
             return new FileObjectOutputStream(obj, append);
         } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
+            throw DbException.convertIOException(e, fileName);
         }
     }
 

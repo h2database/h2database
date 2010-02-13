@@ -6,7 +6,6 @@
  */
 package org.h2.command;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
@@ -29,7 +28,7 @@ public class CommandList extends Command {
         return command.getParameters();
     }
 
-    private void executeRemaining() throws SQLException {
+    private void executeRemaining() {
         Command remainingCommand = session.prepareLocal(remaining);
         if (remainingCommand.isQuery()) {
             remainingCommand.query(0);
@@ -38,13 +37,13 @@ public class CommandList extends Command {
         }
     }
 
-    public int update() throws SQLException {
+    public int update() {
         int updateCount = command.executeUpdate();
         executeRemaining();
         return updateCount;
     }
 
-    public ResultInterface query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) {
         ResultInterface result = command.query(maxrows);
         executeRemaining();
         return result;
@@ -62,7 +61,7 @@ public class CommandList extends Command {
         return false;
     }
 
-    public ResultInterface queryMeta() throws SQLException {
+    public ResultInterface queryMeta() {
         return command.queryMeta();
     }
 

@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import java.util.BitSet;
 import java.util.Random;
 import org.h2.engine.Session;
@@ -75,7 +74,7 @@ public class Optimizer {
         return i;
     }
 
-    private void calculateBestPlan() throws SQLException {
+    private void calculateBestPlan() {
         start = System.currentTimeMillis();
         cost = -1;
         if (filters.length == 1) {
@@ -100,7 +99,7 @@ public class Optimizer {
         return false;
     }
 
-    private void calculateBruteForceAll() throws SQLException {
+    private void calculateBruteForceAll() {
         TableFilter[] list = new TableFilter[filters.length];
         Permutations<TableFilter> p = Permutations.create(filters, list);
         for (int x = 0; !canStop(x) && p.next(); x++) {
@@ -108,7 +107,7 @@ public class Optimizer {
         }
     }
 
-    private void calculateBruteForceSome() throws SQLException {
+    private void calculateBruteForceSome() {
         int bruteForce = getMaxBruteForceFilters(filters.length);
         TableFilter[] list = new TableFilter[filters.length];
         Permutations<TableFilter> p = Permutations.create(filters, list, bruteForce);
@@ -146,7 +145,7 @@ public class Optimizer {
         }
     }
 
-    private void calculateGenetic() throws SQLException {
+    private void calculateGenetic() {
         TableFilter[] best = new TableFilter[filters.length];
         TableFilter[] list = new TableFilter[filters.length];
         for (int x = 0; x < MAX_GENETIC; x++) {
@@ -173,7 +172,7 @@ public class Optimizer {
         }
     }
 
-    private boolean testPlan(TableFilter[] list) throws SQLException {
+    private boolean testPlan(TableFilter[] list) {
         Plan p = new Plan(list, list.length, condition);
         double costNow = p.calculateCost(session);
         if (cost < 0 || costNow < cost) {
@@ -227,7 +226,7 @@ public class Optimizer {
     /**
      * Calculate the best query plan to use.
      */
-    void optimize() throws SQLException {
+    void optimize() {
         calculateBestPlan();
         bestPlan.removeUnusableIndexConditions();
         TableFilter[] f2 = bestPlan.getFilters();

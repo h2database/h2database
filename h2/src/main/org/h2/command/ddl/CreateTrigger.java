@@ -6,12 +6,10 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.TriggerObject;
 import org.h2.table.Table;
@@ -80,14 +78,14 @@ public class CreateTrigger extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         if (getSchema().findTrigger(triggerName) != null) {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.TRIGGER_ALREADY_EXISTS_1, triggerName);
+            throw DbException.get(ErrorCode.TRIGGER_ALREADY_EXISTS_1, triggerName);
         }
         int id = getObjectId();
         Table table = getSchema().getTableOrView(session, tableName);

@@ -6,14 +6,13 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-import org.h2.util.IntArray;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
+import org.h2.util.IntArray;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 
@@ -43,7 +42,7 @@ public class NonUniqueHashIndex extends BaseHashIndex {
         reset();
     }
 
-    public void add(Session session, Row row) throws SQLException {
+    public void add(Session session, Row row) {
         Value key = getKey(row);
         IntArray positions = rows.get(key);
         if (positions == null) {
@@ -54,7 +53,7 @@ public class NonUniqueHashIndex extends BaseHashIndex {
         rowCount++;
     }
 
-    public void remove(Session session, Row row) throws SQLException {
+    public void remove(Session session, Row row) {
         if (rowCount == 1) {
             // last row in table
             reset();
@@ -71,13 +70,13 @@ public class NonUniqueHashIndex extends BaseHashIndex {
         }
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (first == null || last == null) {
-            throw Message.throwInternalError();
+            throw DbException.throwInternalError();
         }
         if (first != last) {
             if (compareKeys(first, last) != 0) {
-                throw Message.throwInternalError();
+                throw DbException.throwInternalError();
             }
         }
         IntArray positions = rows.get(getKey(first));

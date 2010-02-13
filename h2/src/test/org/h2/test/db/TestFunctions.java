@@ -551,7 +551,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @return a result set
      */
     public static ResultSet simpleResultSet(Integer rowCount, int ip, boolean bp, float fp, double dp, long lp,
-            byte byParam, short sp) throws SQLException {
+            byte byParam, short sp) {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
@@ -714,9 +714,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         return new BigDecimal("1.6");
     }
 
-    public int getType(int[] inputTypes) throws SQLException {
+    public int getType(int[] inputTypes) {
         if (inputTypes.length != 1 || inputTypes[0] != Types.INTEGER) {
-            throw new SQLException("unexpected data type");
+            throw new RuntimeException("unexpected data type");
         }
         return Types.DECIMAL;
     }

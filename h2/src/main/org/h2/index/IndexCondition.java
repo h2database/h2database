@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -17,7 +16,7 @@ import org.h2.expression.Comparison;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.util.StatementBuilder;
@@ -115,7 +114,7 @@ public class IndexCondition {
      * @param session the session
      * @return the value
      */
-    public Value getCurrentValue(Session session) throws SQLException {
+    public Value getCurrentValue(Session session) {
         return expression.getValue(session);
     }
 
@@ -126,7 +125,7 @@ public class IndexCondition {
      * @param session the session
      * @return the value list
      */
-    public Value[] getCurrentValueList(Session session) throws SQLException {
+    public Value[] getCurrentValueList(Session session) {
         HashSet<Value> valueSet = new HashSet<Value>();
         for (Expression e : expressionList) {
             Value v = e.getValue(session);
@@ -138,11 +137,7 @@ public class IndexCondition {
         final CompareMode mode = session.getDatabase().getCompareMode();
         Arrays.sort(array, new Comparator<Value>() {
             public int compare(Value o1, Value o2) {
-                try {
-                    return o1.compareTo(o2, mode);
-                } catch (SQLException e) {
-                    throw Message.convertToInternal(e);
-                }
+                return o1.compareTo(o2, mode);
             }
         });
         return array;
@@ -155,7 +150,7 @@ public class IndexCondition {
      * @param session the session
      * @return the result
      */
-    public ResultInterface getCurrentResult(Session session) throws SQLException {
+    public ResultInterface getCurrentResult(Session session) {
         return expressionQuery.query(0);
     }
 
@@ -200,7 +195,7 @@ public class IndexCondition {
             buff.append(')');
             break;
         default:
-            Message.throwInternalError("type="+compareType);
+            DbException.throwInternalError("type="+compareType);
         }
         if (expression != null) {
             buff.append(expression.getSQL());
@@ -236,7 +231,7 @@ public class IndexCondition {
         case Comparison.SMALLER:
             return END;
         default:
-            throw Message.throwInternalError("type=" + compareType);
+            throw DbException.throwInternalError("type=" + compareType);
         }
     }
 

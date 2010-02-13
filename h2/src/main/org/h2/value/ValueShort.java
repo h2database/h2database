@@ -9,7 +9,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
@@ -34,14 +34,14 @@ public class ValueShort extends Value {
         this.value = value;
     }
 
-    public Value add(Value v) throws SQLException {
+    public Value add(Value v) {
         ValueShort other = (ValueShort) v;
         return checkRange(value + other.value);
     }
 
-    private ValueShort checkRange(int x) throws SQLException {
+    private ValueShort checkRange(int x) {
         if (x < Short.MIN_VALUE || x > Short.MAX_VALUE) {
-            throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.SHORT).name);
+            throw DbException.get(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.SHORT).name);
         }
         return ValueShort.get((short) x);
     }
@@ -50,24 +50,24 @@ public class ValueShort extends Value {
         return Integer.signum(value);
     }
 
-    public Value negate() throws SQLException {
+    public Value negate() {
         return checkRange(-(int) value);
     }
 
-    public Value subtract(Value v) throws SQLException {
+    public Value subtract(Value v) {
         ValueShort other = (ValueShort) v;
         return checkRange(value - other.value);
     }
 
-    public Value multiply(Value v) throws SQLException {
+    public Value multiply(Value v) {
         ValueShort other = (ValueShort) v;
         return checkRange(value * other.value);
     }
 
-    public Value divide(Value v) throws SQLException {
+    public Value divide(Value v) {
         ValueShort other = (ValueShort) v;
         if (other.value == 0) {
-            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         return ValueShort.get((short) (value / other.value));
     }

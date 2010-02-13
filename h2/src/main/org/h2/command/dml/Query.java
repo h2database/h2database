@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.command.Prepared;
@@ -19,7 +18,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.SortOrder;
@@ -67,12 +66,12 @@ public abstract class Query extends Prepared {
      * @param limit the limit as specified in the JDBC method call
      * @return the result
      */
-    protected abstract LocalResult queryWithoutCache(int limit) throws SQLException;
+    protected abstract LocalResult queryWithoutCache(int limit);
 
     /**
      * Initialize the query.
      */
-    public abstract void init() throws SQLException;
+    public abstract void init();
 
     /**
      * The the list of select expressions.
@@ -126,7 +125,7 @@ public abstract class Query extends Prepared {
      *            the subquery level (0 is the top level query, 1 is the first
      *            subquery level)
      */
-    public abstract void mapColumns(ColumnResolver resolver, int level) throws SQLException;
+    public abstract void mapColumns(ColumnResolver resolver, int level);
 
     /**
      * Change the evaluatable flag. This is used when building the execution plan.
@@ -143,7 +142,7 @@ public abstract class Query extends Prepared {
      * @param columnId the column index (0 meaning the first column)
      * @param comparisonType the comparison type
      */
-    public abstract void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException;
+    public abstract void addGlobalCondition(Parameter param, int columnId, int comparisonType);
 
     /**
      * Set the distinct flag.
@@ -166,12 +165,12 @@ public abstract class Query extends Prepared {
      *
      * @param s the session
      */
-    public abstract void updateAggregate(Session s) throws SQLException;
+    public abstract void updateAggregate(Session s);
 
     /**
      * Call the before triggers on all tables.
      */
-    public abstract void fireBeforeSelectTriggers() throws SQLException;
+    public abstract void fireBeforeSelectTriggers();
 
     public boolean isQuery() {
         return true;
@@ -182,7 +181,7 @@ public abstract class Query extends Prepared {
     }
 
     private boolean sameResultAsLast(Session s, Value[] params, Value[] lastParams, long lastEval)
-            throws SQLException {
+            {
         Database db = s.getDatabase();
         for (int i = 0; i < params.length; i++) {
             if (!db.areEqual(lastParams[i], params[i])) {
@@ -211,7 +210,7 @@ public abstract class Query extends Prepared {
         return params;
     }
 
-    public ResultInterface query(int limit) throws SQLException {
+    public ResultInterface query(int limit) {
         fireBeforeSelectTriggers();
         if (!session.getDatabase().getOptimizeReuseResults()) {
             return queryWithoutCache(limit);
@@ -253,7 +252,7 @@ public abstract class Query extends Prepared {
      * @param mustBeInResult all order by expressions must be in the select list
      */
     void initOrder(ArrayList<Expression> expressions, ArrayList<String> expressionSQL, ArrayList<SelectOrderBy> orderList, int visible,
-            boolean mustBeInResult) throws SQLException {
+            boolean mustBeInResult) {
         for (SelectOrderBy o : orderList) {
             Expression e = o.expression;
             if (e == null) {
@@ -318,7 +317,7 @@ public abstract class Query extends Prepared {
             }
             if (!isAlias) {
                 if (mustBeInResult) {
-                    throw Message.getSQLException(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
                 }
                 expressions.add(e);
                 String sql = e.getSQL();
@@ -336,7 +335,7 @@ public abstract class Query extends Prepared {
      * @param expressionCount the number of columns in the query
      * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) throws SQLException {
+    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
         for (int i = 0; i < orderList.size(); i++) {
@@ -356,7 +355,7 @@ public abstract class Query extends Prepared {
                 }
                 idx -= 1;
                 if (idx < 0 || idx >= expressionCount) {
-                    throw Message.getSQLException(ErrorCode.ORDER_BY_NOT_IN_RESULT, "" + (idx + 1));
+                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, "" + (idx + 1));
                 }
             }
             index[i] = idx;

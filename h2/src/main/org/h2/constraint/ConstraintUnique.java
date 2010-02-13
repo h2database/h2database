@@ -6,8 +6,6 @@
  */
 package org.h2.constraint;
 
-import java.sql.SQLException;
-
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.index.Index;
@@ -95,7 +93,7 @@ public class ConstraintUnique extends Constraint {
         this.indexOwner = isOwner;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         table.removeConstraint(this);
         if (indexOwner) {
             table.removeIndexOrTransferOwnership(session, index);

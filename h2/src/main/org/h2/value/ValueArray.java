@@ -7,7 +7,6 @@
 package org.h2.value;
 
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 
@@ -66,7 +65,7 @@ public class ValueArray extends Value {
         return buff.append(')').toString();
     }
 
-    protected int compareSecure(Value o, CompareMode mode) throws SQLException {
+    protected int compareSecure(Value o, CompareMode mode) {
         ValueArray v = (ValueArray) o;
         if (values == v.values) {
             return 0;
@@ -93,7 +92,7 @@ public class ValueArray extends Value {
         return list;
     }
 
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex) {
         throw throwUnsupportedExceptionForType();
     }
 

@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.constant.ErrorCode;
@@ -17,7 +16,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.SortOrder;
@@ -85,7 +84,7 @@ public class SelectUnion extends Query {
         orderList = order;
     }
 
-    private Value[] convert(Value[] values, int columnCount) throws SQLException {
+    private Value[] convert(Value[] values, int columnCount) {
         for (int i = 0; i < columnCount; i++) {
             Expression e = expressions.get(i);
             values[i] = values[i].convertTo(e.getType());
@@ -93,7 +92,7 @@ public class SelectUnion extends Query {
         return values;
     }
 
-    public ResultInterface queryMeta() throws SQLException {
+    public ResultInterface queryMeta() {
         ArrayList<Expression> leftExpressions = left.getExpressions();
         int columnCount = left.getColumnCount();
         LocalResult result = new LocalResult(session, leftExpressions, columnCount);
@@ -101,7 +100,7 @@ public class SelectUnion extends Query {
         return result;
     }
 
-    protected LocalResult queryWithoutCache(int maxrows) throws SQLException {
+    protected LocalResult queryWithoutCache(int maxrows) {
         if (maxrows != 0) {
             if (limitExpr != null) {
                 maxrows = Math.min(limitExpr.getValue(session).getInt(), maxrows);
@@ -130,7 +129,7 @@ public class SelectUnion extends Query {
             right.setDistinct(true);
             break;
         default:
-            Message.throwInternalError("type=" + unionType);
+            DbException.throwInternalError("type=" + unionType);
         }
         ResultInterface l = left.query(0);
         ResultInterface r = right.query(0);
@@ -171,7 +170,7 @@ public class SelectUnion extends Query {
             break;
         }
         default:
-            Message.throwInternalError("type=" + unionType);
+            DbException.throwInternalError("type=" + unionType);
         }
         if (offsetExpr != null) {
             result.setOffset(offsetExpr.getValue(session).getInt());
@@ -183,16 +182,16 @@ public class SelectUnion extends Query {
         return result;
     }
 
-    public void init() throws SQLException {
+    public void init() {
         if (SysProperties.CHECK && checkInit) {
-            Message.throwInternalError();
+            DbException.throwInternalError();
         }
         checkInit = true;
         left.init();
         right.init();
         int len = left.getColumnCount();
         if (len != right.getColumnCount()) {
-            throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+            throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
         ArrayList<Expression> le = left.getExpressions();
         // set the expressions to get the right column count and names,
@@ -204,13 +203,13 @@ public class SelectUnion extends Query {
         }
     }
 
-    public void prepare() throws SQLException {
+    public void prepare() {
         if (isPrepared) {
             // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
             return;
         }
         if (SysProperties.CHECK && !checkInit) {
-            Message.throwInternalError("not initialized");
+            DbException.throwInternalError("not initialized");
         }
         isPrepared = true;
         left.prepare();
@@ -266,7 +265,7 @@ public class SelectUnion extends Query {
         return left.getColumnCount();
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         right.mapColumns(resolver, level);
     }
@@ -276,7 +275,7 @@ public class SelectUnion extends Query {
         right.setEvaluatable(tableFilter, b);
     }
 
-    public void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException {
+    public void addGlobalCondition(Parameter param, int columnId, int comparisonType) {
         addParameter(param);
         switch (unionType) {
         case UNION_ALL:
@@ -291,7 +290,7 @@ public class SelectUnion extends Query {
             break;
         }
         default:
-            Message.throwInternalError("type=" + unionType);
+            DbException.throwInternalError("type=" + unionType);
         }
     }
 
@@ -312,7 +311,7 @@ public class SelectUnion extends Query {
             buff.append(" EXCEPT ");
             break;
         default:
-            Message.throwInternalError("type=" + unionType);
+            DbException.throwInternalError("type=" + unionType);
         }
         buff.append('(').append(right.getPlanSQL()).append(')');
         Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
@@ -331,7 +330,7 @@ public class SelectUnion extends Query {
         return buff.toString();
     }
 
-    public ResultInterface query(int limit) throws SQLException {
+    public ResultInterface query(int limit) {
         // union doesn't always know the parameter list of the left and right queries
         return queryWithoutCache(limit);
     }
@@ -344,12 +343,12 @@ public class SelectUnion extends Query {
         return left.isReadOnly() && right.isReadOnly();
     }
 
-    public void updateAggregate(Session s) throws SQLException {
+    public void updateAggregate(Session s) {
         left.updateAggregate(s);
         right.updateAggregate(s);
     }
 
-    public void fireBeforeSelectTriggers() throws SQLException {
+    public void fireBeforeSelectTriggers() {
         left.fireBeforeSelectTriggers();
         right.fireBeforeSelectTriggers();
     }

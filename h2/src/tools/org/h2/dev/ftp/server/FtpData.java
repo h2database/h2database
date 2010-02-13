@@ -12,8 +12,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.SQLException;
-
 import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 
@@ -93,7 +91,7 @@ public class FtpData extends Thread {
      * @param fs the target file system
      * @param fileName the target file name
      */
-    synchronized void receive(FileSystem fs, String fileName) throws IOException, SQLException {
+    synchronized void receive(FileSystem fs, String fileName) throws IOException {
         connect();
         try {
             InputStream in = socket.getInputStream();

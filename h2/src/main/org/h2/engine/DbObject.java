@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.table.Table;
 
@@ -175,21 +174,21 @@ public interface DbObject {
      *
      * @param session the session
      */
-    void removeChildrenAndResources(Session session) throws SQLException;
+    void removeChildrenAndResources(Session session);
 
     /**
      * Check if renaming is allowed. Does nothing when allowed.
      *
      * @throws SQLException if renaming is not allowed
      */
-    void checkRename() throws SQLException;
+    void checkRename();
 
     /**
      * Rename the object.
      *
      * @param newName the new name
      */
-    void rename(String newName) throws SQLException;
+    void rename(String newName);
 
     /**
      * Check if this object is temporary (for example, a temporary table).

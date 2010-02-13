@@ -25,7 +25,7 @@ import java.util.Calendar;
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.expression.ParameterInterface;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.DateTimeUtils;
@@ -64,7 +64,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     private ArrayList<Value[]> batchParameters;
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int id, int resultSetType,
-                int resultSetConcurrency, boolean closeWithResultSet) throws SQLException {
+                int resultSetConcurrency, boolean closeWithResultSet) {
         super(conn, id, resultSetType, resultSetConcurrency, closeWithResultSet);
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
         this.sqlStatement = sql;
@@ -218,7 +218,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public ResultSet executeQuery(String sql) throws SQLException {
         try {
             debugCodeCall("executeQuery", sql);
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -232,7 +232,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void addBatch(String sql) throws SQLException {
         try {
             debugCodeCall("addBatch", sql);
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -246,7 +246,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public int executeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeUpdate", sql);
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -260,7 +260,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public boolean execute(String sql) throws SQLException {
         try {
             debugCodeCall("execute", sql);
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -581,12 +581,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * [Not supported] Sets the value of a column as a reference.
      */
     public void setRef(int parameterIndex, Ref x) throws SQLException {
-        try {
-            debugCode("setRef("+parameterIndex+", x);");
-            throw Message.getUnsupportedException("ref");
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
+        throw unsupported("ref");
     }
 
     /**
@@ -666,12 +661,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @deprecated
      */
     public void setUnicodeStream(int parameterIndex, InputStream x, int length) throws SQLException {
-        try {
-            debugCode("setUnicodeStream("+parameterIndex+", x, "+length+");");
-            throw Message.getUnsupportedException("unicodeStream");
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
+        throw unsupported("unicodeStream");
     }
 
     /**
@@ -812,12 +802,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * [Not supported] Sets the value of a parameter as a Array.
      */
     public void setArray(int parameterIndex, Array x) throws SQLException {
-        try {
-            debugCode("setArray("+parameterIndex+", x);");
-            throw Message.getUnsupportedException("setArray");
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
+        throw unsupported("setArray");
     }
 
     /**
@@ -1005,12 +990,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * [Not supported]
      */
     public void setURL(int parameterIndex, URL x) throws SQLException {
-        try {
-            debugCode("setURL("+parameterIndex+", x);");
-            throw Message.getUnsupportedException("url");
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
+        throw unsupported("url");
     }
 
     /**
@@ -1098,7 +1078,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                     }
                     try {
                         result[i] = executeUpdateInternal();
-                    } catch (SQLException e) {
+                    } catch (Exception re) {
+                        SQLException e = DbException.toSQLException(re);
                         if (next == null) {
                             next = e;
                         } else {
@@ -1162,7 +1143,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
         try {
             debugCode("executeUpdate("+quote(sql)+", "+autoGeneratedKeys+");");
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1177,7 +1158,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public int executeUpdate(String sql, int[] columnIndexes) throws SQLException {
         try {
             debugCode("executeUpdate(" + quote(sql) + ", " + quoteIntArray(columnIndexes) + ");");
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1191,7 +1172,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public int executeUpdate(String sql, String[] columnNames) throws SQLException {
         try {
             debugCode("executeUpdate(" + quote(sql) + ", " + quoteArray(columnNames) + ");");
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1205,7 +1186,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public boolean execute(String sql, int autoGeneratedKeys) throws SQLException {
         try {
             debugCode("execute(" + quote(sql) + ", " + autoGeneratedKeys + ");");
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1219,7 +1200,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public boolean execute(String sql, int[] columnIndexes) throws SQLException {
         try {
             debugCode("execute(" + quote(sql) + ", " + quoteIntArray(columnIndexes) + ");");
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1233,7 +1214,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public boolean execute(String sql, String[] columnNames) throws SQLException {
         try {
             debugCode("execute(" + quote(sql) + ", " + quoteArray(columnNames) + ");");
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
+            throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1267,7 +1248,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         parameterIndex--;
         ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
         if (parameterIndex < 0 || parameterIndex >= parameters.size()) {
-            throw Message.getInvalidValueException("" + (parameterIndex + 1), "parameterIndex");
+            throw DbException.getInvalidValueException("" + (parameterIndex + 1), "parameterIndex");
         }
         ParameterInterface param = parameters.get(parameterIndex);
         // can only delete old temp files if they are not in the batch
@@ -1279,7 +1260,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
 /*## Java 1.6 begin ##
     public void setRowId(int parameterIndex, RowId x) throws SQLException {
-        throw Message.getUnsupportedException("rowId");
+        throw unsupported("rowId");
     }
 ## Java 1.6 end ##*/
 
@@ -1478,7 +1459,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
 /*## Java 1.6 begin ##
     public void setSQLXML(int parameterIndex, SQLXML x) throws SQLException {
-        throw Message.getUnsupportedException("SQLXML");
+        throw unsupported("SQLXML");
     }
 ## Java 1.6 end ##*/
 

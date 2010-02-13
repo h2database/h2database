@@ -7,13 +7,13 @@
 package org.h2.command;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
@@ -40,7 +40,7 @@ public class CommandRemote implements CommandInterface {
     private int paramCount;
     private int created;
 
-    public CommandRemote(SessionRemote session, ArrayList<Transfer> transferList, String sql, int fetchSize) throws SQLException {
+    public CommandRemote(SessionRemote session, ArrayList<Transfer> transferList, String sql, int fetchSize) {
         this.transferList = transferList;
         trace = session.getTrace();
         this.sql = sql;
@@ -53,7 +53,7 @@ public class CommandRemote implements CommandInterface {
         created = session.getLastReconnect();
     }
 
-    private void prepare(SessionRemote s, boolean createParams) throws SQLException {
+    private void prepare(SessionRemote s, boolean createParams) {
         id = s.getNextId();
         paramCount = 0;
         boolean readParams = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION;
@@ -67,7 +67,7 @@ public class CommandRemote implements CommandInterface {
                     s.traceOperation("SESSION_PREPARE", id);
                     transfer.writeInt(SessionRemote.SESSION_PREPARE).writeInt(id).writeString(sql);
                 }
-                s.done(transfer);
+                s.convert(transfer);
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
                 paramCount = transfer.readInt();
@@ -97,7 +97,7 @@ public class CommandRemote implements CommandInterface {
         return parameters;
     }
 
-    private void prepareIfRequired() throws SQLException {
+    private void prepareIfRequired() {
         if (session.getLastReconnect() != created) {
             // in this case we need to prepare again in every case
             id = Integer.MIN_VALUE;
@@ -109,7 +109,7 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
-    public ResultInterface getMetaData() throws SQLException {
+    public ResultInterface getMetaData() {
         synchronized (session) {
             if (!isQuery) {
                 return null;
@@ -122,7 +122,7 @@ public class CommandRemote implements CommandInterface {
                 try {
                     session.traceOperation("COMMAND_GET_META_DATA", id);
                     transfer.writeInt(SessionRemote.COMMAND_GET_META_DATA).writeInt(id).writeInt(objectId);
-                    session.done(transfer);
+                    session.convert(transfer);
                     int columnCount = transfer.readInt();
                     result = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
                     break;
@@ -135,7 +135,7 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
-    public ResultInterface executeQuery(int maxRows, boolean scrollable) throws SQLException {
+    public ResultInterface executeQuery(int maxRows, boolean scrollable) {
         checkParameters();
         synchronized (session) {
             int objectId = session.getNextId();
@@ -155,7 +155,7 @@ public class CommandRemote implements CommandInterface {
                     }
                     transfer.writeInt(fetch);
                     sendParameters(transfer);
-                    session.done(transfer);
+                    session.convert(transfer);
                     int columnCount = transfer.readInt();
                     if (result != null) {
                         result.close();
@@ -175,7 +175,7 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
-    public int executeUpdate() throws SQLException {
+    public int executeUpdate() {
         checkParameters();
         synchronized (session) {
             int updateCount = 0;
@@ -187,7 +187,7 @@ public class CommandRemote implements CommandInterface {
                     session.traceOperation("COMMAND_EXECUTE_UPDATE", id);
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
-                    session.done(transfer);
+                    session.convert(transfer);
                     updateCount = transfer.readInt();
                     autoCommit = transfer.readBoolean();
                 } catch (IOException e) {
@@ -201,13 +201,13 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
-    private void checkParameters() throws SQLException {
+    private void checkParameters() {
         for (ParameterInterface p : parameters) {
             p.checkSet();
         }
     }
 
-    private void sendParameters(Transfer transfer) throws IOException, SQLException {
+    private void sendParameters(Transfer transfer) throws IOException {
         int len = parameters.size();
         transfer.writeInt(len);
         for (ParameterInterface p : parameters) {
@@ -237,7 +237,7 @@ public class CommandRemote implements CommandInterface {
                     v.close();
                 }
             }
-        } catch (SQLException e) {
+        } catch (DbException e) {
             trace.error("close", e);
         }
         parameters.clear();

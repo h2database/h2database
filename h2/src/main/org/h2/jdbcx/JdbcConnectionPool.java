@@ -32,7 +32,7 @@ import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 
 /*## Java 1.6 begin ##
-import org.h2.message.Message;
+import org.h2.message.DbException;
 ## Java 1.6 end ##*/
 
 /**
@@ -78,7 +78,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
         this.dataSource = dataSource;
         try {
             logWriter = dataSource.getLogWriter();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             // ignore
         }
     }
@@ -344,7 +344,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      */
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw Message.getUnsupportedException("unwrap");
+        throw DbException.getUnsupportedException("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -355,7 +355,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      */
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        throw Message.getUnsupportedException("isWrapperFor");
+        throw DbException.getUnsupportedException("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 

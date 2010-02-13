@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 
@@ -41,14 +39,14 @@ public class CreateSequence extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         if (getSchema().findSequence(sequenceName) != null) {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.SEQUENCE_ALREADY_EXISTS_1, sequenceName);
+            throw DbException.get(ErrorCode.SEQUENCE_ALREADY_EXISTS_1, sequenceName);
         }
         int id = getObjectId();
         Sequence sequence = new Sequence(getSchema(), id, sequenceName, belongsToTable);
@@ -59,7 +57,7 @@ public class CreateSequence extends SchemaCommand {
         return 0;
     }
 
-    private long getLong(Expression expr, long defaultValue) throws SQLException {
+    private long getLong(Expression expr, long defaultValue) {
         if (expr == null) {
             return defaultValue;
         }

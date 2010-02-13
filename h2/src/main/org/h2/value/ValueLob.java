@@ -14,20 +14,19 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
 import org.h2.store.fs.FileSystem;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Implementation of the BLOB and CLOB data types. Small objects are kept in
@@ -114,9 +113,9 @@ public class ValueLob extends Value {
         return new ValueLob(type, small);
     }
 
-    private static String getFileName(DataHandler handler, int tableId, int objectId) throws SQLException {
+    private static String getFileName(DataHandler handler, int tableId, int objectId) {
         if (SysProperties.CHECK && tableId == 0 && objectId == 0) {
-            Message.throwInternalError("0 LOB");
+            DbException.throwInternalError("0 LOB");
         }
         String table = tableId < 0 ? ".temp" : ".t" + tableId;
         return getFileNamePrefix(handler.getDatabasePath(), objectId) + table + Constants.SUFFIX_LOB_FILE;
@@ -133,7 +132,7 @@ public class ValueLob extends Value {
      * @param compression if compression is used
      * @return the value object
      */
-    public static ValueLob open(int type, DataHandler handler, int tableId, int objectId, long precision, boolean compression) throws SQLException {
+    public static ValueLob open(int type, DataHandler handler, int tableId, int objectId, long precision, boolean compression) {
         String fileName = getFileName(handler, tableId, objectId);
         return new ValueLob(type, handler, fileName, tableId, objectId, true, precision, compression);
     }
@@ -146,7 +145,7 @@ public class ValueLob extends Value {
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLob createClob(Reader in, long length, DataHandler handler) throws SQLException {
+    public static ValueLob createClob(Reader in, long length, DataHandler handler) {
         try {
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
             long remaining = Long.MAX_VALUE;
@@ -172,7 +171,7 @@ public class ValueLob extends Value {
             lob.createFromReader(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 
@@ -199,7 +198,7 @@ public class ValueLob extends Value {
         return (int) m;
     }
 
-    private void createFromReader(char[] buff, int len, Reader in, long remaining, DataHandler h) throws SQLException {
+    private void createFromReader(char[] buff, int len, Reader in, long remaining, DataHandler h) {
         try {
             FileStoreOutputStream out = initLarge(h);
             boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
@@ -222,11 +221,11 @@ public class ValueLob extends Value {
                 out.close();
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 
-    private static String getFileNamePrefix(String path, int objectId) throws SQLException {
+    private static String getFileNamePrefix(String path, int objectId) {
         String name;
         int f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
         if (f > 0) {
@@ -244,7 +243,7 @@ public class ValueLob extends Value {
         return name;
     }
 
-    private int getNewObjectId(DataHandler h) throws SQLException {
+    private int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
         int newId = 0;
         int lobsPerDir = SysProperties.LOB_FILES_PER_DIRECTORY;
@@ -318,7 +317,7 @@ public class ValueLob extends Value {
         }
     }
 
-    private String[] getFileList(DataHandler h, String dir) throws SQLException {
+    private String[] getFileList(DataHandler h, String dir) {
         SmallLRUCache<String, String[]> cache = h.getLobFileListCache();
         String[] list;
         if (cache == null) {
@@ -343,7 +342,7 @@ public class ValueLob extends Value {
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLob createBlob(InputStream in, long length, DataHandler handler) throws SQLException {
+    public static ValueLob createBlob(InputStream in, long length, DataHandler handler) {
         try {
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -368,11 +367,11 @@ public class ValueLob extends Value {
             lob.createFromStream(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 
-    private FileStoreOutputStream initLarge(DataHandler h) throws SQLException {
+    private FileStoreOutputStream initLarge(DataHandler h) {
         this.handler = h;
         this.tableId = 0;
         this.linked = false;
@@ -391,8 +390,7 @@ public class ValueLob extends Value {
         return out;
     }
 
-    private void createFromStream(byte[] buff, int len, InputStream in, long remaining, DataHandler h)
-            throws SQLException {
+    private void createFromStream(byte[] buff, int len, InputStream in, long remaining, DataHandler h) {
         try {
             FileStoreOutputStream out = initLarge(h);
             boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -414,7 +412,7 @@ public class ValueLob extends Value {
                 out.close();
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 
@@ -425,7 +423,7 @@ public class ValueLob extends Value {
      * @param t the new type
      * @return the converted value
      */
-    public Value convertTo(int t) throws SQLException {
+    public Value convertTo(int t) {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
@@ -451,7 +449,7 @@ public class ValueLob extends Value {
         return fileName;
     }
 
-    public void close() throws SQLException {
+    public void close() {
         if (fileName != null) {
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
@@ -460,7 +458,7 @@ public class ValueLob extends Value {
         }
     }
 
-    public void unlink() throws SQLException {
+    public void unlink() {
         if (linked && fileName != null) {
             String temp;
             // synchronize on the database, to avoid concurrent temp file
@@ -478,7 +476,7 @@ public class ValueLob extends Value {
         }
     }
 
-    public Value link(DataHandler h, int tabId) throws SQLException {
+    public Value link(DataHandler h, int tabId) {
         if (fileName == null) {
             this.tableId = tabId;
             return this;
@@ -550,13 +548,11 @@ public class ValueLob extends Value {
             }
             return Utils.convertBytesToString(buff);
         } catch (IOException e) {
-            throw Message.convertToInternal(Message.convertIOException(e, fileName));
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
+            throw DbException.convertIOException(e, fileName);
         }
     }
 
-    public byte[] getBytes() throws SQLException {
+    public byte[] getBytes() {
         if (type == CLOB) {
             // convert hex to string
             return super.getBytes();
@@ -565,7 +561,7 @@ public class ValueLob extends Value {
         return Utils.cloneByteArray(data);
     }
 
-    public byte[] getBytesNoCopy() throws SQLException {
+    public byte[] getBytesNoCopy() {
         if (type == CLOB) {
             // convert hex to string
             return super.getBytesNoCopy();
@@ -576,7 +572,7 @@ public class ValueLob extends Value {
         try {
             return IOUtils.readBytesAndClose(getInputStream(), Integer.MAX_VALUE);
         } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
+            throw DbException.convertIOException(e, fileName);
         }
     }
 
@@ -587,20 +583,16 @@ public class ValueLob extends Value {
                 // it in the data file
                 return (int) (precision ^ (precision >>> 32));
             }
-            try {
-                if (type == CLOB) {
-                    hash = getString().hashCode();
-                } else {
-                    hash = Utils.getByteArrayHash(getBytes());
-                }
-            } catch (SQLException e) {
-                throw Message.convertToInternal(e);
+            if (type == CLOB) {
+                hash = getString().hashCode();
+            } else {
+                hash = Utils.getByteArrayHash(getBytes());
             }
         }
         return hash;
     }
 
-    protected int compareSecure(Value v, CompareMode mode) throws SQLException {
+    protected int compareSecure(Value v, CompareMode mode) {
         if (type == Value.CLOB) {
             return Integer.signum(getString().compareTo(v.getString()));
         }
@@ -612,22 +604,14 @@ public class ValueLob extends Value {
         if (type == Value.CLOB) {
             return getReader();
         }
-        try {
-            return getInputStream();
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
-        }
+        return getInputStream();
     }
 
     public Reader getReader() {
-        try {
-            return IOUtils.getReader(getInputStream());
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
-        }
+        return IOUtils.getReader(getInputStream());
     }
 
-    public InputStream getInputStream() throws SQLException {
+    public InputStream getInputStream() {
         if (fileName == null) {
             return new ByteArrayInputStream(small);
         }
@@ -650,18 +634,14 @@ public class ValueLob extends Value {
     }
 
     public String getSQL() {
-        try {
-            String s;
-            if (type == Value.CLOB) {
-                s = getString();
-                return StringUtils.quoteStringSQL(s);
-            }
-            byte[] buff = getBytes();
-            s = Utils.convertBytesToString(buff);
-            return "X'" + s + "'";
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
+        String s;
+        if (type == Value.CLOB) {
+            s = getString();
+            return StringUtils.quoteStringSQL(s);
         }
+        byte[] buff = getBytes();
+        s = Utils.convertBytesToString(buff);
+        return "X'" + s + "'";
     }
 
     public String getTraceSQL() {
@@ -692,11 +672,7 @@ public class ValueLob extends Value {
     }
 
     public boolean equals(Object other) {
-        try {
-            return other instanceof ValueLob && compareSecure((Value) other, null) == 0;
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
-        }
+        return other instanceof ValueLob && compareSecure((Value) other, null) == 0;
     }
 
     /**
@@ -705,7 +681,7 @@ public class ValueLob extends Value {
      *
      * @param h the data handler
      */
-    public void convertToFileIfRequired(DataHandler h) throws SQLException {
+    public void convertToFileIfRequired(DataHandler h) {
         if (small != null && small.length > h.getMaxLengthInplaceLob()) {
             boolean compress = h.getLobCompressionAlgorithm(type) != null;
             int len = getBufferSize(h, compress, Long.MAX_VALUE);
@@ -717,7 +693,7 @@ public class ValueLob extends Value {
             }
             Value v2 = link(h, tabId);
             if (SysProperties.CHECK && v2 != this) {
-                Message.throwInternalError();
+                DbException.throwInternalError();
             }
         }
     }
@@ -728,12 +704,12 @@ public class ValueLob extends Value {
      * @param handler the data handler
      * @param tableId the table id
      */
-    public static void removeAllForTable(DataHandler handler, int tableId) throws SQLException {
+    public static void removeAllForTable(DataHandler handler, int tableId) {
         String dir = getFileNamePrefix(handler.getDatabasePath(), 0);
         removeAllForTable(handler, dir, tableId);
     }
 
-    private static void removeAllForTable(DataHandler handler, String dir, int tableId) throws SQLException {
+    private static void removeAllForTable(DataHandler handler, String dir, int tableId) {
         for (String name : IOUtils.listFiles(dir)) {
             if (IOUtils.isDirectory(name)) {
                 removeAllForTable(handler, name, tableId);
@@ -758,7 +734,7 @@ public class ValueLob extends Value {
         return fileName != null;
     }
 
-    private static synchronized void deleteFile(DataHandler handler, String fileName) throws SQLException {
+    private static synchronized void deleteFile(DataHandler handler, String fileName) {
         // synchronize on the database, to avoid concurrent temp file creation /
         // deletion / backup
         synchronized (handler.getLobSyncObject()) {
@@ -767,13 +743,13 @@ public class ValueLob extends Value {
     }
 
     private static synchronized void renameFile(DataHandler handler, String oldName, String newName)
-            throws SQLException {
+            {
         synchronized (handler.getLobSyncObject()) {
             IOUtils.rename(oldName, newName);
         }
     }
 
-    private void copyFileTo(DataHandler h, String sourceFileName, String targetFileName) throws SQLException {
+    private void copyFileTo(DataHandler h, String sourceFileName, String targetFileName) {
         synchronized (h.getLobSyncObject()) {
             FileSystem.getInstance(sourceFileName).copy(sourceFileName, targetFileName);
         }
@@ -803,7 +779,7 @@ public class ValueLob extends Value {
      *
      * @return the value
      */
-    public ValueLob copyToTemp() throws SQLException {
+    public ValueLob copyToTemp() {
         ValueLob lob;
         if (type == CLOB) {
             lob = ValueLob.createClob(getReader(), precision, handler);

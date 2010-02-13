@@ -9,7 +9,6 @@ package org.h2.tools;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -26,7 +25,7 @@ import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.Utils;
 import org.h2.util.StringUtils;
 
@@ -72,7 +71,7 @@ public class CompressTool {
      * @return the compressed data
      * @throws SQLException if a error occurs
      */
-    public byte[] compress(byte[] in, String algorithm) throws SQLException {
+    public byte[] compress(byte[] in, String algorithm) {
         int len = in.length;
         if (in.length < 5) {
             algorithm = "NO";
@@ -108,7 +107,7 @@ public class CompressTool {
      * @return the uncompressed data
      * @throws SQLException if a error occurs
      */
-    public byte[] expand(byte[] in) throws SQLException {
+    public byte[] expand(byte[] in) {
         int algorithm = in[0];
         Compressor compress = getCompressor(algorithm);
         try {
@@ -118,14 +117,14 @@ public class CompressTool {
             compress.expand(in, start, in.length - start, buff, 0, len);
             return buff;
         } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, e);
+            throw DbException.get(ErrorCode.COMPRESSION_ERROR, e);
         }
     }
 
     /**
      * INTERNAL
      */
-    public void expand(byte[] in, byte[] out, int outPos) throws SQLException {
+    public void expand(byte[] in, byte[] out, int outPos) {
         int algorithm = in[0];
         Compressor compress = getCompressor(algorithm);
         try {
@@ -133,7 +132,7 @@ public class CompressTool {
             int start = 1 + getLength(len);
             compress.expand(in, start, in.length - start, out, outPos, len);
         } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, e);
+            throw DbException.get(ErrorCode.COMPRESSION_ERROR, e);
         }
     }
 
@@ -208,7 +207,7 @@ public class CompressTool {
         }
     }
 
-    private Compressor getCompressor(String algorithm) throws SQLException {
+    private Compressor getCompressor(String algorithm) {
         if (algorithm == null) {
             algorithm = "LZF";
         }
@@ -227,7 +226,7 @@ public class CompressTool {
     /**
      * INTERNAL
      */
-    public int getCompressAlgorithm(String algorithm) throws SQLException {
+    public int getCompressAlgorithm(String algorithm) {
         algorithm = StringUtils.toUpperEnglish(algorithm);
         if ("NO".equals(algorithm)) {
             return Compressor.NO;
@@ -236,11 +235,11 @@ public class CompressTool {
         } else if ("DEFLATE".equals(algorithm)) {
             return Compressor.DEFLATE;
         } else {
-            throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, algorithm);
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, algorithm);
         }
     }
 
-    private Compressor getCompressor(int algorithm) throws SQLException {
+    private Compressor getCompressor(int algorithm) {
         switch (algorithm) {
         case Compressor.NO:
             return new CompressNo();
@@ -249,15 +248,14 @@ public class CompressTool {
         case Compressor.DEFLATE:
             return new CompressDeflate();
         default:
-            throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, "" + algorithm);
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, "" + algorithm);
         }
     }
 
     /**
      * INTERNAL
      */
-    public static OutputStream wrapOutputStream(OutputStream out, String compressionAlgorithm, String entryName)
-            throws SQLException {
+    public static OutputStream wrapOutputStream(OutputStream out, String compressionAlgorithm, String entryName) {
         try {
             if ("GZIP".equals(compressionAlgorithm)) {
                 out = new GZIPOutputStream(out);
@@ -270,19 +268,18 @@ public class CompressTool {
             } else if ("LZF".equals(compressionAlgorithm)) {
                 out = new LZFOutputStream(out);
             } else if (compressionAlgorithm != null) {
-                throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
+                throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
             }
             return out;
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 
     /**
      * INTERNAL
      */
-    public static InputStream wrapInputStream(InputStream in, String compressionAlgorithm, String entryName)
-            throws SQLException {
+    public static InputStream wrapInputStream(InputStream in, String compressionAlgorithm, String entryName) {
         try {
             if ("GZIP".equals(compressionAlgorithm)) {
                 in = new GZIPInputStream(in);
@@ -303,11 +300,11 @@ public class CompressTool {
             } else if ("LZF".equals(compressionAlgorithm)) {
                 in = new LZFInputStream(in);
             } else if (compressionAlgorithm != null) {
-                throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
+                throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
             }
             return in;
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 

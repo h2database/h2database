@@ -6,10 +6,9 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -34,24 +33,24 @@ public class FunctionIndex extends BaseIndex {
         // nothing to do
     }
 
-    public void add(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void add(Session session, Row row) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
-    public void remove(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void remove(Session session, Row row) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         // TODO sometimes result.reset() would be enough (but not when
         // parameters are used)
         result = functionTable.getResult(session);
         return new FunctionCursor(result);
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         if (masks != null) {
-            throw Message.getUnsupportedException("ALIAS");
+            throw DbException.getUnsupportedException("ALIAS");
         }
         long expectedRows;
         if (functionTable.canGetRowCount()) {
@@ -62,28 +61,28 @@ public class FunctionIndex extends BaseIndex {
         return expectedRows * 10;
     }
 
-    public void remove(Session session) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void remove(Session session) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
-    public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void truncate(Session session) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
     public boolean needRebuild() {
         return false;
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
     public boolean canGetFirstOrLast() {
         return false;
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException("ALIAS");
+    public Cursor findFirstOrLast(Session session, boolean first) {
+        throw DbException.getUnsupportedException("ALIAS");
     }
 
     public long getRowCount(Session session) {

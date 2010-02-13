@@ -7,11 +7,10 @@
 package org.h2.result;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.SessionRemote;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.util.New;
 import org.h2.value.Transfer;
@@ -36,7 +35,7 @@ public class ResultRemote implements ResultInterface {
     private final Trace trace;
 
     public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int fetchSize)
-            throws IOException, SQLException {
+            throws IOException {
         this.session = session;
         trace = session.getTrace();
         this.transfer = transfer;
@@ -92,7 +91,7 @@ public class ResultRemote implements ResultInterface {
         return columns[i].nullable;
     }
 
-    public void reset() throws SQLException {
+    public void reset() {
         rowId = -1;
         currentRow = null;
         if (session == null) {
@@ -104,7 +103,7 @@ public class ResultRemote implements ResultInterface {
                 session.traceOperation("RESULT_RESET", id);
                 transfer.writeInt(SessionRemote.RESULT_RESET).writeInt(id).flush();
             } catch (IOException e) {
-                throw Message.convertIOException(e, null);
+                throw DbException.convertIOException(e, null);
             }
         }
     }
@@ -113,7 +112,7 @@ public class ResultRemote implements ResultInterface {
         return currentRow;
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         if (rowId < rowCount) {
             rowId++;
             remapIfOld();
@@ -164,7 +163,7 @@ public class ResultRemote implements ResultInterface {
             for (Value v : lobValues) {
                 try {
                     v.close();
-                } catch (SQLException e) {
+                } catch (DbException e) {
                     trace.error("delete lob " + v.getTraceSQL(), e);
                 }
             }
@@ -174,7 +173,7 @@ public class ResultRemote implements ResultInterface {
         sendClose();
     }
 
-    private void remapIfOld() throws SQLException {
+    private void remapIfOld() {
         if (session == null) {
             return;
         }
@@ -190,11 +189,11 @@ public class ResultRemote implements ResultInterface {
                 // solve this?
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+            throw DbException.convertIOException(e, null);
         }
     }
 
-    private void fetchRows(boolean sendFetch) throws SQLException {
+    private void fetchRows(boolean sendFetch) {
         synchronized (session) {
             session.checkClosed();
             try {
@@ -204,7 +203,7 @@ public class ResultRemote implements ResultInterface {
                 if (sendFetch) {
                     session.traceOperation("RESULT_FETCH_ROWS", id);
                     transfer.writeInt(SessionRemote.RESULT_FETCH_ROWS).writeInt(id).writeInt(fetch);
-                    session.done(transfer);
+                    session.convert(transfer);
                 }
                 for (int r = 0; r < fetch; r++) {
                     boolean row = transfer.readBoolean();
@@ -229,7 +228,7 @@ public class ResultRemote implements ResultInterface {
                     sendClose();
                 }
             } catch (IOException e) {
-                throw Message.convertIOException(e, null);
+                throw DbException.convertIOException(e, null);
             }
         }
     }

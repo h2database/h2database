@@ -6,7 +6,6 @@
  */
 package org.h2.table;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,7 +31,7 @@ import org.h2.index.PageDataIndex;
 import org.h2.index.PageDelegateIndex;
 import org.h2.index.ScanIndex;
 import org.h2.index.TreeIndex;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
@@ -69,7 +68,7 @@ public class TableData extends Table {
      */
     private boolean waitForLock;
 
-    public TableData(CreateTableData data) throws SQLException {
+    public TableData(CreateTableData data) {
         super(data.schema, data.id, data.tableName, data.persistIndexes, data.persistData);
         Column[] cols = new Column[data.columns.size()];
         data.columns.toArray(cols);
@@ -91,7 +90,7 @@ public class TableData extends Table {
         traceLock = database.getTrace(Trace.LOCK);
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         for (Index index : indexes) {
             index.close(session);
         }
@@ -104,11 +103,11 @@ public class TableData extends Table {
      * @param key unique key
      * @return the row
      */
-    public Row getRow(Session session, long key) throws SQLException {
+    public Row getRow(Session session, long key) {
         return scanIndex.getRow(session, key);
     }
 
-    public void addRow(Session session, Row row) throws SQLException {
+    public void addRow(Session session, Row row) {
         int i = 0;
         lastModificationId = database.getNextModificationDataId();
         // even when not using MVCC
@@ -130,17 +129,14 @@ public class TableData extends Table {
                     index.remove(session, row);
                     checkRowCount(session, index, 0);
                 }
-            } catch (SQLException e2) {
+            } catch (DbException e2) {
                 // this could happen, for example on failure in the storage
                 // but if that is not the case it means there is something wrong
                 // with the database
                 trace.error("Could not undo operation", e);
                 throw e2;
             }
-            if (e instanceof Exception) {
-                throw Message.convert((Exception) e);
-            }
-            throw Message.convertThrowable(e);
+            throw DbException.convert(e);
         }
     }
 
@@ -149,7 +145,7 @@ public class TableData extends Table {
             if (!(index instanceof PageDelegateIndex)) {
                 long rc = index.getRowCount(session);
                 if (rc != rowCount + offset) {
-                    Message.throwInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());
+                    DbException.throwInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());
                 }
             }
         }
@@ -173,12 +169,12 @@ public class TableData extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) throws SQLException {
+            boolean create, String indexComment) {
         if (indexType.isPrimaryKey()) {
             for (IndexColumn c : cols) {
                 Column column = c.column;
                 if (column.isNullable()) {
-                    throw Message.getSQLException(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+                    throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
                 }
                 column.setPrimaryKey(true);
             }
@@ -236,13 +232,13 @@ public class TableData extends Table {
                 }
                 addRowsToIndex(session, buffer, index);
                 if (SysProperties.CHECK && remaining != 0) {
-                    Message.throwInternalError("rowcount remaining=" + remaining + " " + getName());
+                    DbException.throwInternalError("rowcount remaining=" + remaining + " " + getName());
                 }
-            } catch (SQLException e) {
+            } catch (DbException e) {
                 getSchema().freeUniqueName(indexName);
                 try {
                     index.remove(session);
-                } catch (SQLException e2) {
+                } catch (DbException e2) {
                     // this could happen, for example on failure in the storage
                     // but if that is not the case it means
                     // there is something wrong with the database
@@ -294,21 +290,13 @@ public class TableData extends Table {
         return true;
     }
 
-    private void addRowsToIndex(Session session, ArrayList<Row> list, Index index) throws SQLException {
+    private void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
         final Index idx = index;
-        try {
-            Collections.sort(list, new Comparator<Row>() {
-                public int compare(Row r1, Row r2) {
-                    try {
-                        return idx.compareRows(r1, r2);
-                    } catch (SQLException e) {
-                        throw Message.convertToInternal(e);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            throw Message.convert(e);
-        }
+        Collections.sort(list, new Comparator<Row>() {
+            public int compare(Row r1, Row r2) {
+                return idx.compareRows(r1, r2);
+            }
+        });
         for (Row row : list) {
             index.add(session, row);
         }
@@ -326,17 +314,17 @@ public class TableData extends Table {
         return rowCount;
     }
 
-    public void removeRow(Session session, Row row) throws SQLException {
+    public void removeRow(Session session, Row row) {
         if (database.isMultiVersion()) {
             if (row.isDeleted()) {
-                throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, getName());
+                throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, getName());
             }
             int old = row.getSessionId();
             int newId = session.getId();
             if (old == 0) {
                 row.setSessionId(newId);
             } else if (old != newId) {
-                throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, getName());
+                throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, getName());
             }
         }
         lastModificationId = database.getNextModificationDataId();
@@ -355,21 +343,18 @@ public class TableData extends Table {
                     index.add(session, row);
                     checkRowCount(session, index, 0);
                 }
-            } catch (SQLException e2) {
+            } catch (DbException e2) {
                 // this could happen, for example on failure in the storage
                 // but if that is not the case it means there is something wrong
                 // with the database
                 trace.error("Could not undo operation", e);
                 throw e2;
             }
-            if (e instanceof Exception) {
-                throw Message.convert((Exception) e);
-            }
-            throw Message.convertThrowable(e);
+            throw DbException.convert(e);
         }
     }
 
-    public void truncate(Session session) throws SQLException {
+    public void truncate(Session session) {
         lastModificationId = database.getNextModificationDataId();
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = indexes.get(i);
@@ -382,7 +367,7 @@ public class TableData extends Table {
         return lockExclusive == session;
     }
 
-    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
             return;
@@ -410,7 +395,7 @@ public class TableData extends Table {
         }
     }
 
-    private void doLock(Session session, int lockMode, boolean exclusive) throws SQLException {
+    private void doLock(Session session, int lockMode, boolean exclusive) {
         traceLock(session, exclusive, "requesting for");
         long max = System.currentTimeMillis() + session.getLockTimeout();
         boolean checkDeadlock = false;
@@ -456,7 +441,7 @@ public class TableData extends Table {
             if (checkDeadlock) {
                 ArrayList<Session> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
-                    throw Message.getSQLException(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions));
+                    throw DbException.get(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions));
                 }
             } else {
                 // check for deadlocks from now on
@@ -465,7 +450,7 @@ public class TableData extends Table {
             long now = System.currentTimeMillis();
             if (now >= max) {
                 traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
-                throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1, getName());
+                throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
             }
             try {
                 traceLock(session, exclusive, "waiting for");
@@ -647,7 +632,7 @@ public class TableData extends Table {
         this.rowCount = count;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         super.removeChildrenAndResources(session);
         // go backwards because database.removeIndex will call table.removeIndex
         while (indexes.size() > 1) {
@@ -660,7 +645,7 @@ public class TableData extends Table {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.INDEX)) {
                 Index index = (Index) obj;
                 if (index.getTable() == this) {
-                    Message.throwInternalError("index not dropped: " + index.getName());
+                    DbException.throwInternalError("index not dropped: " + index.getName());
                 }
             }
         }

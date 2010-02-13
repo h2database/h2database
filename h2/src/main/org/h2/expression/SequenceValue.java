@@ -6,10 +6,8 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Sequence;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -28,7 +26,7 @@ public class SequenceValue extends Expression {
         this.sequence = sequence;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         long value = sequence.getNext(session);
         session.setLastIdentity(ValueLong.get(value));
         return ValueLong.get(value);
@@ -90,7 +88,7 @@ public class SequenceValue extends Expression {
             visitor.addDependency(sequence);
             return true;
         default:
-            throw Message.throwInternalError("type="+visitor.getType());
+            throw DbException.throwInternalError("type="+visitor.getType());
         }
     }
 

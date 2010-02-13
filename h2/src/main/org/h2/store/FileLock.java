@@ -14,13 +14,11 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
-import org.h2.jdbc.JdbcSQLException;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileSystem;
@@ -120,11 +118,11 @@ public class FileLock implements Runnable {
      * @param fileLockMethod the file locking method to use
      * @throws SQLException if locking was not successful
      */
-    public synchronized void lock(int fileLockMethod) throws SQLException {
+    public synchronized void lock(int fileLockMethod) {
         this.fs = FileSystem.getInstance(fileName);
         checkServer();
         if (locked) {
-            Message.throwInternalError("already locked");
+            DbException.throwInternalError("already locked");
         }
         switch (fileLockMethod) {
         case LOCK_FILE:
@@ -193,7 +191,7 @@ public class FileLock implements Runnable {
      *
      * @return the saved properties
      */
-    public Properties save() throws SQLException {
+    public Properties save() {
         try {
             OutputStream out = fs.openFileOutputStream(fileName, false);
             try {
@@ -211,7 +209,7 @@ public class FileLock implements Runnable {
         }
     }
 
-    private void checkServer() throws SQLException {
+    private void checkServer() {
         Properties prop = load();
         String server = prop.getProperty("server");
         if (server == null) {
@@ -241,10 +239,8 @@ public class FileLock implements Runnable {
             return;
         }
         if (running) {
-            String payload = server + "/" + id;
-            JdbcSQLException ex = Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, "Server is running");
-            ex.setPayload(payload);
-            throw ex;
+            DbException e = DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, "Server is running");
+            throw e.addSQL(server + "/" + id);
         }
     }
 
@@ -253,7 +249,7 @@ public class FileLock implements Runnable {
      *
      * @return the properties
      */
-    public Properties load() throws SQLException {
+    public Properties load() {
         try {
             Properties p2 = SortedProperties.loadProperties(fileName);
             if (trace.isDebugEnabled()) {
@@ -265,7 +261,7 @@ public class FileLock implements Runnable {
         }
     }
 
-    private void waitUntilOld() throws SQLException {
+    private void waitUntilOld() {
         for (int i = 0; i < TIME_GRANULARITY / SLEEP_GAP; i++) {
             long last = fs.getLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
@@ -297,7 +293,7 @@ public class FileLock implements Runnable {
         properties.setProperty("id", uniqueId);
     }
 
-    private void lockSerialized() throws SQLException {
+    private void lockSerialized() {
         method = SERIALIZED;
         if (fs.createNewFile(fileName)) {
             properties = new SortedProperties();
@@ -308,7 +304,7 @@ public class FileLock implements Runnable {
             while (true) {
                 try {
                     properties = load();
-                } catch (SQLException e) {
+                } catch (DbException e) {
                     // ignore
                 }
                 return;
@@ -316,7 +312,7 @@ public class FileLock implements Runnable {
         }
     }
 
-    private void lockFile() throws SQLException {
+    private void lockFile() {
         method = FILE;
         properties = new SortedProperties();
         properties.setProperty("method", String.valueOf(method));
@@ -350,7 +346,7 @@ public class FileLock implements Runnable {
         watchdog.start();
     }
 
-    private void lockSocket() throws SQLException {
+    private void lockSocket() {
         method = SOCKET;
         properties = new SortedProperties();
         properties.setProperty("method", String.valueOf(method));
@@ -421,7 +417,7 @@ public class FileLock implements Runnable {
         watchdog.start();
     }
 
-    private void sleep(int time) throws SQLException {
+    private void sleep(int time) {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
@@ -429,23 +425,22 @@ public class FileLock implements Runnable {
         }
     }
 
-    private SQLException getExceptionFatal(String reason, Throwable t) {
-        return Message.getSQLException(ErrorCode.ERROR_OPENING_DATABASE_1, t, reason);
+    private DbException getExceptionFatal(String reason, Throwable t) {
+        return DbException.get(ErrorCode.ERROR_OPENING_DATABASE_1, t, reason);
     }
 
-    private SQLException getExceptionAlreadyInUse(String reason) {
-        JdbcSQLException ex = Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
-        String payload = null;
+    private DbException getExceptionAlreadyInUse(String reason) {
+        DbException e = DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
         if (fileName != null) {
             try {
                 Properties prop = load();
-                payload = prop.getProperty("server") + "/" + prop.getProperty("id");
-            } catch (SQLException e) {
+                String serverId = prop.getProperty("server") + "/" + prop.getProperty("id");
+                e = e.addSQL(serverId);
+            } catch (DbException e2) {
                 // ignore
             }
         }
-        ex.setPayload(payload);
-        return ex;
+        return e;
     }
 
     /**
@@ -455,7 +450,7 @@ public class FileLock implements Runnable {
      * @return the method type
      * @throws SQLException if the method name is unknown
      */
-    public static int getFileLockMethod(String method) throws SQLException {
+    public static int getFileLockMethod(String method) {
         if (method == null || method.equalsIgnoreCase("FILE")) {
             return FileLock.LOCK_FILE;
         } else if (method.equalsIgnoreCase("NO")) {
@@ -465,7 +460,7 @@ public class FileLock implements Runnable {
         } else if (method.equalsIgnoreCase("SERIALIZED")) {
             return FileLock.LOCK_SERIALIZED;
         } else {
-            throw Message.getSQLException(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
+            throw DbException.get(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
         }
     }
 

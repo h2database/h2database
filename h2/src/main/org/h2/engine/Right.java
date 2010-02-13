@@ -6,9 +6,7 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
@@ -123,7 +121,7 @@ public class Right extends DbObjectBase {
         return DbObject.RIGHT;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         if (grantedTable != null) {
             grantee.revokeRight(grantedTable);
         } else {
@@ -137,7 +135,7 @@ public class Right extends DbObjectBase {
     }
 
     public void checkRename() {
-        Message.throwInternalError();
+        DbException.throwInternalError();
     }
 
     public void setRightMask(int rightMask) {

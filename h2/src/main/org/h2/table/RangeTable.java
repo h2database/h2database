@@ -6,14 +6,13 @@
  */
 package org.h2.table;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.RangeIndex;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.value.Value;
@@ -39,7 +38,7 @@ public class RangeTable extends Table {
      * @param min the start expression
      * @param max the end expression
      */
-    public RangeTable(Schema schema, Expression min, Expression max) throws SQLException {
+    public RangeTable(Schema schema, Expression min, Expression max) {
         super(schema, 0, NAME, true, true);
         Column[] cols = new Column[]{
                 new Column("X", Value.LONG)
@@ -77,24 +76,24 @@ public class RangeTable extends Table {
         return false;
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType, boolean create, String indexComment) throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType, boolean create, String indexComment) {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
-    public void removeRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void removeRow(Session session, Row row) {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
-    public void addRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void addRow(Session session, Row row) {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
-    public void checkSupportAlter() throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void checkSupportAlter() {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public boolean canGetRowCount() {
@@ -105,12 +104,12 @@ public class RangeTable extends Table {
         return false;
     }
 
-    public long getRowCount(Session session) throws SQLException {
+    public long getRowCount(Session session) {
         return Math.max(0, getMax(session) - getMin(session) + 1);
     }
 
     public String getTableType() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public Index getScanIndex(Session session) {
@@ -123,7 +122,7 @@ public class RangeTable extends Table {
      * @param session the session
      * @return the start value
      */
-    public long getMin(Session session) throws SQLException {
+    public long getMin(Session session) {
         optimize(session);
         return min.getValue(session).getLong();
     }
@@ -134,12 +133,12 @@ public class RangeTable extends Table {
      * @param session the session
      * @return the end value
      */
-    public long getMax(Session session) throws SQLException {
+    public long getMax(Session session) {
         optimize(session);
         return max.getValue(session).getLong();
     }
 
-    private void optimize(Session s) throws SQLException {
+    private void optimize(Session s) {
         if (!optimized) {
             min = min.optimize(s);
             max = max.optimize(s);
@@ -151,8 +150,8 @@ public class RangeTable extends Table {
         return null;
     }
 
-    public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void truncate(Session session) {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public long getMaxDataModificationId() {

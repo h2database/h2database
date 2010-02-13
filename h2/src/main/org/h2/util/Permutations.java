@@ -6,7 +6,7 @@
  */
 package org.h2.util;
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * A class to iterate over all permutations of an array.
@@ -27,7 +27,7 @@ public class Permutations<T> {
         this.n = in.length;
         this.m = m;
         if (n < m || m < 0) {
-            Message.throwInternalError("n < m or m < 0");
+            DbException.throwInternalError("n < m or m < 0");
         }
         this.in = in;
         this.out = out;

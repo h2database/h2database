@@ -28,7 +28,7 @@ import org.h2.util.New;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 
@@ -508,7 +508,7 @@ implements XAConnection, XAResource
 
         protected synchronized void checkClosed(boolean write) throws SQLException {
             if (isClosed) {
-                throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
+                throw DbException.get(ErrorCode.OBJECT_CLOSED);
             }
             super.checkClosed(write);
         }

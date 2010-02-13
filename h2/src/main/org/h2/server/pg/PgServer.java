@@ -150,7 +150,7 @@ public class PgServer implements Service {
         }
     }
 
-    public void start() throws SQLException {
+    public void start() {
         serverSocket = NetUtils.createServerSocket(port, false);
     }
 

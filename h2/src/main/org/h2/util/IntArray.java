@@ -7,7 +7,7 @@
 package org.h2.util;
 
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * An array with integer element.
@@ -137,7 +137,7 @@ public class IntArray {
                 return;
             }
         }
-        Message.throwInternalError();
+        DbException.throwInternalError();
     }
 
     /**

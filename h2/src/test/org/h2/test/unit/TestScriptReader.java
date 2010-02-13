@@ -7,9 +7,7 @@
 package org.h2.test.unit;
 
 import java.io.StringReader;
-import java.sql.SQLException;
 import java.util.Random;
-
 import org.h2.test.TestBase;
 import org.h2.util.ScriptReader;
 
@@ -27,12 +25,12 @@ public class TestScriptReader extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() {
         testCommon();
         testRandom();
     }
 
-    private void testRandom() throws SQLException {
+    private void testRandom() {
         int len = getSize(1000, 10000);
         Random random = new Random(10);
         for (int i = 0; i < len; i++) {
@@ -160,7 +158,7 @@ public class TestScriptReader extends TestBase {
         return buff.toString();
     }
 
-    private void testCommon() throws SQLException {
+    private void testCommon() {
         String s;
         ScriptReader source;
 

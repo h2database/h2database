@@ -60,7 +60,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         deleteDb("listener");
     }
 
-    public void diskSpaceIsLow(long stillAvailable) {
+    public void diskSpaceIsLow() {
         printTime("diskSpaceIsLow");
     }
 

@@ -34,7 +34,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.tools.Backup;
 import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.ConvertTraceFile;
@@ -376,7 +376,7 @@ public class WebApp {
             } else if ("CreateCluster".equals(toolName)) {
                 tool = new CreateCluster();
             } else {
-                throw Message.throwInternalError(toolName);
+                throw DbException.throwInternalError(toolName);
             }
             ByteArrayOutputStream outBuff = new ByteArrayOutputStream();
             PrintStream out = new PrintStream(outBuff, false, "UTF-8");
@@ -1151,7 +1151,7 @@ public class WebApp {
         return null;
     }
 
-    private void addDatabaseMetaData(SimpleResultSet rs, DatabaseMetaData meta) throws SQLException {
+    private void addDatabaseMetaData(SimpleResultSet rs, DatabaseMetaData meta) {
         for (Method m : DatabaseMetaData.class.getDeclaredMethods()) {
             if (m.getParameterTypes().length == 0) {
                 try {

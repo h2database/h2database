@@ -6,9 +6,9 @@
  */
 package org.h2.store;
 
-import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
+import org.h2.message.DbException;
 
 /**
  * A trunk page of a stream. It contains the page numbers of the stream, and the
@@ -120,7 +120,7 @@ public class PageStreamTrunk extends Page {
         return pageIds[index++];
     }
 
-    public void write() throws SQLException {
+    public void write() {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_STREAM_TRUNK);
         data.writeShortInt(0);
@@ -164,7 +164,7 @@ public class PageStreamTrunk extends Page {
      *
      * @return the number of pages freed
      */
-    int free() throws SQLException {
+    int free() {
         store.free(getPos(), false);
         int freed = 1;
         for (int i = 0; i < pageCount; i++) {
@@ -222,7 +222,7 @@ public class PageStreamTrunk extends Page {
          *
          * @return the next trunk page or null
          */
-        PageStreamTrunk next() throws SQLException {
+        PageStreamTrunk next() {
             canDelete = false;
             if (first == 0) {
                 first = next;
@@ -236,12 +236,12 @@ public class PageStreamTrunk extends Page {
             current = next;
             try {
                 p = store.getPage(next);
-            } catch (SQLException e) {
-                if (e.getErrorCode() != ErrorCode.FILE_CORRUPTED_1) {
+            } catch (DbException e) {
+                if (e.getErrorCode() == ErrorCode.FILE_CORRUPTED_1) {
                     // wrong checksum means end of stream
-                    throw e;
+                    return null;
                 }
-                return null;
+                throw e;
             }
             if (p == null || p instanceof PageStreamTrunk || p instanceof PageStreamData) {
                 canDelete = true;

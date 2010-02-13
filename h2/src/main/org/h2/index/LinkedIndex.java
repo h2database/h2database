@@ -8,11 +8,9 @@ package org.h2.index;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
@@ -50,7 +48,7 @@ public class LinkedIndex extends BaseIndex {
         return v == null || v == ValueNull.INSTANCE;
     }
 
-    public void add(Session session, Row row) throws SQLException {
+    public void add(Session session, Row row) {
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
         buff.append(targetTableName).append(" VALUES(");
         for (int i = 0; i < row.getColumnCount(); i++) {
@@ -78,13 +76,13 @@ public class LinkedIndex extends BaseIndex {
                 }
                 prep.executeUpdate();
                 rowCount++;
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 throw link.wrapException(sql, e);
             }
         }
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         StatementBuilder buff = new StatementBuilder("SELECT * FROM ");
         buff.append(targetTableName).append(" T");
         for (int i = 0; first != null && i < first.getColumnCount(); i++) {
@@ -128,7 +126,7 @@ public class LinkedIndex extends BaseIndex {
                 }
                 ResultSet rs = prep.executeQuery();
                 return new LinkedCursor(link, rs, session, sql, prep);
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 throw link.wrapException(sql, e);
             }
         }
@@ -158,8 +156,8 @@ public class LinkedIndex extends BaseIndex {
         // nothing to do
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("LINKED");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("LINKED");
     }
 
     public boolean needRebuild() {
@@ -170,13 +168,13 @@ public class LinkedIndex extends BaseIndex {
         return false;
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
+    public Cursor findFirstOrLast(Session session, boolean first) {
         // TODO optimization: could get the first or last value (in any case;
         // maybe not optimized)
-        throw Message.getUnsupportedException("LINKED");
+        throw DbException.getUnsupportedException("LINKED");
     }
 
-    public void remove(Session session, Row row) throws SQLException {
+    public void remove(Session session, Row row) {
         StatementBuilder buff = new StatementBuilder("DELETE FROM ");
         buff.append(targetTableName).append(" WHERE ");
         for (int i = 0; i < row.getColumnCount(); i++) {
@@ -205,7 +203,7 @@ public class LinkedIndex extends BaseIndex {
                 }
                 int count = prep.executeUpdate();
                 rowCount -= count;
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 throw link.wrapException(sql, e);
             }
         }
@@ -218,7 +216,7 @@ public class LinkedIndex extends BaseIndex {
      * @param oldRow the old data
      * @param newRow the new data
      */
-    public void update(Row oldRow, Row newRow) throws SQLException {
+    public void update(Row oldRow, Row newRow) {
         StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
@@ -267,7 +265,7 @@ public class LinkedIndex extends BaseIndex {
                 int count = prep.executeUpdate();
                 // this has no effect but at least it allows to debug the update count
                 rowCount = rowCount + count - count;
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 throw link.wrapException(sql, e);
             }
         }

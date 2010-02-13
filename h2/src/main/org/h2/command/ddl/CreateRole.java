@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This class represents the statement
@@ -35,18 +33,18 @@ public class CreateRole extends DefineCommand {
         this.roleName = name;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
         if (db.findUser(roleName) != null) {
-            throw Message.getSQLException(ErrorCode.USER_ALREADY_EXISTS_1, roleName);
+            throw DbException.get(ErrorCode.USER_ALREADY_EXISTS_1, roleName);
         }
         if (db.findRole(roleName) != null) {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.ROLE_ALREADY_EXISTS_1, roleName);
+            throw DbException.get(ErrorCode.ROLE_ALREADY_EXISTS_1, roleName);
         }
         int id = getObjectId();
         Role role = new Role(db, id, roleName, false);

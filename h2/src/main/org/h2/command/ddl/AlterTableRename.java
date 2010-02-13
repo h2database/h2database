@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 
@@ -37,15 +35,15 @@ public class AlterTableRename extends SchemaCommand {
         newTableName = name;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         if (getSchema().findTableOrView(session, newTableName) != null || newTableName.equals(oldTable.getName())) {
-            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, newTableName);
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, newTableName);
         }
         session.getUser().checkRight(oldTable, Right.ALL);
         if (oldTable.isTemporary()) {
-            throw Message.getUnsupportedException("TEMP TABLE");
+            throw DbException.getUnsupportedException("TEMP TABLE");
         }
         db.renameSchemaObject(session, oldTable, newTableName);
         return 0;

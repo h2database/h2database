@@ -6,8 +6,6 @@
  */
 package org.h2.security;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
@@ -27,7 +25,7 @@ public class SecureFileStore extends FileStore {
     private byte[] bufferForInitVector;
     private int keyIterations;
 
-    public SecureFileStore(DataHandler handler, String name, String mode, String cipher, byte[] key, int keyIterations) throws SQLException {
+    public SecureFileStore(DataHandler handler, String name, String mode, String cipher, byte[] key, int keyIterations) {
         super(handler, name, mode);
         this.key = key;
         this.cipher = CipherFactory.getBlockCipher(cipher);
@@ -51,12 +49,12 @@ public class SecureFileStore extends FileStore {
         cipherForInitVector.setKey(key);
     }
 
-    protected void writeDirect(byte[] b, int off, int len) throws SQLException {
+    protected void writeDirect(byte[] b, int off, int len) {
         super.write(b, off, len);
         pos += len;
     }
 
-    public void write(byte[] b, int off, int len) throws SQLException {
+    public void write(byte[] b, int off, int len) {
         if (buffer.length < b.length) {
             buffer = new byte[len];
         }
@@ -67,24 +65,24 @@ public class SecureFileStore extends FileStore {
         pos += len;
     }
 
-    protected void readFullyDirect(byte[] b, int off, int len) throws SQLException {
+    protected void readFullyDirect(byte[] b, int off, int len) {
         super.readFully(b, off, len);
         pos += len;
     }
 
-    public void readFully(byte[] b, int off, int len) throws SQLException {
+    public void readFully(byte[] b, int off, int len) {
         super.readFully(b, off, len);
         cipher.decrypt(b, off, len);
         xorInitVector(b, off, len, pos);
         pos += len;
     }
 
-    public void seek(long x) throws SQLException {
+    public void seek(long x) {
         this.pos = x;
         super.seek(x);
     }
 
-    public void setLength(long newLength) throws SQLException {
+    public void setLength(long newLength) {
         long oldPos = pos;
         long length = length();
         if (newLength > length) {

@@ -17,7 +17,7 @@ import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.SessionInterface;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.New;
@@ -374,7 +374,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("setMaxRows", maxRows);
             checkClosed();
             if (maxRows < 0) {
-                throw Message.getInvalidValueException("" + maxRows, "maxRows");
+                throw DbException.getInvalidValueException("" + maxRows, "maxRows");
             }
             this.maxRows = maxRows;
         } catch (Exception e) {
@@ -398,7 +398,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("setFetchSize", rows);
             checkClosed();
             if (rows < 0 || (rows > 0 && maxRows > 0 && rows > maxRows)) {
-                throw Message.getInvalidValueException("" + rows, "rows");
+                throw DbException.getInvalidValueException("" + rows, "rows");
             }
             if (rows == 0) {
                 rows = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
@@ -566,7 +566,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("setQueryTimeout", seconds);
             checkClosed();
             if (seconds < 0) {
-                throw Message.getInvalidValueException("" + seconds, "seconds");
+                throw DbException.getInvalidValueException("" + seconds, "seconds");
             }
             conn.setQueryTimeout(seconds);
         } catch (Exception e) {
@@ -626,7 +626,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                     String sql = batchCommands.get(i);
                     try {
                         result[i] = executeUpdateInternal(sql);
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         logAndConvert(e);
                         //## Java 1.4 begin ##
                         result[i] = Statement.EXECUTE_FAILED;
@@ -690,7 +690,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 // nothing to do
                 break;
             default:
-                throw Message.getInvalidValueException("" + current, "current");
+                throw DbException.getInvalidValueException("" + current, "current");
             }
             return false;
         } catch (Exception e) {
@@ -881,7 +881,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     protected boolean checkClosed(boolean write) throws SQLException {
         if (conn == null) {
-            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
         conn.checkClosed(write);
         SessionInterface s = conn.getSession();
@@ -949,7 +949,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw Message.getUnsupportedException("unwrap");
+        throw unsupported("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -958,7 +958,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        throw Message.getUnsupportedException("isWrapperFor");
+        throw unsupported("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 

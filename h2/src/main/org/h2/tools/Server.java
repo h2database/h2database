@@ -12,7 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
@@ -47,7 +47,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         try {
             service.init(args);
         } catch (Exception e) {
-            throw Message.convert(e);
+            throw DbException.toSQLException(e);
         }
     }
 
@@ -197,8 +197,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             SQLException result = null;
             try {
                 web.start();
-            } catch (SQLException e) {
-                result = e;
+            } catch (Exception e) {
+                result = DbException.toSQLException(e);
             }
             out.println(web.getStatus());
             // start browser in any case (even if the server is already running)
@@ -326,21 +326,25 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @throws SQLException if the server could not be started
      */
     public Server start() throws SQLException {
-        service.start();
-        Thread t = new Thread(this);
-        String name = service.getName() + " (" + service.getURL() + ")";
-        t.setName(name);
-        t.start();
-        for (int i = 1; i < 64; i += i) {
-            wait(i);
-            if (isRunning(false)) {
+        try {
+            service.start();
+            Thread t = new Thread(this);
+            String name = service.getName() + " (" + service.getURL() + ")";
+            t.setName(name);
+            t.start();
+            for (int i = 1; i < 64; i += i) {
+                wait(i);
+                if (isRunning(false)) {
+                    return this;
+                }
+            }
+            if (isRunning(true)) {
                 return this;
             }
+            throw DbException.get(ErrorCode.EXCEPTION_OPENING_PORT_2, name, "timeout");
+        } catch (DbException e) {
+            throw DbException.toSQLException(e);
         }
-        if (isRunning(true)) {
-            return this;
-        }
-        throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2, name, "timeout");
     }
 
     private static void wait(int i) {

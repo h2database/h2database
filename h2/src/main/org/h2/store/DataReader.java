@@ -16,6 +16,7 @@ import org.h2.util.IOUtils;
  * variable size data.
  */
 public class DataReader {
+
     private static final EOFException EOF = new EOFException();
     private InputStream in;
 

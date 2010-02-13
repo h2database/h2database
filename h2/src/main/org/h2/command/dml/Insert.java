@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
@@ -19,7 +18,7 @@ import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.index.PageIndex;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
@@ -72,7 +71,7 @@ public class Insert extends Prepared {
         list.add(expr);
     }
 
-    public int update() throws SQLException {
+    public int update() {
         Database db = session.getDatabase();
         PageIndex index = null;
         if (sortedInsertMode && db.isPersistent()) {
@@ -88,7 +87,7 @@ public class Insert extends Prepared {
         }
     }
 
-    private int insertRows() throws SQLException {
+    private int insertRows() {
         int count;
         session.getUser().checkRight(table, Right.INSERT);
         setCurrentRowNumber(0);
@@ -109,7 +108,7 @@ public class Insert extends Prepared {
                         try {
                             Value v = c.convert(e.getValue(session));
                             newRow.setValue(index, v);
-                        } catch (SQLException ex) {
+                        } catch (DbException ex) {
                             throw setRow(ex, x, getSQL(expr));
                         }
                     }
@@ -139,7 +138,7 @@ public class Insert extends Prepared {
                     try {
                         Value v = c.convert(r[j]);
                         newRow.setValue(index, v);
-                    } catch (SQLException ex) {
+                    } catch (DbException ex) {
                         throw setRow(ex, count, getSQL(r));
                     }
                 }
@@ -190,7 +189,7 @@ public class Insert extends Prepared {
         return buff.toString();
     }
 
-    public void prepare() throws SQLException {
+    public void prepare() {
         if (columns == null) {
             if (list.size() > 0 && list.get(0).length == 0) {
                 // special case where table is used as a sequence
@@ -202,7 +201,7 @@ public class Insert extends Prepared {
         if (list.size() > 0) {
             for (Expression[] expr : list) {
                 if (expr.length != columns.length) {
-                    throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
                 for (int i = 0; i < expr.length; i++) {
                     Expression e = expr[i];
@@ -219,7 +218,7 @@ public class Insert extends Prepared {
         } else {
             query.prepare();
             if (query.getColumnCount() != columns.length) {
-                throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
     }

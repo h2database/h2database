@@ -6,7 +6,6 @@
  */
 package org.h2.util;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -57,7 +56,7 @@ class CacheSecondLevel implements Cache {
         return baseCache.getSize();
     }
 
-    public void put(CacheObject r) throws SQLException {
+    public void put(CacheObject r) {
         baseCache.put(r);
         map.put(r.getPos(), r);
     }
@@ -67,11 +66,11 @@ class CacheSecondLevel implements Cache {
         map.remove(pos);
     }
 
-    public void setMaxSize(int size) throws SQLException {
+    public void setMaxSize(int size) {
         baseCache.setMaxSize(size);
     }
 
-    public CacheObject update(int pos, CacheObject record) throws SQLException {
+    public CacheObject update(int pos, CacheObject record) {
         CacheObject oldRec = baseCache.update(pos, record);
         map.put(pos, record);
         return oldRec;

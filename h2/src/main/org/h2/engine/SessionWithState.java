@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.result.ResultInterface;
@@ -25,7 +24,7 @@ public abstract class SessionWithState implements SessionInterface {
     /**
      * Re-create the session state using the stored sessionState list.
      */
-    protected void recreateSessionState() throws SQLException {
+    protected void recreateSessionState() {
         if (sessionState != null && sessionState.size() > 0) {
             sessionStateUpdating = true;
             try {
@@ -43,7 +42,7 @@ public abstract class SessionWithState implements SessionInterface {
     /**
      * Read the session state if necessary.
      */
-    public void readSessionState() throws SQLException {
+    public void readSessionState() {
         if (!sessionStateChanged || sessionStateUpdating) {
             return;
         }

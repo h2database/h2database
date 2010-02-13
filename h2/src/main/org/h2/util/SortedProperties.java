@@ -16,14 +16,13 @@ import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.Map.Entry;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 
 /**
@@ -115,8 +114,8 @@ public class SortedProperties extends Properties {
         Writer w;
         try {
             w = new OutputStreamWriter(IOUtils.openFileOutputStream(fileName, false));
-        } catch (SQLException e) {
-            throw Message.convertToIOException(e);
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         }
         PrintWriter writer = new PrintWriter(new BufferedWriter(w));
         while (true) {

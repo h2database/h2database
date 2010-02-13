@@ -6,7 +6,6 @@
  */
 package org.h2.command;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -14,8 +13,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
-import org.h2.jdbc.JdbcSQLException;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -81,7 +79,7 @@ public abstract class Prepared {
      *
      * @return the result set
      */
-    public abstract ResultInterface queryMeta() throws SQLException;
+    public abstract ResultInterface queryMeta();
 
     /**
      * Check if this command is read only.
@@ -97,10 +95,10 @@ public abstract class Prepared {
      *
      * @return true if it must
      */
-    public boolean needRecompile() throws SQLException {
+    public boolean needRecompile() {
         Database db = session.getDatabase();
         if (db == null) {
-            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN_1, "database closed");
+            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "database closed");
         }
         // parser: currently, compiling every create/drop/... twice
         // because needRecompile return true even for the first execution
@@ -149,7 +147,7 @@ public abstract class Prepared {
      *
      * @throws SQLException if any parameter has not been set
      */
-    protected void checkParameters() throws SQLException {
+    protected void checkParameters() {
         for (int i = 0; parameters != null && i < parameters.size(); i++) {
             Parameter param = parameters.get(i);
             param.checkSet();
@@ -179,7 +177,7 @@ public abstract class Prepared {
      *
      * @throws SQLException
      */
-    public void prepare() throws SQLException {
+    public void prepare() {
         // nothing to do
     }
 
@@ -189,8 +187,8 @@ public abstract class Prepared {
      * @return the update count
      * @throws SQLException if it is a query
      */
-    public int update() throws SQLException {
-        throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
+    public int update() {
+        throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
     }
 
     /**
@@ -200,8 +198,8 @@ public abstract class Prepared {
      * @return the result set
      * @throws SQLException if it is not a query
      */
-    public ResultInterface query(int maxrows) throws SQLException {
-        throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
+    public ResultInterface query(int maxrows) {
+        throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
 
     /**
@@ -263,7 +261,7 @@ public abstract class Prepared {
      *
      * @throws SQLException if it was canceled
      */
-    public void checkCanceled() throws SQLException {
+    public void checkCanceled() {
         session.checkCanceled();
         Command c = command != null ? command : session.getCurrentCommand();
         if (c != null) {
@@ -297,7 +295,7 @@ public abstract class Prepared {
      * @param startTime when the statement was started
      * @param count the update count
      */
-    void trace(long startTime, int count) throws SQLException {
+    void trace(long startTime, int count) {
         if (session.getTrace().isInfoEnabled()) {
             long time = System.currentTimeMillis() - startTime;
             String params;
@@ -332,7 +330,7 @@ public abstract class Prepared {
      *
      * @param rowNumber the row number
      */
-    protected void setCurrentRowNumber(int rowNumber) throws SQLException {
+    protected void setCurrentRowNumber(int rowNumber) {
         if ((++rowScanCount & 127) == 0) {
             checkCanceled();
         }
@@ -394,26 +392,22 @@ public abstract class Prepared {
     /**
      * Set the SQL statement of the exception to the given row.
      *
-     * @param ex the exception
+     * @param e the exception
      * @param rowId the row number
      * @param values the values of the row
      * @return the exception
      */
-    protected SQLException setRow(SQLException ex, int rowId, String values) {
-        if (ex instanceof JdbcSQLException) {
-            JdbcSQLException e = (JdbcSQLException) ex;
-            StringBuilder buff = new StringBuilder();
-            if (sqlStatement != null) {
-                buff.append(sqlStatement);
-            }
-            buff.append(" -- ");
-            if (rowId > 0) {
-                buff.append("row #").append(rowId + 1).append(' ');
-            }
-            buff.append('(').append(values).append(')');
-            e.setSQL(buff.toString());
+    protected DbException setRow(DbException e, int rowId, String values) {
+        StringBuilder buff = new StringBuilder();
+        if (sqlStatement != null) {
+            buff.append(sqlStatement);
         }
-        return ex;
+        buff.append(" -- ");
+        if (rowId > 0) {
+            buff.append("row #").append(rowId + 1).append(' ');
+        }
+        buff.append('(').append(values).append(')');
+        return e.addSQL(buff.toString());
     }
 
 }

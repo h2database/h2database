@@ -14,11 +14,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.security.SecureSocketFactory;
 
 /**
@@ -135,10 +133,10 @@ public class NetUtils {
      * @param ssl if SSL should be used
      * @return the server socket
      */
-    public static ServerSocket createServerSocket(int port, boolean ssl) throws SQLException {
+    public static ServerSocket createServerSocket(int port, boolean ssl) {
         try {
             return createServerSocketTry(port, ssl);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             // try again
             return createServerSocketTry(port, ssl);
         }
@@ -163,7 +161,7 @@ public class NetUtils {
         return cachedBindAddress;
     }
 
-    private static ServerSocket createServerSocketTry(int port, boolean ssl) throws SQLException {
+    private static ServerSocket createServerSocketTry(int port, boolean ssl) {
         try {
             InetAddress bindAddress = getBindAddress();
             if (ssl) {
@@ -174,10 +172,10 @@ public class NetUtils {
             }
             return new ServerSocket(port, 0, bindAddress);
         } catch (BindException be) {
-            throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2,
+            throw DbException.get(ErrorCode.EXCEPTION_OPENING_PORT_2,
                     be, "" + port, be.toString());
         } catch (IOException e) {
-            throw Message.convertIOException(e, "port: " + port + " ssl: " + ssl);
+            throw DbException.convertIOException(e, "port: " + port + " ssl: " + ssl);
         }
     }
 

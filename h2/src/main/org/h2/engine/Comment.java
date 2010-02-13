@@ -6,9 +6,7 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
@@ -29,7 +27,7 @@ public class Comment extends DbObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     private static String getTypeName(int type) {
@@ -81,12 +79,12 @@ public class Comment extends DbObjectBase {
         return DbObject.COMMENT;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
     }
 
     public void checkRename() {
-        Message.throwInternalError();
+        DbException.throwInternalError();
     }
 
     /**

@@ -10,10 +10,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -179,7 +177,7 @@ public class TraceSystem implements TraceWriter {
             try {
                 writer = (TraceWriter) Class.forName(adapterClass).newInstance();
             } catch (Throwable e) {
-                e = Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, adapterClass);
+                e = DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, adapterClass);
                 write(ERROR, Trace.DATABASE, adapterClass, e);
                 return;
             }
@@ -266,7 +264,7 @@ public class TraceSystem implements TraceWriter {
             return;
         }
         writingErrorLogged = true;
-        SQLException se = Message.getSQLException(ErrorCode.TRACE_FILE_ERROR_2, e, fileName, e.toString());
+        Exception se = DbException.get(ErrorCode.TRACE_FILE_ERROR_2, e, fileName, e.toString());
         // print this error only once
         fileName = null;
         System.out.println(se);

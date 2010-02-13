@@ -6,11 +6,10 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
 import org.h2.security.SHA256;
@@ -18,10 +17,10 @@ import org.h2.table.MetaTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableView;
-import org.h2.util.Utils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Represents a user object.
@@ -73,7 +72,7 @@ public class User extends RightOwner {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public String getCreateSQL() {
@@ -91,7 +90,7 @@ public class User extends RightOwner {
      * @param rightMask the rights required
      * @throws SQLException if this user does not have the required rights
      */
-    public void checkRight(Table table, int rightMask) throws SQLException {
+    public void checkRight(Table table, int rightMask) {
         if (rightMask != Right.SELECT && !systemUser) {
             table.checkWritingAllowed();
         }
@@ -123,7 +122,7 @@ public class User extends RightOwner {
                 // the owner has all rights on local temporary tables
                 return;
             }
-            throw Message.getSQLException(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
+            throw DbException.get(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
         }
     }
 
@@ -177,9 +176,9 @@ public class User extends RightOwner {
      *
      * @throws SQLException if this user is not an admin
      */
-    public void checkAdmin() throws SQLException {
+    public void checkAdmin() {
         if (!admin) {
-            throw Message.getSQLException(ErrorCode.ADMIN_RIGHTS_REQUIRED);
+            throw DbException.get(ErrorCode.ADMIN_RIGHTS_REQUIRED);
         }
     }
 
@@ -202,7 +201,7 @@ public class User extends RightOwner {
         return children;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         for (Right right : database.getAllRights()) {
             if (right.getGrantee() == this) {
                 database.removeDatabaseObject(session, right);
@@ -225,10 +224,10 @@ public class User extends RightOwner {
      *
      * @throws SQLException if this user owns a schema
      */
-    public void checkOwnsNoSchemas() throws SQLException {
+    public void checkOwnsNoSchemas() {
         for (Schema s : database.getAllSchemas()) {
             if (this == s.getOwner()) {
-                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, getName(), s.getName());
+                throw DbException.get(ErrorCode.CANNOT_DROP_2, getName(), s.getName());
             }
         }
     }

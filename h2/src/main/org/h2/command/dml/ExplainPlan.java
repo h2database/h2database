@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -34,15 +33,15 @@ public class ExplainPlan extends Prepared {
         this.command = command;
     }
 
-    public void prepare() throws SQLException {
+    public void prepare() {
         command.prepare();
     }
 
-    public ResultInterface queryMeta() throws SQLException {
+    public ResultInterface queryMeta() {
         return query(-1);
     }
 
-    public ResultInterface query(int maxrows) throws SQLException {
+    public ResultInterface query(int maxrows) {
         Column column = new Column("PLAN", Value.STRING);
         ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), column);
         Expression[] expressions = new Expression[] {
@@ -57,7 +56,7 @@ public class ExplainPlan extends Prepared {
         return result;
     }
 
-    private void add(String text) throws SQLException {
+    private void add(String text) {
         Value[] row = new Value[1];
         Value value = ValueString.get(text);
         row[0] = value;

@@ -6,13 +6,11 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This class represents the statement
@@ -35,14 +33,14 @@ public class DropUser extends DefineCommand {
         this.userName = userName;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
         User user = db.findUser(userName);
         if (user == null) {
             if (!ifExists) {
-                throw Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, userName);
+                throw DbException.get(ErrorCode.USER_NOT_FOUND_1, userName);
             }
         } else {
             if (user == session.getUser()) {
@@ -53,7 +51,7 @@ public class DropUser extends DefineCommand {
                     }
                 }
                 if (adminUserCount == 1) {
-                    throw Message.getSQLException(ErrorCode.CANNOT_DROP_CURRENT_USER);
+                    throw DbException.get(ErrorCode.CANNOT_DROP_CURRENT_USER);
                 }
             }
             user.checkOwnsNoSchemas();

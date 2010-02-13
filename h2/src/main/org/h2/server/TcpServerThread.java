@@ -24,7 +24,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
 import org.h2.jdbc.JdbcSQLException;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultColumn;
 import org.h2.result.ResultInterface;
 import org.h2.util.SmallMap;
@@ -67,7 +67,7 @@ public class TcpServerThread implements Runnable {
             try {
                 clientVersion = transfer.readInt();
                 if (!server.allow(transfer.getSocket())) {
-                    throw Message.getSQLException(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
+                    throw DbException.get(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
                 }
                 // max version (currently not used)
                 transfer.readInt();
@@ -175,14 +175,9 @@ public class TcpServerThread implements Runnable {
         server.remove(this);
     }
 
-    private void sendError(Throwable e) {
+    private void sendError(Throwable t) {
         try {
-            SQLException s;
-            if (e instanceof Exception) {
-                s = Message.convert((Exception) e);
-            } else {
-                s = Message.convertThrowable(e);
-            }
+            SQLException e = DbException.convert(t).getSQLException();
             StringWriter writer = new StringWriter();
             e.printStackTrace(new PrintWriter(writer));
             String trace = writer.toString();
@@ -196,8 +191,8 @@ public class TcpServerThread implements Runnable {
                 message = e.getMessage();
                 sql = null;
             }
-            transfer.writeInt(SessionRemote.STATUS_ERROR).writeString(s.getSQLState()).writeString(message)
-                    .writeString(sql).writeInt(s.getErrorCode()).writeString(trace).flush();
+            transfer.writeInt(SessionRemote.STATUS_ERROR).writeString(e.getSQLState()).writeString(message)
+                    .writeString(sql).writeInt(e.getErrorCode()).writeString(trace).flush();
         } catch (IOException e2) {
             server.traceError(e2);
             // if writing the error does not work, close the connection
@@ -205,7 +200,7 @@ public class TcpServerThread implements Runnable {
         }
     }
 
-    private void setParameters(Command command) throws IOException, SQLException {
+    private void setParameters(Command command) throws IOException {
         int len = transfer.readInt();
         ArrayList< ? extends ParameterInterface> params = command.getParameters();
         for (int i = 0; i < len; i++) {
@@ -369,7 +364,7 @@ public class TcpServerThread implements Runnable {
         return SessionRemote.STATUS_OK_STATE_CHANGED;
     }
 
-    private void sendRow(ResultInterface result) throws IOException, SQLException {
+    private void sendRow(ResultInterface result) throws IOException {
         if (result.next()) {
             transfer.writeBoolean(true);
             Value[] v = result.currentRow();

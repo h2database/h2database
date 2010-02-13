@@ -6,9 +6,7 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
@@ -41,7 +39,7 @@ public class Setting extends DbObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public String getDropSQL() {
@@ -63,13 +61,13 @@ public class Setting extends DbObjectBase {
         return DbObject.SETTING;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
         invalidate();
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("RENAME");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("RENAME");
     }
 
 }

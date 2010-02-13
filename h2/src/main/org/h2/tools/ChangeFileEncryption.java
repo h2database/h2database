@@ -6,10 +6,9 @@
  */
 package org.h2.tools;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.security.SHA256;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
@@ -88,7 +87,11 @@ public class ChangeFileEncryption extends Tool {
             showUsage();
             throw new SQLException("Encryption or decryption password not set, or cipher not set");
         }
-        process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
+        try {
+            process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
+        } catch (Exception e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
     /**
@@ -120,7 +123,11 @@ public class ChangeFileEncryption extends Tool {
      * @throws SQLException
      */
     public static void execute(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
-        new ChangeFileEncryption().process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
+        try {
+            new ChangeFileEncryption().process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
+        } catch (Exception e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
     private void process(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
@@ -163,7 +170,7 @@ public class ChangeFileEncryption extends Tool {
         }
     }
 
-    private void process(String fileName) throws SQLException {
+    private void process(String fileName) {
         FileStore in;
         if (decrypt == null) {
             in = FileStore.open(null, fileName, "r");
@@ -174,7 +181,7 @@ public class ChangeFileEncryption extends Tool {
         copy(fileName, in, encrypt);
     }
 
-    private void copy(String fileName, FileStore in, byte[] key) throws SQLException {
+    private void copy(String fileName, FileStore in, byte[] key) {
         if (IOUtils.isDirectory(fileName)) {
             return;
         }
@@ -203,12 +210,8 @@ public class ChangeFileEncryption extends Tool {
             fileOut.write(buffer, 0, len);
             remaining -= len;
         }
-        try {
-            in.close();
-            fileOut.close();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
+        in.close();
+        fileOut.close();
         IOUtils.delete(fileName);
         IOUtils.rename(temp, fileName);
     }

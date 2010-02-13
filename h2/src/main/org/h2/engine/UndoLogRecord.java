@@ -6,11 +6,10 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
@@ -78,7 +77,7 @@ public class UndoLogRecord {
      *
      * @param session the session
      */
-    public void undo(Session session) throws SQLException {
+    public void undo(Session session) {
         Database db = session.getDatabase();
         switch (operation) {
         case INSERT:
@@ -95,7 +94,7 @@ public class UndoLogRecord {
                 row.setDeleted(false);
                 table.removeRow(session, row);
                 table.fireAfterRow(session, row, null, true);
-            } catch (SQLException e) {
+            } catch (DbException e) {
                 if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
                         && e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
                     // it might have been deleted by another thread
@@ -112,9 +111,9 @@ public class UndoLogRecord {
                 // reset session id, otherwise other session think
                 // that this row was inserted by this session
                 row.commit();
-            } catch (SQLException e) {
+            } catch (DbException e) {
                 if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
-                        && e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
+                        && e.getSQLException().getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                     // it might have been added by another thread
                     // ignore
                 } else {
@@ -123,7 +122,7 @@ public class UndoLogRecord {
             }
             break;
         default:
-            Message.throwInternalError("op=" + operation);
+            DbException.throwInternalError("op=" + operation);
         }
     }
 
@@ -132,7 +131,7 @@ public class UndoLogRecord {
      *
      * @param file the file
      */
-    void seek(FileStore file) throws SQLException {
+    void seek(FileStore file) {
         file.seek(((long) filePos) * Constants.FILE_BLOCK_SIZE);
     }
 
@@ -142,7 +141,7 @@ public class UndoLogRecord {
      * @param buff the buffer
      * @param file the file
      */
-    void save(Data buff, FileStore file) throws SQLException {
+    void save(Data buff, FileStore file) {
         buff.reset();
         buff.writeInt(0);
         buff.writeInt(operation);
@@ -169,7 +168,7 @@ public class UndoLogRecord {
      * @param buff the buffer
      * @param file the source file
      */
-    void load(Data buff, FileStore file) throws SQLException {
+    void load(Data buff, FileStore file) {
         int min = Constants.FILE_BLOCK_SIZE;
         seek(file);
         buff.reset();
@@ -182,7 +181,7 @@ public class UndoLogRecord {
         int op = buff.readInt();
         if (SysProperties.CHECK) {
             if (operation != op) {
-                Message.throwInternalError("operation=" + operation + " op=" + op);
+                DbException.throwInternalError("operation=" + operation + " op=" + op);
             }
         }
         boolean deleted = buff.readByte() == 1;
@@ -213,7 +212,7 @@ public class UndoLogRecord {
      * This method is called after the operation was committed.
      * It commits the change to the indexes.
      */
-    public void commit() throws SQLException {
+    public void commit() {
         for (Index index : table.getIndexes()) {
             index.commit(operation, row);
         }

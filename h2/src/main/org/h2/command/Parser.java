@@ -8,7 +8,6 @@ package org.h2.command;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.SQLException;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -114,7 +113,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -197,14 +196,10 @@ public class Parser {
      * @param sql the SQL statement to parse
      * @return the prepared object
      */
-    public Prepared prepare(String sql) throws SQLException {
-        try {
-            Prepared p = parse(sql);
-            p.prepare();
-            return p;
-        } catch (Exception e) {
-            throw Message.convert(e);
-        }
+    public Prepared prepare(String sql) {
+        Prepared p = parse(sql);
+        p.prepare();
+        return p;
     }
 
     /**
@@ -213,12 +208,8 @@ public class Parser {
      * @param sql the SQL statement to parse
      * @return the prepared object
      */
-    public Prepared parseOnly(String sql) throws SQLException {
-        try {
-            return parse(sql);
-        } catch (Exception e) {
-            throw Message.convert(e);
-        }
+    public Prepared parseOnly(String sql) {
+        return parse(sql);
     }
 
     /**
@@ -227,7 +218,7 @@ public class Parser {
      * @param sql the SQL statement to parse
      * @return the command object
      */
-    public Command prepareCommand(String sql) throws SQLException {
+    public Command prepareCommand(String sql) {
         try {
             Prepared p = parse(sql);
             p.prepare();
@@ -248,22 +239,22 @@ public class Parser {
                 throw getSyntaxError();
             }
             return c;
-        } catch (Exception e) {
-            throw Message.addSQL(Message.convert(e), this.originalSQL);
+        } catch (DbException e) {
+            throw e.addSQL(originalSQL);
         }
     }
 
-    private Prepared parse(String sql) throws SQLException {
+    private Prepared parse(String sql) {
         Prepared p;
         try {
             // first, try the fast variant
             p = parse(sql, false);
-        } catch (SQLException e) {
+        } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.SYNTAX_ERROR_1) {
                 // now, get the detailed exception
                 p = parse(sql, true);
             } else {
-                throw Message.addSQL(e, sql);
+                throw e.addSQL(sql);
             }
         }
         p.setPrepareAlways(recompileAlways);
@@ -271,7 +262,7 @@ public class Parser {
         return p;
     }
 
-    private Prepared parse(String sql, boolean withExpectedList) throws SQLException {
+    private Prepared parse(String sql, boolean withExpectedList) {
         initialize(sql);
         if (withExpectedList) {
             expectedList = New.arrayList();
@@ -288,7 +279,7 @@ public class Parser {
         return parsePrepared();
     }
 
-    private Prepared parsePrepared() throws SQLException {
+    private Prepared parsePrepared() {
         int start = lastParseIndex;
         Prepared c = null;
         String token = currentToken;
@@ -479,26 +470,26 @@ public class Parser {
         return c;
     }
 
-    private SQLException getSyntaxError() {
+    private DbException getSyntaxError() {
         if (expectedList == null || expectedList.size() == 0) {
-            return Message.getSyntaxError(sqlCommand, parseIndex);
+            return DbException.getSyntaxError(sqlCommand, parseIndex);
         }
         StatementBuilder buff = new StatementBuilder();
         for (String e : expectedList) {
             buff.appendExceptFirst(", ");
             buff.append(e);
         }
-        return Message.getSyntaxError(sqlCommand, parseIndex, buff.toString());
+        return DbException.getSyntaxError(sqlCommand, parseIndex, buff.toString());
     }
 
-    private Prepared parseBackup() throws SQLException {
+    private Prepared parseBackup() {
         BackupCommand command = new BackupCommand(session);
         read("TO");
         command.setFileName(readExpression());
         return command;
     }
 
-    private Prepared parseAnalyze() throws SQLException {
+    private Prepared parseAnalyze() {
         Analyze command = new Analyze(session);
         if (readIf("SAMPLE_SIZE")) {
             command.setTop(getPositiveInt());
@@ -506,7 +497,7 @@ public class Parser {
         return command;
     }
 
-    private TransactionCommand parseBegin() throws SQLException {
+    private TransactionCommand parseBegin() {
         TransactionCommand command;
         if (!readIf("WORK")) {
             readIf("TRANSACTION");
@@ -515,7 +506,7 @@ public class Parser {
         return command;
     }
 
-    private TransactionCommand parseCommit() throws SQLException {
+    private TransactionCommand parseCommit() {
         TransactionCommand command;
         if (readIf("TRANSACTION")) {
             command = new TransactionCommand(session, TransactionCommand.COMMIT_TRANSACTION);
@@ -527,7 +518,7 @@ public class Parser {
         return command;
     }
 
-    private TransactionCommand parseShutdown() throws SQLException {
+    private TransactionCommand parseShutdown() {
         int type = TransactionCommand.SHUTDOWN;
         if (readIf("IMMEDIATELY")) {
             type = TransactionCommand.SHUTDOWN_IMMEDIATELY;
@@ -539,7 +530,7 @@ public class Parser {
         return new TransactionCommand(session, type);
     }
 
-    private TransactionCommand parseRollback() throws SQLException {
+    private TransactionCommand parseRollback() {
         TransactionCommand command;
         if (readIf("TRANSACTION")) {
             command = new TransactionCommand(session, TransactionCommand.ROLLBACK_TRANSACTION);
@@ -557,7 +548,7 @@ public class Parser {
         return command;
     }
 
-    private Prepared parsePrepare() throws SQLException {
+    private Prepared parsePrepare() {
         if (readIf("COMMIT")) {
             TransactionCommand command = new TransactionCommand(session, TransactionCommand.PREPARE_COMMIT);
             command.setTransactionName(readUniqueIdentifier());
@@ -583,20 +574,20 @@ public class Parser {
         return command;
     }
 
-    private TransactionCommand parseSavepoint() throws SQLException {
+    private TransactionCommand parseSavepoint() {
         TransactionCommand command = new TransactionCommand(session, TransactionCommand.SAVEPOINT);
         command.setSavepointName(readUniqueIdentifier());
         return command;
     }
 
-    private Prepared parseReleaseSavepoint() throws SQLException {
+    private Prepared parseReleaseSavepoint() {
         Prepared command = new NoOperation(session);
         readIf("SAVEPOINT");
         readUniqueIdentifier();
         return command;
     }
 
-    private Schema getSchema() throws SQLException {
+    private Schema getSchema() {
         if (schemaName == null) {
             return null;
         }
@@ -606,13 +597,13 @@ public class Parser {
                 // for local temporary tables
                 schema = database.getSchema(session.getCurrentSchemaName());
             } else {
-                throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
+                throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
             }
         }
         return schema;
     }
 
-    private Column readTableColumn(TableFilter filter) throws SQLException {
+    private Column readTableColumn(TableFilter filter) {
         String tableAlias = null;
         String columnName = readColumnIdentifier();
         if (readIf(".")) {
@@ -628,21 +619,21 @@ public class Parser {
                     tableAlias = columnName;
                     columnName = readColumnIdentifier();
                     if (!equalsToken(catalogName, database.getShortName())) {
-                        throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, catalogName);
+                        throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, catalogName);
                     }
                 }
                 if (!equalsToken(schema, filter.getTable().getSchema().getName())) {
-                    throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
+                    throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
                 }
             }
             if (!equalsToken(tableAlias, filter.getTableAlias())) {
-                throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
+                throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
             }
         }
         return filter.getTable().getColumn(columnName);
     }
 
-    private Update parseUpdate() throws SQLException {
+    private Update parseUpdate() {
         Update command = new Update(session);
         currentPrepared = command;
         int start = lastParseIndex;
@@ -687,7 +678,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readSimpleTableFilter() throws SQLException {
+    private TableFilter readSimpleTableFilter() {
         Table table = readTableOrView();
         String alias = null;
         if (readIf("AS")) {
@@ -701,7 +692,7 @@ public class Parser {
         return new TableFilter(session, table, alias, rightsChecked, currentSelect);
     }
 
-    private Delete parseDelete() throws SQLException {
+    private Delete parseDelete() {
         Delete command = new Delete(session);
         currentPrepared = command;
         int start = lastParseIndex;
@@ -716,7 +707,7 @@ public class Parser {
         return command;
     }
 
-    private IndexColumn[] parseIndexColumnList() throws SQLException {
+    private IndexColumn[] parseIndexColumnList() {
         ArrayList<IndexColumn> columns = New.arrayList();
         do {
             IndexColumn column = new IndexColumn();
@@ -740,7 +731,7 @@ public class Parser {
         return columns.toArray(new IndexColumn[columns.size()]);
     }
 
-    private String[] parseColumnList() throws SQLException {
+    private String[] parseColumnList() {
         ArrayList<String> columns = New.arrayList();
         do {
             String columnName = readColumnIdentifier();
@@ -749,14 +740,14 @@ public class Parser {
         return columns.toArray(new String[columns.size()]);
     }
 
-    private Column[] parseColumnList(Table table) throws SQLException {
+    private Column[] parseColumnList(Table table) {
         ArrayList<Column> columns = New.arrayList();
         HashSet<Column> set = New.hashSet();
         if (!readIf(")")) {
             do {
                 Column column = table.getColumn(readColumnIdentifier());
                 if (!set.add(column)) {
-                    throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL());
+                    throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL());
                 }
                 columns.add(column);
             } while (readIfMore());
@@ -764,7 +755,7 @@ public class Parser {
         return columns.toArray(new Column[columns.size()]);
     }
 
-    private boolean readIfMore() throws SQLException {
+    private boolean readIfMore() {
         if (readIf(",")) {
             return !readIf(")");
         }
@@ -772,7 +763,7 @@ public class Parser {
         return false;
     }
 
-    private Prepared parseHelp() throws SQLException {
+    private Prepared parseHelp() {
         StringBuilder buff = new StringBuilder("SELECT * FROM INFORMATION_SCHEMA.HELP");
         int i = 0;
         ArrayList<Value> paramValues = New.arrayList();
@@ -791,7 +782,7 @@ public class Parser {
         return prepare(session, buff.toString(), paramValues);
     }
 
-    private Prepared parseShow() throws SQLException {
+    private Prepared parseShow() {
         ArrayList<Value> paramValues = New.arrayList();
         StringBuilder buff = new StringBuilder("SELECT ");
         if (readIf("CLIENT_ENCODING")) {
@@ -848,7 +839,7 @@ public class Parser {
         return prepare(session, buff.toString(), paramValues);
     }
 
-    private Prepared prepare(Session s, String sql, ArrayList<Value> paramValues) throws SQLException {
+    private Prepared prepare(Session s, String sql, ArrayList<Value> paramValues) {
         Prepared prep = s.prepare(sql);
         ArrayList<Parameter> params = prep.getParameters();
         for (int i = 0; params != null && i < params.size(); i++) {
@@ -858,7 +849,7 @@ public class Parser {
         return prep;
     }
 
-    private boolean isSelect() throws SQLException {
+    private boolean isSelect() {
         int start = lastParseIndex;
         while (readIf("(")) {
             // need to read ahead, it could be a nested union:
@@ -870,7 +861,7 @@ public class Parser {
         return select;
     }
 
-    private Merge parseMerge() throws SQLException {
+    private Merge parseMerge() {
         Merge command = new Merge(session);
         currentPrepared = command;
         read("INTO");
@@ -911,7 +902,7 @@ public class Parser {
         return command;
     }
 
-    private Insert parseInsert() throws SQLException {
+    private Insert parseInsert() {
         Insert command = new Insert(session);
         currentPrepared = command;
         read("INTO");
@@ -954,7 +945,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readTableFilter(boolean fromOuter) throws SQLException {
+    private TableFilter readTableFilter(boolean fromOuter) {
         Table table;
         String alias = null;
         if (readIf("(")) {
@@ -1015,7 +1006,7 @@ public class Parser {
         return new TableFilter(session, table, alias, rightsChecked, currentSelect);
     }
 
-    private String readFromAlias(String alias) throws SQLException {
+    private String readFromAlias(String alias) {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER) {
@@ -1028,7 +1019,7 @@ public class Parser {
         return alias;
     }
 
-    private Prepared parseTruncate() throws SQLException {
+    private Prepared parseTruncate() {
         read("TABLE");
         Table table = readTableOrView();
         TruncateTable command = new TruncateTable(session);
@@ -1036,7 +1027,7 @@ public class Parser {
         return command;
     }
 
-    private boolean readIfExists(boolean ifExists) throws SQLException {
+    private boolean readIfExists(boolean ifExists) {
         if (readIf("IF")) {
             read("EXISTS");
             ifExists = true;
@@ -1044,7 +1035,7 @@ public class Parser {
         return ifExists;
     }
 
-    private Prepared parseComment() throws SQLException {
+    private Prepared parseComment() {
         int type = 0;
         read("ON");
         boolean column = false;
@@ -1098,7 +1089,7 @@ public class Parser {
         return command;
     }
 
-    private Prepared parseDrop() throws SQLException {
+    private Prepared parseDrop() {
         if (readIf("TABLE")) {
             boolean ifExists = readIfExists(false);
             String tableName = readIdentifierWithSchema();
@@ -1206,7 +1197,7 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private DropUserDataType parseDropUserDataType() throws SQLException {
+    private DropUserDataType parseDropUserDataType() {
         boolean ifExists = readIfExists(false);
         DropUserDataType command = new DropUserDataType(session);
         command.setTypeName(readUniqueIdentifier());
@@ -1215,7 +1206,7 @@ public class Parser {
         return command;
     }
 
-    private DropAggregate parseDropAggregate() throws SQLException {
+    private DropAggregate parseDropAggregate() {
         boolean ifExists = readIfExists(false);
         DropAggregate command = new DropAggregate(session);
         command.setName(readUniqueIdentifier());
@@ -1224,7 +1215,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readJoin(TableFilter top, Select command, boolean fromOuter) throws SQLException {
+    private TableFilter readJoin(TableFilter top, Select command, boolean fromOuter) {
         TableFilter last = top;
         while (true) {
             if (readIf("RIGHT")) {
@@ -1313,12 +1304,12 @@ public class Parser {
         return top;
     }
 
-    private Prepared parseExecute() throws SQLException {
+    private Prepared parseExecute() {
         ExecuteProcedure command = new ExecuteProcedure(session);
         String procedureName = readAliasIdentifier();
         Procedure p = session.getProcedure(procedureName);
         if (p == null) {
-            throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, procedureName);
+            throw DbException.get(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, procedureName);
         }
         command.setProcedure(p);
         if (readIf("(")) {
@@ -1333,7 +1324,7 @@ public class Parser {
         return command;
     }
 
-    private DeallocateProcedure parseDeallocate() throws SQLException {
+    private DeallocateProcedure parseDeallocate() {
         readIf("PLAN");
         String procedureName = readAliasIdentifier();
         DeallocateProcedure command = new DeallocateProcedure(session);
@@ -1341,7 +1332,7 @@ public class Parser {
         return command;
     }
 
-    private ExplainPlan parseExplain() throws SQLException {
+    private ExplainPlan parseExplain() {
         ExplainPlan command = new ExplainPlan(session);
         readIf("PLAN");
         readIf("FOR");
@@ -1361,7 +1352,7 @@ public class Parser {
         return command;
     }
 
-    private Query parseSelect() throws SQLException {
+    private Query parseSelect() {
         int paramIndex = parameters.size();
         Query command = parseSelectUnion();
         ArrayList<Parameter> params = New.arrayList();
@@ -1373,13 +1364,13 @@ public class Parser {
         return command;
     }
 
-    private Query parseSelectUnion() throws SQLException {
+    private Query parseSelectUnion() {
         int start = lastParseIndex;
         Query command = parseSelectSub();
         return parseSelectUnionExtension(command, start, false);
     }
 
-    private Query parseSelectUnionExtension(Query command, int start, boolean unionOnly) throws SQLException {
+    private Query parseSelectUnionExtension(Query command, int start, boolean unionOnly) {
         while (true) {
             if (readIf("UNION")) {
                 SelectUnion union = new SelectUnion(session, command);
@@ -1412,7 +1403,7 @@ public class Parser {
         return command;
     }
 
-    private void parseEndOfQuery(Query command) throws SQLException {
+    private void parseEndOfQuery(Query command) {
         if (readIf("ORDER")) {
             read("BY");
             Select oldSelect = currentSelect;
@@ -1524,7 +1515,7 @@ public class Parser {
         }
     }
 
-    private Query parseSelectSub() throws SQLException {
+    private Query parseSelectSub() {
         if (readIf("(")) {
             Query command = parseSelectUnion();
             read(")");
@@ -1534,14 +1525,14 @@ public class Parser {
         return select;
     }
 
-    private void parseSelectSimpleFromPart(Select command) throws SQLException {
+    private void parseSelectSimpleFromPart(Select command) {
         do {
             TableFilter filter = readTableFilter(false);
             parseJoinTableFilter(filter, command);
         } while (readIf(","));
     }
 
-    private void parseJoinTableFilter(TableFilter top, Select command) throws SQLException {
+    private void parseJoinTableFilter(TableFilter top, Select command) {
         top = readJoin(top, command, top.isJoinOuter());
         command.addTableFilter(top, true);
         boolean isOuter = false;
@@ -1567,7 +1558,7 @@ public class Parser {
         }
     }
 
-    private void parseSelectSimpleSelectPart(Select command) throws SQLException {
+    private void parseSelectSimpleSelectPart(Select command) {
         Select temp = currentSelect;
         // make sure aggregate functions will not work in TOP and LIMIT
         currentSelect = null;
@@ -1606,7 +1597,7 @@ public class Parser {
         command.setExpressions(expressions);
     }
 
-    private Select parseSelectSimple() throws SQLException {
+    private Select parseSelectSimple() {
         boolean fromFirst;
         if (readIf("SELECT")) {
             fromFirst = false;
@@ -1665,7 +1656,7 @@ public class Parser {
         return command;
     }
 
-    private Table getDualTable() throws SQLException {
+    private Table getDualTable() {
         Schema main = database.findSchema(Constants.SCHEMA_MAIN);
         Expression one = ValueExpression.get(ValueLong.get(1));
         return new RangeTable(main, one, one);
@@ -1679,7 +1670,7 @@ public class Parser {
         command.setSQL(sql);
     }
 
-    private Expression readExpression() throws SQLException {
+    private Expression readExpression() {
         Expression r = readAnd();
         while (readIf("OR")) {
             r = new ConditionAndOr(ConditionAndOr.OR, r, readAnd());
@@ -1687,7 +1678,7 @@ public class Parser {
         return r;
     }
 
-    private Expression readAnd() throws SQLException {
+    private Expression readAnd() {
         Expression r = readCondition();
         while (readIf("AND")) {
             r = new ConditionAndOr(ConditionAndOr.AND, r, readCondition());
@@ -1695,7 +1686,7 @@ public class Parser {
         return r;
     }
 
-    private Expression readCondition() throws SQLException {
+    private Expression readCondition() {
         if (readIf("NOT")) {
             return new ConditionNot(readCondition());
         }
@@ -1832,7 +1823,7 @@ public class Parser {
         return r;
     }
 
-    private Expression readConcat() throws SQLException {
+    private Expression readConcat() {
         Expression r = readSum();
         while (true) {
             if (readIf("||")) {
@@ -1859,7 +1850,7 @@ public class Parser {
         }
     }
 
-    private Expression readSum() throws SQLException {
+    private Expression readSum() {
         Expression r = readFactor();
         while (true) {
             if (readIf("+")) {
@@ -1872,7 +1863,7 @@ public class Parser {
         }
     }
 
-    private Expression readFactor() throws SQLException {
+    private Expression readFactor() {
         Expression r = readTerm();
         while (true) {
             if (readIf("*")) {
@@ -1885,7 +1876,7 @@ public class Parser {
         }
     }
 
-    private Expression readAggregate(int aggregateType) throws SQLException {
+    private Expression readAggregate(int aggregateType) {
         if (currentSelect == null) {
             throw getSyntaxError();
         }
@@ -1923,7 +1914,7 @@ public class Parser {
         return r;
     }
 
-    private ArrayList<SelectOrderBy> parseSimpleOrderList() throws SQLException {
+    private ArrayList<SelectOrderBy> parseSimpleOrderList() {
         ArrayList<SelectOrderBy> orderList = New.arrayList();
         do {
             SelectOrderBy order = new SelectOrderBy();
@@ -1939,10 +1930,10 @@ public class Parser {
         return orderList;
     }
 
-    private JavaFunction readJavaFunction(String name) throws SQLException {
+    private JavaFunction readJavaFunction(String name) {
         FunctionAlias functionAlias = database.findFunctionAlias(name);
         if (functionAlias == null) {
-            throw Message.getSQLException(ErrorCode.FUNCTION_NOT_FOUND_1, name);
+            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
         }
         Expression[] args;
         ArrayList<Expression> argList = New.arrayList();
@@ -1959,7 +1950,7 @@ public class Parser {
         return func;
     }
 
-    private JavaAggregate readJavaAggregate(UserAggregate aggregate) throws SQLException {
+    private JavaAggregate readJavaAggregate(UserAggregate aggregate) {
         ArrayList<Expression> params = New.arrayList();
         do {
             params.add(readExpression());
@@ -1972,7 +1963,7 @@ public class Parser {
         return agg;
     }
 
-    private Expression readFunction(String name) throws SQLException {
+    private Expression readFunction(String name) {
         int agg = Aggregate.getAggregateType(name);
         if (agg >= 0) {
             return readAggregate(agg);
@@ -2110,7 +2101,7 @@ public class Parser {
         return function;
     }
 
-    private Function readFunctionWithoutParameters(String name) throws SQLException {
+    private Function readFunctionWithoutParameters(String name) {
         if (readIf("(")) {
             read(")");
         }
@@ -2119,7 +2110,7 @@ public class Parser {
         return function;
     }
 
-    private Expression readWildcardOrSequenceValue(String schema, String objectName) throws SQLException {
+    private Expression readWildcardOrSequenceValue(String schema, String objectName) {
         if (readIf("*")) {
             return new Wildcard(schema, objectName);
         }
@@ -2144,7 +2135,7 @@ public class Parser {
         return null;
     }
 
-    private Expression readTermObjectDot(String objectName) throws SQLException {
+    private Expression readTermObjectDot(String objectName) {
         Expression expr = readWildcardOrSequenceValue(null, objectName);
         if (expr != null) {
             return expr;
@@ -2161,7 +2152,7 @@ public class Parser {
             if (readIf(".")) {
                 String databaseName = schema;
                 if (!equalsToken(database.getShortName(), databaseName)) {
-                    throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
+                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
                 }
                 schema = objectName;
                 objectName = name;
@@ -2177,7 +2168,7 @@ public class Parser {
         return new ExpressionColumn(database, null, objectName, name);
     }
 
-    private Expression readTerm() throws SQLException {
+    private Expression readTerm() {
         Expression r;
         switch (currentTokenType) {
         case AT:
@@ -2202,13 +2193,13 @@ public class Parser {
                         // this can occur when parsing expressions only (for example check constraints)
                         throw getSyntaxError();
                     } else if (parameters.size() > 0) {
-                        throw Message.getSQLException(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+                        throw DbException.get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
                     }
                     indexedParameterList = New.arrayList();
                 }
                 int index = currentValue.getInt() - 1;
                 if (index < 0 || index >= Constants.MAX_PARAMETER_INDEX) {
-                    throw Message.getInvalidValueException("" + index, "Parameter Index");
+                    throw DbException.getInvalidValueException("" + index, "Parameter Index");
                 }
                 if (indexedParameterList.size() <= index) {
                     indexedParameterList.ensureCapacity(index + 1);
@@ -2224,7 +2215,7 @@ public class Parser {
                 read();
             } else {
                 if (indexedParameterList != null) {
-                    throw Message.getSQLException(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+                    throw DbException.get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
                 }
                 p = new Parameter(parameters.size());
             }
@@ -2409,7 +2400,7 @@ public class Parser {
         return r;
     }
 
-    private Expression readWhen(Expression left) throws SQLException {
+    private Expression readWhen(Expression left) {
         if (readIf("END")) {
             readIf("CASE");
             return ValueExpression.getNull();
@@ -2436,15 +2427,15 @@ public class Parser {
         return function;
     }
 
-    private int getPositiveInt() throws SQLException {
+    private int getPositiveInt() {
         int v = getInt();
         if (v < 0) {
-            throw Message.getInvalidValueException("" + v, "positive integer");
+            throw DbException.getInvalidValueException("" + v, "positive integer");
         }
         return v;
     }
 
-    private int getInt() throws SQLException {
+    private int getInt() {
         boolean minus = false;
         if (currentTokenType == MINUS) {
             minus = true;
@@ -2453,14 +2444,14 @@ public class Parser {
             read();
         }
         if (currentTokenType != VALUE || currentValue.getType() != Value.INT) {
-            throw Message.getSyntaxError(sqlCommand, parseIndex, "integer");
+            throw DbException.getSyntaxError(sqlCommand, parseIndex, "integer");
         }
         int i = currentValue.getInt();
         read();
         return minus ? -i : i;
     }
 
-    private long readLong() throws SQLException {
+    private long readLong() {
         boolean minus = false;
         if (currentTokenType == MINUS) {
             minus = true;
@@ -2468,14 +2459,14 @@ public class Parser {
         }
         if (currentTokenType != VALUE
                 || (currentValue.getType() != Value.INT && currentValue.getType() != Value.DECIMAL)) {
-            throw Message.getSyntaxError(sqlCommand, parseIndex, "long");
+            throw DbException.getSyntaxError(sqlCommand, parseIndex, "long");
         }
         long i = currentValue.getLong();
         read();
         return minus ? -i : i;
     }
 
-    private boolean readBooleanSetting() throws SQLException {
+    private boolean readBooleanSetting() {
         if (currentTokenType == VALUE) {
             boolean result = currentValue.getBoolean().booleanValue();
             read();
@@ -2490,18 +2481,18 @@ public class Parser {
         }
     }
 
-    private String readString() throws SQLException {
+    private String readString() {
         Expression expr = readExpression().optimize(session);
         if (!(expr instanceof ValueExpression)) {
-            throw Message.getSyntaxError(sqlCommand, parseIndex, "string");
+            throw DbException.getSyntaxError(sqlCommand, parseIndex, "string");
         }
         String s = expr.getValue(session).getString();
         return s;
     }
 
-    private String readIdentifierWithSchema(String defaultSchemaName) throws SQLException {
+    private String readIdentifierWithSchema(String defaultSchemaName) {
         if (currentTokenType != IDENTIFIER) {
-            throw Message.getSyntaxError(sqlCommand, parseIndex, "identifier");
+            throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
         }
         String s = currentToken;
         read();
@@ -2509,7 +2500,7 @@ public class Parser {
         if (readIf(".")) {
             schemaName = s;
             if (currentTokenType != IDENTIFIER) {
-                throw Message.getSyntaxError(sqlCommand, parseIndex, "identifier");
+                throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
             }
             s = currentToken;
             read();
@@ -2519,7 +2510,7 @@ public class Parser {
                 read(".");
                 schemaName = s;
                 if (currentTokenType != IDENTIFIER) {
-                    throw Message.getSyntaxError(sqlCommand, parseIndex, "identifier");
+                    throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
                 }
                 s = currentToken;
                 read();
@@ -2528,35 +2519,35 @@ public class Parser {
         return s;
     }
 
-    private String readIdentifierWithSchema() throws SQLException {
+    private String readIdentifierWithSchema() {
         return readIdentifierWithSchema(session.getCurrentSchemaName());
     }
 
-    private String readAliasIdentifier() throws SQLException {
+    private String readAliasIdentifier() {
         return readColumnIdentifier();
     }
 
-    private String readUniqueIdentifier() throws SQLException {
+    private String readUniqueIdentifier() {
         return readColumnIdentifier();
     }
 
-    private String readColumnIdentifier() throws SQLException {
+    private String readColumnIdentifier() {
         if (currentTokenType != IDENTIFIER) {
-            throw Message.getSyntaxError(sqlCommand, parseIndex, "identifier");
+            throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
         }
         String s = currentToken;
         read();
         return s;
     }
 
-    private void read(String expected) throws SQLException {
+    private void read(String expected) {
         if (currentTokenQuoted || !equalsToken(expected, currentToken)) {
-            throw Message.getSyntaxError(sqlCommand, parseIndex, expected);
+            throw DbException.getSyntaxError(sqlCommand, parseIndex, expected);
         }
         read();
     }
 
-    private boolean readIf(String token) throws SQLException {
+    private boolean readIf(String token) {
         if (!currentTokenQuoted && equalsToken(token, currentToken)) {
             read();
             return true;
@@ -2590,7 +2581,7 @@ public class Parser {
         }
     }
 
-    private void read() throws SQLException {
+    private void read() {
         currentTokenQuoted = false;
         if (expectedList != null) {
             expectedList.clear();
@@ -2765,16 +2756,16 @@ public class Parser {
         }
     }
 
-    private void checkLiterals(boolean text) throws SQLException {
+    private void checkLiterals(boolean text) {
         if (!session.getAllowLiterals()) {
             int allowed = database.getAllowLiterals();
             if (allowed == Constants.ALLOW_LITERALS_NONE || (text && allowed != Constants.ALLOW_LITERALS_ALL)) {
-                throw Message.getSQLException(ErrorCode.LITERALS_ARE_NOT_ALLOWED);
+                throw DbException.get(ErrorCode.LITERALS_ARE_NOT_ALLOWED);
             }
         }
     }
 
-    private void readHexDecimal(int start, int i) throws SQLException {
+    private void readHexDecimal(int start, int i) {
         char[] chars = sqlCommandChars;
         char c;
         do {
@@ -2788,7 +2779,7 @@ public class Parser {
         currentTokenType = VALUE;
     }
 
-    private void readDecimal(int start, int i) throws SQLException {
+    private void readDecimal(int start, int i) {
         char[] chars = sqlCommandChars;
         int[] types = characterTypes;
         // go until the first non-number
@@ -2817,7 +2808,7 @@ public class Parser {
         try {
             bd = new BigDecimal(sub);
         } catch (NumberFormatException e) {
-            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, e, sub);
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sub);
         }
         checkLiterals(false);
         currentValue = ValueDecimal.get(bd);
@@ -2828,7 +2819,7 @@ public class Parser {
         return session;
     }
 
-    private void initialize(String sql) throws SQLException {
+    private void initialize(String sql) {
         if (sql == null) {
             sql = "";
         }
@@ -3029,14 +3020,14 @@ public class Parser {
         parseIndex = 0;
     }
 
-    private void checkRunOver(int i, int len, int startLoop) throws SQLException {
+    private void checkRunOver(int i, int len, int startLoop) {
         if (i >= len) {
             parseIndex = startLoop;
             throw getSyntaxError();
         }
     }
 
-    private int getSpecialType(String s) throws SQLException {
+    private int getSpecialType(String s) {
         char c0 = s.charAt(0);
         if (s.length() == 1) {
             switch (c0) {
@@ -3111,7 +3102,7 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private int getTokenType(String s) throws SQLException {
+    private int getTokenType(String s) {
         int len = s.length();
         if (len == 0) {
             throw getSyntaxError();
@@ -3245,7 +3236,7 @@ public class Parser {
         return IDENTIFIER;
     }
 
-    private Column parseColumnForTable(String columnName) throws SQLException {
+    private Column parseColumnForTable(String columnName) {
         Column column;
         boolean isIdentity = false;
         if (readIf("IDENTITY") || readIf("SERIAL")) {
@@ -3330,7 +3321,7 @@ public class Parser {
         return column;
     }
 
-    private void parseAutoIncrement(Column column) throws SQLException {
+    private void parseAutoIncrement(Column column) {
         long start = 1, increment = 1;
         if (readIf("(")) {
             start = readLong();
@@ -3342,7 +3333,7 @@ public class Parser {
         column.setAutoIncrement(true, start, increment);
     }
 
-    private String readCommentIf() throws SQLException {
+    private String readCommentIf() {
         if (readIf("COMMENT")) {
             readIf("IS");
             return readString();
@@ -3350,7 +3341,7 @@ public class Parser {
         return null;
     }
 
-    private Column parseColumn(String columnName) throws SQLException {
+    private Column parseColumn(String columnName) {
         String original = currentToken;
         boolean regular = false;
         if (readIf("LONG")) {
@@ -3389,7 +3380,7 @@ public class Parser {
         } else {
             dataType = DataType.getTypeByName(original);
             if (dataType == null) {
-                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, currentToken);
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, currentToken);
             }
         }
         if (database.getIgnoreCase() && dataType.type == Value.STRING && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
@@ -3399,7 +3390,7 @@ public class Parser {
         if (dataType.type == Value.NULL) {
             // We do support NULL in the database meta data,
             // but not actually when creating tables.
-            throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
+            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
         }
         if (regular) {
             read();
@@ -3476,7 +3467,7 @@ public class Parser {
         return column;
     }
 
-    private Prepared parseCreate() throws SQLException {
+    private Prepared parseCreate() {
         boolean force = readIf("FORCE");
         if (readIf("LOCAL")) {
             read("TEMPORARY");
@@ -3585,7 +3576,7 @@ public class Parser {
         }
     }
 
-    private boolean addRoleOrRight(GrantRevoke command) throws SQLException {
+    private boolean addRoleOrRight(GrantRevoke command) {
         if (readIf("SELECT")) {
             command.addRight(Right.SELECT);
             return false;
@@ -3613,14 +3604,14 @@ public class Parser {
         }
     }
 
-    private GrantRevoke parseGrantRevoke(int operationType) throws SQLException {
+    private GrantRevoke parseGrantRevoke(int operationType) {
         GrantRevoke command = new GrantRevoke(session);
         command.setOperationType(operationType);
         boolean isRoleBased = addRoleOrRight(command);
         while (readIf(",")) {
             boolean next = addRoleOrRight(command);
             if (next != isRoleBased) {
-                throw Message.getSQLException(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
+                throw DbException.get(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
             }
         }
         if (!isRoleBased) {
@@ -3640,21 +3631,21 @@ public class Parser {
         return command;
     }
 
-    private Call parserCall() throws SQLException {
+    private Call parserCall() {
         Call command = new Call(session);
         currentPrepared = command;
         command.setValue(readExpression());
         return command;
     }
 
-    private CreateRole parseCreateRole() throws SQLException {
+    private CreateRole parseCreateRole() {
         CreateRole command = new CreateRole(session);
         command.setIfNotExists(readIfNoExists());
         command.setRoleName(readUniqueIdentifier());
         return command;
     }
 
-    private CreateSchema parseCreateSchema() throws SQLException {
+    private CreateSchema parseCreateSchema() {
         CreateSchema command = new CreateSchema(session);
         command.setIfNotExists(readIfNoExists());
         command.setSchemaName(readUniqueIdentifier());
@@ -3666,7 +3657,7 @@ public class Parser {
         return command;
     }
 
-    private CreateSequence parseCreateSequence() throws SQLException {
+    private CreateSequence parseCreateSequence() {
         boolean ifNotExists = readIfNoExists();
         String sequenceName = readIdentifierWithSchema();
         CreateSequence command = new CreateSequence(session, getSchema());
@@ -3690,7 +3681,7 @@ public class Parser {
         return command;
     }
 
-    private boolean readIfNoExists() throws SQLException {
+    private boolean readIfNoExists() {
         if (readIf("IF")) {
             read("NOT");
             read("EXISTS");
@@ -3699,12 +3690,12 @@ public class Parser {
         return false;
     }
 
-    private CreateConstant parseCreateConstant() throws SQLException {
+    private CreateConstant parseCreateConstant() {
         boolean ifNotExists = readIfNoExists();
         String constantName = readIdentifierWithSchema();
         Schema schema = getSchema();
         if (isKeyword(constantName)) {
-            throw Message.getSQLException(ErrorCode.CONSTANT_ALREADY_EXISTS_1, constantName);
+            throw DbException.get(ErrorCode.CONSTANT_ALREADY_EXISTS_1, constantName);
         }
         read("VALUE");
         Expression expr = readExpression();
@@ -3715,13 +3706,13 @@ public class Parser {
         return command;
     }
 
-    private CreateAggregate parseCreateAggregate(boolean force) throws SQLException {
+    private CreateAggregate parseCreateAggregate(boolean force) {
         boolean ifNotExists = readIfNoExists();
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
         String name = readUniqueIdentifier();
         if (isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
-            throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
+            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
         command.setName(name);
         command.setIfNotExists(ifNotExists);
@@ -3730,7 +3721,7 @@ public class Parser {
         return command;
     }
 
-    private CreateUserDataType parseCreateUserDataType() throws SQLException {
+    private CreateUserDataType parseCreateUserDataType() {
         boolean ifNotExists = readIfNoExists();
         CreateUserDataType command = new CreateUserDataType(session);
         command.setTypeName(readUniqueIdentifier());
@@ -3746,7 +3737,7 @@ public class Parser {
         return command;
     }
 
-    private CreateTrigger parseCreateTrigger(boolean force) throws SQLException {
+    private CreateTrigger parseCreateTrigger(boolean force) {
         boolean ifNotExists = readIfNoExists();
         String triggerName = readIdentifierWithSchema(null);
         Schema schema = getSchema();
@@ -3808,7 +3799,7 @@ public class Parser {
         return command;
     }
 
-    private CreateUser parseCreateUser() throws SQLException {
+    private CreateUser parseCreateUser() {
         CreateUser command = new CreateUser(session);
         command.setIfNotExists(readIfNoExists());
         command.setUserName(readUniqueIdentifier());
@@ -3832,13 +3823,13 @@ public class Parser {
         return command;
     }
 
-    private CreateFunctionAlias parseCreateFunctionAlias(boolean force) throws SQLException {
+    private CreateFunctionAlias parseCreateFunctionAlias(boolean force) {
         boolean ifNotExists = readIfNoExists();
         CreateFunctionAlias command = new CreateFunctionAlias(session);
         command.setForce(force);
         String name = readUniqueIdentifier();
         if (isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
-            throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
+            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
         command.setAliasName(name);
         command.setIfNotExists(ifNotExists);
@@ -3852,7 +3843,7 @@ public class Parser {
         return command;
     }
 
-    private Query parserWith() throws SQLException {
+    private Query parserWith() {
         String tempViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
         TableData recursiveTable;
@@ -3889,7 +3880,7 @@ public class Parser {
         return query;
     }
 
-    private CreateView parseCreateView(boolean force) throws SQLException {
+    private CreateView parseCreateView(boolean force) {
         boolean ifNotExists = readIfNoExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
@@ -3907,7 +3898,7 @@ public class Parser {
             Query query = parseSelect();
             query.prepare();
             command.setSelect(query);
-        } catch (SQLException e) {
+        } catch (DbException e) {
             if (force) {
                 command.setSelectSQL(select);
             } else {
@@ -3917,7 +3908,7 @@ public class Parser {
         return command;
     }
 
-    private TransactionCommand parseCheckpoint() throws SQLException {
+    private TransactionCommand parseCheckpoint() {
         TransactionCommand command;
         if (readIf("SYNC")) {
             command = new TransactionCommand(session, TransactionCommand.CHECKPOINT_SYNC);
@@ -3927,7 +3918,7 @@ public class Parser {
         return command;
     }
 
-    private Prepared parseAlter() throws SQLException {
+    private Prepared parseAlter() {
         if (readIf("TABLE")) {
             return parseAlterTable();
         } else if (readIf("USER")) {
@@ -3942,13 +3933,13 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private void checkSchema(Schema old) throws SQLException {
+    private void checkSchema(Schema old) {
         if (old != null && getSchema() != old) {
-            throw Message.getSQLException(ErrorCode.SCHEMA_NAME_MUST_MATCH);
+            throw DbException.get(ErrorCode.SCHEMA_NAME_MUST_MATCH);
         }
     }
 
-    private AlterIndexRename parseAlterIndex() throws SQLException {
+    private AlterIndexRename parseAlterIndex() {
         String indexName = readIdentifierWithSchema();
         Schema old = getSchema();
         AlterIndexRename command = new AlterIndexRename(session);
@@ -3961,12 +3952,12 @@ public class Parser {
         return command;
     }
 
-    private AlterView parseAlterView() throws SQLException {
+    private AlterView parseAlterView() {
         AlterView command = new AlterView(session);
         String viewName = readIdentifierWithSchema();
         Table tableView = getSchema().findTableOrView(session, viewName);
         if (!(tableView instanceof TableView)) {
-            throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
+            throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
         }
         TableView view = (TableView) tableView;
         command.setView(view);
@@ -3974,7 +3965,7 @@ public class Parser {
         return command;
     }
 
-    private AlterSequence parseAlterSequence() throws SQLException {
+    private AlterSequence parseAlterSequence() {
         String sequenceName = readIdentifierWithSchema();
         Sequence sequence = getSchema().getSequence(sequenceName);
         AlterSequence command = new AlterSequence(session, sequence.getSchema());
@@ -3990,7 +3981,7 @@ public class Parser {
         return command;
     }
 
-    private AlterUser parseAlterUser() throws SQLException {
+    private AlterUser parseAlterUser() {
         String userName = readUniqueIdentifier();
         if (readIf("SET")) {
             AlterUser command = new AlterUser(session);
@@ -4031,13 +4022,13 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private void readIfEqualOrTo() throws SQLException {
+    private void readIfEqualOrTo() {
         if (!readIf("=")) {
             readIf("TO");
         }
     }
 
-    private Prepared parseSet() throws SQLException {
+    private Prepared parseSet() {
         if (readIf("@")) {
             Set command = new Set(session, SetTypes.VARIABLE);
             command.setString(readAliasIdentifier());
@@ -4231,7 +4222,7 @@ public class Parser {
         }
     }
 
-    private Set parseSetCollation() throws SQLException {
+    private Set parseSetCollation() {
         Set command = new Set(session, SetTypes.COLLATION);
         String name = readAliasIdentifier();
         command.setString(name);
@@ -4258,7 +4249,7 @@ public class Parser {
         return command;
     }
 
-    private RunScriptCommand parseRunScript() throws SQLException {
+    private RunScriptCommand parseRunScript() {
         RunScriptCommand command = new RunScriptCommand(session);
         read("FROM");
         command.setFileNameExpr(readExpression());
@@ -4277,7 +4268,7 @@ public class Parser {
         return command;
     }
 
-    private ScriptCommand parseScript() throws SQLException {
+    private ScriptCommand parseScript() {
         ScriptCommand command = new ScriptCommand(session);
         boolean data = true, passwords = true, settings = true, dropTables = false, simple = false;
         if (readIf("SIMPLE")) {
@@ -4319,11 +4310,11 @@ public class Parser {
         return command;
     }
 
-    private Table readTableOrView() throws SQLException {
+    private Table readTableOrView() {
         return readTableOrView(readIdentifierWithSchema(null));
     }
 
-    private Table readTableOrView(String tableName) throws SQLException {
+    private Table readTableOrView(String tableName) {
         // same algorithm than readSequence
         if (schemaName != null) {
             return getSchema().getTableOrView(session, tableName);
@@ -4340,10 +4331,10 @@ public class Parser {
                 return table;
             }
         }
-        throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
     }
 
-    private Sequence findSequence(String schema, String sequenceName) throws SQLException {
+    private Sequence findSequence(String schema, String sequenceName) {
         Sequence sequence = database.getSchema(schema).findSequence(sequenceName);
         if (sequence != null) {
             return sequence;
@@ -4359,7 +4350,7 @@ public class Parser {
         return null;
     }
 
-    private Sequence readSequence() throws SQLException {
+    private Sequence readSequence() {
         // same algorithm than readTableOrView
         String sequenceName = readIdentifierWithSchema(null);
         if (schemaName != null) {
@@ -4369,10 +4360,10 @@ public class Parser {
         if (sequence != null) {
             return sequence;
         }
-        throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
+        throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
     }
 
-    private Prepared parseAlterTable() throws SQLException {
+    private Prepared parseAlterTable() {
         Table table = readTableOrView();
         if (readIf("ADD")) {
             Prepared command = parseAlterTableAddConstraintIf(table.getName(), table.getSchema());
@@ -4496,7 +4487,7 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private AlterTableAlterColumn parseAlterTableAddColumn(Table table) throws SQLException {
+    private AlterTableAlterColumn parseAlterTableAddColumn(Table table) {
         readIf("COLUMN");
         Schema schema = table.getSchema();
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
@@ -4511,7 +4502,7 @@ public class Parser {
         return command;
     }
 
-    private int parseAction() throws SQLException {
+    private int parseAction() {
         if (readIf("CASCADE")) {
             return ConstraintReferential.CASCADE;
         } else if (readIf("RESTRICT")) {
@@ -4529,7 +4520,7 @@ public class Parser {
         }
     }
 
-    private Prepared parseAlterTableAddConstraintIf(String tableName, Schema schema) throws SQLException {
+    private Prepared parseAlterTableAddConstraintIf(String tableName, Schema schema) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
         if (readIf("CONSTRAINT")) {
@@ -4616,7 +4607,7 @@ public class Parser {
         return command;
     }
 
-    private void parseReferences(AlterTableAddConstraint command, Schema schema, String tableName) throws SQLException {
+    private void parseReferences(AlterTableAddConstraint command, Schema schema, String tableName) {
         if (readIf("(")) {
             command.setRefTableName(schema, tableName);
             command.setRefIndexColumns(parseIndexColumnList());
@@ -4646,7 +4637,7 @@ public class Parser {
         }
     }
 
-    private CreateLinkedTable parseCreateLinkedTable(boolean temp, boolean globalTemp, boolean force) throws SQLException {
+    private CreateLinkedTable parseCreateLinkedTable(boolean temp, boolean globalTemp, boolean force) {
         read("TABLE");
         boolean ifNotExists = readIfNoExists();
         String tableName = readIdentifierWithSchema();
@@ -4682,7 +4673,7 @@ public class Parser {
         return command;
     }
 
-    private CreateTable parseCreateTable(boolean temp, boolean globalTemp, boolean persistIndexes) throws SQLException {
+    private CreateTable parseCreateTable(boolean temp, boolean globalTemp, boolean persistIndexes) {
         boolean ifNotExists = readIfNoExists();
         String tableName = readIdentifierWithSchema();
         if (temp && globalTemp && equalsToken("SESSION", schemaName)) {
@@ -4864,7 +4855,7 @@ public class Parser {
      * @return the expression object
      * @throws SQLException if the code snippet could not be parsed
      */
-    public Expression parseExpression(String sql) throws SQLException {
+    public Expression parseExpression(String sql) {
         parameters = New.arrayList();
         initialize(sql);
         read();

@@ -15,7 +15,7 @@ import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
@@ -84,8 +84,7 @@ public class JdbcClob extends TraceObject implements Clob
      * [Not supported] Truncates the object.
      */
     public void truncate(long len) throws SQLException {
-        debugCodeCall("truncate", len);
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
@@ -108,8 +107,7 @@ public class JdbcClob extends TraceObject implements Clob
      * [Not supported] Returns an output  stream.
      */
     public OutputStream setAsciiStream(long pos) throws SQLException {
-        debugCodeCall("setAsciiStream", pos);
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
@@ -131,8 +129,7 @@ public class JdbcClob extends TraceObject implements Clob
      * [Not supported] Returns a writer starting from a given position.
      */
     public Writer setCharacterStream(long pos) throws SQLException {
-        debugCodeCall("setCharacterStream", pos);
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
@@ -147,10 +144,10 @@ public class JdbcClob extends TraceObject implements Clob
             debugCode("getSubString(" + pos + ", " + length + ");");
             checkClosed();
             if (pos < 1) {
-                throw Message.getInvalidValueException("pos", "" + pos);
+                throw DbException.getInvalidValueException("pos", "" + pos);
             }
             if (length < 0) {
-                throw Message.getInvalidValueException("length", "" + length);
+                throw DbException.getInvalidValueException("length", "" + length);
             }
             StringBuilder buff = new StringBuilder(Math.min(4096, length));
             Reader reader = value.getReader();
@@ -176,32 +173,28 @@ public class JdbcClob extends TraceObject implements Clob
      * [Not supported] Sets a substring.
      */
     public int setString(long pos, String str) throws SQLException {
-        debugCode("setString("+pos+", "+quote(str)+");");
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
      * [Not supported] Sets a substring.
      */
     public int setString(long pos, String str, int offset, int len) throws SQLException {
-        debugCode("setString("+pos+", "+quote(str)+", "+offset+", "+len+");");
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
      * [Not supported] Searches a pattern and return the position.
      */
     public long position(String pattern, long start) throws SQLException {
-        debugCode("position("+quote(pattern)+", "+start+");");
-        throw Message.getUnsupportedException("LOB search");
+        throw unsupported("LOB search");
     }
 
     /**
      * [Not supported] Searches a pattern and return the position.
      */
     public long position(Clob clobPattern, long start) throws SQLException {
-        debugCode("position(clobPattern, "+start+");");
-        throw Message.getUnsupportedException("LOB search");
+        throw unsupported("LOB search");
     }
 
     /**
@@ -215,15 +208,16 @@ public class JdbcClob extends TraceObject implements Clob
     /**
      * [Not supported] Returns the reader, starting from an offset.
      */
+/*## Java 1.6 begin ##
     public Reader getCharacterStream(long pos, long length) throws SQLException {
-        debugCode("getCharacterStream("+pos+", "+length+");");
-        throw Message.getUnsupportedException("LOB subset");
+        throw unsupported("LOB subset");
     }
+## Java 1.6 end ##*/
 
     private void checkClosed() throws SQLException {
         conn.checkClosed();
         if (value == null) {
-            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
     }
 

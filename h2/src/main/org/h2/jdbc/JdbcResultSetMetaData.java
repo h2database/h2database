@@ -9,7 +9,7 @@ package org.h2.jdbc;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
@@ -425,7 +425,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
     private void checkColumnIndex(int columnIndex) throws SQLException {
         checkClosed();
         if (columnIndex < 1 || columnIndex > columnCount) {
-            throw Message.getInvalidValueException("" + columnIndex, "columnIndex");
+            throw DbException.getInvalidValueException("" + columnIndex, "columnIndex");
         }
     }
 
@@ -434,8 +434,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      */
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        debugCodeCall("unwrap");
-        throw Message.getUnsupportedException("unwrap");
+        throw unsupported("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -444,8 +443,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      */
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        debugCodeCall("isWrapperFor");
-        throw Message.getUnsupportedException("isWrapperFor");
+        throw unsupported("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 

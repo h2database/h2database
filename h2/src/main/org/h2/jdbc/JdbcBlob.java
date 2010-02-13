@@ -15,7 +15,7 @@ import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
@@ -80,8 +80,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @throws SQLException
      */
     public void truncate(long len) throws SQLException {
-        debugCodeCall("truncate", len);
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
@@ -127,7 +126,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public int setBytes(long pos, byte[] bytes) throws SQLException {
         debugCode("setBytes("+pos+", bytes);");
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
@@ -141,8 +140,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @throws SQLException
      */
     public int setBytes(long pos, byte[] bytes, int offset, int len) throws SQLException {
-        debugCode("setBytes("+pos+", bytes, "+offset+", "+len+");");
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
@@ -169,8 +167,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @throws SQLException
      */
     public OutputStream setBinaryStream(long pos) throws SQLException {
-        debugCodeCall("setBinaryStream", pos);
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     /**
@@ -223,7 +220,7 @@ public class JdbcBlob extends TraceObject implements Blob {
                 throw logAndConvert(e);
             }
         }
-        throw Message.getUnsupportedException("LOB search");
+        throw unsupported("LOB search");
     }
 
     /**
@@ -256,7 +253,7 @@ public class JdbcBlob extends TraceObject implements Blob {
                 throw logAndConvert(e);
             }
         }
-        throw Message.getUnsupportedException("LOB subset");
+        throw unsupported("LOB subset");
     }
 
     /**
@@ -276,14 +273,13 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @throws SQLException
      */
     public InputStream getBinaryStream(long pos, long length) throws SQLException {
-        debugCode("getBinaryStream("+pos+", "+length+");");
-        throw Message.getUnsupportedException("LOB update");
+        throw unsupported("LOB update");
     }
 
     private void checkClosed() throws SQLException {
         conn.checkClosed();
         if (value == null) {
-            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
     }
 

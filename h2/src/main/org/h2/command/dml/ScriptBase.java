@@ -11,7 +11,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.SQLException;
 
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -20,7 +19,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.security.SHA256;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
@@ -84,7 +83,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         this.fileNameExpr = file;
     }
 
-    protected String getFileName() throws SQLException {
+    protected String getFileName() {
         if (fileNameExpr != null && fileName == null) {
             fileName = fileNameExpr.optimize(session).getValue(session).getString();
             if (fileName == null || fileName.trim().length() == 0) {
@@ -102,14 +101,14 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     /**
      * Delete the target file.
      */
-    void deleteStore() throws SQLException {
+    void deleteStore() {
         String file = getFileName();
         if (file != null) {
             IOUtils.delete(file);
         }
     }
 
-    private void initStore() throws SQLException {
+    private void initStore() {
         Database db = session.getDatabase();
         // script files are always in text format
         String file = getFileName();
@@ -121,7 +120,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     /**
      * Open the output stream.
      */
-    void openOutput() throws SQLException {
+    void openOutput() {
         String file = getFileName();
         if (file == null) {
             return;
@@ -141,7 +140,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     /**
      * Open the input stream.
      */
-    void openInput() throws SQLException {
+    void openInput() {
         String file = getFileName();
         if (file == null) {
             return;
@@ -154,12 +153,12 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             try {
                 inStream = IOUtils.openFileInputStream(file);
             } catch (IOException e) {
-                throw Message.convertIOException(e, file);
+                throw DbException.convertIOException(e, file);
             }
             in = new BufferedInputStream(inStream, Constants.IO_BUFFER_SIZE);
             in = CompressTool.wrapInputStream(in, compressionAlgorithm, SCRIPT_SQL);
             if (in == null) {
-                throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, SCRIPT_SQL + " in " + file);
+                throw DbException.get(ErrorCode.FILE_NOT_FOUND_1, SCRIPT_SQL + " in " + file);
             }
         }
     }
@@ -190,20 +189,20 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         return null;
     }
 
-    public void checkPowerOff() throws SQLException {
+    public void checkPowerOff() {
         session.getDatabase().checkPowerOff();
     }
 
-    public void checkWritingAllowed() throws SQLException {
+    public void checkWritingAllowed() {
         session.getDatabase().checkWritingAllowed();
     }
 
-    public void freeUpDiskSpace() throws SQLException {
+    public void freeUpDiskSpace() {
         session.getDatabase().freeUpDiskSpace();
     }
 
     public int compareTypeSave(Value a, Value b) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public int getMaxLengthInplaceLob() {

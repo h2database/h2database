@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -14,12 +13,12 @@ import java.util.Properties;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.security.SHA256;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Encapsulates the connection settings, including user name and password.
@@ -58,10 +57,10 @@ public class ConnectionInfo implements Cloneable {
      * @param u the database URL (must start with jdbc:h2:)
      * @param info the connection properties
      */
-    public ConnectionInfo(String u, Properties info) throws SQLException {
+    public ConnectionInfo(String u, Properties info) {
         this.originalURL = u;
         if (!u.startsWith(Constants.START_URL)) {
-            throw Message.getInvalidValueException(u, "url");
+            throw DbException.getInvalidValueException(u, "url");
         }
         this.url = u;
         readProperties(info);
@@ -82,7 +81,7 @@ public class ConnectionInfo implements Cloneable {
                 "AUTO_RECONNECT", "OPEN_NEW" };
         for (String key : connectionTime) {
             if (SysProperties.CHECK && set.contains(key)) {
-                Message.throwInternalError(key);
+                DbException.throwInternalError(key);
             }
             set.add(key);
         }
@@ -165,13 +164,13 @@ public class ConnectionInfo implements Cloneable {
         return unnamed;
     }
 
-    private void readProperties(Properties info) throws SQLException {
+    private void readProperties(Properties info) {
         Object[] list = new Object[info.size()];
         info.keySet().toArray(list);
         for (Object k : list) {
             String key = StringUtils.toUpperEnglish(k.toString());
             if (prop.containsKey(key)) {
-                throw Message.getSQLException(ErrorCode.DUPLICATE_PROPERTY_1, key);
+                throw DbException.get(ErrorCode.DUPLICATE_PROPERTY_1, key);
             }
             if (isKnownSetting(key)) {
                 prop.put(key, info.get(k));
@@ -179,7 +178,7 @@ public class ConnectionInfo implements Cloneable {
         }
     }
 
-    private void readSettingsFromURL() throws SQLException {
+    private void readSettingsFromURL() {
         int idx = url.indexOf(';');
         if (idx >= 0) {
             String settings = url.substring(idx + 1);
@@ -194,11 +193,11 @@ public class ConnectionInfo implements Cloneable {
                 String key = setting.substring(0, equal);
                 key = StringUtils.toUpperEnglish(key);
                 if (!isKnownSetting(key)) {
-                    throw Message.getSQLException(ErrorCode.UNSUPPORTED_SETTING_1, key);
+                    throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
                 }
                 String old = prop.getProperty(key);
                 if (old != null && !old.equals(value)) {
-                    throw Message.getSQLException(ErrorCode.DUPLICATE_PROPERTY_1, key);
+                    throw DbException.get(ErrorCode.DUPLICATE_PROPERTY_1, key);
                 }
                 prop.setProperty(key, value);
             }
@@ -220,7 +219,7 @@ public class ConnectionInfo implements Cloneable {
      * Split the password property into file password and user password if
      * necessary, and convert them to the internal hash format.
      */
-    public void convertPasswords() throws SQLException {
+    public void convertPasswords() {
         char[] password = removePassword();
         SHA256 sha = new SHA256();
         if (getProperty("CIPHER", null) != null) {
@@ -233,7 +232,7 @@ public class ConnectionInfo implements Cloneable {
                 }
             }
             if (space < 0) {
-                throw Message.getSQLException(ErrorCode.WRONG_PASSWORD_FORMAT);
+                throw DbException.get(ErrorCode.WRONG_PASSWORD_FORMAT);
             }
             char[] np = new char[password.length - space - 1];
             char[] filePassword = new char[space];
@@ -286,7 +285,7 @@ public class ConnectionInfo implements Cloneable {
      */
     String removeProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !isKnownSetting(key)) {
-            Message.throwInternalError(key);
+            DbException.throwInternalError(key);
         }
         Object x = prop.remove(key);
         return x == null ? defaultValue : x.toString();
@@ -297,13 +296,13 @@ public class ConnectionInfo implements Cloneable {
      *
      * @return the database name
      */
-    String getName() throws SQLException {
+    String getName() {
         if (persistent) {
             String suffix = Constants.SUFFIX_PAGE_FILE;
             String n = IOUtils.normalize(name + suffix);
             String fileName = IOUtils.getFileName(n);
             if (fileName.length() < suffix.length() + 1) {
-                throw Message.getSQLException(ErrorCode.INVALID_DATABASE_NAME_1, name);
+                throw DbException.get(ErrorCode.INVALID_DATABASE_NAME_1, name);
             }
             n = n.substring(0, n.length() - suffix.length());
             return IOUtils.normalize(n);
@@ -372,7 +371,7 @@ public class ConnectionInfo implements Cloneable {
      */
     public int getProperty(String key, int defaultValue) {
         if (SysProperties.CHECK && !isKnownSetting(key)) {
-            Message.throwInternalError(key);
+            DbException.throwInternalError(key);
         }
         String s = getProperty(key);
         return s == null ? defaultValue : Integer.parseInt(s);
@@ -387,7 +386,7 @@ public class ConnectionInfo implements Cloneable {
      */
     public String getProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !isKnownSetting(key)) {
-            Message.throwInternalError(key);
+            DbException.throwInternalError(key);
         }
         String s = getProperty(key);
         return s == null ? defaultValue : s;
@@ -505,9 +504,9 @@ public class ConnectionInfo implements Cloneable {
      *
      * @return the exception
      */
-    SQLException getFormatException() {
+    DbException getFormatException() {
         String format = Constants.URL_FORMAT;
-        return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, format, url);
+        return DbException.get(ErrorCode.URL_FORMAT_ERROR_2, format, url);
     }
 
     /**

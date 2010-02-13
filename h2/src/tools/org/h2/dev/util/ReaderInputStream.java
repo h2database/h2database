@@ -15,7 +15,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * The reader input stream wraps a reader and convert the character to the UTF-8
@@ -38,7 +38,7 @@ public class ReaderInputStream extends InputStream {
         try {
             writer = new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
         } catch (UnsupportedEncodingException e) {
-            throw Message.convertToInternal(e);
+            throw DbException.convert(e);
         }
     }
 

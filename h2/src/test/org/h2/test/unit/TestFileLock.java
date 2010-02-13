@@ -7,8 +7,6 @@
 package org.h2.test.unit;
 
 import java.io.File;
-import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
@@ -62,7 +60,7 @@ public class TestFileLock extends TestBase implements Runnable {
         lock.unlock();
     }
 
-    private void testSimple() throws SQLException {
+    private void testSimple() {
         FileLock lock1 = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
         FileLock lock2 = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
         lock1.lock(FileLock.LOCK_FILE);

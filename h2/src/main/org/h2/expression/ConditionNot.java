@@ -6,7 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -28,7 +27,7 @@ public class ConditionNot extends Condition {
         return condition;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         Value v = condition.getValue(session);
         if (v == ValueNull.INSTANCE) {
             return v;
@@ -36,11 +35,11 @@ public class ConditionNot extends Condition {
         return v.convertTo(Value.BOOLEAN).negate();
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         condition.mapColumns(resolver, level);
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         Expression e2 = condition.getNotIfPossible(session);
         if (e2 != null) {
             return e2.optimize(session);
@@ -65,7 +64,7 @@ public class ConditionNot extends Condition {
         return "(NOT " + condition.getSQL() + ")";
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         condition.updateAggregate(session);
     }
 

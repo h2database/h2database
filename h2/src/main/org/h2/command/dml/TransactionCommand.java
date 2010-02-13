@@ -6,11 +6,10 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 
 /**
@@ -106,7 +105,7 @@ public class TransactionCommand extends Prepared {
         this.savepointName = name;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         switch (type) {
         case AUTOCOMMIT_TRUE:
             session.setAutoCommit(true);
@@ -185,7 +184,7 @@ public class TransactionCommand extends Prepared {
             break;
         }
         default:
-            Message.throwInternalError("type=" + type);
+            DbException.throwInternalError("type=" + type);
         }
         return 0;
     }

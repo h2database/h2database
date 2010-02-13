@@ -40,7 +40,7 @@ public class ValueTime extends Value {
      * @param s the string to parse
      * @return the time
      */
-    public static Time parseTime(String s) throws SQLException {
+    public static Time parseTime(String s) {
         return (Time) DateTimeUtils.parseDateTime(s, Value.TIME, ErrorCode.TIME_CONSTANT_2);
     }
 

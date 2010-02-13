@@ -12,13 +12,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-
 import javax.naming.Context;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.sql.XAConnection;
-
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This is a utility class with JDBC helper functions.
@@ -179,12 +176,8 @@ public class JdbcUtils {
                         return ds.getConnection();
                     }
                     return ds.getConnection(user, password);
-                } catch (InstantiationException e) {
-                    throw Message.convert(e);
-                } catch (IllegalAccessException e) {
-                    throw Message.convert(e);
-                } catch (NamingException e) {
-                    throw Message.convert(e);
+                } catch (Exception e) {
+                    throw DbException.toSQLException(e);
                 }
                 //## Java 1.4 end ##
             } else {
@@ -220,7 +213,7 @@ public class JdbcUtils {
      *
      * @param url the database URL
      */
-    public static void load(String url) throws SQLException {
+    public static void load(String url) {
         String driver = getDriver(url);
         if (driver != null) {
             Utils.loadUserClass(driver);

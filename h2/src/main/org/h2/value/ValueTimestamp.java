@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 
@@ -69,7 +69,7 @@ public class ValueTimestamp extends Value {
      * @param s the string to parse
      * @return the timestamp
      */
-    public static Timestamp parseTimestamp(String s) throws SQLException {
+    public static Timestamp parseTimestamp(String s) {
         return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
     }
 
@@ -140,10 +140,10 @@ public class ValueTimestamp extends Value {
         return (ValueTimestamp) Value.cache(new ValueTimestamp(timestamp));
     }
 
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) throws SQLException {
+    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         if (targetScale < 0 || targetScale > DEFAULT_SCALE) {
             // TODO convertScale for Timestamps: may throw an exception?
-            throw Message.getInvalidValueException("" + targetScale, "scale");
+            throw DbException.getInvalidValueException("" + targetScale, "scale");
         }
         int nanos = value.getNanos();
         BigDecimal bd = BigDecimal.valueOf(nanos);

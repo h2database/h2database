@@ -16,7 +16,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.command.dml.BackupCommand;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.store.FileLister;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
@@ -79,7 +79,11 @@ public class Backup extends Tool {
                 throwUnsupportedOption(arg);
             }
         }
-        process(zipFileName, dir, db, quiet);
+        try {
+            process(zipFileName, dir, db, quiet);
+        } catch (Exception e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
     /**
@@ -92,7 +96,11 @@ public class Backup extends Tool {
      * @throws SQLException
      */
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
-        new Backup().process(zipFileName, directory, db, quiet);
+        try {
+            new Backup().process(zipFileName, directory, db, quiet);
+        } catch (Exception e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
     private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
@@ -124,7 +132,7 @@ public class Backup extends Tool {
             for (String fileName : list) {
                 String f = IOUtils.getAbsolutePath(fileName);
                 if (!f.startsWith(base)) {
-                    Message.throwInternalError(f + " does not start with " + base);
+                    DbException.throwInternalError(f + " does not start with " + base);
                 }
                 if (IOUtils.isDirectory(fileName)) {
                     continue;
@@ -151,7 +159,7 @@ public class Backup extends Tool {
             zipOut.closeEntry();
             zipOut.close();
         } catch (IOException e) {
-            throw Message.convertIOException(e, zipFileName);
+            throw DbException.convertIOException(e, zipFileName);
         } finally {
             IOUtils.closeSilently(fileOut);
         }

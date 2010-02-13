@@ -6,11 +6,9 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
@@ -87,12 +85,12 @@ public class Operation extends Expression {
             sql = left.getSQL() + " / " + right.getSQL();
             break;
         default:
-            throw Message.throwInternalError("opType=" + opType);
+            throw DbException.throwInternalError("opType=" + opType);
         }
         return "(" + sql + ")";
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         Value l = left.getValue(session).convertTo(dataType);
         Value r = right == null ? null : right.getValue(session).convertTo(dataType);
 
@@ -138,18 +136,18 @@ public class Operation extends Expression {
             }
             return l.divide(r);
         default:
-            throw Message.throwInternalError("type=" + opType);
+            throw DbException.throwInternalError("type=" + opType);
         }
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         if (right != null) {
             right.mapColumns(resolver, level);
         }
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         left = left.optimize(session);
         switch (opType) {
         case NEGATE:
@@ -203,7 +201,7 @@ public class Operation extends Expression {
             }
             break;
         default:
-            Message.throwInternalError("type=" + opType);
+            DbException.throwInternalError("type=" + opType);
         }
         if (left.isConstant() && (right == null || right.isConstant())) {
             return ValueExpression.get(getValue(session));
@@ -253,7 +251,7 @@ public class Operation extends Expression {
         return left.getScale();
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         left.updateAggregate(session);
         if (right != null) {
             right.updateAggregate(session);

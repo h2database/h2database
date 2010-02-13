@@ -14,8 +14,6 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystem;
 import org.h2.util.StringUtils;
@@ -80,7 +78,7 @@ public class FtpControl extends Thread {
         server.closeConnection();
     }
 
-    private void process(String command) throws SQLException, IOException {
+    private void process(String command) throws IOException {
         int idx = command.indexOf(' ');
         String param = "";
         if (idx >= 0) {
@@ -144,7 +142,7 @@ public class FtpControl extends Thread {
         }
     }
 
-    private void processConnected(String command, String param) throws SQLException, IOException {
+    private void processConnected(String command, String param) throws IOException {
         switch (command.charAt(0)) {
         case 'C':
             if ("CWD".equals(command)) {
@@ -256,7 +254,7 @@ public class FtpControl extends Thread {
                             fs.rename(fileOld, fileNew);
                             reply(250, "Ok");
                             ok = true;
-                        } catch (SQLException e) {
+                        } catch (Exception e) {
                             server.traceError(e);
                         }
                     }
@@ -360,7 +358,7 @@ public class FtpControl extends Thread {
                 fs.mkdirs(fileName);
                 reply(257, StringUtils.quoteIdentifier(param) + " directory");
                 ok = true;
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 server.traceError(e);
             }
         }
@@ -386,7 +384,7 @@ public class FtpControl extends Thread {
         return path.startsWith("/") ? path : currentDir + path;
     }
 
-    private void processList(String param, boolean directories) throws SQLException, IOException {
+    private void processList(String param, boolean directories) throws IOException {
         String directory = getFileName(param);
         if (!fs.exists(directory)) {
             reply(450, "Directory does not exist");

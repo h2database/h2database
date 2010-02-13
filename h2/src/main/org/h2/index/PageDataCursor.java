@@ -6,11 +6,9 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import java.util.Iterator;
-
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
@@ -46,7 +44,7 @@ class PageDataCursor implements Cursor {
         return get();
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         if (!multiVersion) {
             nextRow();
             return checkMax();
@@ -73,7 +71,7 @@ class PageDataCursor implements Cursor {
         return checkMax();
     }
 
-    private boolean checkMax() throws SQLException {
+    private boolean checkMax() {
         if (row != null) {
             if (max != Long.MAX_VALUE) {
                 long x = current.index.getLong(row, Long.MAX_VALUE);
@@ -87,7 +85,7 @@ class PageDataCursor implements Cursor {
         return false;
     }
 
-    private void nextRow() throws SQLException {
+    private void nextRow() {
         if (idx >= current.getEntryCount()) {
             current = current.getNextPage();
             idx = 0;
@@ -101,7 +99,7 @@ class PageDataCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
 }

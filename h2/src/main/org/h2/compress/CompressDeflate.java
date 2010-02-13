@@ -6,13 +6,12 @@
  */
 package org.h2.compress;
 
-import java.sql.SQLException;
 import java.util.StringTokenizer;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 
 /**
  * This is a wrapper class for the Deflater class.
@@ -30,7 +29,7 @@ public class CompressDeflate implements Compressor {
     private int level = Deflater.DEFAULT_COMPRESSION;
     private int strategy = Deflater.DEFAULT_STRATEGY;
 
-    public void setOptions(String options) throws SQLException {
+    public void setOptions(String options) {
         if (options == null) {
             return;
         }
@@ -47,7 +46,7 @@ public class CompressDeflate implements Compressor {
                 deflater.setStrategy(strategy);
             }
         } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_OPTIONS_1, options);
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_OPTIONS_1, options);
         }
     }
 
@@ -73,7 +72,7 @@ public class CompressDeflate implements Compressor {
         return Compressor.DEFLATE;
     }
 
-    public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) throws SQLException {
+    public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) {
         Inflater decompresser = new Inflater();
         decompresser.setInput(in, inPos, inLen);
         decompresser.finished();
@@ -83,7 +82,7 @@ public class CompressDeflate implements Compressor {
                 throw new DataFormatException(len + " " + outLen);
             }
         } catch (DataFormatException e) {
-            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, e);
+            throw DbException.get(ErrorCode.COMPRESSION_ERROR, e);
         }
         decompresser.end();
     }

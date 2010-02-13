@@ -24,10 +24,9 @@ public interface AggregateFunction {
     void init(Connection conn) throws SQLException;
 
     /**
-     * This method must return the SQL type of the method,
-     * given the SQL type of the input data.
-     * The method should check here if the number of parameters passed is correct,
-     * and if not it should throw an exception.
+     * This method must return the SQL type of the method, given the SQL type of
+     * the input data. The method should check here if the number of parameters
+     * passed is correct, and if not it should throw an exception.
      *
      * @param inputTypes the SQL type of the parameters
      * @return the SQL type of the result
@@ -49,4 +48,5 @@ public interface AggregateFunction {
      * @return the aggregated value
      */
     Object getResult() throws SQLException;
+
 }

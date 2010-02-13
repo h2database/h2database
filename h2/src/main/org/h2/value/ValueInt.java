@@ -9,7 +9,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
@@ -64,14 +64,14 @@ public class ValueInt extends Value {
         return v;
     }
 
-    public Value add(Value v) throws SQLException {
+    public Value add(Value v) {
         ValueInt other = (ValueInt) v;
         return checkRange((long) value + (long) other.value);
     }
 
-    private ValueInt checkRange(long x) throws SQLException {
+    private ValueInt checkRange(long x) {
         if (x < Integer.MIN_VALUE || x > Integer.MAX_VALUE) {
-            throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.INT).name);
+            throw DbException.get(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.INT).name);
         }
         return ValueInt.get((int) x);
     }
@@ -80,24 +80,24 @@ public class ValueInt extends Value {
         return Integer.signum(value);
     }
 
-    public Value negate() throws SQLException {
+    public Value negate() {
         return checkRange(-(long) value);
     }
 
-    public Value subtract(Value v) throws SQLException {
+    public Value subtract(Value v) {
         ValueInt other = (ValueInt) v;
         return checkRange((long) value - (long) other.value);
     }
 
-    public Value multiply(Value v) throws SQLException {
+    public Value multiply(Value v) {
         ValueInt other = (ValueInt) v;
         return checkRange((long) value * (long) other.value);
     }
 
-    public Value divide(Value v) throws SQLException {
+    public Value divide(Value v) {
         ValueInt other = (ValueInt) v;
         if (other.value == 0) {
-            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         return ValueInt.get(value / other.value);
     }

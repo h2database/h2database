@@ -6,7 +6,6 @@
  */
 package org.h2.schema;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,7 +19,7 @@ import org.h2.engine.DbObjectBase;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.table.TableData;
@@ -76,7 +75,7 @@ public class Schema extends DbObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public String getDropSQL() {
@@ -95,7 +94,7 @@ public class Schema extends DbObjectBase {
         return DbObject.SCHEMA;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         while (triggers != null && triggers.size() > 0) {
             TriggerObject obj = (TriggerObject) triggers.values().toArray()[0];
             database.removeSchemaObject(session, obj);
@@ -161,7 +160,7 @@ public class Schema extends DbObjectBase {
             result = constants;
             break;
         default:
-            throw Message.throwInternalError("type=" + type);
+            throw DbException.throwInternalError("type=" + type);
         }
         return (HashMap<String, SchemaObject>) result;
     }
@@ -173,12 +172,12 @@ public class Schema extends DbObjectBase {
      */
     public void add(SchemaObject obj) {
         if (SysProperties.CHECK && obj.getSchema() != this) {
-            Message.throwInternalError("wrong schema");
+            DbException.throwInternalError("wrong schema");
         }
         String name = obj.getName();
         HashMap<String, SchemaObject> map = getMap(obj.getType());
         if (SysProperties.CHECK && map.get(name) != null) {
-            Message.throwInternalError("object already exists: " + name);
+            DbException.throwInternalError("object already exists: " + name);
         }
         map.put(name, obj);
         freeUniqueName(name);
@@ -190,15 +189,15 @@ public class Schema extends DbObjectBase {
      * @param obj the object to rename
      * @param newName the new name
      */
-    public void rename(SchemaObject obj, String newName) throws SQLException {
+    public void rename(SchemaObject obj, String newName) {
         int type = obj.getType();
         HashMap<String, SchemaObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
-                Message.throwInternalError("not found: " + obj.getName());
+                DbException.throwInternalError("not found: " + obj.getName());
             }
             if (obj.getName().equals(newName) || map.containsKey(newName)) {
-                Message.throwInternalError("object already exists: " + newName);
+                DbException.throwInternalError("object already exists: " + newName);
             }
         }
         obj.checkRename();
@@ -373,13 +372,13 @@ public class Schema extends DbObjectBase {
      * @return the table or view
      * @throws SQLException if no such object exists
      */
-    public Table getTableOrView(Session session, String name) throws SQLException {
+    public Table getTableOrView(Session session, String name) {
         Table table = tablesAndViews.get(name);
         if (table == null && session != null) {
             table = session.findLocalTempTable(name);
         }
         if (table == null) {
-            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, name);
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, name);
         }
         return table;
     }
@@ -391,10 +390,10 @@ public class Schema extends DbObjectBase {
      * @return the index
      * @throws SQLException if no such object exists
      */
-    public Index getIndex(String name) throws SQLException {
+    public Index getIndex(String name) {
         Index index = indexes.get(name);
         if (index == null) {
-            throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, name);
+            throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, name);
         }
         return index;
     }
@@ -406,10 +405,10 @@ public class Schema extends DbObjectBase {
      * @return the constraint
      * @throws SQLException if no such object exists
      */
-    public Constraint getConstraint(String name) throws SQLException {
+    public Constraint getConstraint(String name) {
         Constraint constraint = constraints.get(name);
         if (constraint == null) {
-            throw Message.getSQLException(ErrorCode.CONSTRAINT_NOT_FOUND_1, name);
+            throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, name);
         }
         return constraint;
     }
@@ -421,10 +420,10 @@ public class Schema extends DbObjectBase {
      * @return the constant
      * @throws SQLException if no such object exists
      */
-    public Constant getConstant(String constantName) throws SQLException {
+    public Constant getConstant(String constantName) {
         Constant constant = constants.get(constantName);
         if (constant == null) {
-            throw Message.getSQLException(ErrorCode.CONSTANT_NOT_FOUND_1, constantName);
+            throw DbException.get(ErrorCode.CONSTANT_NOT_FOUND_1, constantName);
         }
         return constant;
     }
@@ -436,10 +435,10 @@ public class Schema extends DbObjectBase {
      * @return the sequence
      * @throws SQLException if no such object exists
      */
-    public Sequence getSequence(String sequenceName) throws SQLException {
+    public Sequence getSequence(String sequenceName) {
         Sequence sequence = sequences.get(sequenceName);
         if (sequence == null) {
-            throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
+            throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
         }
         return sequence;
     }
@@ -473,7 +472,7 @@ public class Schema extends DbObjectBase {
         String objName = obj.getName();
         HashMap<String, SchemaObject> map = getMap(obj.getType());
         if (SysProperties.CHECK && !map.containsKey(objName)) {
-            Message.throwInternalError("not found: " + objName);
+            DbException.throwInternalError("not found: " + objName);
         }
         map.remove(objName);
         freeUniqueName(objName);
@@ -485,8 +484,7 @@ public class Schema extends DbObjectBase {
      * @param data the create table information
      * @return the created {@link TableData} object
      */
-    public TableData createTable(CreateTableData data)
-            throws SQLException {
+    public TableData createTable(CreateTableData data) {
         synchronized (database) {
             data.schema = this;
             return new TableData(data);
@@ -509,7 +507,7 @@ public class Schema extends DbObjectBase {
      * @return the {@link TableLink} object
      */
     public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password,
-            String originalSchema, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
+            String originalSchema, String originalTable, boolean emitUpdates, boolean force) {
         synchronized (database) {
             return new TableLink(this, id, tableName, driver, url, user, password, originalSchema, originalTable, emitUpdates, force);
         }

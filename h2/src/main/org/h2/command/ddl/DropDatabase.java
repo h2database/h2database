@@ -6,7 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -31,7 +30,7 @@ public class DropDatabase extends DefineCommand {
         super(session);
     }
 
-    public int update() throws SQLException {
+    public int update() {
         if (dropAllObjects) {
             dropAllObjects();
         }
@@ -41,7 +40,7 @@ public class DropDatabase extends DefineCommand {
         return 0;
     }
 
-    private void dropAllObjects() throws SQLException {
+    private void dropAllObjects() {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();

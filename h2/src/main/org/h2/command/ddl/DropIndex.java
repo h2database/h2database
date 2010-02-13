@@ -6,7 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
@@ -14,7 +13,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.index.Index;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 
@@ -39,13 +38,13 @@ public class DropIndex extends SchemaCommand {
         this.indexName = indexName;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         Index index = getSchema().findIndex(session, indexName);
         if (index == null) {
             if (!ifExists) {
-                throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, indexName);
+                throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, indexName);
             }
         } else {
             Table table = index.getTable();
@@ -59,7 +58,7 @@ public class DropIndex extends SchemaCommand {
                     if (Constraint.PRIMARY_KEY.equals(cons.getConstraintType())) {
                         pkConstraint = cons;
                     } else {
-                        throw Message.getSQLException(ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_1, indexName);
+                        throw DbException.get(ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_1, indexName);
                     }
                 }
             }

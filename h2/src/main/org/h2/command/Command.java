@@ -13,7 +13,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
@@ -85,7 +85,7 @@ public abstract class Command implements CommandInterface {
      *
      * @return an empty result set
      */
-    public abstract ResultInterface queryMeta() throws SQLException;
+    public abstract ResultInterface queryMeta();
 
     /**
      * Execute an updating statement, if this is possible.
@@ -93,8 +93,8 @@ public abstract class Command implements CommandInterface {
      * @return the update count
      * @throws SQLException if the command is not an updating statement
      */
-    public int update() throws SQLException {
-        throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
+    public int update() {
+        throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
     }
 
     /**
@@ -104,11 +104,11 @@ public abstract class Command implements CommandInterface {
      * @return the local result set
      * @throws SQLException if the command is not a query
      */
-    public ResultInterface query(int maxrows) throws SQLException {
-        throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
+    public ResultInterface query(int maxrows) {
+        throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
 
-    public final ResultInterface getMetaData() throws SQLException {
+    public final ResultInterface getMetaData() {
         return queryMeta();
     }
 
@@ -120,7 +120,7 @@ public abstract class Command implements CommandInterface {
      * @param scrollable if the result set must be scrollable (ignored)
      * @return the result set
      */
-    public ResultInterface executeQuery(int maxrows, boolean scrollable) throws SQLException {
+    public ResultInterface executeQuery(int maxrows, boolean scrollable) {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
@@ -130,10 +130,9 @@ public abstract class Command implements CommandInterface {
                 database.checkPowerOff();
                 session.setCurrentCommand(this, startTime);
                 return query(maxrows);
-            } catch (Exception e) {
-                SQLException s = Message.convert(e, sql);
-                database.exceptionThrown(s, sql);
-                throw s;
+            } catch (DbException e) {
+                database.exceptionThrown(e.getSQLException(), sql);
+                throw e;
             } finally {
                 stop();
             }
@@ -152,14 +151,14 @@ public abstract class Command implements CommandInterface {
      *
      * @throws SQLException if the statement has been canceled
      */
-    public void checkCanceled() throws SQLException {
+    public void checkCanceled() {
         if (cancel) {
             cancel = false;
-            throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELED);
+            throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
         }
     }
 
-    private void stop() throws SQLException {
+    private void stop() {
         session.closeTemporaryResults();
         session.setCurrentCommand(null, 0);
         if (!isTransactional()) {
@@ -182,7 +181,7 @@ public abstract class Command implements CommandInterface {
         }
     }
 
-    public int executeUpdate() throws SQLException {
+    public int executeUpdate() {
         long start = startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
@@ -197,11 +196,11 @@ public abstract class Command implements CommandInterface {
                     database.checkPowerOff();
                     try {
                         return update();
-                    } catch (SQLException e) {
+                    } catch (DbException e) {
                         if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
                             long now = System.currentTimeMillis();
                             if (now - start > session.getLockTimeout()) {
-                                throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1, e, "");
+                                throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
                             }
                             try {
                                 if (sync == database) {
@@ -215,19 +214,18 @@ public abstract class Command implements CommandInterface {
                             continue;
                         }
                         throw e;
-                    } catch (Exception e) {
-                        throw Message.convert(e);
                     } catch (Throwable e) {
-                        throw Message.convertThrowable(e);
+                        throw DbException.convert(e);
                     }
                 }
-            } catch (SQLException e) {
-                Message.addSQL(e, sql);
-                database.exceptionThrown(e, sql);
+            } catch (DbException e) {
+                e = e.addSQL(sql);
+                SQLException s = e.getSQLException();
+                database.exceptionThrown(s, sql);
                 database.checkPowerOff();
-                if (e.getErrorCode() == ErrorCode.DEADLOCK_1) {
+                if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
                     session.rollback();
-                } else if (e.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
+                } else if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
                     // there is a serious problem:
                     // the transaction may be applied partially
                     // in this case we need to panic:

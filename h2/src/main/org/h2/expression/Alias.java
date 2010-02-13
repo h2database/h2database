@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
@@ -33,7 +31,7 @@ public class Alias extends Expression {
         return expr;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         return expr.getValue(session);
     }
 
@@ -41,11 +39,11 @@ public class Alias extends Expression {
         return expr.getType();
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         expr.mapColumns(resolver, level);
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         expr = expr.optimize(session);
         return this;
     }
@@ -74,7 +72,7 @@ public class Alias extends Expression {
         return expr.getSQL() + " AS " + Parser.quoteIdentifier(alias);
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         expr.updateAggregate(session);
     }
 

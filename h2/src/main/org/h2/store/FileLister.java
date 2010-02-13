@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
@@ -53,9 +53,9 @@ public class FileLister {
                 try {
                     lock.lock(FileLock.LOCK_FILE);
                     lock.unlock();
-                } catch (SQLException e) {
-                    throw Message.getSQLException(
-                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, message);
+                } catch (DbException e) {
+                    throw DbException.get(
+                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, message).getSQLException();
                 }
             }
         }
@@ -71,7 +71,7 @@ public class FileLister {
      *            and lob files are returned
      * @return the list of files
      */
-    public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) throws SQLException {
+    public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) {
         if (dir == null || dir.equals("")) {
             dir = ".";
         }

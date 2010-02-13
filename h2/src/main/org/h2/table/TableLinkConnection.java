@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 import org.h2.constant.SysProperties;
+import org.h2.message.DbException;
 import org.h2.util.Utils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -60,7 +61,7 @@ public class TableLinkConnection {
      * @param password the password
      * @return a connection
      */
-    public static TableLinkConnection open(HashMap<TableLinkConnection, TableLinkConnection> map, String driver, String url, String user, String password) throws SQLException {
+    public static TableLinkConnection open(HashMap<TableLinkConnection, TableLinkConnection> map, String driver, String url, String user, String password) {
         TableLinkConnection t = new TableLinkConnection(map, driver, url, user, password);
         if (!SysProperties.SHARE_LINKED_CONNECTIONS) {
             t.open();
@@ -85,8 +86,12 @@ public class TableLinkConnection {
         }
     }
 
-    private void open() throws SQLException {
-        conn = JdbcUtils.getConnection(driver, url, user, password);
+    private void open() {
+        try {
+            conn = JdbcUtils.getConnection(driver, url, user, password);
+        } catch (SQLException e) {
+            throw DbException.convert(e);
+        }
     }
 
     public int hashCode() {
@@ -121,9 +126,9 @@ public class TableLinkConnection {
     /**
      * Closes the connection if this is the last link to it.
      */
-    synchronized void close() throws SQLException {
+    synchronized void close() {
         if (--useCounter <= 0) {
-            conn.close();
+            JdbcUtils.closeSilently(conn);
             conn = null;
             synchronized (map) {
                 map.remove(this);

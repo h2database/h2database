@@ -6,7 +6,6 @@
  */
 package org.h2.command;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
@@ -37,14 +36,14 @@ public interface CommandInterface {
      * @param scrollable if the result set must be scrollable
      * @return the result
      */
-    ResultInterface executeQuery(int maxRows, boolean scrollable) throws SQLException;
+    ResultInterface executeQuery(int maxRows, boolean scrollable);
 
     /**
      * Execute the statement
      *
      * @return the update count
      */
-    int executeUpdate() throws SQLException;
+    int executeUpdate();
 
     /**
      * Close the statement.
@@ -61,5 +60,5 @@ public interface CommandInterface {
      *
      * @return the empty result
      */
-    ResultInterface getMetaData() throws SQLException;
+    ResultInterface getMetaData();
 }

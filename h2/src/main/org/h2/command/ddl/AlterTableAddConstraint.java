@@ -6,7 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.constant.ErrorCode;
@@ -21,7 +20,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -83,7 +82,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return constraintName;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         try {
             return tryUpdate();
         } finally {
@@ -96,7 +95,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
      *
      * @return the update count
      */
-    public int tryUpdate() throws SQLException {
+    public int tryUpdate() {
         session.commit(true);
         Database db = session.getDatabase();
         Table table = getSchema().getTableOrView(session, tableName);
@@ -104,7 +103,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
         }
         session.getUser().checkRight(table, Right.ALL);
         table.lock(session, true, true);
@@ -117,7 +116,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint c = constraints.get(i);
                 if (Constraint.PRIMARY_KEY.equals(c.getConstraintType())) {
-                    throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
+                    throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }
             if (index != null) {
@@ -125,11 +124,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 // we don't test ascending / descending
                 IndexColumn[] pkCols = index.getIndexColumns();
                 if (pkCols.length != indexColumns.length) {
-                    throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
+                    throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }
                 for (int i = 0; i < pkCols.length; i++) {
                     if (pkCols[i].column != indexColumns[i].column) {
-                        throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
+                        throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                     }
                 }
             }
@@ -210,7 +209,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 IndexColumn.mapColumns(refIndexColumns, refTable);
             }
             if (refIndexColumns.length != indexColumns.length) {
-                throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
             boolean isRefOwner = false;
             if (refIndex != null && refIndex.getTable() == refTable) {
@@ -244,7 +243,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             break;
         }
         default:
-            throw Message.throwInternalError("type=" + type);
+            throw DbException.throwInternalError("type=" + type);
         }
         // parent relationship is already set with addConstraint
         constraint.setComment(comment);
@@ -257,7 +256,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return 0;
     }
 
-    private Index createIndex(Table t, IndexColumn[] cols, boolean unique) throws SQLException {
+    private Index createIndex(Table t, IndexColumn[] cols, boolean unique) {
         int indexId = getObjectId();
         IndexType indexType;
         if (unique) {

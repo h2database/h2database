@@ -6,9 +6,8 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.PageStore;
@@ -23,12 +22,12 @@ public class PageDelegateIndex extends PageIndex {
 
     private final PageDataIndex mainIndex;
 
-    public PageDelegateIndex(TableData table, int id, String name, IndexType indexType, PageDataIndex mainIndex, boolean create, Session session) throws SQLException {
+    public PageDelegateIndex(TableData table, int id, String name, IndexType indexType, PageDataIndex mainIndex, boolean create, Session session) {
         IndexColumn[] cols = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
         if (!database.isPersistent() || id < 0) {
-            throw Message.throwInternalError("" + name);
+            throw DbException.throwInternalError("" + name);
         }
         PageStore store = database.getPageStore();
         store.addIndex(this);
@@ -53,13 +52,13 @@ public class PageDelegateIndex extends PageIndex {
         // nothing to do
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         long min = mainIndex.getLong(first, Long.MIN_VALUE);
         long max = mainIndex.getLong(last, Long.MAX_VALUE);
         return mainIndex.find(session, min, max, false);
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
+    public Cursor findFirstOrLast(Session session, boolean first) {
         Cursor cursor;
         if (first) {
             cursor = mainIndex.find(session, Long.MIN_VALUE, Long.MAX_VALUE, false);
@@ -72,7 +71,7 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public int getColumnIndex(Column col) {
@@ -91,7 +90,7 @@ public class PageDelegateIndex extends PageIndex {
         // nothing to do
     }
 
-    public void remove(Session session) throws SQLException {
+    public void remove(Session session) {
         mainIndex.setMainIndexColumn(-1);
         session.getDatabase().getPageStore().removeMeta(this, session);
     }

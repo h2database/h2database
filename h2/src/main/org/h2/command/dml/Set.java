@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import java.text.Collator;
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
@@ -17,7 +16,7 @@ import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
@@ -62,7 +61,7 @@ public class Set extends Prepared {
         return false;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         Database database = session.getDatabase();
         String name = SetTypes.getTypeName(type);
         switch (type) {
@@ -70,7 +69,7 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             int value = getIntValue();
             if (value < 0 || value > 2) {
-                throw Message.getInvalidValueException("" + getIntValue(), "ALLOW_LITERALS");
+                throw DbException.getInvalidValueException("" + getIntValue(), "ALLOW_LITERALS");
             }
             database.setAllowLiterals(value);
             addOrUpdateSetting(name, null, value);
@@ -91,7 +90,7 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             Table table = database.getFirstUserTable();
             if (table != null) {
-                throw Message.getSQLException(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
+                throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
             }
             CompareMode compareMode;
             StringBuilder buff = new StringBuilder(stringValue);
@@ -173,7 +172,7 @@ public class Set extends Prepared {
         case SetTypes.LOG: {
             int value = getIntValue();
             if (value < 0 || value > 2) {
-                throw Message.getInvalidValueException("" + getIntValue(), "LOG");
+                throw DbException.getInvalidValueException("" + getIntValue(), "LOG");
             }
             if (value == 0) {
                 session.getUser().checkAdmin();
@@ -183,7 +182,7 @@ public class Set extends Prepared {
         }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {
             if (getIntValue() < 0) {
-                throw Message.getInvalidValueException("" + getIntValue(), "MAX_LENGTH_INPLACE_LOB");
+                throw DbException.getInvalidValueException("" + getIntValue(), "MAX_LENGTH_INPLACE_LOB");
             }
             session.getUser().checkAdmin();
             database.setMaxLengthInplaceLob(getIntValue());
@@ -203,7 +202,7 @@ public class Set extends Prepared {
         }
         case SetTypes.MAX_MEMORY_UNDO: {
             if (getIntValue() < 0) {
-                throw Message.getInvalidValueException("" + getIntValue(), "MAX_MEMORY_UNDO");
+                throw DbException.getInvalidValueException("" + getIntValue(), "MAX_MEMORY_UNDO");
             }
             session.getUser().checkAdmin();
             database.setMaxMemoryUndo(getIntValue());
@@ -220,7 +219,7 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             Mode mode = Mode.getInstance(stringValue);
             if (mode == null) {
-                throw Message.getSQLException(ErrorCode.UNKNOWN_MODE_1, stringValue);
+                throw DbException.get(ErrorCode.UNKNOWN_MODE_1, stringValue);
             }
             database.setMode(mode);
             break;
@@ -231,7 +230,7 @@ public class Set extends Prepared {
         }
         case SetTypes.MVCC: {
             if (database.isMultiVersion() != (getIntValue() == 1)) {
-                throw Message.getSQLException(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC");
+                throw DbException.get(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC");
             }
             break;
         }
@@ -254,7 +253,7 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             int value = getIntValue();
             if (value < 0 || value > 1) {
-                throw Message.getInvalidValueException("" + getIntValue(), "REFERENTIAL_INTEGRITY");
+                throw DbException.getInvalidValueException("" + getIntValue(), "REFERENTIAL_INTEGRITY");
             }
             database.setReferentialIntegrity(value == 1);
             break;
@@ -295,7 +294,7 @@ public class Set extends Prepared {
         }
         case SetTypes.THROTTLE: {
             if (getIntValue() < 0) {
-                throw Message.getInvalidValueException("" + getIntValue(), "THROTTLE");
+                throw DbException.getInvalidValueException("" + getIntValue(), "THROTTLE");
             }
             session.setThrottle(getIntValue());
             break;
@@ -303,7 +302,7 @@ public class Set extends Prepared {
         case SetTypes.UNDO_LOG: {
             int value = getIntValue();
             if (value < 0 || value > 1) {
-                throw Message.getInvalidValueException("" + getIntValue(), "UNDO_LOG");
+                throw DbException.getInvalidValueException("" + getIntValue(), "UNDO_LOG");
             }
             session.setUndoLogEnabled(value == 1);
             break;
@@ -320,14 +319,14 @@ public class Set extends Prepared {
             break;
         }
         default:
-            Message.throwInternalError("type="+type);
+            DbException.throwInternalError("type="+type);
         }
         // the meta data information has changed
         database.getNextModificationDataId();
         return 0;
     }
 
-    private int getIntValue() throws SQLException {
+    private int getIntValue() {
         expression = expression.optimize(session);
         return expression.getValue(session).getInt();
     }
@@ -340,7 +339,7 @@ public class Set extends Prepared {
         this.expression = expression;
     }
 
-    private void addOrUpdateSetting(String name, String s, int v) throws SQLException {
+    private void addOrUpdateSetting(String name, String s, int v) {
         Database database = session.getDatabase();
         if (database.isReadOnly()) {
             return;

@@ -6,12 +6,10 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 
@@ -36,16 +34,16 @@ public class DropView extends SchemaCommand {
         this.viewName = viewName;
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Table view = getSchema().findTableOrView(session, viewName);
         if (view == null) {
             if (!ifExists) {
-                throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
+                throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
         } else {
             if (!Table.VIEW.equals(view.getTableType())) {
-                throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
+                throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
             session.getUser().checkRight(view, Right.ALL);
             view.lock(session, true, true);

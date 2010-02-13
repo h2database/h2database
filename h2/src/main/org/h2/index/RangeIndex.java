@@ -6,10 +6,8 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
@@ -32,15 +30,15 @@ public class RangeIndex extends BaseIndex {
         // nothing to do
     }
 
-    public void add(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void add(Session session, Row row) {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
-    public void remove(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void remove(Session session, Row row) {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         long min = rangeTable.getMin(session);
         long max = rangeTable.getMax(session);
         long start = Math.max(min, first == null ? min : first.getValue(0).getLong());
@@ -56,27 +54,27 @@ public class RangeIndex extends BaseIndex {
         return null;
     }
 
-    public void remove(Session session) throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void remove(Session session) {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
-    public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void truncate(Session session) {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public boolean needRebuild() {
         return false;
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException("SYSTEM_RANGE");
+    public void checkRename() {
+        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public boolean canGetFirstOrLast() {
         return true;
     }
 
-    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
+    public Cursor findFirstOrLast(Session session, boolean first) {
         long pos = first ? rangeTable.getMin(session) : rangeTable.getMax(session);
         return new RangeCursor(pos, pos);
     }

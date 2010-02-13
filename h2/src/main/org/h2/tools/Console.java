@@ -29,13 +29,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-//## AWT end ##
-import org.h2.server.ShutdownHandler;
-import org.h2.util.Tool;
-import org.h2.util.Utils;
 import java.io.IOException;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
+import org.h2.server.ShutdownHandler;
+import org.h2.util.Tool;
+import org.h2.util.Utils;
 
 /**
  * Starts the H2 Console (web-) server, as well as the TCP and PG server.
@@ -195,7 +194,7 @@ ShutdownHandler {
         }
     }
 
-    private void printProblem(SQLException e, Server server) {
+    private void printProblem(Exception e, Server server) {
         if (server == null) {
             e.printStackTrace();
         } else {

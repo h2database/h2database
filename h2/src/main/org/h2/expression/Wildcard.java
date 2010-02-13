@@ -6,11 +6,9 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
@@ -35,35 +33,35 @@ public class Wildcard extends Expression {
     }
 
     public Value getValue(Session session) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public int getType() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, table);
+    public void mapColumns(ColumnResolver resolver, int level) {
+        throw DbException.get(ErrorCode.SYNTAX_ERROR_1, table);
     }
 
-    public Expression optimize(Session session) throws SQLException {
-        throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, table);
+    public Expression optimize(Session session) {
+        throw DbException.get(ErrorCode.SYNTAX_ERROR_1, table);
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        Message.throwInternalError();
+        DbException.throwInternalError();
     }
 
     public int getScale() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public long getPrecision() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public int getDisplaySize() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public String getTableAlias() {
@@ -82,15 +80,15 @@ public class Wildcard extends Expression {
     }
 
     public void updateAggregate(Session session) {
-        Message.throwInternalError();
+        DbException.throwInternalError();
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
     public int getCost() {
-        throw Message.throwInternalError();
+        throw DbException.throwInternalError();
     }
 
 }

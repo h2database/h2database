@@ -23,7 +23,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.LinkedIndex;
 import org.h2.jdbc.JdbcSQLException;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.schema.Schema;
@@ -51,7 +51,7 @@ public class TableLink extends Table {
     private final ArrayList<Index> indexes = New.arrayList();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
-    private SQLException connectException;
+    private DbException connectException;
     private boolean storesLowerCase;
     private boolean storesMixedCase;
     private boolean supportsMixedCaseIdentifiers;
@@ -59,7 +59,7 @@ public class TableLink extends Table {
     private boolean readOnly;
 
     public TableLink(Schema schema, int id, String name, String driver, String url, String user, String password,
-            String originalSchema, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
+            String originalSchema, String originalTable, boolean emitUpdates, boolean force) {
         super(schema, id, name, false, true);
         this.driver = driver;
         this.url = url;
@@ -70,7 +70,7 @@ public class TableLink extends Table {
         this.emitUpdates = emitUpdates;
         try {
             connect();
-        } catch (SQLException e) {
+        } catch (DbException e) {
             connectException = e;
             if (!force) {
                 throw e;
@@ -82,15 +82,16 @@ public class TableLink extends Table {
         }
     }
 
-    private void connect() throws SQLException {
+    private void connect() {
         conn = database.getLinkConnection(driver, url, user, password);
         synchronized (conn) {
             try {
                 readMetaData();
-            } catch (SQLException e) {
+            } catch (Exception e) {
+                // could be SQLException or RuntimeException
                 conn.close();
                 conn = null;
-                throw e;
+                throw DbException.convert(e);
             }
         }
     }
@@ -102,7 +103,7 @@ public class TableLink extends Table {
         supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();
         ResultSet rs = meta.getTables(null, originalSchema, originalTable, null);
         if (rs.next() && rs.next()) {
-            throw Message.getSQLException(ErrorCode.SCHEMA_NAME_MUST_MATCH, originalTable);
+            throw DbException.get(ErrorCode.SCHEMA_NAME_MUST_MATCH, originalTable);
         }
         rs.close();
         rs = meta.getColumns(null, originalSchema, originalTable, null);
@@ -169,8 +170,8 @@ public class TableLink extends Table {
                 }
             }
             rs.close();
-        } catch (SQLException e) {
-            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e,
+        } catch (Exception e) {
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e,
                     originalTable + "(" + e.toString() + ")");
         } finally {
             JdbcUtils.closeSilently(stat);
@@ -183,7 +184,7 @@ public class TableLink extends Table {
         indexes.add(linkedIndex);
         try {
             rs = meta.getPrimaryKeys(null, originalSchema, originalTable);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             // Some ODBC bridge drivers don't support it:
             // some combinations of "DataDirect SequeLink(R) for JDBC"
             // http://www.datadirect.com/index.ssp
@@ -217,7 +218,7 @@ public class TableLink extends Table {
         }
         try {
             rs = meta.getIndexInfo(null, originalSchema, originalTable, false, true);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             // Oracle throws an exception if the table is not found or is a
             // SYNONYM
             rs = null;
@@ -331,8 +332,8 @@ public class TableLink extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) throws SQLException {
-        throw Message.getUnsupportedException("LINK");
+            boolean create, String indexComment) {
+        throw DbException.getUnsupportedException("LINK");
     }
 
     public void lock(Session session, boolean exclusive, boolean force) {
@@ -347,23 +348,23 @@ public class TableLink extends Table {
         return linkedIndex;
     }
 
-    private void checkReadOnly() throws SQLException {
+    private void checkReadOnly() {
         if (readOnly) {
-            throw Message.getSQLException(ErrorCode.DATABASE_IS_READ_ONLY);
+            throw DbException.get(ErrorCode.DATABASE_IS_READ_ONLY);
         }
     }
 
-    public void removeRow(Session session, Row row) throws SQLException {
+    public void removeRow(Session session, Row row) {
         checkReadOnly();
         getScanIndex(session).remove(session, row);
     }
 
-    public void addRow(Session session, Row row) throws SQLException {
+    public void addRow(Session session, Row row) {
         checkReadOnly();
         getScanIndex(session).add(session, row);
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         if (conn != null) {
             try {
                 conn.close();
@@ -373,7 +374,7 @@ public class TableLink extends Table {
         }
     }
 
-    public synchronized long getRowCount(Session session) throws SQLException {
+    public synchronized long getRowCount(Session session) {
         String sql = "SELECT COUNT(*) FROM " + qualifiedTableName;
         try {
             PreparedStatement prep = getPreparedStatement(sql, false);
@@ -382,7 +383,7 @@ public class TableLink extends Table {
             long count = rs.getLong(1);
             rs.close();
             return count;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw wrapException(sql, e);
         }
     }
@@ -391,11 +392,12 @@ public class TableLink extends Table {
      * Wrap a SQL exception that occurred while accessing a linked table.
      *
      * @param sql the SQL statement
-     * @param e the SQL exception from the remote database
-     * @return the wrapped SQL exception
+     * @param ex the exception from the remote database
+     * @return the wrapped exception
      */
-    public SQLException wrapException(String sql, SQLException e) {
-        return Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, e, sql, e.toString());
+    public DbException wrapException(String sql, Exception ex) {
+        SQLException e = DbException.toSQLException(ex);
+        return DbException.get(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, e, sql, e.toString());
     }
 
     public String getQualifiedTable() {
@@ -411,22 +413,26 @@ public class TableLink extends Table {
      *          until reusePreparedStatement is called (only required for queries)
      * @return the prepared statement
      */
-    public PreparedStatement getPreparedStatement(String sql, boolean exclusive) throws SQLException {
+    public PreparedStatement getPreparedStatement(String sql, boolean exclusive) {
         if (trace.isDebugEnabled()) {
             trace.debug(getName() + ":\n" + sql);
         }
-        if (conn == null) {
-            throw connectException;
+        try {
+            if (conn == null) {
+                throw connectException;
+            }
+            PreparedStatement prep = preparedMap.get(sql);
+            if (prep == null) {
+                prep = conn.getConnection().prepareStatement(sql);
+                preparedMap.put(sql, prep);
+            }
+            if (exclusive) {
+                preparedMap.remove(sql);
+            }
+            return prep;
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
-        PreparedStatement prep = preparedMap.get(sql);
-        if (prep == null) {
-            prep = conn.getConnection().prepareStatement(sql);
-            preparedMap.put(sql, prep);
-        }
-        if (exclusive) {
-            preparedMap.remove(sql);
-        }
-        return prep;
     }
 
     public void unlock(Session s) {
@@ -437,12 +443,12 @@ public class TableLink extends Table {
         // ok
     }
 
-    public void checkSupportAlter() throws SQLException {
-        throw Message.getUnsupportedException("LINK");
+    public void checkSupportAlter() {
+        throw DbException.getUnsupportedException("LINK");
     }
 
-    public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException("LINK");
+    public void truncate(Session session) {
+        throw DbException.getUnsupportedException("LINK");
     }
 
     public boolean canGetRowCount() {
@@ -457,7 +463,7 @@ public class TableLink extends Table {
         return Table.TABLE_LINK;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public void removeChildrenAndResources(Session session) {
         super.removeChildrenAndResources(session);
         close(session);
         database.removeMeta(session, getId());
@@ -489,8 +495,7 @@ public class TableLink extends Table {
         return null;
     }
 
-    public void updateRows(Prepared prepared, Session session, RowList rows)
-            throws SQLException {
+    public void updateRows(Prepared prepared, Session session, RowList rows) {
         boolean deleteInsert;
         checkReadOnly();
         if (emitUpdates) {
@@ -556,7 +561,7 @@ public class TableLink extends Table {
      * @param session the session
      * @param row the row
      */
-    public void validateConvertUpdateSequence(Session session, Row row) throws SQLException {
+    public void validateConvertUpdateSequence(Session session, Row row) {
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
             if (value != null) {

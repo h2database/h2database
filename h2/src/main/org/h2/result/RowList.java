@@ -6,7 +6,6 @@
  */
 package org.h2.result;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -47,7 +46,7 @@ public class RowList {
         }
     }
 
-    private void writeRow(Data buff, Row r) throws SQLException {
+    private void writeRow(Data buff, Row r) {
         buff.checkCapacity(1 + Data.LENGTH_INT * 8);
         buff.writeByte((byte) 1);
         buff.writeInt(r.getMemorySize());
@@ -85,7 +84,7 @@ public class RowList {
         }
     }
 
-    private void writeAllRows() throws SQLException {
+    private void writeAllRows() {
         if (file == null) {
             Database db = session.getDatabase();
             String fileName = db.createTempFile();
@@ -115,7 +114,7 @@ public class RowList {
         buff.writeInt(0);
     }
 
-    private void flushBuffer(Data buff) throws SQLException {
+    private void flushBuffer(Data buff) {
         buff.checkCapacity(1);
         buff.writeByte((byte) 0);
         buff.fillAligned();
@@ -128,7 +127,7 @@ public class RowList {
      *
      * @param r the row to add
      */
-    public void add(Row r) throws SQLException {
+    public void add(Row r) {
         list.add(r);
         memory += r.getMemorySize();
         if (maxMemory > 0 && memory > maxMemory) {
@@ -140,7 +139,7 @@ public class RowList {
     /**
      * Remove all rows from the list.
      */
-    public void reset() throws SQLException {
+    public void reset() {
         index = 0;
         if (file != null) {
             listIndex = 0;
@@ -162,7 +161,7 @@ public class RowList {
         return index < size;
     }
 
-    private Row readRow(Data buff) throws SQLException {
+    private Row readRow(Data buff) {
         if (buff.readByte() == 0) {
             return null;
         }
@@ -206,7 +205,7 @@ public class RowList {
      *
      * @return the next row
      */
-    public Row next() throws SQLException {
+    public Row next() {
         Row r;
         if (file == null) {
             r = list.get(index++);

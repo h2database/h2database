@@ -6,11 +6,10 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -30,13 +29,13 @@ public class Subquery extends Expression {
         this.query = query;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         query.setSession(session);
         ResultInterface result = query.query(2);
         try {
             int rowcount = result.getRowCount();
             if (rowcount > 1) {
-                throw Message.getSQLException(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
+                throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
             }
             Value v;
             if (rowcount <= 0) {
@@ -60,11 +59,11 @@ public class Subquery extends Expression {
         return getExpression().getType();
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
         query.mapColumns(resolver, level + 1);
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         query.prepare();
         return this;
     }
@@ -89,7 +88,7 @@ public class Subquery extends Expression {
         return "(" + query.getPlanSQL() + ")";
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
         query.updateAggregate(session);
     }
 

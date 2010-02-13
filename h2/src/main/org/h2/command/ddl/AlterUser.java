@@ -6,14 +6,12 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.security.SHA256;
 import org.h2.util.Utils;
 
@@ -80,15 +78,15 @@ public class AlterUser extends DefineCommand {
         this.password = password;
     }
 
-    private char[] getCharArray(Expression e) throws SQLException {
+    private char[] getCharArray(Expression e) {
         return e.optimize(session).getValue(session).getString().toCharArray();
     }
 
-    private byte[] getByteArray(Expression e) throws SQLException {
+    private byte[] getByteArray(Expression e) {
         return Utils.convertStringToBytes(e.optimize(session).getValue(session).getString());
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.commit(true);
         Database db = session.getDatabase();
         switch (type) {
@@ -109,7 +107,7 @@ public class AlterUser extends DefineCommand {
         case RENAME:
             session.getUser().checkAdmin();
             if (db.findUser(newName) != null || newName.equals(user.getName())) {
-                throw Message.getSQLException(ErrorCode.USER_ALREADY_EXISTS_1, newName);
+                throw DbException.get(ErrorCode.USER_ALREADY_EXISTS_1, newName);
             }
             db.renameDatabaseObject(session, user, newName);
             break;
@@ -121,7 +119,7 @@ public class AlterUser extends DefineCommand {
             user.setAdmin(admin);
             break;
         default:
-            Message.throwInternalError("type=" + type);
+            DbException.throwInternalError("type=" + type);
         }
         db.update(session, user);
         return 0;

@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -41,7 +40,7 @@ public class PageBtreeCursor implements Cursor {
         this.i = i;
     }
 
-    public Row get() throws SQLException {
+    public Row get() {
         if (currentRow == null && currentSearchRow != null) {
             currentRow = index.getRow(session, currentSearchRow.getKey());
         }
@@ -52,7 +51,7 @@ public class PageBtreeCursor implements Cursor {
         return currentSearchRow;
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         if (current == null) {
             return false;
         }
@@ -72,7 +71,7 @@ public class PageBtreeCursor implements Cursor {
         return true;
     }
 
-    public boolean previous() throws SQLException {
+    public boolean previous() {
         if (current == null) {
             return false;
         }

@@ -8,7 +8,7 @@ package org.h2.expression;
 
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -150,7 +150,7 @@ public class ValueExpression extends Expression {
         case ExpressionVisitor.GET_DEPENDENCIES:
             return true;
         default:
-            throw Message.throwInternalError("type=" + visitor.getType());
+            throw DbException.throwInternalError("type=" + visitor.getType());
         }
     }
 

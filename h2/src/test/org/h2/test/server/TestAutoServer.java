@@ -43,7 +43,7 @@ public class TestAutoServer extends TestBase {
      *
      * @throws Exception
      */
-    public void testAutoServer() throws Exception {
+    private void testAutoServer() throws Exception {
         if (config.memory || config.networked) {
             return;
         }
@@ -127,7 +127,13 @@ public class TestAutoServer extends TestBase {
 
         connAutoServer2.close();
 
-        connLinked.close();
+        // this will also close the linked connection from statAutoServer1
+        connLinked.createStatement().execute("shutdown immediately");
+        try {
+            connLinked.close();
+        } catch (SQLException e) {
+            // ignore
+        }
 
         deleteDb("autoServerLinkedTable1");
         deleteDb("autoServerLinkedTable2");

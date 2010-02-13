@@ -63,7 +63,7 @@ public class DatabaseCloser extends Thread {
                 Thread.sleep(step);
                 delayInMillis -= step;
             } catch (Exception e) {
-                // ignore
+                // ignore InterruptedException
             }
             if (databaseRef == null) {
                 return;

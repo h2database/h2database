@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.command.Prepared;
 import org.h2.engine.Procedure;
@@ -43,7 +42,7 @@ public class ExecuteProcedure extends Prepared {
         expressions.add(index, expr);
     }
 
-    private void setParameters() throws SQLException {
+    private void setParameters() {
         Prepared prepared = procedure.getPrepared();
         ArrayList<Parameter> params = prepared.getParameters();
         for (int i = 0; params != null && i < params.size() && i < expressions.size(); i++) {
@@ -58,13 +57,13 @@ public class ExecuteProcedure extends Prepared {
         return prepared.isQuery();
     }
 
-    public int update() throws SQLException {
+    public int update() {
         setParameters();
         Prepared prepared = procedure.getPrepared();
         return prepared.update();
     }
 
-    public ResultInterface query(int limit) throws SQLException {
+    public ResultInterface query(int limit) {
         setParameters();
         Prepared prepared = procedure.getPrepared();
         return prepared.query(limit);
@@ -74,7 +73,7 @@ public class ExecuteProcedure extends Prepared {
         return true;
     }
 
-    public ResultInterface queryMeta() throws SQLException {
+    public ResultInterface queryMeta() {
         Prepared prepared = procedure.getPrepared();
         return prepared.queryMeta();
     }

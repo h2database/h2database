@@ -17,7 +17,7 @@ import java.sql.Timestamp;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
+import org.h2.message.DbException;
 import org.h2.util.Utils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -353,7 +353,7 @@ public class Data {
      *
      * @param v the value
      */
-    public void writeValue(Value v) throws SQLException {
+    public void writeValue(Value v) {
         int start = pos;
         if (TEST_OFFSET > 0) {
             pos += TEST_OFFSET;
@@ -546,11 +546,11 @@ public class Data {
             break;
         }
         default:
-            Message.throwInternalError("type=" + v.getType());
+            DbException.throwInternalError("type=" + v.getType());
         }
         if (SysProperties.CHECK2) {
             if (pos - start != getValueLen(v)) {
-                throw Message
+                throw DbException
                         .throwInternalError("value size error: got " + (pos - start) + " expected " + getValueLen(v));
             }
         }
@@ -561,7 +561,7 @@ public class Data {
      *
      * @return the value
      */
-    public Value readValue() throws SQLException {
+    public Value readValue() {
         if (TEST_OFFSET > 0) {
             pos+=TEST_OFFSET;
         }
@@ -693,7 +693,7 @@ public class Data {
             } else if (type >= STRING_0_31 && type < STRING_0_31 + 32) {
                 return ValueString.get(readString(type - STRING_0_31));
             }
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
     }
 
@@ -703,11 +703,11 @@ public class Data {
      * @param v the value
      * @return the number of bytes required to store this value
      */
-    public int getValueLen(Value v) throws SQLException {
+    public int getValueLen(Value v) {
         return getValueLen2(v) + TEST_OFFSET;
     }
 
-    private int getValueLen2(Value v) throws SQLException {
+    private int getValueLen2(Value v) {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }
@@ -840,7 +840,7 @@ public class Data {
             return len;
         }
         default:
-            throw Message.throwInternalError("type=" + v.getType());
+            throw DbException.throwInternalError("type=" + v.getType());
         }
     }
 

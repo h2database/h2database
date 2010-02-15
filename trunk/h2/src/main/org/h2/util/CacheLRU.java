@@ -9,7 +9,6 @@ package org.h2.util;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
-import java.util.WeakHashMap;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -52,15 +51,9 @@ public class CacheLRU implements Cache {
         if (cacheType.startsWith("SOFT_")) {
             secondLevel = new SoftHashMap<Integer, CacheObject>();
             cacheType = cacheType.substring("SOFT_".length());
-        } else if (cacheType.startsWith("WEAK_")) {
-            secondLevel = new WeakHashMap<Integer, CacheObject>();
-            cacheType = cacheType.substring("WEAK_".length());
         }
         Cache cache;
-        if ("TQ".equals(cacheType)) {
-            // for backward compatibility - actually using LRU not TQ
-            cache = new CacheLRU(writer, cacheSize);
-        } else if (CacheLRU.TYPE_NAME.equals(cacheType)) {
+        if (CacheLRU.TYPE_NAME.equals(cacheType)) {
             cache = new CacheLRU(writer, cacheSize);
         } else {
             throw DbException.getInvalidValueException(cacheType, "CACHE_TYPE");

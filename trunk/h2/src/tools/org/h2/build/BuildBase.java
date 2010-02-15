@@ -515,7 +515,7 @@ public class BuildBase {
             println("SHA1 checksum: " + got);
         } else {
             if (!got.equals(sha1Checksum)) {
-                throw new RuntimeException("SHA1 checksum mismatch");
+                throw new RuntimeException("SHA1 checksum mismatch; got: " + got);
             }
         }
         writeFile(targetFile, data);

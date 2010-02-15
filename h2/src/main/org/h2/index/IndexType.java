@@ -10,6 +10,7 @@ package org.h2.index;
  * Represents information about the properties of an index
  */
 public class IndexType {
+
     private boolean primaryKey, persistent, unique, hash, scan;
     private boolean belongsToConstraint;
 

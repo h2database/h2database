@@ -196,7 +196,7 @@ public class TableData extends Table {
                 index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, create, session);
             }
         } else {
-            if (indexType.isHash()) {
+            if (indexType.isHash() && cols.length <= 1) {
                 if (indexType.isUnique()) {
                     index = new HashIndex(this, indexId, indexName, cols, indexType);
                 } else {

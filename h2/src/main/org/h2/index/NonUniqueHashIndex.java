@@ -6,13 +6,14 @@
  */
 package org.h2.index;
 
+import java.util.ArrayList;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
-import org.h2.util.IntArray;
+import org.h2.util.New;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 
@@ -21,9 +22,9 @@ import org.h2.value.Value;
  *
  * @author Sergi Vladykin
  */
-public class NonUniqueHashIndex extends BaseHashIndex {
+public class NonUniqueHashIndex extends HashIndex {
 
-    private ValueHashMap<IntArray> rows;
+    private ValueHashMap<ArrayList<Long>> rows;
     private TableData tableData;
     private long rowCount;
 
@@ -43,13 +44,13 @@ public class NonUniqueHashIndex extends BaseHashIndex {
     }
 
     public void add(Session session, Row row) {
-        Value key = getKey(row);
-        IntArray positions = rows.get(key);
+        Value key = row.getValue(indexColumn);
+        ArrayList<Long> positions = rows.get(key);
         if (positions == null) {
-            positions = new IntArray(1);
+            positions = New.arrayList();
             rows.put(key, positions);
         }
-        positions.add((int) row.getKey());
+        positions.add(row.getKey());
         rowCount++;
     }
 
@@ -58,13 +59,13 @@ public class NonUniqueHashIndex extends BaseHashIndex {
             // last row in table
             reset();
         } else {
-            Value key = getKey(row);
-            IntArray positions = rows.get(key);
+            Value key = row.getValue(indexColumn);
+            ArrayList<Long> positions = rows.get(key);
             if (positions.size() == 1) {
                 // last row with such key
                 rows.remove(key);
             } else {
-                positions.removeValue((int) row.getKey());
+                positions.remove(row.getKey());
             }
             rowCount--;
         }
@@ -79,7 +80,7 @@ public class NonUniqueHashIndex extends BaseHashIndex {
                 throw DbException.throwInternalError();
             }
         }
-        IntArray positions = rows.get(getKey(first));
+        ArrayList<Long> positions = rows.get(first.getValue(indexColumn));
         return new NonUniqueHashCursor(session, tableData, positions);
     }
 

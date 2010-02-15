@@ -35,18 +35,18 @@ public class Build extends BuildBase {
      * Run the benchmarks.
      */
     public void benchmark() {
-        download("ext/hsqldb-1.8.0.7.jar",
-                "http://repo1.maven.org/maven2/hsqldb/hsqldb/1.8.0.7/hsqldb-1.8.0.7.jar",
-                "20554954120b3cc9f08804524ec90113a73f3015");
-        download("ext/derby-10.4.2.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/derby/derby/10.4.2.0/derby-10.4.2.0.jar",
-                "e785a7c453056a842826d98e6a780724f9b7abf8");
-        download("ext/derbyclient-10.4.2.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/derby/derbyclient/10.4.2.0/derbyclient-10.4.2.0.jar",
-                "b3452b5e026e418462fd5464bb7571c7ff1ee8a5");
-        download("ext/derbynet-10.4.2.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/derby/derbynet/10.4.2.0/derbynet-10.4.2.0.jar",
-                "1547800a688132a7602d5dc280bfe88bb085bfde");
+        download("ext/hsqldb-1.8.0.10.jar",
+                "http://repo1.maven.org/maven2/hsqldb/hsqldb/1.8.0.10/hsqldb-1.8.0.10.jar",
+                "7e9978fdb754bce5fcd5161133e7734ecb683036");
+        download("ext/derby-10.5.3.0_1.jar",
+                "http://repo1.maven.org/maven2/org/apache/derby/derby/10.5.3.0_1/derby-10.5.3.0_1.jar",
+                "0b0146dd76c2601a5a0632dd2e0b3b85e5b1b713");
+        download("ext/derbyclient-10.5.3.0_1.jar",
+                "http://repo1.maven.org/maven2/org/apache/derby/derbyclient/10.5.3.0_1/derbyclient-10.5.3.0_1.jar",
+                "976ed4b6ae738c9cc3e81637b138d7d1fc6df0e8");
+        download("ext/derbynet-10.5.3.0_1.jar",
+                "http://repo1.maven.org/maven2/org/apache/derby/derbynet/10.5.3.0_1/derbynet-10.5.3.0_1.jar",
+                "198b52abaa4a5f5feb81339a132bf78f08789fd7");
         download("ext/postgresql-8.3-603.jdbc3.jar",
                 "http://repo1.maven.org/maven2/postgresql/postgresql/8.3-603.jdbc3/postgresql-8.3-603.jdbc3.jar",
                 "33d531c3c53055ddcbea3d88bfa093466ffef924");
@@ -55,10 +55,10 @@ public class Build extends BuildBase {
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
         String cp = "temp" + File.pathSeparator + "bin/h2" + getJarSuffix() + File.pathSeparator +
         "ext/hsqldb.jar" + File.pathSeparator +
-        "ext/hsqldb-1.8.0.7.jar" + File.pathSeparator +
-        "ext/derby-10.4.2.0.jar" + File.pathSeparator +
-        "ext/derbyclient-10.4.2.0.jar" + File.pathSeparator +
-        "ext/derbynet-10.4.2.0.jar" + File.pathSeparator +
+        "ext/hsqldb-1.8.0.10.jar" + File.pathSeparator +
+        "ext/derby-10.5.3.0_1.jar" + File.pathSeparator +
+        "ext/derbyclient-10.5.3.0_1.jar" + File.pathSeparator +
+        "ext/derbynet-10.5.3.0_1.jar" + File.pathSeparator +
         "ext/postgresql-8.3-603.jdbc3.jar" + File.pathSeparator +
         "ext/mysql-connector-java-5.1.6.jar";
         StringList args = args("-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance");

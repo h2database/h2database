@@ -704,6 +704,18 @@ public class PageStore implements CacheWriter {
         }
     }
 
+    /**
+     * Flush the transaction log and sync the file.
+     */
+    public void sync() {
+        if (file != null) {
+            synchronized (database) {
+                log.flush();
+                file.sync();
+            }
+        }
+    }
+
     public Trace getTrace() {
         return trace;
     }

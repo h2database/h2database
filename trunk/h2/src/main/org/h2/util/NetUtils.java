@@ -17,7 +17,7 @@ import java.net.UnknownHostException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
-import org.h2.security.SecureSocketFactory;
+import org.h2.security.CipherFactory;
 
 /**
  * This utility class contains socket helper functions.
@@ -103,7 +103,7 @@ public class NetUtils {
         for (int i = 0;; i++) {
             try {
                 if (ssl) {
-                    return SecureSocketFactory.createSocket(address, port);
+                    return CipherFactory.createSocket(address, port);
                 }
                 Socket socket = new Socket();
                 socket.connect(new InetSocketAddress(address, port),
@@ -165,7 +165,7 @@ public class NetUtils {
         try {
             InetAddress bindAddress = getBindAddress();
             if (ssl) {
-                return SecureSocketFactory.createServerSocket(port, bindAddress);
+                return CipherFactory.createServerSocket(port, bindAddress);
             }
             if (bindAddress == null) {
                 return new ServerSocket(port);

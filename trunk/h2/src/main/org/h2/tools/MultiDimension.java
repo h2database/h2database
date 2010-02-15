@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import org.h2.util.New;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -144,49 +143,6 @@ public class MultiDimension implements Comparator<long[]> {
             prep.setInt(idx++, max[i]);
         }
         return prep.executeQuery();
-    }
-
-    /**
-     * Generates an optimized multi-dimensional range query.
-     * This query is database independent, however the performance is
-     * not as good as when using generatePreparedQuery
-     *
-     * @param table the table name
-     * @param columns the list of columns
-     * @param min the lower values
-     * @param max the upper values
-     * @param scalarColumn the column name of the computed scalar column
-     * @return the query
-     */
-    public String generateQuery(String table, String scalarColumn, String[] columns, int[] min, int[] max) {
-        long[][] ranges = getMortonRanges(min, max);
-        StatementBuilder buff = new StatementBuilder("SELECT * FROM (");
-        for (long[] range : ranges) {
-            long minScalar = range[0];
-            long maxScalar = range[1];
-            buff.appendExceptFirst(" UNION ALL ");
-            buff.append("SELECT * FROM ").
-                append(table).
-                append(" WHERE ").
-                append(scalarColumn).
-                append(" BETWEEN ").
-                append(minScalar).
-                append(" AND ").
-                append(maxScalar);
-        }
-        buff.append(") WHERE ");
-        int i = 0;
-        buff.resetCount();
-        for (String col : columns) {
-            buff.appendExceptFirst(" AND ");
-            buff.append(col).
-                append(" BETWEEN ").
-                append(min[i]).
-                append(" AND ").
-                append(max[i]);
-            i++;
-        }
-        return buff.toString();
     }
 
     /**

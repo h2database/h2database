@@ -1749,7 +1749,12 @@ public class Database implements DataHandler {
      * executing the SQL statement CHECKPOINT SYNC.
      */
     public void sync() {
-        int todo;
+        if (readOnly || pageStore == null) {
+            return;
+        }
+        synchronized (this) {
+            pageStore.sync();
+        }
     }
 
     public int getMaxMemoryRows() {

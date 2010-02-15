@@ -113,33 +113,6 @@ public class TestMultiDimension extends TestBase {
             }
             assertFalse(rs2.next());
         }
-        trace("multi: " + timeMulti + " regular: " + timeRegular);
-        for (int i = 0; i < 50; i++) {
-            int size = rand.nextInt(max / 10);
-            int minX = rand.nextInt(max - size);
-            int minY = rand.nextInt(max - size);
-            int minZ = rand.nextInt(max - size);
-            int maxX = minX + size, maxY = minY + size, maxZ = minZ + size;
-            long time1 = System.currentTimeMillis();
-            String query1 = MultiDimension.getInstance().generateQuery("TEST", "XYZ", new String[] { "X", "Y", "Z" },
-                    new int[] { minX, minY, minZ }, new int[] { minX + size, minY + size, minZ + size });
-            ResultSet rs1 = conn.createStatement().executeQuery(query1 + " ORDER BY X, Y, Z");
-            time1 = System.currentTimeMillis() - time1;
-            long time2 = System.currentTimeMillis();
-            String query2 = "SELECT * FROM TEST WHERE " + "X BETWEEN " + minX + " AND " + maxX + " AND " + "Y BETWEEN "
-                    + minY + " AND " + maxY + " AND " + "Z BETWEEN " + minZ + " AND " + maxZ;
-            PreparedStatement prep2 = conn.prepareStatement(query2 + " ORDER BY X, Y, Z");
-            ResultSet rs2 = prep2.executeQuery();
-            time2 = System.currentTimeMillis() - time2;
-            while (rs1.next()) {
-                assertTrue(rs2.next());
-                assertEquals(rs1.getInt(1), rs2.getInt(1));
-                assertEquals(rs1.getInt(2), rs2.getInt(2));
-            }
-            assertFalse(rs2.next());
-            // it just has to work, no need to compare the performance
-            // trace("t1="+time1+" t2="+time2+" size="+size);
-        }
         conn.close();
         deleteDb("multiDimension");
     }

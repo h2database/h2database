@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The file system abstraction no longer throws SQL exceptions.
+<ul><li>Hash indexes now are only used for single column indexes.
+</li><li>The cache types WEAK_* and TQ are no longer supported.
+</li><li>The file system abstraction no longer throws SQL exceptions.
 </li><li>DatabaseEventListener.diskSpaceIsLow has changed.
 </li><li>The CompressTool no longer throw as SQL exceptions. Instead, it throws runtime exceptions.
 </li><li>SimpleResultSet.addColumn and addRow now can throw a IllegalStateException

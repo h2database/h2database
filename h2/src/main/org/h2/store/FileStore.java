@@ -448,8 +448,12 @@ public class FileStore {
      * Call fsync. Depending on the operating system and hardware, this may or
      * may not in fact write the changes.
      */
-    public void sync() throws IOException {
-        file.sync();
+    public void sync() {
+        try {
+            file.sync();
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, name);
+        }
     }
 
     /**

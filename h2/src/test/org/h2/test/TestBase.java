@@ -264,6 +264,9 @@ public abstract class TestBase {
         if (config.mvcc && url.indexOf("MVCC=") < 0) {
             url += ";MVCC=TRUE";
         }
+        if (config.cacheType != null && admin && url.indexOf("CACHE_TYPE=") < 0) {
+            url += ";CACHE_TYPE=" + config.cacheType;
+        }
         if (config.diskResult && admin) {
             url += ";MAX_MEMORY_ROWS=100;CACHE_SIZE=0";
         }

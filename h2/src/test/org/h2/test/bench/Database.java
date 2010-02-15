@@ -101,7 +101,12 @@ class Database {
             Thread.sleep(100);
         } else if (url.startsWith("jdbc:hsqldb:hsql:")) {
             if (!serverHSQLDB) {
-                Class< ? > c = Class.forName("org.hsqldb.Server");
+                Class< ? > c;
+                try {
+                    c = Class.forName("org.hsqldb.server.Server");
+                } catch (Exception e) {
+                    c = Class.forName("org.hsqldb.Server");
+                }
                 Method m = c.getMethod("main", String[].class);
                 m.invoke(null, new Object[] { new String[] { "-database.0",
                         "data/mydb;hsqldb.default_table_type=cached", "-dbname.0", "xdb" } });

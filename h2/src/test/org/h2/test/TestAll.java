@@ -263,6 +263,11 @@ java org.h2.test.TestAll timer
      */
     boolean stopOnError;
 
+    /**
+     * The cache type.
+     */
+    String cacheType;
+
     private Server server;
 
     /**
@@ -286,10 +291,10 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-implement FileStore.sync, Database.sync() (CHECKPOINT SYNC)
-try to replace 'catch Exception' with 'catch DbException'
-try again with -verbose:classes
+rename Page* classes
+move classes to the right packages
 test Row.getMemorySize
+remove CipherFactory
 
 document in performance section:
 PreparedStatement prep = conn.prepareStatement(
@@ -416,6 +421,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         deleteIndex = true;
         traceLevelFile = 3;
         throttle = 1;
+        cacheType = "SOFT_LRU";
         cipher = "XTEA";
         test();
 
@@ -424,6 +430,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         deleteIndex = false;
         traceLevelFile = 1;
         throttle = 0;
+        cacheType = null;
         cipher = null;
         test();
 
@@ -672,6 +679,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, codeCoverage, "codeCoverage");
         appendIf(buff, mvcc, "mvcc");
         appendIf(buff, cipher != null, cipher);
+        appendIf(buff, cacheType != null, cacheType);
         appendIf(buff, jdk14, "jdk14");
         appendIf(buff, smallLog, "smallLog");
         appendIf(buff, ssl, "ssl");

@@ -15,7 +15,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.Enumeration;
 
-import org.h2.security.SecureSocketFactory;
+import org.h2.security.CipherFactory;
 import org.h2.util.Utils;
 
 /**
@@ -41,8 +41,8 @@ public class SecureKeyStoreBuilder {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        String password = SecureSocketFactory.KEYSTORE_PASSWORD;
-        KeyStore store = SecureSocketFactory.getKeyStore(password);
+        String password = CipherFactory.KEYSTORE_PASSWORD;
+        KeyStore store = CipherFactory.getKeyStore(password);
         printKeystore(store, password);
     }
 

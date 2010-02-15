@@ -61,6 +61,14 @@ public class TestPgServer extends TestBase {
         conn.close();
         conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
         stat = conn.createStatement();
+        ResultSet rs;
+
+        stat.execute("prepare test(int, int) as select ?1*?2");
+        rs = stat.executeQuery("execute test(3, 2)");
+        rs.next();
+        assertEquals(6, rs.getInt(1));
+        stat.execute("deallocate test");
+
         stat.execute("create table test(id int primary key, name varchar)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
         ParameterMetaData meta = prep.getParameterMetaData();
@@ -68,7 +76,7 @@ public class TestPgServer extends TestBase {
         prep.setInt(1, 1);
         prep.setString(2, "Hello");
         prep.execute();
-        ResultSet rs = stat.executeQuery("select * from test");
+        rs = stat.executeQuery("select * from test");
         rs.next();
 
         ResultSetMetaData rsMeta = rs.getMetaData();

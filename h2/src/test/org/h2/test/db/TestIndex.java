@@ -11,10 +11,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Random;
 
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 
 /**
  * Index tests.
@@ -36,6 +38,7 @@ public class TestIndex extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("index");
+        testNonUniqueHashIndex();
         testRenamePrimaryKey();
         testRandomized();
         testDescIndex();
@@ -82,6 +85,41 @@ public class TestIndex extends TestBase {
 
         conn.close();
         deleteDb("index");
+    }
+
+    private void testNonUniqueHashIndex() throws SQLException {
+        reconnect();
+        stat.execute("create memory table test(id bigint, data bigint)");
+        stat.execute("create hash index on test(id)");
+        Random rand = new Random(1);
+        PreparedStatement prepInsert = conn.prepareStatement("insert into test values(?, ?)");
+        PreparedStatement prepDelete = conn.prepareStatement("delete from test where id=?");
+        PreparedStatement prepSelect = conn.prepareStatement("select count(*) from test where id=?");
+        HashMap<Long, Integer> map = New.hashMap();
+        for (int i = 0; i < 1000; i++) {
+            long key = rand.nextInt(10) * 1000000000L;
+            Integer r = map.get(key);
+            int result = r == null ? 0 : (int) r;
+            if (rand.nextBoolean()) {
+                prepSelect.setLong(1, key);
+                ResultSet rs = prepSelect.executeQuery();
+                rs.next();
+                assertEquals(result, rs.getInt(1));
+            } else {
+                if (rand.nextBoolean()) {
+                    prepInsert.setLong(1, key);
+                    prepInsert.setInt(2, rand.nextInt());
+                    prepInsert.execute();
+                    map.put(key, result + 1);
+                } else {
+                    prepDelete.setLong(1, key);
+                    prepDelete.execute();
+                    map.put(key, 0);
+                }
+            }
+        }
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testRenamePrimaryKey() throws SQLException {

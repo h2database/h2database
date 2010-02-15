@@ -96,7 +96,7 @@ public class TestCache extends TestBase implements CacheWriter {
             return;
         }
         deleteDb("cache");
-        Connection conn = getConnection("cache;CACHE_TYPE=" + (lru ? "LRU" : "TQ"));
+        Connection conn = getConnection("cache;CACHE_TYPE=" + (lru ? "LRU" : "SOFT_LRU"));
         Statement stat = conn.createStatement();
         stat.execute("SET CACHE_SIZE 1024");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");

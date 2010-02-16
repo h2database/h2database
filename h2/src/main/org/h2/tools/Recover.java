@@ -1152,13 +1152,6 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public int compareTypeSave(Value a, Value b) {
-        throw DbException.throwInternalError();
-    }
-
-    /**
-     * INTERNAL
-     */
     public int getMaxLengthInplaceLob() {
         throw DbException.throwInternalError();
     }

@@ -7,6 +7,7 @@
 package org.h2.jdbcx;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.sql.Connection;
@@ -85,7 +86,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         setTrace(factory.getTrace(), TraceObject.DATA_SOURCE, id);
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         initFactory();
         in.defaultReadObject();
     }

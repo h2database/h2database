@@ -11,7 +11,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -29,7 +28,6 @@ import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
-import org.h2.value.Value;
 
 /**
  * This class is the base for RunScriptCommand and ScriptCommand.
@@ -199,10 +197,6 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
 
     public void freeUpDiskSpace() {
         session.getDatabase().freeUpDiskSpace();
-    }
-
-    public int compareTypeSave(Value a, Value b) {
-        throw DbException.throwInternalError();
     }
 
     public int getMaxLengthInplaceLob() {

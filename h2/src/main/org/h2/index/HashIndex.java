@@ -33,7 +33,7 @@ public class HashIndex extends BaseIndex {
     }
 
     private void reset() {
-        rows = ValueHashMap.newInstance(table.getDatabase());
+        rows = ValueHashMap.newInstance();
     }
 
     public void truncate(Session session) {

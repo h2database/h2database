@@ -8,7 +8,6 @@ package org.h2.util;
 
 import java.util.ArrayList;
 import org.h2.message.DbException;
-import org.h2.store.DataHandler;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -21,17 +20,6 @@ public class ValueHashMap<V> extends HashBase {
 
     private Value[] keys;
     private V[] values;
-    private DataHandler handler;
-
-    /**
-     * Create a new value hash map using the given data handler.
-     * The data handler is used to compare values.
-     *
-     * @param handler the data handler
-     */
-    private ValueHashMap(DataHandler handler) {
-        this.handler = handler;
-    }
 
     /**
      * Create a new value hash map using the given data handler.
@@ -40,8 +28,8 @@ public class ValueHashMap<V> extends HashBase {
      * @param handler the data handler
      * @return the object
      */
-    public static <T> ValueHashMap<T> newInstance(DataHandler handler) {
-        return new ValueHashMap<T>(handler);
+    public static <T> ValueHashMap<T> newInstance() {
+        return new ValueHashMap<T>();
     }
 
     @SuppressWarnings("unchecked")
@@ -95,7 +83,7 @@ public class ValueHashMap<V> extends HashBase {
                 if (deleted < 0) {
                     deleted = index;
                 }
-            } else if (handler.compareTypeSave(k, key) == 0) {
+            } else if (k.equals(key)) {
                 // update existing
                 values[index] = value;
                 return;
@@ -122,7 +110,7 @@ public class ValueHashMap<V> extends HashBase {
                 return;
             } else if (k == ValueNull.DELETED) {
                 // found a deleted record
-            } else if (handler.compareTypeSave(k, key) == 0) {
+            } else if (k.equals(key)) {
                 // found the record
                 keys[index] = ValueNull.DELETED;
                 values[index] = null;
@@ -152,7 +140,7 @@ public class ValueHashMap<V> extends HashBase {
                 return null;
             } else if (k == ValueNull.DELETED) {
                 // found a deleted record
-            } else if (handler.compareTypeSave(k, key) == 0) {
+            } else if (k.equals(key)) {
                 // found it
                 return values[index];
             }

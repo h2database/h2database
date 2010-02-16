@@ -45,7 +45,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     private void testNotANumber() {
-        ValueHashMap<Integer> map = ValueHashMap.newInstance(this);
+        ValueHashMap<Integer> map = ValueHashMap.newInstance();
         for (int i = 1; i < 100; i++) {
             double d = Double.longBitsToDouble(0x7ff0000000000000L | i);
             ValueDouble v = ValueDouble.get(d);
@@ -55,7 +55,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     private void testRandomized() {
-        ValueHashMap<Value> map = ValueHashMap.newInstance(this);
+        ValueHashMap<Value> map = ValueHashMap.newInstance();
         HashMap<Value, Value> hash = New.hashMap();
         Random random = new Random(1);
         Comparator<Value> vc = new Comparator<Value>() {
@@ -125,10 +125,6 @@ public class TestValueHashMap extends TestBase implements DataHandler {
 
     public void freeUpDiskSpace() {
         // nothing to do
-    }
-
-    public int compareTypeSave(Value a, Value b) {
-        return a.compareTo(b, compareMode);
     }
 
     public int getMaxLengthInplaceLob() {

@@ -6,6 +6,8 @@
  */
 package org.h2.test.jdbcx;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -42,6 +44,20 @@ public class TestConnectionPool extends TestBase {
     private void testUncommittedTransaction() throws SQLException {
         String url = getURL("connectionPool", true), user = getUser(), password = getPassword();
         JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
+
+        assertEquals(5 * 60, man.getLoginTimeout());
+        man.setLoginTimeout(1);
+        assertEquals(1, man.getLoginTimeout());
+        man.setLoginTimeout(0);
+        assertEquals(5 * 60, man.getLoginTimeout());
+        assertEquals(10, man.getMaxConnections());
+
+        PrintWriter old = man.getLogWriter();
+        PrintWriter pw = new PrintWriter(new StringWriter());
+        man.setLogWriter(pw);
+        assertTrue(pw == man.getLogWriter());
+        man.setLogWriter(old);
+
         Connection conn1 = man.getConnection();
         assertTrue(conn1.getAutoCommit());
         conn1.setAutoCommit(false);

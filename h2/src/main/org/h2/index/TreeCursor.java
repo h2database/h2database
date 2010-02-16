@@ -59,5 +59,4 @@ public class TreeCursor implements Cursor {
         return node != null;
     }
 
-
 }

@@ -8,7 +8,6 @@ package org.h2.store;
 
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
-import org.h2.value.Value;
 
 /**
  * A data handler contains a number of callback methods.
@@ -55,15 +54,6 @@ public interface DataHandler {
      * @throws SQLException if no more space could be freed
      */
     void freeUpDiskSpace();
-
-    /**
-     * Compare two values.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return 0 for equal, 1 if a is larger than b, and -1 otherwise
-     */
-    int compareTypeSave(Value a, Value b);
 
     /**
      * Get the maximum length of a in-place large object

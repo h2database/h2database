@@ -48,11 +48,11 @@ class AggregateData {
         if (aggregateType == Aggregate.SELECTIVITY) {
             count++;
             if (distinctValues == null) {
-                distinctValues = ValueHashMap.newInstance(database);
+                distinctValues = ValueHashMap.newInstance();
             }
             int size = distinctValues.size();
             if (size > Constants.SELECTIVITY_DISTINCT_COUNT) {
-                distinctValues = ValueHashMap.newInstance(database);
+                distinctValues = ValueHashMap.newInstance();
                 sum += size;
             }
             distinctValues.put(v, this);
@@ -68,7 +68,7 @@ class AggregateData {
         count++;
         if (distinct) {
             if (distinctValues == null) {
-                distinctValues = ValueHashMap.newInstance(database);
+                distinctValues = ValueHashMap.newInstance();
             }
             distinctValues.put(v, this);
             return;

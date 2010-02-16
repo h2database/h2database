@@ -61,15 +61,17 @@ implements ObjectFactory
         if (trace.isDebugEnabled()) {
             trace.debug("getObjectInstance obj=" + obj + " name=" + name + " nameCtx=" + nameCtx + " environment=" + environment);
         }
-        Reference ref = (Reference) obj;
-        if (ref.getClassName().equals(JdbcDataSource.class.getName())) {
-            JdbcDataSource dataSource = new JdbcDataSource();
-            dataSource.setURL((String) ref.get("url").getContent());
-            dataSource.setUser((String) ref.get("user").getContent());
-            dataSource.setPassword((String) ref.get("password").getContent());
-            String s = (String) ref.get("loginTimeout").getContent();
-            dataSource.setLoginTimeout(Integer.parseInt(s));
-            return dataSource;
+        if (obj instanceof Reference) {
+            Reference ref = (Reference) obj;
+            if (ref.getClassName().equals(JdbcDataSource.class.getName())) {
+                JdbcDataSource dataSource = new JdbcDataSource();
+                dataSource.setURL((String) ref.get("url").getContent());
+                dataSource.setUser((String) ref.get("user").getContent());
+                dataSource.setPassword((String) ref.get("password").getContent());
+                String s = (String) ref.get("loginTimeout").getContent();
+                dataSource.setLoginTimeout(Integer.parseInt(s));
+                return dataSource;
+            }
         }
         return null;
     }

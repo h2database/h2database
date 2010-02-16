@@ -194,10 +194,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public int compareTypeSave(Value a, Value b) {
-        return 0;
-    }
-
     public void freeUpDiskSpace() {
         // nothing to do
     }

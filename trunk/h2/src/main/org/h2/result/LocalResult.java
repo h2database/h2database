@@ -180,7 +180,7 @@ public class LocalResult implements ResultInterface {
      */
     public void setDistinct() {
         distinct = true;
-        distinctRows = ValueHashMap.newInstance(session.getDatabase());
+        distinctRows = ValueHashMap.newInstance();
     }
 
     /**

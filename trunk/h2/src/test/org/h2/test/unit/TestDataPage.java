@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
@@ -283,10 +282,6 @@ public class TestDataPage extends TestBase implements DataHandler {
 
     public void freeUpDiskSpace() {
         // nothing to do
-    }
-
-    public int compareTypeSave(Value a, Value b) {
-        throw DbException.throwInternalError();
     }
 
     public int getMaxLengthInplaceLob() {

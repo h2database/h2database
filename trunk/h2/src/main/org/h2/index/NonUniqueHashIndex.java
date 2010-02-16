@@ -35,7 +35,7 @@ public class NonUniqueHashIndex extends HashIndex {
     }
 
     private void reset() {
-        rows = ValueHashMap.newInstance(table.getDatabase());
+        rows = ValueHashMap.newInstance();
         rowCount = 0;
     }
 

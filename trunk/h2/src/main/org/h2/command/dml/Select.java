@@ -298,7 +298,7 @@ public class Select extends Query {
     }
 
     private void queryGroup(int columnCount, LocalResult result) {
-        ValueHashMap<HashMap<Expression, Object>> groups = ValueHashMap.newInstance(session.getDatabase());
+        ValueHashMap<HashMap<Expression, Object>> groups = ValueHashMap.newInstance();
         int rowNumber = 0;
         setCurrentRowNumber(0);
         ValueArray defaultGroup = ValueArray.get(new Value[0]);

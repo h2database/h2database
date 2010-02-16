@@ -13,7 +13,6 @@ import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
-import org.h2.value.Value;
 
 /**
  * Tests the in-memory file system.
@@ -136,10 +135,6 @@ public class TestFile extends TestBase implements DataHandler {
 
     public void checkWritingAllowed() {
         // nothing to do
-    }
-
-    public int compareTypeSave(Value a, Value b) {
-        return 0;
     }
 
     public void freeUpDiskSpace() {

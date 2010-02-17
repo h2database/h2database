@@ -21,7 +21,11 @@ import org.h2.value.Value;
  */
 public class HashIndex extends BaseIndex {
 
+    /**
+     * The index of the indexed column.
+     */
     protected final int indexColumn;
+
     private final TableData tableData;
     private ValueHashMap<Long> rows;
 
@@ -84,15 +88,6 @@ public class HashIndex extends BaseIndex {
     public void remove(Session session) {
         // nothing to do
     }
-
-    /**
-     * Generate the search key from a row. Only single column indexes are
-     * supported (multi-column indexes could be mapped to an value array, but
-     * that is much slower than using a tree based index).
-     *
-     * @param row the row
-     * @return the value
-     */
 
     public double getCost(Session session, int[] masks) {
         for (Column column : columns) {

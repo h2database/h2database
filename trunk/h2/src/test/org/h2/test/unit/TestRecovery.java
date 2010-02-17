@@ -42,8 +42,8 @@ public class TestRecovery extends TestBase {
         stat.execute("create table test as select * from system_range(1, 100)");
         stat.execute("create table a(id int primary key) as select * from system_range(1, 100)");
         stat.execute("create table b(id int references a(id)) as select * from system_range(1, 100)");
-        stat.execute("create table c(d clob) as select space(10000) || 'end'");
-        stat.execute("create table d(d varchar) as select space(10000) || 'end'");
+        stat.execute("create table c(d clob) as select space(10000) || 'end'");
+        stat.execute("create table d(d varchar) as select space(10000) || 'end'");
         stat.execute("alter table a add foreign key(id) references b(id)");
         // all rows have the same value - so that SCRIPT can't re-order the rows
         stat.execute("create table e(id varchar) as select space(10) from system_range(1, 1000)");

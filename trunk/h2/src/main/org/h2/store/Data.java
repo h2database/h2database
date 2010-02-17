@@ -11,16 +11,15 @@ package org.h2.store;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.util.Utils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -53,6 +52,7 @@ public class Data {
      */
     public static final int LENGTH_INT = 4;
 
+    private static final boolean TEST = false;
     private static final int TEST_OFFSET = 0;
 
     /**
@@ -355,7 +355,7 @@ public class Data {
      */
     public void writeValue(Value v) {
         int start = pos;
-        if (TEST_OFFSET > 0) {
+        if (TEST) {
             pos += TEST_OFFSET;
         }
         if (v == ValueNull.INSTANCE) {
@@ -562,8 +562,8 @@ public class Data {
      * @return the value
      */
     public Value readValue() {
-        if (TEST_OFFSET > 0) {
-            pos+=TEST_OFFSET;
+        if (TEST) {
+            pos += TEST_OFFSET;
         }
         int type = data[pos++] & 255;
         switch (type) {

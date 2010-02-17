@@ -1103,14 +1103,16 @@ public class Database implements DataHandler {
                         pageStore.compact(compactFully);
                     }
                 } catch (DbException e) {
-                    if (e.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED){
-                        // e.printStackTrace();
-                        // TODO don't ignore exceptions
+                    if (e.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED) {
+                        if (SysProperties.CHECK2) {
+                            e.printStackTrace();
+                        }
                     }
                     traceSystem.getTrace(Trace.DATABASE).error("close", e);
-                } catch (Throwable t){
-                    // e.printStackTrace();
-                    // TODO don't ignore exceptions
+                } catch (Throwable t) {
+                    if (SysProperties.CHECK2) {
+                        t.printStackTrace();
+                    }
                     traceSystem.getTrace(Trace.DATABASE).error("close", t);
                 }
             }

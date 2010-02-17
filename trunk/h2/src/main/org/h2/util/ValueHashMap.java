@@ -22,10 +22,8 @@ public class ValueHashMap<V> extends HashBase {
     private V[] values;
 
     /**
-     * Create a new value hash map using the given data handler.
-     * The data handler is used to compare values.
+     * Create a new value hash map.
      *
-     * @param handler the data handler
      * @return the object
      */
     public static <T> ValueHashMap<T> newInstance() {

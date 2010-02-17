@@ -109,7 +109,7 @@ public class NetUtils {
                 socket.connect(new InetSocketAddress(address, port),
                         SysProperties.SOCKET_CONNECT_TIMEOUT);
                 return socket;
-            } catch (BindException e) {
+            } catch (IOException e) {
                 if (i >= SysProperties.SOCKET_CONNECT_RETRY) {
                     throw e;
                 }

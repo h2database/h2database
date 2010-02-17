@@ -119,6 +119,8 @@ public class FunctionAlias extends DbObjectBase {
             javaMethods = new JavaMethod[] {
                     method
             };
+        } catch (DbException e) {
+            throw e;
         } catch (Exception e) {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, e, source);
         }

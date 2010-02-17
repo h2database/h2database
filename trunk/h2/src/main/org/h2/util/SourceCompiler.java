@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 
 /**
@@ -176,10 +177,8 @@ public class SourceCompiler {
             in.readFully(data);
             in.close();
             return data;
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw DbException.convert(e);
         } finally {
             javaFile.delete();
             classFile.delete();
@@ -200,13 +199,18 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            byte[] err = buff.toByteArray();
-            if (err.length != 0) {
-                throw new RuntimeException("Compile error: " + StringUtils.utf8Decode(err));
-            }
+            throwSyntaxError(buff);
             return p.exitValue();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw DbException.convert(e);
+        }
+    }
+
+    private void throwSyntaxError(ByteArrayOutputStream out) {
+        String err = StringUtils.utf8Decode(out.toByteArray());
+        if (err.length() > 0) {
+            err = StringUtils.replaceAll(err, compileDir, "");
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, err);
         }
     }
 
@@ -224,7 +228,7 @@ public class SourceCompiler {
                         }
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw DbException.convert(e);
                 }
             }
         } .start();
@@ -242,14 +246,9 @@ public class SourceCompiler {
                     "-sourcepath", compileDir,
                     "-d", compileDir,
                     javaFile.getAbsolutePath() });
-            byte[] err = buff.toByteArray();
-            if (err.length != 0) {
-                throw new RuntimeException("Compile error: " + StringUtils.utf8Decode(err));
-            }
-        } catch (RuntimeException e) {
-            throw e;
+            throwSyntaxError(buff);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw DbException.convert(e);
         } finally {
             System.setErr(old);
         }

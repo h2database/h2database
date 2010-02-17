@@ -33,8 +33,8 @@ public class TestMvcc1 extends TestBase {
     }
 
     public void test() throws SQLException {
-        testSetMode();
         testCases();
+        testSetMode();
         deleteDb("mvcc1");
     }
 
@@ -92,6 +92,16 @@ public class TestMvcc1 extends TestBase {
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
+
+        // table rollback problem
+        try {
+            s1.execute("create table b(primary key(x))");
+            fail();
+        } catch (SQLException e) {
+            // ok
+        }
+        s1.execute("create table a(id int as 1 unique)");
+        s1.execute("drop table a");
 
         // update same key problem
         s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, PRIMARY KEY(ID))");

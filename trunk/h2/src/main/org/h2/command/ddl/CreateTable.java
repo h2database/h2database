@@ -179,6 +179,7 @@ public class CreateTable extends SchemaCommand {
         } catch (DbException e) {
             db.checkPowerOff();
             db.removeSchemaObject(session, table);
+            session.commit(true);
             throw e;
         }
         return 0;

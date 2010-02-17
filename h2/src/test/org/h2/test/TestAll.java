@@ -291,10 +291,13 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+test recovery of large pages and transaction log
+test recovery with 'trace' mode (btree data)
+test runscript with setCheckResults, execute, process, setShowResults
 rename Page* classes
 move classes to the right packages
+instead of AVL trees, use general balanced trees
 test Row.getMemorySize
-remove CipherFactory
 
 document in performance section:
 PreparedStatement prep = conn.prepareStatement(
@@ -511,7 +514,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestTempTables().runTest(this);
         new TestTransaction().runTest(this);
         new TestTriggersConstraints().runTest(this);
-
         new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
         new TestViewAlterTable().runTest(this);

@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,6 +35,7 @@ import org.h2.tools.Restore;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.Server;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 
@@ -57,6 +59,7 @@ public class TestTools extends TestBase {
         if (config.networked) {
             return;
         }
+        testSimpleResultSet();
         org.h2.Driver.load();
         testJdbcDriverUtils();
         testWrongServer();
@@ -74,6 +77,49 @@ public class TestTools extends TestBase {
         testBackupRestore();
         testRecover();
         deleteDb("utils");
+    }
+
+    private void testSimpleResultSet() throws SQLException {
+        SimpleResultSet rs;
+        rs = new SimpleResultSet();
+        rs.addColumn("a", Types.BIGINT, 0, 0);
+        rs.addColumn("b", Types.BINARY, 0, 0);
+        rs.addColumn("c", Types.BOOLEAN, 0, 0);
+        rs.addColumn("d", Types.DATE, 0, 0);
+        rs.addColumn("e", Types.DECIMAL, 0, 0);
+        rs.addColumn("f", Types.FLOAT, 0, 0);
+        rs.addColumn("g", Types.VARCHAR, 0, 0);
+        Date d = Date.valueOf("2001-02-03");
+        byte[] b = new byte[]{(byte) 0xab};
+        rs.addRow(1, b, true, d, "10.3", Math.PI, "-3");
+        rs.next();
+        assertEquals(1, rs.getLong(1));
+        assertEquals((byte) 1, rs.getByte(1));
+        assertEquals((short) 1, rs.getShort(1));
+        assertEquals(1, rs.getLong("a"));
+        assertEquals((byte) 1, rs.getByte("a"));
+        assertEquals((short) 1, rs.getShort("a"));
+        assertEquals(b, rs.getBytes(2));
+        assertEquals(b, rs.getBytes("b"));
+        assertTrue(rs.getBoolean(3));
+        assertTrue(rs.getBoolean("c"));
+        assertEquals(d.getTime(), rs.getDate(4).getTime());
+        assertEquals(d.getTime(), rs.getDate("d").getTime());
+        assertTrue(new BigDecimal("10.3").equals(rs.getBigDecimal(5)));
+        assertTrue(new BigDecimal("10.3").equals(rs.getBigDecimal("e")));
+        assertEquals(10.3, rs.getDouble(5));
+        assertEquals((float) 10.3, rs.getFloat(5));
+        assertTrue(Math.PI == rs.getDouble(6));
+        assertTrue(Math.PI == rs.getDouble("f"));
+        assertTrue((float) Math.PI == rs.getFloat(6));
+        assertTrue((float) Math.PI == rs.getFloat("f"));
+        assertEquals(-3, rs.getInt(7));
+        assertEquals(-3, rs.getByte(7));
+        assertEquals(-3, rs.getShort(7));
+        assertEquals(-3, rs.getLong(7));
+        rs.beforeFirst();
+        assertTrue(rs.next());
+        assertFalse(rs.next());
     }
 
     private void testJdbcDriverUtils() {

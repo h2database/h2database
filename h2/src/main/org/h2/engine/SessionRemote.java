@@ -548,10 +548,6 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         // ok
     }
 
-    public int compareTypeSave(Value a, Value b) {
-        throw DbException.throwInternalError();
-    }
-
     public void freeUpDiskSpace() {
         // nothing to do
     }

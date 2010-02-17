@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import org.h2.message.DbException;
 import org.h2.util.New;
 
 /**
@@ -54,7 +55,7 @@ public abstract class FileSystem {
                 try {
                     Class.forName(c);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw DbException.convert(e);
                 }
             }
         }

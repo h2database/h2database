@@ -291,6 +291,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+maybe remove ValueHashMap
 test recovery of large pages and transaction log
 test recovery with 'trace' mode (btree data)
 test runscript with setCheckResults, execute, process, setShowResults

@@ -38,7 +38,7 @@ public class FileObjectDiskMapped implements FileObject {
         reMap();
     }
 
-    private void unMap() {
+    private void unMap() throws IOException {
         if (mapped != null) {
             // first write all data
             mapped.force();
@@ -67,7 +67,7 @@ public class FileObjectDiskMapped implements FileObject {
                 long start = System.currentTimeMillis();
                 while (bufferWeakRef.get() != null) {
                     if (System.currentTimeMillis() - start > GC_TIMEOUT_MS) {
-                        throw new RuntimeException("Timeout (" + GC_TIMEOUT_MS
+                        throw new IOException("Timeout (" + GC_TIMEOUT_MS
                                 + " ms) reached while trying to GC mapped buffer");
                     }
                     System.gc();
@@ -83,7 +83,7 @@ public class FileObjectDiskMapped implements FileObject {
      */
     private void reMap() throws IOException {
         if (file.length() > Integer.MAX_VALUE) {
-            throw new RuntimeException("File over 2GB is not supported yet");
+            throw new IOException("File over 2GB is not supported yet");
         }
         int oldPos = 0;
         if (mapped != null) {

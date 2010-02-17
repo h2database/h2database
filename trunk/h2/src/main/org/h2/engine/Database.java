@@ -1528,6 +1528,7 @@ public class Database implements DataHandler {
             removeDatabaseObject(session, comment);
         }
         obj.getSchema().remove(obj);
+        int id = obj.getId();
         if (!starting) {
             Table t = getDependentTable(obj, null);
             if (t != null) {
@@ -1536,7 +1537,6 @@ public class Database implements DataHandler {
             }
             obj.removeChildrenAndResources(session);
         }
-        int id = obj.getId();
         removeMeta(session, id);
     }
 

@@ -43,6 +43,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testPrepareExecute(conn);
         testUUID(conn);
         testScopedGeneratedKey(conn);
         testLobTempFiles(conn);
@@ -73,6 +74,15 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
         deleteDb("preparedStatement");
+    }
+
+    private void testPrepareExecute(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("prepare test(int, int) as select ?1*?2");
+        ResultSet rs = stat.executeQuery("execute test(3, 2)");
+        rs.next();
+        assertEquals(6, rs.getInt(1));
+        stat.execute("deallocate test");
     }
 
     private void testLobTempFiles(Connection conn) throws SQLException {

@@ -1271,6 +1271,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
+/*## Java 1.6 begin ##
     public void setNString(int parameterIndex, String x) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1282,6 +1283,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Sets the value of a parameter as a character stream.
@@ -1293,10 +1295,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param length the number of bytes
      * @throws SQLException if this object is closed
      */
-    public void setNCharacterStream(int parameterIndex, Reader x, long length) throws SQLException {
+/*## Java 1.6 begin ##
+    public void setNCharacterStream(int parameterIndex, Reader x, long length)
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("setNCharacterStream("+parameterIndex+", x, "+length+"L);");
+                debugCode("setNCharacterStream("+
+                    parameterIndex+", x, "+length+"L);");
             }
             checkClosedForWrite();
             try {
@@ -1309,6 +1314,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Sets the value of a parameter as a character stream.
@@ -1319,9 +1325,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-    public void setNCharacterStream(int parameterIndex, Reader x) throws SQLException {
+/*## Java 1.6 begin ##
+    public void setNCharacterStream(int parameterIndex, Reader x)
+            throws SQLException {
         setNCharacterStream(parameterIndex, x, -1);
     }
+## Java 1.6 end ##*/
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1359,6 +1368,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
+/*## Java 1.6 begin ##
     public void setNClob(int parameterIndex, Reader x) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1375,6 +1385,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1437,7 +1448,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-    public void setNClob(int parameterIndex, Reader x, long length) throws SQLException {
+/*## Java 1.6 begin ##
+    public void setNClob(int parameterIndex, Reader x, long length)
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("setNClob("+parameterIndex+", x, "+length+"L);");

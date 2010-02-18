@@ -316,23 +316,4 @@ public class RunScript extends Tool {
         }
     }
 
-    /**
-     * If the statements as well as the results should be printed to the output.
-     *
-     * @param show true if yes
-     */
-    public void setShowResults(boolean show) {
-        this.showResults = show;
-    }
-
-    /**
-     * If results of statements should be cross-checked with the expected
-     * output. The expected result is the next line(s) of the script, commented.
-     *
-     * @param check true if yes
-     */
-    public void setCheckResults(boolean check) {
-        this.checkResults = check;
-    }
-
 }

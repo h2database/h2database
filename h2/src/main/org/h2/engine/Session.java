@@ -711,10 +711,6 @@ public class Session extends SessionWithState implements SessionFactory {
         return firstUncommittedLog;
     }
 
-    public int getFirstUncommittedPos() {
-        return firstUncommittedPos;
-    }
-
     /**
      * This method is called after the log file has committed this session.
      */

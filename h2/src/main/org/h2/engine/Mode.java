@@ -79,7 +79,8 @@ public class Mode {
     public boolean squareBracketQuotedNames;
 
     /**
-     * Support for the syntax [OFFSET .. ROW] [FETCH ... ONLY]
+     * Support for the syntax
+     * [OFFSET .. ROW|ROWS] [FETCH FIRST .. ROW|ROWS ONLY]
      * as an alternative for LIMIT .. OFFSET.
      */
     public boolean supportOffsetFetch;

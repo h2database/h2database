@@ -51,7 +51,7 @@ public class TestIntArray extends TestBase {
         for (int i = 0; i < 10000; i++) {
             int idx = test.length == 0 ? 0 : random.nextInt(test.length);
             int v = random.nextInt(100);
-            int op = random.nextInt(5);
+            int op = random.nextInt(4);
             switch (op) {
             case 0:
                 array.add(v);
@@ -69,13 +69,6 @@ public class TestIntArray extends TestBase {
                 }
                 break;
             case 3:
-                if (test.length > idx) {
-                    v = test[idx];
-                    array.removeValue(v);
-                    test = removeValue(test, v);
-                }
-                break;
-            case 4:
                 assertEquals(test.length, array.size());
                 break;
             default:
@@ -114,15 +107,6 @@ public class TestIntArray extends TestBase {
             System.arraycopy(array, i + 1, a2, i, array.length - i - 1);
         }
         return a2;
-    }
-
-    private int[] removeValue(int[] array, int value) {
-        for (int i = 0; i < array.length; i++) {
-            if (array[i] == value) {
-                return remove(array, i);
-            }
-        }
-        return array;
     }
 
 }

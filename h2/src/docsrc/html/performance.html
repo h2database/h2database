@@ -517,6 +517,19 @@ but not range scan (<code>WHERE ID &lt; ?</code>). To use hash indexes, use HASH
 <code>CREATE TABLE ...(ID INT PRIMARY KEY HASH,...)</code>.
 </p>
 
+<h3>Use Prepared Statements</h3>
+<p>
+If possible, use prepared statements with parameters.
+Avoid generating SQL statements with a variable size IN(...) list.
+Instead, use arrays as in the following example:
+</p>
+<pre>
+PreparedStatement prep = conn.prepareStatement(
+    "SELECT * FROM TABLE(X INT=?) T INNER JOIN TEST ON T.X=TEST.ID");
+prep.setObject(1, new Object[] { "1", "2" });
+ResultSet rs = prep.executeQuery();
+</pre>
+
 <h3>Optimization Examples</h3>
 <p>
 See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries

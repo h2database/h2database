@@ -26,6 +26,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
+import org.h2.constant.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.util.New;
 
 /*## Java 1.6 begin ##
@@ -514,7 +516,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
                 return i + 1;
             }
         }
-        throw new SQLException("Column not found: " + columnLabel, "42S22");
+        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel).getSQLException();
     }
 
     /**
@@ -1610,18 +1612,18 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     static SQLException getUnsupportedException() {
-        return new SQLException("Feature not supported", "HYC00");
+        return DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1).getSQLException();
     }
 
     private void checkColumnIndex(int columnIndex) throws SQLException {
         if (columnIndex < 0 || columnIndex >= columns.size()) {
-            throw new SQLException("Invalid column index " + (columnIndex + 1), "90009");
+            throw DbException.getInvalidValueException("" + columnIndex, "columnIndex").getSQLException();
         }
     }
 
     private Object get(int columnIndex) throws SQLException {
         if (currentRow == null) {
-            throw new SQLException("No data is available", "02000");
+            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE).getSQLException();
         }
         columnIndex--;
         checkColumnIndex(columnIndex);
@@ -1790,16 +1792,20 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
+/*## Java 1.6 begin ##
     public String getNString(int columnIndex) throws SQLException {
         return getString(columnIndex);
     }
+## Java 1.6 end ##*/
 
     /**
      * INTERNAL
      */
+/*## Java 1.6 begin ##
     public String getNString(String columnLabel) throws SQLException {
         return getString(columnLabel);
     }
+## Java 1.6 end ##*/
 
     /**
      * INTERNAL

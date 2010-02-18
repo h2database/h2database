@@ -9,6 +9,8 @@ package org.h2.test.unit;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,6 +21,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Random;
@@ -79,7 +83,7 @@ public class TestTools extends TestBase {
         deleteDb("utils");
     }
 
-    private void testSimpleResultSet() throws SQLException {
+    private void testSimpleResultSet() throws Exception {
         SimpleResultSet rs;
         rs = new SimpleResultSet();
         rs.addColumn("a", Types.BIGINT, 0, 0);
@@ -89,37 +93,110 @@ public class TestTools extends TestBase {
         rs.addColumn("e", Types.DECIMAL, 0, 0);
         rs.addColumn("f", Types.FLOAT, 0, 0);
         rs.addColumn("g", Types.VARCHAR, 0, 0);
+        rs.addColumn("h", Types.ARRAY, 0, 0);
+        rs.addColumn("i", Types.TIME, 0, 0);
+        rs.addColumn("j", Types.TIMESTAMP, 0, 0);
+
         Date d = Date.valueOf("2001-02-03");
         byte[] b = new byte[]{(byte) 0xab};
-        rs.addRow(1, b, true, d, "10.3", Math.PI, "-3");
+        Object[] a = new Object[]{1, 2};
+        Time t = Time.valueOf("10:20:30");
+        Timestamp ts = Timestamp.valueOf("2002-03-04 10:20:30");
+        rs.addRow(1, b, true, d, "10.3", Math.PI, "-3", a, t, ts);
+
         rs.next();
+
         assertEquals(1, rs.getLong(1));
         assertEquals((byte) 1, rs.getByte(1));
         assertEquals((short) 1, rs.getShort(1));
         assertEquals(1, rs.getLong("a"));
         assertEquals((byte) 1, rs.getByte("a"));
+        assertEquals(1, rs.getInt("a"));
         assertEquals((short) 1, rs.getShort("a"));
+        assertTrue(rs.getObject(1).getClass() == Integer.class);
+        assertTrue(rs.getObject("a").getClass() == Integer.class);
+
         assertEquals(b, rs.getBytes(2));
         assertEquals(b, rs.getBytes("b"));
+
         assertTrue(rs.getBoolean(3));
         assertTrue(rs.getBoolean("c"));
         assertEquals(d.getTime(), rs.getDate(4).getTime());
         assertEquals(d.getTime(), rs.getDate("d").getTime());
+
         assertTrue(new BigDecimal("10.3").equals(rs.getBigDecimal(5)));
         assertTrue(new BigDecimal("10.3").equals(rs.getBigDecimal("e")));
         assertEquals(10.3, rs.getDouble(5));
         assertEquals((float) 10.3, rs.getFloat(5));
+
         assertTrue(Math.PI == rs.getDouble(6));
         assertTrue(Math.PI == rs.getDouble("f"));
         assertTrue((float) Math.PI == rs.getFloat(6));
         assertTrue((float) Math.PI == rs.getFloat("f"));
+
         assertEquals(-3, rs.getInt(7));
         assertEquals(-3, rs.getByte(7));
         assertEquals(-3, rs.getShort(7));
         assertEquals(-3, rs.getLong(7));
+
+        Object[] a2 = (Object[]) rs.getArray(8).getArray();
+        assertEquals(2, a2.length);
+        assertTrue(a == a2);
+        a2 = (Object[]) rs.getArray("h").getArray();
+        assertEquals(2, a2.length);
+        assertTrue(a == a2);
+
+        assertTrue(t == rs.getTime("i"));
+        assertTrue(t == rs.getTime(9));
+
+        assertTrue(ts == rs.getTimestamp("j"));
+        assertTrue(ts == rs.getTimestamp(10));
+
+        // all 'updateX' methods are not supported
+        for (Method m: rs.getClass().getMethods()) {
+            if (m.getName().startsWith("update")) {
+                int len = m.getParameterTypes().length;
+                Object[] params = new Object[len];
+                int i = 0;
+                for (Class< ? > type : m.getParameterTypes()) {
+                    Object o = null;
+                    if (type == int.class) {
+                        o = 1;
+                    } else if (type == byte.class) {
+                        o = (byte) 1;
+                    } else if (type == double.class) {
+                        o = (double) 1;
+                    } else if (type == float.class) {
+                        o = (float) 1;
+                    } else if (type == long.class) {
+                        o = (long) 1;
+                    } else if (type == short.class) {
+                        o = (short) 1;
+                    } else if (type == boolean.class) {
+                        o = false;
+                    }
+                    params[i] = o;
+                    i++;
+                }
+                try {
+                    m.invoke(rs, params);
+                } catch (InvocationTargetException e) {
+                    SQLException e2 = (SQLException) e.getTargetException();
+                    assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e2.getErrorCode());
+                }
+            }
+        }
+
+        assertEquals(ResultSet.TYPE_FORWARD_ONLY, rs.getType());
+        assertFalse(rs.isClosed());
         rs.beforeFirst();
+        assertEquals(0, rs.getRow());
         assertTrue(rs.next());
+        assertFalse(rs.isClosed());
+        assertEquals(1, rs.getRow());
         assertFalse(rs.next());
+        assertTrue(rs.isClosed());
+        assertEquals(0, rs.getRow());
     }
 
     private void testJdbcDriverUtils() {

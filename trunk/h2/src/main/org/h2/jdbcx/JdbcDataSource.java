@@ -86,6 +86,11 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         setTrace(factory.getTrace(), TraceObject.DATA_SOURCE, id);
     }
 
+    /**
+     * Called when de-serializing the object.
+     *
+     * @param in the input stream
+     */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         initFactory();
         in.defaultReadObject();

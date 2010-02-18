@@ -7,7 +7,6 @@
 package org.h2.util;
 
 import org.h2.constant.SysProperties;
-import org.h2.message.DbException;
 
 /**
  * An array with integer element.
@@ -123,21 +122,6 @@ public class IntArray {
      */
     public int size() {
         return size;
-    }
-
-    /**
-     * Remove the first element of this list that matches this value.
-     *
-     * @param value the value to be remove
-     */
-    public void removeValue(int value) {
-        for (int i = 0; i < size; i++) {
-            if (data[i] == value) {
-                remove(i);
-                return;
-            }
-        }
-        DbException.throwInternalError();
     }
 
     /**

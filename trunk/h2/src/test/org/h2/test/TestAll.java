@@ -291,25 +291,16 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-maybe remove ValueHashMap
 test recovery of large pages and transaction log
 test recovery with 'trace' mode (btree data)
-test runscript with setCheckResults, execute, process, setShowResults
+maybe remove ValueHashMap
 rename Page* classes
 move classes to the right packages
 instead of AVL trees, use general balanced trees
 test Row.getMemorySize
 
-document in performance section:
-PreparedStatement prep = conn.prepareStatement(
-"select * from table(x int = ?) t inner join test on t.x = test.id");
-prep.setObject(1, new Object[] { "1", "2" });
-ResultSet rs = prep.executeQuery();
-
 review package and class level javadocs
 TestAll deleteIndex
-
-document FETCH FIRST
 
 power failure test: larger binaries and additional indexes
 (with many columns).

@@ -6,6 +6,8 @@
  */
 package org.h2.test.jdbcx;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -108,6 +110,12 @@ public class TestDataSource extends TestBase {
             }
         });
         XAResource res = xaConn.getXAResource();
+
+        assertFalse(res.setTransactionTimeout(1));
+        assertEquals(0, res.getTransactionTimeout());
+        assertTrue(res.isSameRM(res));
+        assertFalse(res.isSameRM(null));
+
         Connection conn = xaConn.getConnection();
         Xid[] list = res.recover(XAResource.TMSTARTRSCAN);
         assertEquals(0, list.length);
@@ -120,6 +128,9 @@ public class TestDataSource extends TestBase {
     private void testDataSource() throws SQLException {
         deleteDb("dataSource");
         JdbcDataSource ds = new JdbcDataSource();
+        PrintWriter p = new PrintWriter(new StringWriter());
+        ds.setLogWriter(p);
+        assertTrue(p == ds.getLogWriter());
         ds.setURL(getURL("dataSource", true));
         ds.setUser(getUser());
         ds.setPassword(getPassword());

@@ -545,12 +545,14 @@ public class TestTools extends TestBase {
         String url = "jdbc:h2:" + baseDir + "/utils";
         String user = "sa", password = "abc";
         String fileName = baseDir + "/b2.sql";
+        DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
         Connection conn = DriverManager.getConnection(url, user, password);
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
         Script.main("-url", url, "-user", user, "-password", password, "-script", fileName, "-options",
                 "nodata", "compression", "lzf", "cipher", "xtea", "password", "'123'");
+        Script.main("-url", url, "-user", user, "-password", password, "-script", fileName + ".txt");
         DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
         RunScript.main("-url", url, "-user", user, "-password", password, "-script", fileName,
                 "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'");
@@ -558,6 +560,14 @@ public class TestTools extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         assertFalse(rs.next());
         conn.close();
+
+        DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
+        RunScript tool = new RunScript();
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        tool.setOut(new PrintStream(buff));
+        tool.runTool("-url", url, "-user", user, "-password", password, "-script", fileName + ".txt",
+                "-showResults");
+        assertTrue(buff.toString().indexOf("Hello") >= 0);
     }
 
     private void testBackupRestore() throws SQLException {

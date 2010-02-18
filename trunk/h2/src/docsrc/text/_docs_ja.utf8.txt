@@ -8078,78 +8078,84 @@ MySQL
 # In-memory hash indexes are backed by a hash table and are usually faster than regular indexes. However, hash indexes only supports direct lookup (<code>WHERE ID = ?</code>) but not range scan (<code>WHERE ID &lt; ?</code>). To use hash indexes, use HASH as in: <code>CREATE UNIQUE HASH INDEX</code> and <code>CREATE TABLE ...(ID INT PRIMARY KEY HASH,...)</code>. 
 
 @performance_1429_h3
-#Optimization Examples
+#Use Prepared Statements
 
 @performance_1430_p
-# See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries that benefit from special optimizations built into the database. 
+# If possible, use prepared statements with parameters. Avoid generating SQL statements with a variable size IN(...) list. Instead, use arrays as in the following example: 
 
 @performance_1431_h3
-#Cache Size and Type
+#Optimization Examples
 
 @performance_1432_p
-# By default the cache size of H2 is quite small. Consider using a larger cache size, or enable the second level soft reference cache. See also <a href="features.html#cache_settings">Cache Settings</a>. 
+# See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries that benefit from special optimizations built into the database. 
 
 @performance_1433_h3
-データ型
+#Cache Size and Type #データ型
 
 @performance_1434_p
+# By default the cache size of H2 is quite small. Consider using a larger cache size, or enable the second level soft reference cache. See also <a href="features.html#cache_settings">Cache Settings</a>. 
+
+@performance_1435_h3
+データ型
+
+@performance_1436_p
 # Each data type has different storage and performance characteristics: 
 
-@performance_1435_li
+@performance_1437_li
 #The <code>DECIMAL/NUMERIC</code> type is slower and requires more storage than the <code>REAL</code> and <code>DOUBLE</code> types. 
 
-@performance_1436_li
+@performance_1438_li
 #Text types are slower to read, write, and compare than numeric types and generally require more storage. 
 
-@performance_1437_li
+@performance_1439_li
 #See <a href="advanced.html#large_objects">Large Objects</a> for information on <code>BINARY</code> vs. <code>BLOB</code> and <code>VARCHAR</code> vs. <code>CLOB</code> performance. 
 
-@performance_1438_li
+@performance_1440_li
 #Parsing and formatting takes longer for the <code>TIME</code>, <code>DATE</code>, and <code>TIMESTAMP</code> types than the numeric types. 
 
-@performance_1439_code
+@performance_1441_code
 #SMALLINT/TINYINT/BOOLEAN
 
-@performance_1440_li
+@performance_1442_li
 # are not significantly smaller or faster to work with than <code>INTEGER</code> in most modes. 
 
-@performance_1441_h3
+@performance_1443_h3
 #Sorted Insert Optimization
 
-@performance_1442_p
+@performance_1444_p
 # To reduce disk space usage and speed up table creation, an optimization for sorted inserts is available. When used, b-tree pages are split at the insertion point. To use this optimization, add <code>SORTED</code> before the <code>SELECT</code> statement: 
 
-@performance_1443_h2
+@performance_1445_h2
 #Using the Built-In Profiler
 
-@performance_1444_p
+@performance_1446_p
 # A very simple Java profiler is built-in. To use it, use the following template: 
 
-@performance_1445_h2
+@performance_1447_h2
 #Fast Database Import
 
-@performance_1446_p
+@performance_1448_p
 # To speed up large imports, consider using the following options temporarily: 
 
-@performance_1447_code
+@performance_1449_code
 #SET CACHE_SIZE
 
-@performance_1448_li
+@performance_1450_li
 # (a large cache is faster) 
 
-@performance_1449_code
+@performance_1451_code
 #SET LOCK_MODE 0
 
-@performance_1450_li
+@performance_1452_li
 # (disable locking) 
 
-@performance_1451_code
+@performance_1453_code
 #SET UNDO_LOG 0
 
-@performance_1452_li
+@performance_1454_li
 # (disable the session undo log) 
 
-@performance_1453_p
+@performance_1455_p
 # These options can be set in the database URL: <code>jdbc:h2:~/test;CACHE_SIZE=65536;LOCK_MODE=0;UNDO_LOG=0</code>. Most of those options are not recommended for regular use, that means you need to reset them after use. 
 
 @quickstart_1000_h1

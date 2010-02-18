@@ -3074,16 +3074,19 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
      */
+/*## Java 1.6 begin ##
     public void updateNString(int columnIndex, String x) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("updateNString("+columnIndex+", "+quote(x)+");");
             }
-            update(columnIndex, x == null ? (Value) ValueNull.INSTANCE : ValueString.get(x));
+            update(columnIndex, x == null ? (Value)
+                    ValueNull.INSTANCE : ValueString.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Updates a column in the current or insert row.
@@ -3092,16 +3095,19 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
      */
+/*## Java 1.6 begin ##
     public void updateNString(String columnLabel, String x) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("updateNString("+quote(columnLabel)+", "+quote(x)+");");
             }
-            update(columnLabel, x == null ? (Value) ValueNull.INSTANCE : ValueString.get(x));
+            update(columnLabel, x == null ? (Value) ValueNull.INSTANCE :
+                    ValueString.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
@@ -3247,6 +3253,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+/*## Java 1.6 begin ##
     public String getNString(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getNString", columnIndex);
@@ -3255,6 +3262,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Returns the value of the specified column as a String.
@@ -3264,6 +3272,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+/*## Java 1.6 begin ##
     public String getNString(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getNString", columnLabel);
@@ -3272,6 +3281,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Returns the value of the specified column as input stream.
@@ -3281,6 +3291,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+/*## Java 1.6 begin ##
     public Reader getNCharacterStream(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getNCharacterStream", columnIndex);
@@ -3289,6 +3300,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Returns the value of the specified column as input stream.
@@ -3298,6 +3310,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+/*## Java 1.6 begin ##
     public Reader getNCharacterStream(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getNCharacterStream", columnLabel);
@@ -3306,6 +3319,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Updates a column in the current or insert row.
@@ -3314,9 +3328,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
      */
-    public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
+/*## Java 1.6 begin ##
+    public void updateNCharacterStream(int columnIndex, Reader x)
+            throws SQLException {
         updateNCharacterStream(columnIndex, x, -1);
     }
+## Java 1.6 end ##*/
 
     /**
      * Updates a column in the current or insert row.
@@ -3326,7 +3343,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param length the number of characters
      * @throws SQLException if the result set is closed or not updatable
      */
-    public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
+/*## Java 1.6 begin ##
+    public void updateNCharacterStream(int columnIndex, Reader x, long length)
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("updateNCharacterStream("+columnIndex+", x, "+length+"L);");
@@ -3338,6 +3357,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * Updates a column in the current or insert row.
@@ -3346,9 +3366,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
      */
-    public void updateNCharacterStream(String columnLabel, Reader x) throws SQLException {
+/*## Java 1.6 begin ##
+    public void updateNCharacterStream(String columnLabel, Reader x)
+            throws SQLException {
         updateNCharacterStream(columnLabel, x, -1);
     }
+## Java 1.6 end ##*/
 
     /**
      * Updates a column in the current or insert row.
@@ -3358,7 +3381,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param length the number of characters
      * @throws SQLException if the result set is closed or not updatable
      */
-    public void updateNCharacterStream(String columnLabel, Reader x, long length) throws SQLException {
+/*## Java 1.6 begin ##
+    public void updateNCharacterStream(String columnLabel, Reader x, long length)
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("updateNCharacterStream("+quote(columnLabel)+", x, "+length+"L);");
@@ -3370,6 +3395,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             throw logAndConvert(e);
         }
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Return an object of this class if possible.

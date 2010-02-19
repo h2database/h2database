@@ -354,7 +354,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-//            test.runTests();
+            test.runTests();
             Profiler prof = new Profiler();
             prof.depth = 10;
             prof.interval = 1;

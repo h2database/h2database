@@ -48,6 +48,8 @@ public class PrepareTranslation {
 
     private void run() throws Exception {
         String baseDir = "src/docsrc/textbase";
+        prepare(baseDir, "src/main/org/h2/res", true);
+        prepare(baseDir, "src/main/org/h2/server/web/res", true);
 
         // convert the txt files to properties files
         PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_de.utf8.txt",
@@ -59,7 +61,7 @@ public class PrepareTranslation {
         extractFromHtml("docs/html", "src/docsrc/text");
 
         // add missing translations and create a new baseline
-        prepare(baseDir, "src/docsrc/text");
+        prepare(baseDir, "src/docsrc/text", false);
 
         // create the translated documentation
         buildHtml("src/docsrc/text", "docs/html", "en");
@@ -88,12 +90,12 @@ public class PrepareTranslation {
         new File(targetDir).mkdirs();
         // load the main 'translation'
         String propName = templateDir + "/_docs_" + MAIN_LANGUAGE + ".properties";
-        Properties prop = SortedProperties.loadProperties(propName);
+        Properties prop = load(propName, false);
         propName = templateDir + "/_docs_" + language + ".properties";
         if (!(new File(propName)).exists()) {
             throw new IOException("Translation not found: " + propName);
         }
-        Properties transProp = SortedProperties.loadProperties(propName);
+        Properties transProp = load(propName, false);
         for (Object k : transProp.keySet()) {
             String key = (String) k;
             String t = transProp.getProperty(key);
@@ -345,9 +347,9 @@ public class PrepareTranslation {
         }
         new File(target).mkdirs();
         String propFileName = target + "/_docs_" + MAIN_LANGUAGE + ".properties";
-        Properties old = SortedProperties.loadProperties(propFileName);
+        Properties old = load(propFileName, false);
         prop.putAll(old);
-        prop.store(propFileName);
+        store(prop, propFileName, false);
         String t = template.toString();
         if (templateIsCopy && !t.equals(xml)) {
             for (int i = 0; i < Math.min(t.length(), xml.length()); i++) {
@@ -388,32 +390,52 @@ public class PrepareTranslation {
         prop.setProperty(document, s);
     }
 
-    private void prepare(String baseDir, String path) throws IOException {
+    private void prepare(String baseDir, String path, boolean utf8) throws IOException {
+        String suffix = utf8 ? ".prop" : ".properties";
         File dir = new File(path);
         File main = null;
         ArrayList<File> translations = new ArrayList<File>();
         for (File f : dir.listFiles()) {
-            if (f.getName().endsWith(".properties") && f.getName().indexOf('_') >= 0) {
-                if (f.getName().endsWith("_" + MAIN_LANGUAGE + ".properties")) {
+            if (f.getName().endsWith(suffix) && f.getName().indexOf('_') >= 0) {
+                if (f.getName().endsWith("_" + MAIN_LANGUAGE + suffix)) {
                     main = f;
                 } else {
                     translations.add(f);
                 }
             }
         }
-        SortedProperties p = SortedProperties.loadProperties(main.getAbsolutePath());
-        Properties base = SortedProperties.loadProperties(baseDir + "/" + main.getName());
-        p.store(main.getAbsolutePath());
+        SortedProperties p = load(main.getAbsolutePath(), utf8);
+        Properties base = load(baseDir + "/" + main.getName(), utf8);
+        store(p, main.getAbsolutePath(), utf8);
         for (File trans : translations) {
             String language = trans.getName();
             language = language.substring(language.lastIndexOf('_') + 1, language.lastIndexOf('.'));
-            prepare(p, base, trans);
+            prepare(p, base, trans, utf8);
         }
-        p.store(baseDir + "/" + main.getName());
+        store(p, baseDir + "/" + main.getName(), utf8);
     }
 
-    private void prepare(Properties main, Properties base, File trans) throws IOException {
-        SortedProperties p = SortedProperties.loadProperties(trans.getAbsolutePath());
+    private static SortedProperties load(String fileName, boolean utf8) throws IOException {
+        if (utf8) {
+            String s = new String(IOUtils.readBytesAndClose(new FileInputStream(fileName), -1), "UTF-8");
+            return SortedProperties.fromLines(s);
+        }
+        return SortedProperties.loadProperties(fileName);
+    }
+
+    private static void store(SortedProperties p, String fileName, boolean utf8) throws IOException {
+        if (utf8) {
+            String s = p.toLines();
+            FileOutputStream f = new FileOutputStream(fileName);
+            f.write(s.getBytes("UTF-8"));
+            f.close();
+        } else {
+            p.store(fileName);
+        }
+    }
+
+    private void prepare(Properties main, Properties base, File trans, boolean utf8) throws IOException {
+        SortedProperties p = load(trans.getAbsolutePath(), utf8);
         Properties oldTranslations = new Properties();
         for (Object k : base.keySet()) {
             String key = (String) k;
@@ -478,7 +500,7 @@ public class PrepareTranslation {
                 p.remove(key);
             }
         }
-        p.store(trans.getAbsolutePath());
+        store(p, trans.getAbsolutePath(), utf8);
     }
 
 }

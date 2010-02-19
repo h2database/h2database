@@ -57,6 +57,7 @@ public class SelectUnion extends Query {
     private int unionType;
     private Query left, right;
     private ArrayList<Expression> expressions;
+    private Expression[] expressionArray;
     private ArrayList<SelectOrderBy> orderList;
     private SortOrder sort;
     private boolean distinct;
@@ -93,9 +94,8 @@ public class SelectUnion extends Query {
     }
 
     public ResultInterface queryMeta() {
-        ArrayList<Expression> leftExpressions = left.getExpressions();
         int columnCount = left.getColumnCount();
-        LocalResult result = new LocalResult(session, leftExpressions, columnCount);
+        LocalResult result = new LocalResult(session, expressionArray, columnCount);
         result.done();
         return result;
     }
@@ -108,7 +108,7 @@ public class SelectUnion extends Query {
             limitExpr = ValueExpression.get(ValueInt.get(maxrows));
         }
         int columnCount = left.getColumnCount();
-        LocalResult result = new LocalResult(session, expressions, columnCount);
+        LocalResult result = new LocalResult(session, expressionArray, columnCount);
         result.setSortOrder(sort);
         if (distinct) {
             left.setDistinct(true);
@@ -156,7 +156,7 @@ public class SelectUnion extends Query {
             break;
         }
         case INTERSECT: {
-            LocalResult temp = new LocalResult(session, expressions, columnCount);
+            LocalResult temp = new LocalResult(session, expressionArray, columnCount);
             temp.setDistinct();
             while (l.next()) {
                 temp.addRow(convert(l.currentRow(), columnCount));
@@ -235,6 +235,8 @@ public class SelectUnion extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
+        expressionArray = new Expression[expressions.size()];
+        expressions.toArray(expressionArray);
     }
 
     public double getCost() {

@@ -83,13 +83,6 @@ public abstract class Page extends CacheObject {
      */
     public abstract void moveTo(Session session, int newPos);
 
-    public boolean canRemove() {
-        if (isChanged()) {
-            return false;
-        }
-        return true;
-    }
-
     /**
      * Write the page.
      */

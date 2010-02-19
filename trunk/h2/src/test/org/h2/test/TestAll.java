@@ -138,6 +138,7 @@ import org.h2.test.utils.OutputCatcher;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
+import org.h2.util.Profiler;
 import org.h2.util.Utils;
 import org.h2.util.StringUtils;
 
@@ -292,7 +293,8 @@ java org.h2.test.TestAll timer
 
 /*
 test recovery of large pages and transaction log
-test recovery with 'trace' mode (btree data)
+test recovery with 'trace' mode (many secondary indexes, small data rows)
+improve Row.getMemorySize
 maybe remove ValueHashMap
 rename Page* classes
 move classes to the right packages
@@ -352,8 +354,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-            test.runTests();
+//            test.runTests();
+            Profiler prof = new Profiler();
+            prof.depth = 10;
+            prof.interval = 1;
+            prof.startCollecting();
             TestPerformance.main("-init", "-db", "1");
+            prof.stopCollecting();
+            System.out.println(prof.getTop(2));
 //            Recover.execute("data", null);
 //            RunScript.execute("jdbc:h2:data/test2",
 //                 "sa1", "sa1", "data/test.h2.sql", null, false);

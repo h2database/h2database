@@ -8090,7 +8090,7 @@ MySQL
 # See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries that benefit from special optimizations built into the database. 
 
 @performance_1433_h3
-#Cache Size and Type #データ型
+#Cache Size and Type
 
 @performance_1434_p
 # By default the cache size of H2 is quite small. Consider using a larger cache size, or enable the second level soft reference cache. See also <a href="features.html#cache_settings">Cache Settings</a>. 

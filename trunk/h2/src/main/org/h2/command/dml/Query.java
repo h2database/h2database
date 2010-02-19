@@ -243,13 +243,14 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Init the order by list.
+     * Initialize the order by list. This call may extend the expressions list.
      *
      * @param expressions the select list expressions
      * @param expressionSQL the select list SQL snippets
      * @param orderList the order by list
      * @param visible the number of visible columns in the select list
      * @param mustBeInResult all order by expressions must be in the select list
+     * @return the new list (expressions may be added)
      */
     void initOrder(ArrayList<Expression> expressions, ArrayList<String> expressionSQL, ArrayList<SelectOrderBy> orderList, int visible,
             boolean mustBeInResult) {

@@ -295,6 +295,7 @@ public class FileLock implements Runnable {
 
     private void lockSerialized() {
         method = SERIALIZED;
+        fs.createDirs(fileName);
         if (fs.createNewFile(fileName)) {
             properties = new SortedProperties();
             properties.setProperty("method", String.valueOf(method));
@@ -317,6 +318,7 @@ public class FileLock implements Runnable {
         properties = new SortedProperties();
         properties.setProperty("method", String.valueOf(method));
         setUniqueId();
+        fs.createDirs(fileName);
         if (!fs.createNewFile(fileName)) {
             waitUntilOld();
             String m2 = load().getProperty("method", FILE);
@@ -354,6 +356,7 @@ public class FileLock implements Runnable {
         // if this returns 127.0.0.1,
         // the computer is probably not networked
         ipAddress = NetUtils.getLocalAddress();
+        fs.createDirs(fileName);
         if (!fs.createNewFile(fileName)) {
             waitUntilOld();
             long read = fs.getLastModified(fileName);

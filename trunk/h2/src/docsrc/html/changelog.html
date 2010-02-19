@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.128 (2010-01-30)</h2>
 <ul><li>CREATE ALIAS: error message when compiling Java code have been improved.
 </li><li>MVCC: creating a table with an incorrect constraint could cause strange errors.
 </li><li>Hash indexes now are only used for single column indexes.
@@ -45,14 +49,9 @@ Change Log
 </li><li>The database URL option ACCESS_MODE_LOG is no longer supported.
 </li><li>The database URL option RECOVER has currently no effect.
 </li><li>Converting an old (non-page store) database is no longer supported using this version.
-</li><li>The system property "h2.overflowExceptions" is no longer supported.
-</li><li>The system property "h2.optimizeDropDependencies" is no longer supported.
-</li><li>The system property "h2.optimizeGroupSorted" is no longer supported.
-</li><li>The system property "h2.optimizeMinMax" is no longer supported.
-</li><li>The system property "h2.optimizeNot" is no longer supported.
-</li><li>The system property "h2.optimizeIn" is no longer supported.
-</li><li>The system property "h2.optimizeInJoin" is no longer supported.
-</li><li>The system properties "h2.reuseSpace..." are no longer supported.
+</li><li>The following system properties are no longer supported:
+    h2.overflowExceptions, h2.optimizeDropDependencies, h2.optimizeGroupSorted,
+    h2.optimizeMinMax, h2.optimizeNot, h2.optimizeIn, h2.optimizeInJoin, h2.reuseSpace*.
 </li><li>The setting LOG has currently no effect.
 </li><li>Disabling the page store is no longer supported. The old storage mechanism
     has been removed, shrinking the jar file size by about 5%. Older databases can still be opened
@@ -609,45 +608,6 @@ Change Log
 </li><li>Column names could not be named "UNIQUE" (with the quotes).
 </li><li>New system function TRANSACTION_ID() to get the current transaction
     identifier for a session.
-</li></ul>
-
-<h2>Version 1.1.108 (2009-02-28)</h2>
-<ul><li>When the shutdown hook closed the database, the last log file
-    was deleted too early. This could cause uncommitted changes to be persisted.
-    In some cases, this could cause data corruption.
-</li><li>JdbcConnectionPool: it was possible to set a negative connection pool size.
-</li><li>Fulltext search did not support table names with a backslash.
-</li><li>The internal IntArray class did not work correctly when initialized with a zero length array.
-</li><li>The H2 Console web application (war file) did only support ASCII characters.
-    Now UTF-8 is supported.
-</li><li>DATEADD does no longer require that the argument is a timestamp.
-</li><li>The database file locking mechanism didn't work correctly on Mac OS.
-</li><li>Some built-in functions reported the wrong precision, scale, and display size.
-</li><li>MySQL compatibility for CREATE TABLE is improved (UNSIGNED, KEY).
-</li><li>Recovery did not work if there were more than 255 lobs stored as files.
-</li><li>New experimental mode to support multiple read-write connections without starting
-    a server. To enable this mode, append ;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE to the database URL.
-    Don't expect high performance when multiple concurrent writers.
-</li><li>In a web application, the database classes are not unloaded if a connection is open.
-    This may cause out of memory when re-deploying a web application.
-    The DbStarter is changed to close all connections to the configured database
-    (by executing SHUTDOWN).
-</li><li>The WebServlet did not close the database when un-deploying the web application.
-</li><li>The exception message of failed INSERT or MERGE statements now includes all values and the row number.
-</li><li>If opening a database failed with an out of memory exception, some files were not closed.
-</li><li>Optimizer: the expected runtime calculation was incorrect. The fixed calculation
-    should give slightly better query plans when using many joins.
-</li><li>Improved exception message when connecting to a just started server fails.
-</li><li>Connection.isValid is a bit faster.
-</li><li>H2 Console: the autocomplete feature has been improved a bit. It can now better
-    parse conditions.
-</li><li>When restarting a web application in Tomcat, an exception was thrown sometimes.
-    In most cases this was a NullPointerException. A workaround in H2 has been implemented.
-    The root cause of the problem is now documented in the FAQ:
-    Tomcat sets all static fields (final or non-final) to null when unloading a web application.
-    A workaround is to put the h2.jar in the lib directory, or set the system property
-    org.apache.catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES
-    to false.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

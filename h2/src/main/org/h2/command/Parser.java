@@ -3634,7 +3634,7 @@ public class Parser {
     private Call parserCall() {
         Call command = new Call(session);
         currentPrepared = command;
-        command.setValue(readExpression());
+        command.setExpression(readExpression());
         return command;
     }
 

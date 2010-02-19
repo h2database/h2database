@@ -61,6 +61,7 @@ public class Select extends Query {
     private ArrayList<TableFilter> filters = New.arrayList();
     private ArrayList<TableFilter> topFilters = New.arrayList();
     private ArrayList<Expression> expressions;
+    private Expression[] expressionArray;
     private Expression having;
     private Expression condition;
     private int visibleColumnCount, distinctColumnCount;
@@ -514,7 +515,7 @@ public class Select extends Query {
     }
 
     public ResultInterface queryMeta() {
-        LocalResult result = new LocalResult(session, expressions, visibleColumnCount);
+        LocalResult result = new LocalResult(session, expressionArray, visibleColumnCount);
         result.done();
         return result;
     }
@@ -530,7 +531,7 @@ public class Select extends Query {
             }
         }
         int columnCount = expressions.size();
-        LocalResult result = new LocalResult(session, expressions, visibleColumnCount);
+        LocalResult result = new LocalResult(session, expressionArray, visibleColumnCount);
         if (!sortUsingIndex) {
             result.setSortOrder(sort);
         }
@@ -770,6 +771,8 @@ public class Select extends Query {
                 isGroupSortedQuery = true;
             }
         }
+        expressionArray = new Expression[expressions.size()];
+        expressions.toArray(expressionArray);
         isPrepared = true;
     }
 

@@ -74,17 +74,6 @@ public class LocalResult implements ResultInterface {
     }
 
     /**
-     * Construct a local result object.
-     *
-     * @param session the session
-     * @param expressionList the expression list
-     * @param visibleColumnCount the number of visible columns
-     */
-    public LocalResult(Session session, ArrayList<Expression> expressionList, int visibleColumnCount) {
-        this(session, getList(expressionList), visibleColumnCount);
-    }
-
-    /**
      * Construct a local result set by reading all data from a regular result set.
      *
      * @param session the session
@@ -94,8 +83,8 @@ public class LocalResult implements ResultInterface {
      */
     public static LocalResult read(Session session, ResultSet rs, int maxrows) {
         try {
-            ArrayList<Expression> cols = getExpressionColumns(session, rs);
-            int columnCount = cols.size();
+            Expression[] cols = getExpressionColumns(session, rs);
+            int columnCount = cols.length;
             LocalResult result = new LocalResult(session, cols, columnCount);
             for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
                 Value[] list = new Value[columnCount];
@@ -112,10 +101,10 @@ public class LocalResult implements ResultInterface {
         }
     }
 
-    private static ArrayList<Expression> getExpressionColumns(Session session, ResultSet rs) throws SQLException {
+    private static Expression[] getExpressionColumns(Session session, ResultSet rs) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
-        ArrayList<Expression> cols = New.arrayList(columnCount);
+        Expression[] expressions = new Expression[columnCount];
         Database db = session == null ? null : session.getDatabase();
         for (int i = 0; i < columnCount; i++) {
             String name = meta.getColumnLabel(i + 1);
@@ -125,9 +114,9 @@ public class LocalResult implements ResultInterface {
             int displaySize = meta.getColumnDisplaySize(i + 1);
             Column col = new Column(name, type, precision, scale, displaySize);
             Expression expr = new ExpressionColumn(db, col);
-            cols.add(expr);
+            expressions[i] = expr;
         }
-        return cols;
+        return expressions;
     }
 
     /**
@@ -158,12 +147,6 @@ public class LocalResult implements ResultInterface {
         copy.disk = this.disk;
         copy.diskOffset = this.diskOffset;
         return copy;
-    }
-
-    private static Expression[] getList(ArrayList<Expression> expressionList) {
-        Expression[] expressions = new Expression[expressionList.size()];
-        expressionList.toArray(expressions);
-        return expressions;
     }
 
     /**

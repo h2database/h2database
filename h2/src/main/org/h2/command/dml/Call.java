@@ -7,7 +7,6 @@
 package org.h2.command.dml;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -16,7 +15,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueResultSet;
@@ -27,8 +25,9 @@ import org.h2.value.ValueResultSet;
  */
 public class Call extends Prepared {
 
-    private Expression value;
-    private ArrayList<Expression> expressions;
+
+    private Expression expression;
+    private Expression[] expressions;
 
     public Call(Session session) {
         super(session);
@@ -41,7 +40,7 @@ public class Call extends Prepared {
     }
 
     public int update() {
-        Value v = value.getValue(session);
+        Value v = expression.getValue(session);
         int type = v.getType();
         switch(type) {
         case Value.RESULT_SET:
@@ -59,17 +58,17 @@ public class Call extends Prepared {
 
     public ResultInterface query(int maxrows) {
         setCurrentRowNumber(1);
-        Value v = value.getValue(session);
+        Value v = expression.getValue(session);
         if (v.getType() == Value.RESULT_SET) {
             ResultSet rs = ((ValueResultSet) v).getResultSet();
             return LocalResult.read(session, rs, maxrows);
         } else if (v.getType() == Value.ARRAY) {
             Value[] list = ((ValueArray) v).getList();
-            ArrayList<Expression> expr = New.arrayList();
+            Expression[] expr = new Expression[list.length];
             for (int i = 0; i < list.length; i++) {
                 Value e = list[i];
                 Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale(), e.getDisplaySize());
-                expr.add(new ExpressionColumn(session.getDatabase(), col));
+                expr[i] = new ExpressionColumn(session.getDatabase(), col);
             }
             LocalResult result = new LocalResult(session, expr, list.length);
             result.addRow(list);
@@ -85,13 +84,12 @@ public class Call extends Prepared {
     }
 
     public void prepare() {
-        value = value.optimize(session);
-        expressions = New.arrayList();
-        expressions.add(value);
+        expression = expression.optimize(session);
+        expressions = new Expression[] { expression };
     }
 
-    public void setValue(Expression expression) {
-        value = expression;
+    public void setExpression(Expression expression) {
+        this.expression = expression;
     }
 
     public boolean isQuery() {
@@ -103,7 +101,7 @@ public class Call extends Prepared {
     }
 
     public boolean isReadOnly() {
-        return value.isEverything(ExpressionVisitor.READONLY);
+        return expression.isEverything(ExpressionVisitor.READONLY);
 
     }
 

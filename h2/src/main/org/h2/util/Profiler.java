@@ -16,8 +16,10 @@ import org.h2.engine.Constants;
  */
 public class Profiler implements Runnable {
     private static final int MAX_ELEMENTS = 1000;
-    private int interval = 50;
-    private int depth = 16;
+
+    public int interval = 50;
+    public int depth = 16;
+
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
     private String[] ignoreThreads = StringUtils.arraySplit(
             "java.lang.Thread.dumpThreads," +
@@ -180,22 +182,6 @@ public class Profiler implements Runnable {
         }
         buff.append('.');
         return buff.toString();
-    }
-
-    public int getInterval() {
-        return interval;
-    }
-
-    public void setInterval(int interval) {
-        this.interval = interval;
-    }
-
-    public int getDepth() {
-        return depth;
-    }
-
-    public void setDepth(int depth) {
-        this.depth = depth;
     }
 
 }

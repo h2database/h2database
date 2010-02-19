@@ -255,7 +255,7 @@ public class PageDataOverflow extends Page {
     }
 
     public boolean canRemove() {
-        return super.canRemove();
+        return true;
     }
 
 }

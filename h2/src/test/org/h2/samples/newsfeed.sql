@@ -13,8 +13,21 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(79,
+'New version available: 1.2.129 (2010-02-19)', '2010-02-19 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(78,
-'New version available: 1.2.128 (2010-01-30)', '2009-12-30 12:00:00',
+'New version available: 1.2.128 (2010-01-30)', '2010-01-30 12:00:00',
 $$A new version of H2 is available for
 <a href="http://www.h2database.com">download</a>.
 (You may have to click 'Refresh').
@@ -252,38 +265,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Rollback of a large transaction could fail.
 </li><li>Various bugfixes and improvements in the page store mechanism.
 </li><li>Multi-threaded kernel synchronization bugs fixed.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(66,
-'New version available: 1.1.116 (2009-07-18)', '2009-07-18 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Result sets are now read-only by default.
-</li><li>New system property h2.defaultResultSetConcurrency.
-</li><li>Using an invalid result set type or concurrency now throws an exception.
-</li><li>H2 Console: column of non-default schemas are now also listed.
-</li><li>H2 Console: Oracle system tables are no longer listed.
-</li><li>PG Server: improved compatibility and new system property h2.pgClientEncoding.
-    Thanks a lot to Sergi Vladykin for the patch!
-</li><li>To enable the page store mechanism, append ;PAGE_STORE=TRUE to the URL.
-    This mechanism is now relatively stable.
-</li><li>The built-in help is smaller.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Server-less multi-connection mode: more bugs are fixed.
-</li><li>If a pooled connection was not closed, an exception could occur.
-</li><li>Removing an auto-increment or identity column didn't remove the sequence.
-</li><li>Fulltext search: an exception was thrown when updating a value sometimes.
-</li><li>The Recover tool did not always work.
-</li><li>The soft-references cache (CACHE_TYPE=SOFT_LRU) could throw an exception.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

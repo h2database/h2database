@@ -22,7 +22,9 @@ Change Log
 </li></ul>
 
 <h2>Version 1.2.128 (2010-01-30)</h2>
-<ul><li>CREATE ALIAS: error message when compiling Java code have been improved.
+<ul><li>The methods of the CloseListener are added to the Trigger interface.
+    The interface CloseListener is removed. This is potentially a breaking change for existing triggers.
+</li><li>CREATE ALIAS: error message when compiling Java code have been improved.
 </li><li>MVCC: creating a table with an incorrect constraint could cause strange errors.
 </li><li>Hash indexes now are only used for single column indexes.
 </li><li>The cache types WEAK_* and TQ are no longer supported.
@@ -35,8 +37,6 @@ Change Log
     (for example 0.00 and 0.0) where not considered equal in version 1.2.128.
     Now they are (unlike BigDecimal.equals()).
 </li><li>The BNF parser now uses the visitor pattern.
-</li><li>The methods of the CloseListener are added to the Trigger interface.
-    The interface CloseListener is removed.
 </li><li>Converting a UUID to bytes was incorrect. Because of that, updatable result sets on
     tables with UUID primary key did not work.
 </li><li>The database URL property DATABASE_EVENT_LISTENER_OBJECT is no longer supported

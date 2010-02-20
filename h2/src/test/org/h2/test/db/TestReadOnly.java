@@ -40,16 +40,11 @@ public class TestReadOnly extends TestBase {
         if (!config.googleAppEngine) {
             testReadOnlyFiles(true);
         }
-        if (!config.deleteIndex) {
-            testReadOnlyFiles(false);
-        }
+        testReadOnlyFiles(false);
         deleteDb("readonly");
     }
 
     private void testReadOnlyDbCreate() throws SQLException {
-        if (config.deleteIndex) {
-            return;
-        }
         deleteDb("readonly");
         Connection conn = getConnection("readonly");
         conn.close();

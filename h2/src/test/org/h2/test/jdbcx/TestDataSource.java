@@ -21,6 +21,7 @@ import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.jdbcx.JdbcDataSourceFactory;
+import org.h2.jdbcx.JdbcXAConnection;
 import org.h2.test.TestBase;
 
 /**
@@ -96,10 +97,19 @@ public class TestDataSource extends TestBase {
     private void testXAConnection() throws Exception {
         deleteDb("dataSource");
         JdbcDataSource ds = new JdbcDataSource();
-        ds.setURL(getURL("dataSource", true));
-        ds.setUser(getUser());
+        String url = getURL("dataSource", true);
+        String user = getUser();
+        ds.setURL(url);
+        ds.setUser(user);
         ds.setPassword(getPassword());
+
+        assertEquals("ds" + ds.getTraceId() + ": url=" + url + " user=" + user, ds.toString());
+
         XAConnection xaConn = ds.getXAConnection();
+
+        int traceId = ((JdbcXAConnection) xaConn).getTraceId();
+        assertEquals("xads" + traceId + ": url=" + url + " user=" + user, xaConn.toString());
+
         xaConn.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
                 // nothing to do

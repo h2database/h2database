@@ -5,6 +5,14 @@
  * Initial Developer: H2 Group
  */
 
+-- TO_DATE
+create alias TO_DATE as $$
+java.util.Date toDate(String s) throws Exception { 
+    return new java.text.SimpleDateFormat("yyyy.MM.dd").parse(s); 
+}
+$$;
+call TO_DATE('1990.02.03')
+
 -- update all rows in all tables
 select 'update ' || table_schema || '.' || table_name || ' set ' || column_name || '=' || column_name || ';'
 from information_schema.columns where ORDINAL_POSITION = 1 and table_schema <> 'INFORMATION_SCHEMA';

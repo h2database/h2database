@@ -34,7 +34,6 @@ public class TestFullText extends TestBase {
 
     public void test() throws Exception {
         testTransaction(false);
-        testTransaction(true);
         testCreateDrop();
         if (config.memory) {
             return;
@@ -48,6 +47,7 @@ public class TestFullText extends TestBase {
         String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
         try {
             Class.forName(luceneFullTextClassName);
+            testTransaction(true);
             test(true, "VARCHAR");
             test(true, "CLOB");
             testPerformance(true);

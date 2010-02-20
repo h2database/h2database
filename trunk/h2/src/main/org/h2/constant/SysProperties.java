@@ -531,10 +531,12 @@ public class SysProperties {
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
 
     /**
-     * System property <code>h2.webMaxValueLength</code> (default: 10000).<br />
+     * System property <code>h2.webMaxValueLength</code> (default: 100000).<br />
      * The H2 Console will abbreviate (truncate) result values larger than this size.
+     * The data in the database is not truncated, it is only to avoid out of memory
+     * in the H2 Console application.
      */
-    public static final int WEB_MAX_VALUE_LENGTH = getIntSetting("h2.webMaxValueLength", 10000);
+    public static final int WEB_MAX_VALUE_LENGTH = getIntSetting("h2.webMaxValueLength", 100000);
 
     private static final String H2_BASE_DIR = "h2.baseDir";
 

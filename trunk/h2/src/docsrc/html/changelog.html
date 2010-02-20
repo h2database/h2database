@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Creating a database was delayed about 2 seconds if the directory didn't exist.
+<ul><li>Large transactions could run out of heap space. Fixed.
+</li><li>The default setting for the system property h2.webMaxValueLength is now 100000 (it was 10000 before).
+</li><li>Creating a database was delayed about 2 seconds if the directory didn't exist.
 </li></ul>
 
 <h2>Version 1.2.129 (2010-02-19)</h2>
@@ -28,6 +30,9 @@ Change Log
 </li><li>MVCC: creating a table with an incorrect constraint could cause strange errors.
 </li><li>Hash indexes now are only used for single column indexes.
 </li><li>The cache types WEAK_* and TQ are no longer supported.
+    A weak reference cache never frees up memory so it's the same as
+    having a very large cache size. The TQ cache was not included in the
+    jar file since a longer time, and was not tested.
 </li><li>The file system abstraction no longer throws SQL exceptions.
 </li><li>DatabaseEventListener.diskSpaceIsLow has changed.
 </li><li>The CompressTool no longer throw as SQL exceptions. Instead, it throws runtime exceptions.
@@ -52,7 +57,10 @@ Change Log
 </li><li>The following system properties are no longer supported:
     h2.overflowExceptions, h2.optimizeDropDependencies, h2.optimizeGroupSorted,
     h2.optimizeMinMax, h2.optimizeNot, h2.optimizeIn, h2.optimizeInJoin, h2.reuseSpace*.
-</li><li>The setting LOG has currently no effect.
+    Most of then were there fore a long time, but always with the same value. 
+    There was no unit test with the other value. So changing them was potentially dangerous 
+    (not a lot, but still).
+</li><li>The setting LOG has currently no effect (it only had an effect when the page store was disabled).
 </li><li>Disabling the page store is no longer supported. The old storage mechanism
     has been removed, shrinking the jar file size by almost 10%.
 </li><li>The translated resources are now stored in UTF-8 format.

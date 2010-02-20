@@ -191,16 +191,6 @@ public abstract class TestBase {
         return getPassword("123");
     }
 
-    private void deleteIndexFiles(String name) {
-        if (name.indexOf(";") > 0) {
-            name = name.substring(0, name.indexOf(';'));
-        }
-        name += ".index.db";
-        if (new File(name).canWrite()) {
-            new File(name).delete();
-        }
-    }
-
     /**
      * Get the database URL for the given database name using the current
      * configuration options.
@@ -219,9 +209,6 @@ public abstract class TestBase {
         } else {
             if (!name.startsWith("memFS:") && !name.startsWith(baseDir + "/")) {
                 name = baseDir + "/" + name;
-            }
-            if (config.deleteIndex) {
-                deleteIndexFiles(name);
             }
         }
         if (config.networked) {

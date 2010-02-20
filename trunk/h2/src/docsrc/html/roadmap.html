@@ -272,6 +272,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Javadoc: document design patterns used
 </li><li>Write an article about SQLInjection (h2/src/docsrc/html/images/SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
+</li><li>Support OUT parameters in user-defined procedures.
 </li><li>Improve LOB in directories performance
 </li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 </li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;
@@ -307,7 +308,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console: support CLOB/BLOB download using a link.
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
-</li><li>Support OUT parameters in user-defined procedures.
 </li><li>Support getGeneratedKeys to return multiple rows when used with batch updates.
     This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys.
     Also support it when using INSERT ... SELECT.
@@ -482,6 +482,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Logback: write a native DBAppender.
 </li><li>Cache size: don't use more cache than what is available.
 </li><li>Use the Java service provider mechanism to register file systems and function libraries.
+</li><li>Tree index: Instead of an AVL tree, use a general balanced trees or a scapegoat tree.
 </li></ul>
 
 <h2>Not Planned</h2>

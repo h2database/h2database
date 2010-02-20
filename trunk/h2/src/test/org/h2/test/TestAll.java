@@ -184,11 +184,6 @@ java org.h2.test.TestAll timer
     public boolean memory;
 
     /**
-     * If index files should be deleted before re-opening the database.
-     */
-    public boolean deleteIndex;
-
-    /**
      * If code coverage is enabled.
      */
     public boolean codeCoverage;
@@ -292,29 +287,16 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-test recovery of large pages and transaction log
-test recovery with 'trace' mode (many secondary indexes, small data rows)
-improve Row.getMemorySize
-maybe remove ValueHashMap
+
+power failure test: larger binaries and additional index.
+
 rename Page* classes
 move classes to the right packages
-instead of AVL trees, use general balanced trees
-test Row.getMemorySize
-
-review package and class level javadocs
-TestAll deleteIndex
-
-power failure test: larger binaries and additional indexes
-(with many columns).
-
-outer join bug
 
 // System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64
-test if compact always works as expected
 
-google app engine
-
+documentation: review package and class level javadocs
 documentation: rolling review at jaqu.html
 
 -------------
@@ -382,14 +364,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             } else {
                 cipher = "AES";
             }
-            for (int a = 0; a < 128; a++) {
+            for (int a = 0; a < 64; a++) {
                 smallLog = (a & 1) != 0;
                 big = (a & 2) != 0;
                 networked = (a & 4) != 0;
                 memory = (a & 8) != 0;
                 ssl = (a & 16) != 0;
                 diskResult = (a & 32) != 0;
-                deleteIndex = (a & 64) != 0;
                 for (int trace = 0; trace < 3; trace++) {
                     traceLevelFile = trace;
                     test();
@@ -404,7 +385,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     private void runTests() throws SQLException {
         jdk14 = true;
         smallLog = big = networked = memory = ssl = false;
-        diskResult = deleteIndex = traceSystemOut = diskUndo = false;
+        diskResult = traceSystemOut = diskUndo = false;
         mvcc = traceTest = stopOnError = false;
         traceLevelFile = throttle = 0;
         cipher = null;
@@ -421,7 +402,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         diskUndo = true;
         diskResult = true;
-        deleteIndex = true;
         traceLevelFile = 3;
         throttle = 1;
         cacheType = "SOFT_LRU";
@@ -430,7 +410,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         diskUndo = false;
         diskResult = false;
-        deleteIndex = false;
         traceLevelFile = 1;
         throttle = 0;
         cacheType = null;
@@ -693,7 +672,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, throttle > 0, "throttle:" + throttle);
         appendIf(buff, traceTest, "traceTest");
         appendIf(buff, stopOnError, "stopOnError");
-        appendIf(buff, deleteIndex, "deleteIndex");
         return buff.toString();
     }
 

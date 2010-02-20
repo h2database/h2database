@@ -38,6 +38,7 @@ import org.h2.util.New;
  */
 public class TestRecover {
 
+    private static final int MAX_STRING_LENGTH = 10000;
     private static final String NODE = System.getProperty("test.node", "");
     private static final String DIR = System.getProperty("test.dir", "/temp/db");
 
@@ -185,7 +186,8 @@ public class TestRecover {
         Connection conn = DriverManager.getConnection(URL, "sa", "sa");
         Statement stat = conn.createStatement();
         try {
-            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, D INT, NAME VARCHAR("+MAX_STRING_LENGTH+"))");
+            stat.execute("CREATE INDEX IDX_TEST_D ON TEST(D)");
         } catch (SQLException e) {
             // ignore
         }
@@ -231,8 +233,8 @@ public class TestRecover {
                 // make the length odd
                 len++;
             }
-//            byte[] data = new byte[len];
-//            random.nextBytes(data);
+            // byte[] data = new byte[len];
+            // random.nextBytes(data);
             int op = random.nextInt();
             if (op % 1000000 == 0) {
                 closeConnection(conn);
@@ -243,10 +245,32 @@ public class TestRecover {
             }
             if (random.nextBoolean()) {
                 if (prepInsert == null) {
-                    prepInsert = conn.prepareStatement("INSERT INTO TEST(ID, NAME) VALUES(?, ?)");
+                    prepInsert = conn.prepareStatement("INSERT INTO TEST(ID, D, NAME) VALUES(?, ?, ?)");
                 }
                 prepInsert.setInt(1, id);
-                prepInsert.setString(2, "" + len);
+                prepInsert.setInt(2, random.nextInt(10000));
+                StringBuilder buff = new StringBuilder();
+                buff.append(len);
+                switch (random.nextInt(10)) {
+                case 0:
+                    len = random.nextInt(MAX_STRING_LENGTH);
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                    len = random.nextInt(MAX_STRING_LENGTH / 20);
+                    break;
+                default:
+                    len = 0;
+                }
+                len -= 10;
+                while (len > 0) {
+                    buff.append('-');
+                    len--;
+                }
+                buff.append("->");
+                String s = buff.toString();
+                prepInsert.setString(3, s);
                 prepInsert.execute();
             } else {
                 ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
@@ -283,22 +307,9 @@ public class TestRecover {
         Connection conn = null;
         try {
             conn = openConnection();
-            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
-            int max = 0;
-            int count = 0;
-            while (rs.next()) {
-                count++;
-                int id = rs.getInt("ID");
-                String name = rs.getString("NAME");
-                int value = Integer.parseInt(name);
-                if (value % 2 != 0) {
-                    throw new Exception("unexpected odd entry " + id + " value " + value);
-                }
-                max = Math.max(max, id);
-            }
-            rs.close();
+            test(conn, "");
+            test(conn, "ORDER BY D");
             closeConnection(conn);
-            System.out.println("max row id: " + max + " rows: " + count);
             return true;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -317,6 +328,32 @@ public class TestRecover {
             p.close();
             IOUtils.closeSilently(out);
         }
+    }
+
+    private void test(Connection conn, String order) throws Exception {
+        ResultSet rs;
+        rs = conn.createStatement().executeQuery("SELECT * FROM TEST " + order);
+        int max = 0;
+        int count = 0;
+        while (rs.next()) {
+            count++;
+            int id = rs.getInt("ID");
+            String name = rs.getString("NAME");
+            if (!name.endsWith(">")) {
+                throw new Exception("unexpected entry " + id + " value " + name);
+            }
+            int idx = name.indexOf('-');
+            if (idx < 0) {
+                throw new Exception("unexpected entry " + id + " value " + name);
+            }
+            int value = Integer.parseInt(name.substring(0, idx));
+            if (value % 2 != 0) {
+                throw new Exception("unexpected odd entry " + id + " value " + value);
+            }
+            max = Math.max(max, id);
+        }
+        rs.close();
+        System.out.println("max row id: " + max + " rows: " + count);
     }
 
 }

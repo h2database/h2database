@@ -450,18 +450,19 @@ public class Session extends SessionWithState implements SessionFactory {
             database.commit(this);
         }
         if (undoLog.size() > 0) {
-            // commit the rows, even when not using MVCC
-            // see also TableData.addRow
-            ArrayList<Row> rows = New.arrayList();
-            synchronized (database) {
-                while (undoLog.size() > 0) {
-                    UndoLogRecord entry = undoLog.getLast();
-                    entry.commit();
-                    rows.add(entry.getRow());
-                    undoLog.removeLast(false);
-                }
-                for (Row r : rows) {
-                    r.commit();
+            // commit the rows when using MVCC
+            if (database.isMultiVersion()) {
+                ArrayList<Row> rows = New.arrayList();
+                synchronized (database) {
+                    while (undoLog.size() > 0) {
+                        UndoLogRecord entry = undoLog.getLast();
+                        entry.commit();
+                        rows.add(entry.getRow());
+                        undoLog.removeLast(false);
+                    }
+                    for (Row r : rows) {
+                        r.commit();
+                    }
                 }
             }
             undoLog.clear();

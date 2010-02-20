@@ -25,7 +25,11 @@ public class Row implements SearchRow {
 
     public Row(Value[] data, int memory) {
         this.data = data;
-        this.memory = memory;
+        if (memory != MEMORY_CALCULATE) {
+            this.memory = 16 + memory * 4;
+        } else {
+            this.memory = MEMORY_CALCULATE;
+        }
     }
 
     public void setKeyAndVersion(SearchRow row) {
@@ -81,7 +85,7 @@ public class Row implements SearchRow {
 
     public int getMemorySize() {
         if (memory != MEMORY_CALCULATE) {
-            return 16 + memory * 4;
+            return memory;
         }
         int m = 8;
         for (int i = 0; data != null && i < data.length; i++) {

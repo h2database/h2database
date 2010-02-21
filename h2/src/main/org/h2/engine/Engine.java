@@ -6,6 +6,8 @@
  */
 package org.h2.engine;
 
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -117,17 +119,43 @@ public class Engine {
                     throw DbException.convert(e);
                 }
             }
+
+            String init = ci.removeProperty("INIT", null);
+
             Session session = openSession(ci);
             validateUserAndPassword(true);
             if (backup != null) {
                 session.setConnectionInfo(backup);
             }
+
+            if (init != null) {
+                runInitScripts(session, init);
+            }
+
             return session;
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.WRONG_USER_OR_PASSWORD) {
                 validateUserAndPassword(false);
             }
             throw e;
+        }
+    }
+
+    private void runInitScripts(Session session, String init) throws DbException {
+        Statement stat = null;
+        try {
+            stat = session.createConnection(false).createStatement();
+            stat.execute(init);
+        } catch (SQLException e) {
+            throw DbException.convert(e);
+        } finally {
+            if (stat != null) {
+                try {
+                    stat.close();
+                } catch (SQLException e) {
+                    throw DbException.convert(e); 
+                }
+            }
         }
     }
 

@@ -1061,8 +1061,9 @@ public class PageStore implements CacheWriter {
                 openIndex.truncate(systemSession);
                 openIndex.remove(systemSession);
                 removeMetaIndex(openIndex, systemSession);
+            } else {
+                openIndex.close(systemSession);
             }
-            openIndex.close(systemSession);
         }
         allocatePage(PAGE_ID_META_ROOT);
         writeIndexRowCounts();
@@ -1583,6 +1584,22 @@ public class PageStore implements CacheWriter {
      */
     public int getChangeCount() {
         return changeCount;
+    }
+
+    int getLogFirstTrunkPage() {
+        return logFirstTrunkPage;
+    }
+
+    int getLogKey() {
+        return logKey;
+    }
+
+    public PageLog getLog() {
+        return log;
+    }
+
+    int getLogFirstDataPage() {
+        return logFirstDataPage;
     }
 
 }

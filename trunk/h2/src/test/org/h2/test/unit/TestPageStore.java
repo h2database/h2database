@@ -35,6 +35,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testDropAll();
         testCloseTempTable();
         testDuplicateKey();
         testUpdateOverflow();
@@ -54,6 +55,22 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testDropAll() throws SQLException {
+        deleteDb("pageStore");
+        Connection conn;
+        String url = "pageStore";
+        conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TEMP TABLE A(A INT)");
+        stat.execute("CREATE TABLE B(A VARCHAR IDENTITY)");
+        stat.execute("CREATE TEMP TABLE C(A INT)");
+        conn.close();
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("DROP ALL OBJECTS");
+        conn.close();
     }
 
     private void testCloseTempTable() throws SQLException {

@@ -79,7 +79,7 @@ compounds compress compressed compresses compression compressor compsci compute
 computed computer computers computing con concat concatenate concatenated
 concatenates concatenation concentrate concept concerning concur concurrency
 concurrent concurrently cond condition conditions conf config configuration
-configure configured confirmed conflict conforming confusing confusingly cong
+configure configured confirm confirmed conflict conforming confusing confusingly cong
 conn connect connected connecting connection connections connects cons
 consecutive consequential considerations considered consistency consistent
 consisting console conspicuously const constant constants constitute constitutes
@@ -231,7 +231,7 @@ javascript javax javolution jcr jdbc jdbcx jdk jdo jee jefferson jetty jim jira
 jndi jnlp job joe joel joerg johann john johnson join joined joins jon jones jpa
 jpackage jpox jre jsessionid jsmooth json jsp jsr jsse jts judgment judicial
 julia jun june jurisdiction jurisdictions just jvm kappa karin keep keeps kept
-kerberos kernel kernelpanic key keyalg keying keypass keys keystore keystores
+kerberos kernel kernelpanic kerry key keyalg keying keypass keys keystore keystores
 keytool keyword keywords kill killed killing kills kind kindergarden kinds kit
 know knowledge known knows koi konqueror label labeled labels lack lambda lamp
 land lang language languages laptop laquo large larger largest larr last
@@ -302,7 +302,7 @@ ownership oymaurice pack package packages packaging packets pad padded padding
 page pages pair pairs pal panel panels paolo papa paper para paradox paragraph
 paragraphs param parameter parameterized parameters params paren parent
 parentheses parentid parse parsed parsedatetime parser parses parsing part
-partial partially participant particular parties partition partnership parts
+partial partially participant particular particularly parties partition partnership parts
 party pass passed passes passing passive password passwords past paste pasv patch
 patent patents path paths pattern patterns paul pause paused pay payment pdf
 peace peek pencil pending people per percent perform performance performed
@@ -313,7 +313,7 @@ philip phone php phrase phrases physical pid pieces pier pilot ping pinned pipe
 piv pivot pkcolumn pkcs pktable place placeholders plain plaintext plan planned
 plans plant platform platforms play player please pluggable plugin plus plusmn
 pmd png point pointer pointers pointing points polar pole poleposition poll
-polling polski pool poolable pooled pooling pop populated population popup port
+polling polski pool poolable pooled pooling pop populate populated population popup port
 portability portable portal portals ported porting portions portlet ports
 portugal portugu portuguese pos position positioned positions positive
 possibility possible possibly post postal postgre postgres postgresql postmaster
@@ -371,7 +371,7 @@ rmiregistry rnd rnfr rnto road roadmap role roles roll rollback rolled rolling
 rolls roman ronni room root roots rot round rounded rounding roundmagic rounds
 routine row rowcount rowid rownum rows rowsize royalty rpad rpm rsa rsaquo rsquo
 rss rtrim ruby rubyforge ruebezahl rule rules run rund rundll runnable running
-runs runscript runtime russian rwd rws sabine safari safe safely said salary sale
+runs runscript runtime russian rwd rws sabine safari safe safely said sainsbury salary sale
 sales salt salz sam same samp sample samples sans sat sata save saved savepoint
 savepoints saves saving say saying says sbquo scala scalar scale scan scanned
 scanner scanners scanning scans scheduler schem schema schemas schemata schmorp

@@ -517,6 +517,13 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     </td>
 </tr>
 <tr>
+    <td><a href="#execute_sql_on_connection">Execute SQL on connection</a></td>
+    <td class="notranslate">
+        jdbc:h2:&lt;url&gt;;INIT=RUNSCRIPT FROM '~/create.sql'<br />
+        jdbc:h2:file:~/sample;INIT=RUNSCRIPT FROM '~/create.sql'\\;RUNSCRIPT FROM '~/populate.sql'<br />
+    </td>
+</tr>
+<tr>
     <td><a href="#passwords">User name and/or password</a></td>
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
@@ -748,6 +755,18 @@ The database URL to disable database closing on exit is:
 <pre>
 String url = "jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE";
 </pre>
+
+<h2 id="execute_sql_on_connection">Execute SQL on Connection</h2>
+<p>
+Sometimes, particularly for in-memory databases, it is useful to be able to execute DDL or DML
+commands automatically when a client connects to a database. This functionality is enabled via
+the INIT property. Note that multiple commands may be passed to INIT, but the semicolon delimiter
+must be escaped, as in the example below.
+</p>
+<pre>
+String url = "jdbc:h2:mem;INIT=RUNSCRIPT FROM '~/create.sql'\\;RUNSCRIPT FROM '~/populate.sql'";
+</pre>
+
 
 <h2 id="ignore_unknown_settings">Ignore Unknown Settings</h2>
 <p>

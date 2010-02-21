@@ -85,7 +85,11 @@ public class BnfRandom implements BnfVisitor {
 
     public void visitRuleElement(boolean keyword, String name, Rule link) {
         if (keyword) {
-            sql = name.length() > 1 ? " " + name + " " : name;
+            if (name.startsWith(";")) {
+                sql = "";
+            } else {
+                sql = name.length() > 1 ? " " + name + " " : name;
+            }
         } else if (link != null) {
             level++;
             link.accept(this);

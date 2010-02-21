@@ -21,7 +21,6 @@ import org.h2.util.MathUtils;
  */
 public class TestRandomSQL extends TestBase {
 
-    private int dbId;
     private int seed;
     private boolean exitOnError = true;
     private BnfRandom bnfRandom;
@@ -46,40 +45,11 @@ public class TestRandomSQL extends TestBase {
     }
 
     private String getDatabaseName() {
-        if (config.big) {
-            return "dataRandomSQL/randomSql" + dbId;
-        }
-        return "memFS:/randomSql" + dbId;
-        // return "dataRandomSQL/randomSql" + dbId+";TRACE_LEVEL_FILE=3";
+        return "dataRandomSQL/randomSql" + seed;
     }
 
     private Connection connect() throws SQLException {
-        while (true) {
-            try {
-                return getConnection(getDatabaseName());
-            } catch (SQLException e) {
-                dbId--;
-                try {
-                    deleteDb();
-                } catch (Exception e2) {
-                    // ignore
-                }
-                dbId++;
-                try {
-                    deleteDb();
-                } catch (Exception e2) {
-                    // ignore
-                }
-                dbId++;
-                try {
-                    deleteDb();
-                } catch (SQLException e2) {
-                    dbId++;
-                    deleteDb();
-                }
-            }
-        }
-
+        return getConnection(getDatabaseName());
     }
 
     private void deleteDb() throws SQLException {
@@ -87,18 +57,16 @@ public class TestRandomSQL extends TestBase {
         if (name.startsWith(FileSystemMemory.PREFIX)) {
             DeleteDbFiles.execute("memFS:/", name, true);
         } else {
-            DeleteDbFiles.execute(baseDir, name, true);
+            DeleteDbFiles.execute(baseDir + "/dataRandomSQL", null, true);
         }
     }
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        bnfRandom = new BnfRandom();
         return this;
     }
 
-    private void testWithSeed() throws SQLException {
-        bnfRandom.setSeed(seed);
+    private void testWithSeed() throws Exception {
         Connection conn = null;
         try {
             conn = connect();
@@ -108,6 +76,8 @@ public class TestRandomSQL extends TestBase {
         }
         Statement stat = conn.createStatement();
 
+        bnfRandom = new BnfRandom();
+        bnfRandom.setSeed(seed);
         for (int i = 0; i < bnfRandom.getStatementCount(); i++) {
             String sql = bnfRandom.getRandomSQL();
             if (sql != null) {
@@ -126,34 +96,29 @@ public class TestRandomSQL extends TestBase {
         }
         try {
             conn.close();
+            conn = connect();
+            conn.createStatement().execute("shutdown immediately");
+            conn.close();
         } catch (SQLException e) {
             processException("conn.close", e);
         }
     }
 
-    public void testCase(int i) throws SQLException {
+    public void testCase(int i) throws Exception {
         String old = SysProperties.getScriptDirectory();
         try {
             System.setProperty(SysProperties.H2_SCRIPT_DIRECTORY, "dataScript/");
             seed = i;
             printTime("seed: " + seed);
-            try {
-                deleteDb();
-            } catch (SQLException e) {
-                processException("deleteDb", e);
-            }
+            deleteDb();
             testWithSeed();
         } finally {
             System.setProperty(SysProperties.H2_SCRIPT_DIRECTORY, old);
         }
-        try {
-            deleteDb();
-        } catch (SQLException e) {
-            processException("deleteDb", e);
-        }
+        deleteDb();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
         if (config.networked) {
             return;
         }

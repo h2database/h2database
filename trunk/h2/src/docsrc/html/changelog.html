@@ -23,7 +23,7 @@ Change Log
 </li><li>Creating a database was delayed about 2 seconds if the directory didn't exist.
 </li><li>Implemented INIT feature. If the database URL contains ";INIT=...;" then the DDL or DML commands
     following are executed on startup. Example URL: jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '~/create.sql'
-    (patch from Kerry Sainsbury)
+    (patch from Kerry Sainsbury).
 </li></ul>
 
 <h2>Version 1.2.129 (2010-02-19)</h2>
@@ -60,8 +60,8 @@ Change Log
 </li><li>The following system properties are no longer supported:
     h2.overflowExceptions, h2.optimizeDropDependencies, h2.optimizeGroupSorted,
     h2.optimizeMinMax, h2.optimizeNot, h2.optimizeIn, h2.optimizeInJoin, h2.reuseSpace*.
-    Most of then were there fore a long time, but always with the same value. 
-    There was no unit test with the other value. So changing them was potentially dangerous 
+    Most of then were there for a long time, but always with the same value.
+    There was no unit test with the other value. So changing them was potentially dangerous
     (not a lot, but still).
 </li><li>The setting LOG has currently no effect (it only had an effect when the page store was disabled).
 </li><li>Disabling the page store is no longer supported. The old storage mechanism

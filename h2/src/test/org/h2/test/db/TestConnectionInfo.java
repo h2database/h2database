@@ -12,10 +12,17 @@ import org.h2.engine.ConnectionInfo;
 import java.util.Properties;
 
 /**
+ * Test the ConnectionInfo class.
+ *
+ * @author Kerry Sainsbury
  */
 public class TestConnectionInfo extends TestBase {
 
-
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
     }
@@ -26,7 +33,7 @@ public class TestConnectionInfo extends TestBase {
                 "jdbc:h2:mem:testdb" +
                         ";LOG=2" +
                         ";ACCESS_MODE_DATA=rws" +
-                        ";INIT=INSERT this...\\;UPDATE that..." +
+                        ";INIT=CREATE this...\\;INSERT that..." +
                         ";IFEXISTS=TRUE",
                 info);
 
@@ -34,8 +41,9 @@ public class TestConnectionInfo extends TestBase {
 
         assertEquals("2", connectionInfo.getProperty("LOG", ""));
         assertEquals("rws", connectionInfo.getProperty("ACCESS_MODE_DATA", ""));
-        assertEquals("INSERT this...;UPDATE that...", connectionInfo.getProperty("INIT", ""));
+        assertEquals("CREATE this...;INSERT that...", connectionInfo.getProperty("INIT", ""));
         assertEquals("TRUE", connectionInfo.getProperty("IFEXISTS", ""));
         assertEquals("undefined", connectionInfo.getProperty("CACHE_TYPE", "undefined"));
     }
+
 }

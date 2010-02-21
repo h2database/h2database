@@ -6,12 +6,13 @@
  */
 package org.h2.test.server;
 
-import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
-
-import java.sql.*;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Tests INIT command within embedded/server mode.
@@ -30,6 +31,7 @@ public class TestInit extends TestBase {
     public void test() throws Exception {
 
         // Create two scripts that we will run via "INIT"
+        IOUtils.createDirs(baseDir + "/test-init-1.sql");
         FileWriter fw = new FileWriter(baseDir + "/test-init-1.sql");
 
         PrintWriter writer = new PrintWriter(fw);
@@ -67,6 +69,6 @@ public class TestInit extends TestBase {
 
         IOUtils.delete(baseDir + "/test-init-1.sql");
         IOUtils.delete(baseDir + "/test-init-2.sql");
-
     }
+
 }

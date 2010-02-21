@@ -6,8 +6,6 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -119,19 +117,11 @@ public class Engine {
                     throw DbException.convert(e);
                 }
             }
-
-            String init = ci.removeProperty("INIT", null);
-
             Session session = openSession(ci);
             validateUserAndPassword(true);
             if (backup != null) {
                 session.setConnectionInfo(backup);
             }
-
-            if (init != null) {
-                runInitScripts(session, init);
-            }
-
             return session;
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.WRONG_USER_OR_PASSWORD) {
@@ -141,28 +131,11 @@ public class Engine {
         }
     }
 
-    private void runInitScripts(Session session, String init) throws DbException {
-        Statement stat = null;
-        try {
-            stat = session.createConnection(false).createStatement();
-            stat.execute(init);
-        } catch (SQLException e) {
-            throw DbException.convert(e);
-        } finally {
-            if (stat != null) {
-                try {
-                    stat.close();
-                } catch (SQLException e) {
-                    throw DbException.convert(e); 
-                }
-            }
-        }
-    }
-
     private synchronized Session openSession(ConnectionInfo ci) {
         boolean ifExists = ci.removeProperty("IFEXISTS", false);
         boolean ignoreUnknownSetting = ci.removeProperty("IGNORE_UNKNOWN_SETTINGS", false);
         String cipher = ci.removeProperty("CIPHER", null);
+        String init = ci.removeProperty("INIT", null);
         Session session;
         while (true) {
             session = openSession(ci, ifExists, cipher);
@@ -183,6 +156,17 @@ public class Engine {
             try {
                 CommandInterface command = session.prepareCommand("SET " + Parser.quoteIdentifier(setting) + " "
                         + value, Integer.MAX_VALUE);
+                command.executeUpdate();
+            } catch (DbException e) {
+                if (!ignoreUnknownSetting) {
+                    session.close();
+                    throw e;
+                }
+            }
+        }
+        if (init != null) {
+            try {
+                CommandInterface command = session.prepareCommand(init, Integer.MAX_VALUE);
                 command.executeUpdate();
             } catch (DbException e) {
                 if (!ignoreUnknownSetting) {

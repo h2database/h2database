@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Large transactions could run out of heap space. Fixed.
+<ul><li>When using temporary table, the database didn't shrink sometimes when closing.
+</li><li>Large transactions could run out of heap space. Fixed.
 </li><li>The default setting for the system property h2.webMaxValueLength is now 100000 (it was 10000 before).
 </li><li>Creating a database was delayed about 2 seconds if the directory didn't exist.
 </li><li>Implemented INIT feature. If the database URL contains ";INIT=...;" then the DDL or DML commands

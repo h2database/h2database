@@ -22,163 +22,154 @@ Of course, patches are always welcome, but are not always applied as is.
 See also <a href="build.html#providing_patches">Providing Patches</a>.
 </p>
 
-<h2>Version 1.2</h2>
-<ul><li>Enable the system property h2.optimizeInList by default.
-</li><li>Enable the system property h2.nullConcatIsNull by default.
-</li><li>Enable the system property h2.pageStore by default.
-</li></ul>
-
 <h2>Priority 1</h2>
-<ul>
-<li>Bugfixes
-</li><li>Issues 161, 157: Support large inserts and updates (use the transaction log for rollback).
-    Problems: Session.commit (rows), cache, undoLog.
+<ul><li>Bugfixes
+</li><li>Use the transaction log for rollback.
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Optimization: result set caching (like MySQL); option to disable
 </li><li>Server side cursors
 </li></ul>
 
 <h2>Priority 2</h2>
-<ul>
-<li>Improve test code coverage
+<ul><li>Improve test code coverage
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
-</li><li>Full outer joins
-</li><li>Support mixed clustering mode (one embedded, others in server mode)
+</li><li>Full outer joins.
+</li><li>Support mixed clustering mode (one embedded, others in server mode).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
-</li><li>Test very large databases and LOBs (up to 256 GB)
+</li><li>Test very large databases and LOBs (up to 256 GB).
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
-</li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
+</li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file).
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
-</li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3)
-</li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
-</li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
-</li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
-</li><li>Add a migration guide (list differences between databases)
-</li><li>Migrate database tool (also from other database engines)
+</li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
+</li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
+</li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
+</li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
+</li><li>Add a migration guide (list differences between databases).
+</li><li>Migrate database tool (also from other database engines).
 </li><li>Automatic collection of statistics (auto ANALYZE; AUTOVACUUM). See http://www.postgresql.org/docs/current/static/routine-vacuuming.html#AUTOVACUUM
 </li><li>Optimization: automatic index creation suggestion using the trace file?
-</li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
-</li><li>Rebuild index functionality to shrink index size and improve performance
-</li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
-</li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
+</li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer.
+</li><li>Rebuild index functionality to shrink index size and improve performance.
+</li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
+</li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA).
 </li><li>Support nested outer joins (see todo.txt).
-</li><li>Test performance again with SQL Server, Oracle, DB2
-</li><li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
-</li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
-</li><li>Test with Spatial DB in a box / JTS: http://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification
-</li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
-</li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after
-</li><li>Implement, test, document XAConnection and so on
-</li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption)
-</li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
-</li><li>Index usage for (ID, NAME)=(1, 'Hi'); document
-</li><li>Make DDL (Data Definition) operations transactional
-</li><li>RANK() and DENSE_RANK(), Partition using OVER()
-</li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter
+</li><li>Test performance again with SQL Server, Oracle, DB2.
+</li><li>Test with dbmonster: http://dbmonster.kernelpanic.pl
+</li><li>Test with dbcopy: http://dbcopyplugin.sourceforge.net
+</li><li>Test with Spatial DB in a box / JTS: http://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification.
+</li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control).
+</li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after.
+</li><li>Implement, test, document XAConnection and so on.
+</li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption).
+</li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2.
+</li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
+</li><li>Make DDL (Data Definition) operations transactional.
+</li><li>RANK() and DENSE_RANK(), Partition using OVER().
+</li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
 </li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
     ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
-</li><li>Access rights: finer grained access control (grant access for specific functions)
-</li><li>Suggestion: include Jetty as Servlet Container (like LAMP)
-</li><li>Trace shipping to server
-</li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
-</li><li>Web server classloader: override findResource / getResourceFrom
-</li><li>Cost for embedded temporary view is calculated wrong, if result is constant
-</li><li>Comparison: pluggable sort order: natural sort
-</li><li>Count index range query (count(*) where id between 10 and 20)
-</li><li>Performance: update in-place
-</li><li>Recursive Queries (see details)
-</li><li>Eclipse plugin
-</li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
+</li><li>Access rights: finer grained access control (grant access for specific functions).
+</li><li>Suggestion: include Jetty as Servlet Container (like LAMP).
+</li><li>Trace shipping to server.
+</li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
+</li><li>Web server classloader: override findResource / getResourceFrom.
+</li><li>Cost for embedded temporary view is calculated wrong, if result is constant.
+</li><li>Comparison: pluggable sort order: natural sort.
+</li><li>Count index range query (count(*) where id between 10 and 20).
+</li><li>Performance: update in-place.
+</li><li>Recursive Queries (see details).
+</li><li>Eclipse plugin.
+</li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait].
 </li><li>Fulltext search Lucene: analyzer configuration.
 </li><li>Fulltext search (native): reader / tokenizer / filter.
-</li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
-</li><li>iReport to support H2
-</li><li>Implement missing JDBC API (CallableStatement,...)
-</li><li>Compression of the cache
-</li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
-</li><li>Drop with restrict (currently cascade is the default)
-</li><li>JSON parser and functions
-</li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
-</li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare)
+</li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files.
+</li><li>iReport to support H2.
+</li><li>Implement missing JDBC API (CallableStatement,...).
+</li><li>Compression of the cache.
+</li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...).
+</li><li>Drop with restrict (currently cascade is the default).
+</li><li>JSON parser and functions.
+</li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?).
+</li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare).
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements.
-</li><li>Support SET TABLE DUAL READONLY
+</li><li>Support SET TABLE DUAL READONLY.
 </li><li>GCJ: what is the state now?
-</li><li>Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
-</li><li>Optimization: log compression
-</li><li>ROW_NUMBER() OVER([ORDER BY columnName])
-</li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
-</li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero
-</li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R)
-</li><li>Custom class loader to reload functions on demand
+</li><li>Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server. See http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html
+</li><li>Optimization: log compression.
+</li><li>ROW_NUMBER() OVER([ORDER BY columnName]).
+</li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt - specially KEY_COLUMN_USAGE: http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif
+</li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero.
+</li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R).
+</li><li>Custom class loader to reload functions on demand.
 </li><li>Test http://mysql-je.sourceforge.net/
-</li><li>Close all files when closing the database (including LOB files that are open on the client side)
+</li><li>Close all files when closing the database (including LOB files that are open on the client side).
 </li><li>EXE file: maybe use http://jsmooth.sourceforge.net
-</li><li>Performance: automatically build in-memory indexes if the whole table is in memory
+</li><li>Performance: automatically build in-memory indexes if the whole table is in memory.
 </li><li>H2 Console: the webclient could support more features like phpMyAdmin.
-</li><li>Use Janino to convert Java to C++
-</li><li>The HELP information schema can be directly exposed in the Console
-</li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server
-</li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
+</li><li>Use Janino to convert Java to C++.
+</li><li>The HELP information schema can be directly exposed in the Console.
+</li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server.
+</li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html http://philip.greenspun.com/sql/trees.html
 </li><li>SQL Server 2005, Oracle: support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
-</li><li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
-</li><li>Version column (number/sequence and timestamp based)
+</li><li>SQL 2003: http://www.wiscorp.com/sql_2003_standard.zip
+</li><li>Version column (number/sequence and timestamp based).
 </li><li>Optimize getGeneratedKey: send last identity after each execute (server).
-</li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
-</li><li>Max memory rows / max undo log size: use block count / row size not row count
-</li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2)
-</li><li>Implement point-in-time recovery
-</li><li>LIKE: improved version for larger texts (currently using naive search)
+</li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID).
+</li><li>Max memory rows / max undo log size: use block count / row size not row count.
+</li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2).
+</li><li>Implement point-in-time recovery.
+</li><li>LIKE: improved version for larger texts (currently using naive search).
 </li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
-</li><li>Throw an exception when the application calls getInt on a Long (optional)
-</li><li>Default date format for input and output (local date constants)
-</li><li>Support custom Collators
-</li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
-</li><li>Clustering: when a database is back alive, automatically synchronize with the master
-</li><li>File system that writes to two file systems (replication, replicating file system)
+</li><li>Throw an exception when the application calls getInt on a Long (optional).
+</li><li>Default date format for input and output (local date constants).
+</li><li>Support custom Collators.
+</li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery).
+</li><li>Clustering: when a database is back alive, automatically synchronize with the master.
+</li><li>File system that writes to two file systems (replication, replicating file system).
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
-</li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle)
-</li><li>JAMon (proxy jdbc driver)
-</li><li>Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
-</li><li>Console: autocomplete Ctrl+Space inserts template
-</li><li>Option to encrypt .trace.db file
+</li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle).
+</li><li>JAMon (proxy jdbc driver).
+</li><li>Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?).
+</li><li>Console: autocomplete Ctrl+Space inserts template.
+</li><li>Option to encrypt .trace.db file.
 </li><li>Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
-</li><li>Functions with unknown return or parameter data types: serialize / deserialize
-</li><li>Test if idle TCP connections are closed, and how to disable that
-</li><li>Try using a factory for Row, Value[] (faster?), http://javolution.org/, alternative ObjectArray / IntArray
-</li><li>Auto-Update feature for database, .jar file
-</li><li>ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp
-</li><li>Partial indexing (see PostgreSQL)
-</li><li>Add GUI to build a custom version (embedded, fulltext,...) using build flags
+</li><li>Functions with unknown return or parameter data types: serialize / deserialize.
+</li><li>Test if idle TCP connections are closed, and how to disable that.
+</li><li>Try using a factory for Row, Value[] (faster?), http://javolution.org/ (alternative ObjectArray / IntArray).
+</li><li>Auto-Update feature for database, .jar file.
+</li><li>ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp.
+</li><li>Partial indexing (see PostgreSQL).
+</li><li>Add GUI to build a custom version (embedded, fulltext,...) using build flags.
 </li><li>http://rubyforge.org/projects/hypersonic/
-</li><li>Add comparator (x === y) : (x = y or (x is null and y is null))
-</li><li>Try to create trace file even for read only databases
-</li><li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app)
-</li><li>Count on a column that can not be null could be optimized to COUNT(*)
-</li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
-</li><li>Issue 159: System property for the H2 Console and TCP configuration (which .h2.server.properties and .h2.keystore to use)
-</li><li>Backup tool should work with other databases as well
-</li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
-</li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
+</li><li>Add comparator (x === y) : (x = y or (x is null and y is null)).
+</li><li>Try to create trace file even for read only databases.
+</li><li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app).
+</li><li>Count on a column that can not be null could be optimized to COUNT(*).
+</li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility).
+</li><li>Issue 159: System property for the H2 Console and TCP configuration (which .h2.server.properties and .h2.keystore to use).
+</li><li>Backup tool should work with other databases as well.
+</li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs.
+</li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess).
 </li><li>Java static code analysis: http://pmd.sourceforge.net/
 </li><li>Java static code analysis: http://www.eclipse.org/tptp/
-</li><li>Compatibility for CREATE SCHEMA AUTHORIZATION
-</li><li>Implement Clob / Blob truncate and the remaining functionality
-</li><li>Maybe close LOBs after closing connection
-</li><li>Tree join functionality
-</li><li>Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ..
-</li><li>Add H2 to Gem (Ruby install system)
-</li><li>API for functions / user tables
-</li><li>Order conditions inside AND / OR to optimize the performance
-</li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
+</li><li>Compatibility for CREATE SCHEMA AUTHORIZATION.
+</li><li>Implement Clob / Blob truncate and the remaining functionality.
+</li><li>Maybe close LOBs after closing connection.
+</li><li>Tree join functionality.
+</li><li>Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ...
+</li><li>Add H2 to Gem (Ruby install system).
+</li><li>API for functions / user tables.
+</li><li>Order conditions inside AND / OR to optimize the performance.
+</li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
 </li><li>Support linked JCR tables
 </li><li>Make sure H2 is supported by Execute Query: http://executequery.org/
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 </li><li>Native fulltext search: min word length; store word positions
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
-</li><li>Test Dezign for Databases (http://www.datanamic.com)
+</li><li>Test Dezign for Databases: http://www.datanamic.com
 </li><li>Fast library for parsing / formatting: http://javolution.org/
 </li><li>Updatable Views (simple cases first)
 </li><li>Improve create index performance
@@ -248,7 +239,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
 </li><li>Support data type INTERVAL
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
-</li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
+</li><li>Sequence: PostgreSQL compatibility (rename, create) http://www.postgresql.org/docs/8.2/static/sql-altersequence.html
 </li><li>DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
 </li><li>File system with a background writer thread; test if this is faster
 </li><li>Better document the source code
@@ -338,7 +329,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Auto-server: add option to define the IP address range or list.
 </li><li>Index creation using deterministic functions.
-</li><li>Use http://recaptcha.net somehow to secure the Google Group.
 </li><li>Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
 </li><li>ANALYZE: use a bloom filter for each indexed column to estimate count of distinct values.
 </li><li>ANALYZE: for unique indexes that allow null, count the number of null.

@@ -7,8 +7,8 @@
 
 -- TO_DATE
 create alias TO_DATE as $$
-java.util.Date toDate(String s) throws Exception { 
-    return new java.text.SimpleDateFormat("yyyy.MM.dd").parse(s); 
+java.util.Date toDate(String s) throws Exception {
+    return new java.text.SimpleDateFormat("yyyy.MM.dd").parse(s);
 }
 $$;
 call TO_DATE('1990.02.03')

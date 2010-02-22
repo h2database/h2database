@@ -24,7 +24,9 @@ public class PageInputStream extends InputStream {
     private PageStreamTrunk.Iterator trunkIterator;
     private int dataPage;
     private PageStreamTrunk trunk;
+    private int trunkIndex;
     private PageStreamData data;
+    private int dataPos;
     private boolean endOfFile;
     private int remaining;
     private byte[] buffer = new byte[1];
@@ -73,8 +75,9 @@ public class PageInputStream extends InputStream {
                 return -1;
             }
             int l = Math.min(remaining, len);
-            data.read(buff, off, l);
+            data.read(dataPos, buff, off, l);
             remaining -= l;
+            dataPos += l;
             return l;
         } catch (DbException e) {
             throw new EOFException();
@@ -89,15 +92,15 @@ public class PageInputStream extends InputStream {
         while (true) {
             if (trunk == null) {
                 trunk = trunkIterator.next();
+                trunkIndex = 0;
                 logKey++;
                 if (trunk == null || trunk.getLogKey() != logKey) {
                     endOfFile = true;
                     return;
                 }
-                trunk.resetIndex();
             }
             if (trunk != null) {
-                next = trunk.getNextPageData();
+                next = trunk.getPageData(trunkIndex++);
                 if (next == -1) {
                     trunk = null;
                 } else if (dataPage == -1 || dataPage == next) {
@@ -118,8 +121,8 @@ public class PageInputStream extends InputStream {
             endOfFile = true;
             return;
         }
-        data.initRead();
-        remaining = data.getRemaining();
+        dataPos = data.getReadStart();
+        remaining = store.getPageSize() - dataPos;
     }
 
     /**
@@ -141,9 +144,8 @@ public class PageInputStream extends InputStream {
                 break;
             }
             pages.set(t.getPos());
-            t.resetIndex();
-            while (true) {
-                int n = t.getNextPageData();
+            for (int i = 0;; i++) {
+                int n = t.getPageData(i);
                 if (n == -1) {
                     break;
                 }

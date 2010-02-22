@@ -118,12 +118,13 @@ public class PageStreamData extends Page {
     /**
      * Read the next bytes from the buffer.
      *
+     * @param startPos the position in the data page
      * @param buff the target buffer
      * @param off the offset in the target buffer
      * @param len the number of bytes to read
      */
-    void read(byte[] buff, int off, int len) {
-        data.read(buff, off, len);
+    void read(int startPos, byte[] buff, int off, int len) {
+        System.arraycopy(data.getBytes(), startPos, buff, off, len);
     }
 
     /**
@@ -144,14 +145,6 @@ public class PageStreamData extends Page {
         return store.getPageSize() >> 2;
     }
 
-    /**
-     * Reset the index.
-     */
-    void initRead() {
-        data.setPos(DATA_START);
-        remaining = store.getPageSize() - DATA_START;
-    }
-
     public void moveTo(Session session, int newPos) {
         // not required
     }
@@ -166,6 +159,10 @@ public class PageStreamData extends Page {
 
     public boolean canRemove() {
         return true;
+    }
+
+    public int getReadStart() {
+        return DATA_START;
     }
 
 }

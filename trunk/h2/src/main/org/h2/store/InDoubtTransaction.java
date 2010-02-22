@@ -55,7 +55,7 @@ public class InDoubtTransaction {
 
     /**
      * Change the state of this transaction.
-     * This will also update the log file.
+     * This will also update the transaction log.
      *
      * @param state the new state
      */

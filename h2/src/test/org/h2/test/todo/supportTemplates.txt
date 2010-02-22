@@ -52,6 +52,7 @@ This looks like a serious problem. I have a few questions:
 - Could you send the full stack trace of the exception including message text?
 - What is your database URL?
 - Did you use multiple connections?
+- Do you use temporary tables?
 - A workarounds is: use the tool org.h2.tools.Recover to create
     the SQL script file, and then re-create the database using this script.
     Does it work when you do this?
@@ -60,14 +61,13 @@ This looks like a serious problem. I have a few questions:
     select * from information_schema.settings where name='CREATE_BUILD'
     or have a look in the SQL script created by the recover tool.
 - Did the application run out of memory (once, or multiple times)?
-- Do you use any settings or special features (for example, the setting
-    LOG=0, or two phase commit, linked tables, cache settings)?
+- Do you use any settings or special features (for example cache settings,
+    two phase commit, linked tables)?
 - Do you use any H2-specific system properties?
 - Is the application multi-threaded?
 - What operating system, file system, and virtual machine
     (java -version) do you use?
 - How did you start the Java process (java -Xmx... and so on)?
-- To you use temporary tables?
 - Is it (or was it at some point) a networked file system?
 - How big is the database (file sizes)?
 - How much heap memory does the Java process have?

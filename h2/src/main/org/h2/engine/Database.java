@@ -992,7 +992,7 @@ public class Database implements DataHandler {
             for (Session s : all) {
                 try {
                     // must roll back, otherwise the session is removed and
-                    // the log file that contains its uncommitted operations as well
+                    // the transaction log that contains its uncommitted operations as well
                     s.rollback();
                     s.close();
                 } catch (DbException e) {
@@ -1671,7 +1671,7 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Flush all pending changes to the transaction log files.
+     * Flush all pending changes to the transaction log.
      */
     public void flush() {
         if (readOnly || pageStore == null) {
@@ -1844,15 +1844,6 @@ public class Database implements DataHandler {
 
     public void setLobCompressionAlgorithm(String stringValue) {
         this.lobCompressionAlgorithm = stringValue;
-    }
-
-    /**
-     * Called when the size if the data or index file has been changed.
-     *
-     * @param length the new file size
-     */
-    public void notifyFileSize(long length) {
-        // ignore
     }
 
     public synchronized void setMaxLogSize(long value) {
@@ -2130,7 +2121,7 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Flush all changes and open a new log file.
+     * Flush all changes and open a new transaction log.
      */
     public void checkpoint() {
         if (persistent) {
@@ -2142,7 +2133,7 @@ public class Database implements DataHandler {
     }
 
     /**
-     * This method is called before writing to the log file.
+     * This method is called before writing to the transaction log.
      *
      * @return true if the call was successful and writing is allowed,
      *          false if another connection was faster

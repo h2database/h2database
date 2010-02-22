@@ -262,11 +262,11 @@ Removes all rows from a table."
 "Commands (Other)","CHECKPOINT","
 CHECKPOINT
 ","
-Flushes the log and data files and switches to a new log file if possible."
+Flushes the data to disk and switches to a new transaction log if possible."
 "Commands (Other)","CHECKPOINT SYNC","
 CHECKPOINT SYNC
 ","
-Flushes the log, data and index files and forces all system buffers be written
+Flushes the data to disk and and forces all system buffers be written
 to the underlying device."
 "Commands (Other)","COMMIT","
 COMMIT [ WORK ]
@@ -385,7 +385,7 @@ Sets the maximum size of an in-place LOB object."
 "Commands (Other)","SET MAX_LOG_SIZE","
 SET MAX_LOG_SIZE int
 ","
-Sets the maximum file size of a log file, in megabytes."
+Sets the maximum size of the transaction log, in megabytes."
 "Commands (Other)","SET MAX_MEMORY_ROWS","
 SET MAX_MEMORY_ROWS int
 ","

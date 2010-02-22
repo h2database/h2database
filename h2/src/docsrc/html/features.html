@@ -790,10 +790,10 @@ connecting. For a list of supported settings, see <a href="grammar.html">SQL Gra
 
 <h2 id="custom_access_mode">Custom File Access Mode</h2>
 <p>
-Usually, the database opens log, data and index files with the access mode
-<code>rw</code>, meaning
-read-write (except for read only databases, where the mode <code>r</code> is used).
-To open a database in read-only mode if the files are not read-only, use
+Usually, the database opens the database file with the access mode
+<code>rw</code>, meaning read-write (except for read only databases,
+where the mode <code>r</code> is used).
+To open a database in read-only mode if the database file is not read-only, use
 <code>ACCESS_MODE_DATA=r</code>.
 Also supported are <code>rws</code> and <code>rwd</code>.
 This setting must be specified in the database URL:
@@ -899,38 +899,11 @@ The following files are created for persistent databases:
 <tr><td class="notranslate">
     test.h2.db
 </td><td>
-    Database file (H2 version 1.2.x).<br />
+    Database file.<br />
     Contains the transaction log, indexes, and data for all tables.<br />
     Format: <code>&lt;database&gt;.h2.db</code>
 </td><td>
     1 per database
-</td></tr>
-<tr><td class="notranslate">
-    test.data.db
-</td><td>
-    Data file (H2 version 1.1.x).<br />
-    Contains the data for all tables.<br />
-    Format: <code>&lt;database&gt;.data.db</code>
-</td><td>
-    1 per database
-</td></tr>
-<tr><td class="notranslate">
-    test.index.db
-</td><td>
-    Index file (H2 version 1.1.x).<br />
-    Contains the data for all (b-tree) indexes.<br />
-    Format: <code>&lt;database&gt;.index.db</code>
-</td><td>
-    1 per database
-</td></tr>
-<tr><td class="notranslate">
-    test.0.log.db
-</td><td>
-    Transaction log file (H2 version 1.1.x).<br />
-    The transaction log is used for recovery.<br />
-    Format: <code>&lt;database&gt;.&lt;id&gt;.log.db</code>
-</td><td>
-    0 or more per database
 </td></tr>
 <tr><td class="notranslate">
     test.lock.db
@@ -939,7 +912,7 @@ The following files are created for persistent databases:
     Automatically (re-)created while the database is in use.<br />
     Format: <code>&lt;database&gt;.lock.db</code>
 </td><td>
-    1 per database
+    1 per database (only if in use)
 </td></tr>
 <tr><td class="notranslate">
     test.trace.db
@@ -993,26 +966,11 @@ To backup data while the database is running, the SQL command <code>SCRIPT</code
 
 <h2 id="logging_recovery">Logging and Recovery</h2>
 <p>
-Whenever data is modified in the database and those changes are committed, the changes are logged
-to disk (except for in-memory objects). The changes to the data file itself are usually written
-later on, to optimize disk access. If there is a power failure, the data and index files are not up-to-date.
-But because the changes are in the log file, the next time the database is opened, the changes that are
-in the log file are re-applied automatically.
-</p><p>
-Please note that index file updates are not logged by default. If the database is opened and recovery is required,
-the index file is rebuilt from scratch.
-</p><p>
-There is usually only one log file per database. This file grows until the database is closed successfully,
-and is then deleted. Or, if the file gets too big, the database switches to another log file (with a higher id).
-It is possible to force the log switching by using the <code>CHECKPOINT</code> command.
-</p><p>
-If the database file is corrupted, because the checksum of a record does not match (for example, if the
-file was edited with another application), the database can be opened in recovery mode. In this case,
-errors in the database are logged but not thrown. The database should be backed up to a script
-and re-built as soon as possible. To open the database in the recovery mode, use a database URL
-must contain <code>;RECOVER=1</code>, as in
-<code>jdbc:h2:~/test;RECOVER=1</code>. Indexes are rebuilt in this case, and
-the summary (object allocation table) is not read in this case, so opening the database takes longer.
+Whenever data is modified in the database and those changes are committed, the changes are written
+to the transaction log (except for in-memory objects). The changes to the main data area itself are usually written
+later on, to optimize disk access. If there is a power failure, the main data area is not up-to-date,
+but because the changes are in the transaction log, the next time the database is opened, the changes
+are re-applied automatically.
 </p>
 
 <h2 id="compatibility">Compatibility</h2>
@@ -1303,8 +1261,8 @@ If it does not work, check the file <code>&lt;database&gt;.trace.db</code> for e
 If the database files are read-only, then the database is read-only as well.
 It is not possible to create new tables, add or modify data in this database.
 Only <code>SELECT</code> and <code>CALL</code> statements are allowed.
-To create a read-only database, close the database so that the log file gets smaller. Do not delete the log file.
-Then, make the database files read-only using the operating system.
+To create a read-only database, close the database.
+Then, make the database file read-only.
 When you open the database now, it is read-only.
 There are two ways an application can find out whether database is read-only:
 by calling <code>Connection.isReadOnly()</code>
@@ -1692,11 +1650,11 @@ The trigger can be used to veto a change by throwing a <code>SQLException</code>
 
 <h2 id="compacting">Compacting a Database</h2>
 <p>
-Empty space in the database file is re-used automatically.
-To re-build the indexes, the simplest way is to delete the <code>.index.db</code> file
-while the database is closed. However in some situations (for example after deleting
-a lot of data in a database), one sometimes wants to shrink the size of the database
-(compact a database). Here is a sample function to do this:
+Empty space in the database file re-used automatically. When closing the database,
+the database is automatically compacted for up to 1 second by default. To compact more,
+use the SQL statement SHUTDOWN COMPACT. However re-creating the database may further
+reduce the database size because this will re-build the indexes.
+Here is a sample function to do this:
 </p>
 <pre>
 public static void compact(String dir, String dbName,
@@ -1716,7 +1674,7 @@ of a database and re-build the database from the script.
 
 <h2 id="cache_settings">Cache Settings</h2>
 <p>
-The database keeps most frequently used data and index pages in the main memory.
+The database keeps most frequently used data in the main memory.
 The amount of memory used for caching can be changed using the setting
 <code>CACHE_SIZE</code>. This setting can be set in the database connection URL
 (<code>jdbc:h2:~/test;CACHE_SIZE=131072</code>), or it can be changed at runtime using
@@ -1731,7 +1689,7 @@ please run your own test cases first.
 </p><p>
 To get information about page reads and writes, and the current caching algorithm in use,
 call <code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS</code>. The number of pages read / written
-is listed for the data and index file.
+is listed.
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

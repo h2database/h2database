@@ -52,7 +52,8 @@ public abstract class TestHalt extends TestBase {
     protected static final int OP_SELECT = 8;
 
     /**
-     * This bit flag means operations should be written to the log file immediately.
+     * This bit flag means operations should be written to the transaction log
+     * immediately.
      */
     protected static final int FLAG_NO_DELAY = 1;
 

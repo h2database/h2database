@@ -276,7 +276,7 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     /**
-     * Get a row from the data file.
+     * Get a row from the main index.
      *
      * @param session the session
      * @param key the row key

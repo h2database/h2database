@@ -746,7 +746,7 @@ TRUNCATE TABLE TEST
 "Commands (Other)","CHECKPOINT","
 CHECKPOINT
 ","
-Flushes the log and data files and switches to a new log file if possible.
+Flushes the data to disk and switches to a new transaction log if possible.
 
 Admin rights are required to execute this command.
 ","
@@ -756,7 +756,7 @@ CHECKPOINT
 "Commands (Other)","CHECKPOINT SYNC","
 CHECKPOINT SYNC
 ","
-Flushes the log, data and index files and forces all system buffers be written
+Flushes the data to disk and and forces all system buffers be written
 to the underlying device.
 
 Admin rights are required to execute this command.
@@ -1029,7 +1029,7 @@ SET DEFAULT_TABLE_TYPE { MEMORY | CACHED }
 ","
 Sets the default table storage type that is used when creating new tables.
 Memory tables are kept fully in the main memory (including indexes), however
-changes to the data are stored in the log file. The size of memory tables is
+the data is still stored in the database file. The size of memory tables is
 limited by the memory. The default is CACHED.
 
 Admin rights are required to execute this command.
@@ -1124,10 +1124,9 @@ SET MAX_LENGTH_INPLACE_LOB 128
 "Commands (Other)","SET MAX_LOG_SIZE","
 SET MAX_LOG_SIZE int
 ","
-Sets the maximum file size of a log file, in megabytes. If the file exceeds the
-limit, a new file is created. Old files (that are not used for recovery) are
-deleted automatically, but multiple log files may exist for some time. The
-default max size is 32 MB.
+Sets the maximum size of the transaction log, in megabytes. If the log exceeds the
+limit, a new stream is created. Old streams (that are not used for recovery) are
+freed automatically. The default max size is 32 MB.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.

@@ -22,10 +22,10 @@ public interface CacheWriter {
     void writeBack(CacheObject entry);
 
     /**
-     * Flush the log file, so that entries can be removed from the cache. This
-     * is only required if the cache is full and contains data that is not yet
-     * written to the log file. It is required to write the log entries to the
-     * log file first, because the log file is 'write ahead'.
+     * Flush the transaction log, so that entries can be removed from the cache.
+     * This is only required if the cache is full and contains data that is not
+     * yet written to the log. It is required to write the log entries to the
+     * log first, because the log is 'write ahead'.
      */
     void flushLog();
 

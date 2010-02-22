@@ -580,7 +580,7 @@ public class ValueLob extends Value {
         if (hash == 0) {
             if (precision > 4096) {
                 // TODO: should calculate the hash code when saving, and store
-                // it in the data file
+                // it in the database file
                 return (int) (precision ^ (precision >>> 32));
             }
             if (type == CLOB) {

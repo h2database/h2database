@@ -1014,12 +1014,17 @@ public class Data {
      */
     public void checkCapacity(int plus) {
         if (pos + plus >= data.length) {
-            byte[] d = Utils.newBytes((data.length + plus) * 2);
-            // must copy everything, because pos could be 0 and data may be
-            // still required
-            System.arraycopy(data, 0, d, 0, data.length);
-            data = d;
+            // a separate method to simplify inlining
+            expand(plus);
         }
+    }
+
+    private void expand(int plus) {
+        byte[] d = Utils.newBytes((data.length + plus) * 2);
+        // must copy everything, because pos could be 0 and data may be
+        // still required
+        System.arraycopy(data, 0, d, 0, data.length);
+        data = d;
     }
 
     /**

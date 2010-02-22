@@ -31,7 +31,7 @@ import org.h2.value.ValueNull;
  * <li>type (0: no-op, 1: undo, 2: commit, ...)</li>
  * <li>data</li>
  * </ul>
- * The log file is split into sections.
+ * The transaction log is split into sections.
  * A checkpoint starts a new section.
  */
 public class PageLog {
@@ -533,7 +533,7 @@ public class PageLog {
         }
         // store it on a separate log page
         int pageSize = store.getPageSize();
-        flushOut();
+        pageOut.flush();
         pageOut.fillPage();
         Data buffer = getBuffer();
         buffer.writeByte((byte) PREPARE_COMMIT);
@@ -636,7 +636,7 @@ public class PageLog {
         undo = new BitSet();
         logSectionId++;
         logPos = 0;
-        flushOut();
+        pageOut.flush();
         pageOut.fillPage();
         int currentDataPage = pageOut.getCurrentDataPageId();
         logSectionPageMap.put(logSectionId, currentDataPage);
@@ -684,15 +684,14 @@ public class PageLog {
             Page p = store.getPage(trunkPage);
             PageStreamTrunk t = (PageStreamTrunk) p;
             logKey = t.getLogKey();
-            t.resetIndex();
             if (t.contains(firstDataPageToKeep)) {
                 return t.getPos();
             }
             trunkPage = t.getNextTrunk();
             IntArray list = new IntArray();
             list.add(t.getPos());
-            while (true) {
-                int next = t.getNextPageData();
+            for (int i = 0;; i++) {
+                int next = t.getPageData(i);
                 if (next == -1) {
                     break;
                 }
@@ -719,8 +718,8 @@ public class PageLog {
      * Check if the session committed after than the given position.
      *
      * @param sessionId the session id
-     * @param logId the log file id
-     * @param pos the position in the log file
+     * @param logId the log id
+     * @param pos the position in the log
      * @return true if it is committed
      */
     private boolean isSessionCommitted(int sessionId, int logId, int pos) {
@@ -735,8 +734,8 @@ public class PageLog {
      * Set the last commit record for a session.
      *
      * @param sessionId the session id
-     * @param logId the log file id
-     * @param pos the position in the log file
+     * @param logId the log id
+     * @param pos the position in the log
      */
     private void setLastCommitForSession(int sessionId, int logId, int pos) {
         SessionState state = getOrAddSessionState(sessionId);

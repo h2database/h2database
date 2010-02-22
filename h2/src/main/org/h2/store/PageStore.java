@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
@@ -323,7 +324,7 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Flush all pending changes to disk, and re-open the log file.
+     * Flush all pending changes to disk, and switch the new transaction log.
      */
     public void checkpoint() {
         trace.debug("checkpoint");
@@ -564,8 +565,6 @@ public class PageStore implements CacheWriter {
     }
 
     private void readStaticHeader() {
-        long length = file.length();
-        database.notifyFileSize(length);
         file.seek(FileStore.HEADER_LENGTH);
         Data page = Data.create(database, new byte[PAGE_SIZE_MIN - FileStore.HEADER_LENGTH]);
         file.readFully(page.getBytes(), 0, PAGE_SIZE_MIN - FileStore.HEADER_LENGTH);
@@ -1056,11 +1055,13 @@ public class PageStore implements CacheWriter {
         }
         PageDataIndex systemTable = (PageDataIndex) metaObjects.get(0);
         isNew = systemTable == null;
-        for (Index openIndex : metaObjects.values()) {
+        for (Iterator<PageIndex> it = metaObjects.values().iterator(); it.hasNext();) {
+            Index openIndex = it.next();
             if (openIndex.getTable().isTemporary()) {
                 openIndex.truncate(systemSession);
                 openIndex.remove(systemSession);
                 removeMetaIndex(openIndex, systemSession);
+                it.remove();
             } else {
                 openIndex.close(systemSession);
             }
@@ -1414,9 +1415,9 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Set the maximum log file size in megabytes.
+     * Set the maximum transaction log size in megabytes.
      *
-     * @param maxSize the new maximum log file size
+     * @param maxSize the new maximum log size
      */
     public void setMaxLogSize(long maxSize) {
         this.maxLogSize = maxSize;
@@ -1584,22 +1585,6 @@ public class PageStore implements CacheWriter {
      */
     public int getChangeCount() {
         return changeCount;
-    }
-
-    int getLogFirstTrunkPage() {
-        return logFirstTrunkPage;
-    }
-
-    int getLogKey() {
-        return logKey;
-    }
-
-    public PageLog getLog() {
-        return log;
-    }
-
-    int getLogFirstDataPage() {
-        return logFirstDataPage;
     }
 
 }

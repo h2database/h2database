@@ -42,7 +42,6 @@ public class PageStreamTrunk extends Page {
     private int[] pageIds;
     private int pageCount;
     private Data data;
-    private int index;
 
     private PageStreamTrunk(PageStore store, int parent, int pageId, int next, int logKey, int[] pageIds) {
         setPos(pageId);
@@ -107,13 +106,12 @@ public class PageStreamTrunk extends Page {
     }
 
     /**
-     * Reset the read/write index.
+     * Get the data page id at the given position.
+     *
+     * @param index the index (0, 1, ...)
+     * @return the value, or -1 if the index is too large
      */
-    void resetIndex() {
-        index = 0;
-    }
-
-    int getNextPageData() {
+    int getPageData(int index) {
         if (index >= pageIds.length) {
             return -1;
         }

@@ -14,8 +14,8 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 
 /**
- * The writer thread is responsible to flush the transaction log file from time
- * to time.
+ * The writer thread is responsible to flush the transaction transaction log
+ * from time to time.
  */
 public class WriterThread implements Runnable {
 

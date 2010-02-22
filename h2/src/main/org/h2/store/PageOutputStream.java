@@ -24,6 +24,7 @@ public class PageOutputStream {
     private int trunkNext;
     private IntArray reservedPages = new IntArray();
     private PageStreamTrunk trunk;
+    private int trunkIndex;
     private PageStreamData data;
     private int reserved;
     private int remaining;
@@ -79,7 +80,7 @@ public class PageOutputStream {
     }
 
     private void initNextData() {
-        int nextData = trunk == null ? -1 : trunk.getNextPageData();
+        int nextData = trunk == null ? -1 : trunk.getPageData(trunkIndex++);
         if (nextData == -1) {
             int parent = trunkPageId;
             if (trunkNext != 0) {
@@ -93,10 +94,11 @@ public class PageOutputStream {
             trunkNext = reservedPages.get(len);
             logKey++;
             trunk = PageStreamTrunk.create(store, parent, trunkPageId, trunkNext, logKey, pageIds);
+            trunkIndex = 0;
             pageCount++;
             trunk.write();
             reservedPages.removeRange(0, len + 1);
-            nextData = trunk.getNextPageData();
+            nextData = trunk.getPageData(trunkIndex++);
         }
         data = PageStreamData.create(store, nextData, trunk.getPos(), logKey);
         pageCount++;

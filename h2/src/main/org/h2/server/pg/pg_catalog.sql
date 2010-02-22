@@ -35,7 +35,8 @@ create table pg_catalog.pg_type(
     typnamespace int,
     typlen int,
     typtype varchar,
-    typbasetype int);
+    typbasetype int,
+    typtypmod int);
 
 insert into pg_catalog.pg_type
 select
@@ -44,7 +45,8 @@ select
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog') typnamespace,
     -1 typlen,
     'c' typtype,
-    0 typbasetype
+    0 typbasetype,
+    -1 typtypmod
 from information_schema.type_info
 where pos = 0
     and pg_convertType(data_type) <> 705; -- not unknown
@@ -55,7 +57,8 @@ merge into pg_catalog.pg_type values(
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog'),
     -1,
     'c',
-    0
+    0,
+    -1
 );
 merge into pg_catalog.pg_type values(
     0,
@@ -63,7 +66,8 @@ merge into pg_catalog.pg_type values(
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog'),
     -1,
     'c',
-    0
+    0,
+    -1
 );
 
 create view pg_catalog.pg_class -- (oid, relname, relnamespace, relkind, relam, reltuples, relpages, relhasrules, relhasoids)

@@ -18,8 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>A tool to migrate an old database from the non-page store format to the 
-    newest version has been added in src/tools/org/h2/dev/util/Migrate.java. This file is not 
+<ul><li>PostgreSQL compatibility: when using the following exception was thrown:
+    Column "T.TYPTYPMOD" not found. Fixed. This is only when using psqlodbc_08_04*.
+</li><li>A tool to migrate an old database from the non-page store format to the
+    newest version has been added in src/tools/org/h2/dev/util/Migrate.java. This file is not
     included in the jar file currently.
 </li><li>When using temporary table, the database didn't shrink sometimes when closing.
 </li><li>Large transactions could run out of heap space. Fixed.

@@ -17,8 +17,6 @@ import java.io.RandomAccessFile;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import org.h2.tools.RunScript;
 
 /**
@@ -79,22 +77,19 @@ public class Migrate {
         }
         String url = "jdbc:h2:" + file.getAbsolutePath();
         url = url.substring(0, url.length() - ".data.db".length());
-        StringList args = args(
+        exec(new String[] {
+                "java",
                 "-Xmx128m",
                 "-cp", OLD_H2_FILE.getAbsolutePath(),
                 "org.h2.tools.Script",
                 "-script", TEMP_SCRIPT,
                 "-url", url,
                 "-user", user,
-                "-password", password);
-        exec("java", args);
+                "-password", password
+        });
         file.renameTo(new File(file.getAbsoluteFile() + ".backup"));
         RunScript.execute(url, user, password, TEMP_SCRIPT, "UTF-8", true);
         new File(TEMP_SCRIPT).delete();
-    }
-
-    private StringList args(String...args) {
-        return new StringList(args);
     }
 
     private void download(String target, String fileURL, String sha1Checksum) {
@@ -179,7 +174,7 @@ public class Migrate {
         return buff.toString();
     }
 
-    public static void writeFile(File file, byte[] data) {
+    private static void writeFile(File file, byte[] data) {
         try {
             RandomAccessFile ra = new RandomAccessFile(file, "rw");
             ra.write(data);
@@ -190,19 +185,13 @@ public class Migrate {
         }
     }
 
-    private int exec(String command, StringList args) {
+    private int exec(String[] command) {
         try {
-            print(command);
-            StringList cmd = new StringList();
-            cmd = cmd.plus(command);
-            if (args != null) {
-                for (String a : args) {
-                    print(" " + a);
-                }
-                cmd.addAll(args);
+            for (String c : command) {
+                print(c + " ");
             }
             println("");
-            Process p = Runtime.getRuntime().exec(cmd.array());
+            Process p = Runtime.getRuntime().exec(command);
             copyInThread(p.getInputStream(), quiet ? null : sysOut);
             copyInThread(p.getErrorStream(), quiet ? null : sysOut);
             p.waitFor();
@@ -230,35 +219,6 @@ public class Migrate {
                 }
             }
         } .start();
-    }
-
-    /**
-     * A list of strings.
-     */
-    public static class StringList extends ArrayList<String> {
-
-        private static final long serialVersionUID = 1L;
-
-        StringList(String... args) {
-            super();
-            addAll(Arrays.asList(args));
-        }
-
-        public StringList plus(String...args) {
-            StringList newList = new StringList();
-            newList.addAll(this);
-            newList.addAll(Arrays.asList(args));
-            return newList;
-        }
-
-        public String[] array() {
-            String[] list = new String[size()];
-            for (int i = 0; i < size(); i++) {
-                list[i] = get(i);
-            }
-            return list;
-        }
-
     }
 
 }

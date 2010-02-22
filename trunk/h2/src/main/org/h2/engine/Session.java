@@ -477,7 +477,7 @@ public class Session extends SessionWithState implements SessionFactory {
             }
         }
         if (unlinkMap != null && unlinkMap.size() > 0) {
-            // need to flush the log file, because we can't unlink lobs if the
+            // need to flush the transaction log, because we can't unlink lobs if the
             // commit record is not written
             database.flush();
             for (Value v : unlinkMap.values()) {
@@ -696,10 +696,10 @@ public class Session extends SessionWithState implements SessionFactory {
 
     /**
      * Called when a log entry for this session is added. The session keeps
-     * track of the first entry in the log file that is not yet committed.
+     * track of the first entry in the transaction log that is not yet committed.
      *
-     * @param logId the log file id
-     * @param pos the position of the log entry in the log file
+     * @param logId the transaction log id
+     * @param pos the position of the log entry in the transaction log
      */
     public void addLogPos(int logId, int pos) {
         if (firstUncommittedLog == Session.LOG_WRITTEN) {
@@ -713,7 +713,8 @@ public class Session extends SessionWithState implements SessionFactory {
     }
 
     /**
-     * This method is called after the log file has committed this session.
+     * This method is called after the transaction log has written the commit
+     * entry for this session.
      */
     public void setAllCommitted() {
         firstUncommittedLog = Session.LOG_WRITTEN;

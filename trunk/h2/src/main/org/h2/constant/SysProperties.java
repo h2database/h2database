@@ -171,7 +171,7 @@ public class SysProperties {
     /**
      * System property <code>h2.defaultMaxLengthInplaceLob</code>
      * (default: 4096).<br />
-     * The default maximum length of an LOB that is stored in the data file itself.
+     * The default maximum length of an LOB that is stored in the database file.
      */
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = getIntSetting("h2.defaultMaxLengthInplaceLob", 4096);
 

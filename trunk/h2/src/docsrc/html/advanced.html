@@ -737,8 +737,8 @@ consult the source code of the listener and test application.
 
 <h2 id="using_recover_tool">Using the Recover Tool</h2>
 <p>
-The <code>Recover</code> tool can be used to extract the contents of a data file, even if the database is corrupted.
-It also extracts the content of the log file or large objects (CLOB or BLOB).
+The <code>Recover</code> tool can be used to extract the contents of a database file, even if the database is corrupted.
+It also extracts the content of the transaction log and large objects (CLOB or BLOB).
 To run the tool, type on the command line:
 </p>
 <pre>
@@ -754,9 +754,7 @@ user, or if there are conflicting users, running the script will fail. Consider 
 against a database that was created with a user name that is not in the script.
 </p>
 <p>
-The <code>Recover</code> tool creates a SQL script from database files. It also processes the transaction log file(s),
-however it does not automatically apply those changes. Usually, many of those changes are already
-applied in the database.
+The <code>Recover</code> tool creates a SQL script from database file. It also processes the transaction log.
 </p>
 
 <h2 id="file_locking_protocols">File Locking Protocols</h2>

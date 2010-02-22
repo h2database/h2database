@@ -226,8 +226,8 @@ java org.h2.test.TestAll timer
     public boolean diskResult;
 
     /**
-     * If the transaction log files should be kept small (that is, log files
-     * should be switched early).
+     * If the transaction log should be kept small (that is, the log should be
+     * switched early).
      */
     boolean smallLog;
 
@@ -292,8 +292,13 @@ java org.h2.test.TestAll timer
 
 power failure test: larger binaries and additional index.
 
+recover even if table not found
+(PageStore.addMeta, type != META_TYPE_SCAN_INDEX)
+
 rename Page* classes
 move classes to the right packages
+
+Fix the default value and documentation for MAX_LOG_SIZE.
 
 // System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64
@@ -545,6 +550,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestCrashAPI().runTest(this);
         new TestFuzzOptimizations().runTest(this);
         new TestRandomSQL().runTest(this);
+
         new TestKillRestart().runTest(this);
         new TestKillRestartMulti().runTest(this);
         new TestMultiThreaded().runTest(this);

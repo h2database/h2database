@@ -113,7 +113,7 @@ public class Constants {
     public static final int DEFAULT_HTTP_PORT = 8082;
 
     /**
-     * The default value for the maximum log file size.
+     * The default value for the maximum transaction log size.
      */
     public static final long DEFAULT_MAX_LOG_SIZE = 32 * 1024 * 1024;
 
@@ -135,7 +135,7 @@ public class Constants {
     public static final int DEFAULT_TCP_PORT = 9092;
 
     /**
-     * The default delay in milliseconds before the log file is written.
+     * The default delay in milliseconds before the transaction log is written.
      */
     public static final int DEFAULT_WRITE_DELAY = 500;
 

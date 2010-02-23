@@ -1302,7 +1302,7 @@ public class PageStore implements CacheWriter {
         } else {
             Index p = metaObjects.get(parent);
             if (p == null) {
-                throw DbException.throwInternalError("parent not found:" + parent);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "Table not found:" + parent + " for " + row + " meta:" + metaObjects);
             }
             TableData table = (TableData) p.getTable();
             Column[] tableCols = table.getColumns();

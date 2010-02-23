@@ -24,14 +24,14 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Priority 1</h2>
 <ul><li>Bugfixes
-</li><li>Support very large transactions.
+</li><li>Support very large transactions. Reduce memory usage of undo log.
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Optimization: result set caching (like MySQL); option to disable
 </li><li>Server side cursors
 </li></ul>
 
 <h2>Priority 2</h2>
-<ul><li>Improve test code coverage
+<ul><li>Improve test code coverage.
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
@@ -472,6 +472,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Cache size: don't use more cache than what is available.
 </li><li>Use the Java service provider mechanism to register file systems and function libraries.
 </li><li>Tree index: Instead of an AVL tree, use a general balanced trees or a scapegoat tree.
+</li><li>User defined functions: allow to store the bytecode (of just the class, or the jar file of the extension) in the database.
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -292,9 +292,6 @@ java org.h2.test.TestAll timer
 
 power failure test: larger binaries and additional index.
 
-recover even if table not found
-(PageStore.addMeta, type != META_TYPE_SCAN_INDEX)
-
 rename Page* classes
 move classes to the right packages
 

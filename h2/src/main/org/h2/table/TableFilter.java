@@ -143,7 +143,7 @@ public class TableFilter implements ColumnResolver {
                         break;
                     }
                     int id = condition.getColumn().getColumnId();
-                    masks[id] |= condition.getMask(indexConditions.size());
+                    masks[id] |= condition.getMask(indexConditions);
                 }
             }
             item = table.getBestPlanItem(s, masks);

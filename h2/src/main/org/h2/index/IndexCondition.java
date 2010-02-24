@@ -6,6 +6,7 @@
  */
 package org.h2.index;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -206,10 +207,10 @@ public class IndexCondition {
     /**
      * Get the comparison bit mask.
      *
-     * @param conditionCount the number of index conditions
+     * @param indexConditions all index conditions
      * @return the mask
      */
-    public int getMask(int conditionCount) {
+    public int getMask(ArrayList<IndexCondition> indexConditions) {
         switch (compareType) {
         case Comparison.FALSE:
             return ALWAYS_FALSE;
@@ -217,11 +218,30 @@ public class IndexCondition {
             return EQUALITY;
         case Comparison.IN_LIST:
         case Comparison.IN_QUERY:
-            if (conditionCount > 1) {
-                // if there are more conditions, don't use the index on IN(..)
-                // IN(..) can not be combined with other conditions,
-                // otherwise the query returns the wrong result
-                return 0;
+            if (indexConditions.size() > 1) {
+                // IN(..) can not be combined with other conditions.
+                // If there are other conditions (except for other
+                // IN_ conditions), don't use the index on IN(..)
+                // otherwise the query returns the wrong result.
+                boolean beforeThis = true;
+                for (IndexCondition c : indexConditions) {
+                    if (c == this) {
+                        beforeThis = false;
+                        continue;
+                    }
+                    if (c.isEvaluatable()) {
+                        if (beforeThis) {
+                            // If there are only multiple IN_ conditions,
+                            // only the first one can be used
+                            return 0;
+                        }
+                        if (!c.isIn()) {
+                            // If there are other (non-IN_) conditions,
+                            // this one can't be used
+                            return 0;
+                        }
+                    }
+                }
             }
             return EQUALITY;
         case Comparison.BIGGER_EQUAL:
@@ -242,6 +262,16 @@ public class IndexCondition {
      */
     public boolean isAlwaysFalse() {
         return compareType == Comparison.FALSE;
+    }
+
+    private boolean isIn() {
+        switch (compareType) {
+        case Comparison.IN_LIST:
+        case Comparison.IN_QUERY:
+            return true;
+        default:
+            return false;
+        }
     }
 
     /**

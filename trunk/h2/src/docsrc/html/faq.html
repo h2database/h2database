@@ -205,6 +205,10 @@ Other database don't work like this (they don't follow the JDBC specification).
 If you need compatibility with those databases, use the <a href="features.html#compatibility">Compatibility Mode</a>,
 or set the system property <a href="../javadoc/org/h2/constant/SysProperties.html#h2.aliasColumnName"><code>h2.aliasColumnName</code></a>.
 </p>
+<p>
+This also applies to DatabaseMetaData calls that return a result set.
+The columns in the JDBC API are column labels, not column names.
+</p>
 
 <h3 id="slow_open">Why is Opening my Database Slow?</h3>
 <p>

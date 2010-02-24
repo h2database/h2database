@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>PostgreSQL compatibility: when using the following exception was thrown:
+<ul><li>EXPLAIN: The query plan now contains ".tableScan" if a table scan is used.
+</li><li>The index was not used if there were multiple IN(..) conditions.
+</li><li>For foreign key constraints, the metadata column
+    INFORMATION_SCHEMA.INDEXES.CONSTRAINT_NAME was not set for non-unique indexes.
+</li><li>PostgreSQL compatibility: when using the following exception was thrown:
     Column "T.TYPTYPMOD" not found. Fixed. This is only when using psqlodbc_08_04*.
 </li><li>A tool to migrate an old database from the non-page store format to the
     newest version has been added in src/tools/org/h2/dev/util/Migrate.java. This file is not

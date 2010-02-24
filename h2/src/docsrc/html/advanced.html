@@ -356,6 +356,11 @@ Those functions should not be used directly in modifying statements
 (for example <code>INSERT, UPDATE, MERGE</code>). However, they can be used
 in read-only statements and the result can then be used for modifying statements.
 </p>
+<p>
+When using the cluster modes, result sets are read fully in memory by the client, so that
+there is no problem if the server dies that executed the query. Result sets must fit in memory
+on the client side.
+</p>
 
 <h2 id="two_phase_commit">Two Phase Commit</h2>
 <p>

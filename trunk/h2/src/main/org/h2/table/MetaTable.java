@@ -733,7 +733,7 @@ public class MetaTable extends Table {
                     String constraintName = null;
                     for (int k = 0; constraints != null && k < constraints.size(); k++) {
                         Constraint constraint = constraints.get(k);
-                        if (constraint.getUniqueIndex() == index) {
+                        if (constraint.usesIndex(index)) {
                             if (index.getIndexType().isPrimaryKey()) {
                                 if (constraint.getConstraintType().equals(Constraint.PRIMARY_KEY)) {
                                     constraintName = constraint.getName();

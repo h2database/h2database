@@ -514,4 +514,8 @@ public class PageDataIndex extends PageIndex {
         }
     }
 
+    public String getPlanSQL() {
+        return table.getSQL() + ".tableScan";
+    }
+
 }

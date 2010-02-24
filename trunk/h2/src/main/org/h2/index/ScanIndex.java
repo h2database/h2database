@@ -228,4 +228,8 @@ public class ScanIndex extends BaseIndex {
         return rowCount;
     }
 
+    public String getPlanSQL() {
+        return table.getSQL() + ".tableScan";
+    }
+
 }

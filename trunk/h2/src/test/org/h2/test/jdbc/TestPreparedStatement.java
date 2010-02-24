@@ -529,7 +529,7 @@ public class TestPreparedStatement extends TestBase {
         ResultSet rs = prep.executeQuery();
         rs.next();
         String plan = rs.getString(1);
-        assertTrue(plan.indexOf("_DATA") >= 0);
+        assertTrue(plan.indexOf(".tableScan") >= 0);
         rs = prepExe.executeQuery();
         rs.next();
         assertEquals("World", rs.getString(2));

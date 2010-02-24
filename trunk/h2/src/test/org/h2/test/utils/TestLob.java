@@ -16,10 +16,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.New;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 
@@ -76,12 +78,11 @@ public class TestLob {
      */
     static class LobInputStream extends InputStream {
 
-        private byte[] buffer = new byte[BLOCK_LENGTH];
+        private byte[] buffer;
+        private int pos;
         private PreparedStatement prepSelectBlock;
-        private int bufferEnd;
         private long remaining;
         private long next;
-        private int pos;
 
         LobInputStream(PreparedStatement prepSelectBlock, long first, long length) {
             this.next = first;
@@ -91,9 +92,10 @@ public class TestLob {
 
         public int read() throws IOException {
             fillBuffer();
-            if (pos >= bufferEnd) {
+            if (remaining <= 0) {
                 return -1;
             }
+            remaining--;
             return buffer[pos++] & 255;
         }
 
@@ -110,33 +112,31 @@ public class TestLob {
                 return 0;
             }
             int read = 0;
-            int todo;
-//            while (length > 0) {
-//                fillBuffer();
-//
-//                if (r < 0) {
-//                    break;
-//                }
-//                read += r;
-//                off += r;
-//                len -= r;
-//            }
-//            return read == 0 ? -1 : read;
-//
-//            int len = 0;
-//            while (length > 0 && remaining > 0) {
-//            }
-            return read;
+            while (length > 0) {
+                fillBuffer();
+                if (remaining <= 0) {
+                    break;
+                }
+                int len = (int) Math.min(length, remaining);
+                len = Math.min(len, buffer.length - pos);
+                System.arraycopy(buffer, pos, buff, off, len);
+                read += len;
+                remaining -= len;
+                off += len;
+                length -= len;
+            }
+            return read == 0 ? -1 : read;
         }
 
         private void fillBuffer() throws IOException {
-            if (buffer != null && pos < bufferEnd) {
+            if (buffer != null && pos < buffer.length) {
                 return;
             }
             if (remaining <= 0) {
                 return;
             }
             try {
+                // select id, next, data from block where id = ?
                 prepSelectBlock.setLong(1, next);
                 ResultSet rs = prepSelectBlock.executeQuery();
                 if (!rs.next()) {
@@ -145,12 +145,13 @@ public class TestLob {
                     io.initCause(e);
                     throw e;
                 }
+                next = rs.getLong(2);
+                buffer = rs.getBytes(3);
+                pos = 0;
             } catch (SQLException e) {
                 throw DbException.convertToIOException(e);
             }
-            int todo;
-//
-//
+            // compress / decompress
 //            int len = readInt();
 //            if (decompress == null) {
 //                // EOF
@@ -190,7 +191,33 @@ public class TestLob {
         init(c);
         c = DriverManager.getConnection("jdbc:h2:data/test");
 
-        int len = 128 * 1024;
+//        int len = 10 * 1024 * 1024;
+//        block: 1394
+//        regular: 725
+
+//        int len = 16 * 1024;
+//        block: 1817
+//        regular: 4552
+
+        int len = 32 * 1024;
+//        block: 1770
+//        regular: 2255
+
+//      int len = 64 * 1024;
+//        block: 1776
+//        regular: 1385
+
+//        1024 * 1024
+//        block: 1682
+//        regular: 455
+
+//        int len = 128 * 1024;
+//        block: 1516
+//        regular: 1020
+
+
+        int repeat = 6;
+        int count = (int) (52428800L / len);
         byte[] buff = new byte[len];
         Random random = new Random(1);
         random.nextBytes(buff);
@@ -213,21 +240,52 @@ public class TestLob {
 //        Profiler prof = new Profiler();
 //        prof.setInterval(1);
 //        prof.startCollecting();
-        int x = 0;
-        for (int j = 0; j < 6; j++) {
+        int x = 0, y = 0;
+        ArrayList<LobId> list = New.arrayList();
+        for (int j = 0; j < repeat; j++) {
             boolean regular = (j & 1) == 1;
             long time = System.currentTimeMillis();
-            for (int i = 0; i < 400; i++) {
-                prep.setInt(1, x++);
+            for (int i = 0; i < count; i++) {
                 if (regular) {
+                    prep.setInt(1, x++);
                     prep.setBinaryStream(2, new ByteArrayInputStream(buff), len);
                     prep.execute();
                 } else {
-                    addLob(new ByteArrayInputStream(buff), -1, -1);
+                    LobId id = addLob(new ByteArrayInputStream(buff), -1, -1);
+                    list.add(id);
                 }
             }
             System.out.println((regular ? "regular: " : "block: ") + (System.currentTimeMillis() - time));
         }
+
+        System.out.println("read------------");
+        x = 0;
+        y = 0;
+        prep = conn.prepareStatement("select data from test where id = ?");
+        byte[] buff2 = new byte[1024];
+        for (int j = 0; j < repeat; j++) {
+            boolean regular = (j & 1) == 1;
+            long time = System.currentTimeMillis();
+            for (int i = 0; i < count * 10; i++) {
+                InputStream in2;
+                if (regular) {
+                    prep.setInt(1, x++ % repeat);
+                    ResultSet rs = prep.executeQuery();
+                    rs.next();
+                    in2 = rs.getBinaryStream(1);
+                } else {
+                    in2 = getInputStream(list.get(y++ % repeat));
+                }
+                while (true) {
+                    int len2 = in2.read(buff2);
+                    if (len2 < 0) {
+                        break;
+                    }
+                }
+            }
+            System.out.println((regular ? "regular: " : "block: ") + (System.currentTimeMillis() - time));
+        }
+
 //        prof.stopCollecting();
 //        System.out.println(prof.getTop(5));
         c.close();
@@ -236,7 +294,7 @@ public class TestLob {
     private void init(Connection newConn) throws SQLException {
         this.conn = newConn;
         Statement stat = conn.createStatement();
-        stat.execute("set undo_log 0");
+        // stat.execute("set undo_log 0");
         // stat.execute("set redo_log_binary 0");
         // TODO support incremental garbage collection
         stat.execute("create table if not exists block(id bigint primary key, next bigint, data binary)");
@@ -248,10 +306,15 @@ public class TestLob {
         rs = stat.executeQuery("select max(id) from lob");
         rs.next();
         nextLob = rs.getLong(1) + 1;
-        prepInsertBlock = conn.prepareStatement("insert into block values(?, ?, ?)");
+        prepInsertBlock = conn.prepareStatement("insert into block(id, next, data) values(?, ?, ?)");
         prepDeleteBlock = conn.prepareStatement("delete from block where id = ?");
-        prepInsertLob = conn.prepareStatement("insert into lob values(?, ?, ?, ?)");
+        prepDeleteLob = conn.prepareStatement("delete from lob where id = ?");
+        prepInsertLob = conn.prepareStatement("insert into lob(id, length, block, table) values(?, ?, ?, ?)");
         prepSelectBlock = conn.prepareStatement("select id, next, data from block where id = ?");
+    }
+
+    private void deleteLob(int lobId) {
+        //
     }
 
     private LobId addLob(InputStream in, long maxLength, int table) throws SQLException {
@@ -272,16 +335,19 @@ public class TestLob {
                 length += len;
                 maxLength -= len;
                 if (blockId > 0) {
+                    // insert into block(id, next, data) values(?, ?, ?)
                     prepInsertBlock.setLong(1, nextBlock++);
                     prepInsertBlock.setLong(2, nextBlock);
                     prepInsertBlock.setBytes(3, buff[(blockId - 1) & 1]);
                     prepInsertBlock.execute();
                 }
             }
+            // insert into block(id, next, data) values(?, ?, ?)
             prepInsertBlock.setLong(1, nextBlock++);
             prepInsertBlock.setLong(2, firstBlock);
             prepInsertBlock.setBytes(3, buff[(blockId - 1) & 1]);
             prepInsertBlock.execute();
+            // insert into lob(id, length, block, table) values(?, ?, ?, ?)
             prepInsertLob.setLong(1, lob);
             prepInsertLob.setLong(2, length);
             prepInsertLob.setLong(3, firstBlock);
@@ -302,6 +368,7 @@ public class TestLob {
 
     private void deleteBlocks(long first, long last) throws SQLException {
         for (long id = first; id <= last; id++) {
+            // delete from block where id = ?
             prepDeleteBlock.setLong(1, id);
             prepDeleteBlock.execute();
         }

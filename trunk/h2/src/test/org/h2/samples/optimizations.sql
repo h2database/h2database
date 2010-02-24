@@ -22,7 +22,7 @@ SELECT COUNT(*) FROM TEST;
 -- Display the query plan - 'direct lookup' means the index is used
 EXPLAIN SELECT COUNT(*) FROM TEST;
 --> SELECT COUNT(*)
--->    FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
+-->    FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
 -->    /* direct lookup */
 ;
 
@@ -90,7 +90,7 @@ SELECT MIN(VALUE), MAX(VALUE) FROM TEST;
 -- Display the query plan - 'direct lookup' means it's optimized
 EXPLAIN SELECT MIN(VALUE), MAX(VALUE) FROM TEST;
 --> SELECT MIN(VALUE), MAX(VALUE)
--->    FROM PUBLIC.TEST /* PUBLIC.TEST_DATA */
+-->    FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
 -->    /* direct lookup */
 ;
 
@@ -223,3 +223,22 @@ EXPLAIN SELECT * FROM TEST WHERE ID IN(1, 1000);
 
 DROP TABLE TEST;
 
+-------------------------------------------------------------------------------
+-- Optimize Multiple IN(..)
+-------------------------------------------------------------------------------
+-- This code snippet shows how multiple IN(...) conditions use an index.
+
+-- Initialize the data
+CREATE TABLE TEST(ID INT PRIMARY KEY, DATA INT);
+CREATE INDEX TEST_DATA ON TEST(DATA);
+
+INSERT INTO TEST SELECT X, MOD(X, 10) FROM SYSTEM_RANGE(1, 1000);
+
+-- Display the query plan
+EXPLAIN SELECT * FROM TEST WHERE ID IN (10, 20) AND DATA IN (1, 2);
+--> SELECT TEST.ID, TEST.DATA
+-->    FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID IN(10, 20) */
+-->    WHERE (ID IN(10, 20)) AND (DATA IN(1, 2))
+;
+
+DROP TABLE TEST;

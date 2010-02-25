@@ -249,7 +249,10 @@ public class PageDataIndex extends PageIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        // ignore first and last
+        if (first != null || last != null) {
+            // this index is a table scan, must not use it for lookup
+            throw DbException.throwInternalError(getSQL() + " " + first + " " + last);
+        }
         PageData root = getPage(rootPageId, 0);
         return root.find(session, Long.MIN_VALUE, Long.MAX_VALUE, isMultiVersion);
     }
@@ -422,9 +425,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     public int getColumnIndex(Column col) {
-        if (col.getColumnId() == mainIndexColumn) {
-            return 0;
-        }
+        // can not use this index - use the PageDelegateIndex instead
         return -1;
     }
 

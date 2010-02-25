@@ -75,7 +75,10 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     public int getColumnIndex(Column col) {
-        return mainIndex.getColumnIndex(col);
+        if (col.getColumnId() == mainIndex.getMainIndexColumn()) {
+            return 0;
+        }
+        return -1;
     }
 
     public double getCost(Session session, int[] masks) {

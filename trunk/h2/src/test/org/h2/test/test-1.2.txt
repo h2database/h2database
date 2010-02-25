@@ -1,4 +1,20 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int primary key, d int);
+> ok
+
+insert into test values(1,1), (2, 1);
+> update count: 2
+
+select id from test where id in (1, 2) and d = 1;
+> ID
+> --
+> 1
+> 2
+> rows: 2
+
+drop table test;
+> ok
+
 create table test(id decimal(10, 2) primary key) as select 0;
 > ok
 

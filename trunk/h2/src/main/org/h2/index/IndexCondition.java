@@ -20,6 +20,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.util.StatementBuilder;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -219,28 +220,16 @@ public class IndexCondition {
         case Comparison.IN_LIST:
         case Comparison.IN_QUERY:
             if (indexConditions.size() > 1) {
-                // IN(..) can not be combined with other conditions.
-                // If there are other conditions (except for other
-                // IN_ conditions), don't use the index on IN(..)
-                // otherwise the query returns the wrong result.
-                boolean beforeThis = true;
-                for (IndexCondition c : indexConditions) {
-                    if (c == this) {
-                        beforeThis = false;
-                        continue;
-                    }
-                    if (c.isEvaluatable()) {
-                        if (beforeThis) {
-                            // If there are only multiple IN_ conditions,
-                            // only the first one can be used
-                            return 0;
-                        }
-                        if (!c.isIn()) {
-                            // If there are other (non-IN_) conditions,
-                            // this one can't be used
-                            return 0;
-                        }
-                    }
+                if (!column.getTable().getTableType().equals(Table.TABLE)) {
+                    // if combined with other conditions,
+                    // IN(..) can only be used for regular tables
+                    // test case:
+                    // create table test(a int, b int, primary key(id, name));
+                    // create unique index c on test(b, a);
+                    // insert into test values(1, 10), (2, 20);
+                    // select * from (select * from test)
+                    // where a=1 and b in(10, 20);
+                    return 0;
                 }
             }
             return EQUALITY;
@@ -262,16 +251,6 @@ public class IndexCondition {
      */
     public boolean isAlwaysFalse() {
         return compareType == Comparison.FALSE;
-    }
-
-    private boolean isIn() {
-        switch (compareType) {
-        case Comparison.IN_LIST:
-        case Comparison.IN_QUERY:
-            return true;
-        default:
-            return false;
-        }
     }
 
     /**

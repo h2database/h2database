@@ -161,7 +161,7 @@
 90137=割り当ては変数にのみ可能です。{0} にはできません
 90138=不正なデータベース名: {0}
 90139=public staticであるJavaメソッドが見つかりません: {0}
-90140=#The result set is readonly. You may need to use conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
+90140=リザルトセットは読み込み専用です。conn.createStatement(.., ResultSet.CONCUR_UPDATABLE) を使う必要があるかもしれません
 HY000=一般エラー: {0}
 HY004=不明なデータ型: {0}
 HYC00=機能はサポートされていません: {0}

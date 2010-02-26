@@ -144,7 +144,7 @@ public class PageBtreeIndex extends PageIndex {
             store.update(empty);
             return empty;
         } else if (!(p instanceof PageBtree)) {
-            throw DbException.throwInternalError("" + p);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "" + p);
         }
         return (PageBtree) p;
     }

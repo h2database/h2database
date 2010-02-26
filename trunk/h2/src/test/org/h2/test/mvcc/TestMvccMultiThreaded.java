@@ -9,6 +9,8 @@ package org.h2.test.mvcc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.CountDownLatch;
+
 import org.h2.test.TestBase;
 
 /**
@@ -86,9 +88,12 @@ public class TestMvccMultiThreaded extends TestBase {
         Connection conn = connList[0];
         conn.createStatement().execute("create table test(id int primary key, value int)");
         conn.createStatement().execute("insert into test values(0, 0)");
-        final SQLException[] ex = new SQLException[1];
+        final Exception[] ex = new Exception[1];
         final int count = 1000;
         Thread[] threads = new Thread[len];
+
+        final CountDownLatch latch = new CountDownLatch(len);
+
         for (int i = 0; i < len; i++) {
             final int x = i;
             threads[i] = new Thread() {
@@ -96,8 +101,11 @@ public class TestMvccMultiThreaded extends TestBase {
                     for (int a = 0; a < count; a++) {
                         try {
                             connList[x].createStatement().execute("update test set value=value+1");
-                        } catch (SQLException e) {
+                            latch.countDown();
+                            latch.await();
+                        } catch (Exception e) {
                             ex[0] = e;
+                            break;
                         }
                     }
                 }

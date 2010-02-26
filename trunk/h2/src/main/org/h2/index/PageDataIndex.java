@@ -210,14 +210,16 @@ public class PageDataIndex extends PageIndex {
      */
     PageData getPage(int id, int parent) {
         Page pd = store.getPage(id);
-        PageData p = (PageData) pd;
-        if (p == null) {
+        if (pd == null) {
             PageDataLeaf empty = PageDataLeaf.create(this, id, parent);
             // could have been created before, but never committed
             store.logUndo(empty, null);
             store.update(empty);
             return empty;
+        } else if (!(pd instanceof PageData)) {
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "" + pd);
         }
+        PageData p = (PageData) pd;
         if (parent != -1) {
             if (p.getParentPageId() != parent) {
                 throw DbException.throwInternalError(p + " parent " + p.getParentPageId() + " expected " + parent);

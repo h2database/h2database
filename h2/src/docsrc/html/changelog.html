@@ -30,6 +30,7 @@ Change Log
     newest version has been added in src/tools/org/h2/dev/util/Migrate.java. This file is not
     included in the jar file currently.
 </li><li>When using temporary table, the database didn't shrink sometimes when closing.
+    Also, sometimes a database could not recover normally.
 </li><li>Large transactions could run out of heap space. Fixed.
 </li><li>The default setting for the system property h2.webMaxValueLength is now 100000 (it was 10000 before).
 </li><li>Creating a database was delayed about 2 seconds if the directory didn't exist.

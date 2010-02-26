@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.130 (2010-02-26)</h2>
 <ul><li>EXPLAIN: The query plan now contains ".tableScan" if a table scan is used.
 </li><li>IN(..): when combining and IN(..) condition with a condition that didn't use an index,
     the result could contain duplicate rows.
@@ -29,9 +33,9 @@ Change Log
 </li><li>A tool to migrate an old database from the non-page store format to the
     newest version has been added in src/tools/org/h2/dev/util/Migrate.java. This file is not
     included in the jar file currently.
-</li><li>When using temporary table, the database didn't shrink sometimes when closing.
+</li><li>When using temporary tables, the database didn't shrink sometimes when closing.
     Also, sometimes a database could not recover normally.
-</li><li>Large transactions could run out of heap space. Fixed.
+</li><li>Large transactions could run out of heap space. The maximum size of a transaction is now much larger.
 </li><li>The default setting for the system property h2.webMaxValueLength is now 100000 (it was 10000 before).
 </li><li>Creating a database was delayed about 2 seconds if the directory didn't exist.
 </li><li>Implemented INIT feature. If the database URL contains ";INIT=...;" then the DDL or DML commands
@@ -612,25 +616,6 @@ Change Log
 </li><li>Linked tables to SQLite database can now be created.
 </li><li>Nested IN(IN(...)) didn't work.
 </li><li>NIO storage: the nio: prefix was using memory mapped files instead of FileChannel.
-</li></ul>
-
-<h2>Version 1.1.109 (2009-03-14)</h2>
-<ul><li>The optimization for IN(...) is now only used if comparing a column with an index.
-</li><li>User defined functions can now be deterministic (see CREATE ALIAS documentation).
-</li><li>Multiple nested queries in the FROM clause with parameters did not always work.
-</li><li>When converting CLOB to BINARY, each character resulted in one byte.
-    Now, the text is parsed as a hex as when converting VARCHAR.
-</li><li>New experimental NIO storage mechanism with both FileChannel and
-    memory mapped files. To use it, use the file name prefix nio: or nioMapped:
-    as in jdbc:h2:nio:~/test. So far it looks like NIO storage is faster on Mac OS
-    but slower on some Windows systems. Thanks a lot to Jan Kotek for the patch!
-</li><li>The functions BITOR, BITAND, BITXOR, and MOD now accept
-    and return BIGINT instead of INT.
-</li><li>Could not use the same linked table multiple times in the same query.
-</li><li>Bugs in the server-less multi-connection mode have been fixed.
-</li><li>Column names could not be named "UNIQUE" (with the quotes).
-</li><li>New system function TRANSACTION_ID() to get the current transaction
-    identifier for a session.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -13,6 +13,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(80,
+'New version available: 1.2.130 (2010-02-26)', '2010-02-26 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(79,
 'New version available: 1.2.129 (2010-02-19)', '2010-02-19 12:00:00',
 $$A new version of H2 is available for
@@ -233,38 +246,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>MVCC / wrong exception is thrown.
 </li><li>Sequence.NEXTVAL and CURRVAL did not respect the schema search path.
 </li><li>The exception "Row not found when trying to delete" was thrown sometimes.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(67,
-'New version available: 1.1.117 (2009-08-09)', '2009-08-09 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>CSV reading and parsing SQL scripts is now faster.
-</li><li>Support for Java 6 DatabaseMetaData.getTables, getColumns.
-</li><li>JaQu: the order of the fields no longer needs to match.
-</li><li>Improved MySQL compatibility for SHOW COLUMNS.
-</li><li>Improved PostgreSQL compatibility for timestamp literals.
-</li><li>Sam Van Oort is now a committer.
-</li><li>LIKE: the escape mechanism can now be disable using ESCAPE ''.
-</li><li>Sergi Vladykin translated the error messages to Russian. Thanks a lot!
-</li><li>The function LENGTH now return BIGINT.
-</li><li>CLOB and BLOB: the maximum precision is now Long.MAX_VALUE.
-</li><li>MVCC: the complete undo log must fit in memory.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>SimpleResultSet.newInstance(SimpleRowSource rs) did not work.
-</li><li>Views using functions were not re-evaluated when necessary.
-</li><li>Rollback of a large transaction could fail.
-</li><li>Various bugfixes and improvements in the page store mechanism.
-</li><li>Multi-threaded kernel synchronization bugs fixed.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

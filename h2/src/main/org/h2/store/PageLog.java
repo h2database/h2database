@@ -684,7 +684,7 @@ public class PageLog {
      * @return the trunk page of the data page to keep
      */
     private int removeUntil(int trunkPage, int firstDataPageToKeep) {
-        trace.debug("log.removeUntil " + firstDataPageToKeep);
+        trace.debug("log.removeUntil " + trunkPage + " " + firstDataPageToKeep);
         while (true) {
             Page p = store.getPage(trunkPage);
             PageStreamTrunk t = (PageStreamTrunk) p;

@@ -1149,9 +1149,11 @@ public class Database implements DataHandler {
 
     private void closeFiles() {
         try {
-            if (pageStore != null) {
-                pageStore.close();
-                pageStore = null;
+            synchronized (this) {
+                if (pageStore != null) {
+                    pageStore.close();
+                    pageStore = null;
+                }
             }
         } catch (DbException e) {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);
@@ -1674,10 +1676,10 @@ public class Database implements DataHandler {
      * Flush all pending changes to the transaction log.
      */
     public void flush() {
-        if (readOnly || pageStore == null) {
-            return;
-        }
         synchronized (this) {
+            if (readOnly || pageStore == null) {
+                return;
+            }
             pageStore.flushLog();
         }
     }
@@ -1751,10 +1753,10 @@ public class Database implements DataHandler {
      * executing the SQL statement CHECKPOINT SYNC.
      */
     public void sync() {
-        if (readOnly || pageStore == null) {
-            return;
-        }
         synchronized (this) {
+            if (readOnly || pageStore == null) {
+                return;
+            }
             pageStore.sync();
         }
     }
@@ -2125,8 +2127,10 @@ public class Database implements DataHandler {
      */
     public void checkpoint() {
         if (persistent) {
-            if (pageStore != null) {
-                pageStore.checkpoint();
+            synchronized (this) {
+                if (pageStore != null) {
+                    pageStore.checkpoint();
+                }
             }
         }
         getTempFileDeleter().deleteUnused();

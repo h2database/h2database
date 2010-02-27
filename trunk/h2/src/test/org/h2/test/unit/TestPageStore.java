@@ -35,6 +35,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testDropRecreate();
         testDropAll();
         testCloseTempTable();
         testDuplicateKey();
@@ -55,6 +56,26 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testDropRecreate() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("create index idx_test on test(id)");
+        stat.execute("create table test2(id int)");
+        stat.execute("drop table test");
+        // this will re-used the object id of the test table,
+        // which is lower than the object id of test2
+        stat.execute("create index idx_test on test2(id)");
+        conn.close();
+        conn = getConnection("pageStore");
+        conn.close();
     }
 
     private void testDropAll() throws SQLException {

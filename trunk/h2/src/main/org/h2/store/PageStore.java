@@ -139,7 +139,7 @@ public class PageStore implements CacheWriter {
     private static final int READ_VERSION = 3;
     private static final int WRITE_VERSION = 3;
 
-    private static final int META_TYPE_SCAN_INDEX = 0;
+    private static final int META_TYPE_DATA_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
 
@@ -1231,9 +1231,23 @@ public class PageStore implements CacheWriter {
 
     private void readMetaData() {
         Cursor cursor = metaIndex.find(systemSession, null, null);
+        // first, create all tables
         while (cursor.next()) {
             Row row = cursor.get();
-            addMeta(row, systemSession, false);
+            int type = row.getValue(1).getInt();
+            if (type == META_TYPE_DATA_INDEX) {
+                addMeta(row, systemSession, false);
+            }
+        }
+        // now create all secondary indexes
+        // otherwise the table might not be created yet
+        cursor = metaIndex.find(systemSession, null, null);
+        while (cursor.next()) {
+            Row row = cursor.get();
+            int type = row.getValue(1).getInt();
+            if (type != META_TYPE_DATA_INDEX) {
+                addMeta(row, systemSession, false);
+            }
         }
     }
 
@@ -1281,7 +1295,7 @@ public class PageStore implements CacheWriter {
             allocatePage(rootPageId);
         }
         metaRootPageId.put(id, rootPageId);
-        if (type == META_TYPE_SCAN_INDEX) {
+        if (type == META_TYPE_DATA_INDEX) {
             CreateTableData data = new CreateTableData();
             for (int i = 0; i < columns.length; i++) {
                 Column col = new Column("C" + i, Value.INT);
@@ -1357,7 +1371,7 @@ public class PageStore implements CacheWriter {
      * @param session the session
      */
     public void addMeta(PageIndex index, Session session) {
-        int type = index instanceof PageDataIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
+        int type = index instanceof PageDataIndex ? META_TYPE_DATA_INDEX : META_TYPE_BTREE_INDEX;
         IndexColumn[] columns = index.getIndexColumns();
         StatementBuilder buff = new StatementBuilder();
         for (IndexColumn col : columns) {

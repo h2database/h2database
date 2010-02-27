@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>In versions 1.2.129 and 1.2.130, a database could not be opened sometimes
+    after dropping tables or indexes, and then creating new indexes for existing tables.
+    The exception contained the text "Table not found".
+</li><li>After the database was closed, a null pointer exception could occur in Database.flush.
 </li></ul>
 
 <h2>Version 1.2.130 (2010-02-26)</h2>

@@ -400,10 +400,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         memory = true;
         test();
 
-        networked = false;
-        memory = false;
-        test();
-
         diskUndo = true;
         diskResult = true;
         traceLevelFile = 3;

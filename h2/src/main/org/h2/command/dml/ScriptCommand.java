@@ -54,7 +54,6 @@ import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueString;
 
 /**
@@ -254,10 +253,10 @@ public class ScriptCommand extends ScriptBase {
                                 if (v.getPrecision() > lobBlockSize) {
                                     int id;
                                     if (v.getType() == Value.CLOB) {
-                                        id = writeLobStream((ValueLob) v);
+                                        id = writeLobStream(v);
                                         buff.append("SYSTEM_COMBINE_CLOB(" + id + ")");
                                     } else if (v.getType() == Value.BLOB) {
-                                        id = writeLobStream((ValueLob) v);
+                                        id = writeLobStream(v);
                                         buff.append("SYSTEM_COMBINE_BLOB(" + id + ")");
                                     } else {
                                         buff.append(v.getSQL());
@@ -328,7 +327,7 @@ public class ScriptCommand extends ScriptBase {
         return r;
     }
 
-    private int writeLobStream(ValueLob v) throws IOException {
+    private int writeLobStream(Value v) throws IOException {
         if (!tempLobTableCreated) {
             add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA BINARY)", true);
             add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART)", true);

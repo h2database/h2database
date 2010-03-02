@@ -19,6 +19,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
+import org.h2.store.LobStorage;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
@@ -27,7 +28,6 @@ import org.h2.table.TableData;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 
 /**
@@ -296,7 +296,7 @@ public class PageDataIndex extends PageIndex {
             for (int i = 0; i < row.getColumnCount(); i++) {
                 Value v = row.getValue(i);
                 if (v.isLinked()) {
-                    session.unlinkAtCommit((ValueLob) v);
+                    session.unlinkAtCommit(v);
                 }
             }
         }
@@ -347,7 +347,7 @@ public class PageDataIndex extends PageIndex {
         store.logTruncate(session, tableData.getId());
         removeAllRows();
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
-            ValueLob.removeAllForTable(database, table.getId());
+            LobStorage.removeAllForTable(database, table.getId());
         }
         if (database.isMultiVersion()) {
             sessionRowCount.clear();

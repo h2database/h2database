@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -38,11 +39,11 @@ import org.h2.store.DataReader;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
+import org.h2.store.LobStorage;
 import org.h2.store.Page;
 import org.h2.store.PageFreeList;
 import org.h2.store.PageLog;
 import org.h2.store.PageStore;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
@@ -51,8 +52,10 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLob2;
 import org.h2.value.ValueLong;
 
 /**
@@ -148,6 +151,21 @@ public class Recover extends Tool implements DataHandler {
     public static InputStream readBlob(String fileName) throws IOException {
         return new BufferedInputStream(IOUtils.openFileInputStream(fileName));
     }
+
+    /**
+     * INTERNAL
+     */
+    public static Reader readClobDb(Connection conn, long lobId) throws IOException {
+        return new BufferedReader(new InputStreamReader(readBlobDb(conn, lobId), "UTF-8"));
+    }
+
+    /**
+     * INTERNAL
+     */
+    public static InputStream readBlobDb(Connection conn, long lobId) throws IOException {
+        return new BufferedInputStream(new LobStorage.LobInputStream(conn, lobId));
+    }
+
 
     private void trace(String message) {
         if (trace) {
@@ -272,6 +290,16 @@ public class Recover extends Tool implements DataHandler {
                 }
                 return "READ_CLOB('" + file + ".txt')";
             }
+        } else if (v instanceof ValueLob2) {
+            ValueLob2 lob = (ValueLob2) v;
+            byte[] small = lob.getSmall();
+            if (small == null) {
+                long id = lob.getLobId();
+                if (lob.getType() == Value.BLOB) {
+                    return "READ_BLOB_DB(" + id + ")";
+                }
+                return "READ_CLOB_DB(" + id + ")";
+            }
         }
         return v.getSQL();
     }
@@ -292,6 +320,8 @@ public class Recover extends Tool implements DataHandler {
             writer = getWriter(fileName, ".sql");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" + this.getClass().getName() + ".readClobDb\";");
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" + this.getClass().getName() + ".readBlobDb\";");
             resetSchema();
             store = FileStore.open(null, fileName, remove ? "rw" : "r");
             long length = store.length();
@@ -1182,6 +1212,13 @@ public class Recover extends Tool implements DataHandler {
      */
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public LobStorage getLobStorage() {
+        return null;
     }
 
 }

@@ -34,6 +34,7 @@ import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
+import org.h2.store.LobStorage;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.LinkSchema;
@@ -41,14 +42,14 @@ import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
-import org.h2.util.JdbcUtils;
-import org.h2.util.Utils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -57,7 +58,6 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -1114,7 +1114,7 @@ public class Function extends Expression implements FunctionCall {
             try {
                 InputStream in = new AutoCloseInputStream(IOUtils.openFileInputStream(fileName));
                 if (blob) {
-                    result = ValueLob.createBlob(in, -1, database);
+                    result = LobStorage.createBlob(in, -1, database);
                 } else {
                     Reader reader;
                     if (v1 == ValueNull.INSTANCE) {
@@ -1122,7 +1122,7 @@ public class Function extends Expression implements FunctionCall {
                     } else {
                         reader = new InputStreamReader(in, v1.getString());
                     }
-                    result = ValueLob.createClob(reader, -1, database);
+                    result = LobStorage.createClob(reader, -1, database);
                 }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);

@@ -21,7 +21,6 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Properties;
-
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -33,11 +32,11 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.store.LobStorage;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
@@ -1439,7 +1438,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("Clob", TraceObject.CLOB, id, "createClob()");
             checkClosedForWrite();
             try {
-                ValueLob v = ValueLob.createSmallLob(Value.CLOB, Utils.EMPTY_BYTES);
+                Value v = LobStorage.createSmallLob(Value.CLOB, Utils.EMPTY_BYTES);
                 return new JdbcClob(this, v, id);
             } finally {
                 afterWriting();
@@ -1460,7 +1459,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
             checkClosedForWrite();
             try {
-                ValueLob v = ValueLob.createSmallLob(Value.BLOB, Utils.EMPTY_BYTES);
+                Value v = LobStorage.createSmallLob(Value.BLOB, Utils.EMPTY_BYTES);
                 return new JdbcBlob(this, v, id);
             } finally {
                 afterWriting();
@@ -1615,7 +1614,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         if (length <= 0) {
             length = -1;
         }
-        Value v = ValueLob.createClob(x, length, session.getDataHandler());
+        Value v = LobStorage.createClob(x, length, session.getDataHandler());
         return v;
     }
 
@@ -1634,7 +1633,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         if (length <= 0) {
             length = -1;
         }
-        Value v = ValueLob.createBlob(x, length, session.getDataHandler());
+        Value v = LobStorage.createBlob(x, length, session.getDataHandler());
         return v;
     }
 

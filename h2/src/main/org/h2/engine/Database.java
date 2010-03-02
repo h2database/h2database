@@ -7,6 +7,7 @@
 package org.h2.engine;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -25,6 +26,7 @@ import org.h2.constraint.Constraint;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -38,6 +40,7 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
 import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
+import org.h2.store.LobStorage;
 import org.h2.store.PageStore;
 import org.h2.store.WriterThread;
 import org.h2.store.fs.FileSystemMemory;
@@ -50,7 +53,6 @@ import org.h2.table.TableLinkConnection;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
@@ -58,10 +60,10 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
-import org.h2.value.ValueLob;
 
 /**
  * There is one database object per open database.
@@ -164,6 +166,7 @@ public class Database implements DataHandler {
     private SourceCompiler compiler;
     private boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
+    private LobStorage lobStorage;
 
     public Database(String name, ConnectionInfo ci, String cipher) {
         this.compareMode = CompareMode.getInstance(null, 0);
@@ -1044,7 +1047,7 @@ public class Database implements DataHandler {
         // remove all session variables
         if (persistent) {
             try {
-                ValueLob.removeAllForTable(this, ValueLob.TABLE_ID_SESSION_VARIABLE);
+                LobStorage.removeAllForTable(this, LobStorage.TABLE_ID_SESSION_VARIABLE);
             } catch (DbException e) {
                 traceSystem.getTrace(Trace.DATABASE).error("close", e);
             }
@@ -2201,6 +2204,15 @@ public class Database implements DataHandler {
             compiler = new SourceCompiler();
         }
         return compiler;
+    }
+
+    public LobStorage getLobStorage() {
+        if (lobStorage == null) {
+            String url = Constants.CONN_URL_INTERNAL;
+            Connection conn = new JdbcConnection(systemSession, systemUser.getName(), url);
+            lobStorage = new LobStorage(conn);
+        }
+        return lobStorage;
     }
 
 }

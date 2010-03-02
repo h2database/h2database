@@ -32,8 +32,8 @@ public class TestCompatibility extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("compatibility");
-        conn = getConnection("compatibility");
 
+        conn = getConnection("compatibility");
         testDomain();
         testColumnAlias();
         testUniqueIndexSingleNull();

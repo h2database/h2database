@@ -91,4 +91,6 @@ public interface DataHandler {
      */
     SmallLRUCache<String, String[]> getLobFileListCache();
 
+    LobStorage getLobStorage();
+
 }

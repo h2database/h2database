@@ -290,7 +290,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </ul>
      *
      * @param catalogPattern null or the catalog name
-     * @param schemaPattern schema name (must be specified)
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
      * @param tableName table name (must be specified)
      * @param unique only unique indexes
      * @param approximate is ignored
@@ -356,7 +357,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </ul>
      *
      * @param catalogPattern null or the catalog name
-     * @param schemaPattern schema name (must be specified)
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
      * @param tableName table name (must be specified)
      * @return the list of primary key columns
      * @throws SQLException if the connection is closed
@@ -529,7 +531,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </ul>
      *
      * @param catalogPattern null or the catalog name
-     * @param schemaPattern schema name (must be specified)
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
      * @param procedureNamePattern the procedure name pattern
      * @return the procedures
      * @throws SQLException if the connection is closed
@@ -599,7 +602,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </ul>
      *
      * @param catalogPattern null or the catalog name
-     * @param schemaPattern schema name (must be specified)
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
      * @param procedureNamePattern the procedure name pattern
      * @param columnNamePattern the procedure name pattern
      * @return the procedure columns
@@ -867,7 +871,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </li></ul>
      *
      * @param catalogPattern null (to get all objects) or the catalog name
-     * @param schemaPattern schema name (must be specified)
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
      * @param tableName table name (must be specified)
      * @param scope ignored
      * @param nullable ignored
@@ -932,7 +937,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
-     * @param schema schema name (must be specified)
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
      * @param tableName table name (must be specified)
      * @return an empty result set
      * @throws SQLException if the connection is closed
@@ -1130,12 +1136,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </ul>
      *
      * @param primaryCatalogPattern null or the catalog name
-     * @param primarySchemaPattern the schema name of the primary table (must be
-     *            specified)
+     * @param primarySchemaPattern the schema name of the primary table
+     *          (optional)
      * @param primaryTable the name of the primary table (must be specified)
      * @param foreignCatalogPattern null or the catalog name
-     * @param foreignSchemaPattern the schema name of the foreign table (must be
-     *            specified)
+     * @param foreignSchemaPattern the schema name of the foreign table
+     *          (optional)
      * @param foreignTable the name of the foreign table (must be specified)
      * @return the result set
      * @throws SQLException if the connection is closed

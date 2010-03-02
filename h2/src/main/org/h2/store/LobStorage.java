@@ -4,33 +4,33 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.utils;
+package org.h2.store;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Random;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
-import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
-import org.h2.util.Profiler;
+import org.h2.value.ValueLob;
 
-/**
- * Implementation and tests of a LOB storage mechanism that splits LOBs in
- * blocks.
- */
-public class TestLob {
+public class LobStorage {
+
+    /**
+     * The 'table id' to use for session variables.
+     */
+    public static final int TABLE_ID_SESSION_VARIABLE = -1;
+
+    // TODO test recovery
 
     private static final String LOBS = "INFORMATION_SCHEMA.LOBS";
     private static final String LOB_MAP = "INFORMATION_SCHEMA.LOB_MAP";
@@ -44,43 +44,61 @@ public class TestLob {
     private long nextLob;
     private long nextBlock;
 
-    /**
-     * The LOB identifier.
-     */
-    private static class LobId {
-
-        private long id;
-        private long length;
-
-        LobId(long id, long length) {
-            this.id = id;
-            this.length = length;
+    public static void removeAllForTable(DataHandler handler, int tableId) {
+        if (SysProperties.LOB_IN_DATABASE) {
+            // remove both lobs in the database as well as in the file system
         }
+        ValueLob.removeAllForTable(handler, tableId);
+    }
 
-        long getId() {
-            return id;
+    public static ValueLob createSmallLob(int type, byte[] small) {
+        if (SysProperties.LOB_IN_DATABASE) {
+            return null;
         }
+        return ValueLob.createSmallLob(type, small);
+    }
 
-        long getLength() {
-            return length;
+    public static ValueLob createBlob(InputStream in, long length, DataHandler handler) {
+        if (SysProperties.LOB_IN_DATABASE) {
+            return null;
         }
+        return ValueLob.createBlob(in, length, handler);
+    }
 
+    public static ValueLob createClob(Reader in, long length, DataHandler handler) {
+        if (SysProperties.LOB_IN_DATABASE) {
+            return null;
+        }
+        return ValueLob.createClob(in, length, handler);
     }
 
     /**
      * An input stream that reads from a LOB.
      */
-    class LobInputStream extends InputStream {
+    public static class LobInputStream extends InputStream {
 
+        private Connection conn;
+        private PreparedStatement prepSelect;
         private byte[] buffer;
         private int pos;
         private long remaining;
         private long lob;
         private int seq;
 
-        LobInputStream(long lob, long length) {
-            this.lob = lob;
-            this.remaining = length;
+        public LobInputStream(Connection conn, long lob) throws IOException {
+            try {
+                this.lob = lob;
+                PreparedStatement prep = conn.prepareStatement(
+                        "SELECT LENGTH FROM " + LOBS + " WHERE ID = ?");
+                prep.setLong(1, lob);
+                ResultSet rs = prep.executeQuery();
+                if (!rs.next()) {
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "lob: "+ lob + " seq: " + seq).getSQLException();
+
+                }
+            } catch (SQLException e) {
+                throw DbException.convertToIOException(e);
+            }
         }
 
         public int read() throws IOException {
@@ -129,13 +147,15 @@ public class TestLob {
                 return;
             }
             try {
-                PreparedStatement prep = prepare(
-                    "SELECT DATA FROM " + LOB_MAP + " M " +
-                    "INNER JOIN " + LOB_DATA + " D ON M.BLOCK = D.BLOCK " +
-                    "WHERE M.LOB = ? AND M.SEQ = ?");
-                prep.setLong(1, lob);
-                prep.setInt(2, seq);
-                ResultSet rs = prep.executeQuery();
+                if (prepSelect == null) {
+                    prepSelect = conn.prepareStatement(
+                        "SELECT DATA FROM " + LOB_MAP + " M " +
+                        "INNER JOIN " + LOB_DATA + " D ON M.BLOCK = D.BLOCK " +
+                        "WHERE M.LOB = ? AND M.SEQ = ?");
+                }
+                prepSelect.setLong(1, lob);
+                prepSelect.setInt(2, seq);
+                ResultSet rs = prepSelect.executeQuery();
                 if (!rs.next()) {
                     throw DbException.get(ErrorCode.IO_EXCEPTION_1, "lob: "+ lob + " seq: " + seq).getSQLException();
                 }
@@ -149,144 +169,29 @@ public class TestLob {
 
     }
 
-    /**
-     * Run just this test.
-     *
-     * @param a ignored
-     */
-    public static void main(String... a) throws Exception {
-        new TestLob().test();
-    }
-
-    private void test() throws Exception {
-        DeleteDbFiles.execute("data", "test", true);
-        org.h2.Driver.load();
-        Connection c = DriverManager.getConnection("jdbc:h2:data/test");
-        init(c);
-        c = DriverManager.getConnection("jdbc:h2:data/test");
-
-//        int len = 10 * 1024 * 1024;
-//        block: 1394
-//        regular: 725
-
-//        int len = 16 * 1024;
-//        block: 1817
-//        regular: 4552
-
-//        int len = 32 * 1024;
-//        block: 1712 / 636
-//                regular: 2255
-
-        int len = 64 * 1024;
-//        block: 1540 / 590
-//        regular: 1385
-
-//        int len = 1024 * 1024;
-//        block: 1682 / 560
-//        regular: 455
-
-//        int len = 128 * 1024;
-//        block: 1516
-//        regular: 1020
-
-
-        int repeat = 6;
-        int count = (int) (52428800L / len);
-        byte[] buff = new byte[len];
-        Random random = new Random(1);
-        random.nextBytes(buff);
-
-        LobId lob = addLob(new ByteArrayInputStream(buff), -1, -1);
-        InputStream in = getInputStream(lob);
-        for (int i = 0; i < len; i++) {
-            int x = in.read();
-            if (x != (buff[i] & 255)) {
-                throw new AssertionError();
+    public LobStorage(Connection newConn) {
+        try {
+            this.conn = newConn;
+            Statement stat = conn.createStatement();
+            // stat.execute("SET UNDO_LOG 0");
+            // stat.execute("SET REDO_LOG_BINARY 0");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, LENGTH BIGINT, TABLE INT)");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ))");
+            stat.execute("CREATE INDEX INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, DATA BINARY)");
+            ResultSet rs;
+            rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
+            rs.next();
+            nextBlock = rs.getLong(1) + 1;
+            if (HASH) {
+                nextBlock = Math.max(UNIQUE + 1, nextLob);
             }
+            rs = stat.executeQuery("SELECT MAX(ID) FROM " + LOBS);
+            rs.next();
+            nextLob = rs.getLong(1) + 1;
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
-        if (in.read() != -1) {
-            throw new AssertionError();
-        }
-
-        Statement stat = c.createStatement();
-        stat.execute("create table test(id int primary key, data blob)");
-        PreparedStatement prep = conn.prepareStatement("insert into test(id, data) values(?, ?)");
-        Profiler prof = new Profiler();
-        prof.interval = 1;
-        prof.startCollecting();
-        int x = 0, y = 0;
-        ArrayList<LobId> list = New.arrayList();
-        for (int j = 0; j < repeat; j++) {
-            boolean regular = (j & 1) == 1;
-            long time = System.currentTimeMillis();
-            for (int i = 0; i < count; i++) {
-                // random.nextBytes(buff);
-                if (regular) {
-//                    prep.setInt(1, x++);
-//                    prep.setBinaryStream(2, new ByteArrayInputStream(buff), len);
-//                    prep.execute();
-                } else {
-                    LobId id = addLob(new ByteArrayInputStream(buff), -1, -1);
-                    list.add(id);
-                }
-            }
-            System.out.println((regular ? "regular: " : "block: ") + (System.currentTimeMillis() - time));
-        }
-
-        System.out.println("read------------");
-        x = 0;
-        y = 0;
-        prep = conn.prepareStatement("select data from test where id = ?");
-        byte[] buff2 = new byte[1024];
-        for (int j = 0; j < repeat; j++) {
-            boolean regular = (j & 1) == 1;
-            long time = System.currentTimeMillis();
-            for (int i = 0; i < count * 10; i++) {
-                InputStream in2 = null;
-                if (regular) {
-//                    prep.setInt(1, x++ % repeat);
-//                    ResultSet rs = prep.executeQuery();
-//                    rs.next();
-//                    in2 = rs.getBinaryStream(1);
-                } else {
-                    in2 = getInputStream(list.get(y++ % repeat));
-                }
-                if (in2 != null) {
-                    while (true) {
-                        int len2 = in2.read(buff2);
-                        if (len2 < 0) {
-                            break;
-                        }
-                    }
-                }
-            }
-            System.out.println((regular ? "regular: " : "block: ") + (System.currentTimeMillis() - time));
-        }
-
-        prof.stopCollecting();
-        System.out.println(prof.getTop(5));
-        c.close();
-    }
-
-    private void init(Connection newConn) throws SQLException {
-        this.conn = newConn;
-        Statement stat = conn.createStatement();
-        // stat.execute("SET UNDO_LOG 0");
-        // stat.execute("SET REDO_LOG_BINARY 0");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, LENGTH BIGINT, TABLE INT)");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ))");
-        stat.execute("CREATE INDEX INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, DATA BINARY)");
-        ResultSet rs;
-        rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
-        rs.next();
-        nextBlock = rs.getLong(1) + 1;
-        if (HASH) {
-            nextBlock = Math.max(UNIQUE + 1, nextLob);
-        }
-        rs = stat.executeQuery("SELECT MAX(ID) FROM " + LOBS);
-        rs.next();
-        nextLob = rs.getLong(1) + 1;
     }
 
     protected synchronized PreparedStatement prepare(String sql) throws SQLException {
@@ -320,7 +225,7 @@ public class TestLob {
         prep.execute();
     }
 
-    private LobId addLob(InputStream in, long maxLength, int table) throws SQLException {
+    public long addLob(InputStream in, long maxLength, int table) throws SQLException {
         byte[] buff = new byte[BLOCK_LENGTH];
         if (maxLength < 0) {
             maxLength = Long.MAX_VALUE;
@@ -384,17 +289,15 @@ public class TestLob {
             prep.setLong(2, length);
             prep.setInt(3, table);
             prep.execute();
-            return new LobId(lob, length);
+            return lob;
         } catch (IOException e) {
             deleteLob(lob);
             throw DbException.convertIOException(e, "adding blob");
         }
     }
 
-    private InputStream getInputStream(LobId lobId) {
-        long id = lobId.getId();
-        long length = lobId.getLength();
-        return new LobInputStream(id, length);
+    public InputStream getInputStream(long id) throws IOException {
+        return new LobInputStream(conn, id);
     }
 
 }

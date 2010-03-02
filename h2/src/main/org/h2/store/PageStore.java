@@ -1423,7 +1423,7 @@ public class PageStore implements CacheWriter {
         int key = index.getId() + 1;
         Row row = metaIndex.getRow(session, key);
         if (row.getKey() != key) {
-            DbException.throwInternalError();
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "key: " + key + " index: " + index + " row: " + row);
         }
         metaIndex.remove(session, row);
     }

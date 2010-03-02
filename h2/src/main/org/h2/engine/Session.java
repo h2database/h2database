@@ -28,10 +28,10 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
+import org.h2.store.LobStorage;
 import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.value.Value;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -81,7 +81,7 @@ public class Session extends SessionWithState implements SessionFactory {
     private String currentSchemaName;
     private String[] schemaSearchPath;
     private String traceModuleName;
-    private HashMap<String, ValueLob> unlinkMap;
+    private HashMap<String, Value> unlinkLobMap;
     private int systemIdentifier;
     private HashMap<String, Procedure> procedures;
     private boolean undoLogEnabled = true;
@@ -144,10 +144,8 @@ public class Session extends SessionWithState implements SessionFactory {
         if (value == ValueNull.INSTANCE) {
             old = variables.remove(name);
         } else {
-            if (value instanceof ValueLob) {
-                // link it, to make sure we have our own file
-                value = value.link(database, ValueLob.TABLE_ID_SESSION_VARIABLE);
-            }
+            // link LOB values, to make sure we have our own object
+            value = value.link(database, LobStorage.TABLE_ID_SESSION_VARIABLE);
             old = variables.put(name, value);
         }
         if (old != null) {
@@ -476,14 +474,14 @@ public class Session extends SessionWithState implements SessionFactory {
                 autoCommitAtTransactionEnd = false;
             }
         }
-        if (unlinkMap != null && unlinkMap.size() > 0) {
+        if (unlinkLobMap != null && unlinkLobMap.size() > 0) {
             // need to flush the transaction log, because we can't unlink lobs if the
             // commit record is not written
             database.flush();
-            for (Value v : unlinkMap.values()) {
+            for (Value v : unlinkLobMap.values()) {
                 v.unlink();
             }
-            unlinkMap = null;
+            unlinkLobMap = null;
         }
         unlockAll();
     }
@@ -913,14 +911,14 @@ public class Session extends SessionWithState implements SessionFactory {
      *
      * @param v the value
      */
-    public void unlinkAtCommit(ValueLob v) {
+    public void unlinkAtCommit(Value v) {
         if (SysProperties.CHECK && !v.isLinked()) {
             DbException.throwInternalError();
         }
-        if (unlinkMap == null) {
-            unlinkMap = New.hashMap();
+        if (unlinkLobMap == null) {
+            unlinkLobMap = New.hashMap();
         }
-        unlinkMap.put(v.toString(), v);
+        unlinkLobMap.put(v.toString(), v);
     }
 
     /**
@@ -929,8 +927,8 @@ public class Session extends SessionWithState implements SessionFactory {
      * @param v the value
      */
     public void unlinkAtCommitStop(Value v) {
-        if (unlinkMap != null) {
-            unlinkMap.remove(v.toString());
+        if (unlinkLobMap != null) {
+            unlinkLobMap.remove(v.toString());
         }
     }
 

@@ -15,7 +15,6 @@ import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.util.New;
 import org.h2.value.Value;
-import org.h2.value.ValueLob;
 
 /**
  * A list of rows. If the list grows too large, it is buffered to disk
@@ -29,7 +28,7 @@ public class RowList {
     private int index, listIndex;
     private FileStore file;
     private Data rowBuff;
-    private ArrayList<ValueLob> lobs;
+    private ArrayList<Value> lobs;
     private int memory, maxMemory;
     private boolean written;
     private boolean readUncached;
@@ -65,17 +64,15 @@ public class RowList {
                 if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
                     // need to keep a reference to temporary lobs,
                     // otherwise the temp file is deleted
-                    ValueLob lob = (ValueLob) v;
-                    if (lob.getSmall() == null && lob.getTableId() == 0) {
+                    if (v.getSmall() == null && v.getTableId() == 0) {
                         if (lobs == null) {
                             lobs = New.arrayList();
                         }
                         // need to create a copy, otherwise,
                         // if stored multiple times, it may be renamed
                         // and then not found
-                        lob = lob.copyToTemp();
-                        lobs.add(lob);
-                        v = lob;
+                        v = v.copyToTemp();
+                        lobs.add(v);
                     }
                 }
                 buff.checkCapacity(buff.getValueLen(v));
@@ -182,11 +179,10 @@ public class RowList {
             } else {
                 v = buff.readValue();
                 if (v.isLinked()) {
-                    ValueLob lob = (ValueLob) v;
                     // the table id is 0 if it was linked when writing
                     // a temporary entry
-                    if (lob.getTableId() == 0) {
-                        session.unlinkAtCommit(lob);
+                    if (v.getTableId() == 0) {
+                        session.unlinkAtCommit(v);
                     }
                 }
             }

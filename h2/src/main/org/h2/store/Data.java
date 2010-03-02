@@ -653,7 +653,7 @@ public class Data {
             if (smallLen >= 0) {
                 byte[] small = Utils.newBytes(smallLen);
                 read(small, 0, smallLen);
-                return ValueLob.createSmallLob(type, small);
+                return LobStorage.createSmallLob(type, small);
             }
             int tableId = readVarInt();
             int objectId = readVarInt();

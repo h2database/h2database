@@ -21,10 +21,11 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
+import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * This is the base class for all value classes.
@@ -705,7 +706,7 @@ public abstract class Value {
         case BLOB: {
             switch(getType()) {
             case BYTES:
-                return ValueLob.createSmallLob(Value.BLOB, getBytesNoCopy());
+                return LobStorage.createSmallLob(Value.BLOB, getBytesNoCopy());
             }
             break;
         }
@@ -763,9 +764,9 @@ public abstract class Value {
             case FLOAT:
                 return ValueFloat.get(Float.parseFloat(s.trim()));
             case CLOB:
-                return ValueLob.createSmallLob(CLOB, StringUtils.utf8Encode(s));
+                return LobStorage.createSmallLob(CLOB, StringUtils.utf8Encode(s));
             case BLOB:
-                return ValueLob.createSmallLob(BLOB, Utils.convertStringToBytes(s.trim()));
+                return LobStorage.createSmallLob(BLOB, Utils.convertStringToBytes(s.trim()));
             case ARRAY:
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {
@@ -976,6 +977,18 @@ public abstract class Value {
      */
     protected DbException throwUnsupportedExceptionForType() {
         throw DbException.getUnsupportedException(DataType.getDataType(getType()).name);
+    }
+
+    public int getTableId() {
+        return 0;
+    }
+
+    public byte[] getSmall() {
+        return null;
+    }
+
+    public Value copyToTemp() {
+        return this;
     }
 
 }

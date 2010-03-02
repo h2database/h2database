@@ -1150,29 +1150,14 @@ public abstract class TestBase {
      */
     protected void eatMemory(int remainingKB) {
         byte[] reserve = new byte[remainingKB * 1024];
-        int max = 128 * 1024 * 1024;
-        int div = 2;
-        while (true) {
-            long free = Runtime.getRuntime().freeMemory();
-            long freeTry = free / div;
-            int eat = (int) Math.min(max, freeTry);
-            try {
-                byte[] block = new byte[eat];
-                memory.add(block);
-            } catch (OutOfMemoryError e) {
-                if (eat < 32) {
+        // first, eat memory in 16 KB blocks, then eat in 16 byte blocks
+        for (int size = 16 * 1024; size > 0; size /= 1024) {
+            while (true) {
+                try {
+                    byte[] block = new byte[16 * 1024];
+                    memory.add(block);
+                } catch (OutOfMemoryError e) {
                     break;
-                }
-                if (eat == max) {
-                    max /= 2;
-                    if (max < 128) {
-                        break;
-                    }
-                }
-                if (eat == freeTry) {
-                    div += 1;
-                } else {
-                    div = 2;
                 }
             }
         }

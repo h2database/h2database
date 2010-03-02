@@ -15,10 +15,11 @@ import java.util.IdentityHashMap;
 import java.util.Random;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
+import org.h2.store.LobStorage;
 import org.h2.test.TestBase;
-import org.h2.util.Utils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -30,7 +31,6 @@ import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueJavaObject;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueShort;
@@ -137,12 +137,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.BLOB: {
             int len = (int) Math.abs(random.nextGaussian() * 10);
             byte[] data = randomBytes(len);
-            return ValueLob.createBlob(new ByteArrayInputStream(data), len, this);
+            return LobStorage.createBlob(new ByteArrayInputStream(data), len, this);
         }
         case Value.CLOB: {
             int len = (int) Math.abs(random.nextGaussian() * 10);
             String s = randomString(len);
-            return ValueLob.createClob(new StringReader(s), len, this);
+            return LobStorage.createClob(new StringReader(s), len, this);
         }
         case Value.ARRAY: {
             int len = random.nextInt(20);
@@ -224,6 +224,10 @@ public class TestValueMemory extends TestBase implements DataHandler {
 
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
+    }
+
+    public LobStorage getLobStorage() {
+        return null;
     }
 
 }

@@ -18,9 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>In versions 1.2.129 and 1.2.130, a database could not be opened sometimes
+<ul><li>Older versions of H2 (version 1.2.127 and older) could not connect to a new version (version 1.2.129 and newer).
+    The connection blocked when trying to connect. Now the connection no longer blocks, instead a SQL exception is thrown.
+</li><li>In versions 1.2.129 and 1.2.130, a database could not be opened sometimes
     after dropping tables or indexes, and then creating new indexes for existing tables.
-    The exception contained the text "Table not found".
+    The exception contained the text "parent not found" (version 1.2.129) or 
+    "Table not found" (version 1.2.130).
 </li><li>After the database was closed, a null pointer exception could occur in Database.flush.
 </li></ul>
 

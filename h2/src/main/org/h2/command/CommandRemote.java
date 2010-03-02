@@ -67,7 +67,7 @@ public class CommandRemote implements CommandInterface {
                     s.traceOperation("SESSION_PREPARE", id);
                     transfer.writeInt(SessionRemote.SESSION_PREPARE).writeInt(id).writeString(sql);
                 }
-                s.convert(transfer);
+                s.done(transfer);
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
                 paramCount = transfer.readInt();
@@ -122,7 +122,7 @@ public class CommandRemote implements CommandInterface {
                 try {
                     session.traceOperation("COMMAND_GET_META_DATA", id);
                     transfer.writeInt(SessionRemote.COMMAND_GET_META_DATA).writeInt(id).writeInt(objectId);
-                    session.convert(transfer);
+                    session.done(transfer);
                     int columnCount = transfer.readInt();
                     result = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
                     break;
@@ -155,7 +155,7 @@ public class CommandRemote implements CommandInterface {
                     }
                     transfer.writeInt(fetch);
                     sendParameters(transfer);
-                    session.convert(transfer);
+                    session.done(transfer);
                     int columnCount = transfer.readInt();
                     if (result != null) {
                         result.close();
@@ -187,7 +187,7 @@ public class CommandRemote implements CommandInterface {
                     session.traceOperation("COMMAND_EXECUTE_UPDATE", id);
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
-                    session.convert(transfer);
+                    session.done(transfer);
                     updateCount = transfer.readInt();
                     autoCommit = transfer.readBoolean();
                 } catch (IOException e) {

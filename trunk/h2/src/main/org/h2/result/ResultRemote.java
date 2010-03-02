@@ -203,7 +203,7 @@ public class ResultRemote implements ResultInterface {
                 if (sendFetch) {
                     session.traceOperation("RESULT_FETCH_ROWS", id);
                     transfer.writeInt(SessionRemote.RESULT_FETCH_ROWS).writeInt(id).writeInt(fetch);
-                    session.convert(transfer);
+                    session.done(transfer);
                 }
                 for (int r = 0; r < fetch; r++) {
                     boolean row = transfer.readBoolean();

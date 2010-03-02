@@ -18,11 +18,11 @@ import org.h2.engine.UndoLogRecord;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.store.LobStorage;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.New;
-import org.h2.value.ValueLob;
 
 /**
  * The scan index is not really an 'index' in the strict sense, because it can
@@ -55,7 +55,7 @@ public class ScanIndex extends BaseIndex {
         rows = New.arrayList();
         firstFree = -1;
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
-            ValueLob.removeAllForTable(database, table.getId());
+            LobStorage.removeAllForTable(database, table.getId());
         }
         tableData.setRowCount(0);
         rowCount = 0;

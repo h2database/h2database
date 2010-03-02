@@ -24,6 +24,7 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
+import org.h2.store.LobStorage;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
@@ -220,6 +221,10 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {
+        return null;
+    }
+
+    public LobStorage getLobStorage() {
         return null;
     }
 

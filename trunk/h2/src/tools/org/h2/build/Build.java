@@ -532,6 +532,10 @@ public class Build extends BuildBase {
      * Compile and run all tests.
      */
     public void test() {
+        // for TestOldVersion
+        download("ext/h2-1.2.127.jar",
+                "http://repo1.maven.org/maven2/com/h2database/h2/1.2.127/h2-1.2.127.jar",
+                "056e784c7cf009483366ab9cd8d21d02fe47031a");
         compile();
         java("org.h2.test.TestAll", null);
     }

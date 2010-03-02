@@ -30,6 +30,7 @@ import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.store.LobStorage;
 import org.h2.util.Utils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -539,23 +540,23 @@ public class DataType {
             }
             case Value.CLOB: {
                 if (session == null) {
-                    v = ValueLob.createSmallLob(Value.CLOB, StringUtils.utf8Encode(rs.getString(columnIndex)));
+                    v = LobStorage.createSmallLob(Value.CLOB, StringUtils.utf8Encode(rs.getString(columnIndex)));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {
                         v = ValueNull.INSTANCE;
                     } else {
-                        v = ValueLob.createClob(new BufferedReader(in), -1, session.getDataHandler());
+                        v = LobStorage.createClob(new BufferedReader(in), -1, session.getDataHandler());
                     }
                 }
                 break;
             }
             case Value.BLOB: {
                 if (session == null) {
-                    v = ValueLob.createSmallLob(Value.BLOB, rs.getBytes(columnIndex));
+                    v = LobStorage.createSmallLob(Value.BLOB, rs.getBytes(columnIndex));
                 } else {
                     InputStream in = rs.getBinaryStream(columnIndex);
-                    v = (in == null) ? (Value) ValueNull.INSTANCE : ValueLob.createBlob(in, -1, session.getDataHandler());
+                    v = (in == null) ? (Value) ValueNull.INSTANCE : LobStorage.createBlob(in, -1, session.getDataHandler());
                 }
                 break;
             }
@@ -863,19 +864,19 @@ public class DataType {
             return ValueTimestamp.get(new Timestamp(((java.util.Date) x).getTime()));
         } else if (x instanceof java.io.Reader) {
             Reader r = new BufferedReader((java.io.Reader) x);
-            return ValueLob.createClob(r, -1, session.getDataHandler());
+            return LobStorage.createClob(r, -1, session.getDataHandler());
         } else if (x instanceof java.sql.Clob) {
             try {
                 Reader r = new BufferedReader(((java.sql.Clob) x).getCharacterStream());
-                return ValueLob.createClob(r, -1, session.getDataHandler());
+                return LobStorage.createClob(r, -1, session.getDataHandler());
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
         } else if (x instanceof java.io.InputStream) {
-            return ValueLob.createBlob((java.io.InputStream) x, -1, session.getDataHandler());
+            return LobStorage.createBlob((java.io.InputStream) x, -1, session.getDataHandler());
         } else if (x instanceof java.sql.Blob) {
             try {
-                return ValueLob.createBlob(((java.sql.Blob) x).getBinaryStream(), -1, session.getDataHandler());
+                return LobStorage.createBlob(((java.sql.Blob) x).getBinaryStream(), -1, session.getDataHandler());
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }

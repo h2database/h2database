@@ -118,6 +118,7 @@ import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestNetUtils;
+import org.h2.test.unit.TestOldVersion;
 import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPageStore;
 import org.h2.test.unit.TestPattern;
@@ -292,6 +293,15 @@ java org.h2.test.TestAll timer
 
 power failure test: larger binaries and additional index.
 
+drop table test;
+create table test(id identity, name varchar(100) default space(100));
+@LOOP 10 insert into test select null, null from system_range(1, 100000);
+delete from test;
+insert 50,000,000 tuples into table
+2. execute 'delete table where (always true)'
+
+compatibility test for tcp/ip
+
 rename Page* classes
 move classes to the right packages
 
@@ -400,6 +410,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         memory = true;
         test();
 
+        memory = false;
+        networked = false;
         diskUndo = true;
         diskResult = true;
         traceLevelFile = 3;
@@ -568,6 +580,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
         new TestMathUtils().runTest(this);
+        new TestOldVersion().runTest(this);
         new TestNetUtils().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);

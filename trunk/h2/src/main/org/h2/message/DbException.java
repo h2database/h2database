@@ -80,8 +80,7 @@ public class DbException extends RuntimeException {
                     params[i] = StringUtils.quoteIdentifier(s);
                 }
             }
-            Object[] o = params;
-            message = MessageFormat.format(message, o);
+            message = MessageFormat.format(message, (Object[]) params);
         }
         return message;
     }

@@ -29,6 +29,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
+import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Utils;
 import org.h2.util.ExactUTF8InputStreamReader;
@@ -483,7 +484,7 @@ public class Transfer {
             return ValueStringFixed.get(readString());
         case Value.BLOB: {
             long length = readLong();
-            ValueLob v = ValueLob.createBlob(in, length, session.getDataHandler());
+            Value v = LobStorage.createBlob(in, length, session.getDataHandler());
             int magic = readInt();
             if (magic != LOB_MAGIC) {
                 throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
@@ -492,7 +493,7 @@ public class Transfer {
         }
         case Value.CLOB: {
             long length = readLong();
-            ValueLob v = ValueLob.createClob(new ExactUTF8InputStreamReader(in), length, session.getDataHandler());
+            Value v = LobStorage.createClob(new ExactUTF8InputStreamReader(in), length, session.getDataHandler());
             int magic = readInt();
             if (magic != LOB_MAGIC) {
                 throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);

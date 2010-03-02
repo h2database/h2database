@@ -23,7 +23,7 @@ import org.h2.message.TraceSystem;
 import org.h2.result.ResultInterface;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
-import org.h2.util.Utils;
+import org.h2.store.LobStorage;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -31,6 +31,7 @@ import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.util.Utils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
@@ -95,9 +96,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(clientVersion);
-        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
-            trans.writeInt(clientVersion);
-        }
+        trans.writeInt(clientVersion);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -109,7 +108,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             trans.writeString(key).writeString(ci.getProperty(key));
         }
         try {
-            convert(trans);
+            done(trans);
             if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
                 clientVersion = trans.readInt();
             }
@@ -180,7 +179,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                 try {
                     traceOperation("COMMAND_COMMIT", 0);
                     transfer.writeInt(SessionRemote.COMMAND_COMMIT);
-                    convert(transfer);
+                    done(transfer);
                 } catch (IOException e) {
                     removeServer(e, i--, ++count);
                 }
@@ -364,7 +363,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                         traceOperation("SESSION_SET_ID", 0);
                         transfer.writeInt(SessionRemote.SESSION_SET_ID);
                         transfer.writeString(sessionId);
-                        convert(transfer);
+                        done(transfer);
                     } catch (Exception e) {
                         trace.error("sessionSetId", e);
                     }
@@ -456,7 +455,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                     try {
                         traceOperation("SESSION_CLOSE", 0);
                         transfer.writeInt(SessionRemote.SESSION_CLOSE);
-                        convert(transfer);
+                        done(transfer);
                         transfer.close();
                     } catch (Exception e) {
                         trace.error("close", e);
@@ -494,7 +493,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
      * @throws IOException if there is a communication problem between client
      *             and server
      */
-    public void convert(Transfer transfer) throws IOException {
+    public void done(Transfer transfer) throws IOException {
         transfer.flush();
         int status = transfer.readInt();
         if (status == STATUS_ERROR) {
@@ -618,6 +617,10 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
 
     public void afterWriting() {
         // nothing to do
+    }
+
+    public LobStorage getLobStorage() {
+        return null;
     }
 
 }

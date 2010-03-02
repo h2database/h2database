@@ -65,9 +65,13 @@ public class TcpServerThread implements Runnable {
             // TODO server: should support a list of allowed databases
             // and a list of allowed clients
             try {
-                clientVersion = transfer.readInt();
                 if (!server.allow(transfer.getSocket())) {
                     throw DbException.get(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
+                }
+                clientVersion = transfer.readInt();
+                if (clientVersion < Constants.TCP_PROTOCOL_VERSION) {
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "current client version: " +
+                            clientVersion + "; minimum version: " + Constants.TCP_PROTOCOL_VERSION);
                 }
                 // max version (currently not used)
                 transfer.readInt();

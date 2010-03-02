@@ -256,6 +256,12 @@ public class SysProperties {
     public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
 
     /**
+     * System property <code>h2.lobInDatabase</code> (default: false).<br />
+     * Store LOB files in the database.
+     */
+    public static final boolean LOB_IN_DATABASE = getBooleanSetting("h2.lobInDatabase", false);
+
+    /**
      * System property <code>h2.logAllErrors</code> (default: false).<br />
      * Write stack traces of any kind of error to a file.
      */

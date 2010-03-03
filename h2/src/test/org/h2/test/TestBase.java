@@ -1135,15 +1135,6 @@ public abstract class TestBase {
     }
 
     /**
-     * Get the page store property to use when starting new processes.
-     *
-     * @return the property
-     */
-    public String getPageStoreProperty() {
-        return "-Dh2.pageStore=" + System.getProperty("h2.pageStore");
-    }
-
-    /**
      * Use up almost all memory.
      *
      * @param remainingKB the number of kilobytes that are not referenced

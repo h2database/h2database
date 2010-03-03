@@ -45,7 +45,7 @@ public class TestKillRestartMulti extends TestBase {
         user = getUser();
         password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = new String[] { "java", selfDestruct, getPageStoreProperty(),
+        String[] procDef = new String[] { "java", selfDestruct,
                 "-cp", getClassPath(),
                 getClass().getName(), "-url", url, "-user", user,
                 "-password", password };

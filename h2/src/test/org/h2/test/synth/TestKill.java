@@ -48,7 +48,7 @@ public class TestKill extends TestBase {
         String password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = new String[] {
-                "java", selfDestruct, getPageStoreProperty(),
+                "java", selfDestruct,
                 "-cp", getClassPath(),
                 "org.h2.test.synth.TestKillProcess", url, user,
                 password, baseDir, "" + accounts };

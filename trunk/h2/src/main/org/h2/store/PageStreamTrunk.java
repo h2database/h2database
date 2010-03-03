@@ -272,4 +272,8 @@ public class PageStreamTrunk extends Page {
         return true;
     }
 
+    public String toString() {
+        return "page[" + getPos() + "] stream trunk key:" + logKey + " next:" + nextTrunk;
+    }
+
 }

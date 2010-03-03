@@ -937,8 +937,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
-     * @param schemaPattern null (to get all objects) or a schema name
-     *            (uppercase for unquoted names)
+     * @param schema null (to get all objects) or a schema name
      * @param tableName table name (must be specified)
      * @return an empty result set
      * @throws SQLException if the connection is closed

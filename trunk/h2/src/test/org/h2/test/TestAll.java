@@ -297,10 +297,6 @@ drop table test;
 create table test(id identity, name varchar(100) default space(100));
 @LOOP 10 insert into test select null, null from system_range(1, 100000);
 delete from test;
-insert 50,000,000 tuples into table
-2. execute 'delete table where (always true)'
-
-compatibility test for tcp/ip
 
 rename Page* classes
 move classes to the right packages

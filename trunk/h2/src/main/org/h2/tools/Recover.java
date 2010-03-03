@@ -1077,6 +1077,8 @@ public class Recover extends Tool implements DataHandler {
         }
         writer.println("DROP ALIAS READ_CLOB;");
         writer.println("DROP ALIAS READ_BLOB;");
+        writer.println("DROP ALIAS READ_CLOB_DB;");
+        writer.println("DROP ALIAS READ_BLOB_DB;");
         for (MetaRecord m : schema) {
             String sql = m.getSQL();
             // everything except create

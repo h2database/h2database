@@ -94,6 +94,7 @@ public class Build extends BuildBase {
      * Run the Emma code coverage.
      */
     public void coverage() {
+        downloadTest();
         download("ext/emma-2.0.5312.jar",
                 "http://repo2.maven.org/maven2/emma/emma/2.0.5312/emma-2.0.5312.jar",
                 "30a40933caf67d88d9e75957950ccf353b181ab7");
@@ -223,6 +224,13 @@ public class Build extends BuildBase {
         download("ext/org.osgi.core-1.2.0.jar",
                 "http://repo1.maven.org/maven2/org/apache/felix/org.osgi.core/1.2.0/org.osgi.core-1.2.0.jar",
                 "3006beb1ca6a83449def6127dad3c060148a0209");
+    }
+
+    private void downloadTest() {
+        // for TestOldVersion
+        download("ext/h2-1.2.127.jar",
+                "http://repo1.maven.org/maven2/com/h2database/h2/1.2.127/h2-1.2.127.jar",
+                "056e784c7cf009483366ab9cd8d21d02fe47031a");
     }
 
     private String getVersion() {
@@ -532,10 +540,7 @@ public class Build extends BuildBase {
      * Compile and run all tests.
      */
     public void test() {
-        // for TestOldVersion
-        download("ext/h2-1.2.127.jar",
-                "http://repo1.maven.org/maven2/com/h2database/h2/1.2.127/h2-1.2.127.jar",
-                "056e784c7cf009483366ab9cd8d21d02fe47031a");
+        downloadTest();
         compile();
         java("org.h2.test.TestAll", null);
     }

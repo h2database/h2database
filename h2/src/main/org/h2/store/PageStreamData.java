@@ -154,7 +154,7 @@ public class PageStreamData extends Page {
     }
 
     public String toString() {
-        return "[" + getPos() + "] stream data pos:" + data.length() + " remaining:" + remaining;
+        return "[" + getPos() + "] stream data key:" + logKey + " pos:" + data.length() + " remaining:" + remaining;
     }
 
     public boolean canRemove() {

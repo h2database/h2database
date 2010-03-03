@@ -291,7 +291,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+power failure test
 power failure test: larger binaries and additional index.
+power failure test with randomly generating / dropping indexes and tables.
 
 drop table test;
 create table test(id identity, name varchar(100) default space(100));

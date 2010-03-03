@@ -15,11 +15,11 @@ import org.h2.util.IOUtils;
 /**
  * Catches the output of another process.
  */
-class OutputCatcher extends Thread {
+public class OutputCatcher extends Thread {
     private InputStream in;
     private LinkedList<String> list = new LinkedList<String>();
 
-    OutputCatcher(InputStream in) {
+    public OutputCatcher(InputStream in) {
         this.in = in;
     }
 
@@ -29,7 +29,7 @@ class OutputCatcher extends Thread {
      * @param wait the maximum number of milliseconds to wait
      * @return the line
      */
-    String readLine(long wait) {
+    public String readLine(long wait) {
         long start = System.currentTimeMillis();
         while (true) {
             synchronized (list) {

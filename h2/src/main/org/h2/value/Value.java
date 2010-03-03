@@ -979,14 +979,29 @@ public abstract class Value {
         throw DbException.getUnsupportedException(DataType.getDataType(getType()).name);
     }
 
+    /**
+     * Get the table (only for LOB object).
+     *
+     * @return the table id
+     */
     public int getTableId() {
         return 0;
     }
 
+    /**
+     * Get the byte array.
+     *
+     * @return the byte array
+     */
     public byte[] getSmall() {
         return null;
     }
 
+    /**
+     * Copy this value to a temporary file if necessary.
+     *
+     * @return the new value
+     */
     public Value copyToTemp() {
         return this;
     }

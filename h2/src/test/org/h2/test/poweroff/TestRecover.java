@@ -243,6 +243,16 @@ public class TestRecover {
                 prepInsert = null;
                 prepDelete = null;
             }
+//            if (random.nextBoolean()) {
+//                int test;
+//                if (random.nextBoolean()) {
+//                    conn.createStatement().execute("drop index if exists idx_2");
+//                    conn.createStatement().execute("create table if not exists test2(id int primary key) as select x from system_range(1, 1000)");
+//                } else {
+//                    conn.createStatement().execute("create index if not exists idx_2 on test(d, name, id)");
+//                    conn.createStatement().execute("drop table if exists test2");
+//                }
+//            }
             if (random.nextBoolean()) {
                 if (prepInsert == null) {
                     prepInsert = conn.prepareStatement("INSERT INTO TEST(ID, D, NAME) VALUES(?, ?, ?)");

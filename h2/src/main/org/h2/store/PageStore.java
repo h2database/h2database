@@ -661,6 +661,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void writeVariableHeader() {
+        file.sync();
         Data page = createData();
         page.writeInt(0);
         page.writeLong(getWriteCountTotal());

@@ -230,10 +230,10 @@ public class Data {
      * @param len the new length
      */
     public void fill(int len) {
-        if (pos > len) {
-            pos = len;
-        }
         pos = len;
+        if (data.length < len) {
+            checkCapacity(len - data.length);
+        }
     }
 
     /**

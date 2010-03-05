@@ -76,7 +76,7 @@ public class TestCases extends TestBase {
         testCollation();
         deleteDb("cases");
     }
-    
+
     private void testDeleteIndexOutOfBounds() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -85,7 +85,7 @@ public class TestCases extends TestBase {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < 3000; i++) {
             builder.append("abc");
-            stat.execute("insert into test (txt) values ('" + builder.toString() + "');");            
+            stat.execute("insert into test (txt) values ('" + builder.toString() + "');");
         }
         stat.execute("DELETE FROM test;");
         conn.close();

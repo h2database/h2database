@@ -13,6 +13,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(81,
+'New version available: 1.2.131 (2010-03-05)', '2010-03-05 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(80,
 'New version available: 1.2.130 (2010-02-26)', '2010-02-26 12:00:00',
 $$A new version of H2 is available for
@@ -212,40 +225,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Issue 120: JaQu didn't close result sets.
 </li><li>Issue 119: JaQu creates wrong WHERE conditions on some inputs.
 </li><li>Temporary local tables did not always work after reconnect if AUTO_SERVER=TRUE
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(68,
-'New version available: 1.1.118 (2009-09-04)', '2009-09-04 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Better optimizations for OR, IN(..), and IN(SELECT..) are available.
-</li><li>Better support GaeVFS (Google App Engine Virtual File System).
-</li><li>JaQu: the plan is to support pure Java / Scala conditions using de-compilation.
-</li><li>Various tools now use Java 5 var-args.
-</li><li>H2 Console: indexes in non-default schemas are now listed.
-</li><li>H2 Console: PierPaolo Ucchino has completed the Italian translation. Thanks a lot!
-</li><li>The stack trace of common exceptions is no longer logged.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>SHOW COLUMNS only listed indexed columns.
-</li><li>When calling SHUTDOWN IMMEDIATELY, a file was not closed.
-</li><li>DatabaseMetaData.getPrimaryKeys: the wrong constraint name was reported.
-</li><li>AUTO_INCREMENT now does not create a primary key for ALTER TABLE.
-</li><li>Native fulltext search: FT_INIT() now only needs to be called once.
-</li><li>Various bugfixes and improvements in the page store mechanism.
-</li><li>PreparedStatement.setObject now supports java.lang.Character.
-</li><li>MVCC / duplicate primary key after rollback.
-</li><li>MVCC / wrong exception is thrown.
-</li><li>Sequence.NEXTVAL and CURRVAL did not respect the schema search path.
-</li><li>The exception "Row not found when trying to delete" was thrown sometimes.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

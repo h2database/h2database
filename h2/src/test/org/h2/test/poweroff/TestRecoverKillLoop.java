@@ -13,7 +13,8 @@ import org.h2.test.TestBase;
 import org.h2.test.synth.OutputCatcher;
 
 /**
- * Run the TestRecover test case in a loop. The process is killed after 10 seconds.
+ * Run the TestRecover test case in a loop. The process is killed after 10
+ * seconds.
  */
 public class TestRecoverKillLoop extends TestBase {
 

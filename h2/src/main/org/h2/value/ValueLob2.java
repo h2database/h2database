@@ -21,12 +21,14 @@ import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
 import org.h2.store.fs.FileSystem;
-import org.h2.store.fs.FileSystemMemory;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
+/**
+ * An alternate LOB implementation.
+ */
 public class ValueLob2 extends Value {
 
     /**
@@ -376,7 +378,6 @@ public class ValueLob2 extends Value {
     }
 
     private int getNewObjectId(DataHandler h) {
-        // TODO Auto-generated method stub
         return 0;
     }
 

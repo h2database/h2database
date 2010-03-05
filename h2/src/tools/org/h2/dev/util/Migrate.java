@@ -61,6 +61,7 @@ public class Migrate {
      * @throws Exception if conversion fails
      */
     public void execute(File file, boolean recursive, String user, String password, boolean runQuiet) throws Exception {
+        String pathToJavaExe = getJavaExecutablePath();
         this.quiet = runQuiet;
         if (file.isDirectory() && recursive) {
             for (File f : file.listFiles()) {
@@ -78,7 +79,7 @@ public class Migrate {
         String url = "jdbc:h2:" + file.getAbsolutePath();
         url = url.substring(0, url.length() - ".data.db".length());
         exec(new String[] {
-                "java",
+                pathToJavaExe,
                 "-Xmx128m",
                 "-cp", OLD_H2_FILE.getAbsolutePath(),
                 "org.h2.tools.Script",
@@ -90,6 +91,20 @@ public class Migrate {
         file.renameTo(new File(file.getAbsoluteFile() + ".backup"));
         RunScript.execute(url, user, password, TEMP_SCRIPT, "UTF-8", true);
         new File(TEMP_SCRIPT).delete();
+    }
+
+    private String getJavaExecutablePath() {
+        String pathToJava;
+        if (File.separator.equals("\\")) {
+            pathToJava = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java.exe";
+        } else {
+            pathToJava = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+        }
+        if (!new File(pathToJava).exists()) {
+            // Fallback to old behaviour
+            pathToJava = "java";
+        }
+        return pathToJava;
     }
 
     private void download(String target, String fileURL, String sha1Checksum) {

@@ -222,9 +222,9 @@ public class TestLob {
             for (int i = 0; i < count; i++) {
                 // random.nextBytes(buff);
                 if (regular) {
-//                    prep.setInt(1, x++);
-//                    prep.setBinaryStream(2, new ByteArrayInputStream(buff), len);
-//                    prep.execute();
+                    prep.setInt(1, x++);
+                    prep.setBinaryStream(2, new ByteArrayInputStream(buff), len);
+                    prep.execute();
                 } else {
                     LobId id = addLob(new ByteArrayInputStream(buff), -1, -1);
                     list.add(id);
@@ -289,6 +289,12 @@ public class TestLob {
         nextLob = rs.getLong(1) + 1;
     }
 
+    /**
+     * Create a prepared statement, or re-use an existing one.
+     *
+     * @param sql the SQL statement
+     * @return the prepared statement
+     */
     protected synchronized PreparedStatement prepare(String sql) throws SQLException {
         PreparedStatement prep = prepared.get(sql);
         if (prep == null) {

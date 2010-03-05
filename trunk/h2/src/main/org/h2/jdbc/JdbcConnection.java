@@ -1480,7 +1480,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosedForWrite();
-            ValueLob v = ValueLob.createSmallLob(Value.CLOB, Utils.EMPTY_BYTES);
+            Value v = LobStorage.createSmallLob(Value.CLOB, Utils.EMPTY_BYTES);
             return new JdbcClob(this, v, id);
         } catch (Exception e) {
             throw logAndConvert(e);

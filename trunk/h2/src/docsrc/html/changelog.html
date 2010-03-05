@@ -18,11 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.131 (2010-03-05)</h2>
 <ul><li>Older versions of H2 (version 1.2.127 and older) could not connect to a new version (version 1.2.129 and newer).
     The connection blocked when trying to connect. Now the connection no longer blocks, instead a SQL exception is thrown.
 </li><li>In versions 1.2.129 and 1.2.130, a database could not be opened sometimes
     after dropping tables or indexes, and then creating new indexes for existing tables.
-    The exception contained the text "parent not found" (version 1.2.129) or 
+    The exception contained the text "parent not found" (version 1.2.129) or
     "Table not found" (version 1.2.130).
 </li><li>After the database was closed, a null pointer exception could occur in Database.flush.
 </li><li>An IndexOutOfBoundsException could occur in the page store (eg. on "delete from table"). Fixed.
@@ -581,48 +585,6 @@ Change Log
     http://code.google.com/p/h2database/issues/detail?id=61
 </li><li>The Shell tool no longer truncates results with only one column, and displays
     a message if data was truncated.
-</li></ul>
-
-<h2>Version 1.1.110 (2009-04-03)</h2>
-<ul><li>Support for not persistent in-memory tables in regular (persistent) databases
-    using CREATE MEMORY TABLE(..) NOT PERSISTENT. Thanks a lot to Sergi Vladykin for the patch!
-</li><li>The H2 Console trimmed the password (removed leading and trailing spaces).
-    This is no longer the case, to support encrypted H2 database with an empty user password.
-</li><li>The data type of a SUBSTRING method was wrong.
-</li><li>ResultSet.findColumn and get methods with column label parameters
-    now also check for matching column names (like most databases except MySQL).
-</li><li>H2 Console: the browser system property now supports a list of arguments.
-    Example: java -Dh2.browser="open,-a,Safari,%url" ...
-</li><li>Improved Javadoc navigation (similar to Scaladoc).
-</li><li>H2 Console: auto-complete of identifiers did not work correctly
-    for H2 databases in MySQL mode.
-</li><li>DISTINCT and GROUP BY on a CLOB column was broken.
-</li><li>The FTP server moved to the tools section and is no longer included in the h2*.jar file.
-</li><li>Improved error message for unsupported features:
-    now the message says what exactly is not supported.
-</li><li>Improved OSGi support.
-</li><li>Some internal caches did not use the LRU mechanism. Fixed
-    (LOB file list, optimizer cost cache, trace system, view indexes, collection keys,
-    compressed in-memory file system).
-</li><li>The API of the tools changed a bit (each tool now returns an exit code).
-</li><li>Command line help of the tools now match the javadocs.
-    The build converts the javadocs to a resource that is read by the tool at runtime.
-    This should not have an effect on using the database, but it reduces duplicate
-    and out-of-sync documentation.
-</li><li>CREATE TABLE: improved compatibility (support for UNIQUE NOT NULL).
-</li><li>DatabaseMetaData.getSQLKeywords now returns the correct list.
-</li><li>Deterministic user defined functions did not work when the parameter was a column. Fixed.
-</li><li>JdbcConnectionPool.setLoginTimeout with 0 now uses the default timeout.
-</li><li>Creating a JdbcConnectionPool has been simplified a bit.
-</li><li>The built-in connection pool did not re-use connections.
-    Getting a connection using the built-in JdbcConnectionPool is now about 70 times faster
-    than opening connections using DriverManager.getConnection.
-</li><li>More bugs in the server-less multi-connection mode have been fixed:
-    If a process terminated while writing, other open connections were blocked.
-    If two processes were writing to the database, sometimes the database was corrupt after closing.
-</li><li>Linked tables to SQLite database can now be created.
-</li><li>Nested IN(IN(...)) didn't work.
-</li><li>NIO storage: the nio: prefix was using memory mapped files instead of FileChannel.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

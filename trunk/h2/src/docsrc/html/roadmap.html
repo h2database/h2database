@@ -474,8 +474,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Tree index: Instead of an AVL tree, use a general balanced trees or a scapegoat tree.
 </li><li>User defined functions: allow to store the bytecode (of just the class, or the jar file of the extension) in the database.
 </li><li>Compatibility: ResultSet.getObject() on a CLOB (TEXT) should return String for PostgreSQL and MySQL.
-</li><li>Optimizer: WHERE X=? AND Y IN(?), it always picks the index on Y. Should be cost based.
-</li><li>Support ALTER SCHEMA name RENAME TO newname (rename schema).
+</li><li>Optimizer: WHERE X=? AND Y IN(?), it always uses the index on Y. Should be cost based.
+</li><li>Support ALTER SCHEMA name RENAME TO newName (rename schema).
 </li><li>Make the cache scan resistant (currently a small cache is faster than a large cache for large table scans).
 </li></ul>
 

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -53,6 +54,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testParseSpecialValues();
         testSpecialLocale();
         testSubstringPrecision();
         testSubstringDataType();
@@ -84,6 +86,32 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+
+    private void testParseSpecialValues() throws SQLException {
+        for (int i = -10; i < 10; i++) {
+            testParseSpecialValue("" + ((long) Integer.MIN_VALUE + i));
+            testParseSpecialValue("" + ((long) Integer.MAX_VALUE + i));
+            BigInteger bi = BigInteger.valueOf(i);
+            testParseSpecialValue(bi.add(BigInteger.valueOf(Long.MIN_VALUE)).toString());
+            testParseSpecialValue(bi.add(BigInteger.valueOf(Long.MAX_VALUE)).toString());
+        }
+    }
+
+    private void testParseSpecialValue(String x) throws SQLException {
+        Object expected;
+        expected = new BigDecimal(x);
+        try {
+            expected = Long.decode(x);
+            expected = Integer.decode(x);
+        } catch (Exception e) {
+            // ignore
+        }
+        ResultSet rs = stat.executeQuery("call " + x);
+        rs.next();
+        Object o = rs.getObject(1);
+        assertEquals(expected.getClass().getName(), o.getClass().getName());
+        assertTrue(expected.equals(o));
     }
 
     private void testSpecialLocale() throws SQLException {

@@ -151,7 +151,7 @@ public class Parser {
     // used during the tokenizer phase
     private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
     private static final int CHAR_NAME = 4, CHAR_SPECIAL_1 = 5, CHAR_SPECIAL_2 = 6;
-    private static final int CHAR_STRING = 7, CHAR_DECIMAL = 8, CHAR_DOLLAR_QUOTED_STRING = 9;
+    private static final int CHAR_STRING = 7, CHAR_DOT = 8, CHAR_DOLLAR_QUOTED_STRING = 9;
 
     // this are token types
     private static final int KEYWORD = 1, IDENTIFIER = 2, PARAMETER = 3, END = 4, VALUE = 5;
@@ -2303,10 +2303,14 @@ public class Parser {
             read();
             if (currentTokenType == VALUE) {
                 r = ValueExpression.get(currentValue.negate());
-                // convert Integer.MIN_VALUE to int (-Integer.MIN_VALUE needed
-                // to be a long)
                 if (r.getType() == Value.LONG && r.getValue(session).getLong() == Integer.MIN_VALUE) {
+                    // convert Integer.MIN_VALUE to type 'int'
+                    // (Integer.MAX_VALUE+1 is of type 'long')
                     r = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
+                } else if (r.getType() == Value.DECIMAL && r.getValue(session).getBigDecimal().compareTo(ValueLong.MIN_BD) == 0) {
+                    // convert Long.MIN_VALUE to type 'long'
+                    // (Long.MAX_VALUE+1 is of type 'decimal')
+                    r = ValueExpression.get(ValueLong.get(Long.MIN_VALUE));
                 }
                 read();
             } else {
@@ -2698,7 +2702,7 @@ public class Parser {
                 i++;
             }
             return;
-        case CHAR_DECIMAL:
+        case CHAR_DOT:
             if (types[i] != CHAR_VALUE) {
                 currentTokenType = KEYWORD;
                 currentToken = ".";
@@ -2785,12 +2789,14 @@ public class Parser {
         // go until the first non-number
         while (true) {
             int t = types[i];
-            if (t != CHAR_DECIMAL && t != CHAR_VALUE) {
+            if (t != CHAR_DOT && t != CHAR_VALUE) {
                 break;
             }
             i++;
         }
-        if (chars[i] == 'E') {
+        boolean containsE = false;
+        if (chars[i] == 'E' || chars[i] == 'e') {
+            containsE = true;
             i++;
             if (chars[i] == '+' || chars[i] == '-') {
                 i++;
@@ -2804,13 +2810,21 @@ public class Parser {
         }
         parseIndex = i;
         String sub = sqlCommand.substring(start, i);
+        checkLiterals(false);
+        if (!containsE && sub.indexOf('.') < 0) {
+            BigInteger bi = new BigInteger(sub);
+            if (bi.compareTo(ValueLong.MAX) <= 0) {
+                currentValue = ValueLong.get(bi.longValue());
+                currentTokenType = VALUE;
+                return;
+            }
+        }
         BigDecimal bd;
         try {
             bd = new BigDecimal(sub);
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sub);
         }
-        checkLiterals(false);
         currentValue = ValueDecimal.get(bd);
         currentTokenType = VALUE;
     }
@@ -2937,7 +2951,7 @@ public class Parser {
                 type = CHAR_SPECIAL_2;
                 break;
             case '.':
-                type = CHAR_DECIMAL;
+                type = CHAR_DOT;
                 break;
             case '\'':
                 type = types[i] = CHAR_STRING;

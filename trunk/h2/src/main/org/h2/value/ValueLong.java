@@ -6,6 +6,7 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -18,6 +19,9 @@ import org.h2.util.MathUtils;
  */
 public class ValueLong extends Value {
 
+    public static final BigInteger MAX = BigInteger.valueOf(Long.MAX_VALUE);
+    public static final BigDecimal MIN_BD = BigDecimal.valueOf(Long.MIN_VALUE);
+
     /**
      * The precision in digits.
      */
@@ -29,10 +33,9 @@ public class ValueLong extends Value {
      */
     public static final int DISPLAY_SIZE = 20;
 
+    private static final BigInteger MIN = BigInteger.valueOf(Long.MIN_VALUE);
     private static final int STATIC_SIZE = 100;
     private static final ValueLong[] STATIC_CACHE;
-    private static final BigInteger MIN = BigInteger.valueOf(Long.MIN_VALUE);
-    private static final BigInteger MAX = BigInteger.valueOf(Long.MAX_VALUE);
 
     private final long value;
 

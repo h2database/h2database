@@ -25,6 +25,7 @@ Change Log
     The exception contained the text "parent not found" (version 1.2.129) or 
     "Table not found" (version 1.2.130).
 </li><li>After the database was closed, a null pointer exception could occur in Database.flush.
+</li><li>An IndexOutOfBoundsException could occur in the page store (eg. on "delete from table"). Fixed.
 </li></ul>
 
 <h2>Version 1.2.130 (2010-02-26)</h2>

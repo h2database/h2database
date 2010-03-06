@@ -78,17 +78,22 @@ public class TestCases extends TestBase {
     }
 
     private void testDeleteIndexOutOfBounds() throws SQLException {
+        if (config.memory || !config.big) {
+            return;
+        }
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE IF NOT EXISTS test (rowid INTEGER PRIMARY KEY AUTO_INCREMENT, txt VARCHAR(64000));");
-        StringBuilder builder = new StringBuilder();
+        PreparedStatement prep = conn.prepareStatement("insert into test (txt) values(space(?))");
         for (int i = 0; i < 3000; i++) {
-            builder.append("abc");
-            stat.execute("insert into test (txt) values ('" + builder.toString() + "');");
+            prep.setInt(1, i * 3);
+            prep.execute();
         }
         stat.execute("DELETE FROM test;");
         conn.close();
+      System.out.println("end");
+        
     }
 
     private void testInsertDeleteRollback() throws SQLException {

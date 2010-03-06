@@ -234,6 +234,9 @@ public abstract class TestBase {
             if (url.indexOf("TRACE_LEVEL_FILE=") < 0) {
                 url += ";TRACE_LEVEL_FILE=" + config.traceLevelFile;
             }
+            if (url.indexOf("TRACE_MAX_FILE_SIZE") < 0) {
+                url += ";TRACE_MAX_FILE_SIZE=8";
+            }
         }
         if (config.throttle > 0) {
             url += ";THROTTLE=" + config.throttle;

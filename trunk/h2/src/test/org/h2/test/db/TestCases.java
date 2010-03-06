@@ -92,8 +92,6 @@ public class TestCases extends TestBase {
         }
         stat.execute("DELETE FROM test;");
         conn.close();
-      System.out.println("end");
-        
     }
 
     private void testInsertDeleteRollback() throws SQLException {

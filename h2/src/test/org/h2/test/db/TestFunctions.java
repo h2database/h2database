@@ -47,6 +47,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testGreatest();
         testSource();
         testDynamicArgumentAndReturn();
         testUUID();
@@ -58,6 +59,29 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         deleteDb("functions");
+    }
+
+    private void testGreatest() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+
+        String createSQL = "CREATE TABLE testGreatest (id BIGINT);";
+        stat.execute(createSQL);
+        stat.execute("insert into testGreatest values (1)");
+
+        String query = "SELECT GREATEST(id, " + ((long)Integer.MAX_VALUE) + ") FROM testGreatest";
+        ResultSet rs = stat.executeQuery(query);
+        rs.next();
+        Object o = rs.getObject(1);
+        assertEquals(Long.class.getName(), o.getClass().getName());
+
+        String query2 = "SELECT GREATEST(id, " + ((long)Integer.MAX_VALUE + 1) + ") FROM testGreatest";
+        ResultSet rs2 = stat.executeQuery(query2);
+        rs2.next();
+        Object o2 = rs2.getObject(1);
+        assertEquals(Long.class.getName(), o2.getClass().getName());
+
+        conn.close();
     }
 
     private void testSource() throws SQLException {

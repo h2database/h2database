@@ -403,6 +403,9 @@ public class Database implements DataHandler {
                     }
                     lock = null;
                 }
+                if (traceSystem != null) {
+                    traceSystem.close();
+                }
             } catch (DbException e) {
                 TraceSystem.traceThrowable(e);
             }

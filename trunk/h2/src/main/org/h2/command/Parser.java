@@ -2462,7 +2462,7 @@ public class Parser {
             read();
         }
         if (currentTokenType != VALUE
-                || (currentValue.getType() != Value.INT && currentValue.getType() != Value.DECIMAL)) {
+                || (currentValue.getType() != Value.INT && currentValue.getType() != Value.LONG)) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "long");
         }
         long i = currentValue.getLong();

@@ -1,0 +1,68 @@
+/*
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
+package org.h2.java;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import org.h2.test.TestBase;
+
+/**
+ * A test for the Java parser.
+ */
+public class Test extends TestBase {
+
+    /**
+     * Start the task with the given arguments.
+     *
+     * @param args the arguments, or null
+     */
+    public static void main(String... args) throws IOException {
+        new Test().test();
+    }
+
+    public void test() throws IOException {
+        // not supported yet:
+        // annotations
+        // HexadecimalFloatingPointLiteral
+        // import static
+        // import *
+        // only public or default level classes
+        // initializer blocks
+        // final variables (within blocks, parameter list)
+        // Identifier : (labels)
+        // ClassOrInterfaceDeclaration within blocks (or any other nested classes)
+        // assert
+        // array declaration at weird places: int x() [] { return null; }
+
+        assertEquals("\\\\" + "u0000", JavaParser.replaceUnicode("\\\\" + "u0000"));
+        assertEquals("\u0000", JavaParser.replaceUnicode("\\" + "u0000"));
+        assertEquals("\u0000", JavaParser.replaceUnicode("\\" + "uu0000"));
+        assertEquals("\\\\" + "\u0000", JavaParser.replaceUnicode("\\\\\\" + "u0000"));
+
+        assertEquals("0", JavaParser.readNumber("0a"));
+        assertEquals("0l", JavaParser.readNumber("0l"));
+        assertEquals("0xFFL", JavaParser.readNumber("0xFFLx"));
+        assertEquals("0xDadaCafe", JavaParser.readNumber("0xDadaCafex"));
+        assertEquals("1.40e-45f", JavaParser.readNumber("1.40e-45fx"));
+        assertEquals("1e1f", JavaParser.readNumber("1e1fx"));
+        assertEquals("2.f", JavaParser.readNumber("2.fx"));
+        assertEquals(".3d", JavaParser.readNumber(".3dx"));
+        assertEquals("6.022137e+23f", JavaParser.readNumber("6.022137e+23f+1"));
+
+        JavaParser parser = new JavaParser("src/tools", "org.h2.java.TestApp");
+        parser.parse();
+
+        PrintWriter w = new PrintWriter(System.out);
+        parser.writeC(w);
+        w.flush();
+        w = new PrintWriter(new FileWriter("bin/test.c"));
+        parser.writeC(w);
+        w.close();
+
+    }
+}

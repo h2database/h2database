@@ -19,7 +19,14 @@ import org.h2.util.MathUtils;
  */
 public class ValueLong extends Value {
 
+    /**
+     * The largest Long value, as a BigInteger.
+     */
     public static final BigInteger MAX = BigInteger.valueOf(Long.MAX_VALUE);
+
+    /**
+     * The smallest Long value, as a BigDecimal.
+     */
     public static final BigDecimal MIN_BD = BigDecimal.valueOf(Long.MIN_VALUE);
 
     /**

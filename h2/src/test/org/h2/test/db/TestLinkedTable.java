@@ -611,10 +611,10 @@ public class TestLinkedTable extends TestBase {
 
         File[] files = new File(baseDir).listFiles();
         for (File file : files) {
-            if (file.getName().startsWith("testLinkedTableInReadOnlyDb")) {
+            if ((file.getName().startsWith("testLinkedTableInReadOnlyDb")) && (!file.getName().endsWith(".trace.db"))) {
                 boolean isReadOnly = file.setReadOnly();
                 if (!isReadOnly) {
-                    fail("File " + file.getAbsolutePath() + " is not read only. Can't test it");
+                    fail("File " + file.getAbsolutePath() + " is not read only. Can't test it.");
                 }
             }
         }

@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Literals of type BIGINT now have the correct data type.
+<ul><li>When using the small version of H2 ('jarClient'), the first call to
+    Connection.createBlob (or similar) could throw a ClassNotFoundException
+    because the file org.h2.store.fs.FileSystemZip is not included. This missing class
+    is now ignored.
+</li><li>Literals of type BIGINT now have the correct data type.
 </li></ul>
 
 <h2>Version 1.2.131 (2010-03-05)</h2>

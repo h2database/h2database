@@ -12,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 /**
  * Converts Java to C.
@@ -29,15 +30,16 @@ public class JavaParser {
     private static final HashMap<String, ClassObj> BUILT_IN_TYPES = new HashMap<String, ClassObj>();
     private static final HashMap<String, String> JAVA_IMPORT_MAP = new HashMap<String, String>();
 
-    private final String fileName;
     private String source;
 
     private ParseState current = new ParseState();
 
     private String packageName;
     private ClassObj classObj;
+    private FieldObj thisPointer;
     private HashMap<String, String> importMap = new HashMap<String, String>();
     private HashMap<String, ClassObj> classes = new HashMap<String, ClassObj>();
+    private LinkedHashMap<String, FieldObj> localFields = new LinkedHashMap<String, FieldObj>();
 
     static {
         String[] list = new String[] { "abstract", "continue", "for", "new", "switch", "assert", "default", "if",
@@ -67,10 +69,6 @@ public class JavaParser {
         }
     }
 
-    JavaParser(String baseDir, String className) {
-        this.fileName = baseDir + "/" + className.replace('.', '/') + ".java";
-    }
-
     private static void addBuiltInType(boolean primitive, String type) {
         ClassObj typeObj = new ClassObj();
         typeObj.name = type;
@@ -80,8 +78,13 @@ public class JavaParser {
 
     /**
      * Parse the source code.
+     *
+     * @param baseDir the base directory
+     * @param className the fully qualified name of the class to parse
      */
-    void parse() {
+    void parse(String baseDir, String className) {
+        String fileName = baseDir + "/" + className.replace('.', '/') + ".java";
+        current = new ParseState();
         try {
             RandomAccessFile file = new RandomAccessFile(fileName, "r");
             byte[] buff = new byte[(int) file.length()];
@@ -91,6 +94,7 @@ public class JavaParser {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        source = replaceUnicode(source);
         source = removeRemarks(source);
         try {
             readToken();
@@ -100,14 +104,21 @@ public class JavaParser {
         }
     }
 
+    private String cleanPackageName(String name) {
+        if (name.startsWith("org.h2.java.lang") || name.startsWith("org.h2.java.io")) {
+            return name.substring("org.h2.".length());
+        }
+        return name;
+    }
+
     private void parseCompilationUnit() {
         if (readIf("package")) {
-            packageName = readQualifiedIdentifier();
+            packageName = cleanPackageName(readQualifiedIdentifier());
             read(";");
         }
         while (readIf("import")) {
-            String importPackageName = readQualifiedIdentifier();
-            String importClass = importPackageName.substring(importPackageName.lastIndexOf('.'));
+            String importPackageName = cleanPackageName(readQualifiedIdentifier());
+            String importClass = importPackageName.substring(importPackageName.lastIndexOf('.') + 1);
             importMap.put(importClass, importPackageName);
             read(";");
         }
@@ -132,7 +143,22 @@ public class JavaParser {
         }
     }
 
+    private boolean isTypeOrIdentifier() {
+        if (BUILT_IN_TYPES.containsKey(current.token)) {
+            return true;
+        }
+        return current.type == TOKEN_IDENTIFIER;
+    }
+
     private ClassObj getClass(String type) {
+        ClassObj c = getClassIf(type);
+        if (c == null) {
+            throw new RuntimeException("Unknown type: " + type);
+        }
+        return c;
+    }
+
+    private ClassObj getClassIf(String type) {
         ClassObj c = BUILT_IN_TYPES.get(type);
         if (c != null) {
             return c;
@@ -145,7 +171,7 @@ public class JavaParser {
         if (mappedType == null) {
             mappedType = JAVA_IMPORT_MAP.get(type);
             if (mappedType == null) {
-                throw new RuntimeException("Unknown type: " + type);
+                return null;
             }
         }
         c = classes.get(mappedType);
@@ -158,31 +184,31 @@ public class JavaParser {
         return c;
     }
 
-    private boolean isClass() {
-        if (BUILT_IN_TYPES.containsKey(current.token)) {
-            return true;
-        }
-        if (current.type != TOKEN_IDENTIFIER) {
-            return false;
-        }
-        return Character.isUpperCase(current.token.charAt(0));
-    }
-
     private void parseClassBody() {
         read("{");
+        localFields.clear();
         while (true) {
             if (readIf("}")) {
                 break;
             }
+            thisPointer = null;
+            Statement s = readNativeStatementIf();
+            if (s != null) {
+                classObj.nativeInitializers.add(s);
+            }
+            thisPointer = null;
             boolean isStatic = false;
             boolean isFinal = false;
             boolean isPrivate = false;
             boolean isPublic = false;
+            boolean isNative = false;
             while (true) {
                 if (readIf("static")) {
                     isStatic = true;
                 } else if (readIf("final")) {
                     isFinal = true;
+                } else if (readIf("native")) {
+                    isNative = true;
                 } else if (readIf("private")) {
                     isPrivate = true;
                 } else if (readIf("public")) {
@@ -193,52 +219,81 @@ public class JavaParser {
             }
             if (readIf("{")) {
                 MethodObj method = new MethodObj();
-                method.name = "init";
+                method.name = isStatic ? "cl_init_obj" : "init_obj";
                 method.isStatic = isStatic;
+                localFields.clear();
+                if (!isStatic) {
+                    initThisPointer();
+                }
                 method.block = readStatement();
                 classObj.addMethod(method);
             } else {
-                Type type = readType();
-                String name = readIdentifier();
+                String typeName = readTypeOrIdentifier();
+                Type type = readType(typeName);
+                MethodObj method = new MethodObj();
+                method.returnType = type;
+                method.isStatic = isStatic;
+                method.isFinal = isFinal;
+                method.isPublic = isPublic;
+                method.isPrivate = isPrivate;
+                method.isNative = isNative;
+                localFields.clear();
+                if (!isStatic) {
+                    initThisPointer();
+                }
                 if (readIf("(")) {
-                    MethodObj method = new MethodObj();
-                    method.name = name;
-                    method.returnType = type;
-                    method.isStatic = isStatic;
-                    method.isFinal = isFinal;
-                    method.isPublic = isPublic;
-                    method.isPrivate = isPrivate;
+                    if (type.type != classObj) {
+                        throw getSyntaxException("Constructor of wrong type: " + type);
+                    }
+                    method.name = "init_obj";
                     parseFormalParameters(method);
                     if (!readIf(";")) {
                         method.block = readStatement();
                     }
                     classObj.addMethod(method);
                 } else {
-                    FieldObj field = new FieldObj();
-                    field.type = type;
-                    field.name = name;
-                    field.isStatic = isStatic;
-                    field.isFinal = isFinal;
-                    field.isPublic = isPublic;
-                    field.isPrivate = isPrivate;
-                    if (isStatic) {
-                        classObj.addStaticField(field);
+                    String name = readIdentifier();
+                    method.name = name;
+                    if (readIf("(")) {
+                        parseFormalParameters(method);
+                        if (!readIf(";")) {
+                            method.block = readStatement();
+                        }
+                        classObj.addMethod(method);
                     } else {
-                        classObj.addInstanceField(field);
+                        FieldObj field = new FieldObj();
+                        field.type = type;
+                        field.name = name;
+                        field.isStatic = isStatic;
+                        field.isFinal = isFinal;
+                        field.isPublic = isPublic;
+                        field.isPrivate = isPrivate;
+                        if (isStatic) {
+                            classObj.addStaticField(field);
+                        } else {
+                            classObj.addInstanceField(field);
+                        }
+                        if (readIf("=")) {
+                            field.value = readExpr();
+                        }
+                        read(";");
                     }
-                    if (readIf("=")) {
-                        field.value = readExpr();
-                    }
-                    read(";");
                 }
             }
         }
     }
 
-    private Type readType() {
-        String typeName = readTypeOrIdentifier();
+    private void initThisPointer() {
+        thisPointer = new FieldObj();
+        thisPointer.isLocal = true;
+        thisPointer.name = "this";
+        thisPointer.type = new Type();
+        thisPointer.type.type = classObj;
+    }
+
+    private Type readType(String name) {
         Type type = new Type();
-        type.type = getClass(typeName);
+        type.type = getClass(name);
         while (readIf("[")) {
             read("]");
             type.arrayLevel++;
@@ -255,7 +310,9 @@ public class JavaParser {
         }
         while (true) {
             FieldObj field = new FieldObj();
-            field.type = readType();
+            field.isLocal = true;
+            String typeName = readTypeOrIdentifier();
+            field.type = readType(typeName);
             field.name = readIdentifier();
             method.parameters.add(field);
             if (readIf(")")) {
@@ -271,14 +328,46 @@ public class JavaParser {
                 return read();
             }
         }
-        return readIdentifier();
+        String s = readIdentifier();
+        while (readIf(".")) {
+            s += "." + readIdentifier();
+        }
+        return s;
+    }
+
+    private Statement readNativeStatementIf() {
+        if (readIf("//")) {
+            read();
+            int start = current.index;
+            while (source.charAt(current.index) != '\n') {
+                current.index++;
+            }
+            StatementNative stat = new StatementNative();
+            stat.code = source.substring(start, current.index).trim();
+            read();
+            return stat;
+        } else if (readIf("/*")) {
+            read();
+            int start = current.index;
+            while (source.charAt(current.index) != '*' || source.charAt(current.index + 1) != '/') {
+                current.index++;
+            }
+            StatementNative stat = new StatementNative();
+            stat.code = source.substring(start, current.index).trim();
+            read();
+            return stat;
+        }
+        return null;
     }
 
     private Statement readStatement() {
+        Statement s = readNativeStatementIf();
+        if (s != null) {
+            return s;
+        }
         if (readIf(";")) {
             return new EmptyStatement();
-        }
-        if (readIf("{")) {
+        } else if (readIf("{")) {
             StatementBlock stat = new StatementBlock();
             while (true) {
                 stat.instructions.add(readStatement());
@@ -346,12 +435,24 @@ public class JavaParser {
         } else if (readIf("for")) {
             ForStatement forStat = new ForStatement();
             read("(");
-            forStat.init = readStatement();
-            forStat.condition = readExpr();
-            read(";");
-            do {
-                forStat.updates.add(readExpr());
-            } while (readIf(","));
+            ParseState back = copyParseState();
+            try {
+                String typeName = readTypeOrIdentifier();
+                Type type = readType(typeName);
+                String name = readIdentifier();
+                read(":");
+                forStat.iterableType = type;
+                forStat.iterableVariable = name;
+                forStat.iterable = readExpr();
+            } catch (Exception e) {
+                current = back;
+                forStat.init = readStatement();
+                forStat.condition = readExpr();
+                read(";");
+                do {
+                    forStat.updates.add(readExpr());
+                } while (readIf(","));
+            }
             read(")");
             forStat.block = readStatement();
             return forStat;
@@ -372,22 +473,25 @@ public class JavaParser {
             }
             return returnStat;
         } else {
-            if (isClass()) {
+            if (isTypeOrIdentifier()) {
                 ParseState start = copyParseState();
-                Type type = readType();
-                if (readIf(".")) {
-                    current = start;
-                    // ExprStatement
-                } else {
+                String name = readTypeOrIdentifier();
+                ClassObj c = getClassIf(name);
+                if (c != null) {
                     VarDecStatement dec = new VarDecStatement();
-                    dec.type = type;
+                    dec.type = readType(name);
                     while (true) {
-                        String name = readIdentifier();
+                        String varName = readIdentifier();
                         Expr value = null;
                         if (readIf("=")) {
                             value = readExpr();
                         }
-                        dec.variables.add(name);
+                        FieldObj f = new FieldObj();
+                        f.isLocal = true;
+                        f.type = dec.type;
+                        f.name = varName;
+                        localFields.put(varName, f);
+                        dec.variables.add(varName);
                         dec.values.add(value);
                         if (readIf(";")) {
                             break;
@@ -396,6 +500,8 @@ public class JavaParser {
                     }
                     return dec;
                 }
+                current = start;
+                // ExprStatement
             }
             ExprStatement stat = new ExprStatement();
             stat.expr = readExpr();
@@ -442,15 +548,19 @@ public class JavaParser {
 
     private Expr readExpr2() {
         Expr expr = readExpr3();
-        String infixOp = current.token;
-        if (readIf("||") || readIf("&&") || readIf("|") || readIf("^") || readIf("&") || readIf("==") || readIf("!=")
-                || readIf("<") || readIf(">") || readIf("<=") || readIf(">=") || readIf("<<") || readIf(">>")
-                || readIf(">>>") || readIf("+") || readIf("-") || readIf("*") || readIf("/") || readIf("%")) {
-            OpExpr opExpr = new OpExpr();
-            opExpr.left = expr;
-            opExpr.op = infixOp;
-            opExpr.right = readExpr3();
-            expr = opExpr;
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("||") || readIf("&&") || readIf("|") || readIf("^") || readIf("&") || readIf("==") || readIf("!=")
+                    || readIf("<") || readIf(">") || readIf("<=") || readIf(">=") || readIf("<<") || readIf(">>")
+                    || readIf(">>>") || readIf("+") || readIf("-") || readIf("*") || readIf("/") || readIf("%")) {
+                OpExpr opExpr = new OpExpr();
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr3();
+                expr = opExpr;
+            } else {
+                break;
+            }
         }
         return expr;
     }
@@ -480,13 +590,6 @@ public class JavaParser {
     }
 
     private Expr readExpr4() {
-        if (readIf("new")) {
-            NewExpr expr = new NewExpr();
-            expr.className = readQualifiedIdentifier();
-            read("(");
-            read(")");
-            return expr;
-        }
         if (readIf("false")) {
             LiteralExpr expr = new LiteralExpr();
             expr.literal = "false";
@@ -508,16 +611,96 @@ public class JavaParser {
             readToken();
             return expr;
         }
+        Expr expr;
+        expr = readExpr5();
+        Type t = expr.getType();
+        while (true) {
+            if (readIf(".")) {
+                String n = readIdentifier();
+                if (readIf("(")) {
+                    CallExpr e2 = new CallExpr();
+                    e2.expr = expr;
+                    e2.name = n;
+                    if (!readIf(")")) {
+                        while (true) {
+                            e2.args.add(readExpr());
+                            if (!readIf(",")) {
+                                read(")");
+                                break;
+                            }
+                        }
+                    }
+                    expr = e2;
+                } else {
+                    VariableExpr e2 = new VariableExpr();
+                    e2.base = expr;
+                    expr = e2;
+                    if (n.equals("length") && t.arrayLevel > 0) {
+                        e2.field = new FieldObj();
+                        e2.field.name = "length";
+                    } else {
+                        if (t == null || t.type == null) {
+                            e2.name = n;
+                        } else {
+                            FieldObj f = t.type.instanceFields.get(n);
+                            if (f == null) {
+                                throw getSyntaxException("Unknown field: " + expr + "." + n);
+                            }
+                            e2.field = f;
+                        }
+                    }
+                }
+            } else if (readIf("[")) {
+                if (t.arrayLevel == 0) {
+                    throw getSyntaxException("Not an array: " + expr);
+                }
+                Expr arrayIndex = readExpr();
+                read("]");
+                // TODO arrayGet or arraySet
+                return arrayIndex;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr5() {
+        if (readIf("new")) {
+            NewExpr expr = new NewExpr();
+            String typeName = readTypeOrIdentifier();
+            expr.type = getClass(typeName);
+            if (readIf("(")) {
+                read(")");
+            } else {
+                while (readIf("[")) {
+                    expr.arrayInitExpr.add(readExpr());
+                    read("]");
+                }
+            }
+            return expr;
+        }
         if (current.type == TOKEN_LITERAL_STRING) {
             StringExpr expr = new StringExpr();
             expr.text = current.token.substring(1);
             readToken();
             return expr;
         }
-        String name = readQualifiedIdentifier();
+        if (readIf("this")) {
+            VariableExpr expr = new VariableExpr();
+            expr.field = thisPointer;
+            if (thisPointer == null) {
+                throw getSyntaxException("this usage in static context");
+            }
+            return expr;
+        }
+        String name = readIdentifier();
         if (readIf("(")) {
             CallExpr expr = new CallExpr();
-            expr.object = name;
+            expr.name  = name;
+            VariableExpr ve = new VariableExpr();
+            ve.field = thisPointer;
+            expr.expr = ve;
             if (!readIf(")")) {
                 while (true) {
                     expr.args.add(readExpr());
@@ -530,6 +713,28 @@ public class JavaParser {
             return expr;
         }
         VariableExpr expr = new VariableExpr();
+        FieldObj f = localFields.get(name);
+        if (f == null) {
+            f = classObj.staticFields.get(name);
+            if (f == null) {
+                f = classObj.instanceFields.get(name);
+                if (f == null) {
+                    String imp = importMap.get(name);
+                    if (imp != null) {
+                        name = imp;
+                    }
+                }
+            }
+        }
+        expr.field = f;
+        if (f != null && (!f.isLocal && !f.isStatic)) {
+            VariableExpr ve = new VariableExpr();
+            ve.field = thisPointer;
+            expr.base = ve;
+            if (thisPointer == null) {
+                throw getSyntaxException("this usage in static context");
+            }
+        }
         expr.name = name;
         return expr;
     }
@@ -542,6 +747,21 @@ public class JavaParser {
 
     private String readQualifiedIdentifier() {
         String id = readIdentifier();
+        if (localFields.containsKey(id)) {
+            return id;
+        }
+        if (classObj != null) {
+            if (classObj.staticFields.containsKey(id)) {
+                return id;
+            }
+            if (classObj.instanceFields.containsKey(id)) {
+                return id;
+            }
+        }
+        String fullName = importMap.get(id);
+        if (fullName != null) {
+            return fullName;
+        }
         while (readIf(".")) {
             id += "." + readIdentifier();
         }
@@ -582,6 +802,9 @@ public class JavaParser {
      * @return the cleaned text
      */
     static String replaceUnicode(String s) {
+        if (s.indexOf("\\u") < 0) {
+            return s;
+        }
         StringBuilder buff = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
             if (s.substring(i).startsWith("\\\\")) {
@@ -609,10 +832,6 @@ public class JavaParser {
      * @return the cleaned source code
      */
     static String removeRemarks(String s) {
-        int idx = s.indexOf("\\u");
-        if (idx > 0) {
-            s = replaceUnicode(s);
-        }
         char[] chars = s.toCharArray();
         for (int i = 0; i >= 0 && i < s.length(); i++) {
             if (s.charAt(i) == '\'') {
@@ -639,7 +858,7 @@ public class JavaParser {
                 continue;
             }
             String sub = s.substring(i);
-            if (sub.startsWith("/*")) {
+            if (sub.startsWith("/*") && !sub.startsWith("/* c:")) {
                 int j = i;
                 i = s.indexOf("*/", i + 2) + 2;
                 for (; j < i; j++) {
@@ -647,7 +866,7 @@ public class JavaParser {
                         chars[j] = ' ';
                     }
                 }
-            } else if (sub.startsWith("//")) {
+            } else if (sub.startsWith("//") && !sub.startsWith("// c:")) {
                 int j = i;
                 i = s.indexOf('\n', i);
                 while (j < i) {
@@ -769,8 +988,12 @@ public class JavaParser {
                 current.index++;
             }
             break;
-        case '*':
         case '/':
+            if (source.charAt(current.index) == '*' || source.charAt(current.index) == '/') {
+                current.index++;
+            }
+            break;
+        case '*':
         case '~':
         case '!':
         case '=':
@@ -915,11 +1138,11 @@ public class JavaParser {
     }
 
     /**
-     * Write the C representation.
+     * Write the C header.
      *
      * @param out the output writer
      */
-    void writeC(PrintWriter out) {
+    void writeHeader(PrintWriter out) {
         for (ClassObj c : classes.values()) {
             out.println("/* " + c.name + ".h */");
             for (FieldObj f : c.staticFields.values()) {
@@ -945,6 +1168,10 @@ public class JavaParser {
             for (MethodObj m : c.methods.values()) {
                 out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");
                 int i = 0;
+                if (!m.isStatic) {
+                    out.print(toC(c.name) + "* this");
+                    i++;
+                }
                 for (FieldObj p : m.parameters) {
                     if (i > 0) {
                         out.print(", ");
@@ -954,13 +1181,28 @@ public class JavaParser {
                 }
                 out.println(");");
             }
+            out.println();
         }
-        out.println();
+    }
+
+    /**
+     * Write the C source code.
+     *
+     * @param out the output writer
+     */
+    void writeSource(PrintWriter out) {
         for (ClassObj c : classes.values()) {
             out.println("/* " + c.name + ".c */");
+            for (Statement s : c.nativeInitializers) {
+                out.println(s);
+            }
             for (MethodObj m : c.methods.values()) {
                 out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");
                 int i = 0;
+                if (!m.isStatic) {
+                    out.print(toC(c.name) + "* this");
+                    i++;
+                }
                 for (FieldObj p : m.parameters) {
                     if (i > 0) {
                         out.print(", ");
@@ -969,8 +1211,11 @@ public class JavaParser {
                     i++;
                 }
                 out.println(") {");
-                out.print(m.block.toString());
+                if (m.block != null) {
+                    out.print(m.block.toString());
+                }
                 out.println("}");
+                out.println();
             }
         }
     }
@@ -1018,8 +1263,24 @@ public class JavaParser {
  * The parse state.
  */
 class ParseState {
+
+    /**
+     * The parse index.
+     */
     int index;
+
+    /**
+     * The token type
+     */
     int type;
+
+    /**
+     * The token text.
+     */
     String token;
+
+    /**
+     * The line number.
+     */
     int line;
 }

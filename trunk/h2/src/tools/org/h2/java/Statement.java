@@ -136,15 +136,25 @@ class ForStatement implements Statement {
     Expr update;
     Statement block;
     ArrayList<Expr> updates = new ArrayList<Expr>();
+    Type iterableType;
+    String iterableVariable;
+    Expr iterable;
     public String toString() {
         StringBuffer buff = new StringBuffer();
-        buff.append("for (").append(init.toString());
-        buff.append(" ").append(condition.toString()).append("; ");
-        for (int i = 0; i < updates.size(); i++) {
-            if (i > 0) {
-                buff.append(", ");
+        buff.append("for (");
+        if (iterableType != null) {
+            buff.append(iterableType).append(' ');
+            buff.append(iterableVariable).append(": ");
+            buff.append(iterable);
+        } else {
+            buff.append(init.toString());
+            buff.append(" ").append(condition.toString()).append("; ");
+            for (int i = 0; i < updates.size(); i++) {
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                buff.append(updates.get(i));
             }
-            buff.append(updates.get(i));
         }
         buff.append(") {\n");
         buff.append(block.toString()).append("}");
@@ -192,11 +202,12 @@ class VarDecStatement implements Statement {
 }
 
 /**
- * A variable.
+ * A native statement.
  */
-class VariableExpr implements Expr {
-    public String name;
+class StatementNative implements Statement {
+    String code;
     public String toString() {
-        return name;
+        return code;
     }
 }
+

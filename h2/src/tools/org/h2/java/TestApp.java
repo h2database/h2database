@@ -9,11 +9,18 @@ package org.h2.java;
 /**
  * A test application.
  */
+/// #include <stdio.h>
 public class TestApp {
 
-    private static final int FINAL_VALUE = 10;
+    // private static final int FINAL_VALUE = 10;
 
+    /**
+     * Run this application.
+     *
+     * @param args the command line arguments
+     */
     public static void main(String... args) {
+        // c:printf("Hello\n");
         System.out.println("Hello World");
     }
 
@@ -27,7 +34,7 @@ public class TestApp {
     public int getName(int name, int x) {
         System.out.println("Hello");
         int m = x;
-        m = FINAL_VALUE;
+        // m = FINAL_VALUE;
         switch (x) {
         case 1:
             m = 3;

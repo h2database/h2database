@@ -54,6 +54,8 @@ public class ClassObj {
      */
     LinkedHashMap<String, MethodObj> methods = new LinkedHashMap<String, MethodObj>();
 
+    ArrayList<Statement> nativeInitializers = new ArrayList<Statement>();
+
     /**
      * Add a method.
      *
@@ -134,6 +136,11 @@ class MethodObj {
      * Whether this method is public.
      */
     boolean isPublic;
+
+    /**
+     * Whether this method is native.
+     */
+    boolean isNative;
 }
 
 /**
@@ -145,6 +152,11 @@ class FieldObj {
      * The type.
      */
     Type type;
+
+    /**
+     * Whether this is a local field.
+     */
+    boolean isLocal;
 
     /**
      * The field name.
@@ -194,13 +206,13 @@ class Type {
     int arrayLevel;
 
     public String toString() {
-        if (arrayLevel == 0) {
-            return type.name;
-        }
         StringBuilder buff = new StringBuilder();
         buff.append(JavaParser.toC(type.name));
+        if (!type.isPrimitive) {
+            buff.append("*");
+        }
         for (int i = 0; i < arrayLevel; i++) {
-            buff.append("[]");
+            buff.append("*");
         }
         return buff.toString();
     }

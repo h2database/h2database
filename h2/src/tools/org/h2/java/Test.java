@@ -27,17 +27,18 @@ public class Test extends TestBase {
 
     public void test() throws IOException {
         // not supported yet:
-        // annotations
         // HexadecimalFloatingPointLiteral
+        // int x()[] { return null; }
+        // annotations
         // import static
         // import *
-        // only public or default level classes
         // initializer blocks
+        // access to static fields with instance variable
+        // method call with "this": this.toString()
         // final variables (within blocks, parameter list)
         // Identifier : (labels)
         // ClassOrInterfaceDeclaration within blocks (or any other nested classes)
         // assert
-        // array declaration at weird places: int x() [] { return null; }
 
         assertEquals("\\\\" + "u0000", JavaParser.replaceUnicode("\\\\" + "u0000"));
         assertEquals("\u0000", JavaParser.replaceUnicode("\\" + "u0000"));
@@ -54,14 +55,19 @@ public class Test extends TestBase {
         assertEquals(".3d", JavaParser.readNumber(".3dx"));
         assertEquals("6.022137e+23f", JavaParser.readNumber("6.022137e+23f+1"));
 
-        JavaParser parser = new JavaParser("src/tools", "org.h2.java.TestApp");
-        parser.parse();
+        JavaParser parser = new JavaParser();
+        parser.parse("src/tools/org/h2", "java.lang.String");
+        parser.parse("src/tools/org/h2", "java.io.PrintStream");
+        parser.parse("src/tools/org/h2", "java.lang.System");
+        parser.parse("src/tools", "org.h2.java.TestApp");
 
         PrintWriter w = new PrintWriter(System.out);
-        parser.writeC(w);
+        parser.writeHeader(w);
+        parser.writeSource(w);
         w.flush();
         w = new PrintWriter(new FileWriter("bin/test.c"));
-        parser.writeC(w);
+        parser.writeHeader(w);
+        parser.writeSource(w);
         w.close();
 
     }

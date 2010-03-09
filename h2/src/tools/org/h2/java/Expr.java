@@ -13,17 +13,21 @@ import java.util.ArrayList;
  */
 public interface Expr {
     // toString
+    Type getType();
 }
 
 /**
  * A method call.
  */
 class CallExpr implements Expr {
-    String object;
+
+    Expr expr;
+    String name;
     ArrayList<Expr> args = new ArrayList<Expr>();
+
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append(JavaParser.toC(object)).append("(");
+        buff.append(expr.toString() + "_" + JavaParser.toC(name)).append("(");
         int i = 0;
         for (Expr a : args) {
             if (i > 0) {
@@ -34,12 +38,17 @@ class CallExpr implements Expr {
         }
         return buff.append(")").toString();
     }
+    public Type getType() {
+        // TODO
+        return null;
+    }
 }
 
 /**
  * A assignment expression.
  */
 class AssignExpr implements Expr {
+
     Expr left;
     String op;
     Expr right;
@@ -47,36 +56,60 @@ class AssignExpr implements Expr {
     public String toString() {
         return left + " " + op + " " + right;
     }
+
+    public Type getType() {
+        // TODO
+        return null;
+    }
+
 }
 
 /**
  * A conditional expression.
  */
 class ConditionalExpr implements Expr {
+
     Expr condition;
     Expr ifTrue, ifFalse;
+
     public String toString() {
         return condition + " ? " + ifTrue + " : " + ifFalse;
     }
+
+    public Type getType() {
+        // TODO
+        return null;
+    }
+
 }
 
 /**
  * A literal.
  */
 class LiteralExpr implements Expr {
+
     String literal;
+
     public String toString() {
         return literal;
     }
+
+    public Type getType() {
+        // TODO
+        return null;
+    }
+
 }
 
 /**
  * An operation.
  */
 class OpExpr implements Expr {
+
     Expr left;
     String op;
     Expr right;
+
     public String toString() {
         if (left == null) {
             return op + right;
@@ -85,16 +118,38 @@ class OpExpr implements Expr {
         }
         return left + " " + op + " " + right;
     }
+
+    public Type getType() {
+        // TODO
+        return null;
+    }
+
 }
 
 /**
  * A "new" expression.
  */
 class NewExpr implements Expr {
-    String className;
+
+    ClassObj type;
+    ArrayList<Expr> arrayInitExpr = new ArrayList<Expr>();
+
     public String toString() {
-        return "new " + className;
+        StringBuilder buff = new StringBuilder();
+        buff.append("new " + type);
+        for (Expr e : arrayInitExpr) {
+            buff.append("[").append(e).append("]");
+        }
+        return buff.toString();
     }
+
+    public Type getType() {
+        Type t = new Type();
+        t.type = type;
+        t.arrayLevel = arrayInitExpr.size();
+        return t;
+    }
+
 }
 
 /**
@@ -109,6 +164,11 @@ class StringExpr implements Expr {
 
     public String toString() {
         return "\"" + javaEncode(text) + "\"";
+    }
+
+    public Type getType() {
+        // TODO
+        return null;
     }
 
     /**
@@ -164,4 +224,58 @@ class StringExpr implements Expr {
         }
         return buff.toString();
     }
+}
+
+/**
+ * A variable.
+ */
+class VariableExpr implements Expr {
+
+    Expr base;
+    FieldObj field;
+    String name;
+
+    public String toString() {
+        StringBuilder buff = new StringBuilder();
+        if (base != null) {
+            buff.append(base.toString()).append("->");
+        }
+        if (field != null) {
+            buff.append(field.name);
+        } else {
+            buff.append(JavaParser.toC(name));
+        }
+        return buff.toString();
+    }
+
+    public Type getType() {
+        if (field == null) {
+            return null;
+        }
+        return field.type;
+    }
+
+}
+
+/**
+ * A array access expression.
+ */
+class ArrayExpr implements Expr {
+
+    Expr obj;
+    ArrayList<Expr> indexes = new ArrayList<Expr>();
+
+    public String toString() {
+        StringBuilder buff = new StringBuilder();
+        buff.append(obj.toString());
+        for (Expr e : indexes) {
+            buff.append('[').append(e.toString()).append(']');
+        }
+        return buff.toString();
+    }
+
+    public Type getType() {
+        return obj.getType();
+    }
+
 }

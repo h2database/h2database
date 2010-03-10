@@ -111,18 +111,20 @@ public class FunctionAlias extends DbObjectBase {
 
     private void loadFromSource() {
         SourceCompiler compiler = database.getCompiler();
-        String fullClassName = Constants.USER_PACKAGE + "." + getName();
-        compiler.setSource(fullClassName, source);
-        try {
-            Method m = compiler.getMethod(fullClassName);
-            JavaMethod method = new JavaMethod(m, 0);
-            javaMethods = new JavaMethod[] {
-                    method
-            };
-        } catch (DbException e) {
-            throw e;
-        } catch (Exception e) {
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, e, source);
+        synchronized (compiler) {
+            String fullClassName = Constants.USER_PACKAGE + "." + getName();
+            compiler.setSource(fullClassName, source);
+            try {
+                Method m = compiler.getMethod(fullClassName);
+                JavaMethod method = new JavaMethod(m, 0);
+                javaMethods = new JavaMethod[] {
+                        method
+                };
+            } catch (DbException e) {
+                throw e;
+            } catch (Exception e) {
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1, e, source);
+            }
         }
     }
 

@@ -10,7 +10,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -148,7 +147,8 @@ public class SourceCompiler {
         File javaFile = new File(dir, className + ".java");
         File classFile = new File(dir, className + ".class");
         try {
-            PrintWriter out = new PrintWriter(new FileWriter(javaFile));
+            OutputStream f = IOUtils.openFileOutputStream(javaFile.getAbsolutePath(), false);
+            PrintWriter out = new PrintWriter(IOUtils.getWriter(f));
             classFile.delete();
             int endImport = source.indexOf("@CODE");
             String importCode = "import java.util.*;\n" +
@@ -189,6 +189,7 @@ public class SourceCompiler {
         exec("javac",
                 "-sourcepath", compileDir,
                 "-d", compileDir,
+                "-encoding", "UTF-8",
                 javaFile.getAbsolutePath());
     }
 
@@ -245,6 +246,7 @@ public class SourceCompiler {
             compile.invoke(javac, (Object) new String[] {
                     "-sourcepath", compileDir,
                     "-d", compileDir,
+                    "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });
             throwSyntaxError(buff);
         } catch (Exception e) {

@@ -68,6 +68,7 @@ implements ObjectFactory
                 dataSource.setURL((String) ref.get("url").getContent());
                 dataSource.setUser((String) ref.get("user").getContent());
                 dataSource.setPassword((String) ref.get("password").getContent());
+                dataSource.setDescription((String) ref.get("description").getContent());
                 String s = (String) ref.get("loginTimeout").getContent();
                 dataSource.setLoginTimeout(Integer.parseInt(s));
                 return dataSource;

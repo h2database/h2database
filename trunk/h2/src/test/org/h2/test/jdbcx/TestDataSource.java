@@ -79,6 +79,7 @@ public class TestDataSource extends TestBase {
         ref.add(new StringRefAddr("user", "u"));
         ref.add(new StringRefAddr("password", "p"));
         ref.add(new StringRefAddr("loginTimeout", "1"));
+        ref.add(new StringRefAddr("description", "test"));
         JdbcDataSource ds = (JdbcDataSource) factory.getObjectInstance(ref, null, null, null);
         assertEquals(1, ds.getLoginTimeout());
         assertEquals("jdbc:h2:mem:", ds.getURL());
@@ -90,6 +91,7 @@ public class TestDataSource extends TestBase {
         assertEquals(ref.get("user").getContent().toString(), ref2.get("user").getContent().toString());
         assertEquals(ref.get("password").getContent().toString(), ref2.get("password").getContent().toString());
         assertEquals(ref.get("loginTimeout").getContent().toString(), ref2.get("loginTimeout").getContent().toString());
+        assertEquals(ref.get("description").getContent().toString(), ref2.get("description").getContent().toString());
         ds.setPasswordChars("abc".toCharArray());
         assertEquals("abc", ds.getPassword());
     }

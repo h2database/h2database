@@ -72,6 +72,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     private String userName = "";
     private char[] passwordChars = new char[0];
     private String url = "";
+    private String description;
 
     static {
         org.h2.Driver.load();
@@ -259,6 +260,26 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     }
 
     /**
+     * Get the current description.
+     *
+     * @return the description
+     */
+    public String getDescription() {
+        debugCodeCall("getDescription");
+        return description;
+    }
+
+    /**
+     * Set the description.
+     *
+     * @param description the new description
+     */
+    public void setDescription(String description) {
+        debugCodeCall("getDescription", description);
+        this.description = description;
+    }
+
+    /**
      * Get a new reference for this object, using the current settings.
      *
      * @return the new reference
@@ -272,6 +293,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         ref.add(new StringRefAddr("user", userName));
         ref.add(new StringRefAddr("password", convertToString(passwordChars)));
         ref.add(new StringRefAddr("loginTimeout", String.valueOf(loginTimeout)));
+        ref.add(new StringRefAddr("description", description));
         return ref;
     }
 //## Java 1.4 end ##

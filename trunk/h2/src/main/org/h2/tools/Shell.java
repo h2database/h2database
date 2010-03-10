@@ -285,7 +285,7 @@ public class Shell extends Tool implements Runnable {
                     if (end) {
                         if (addToHistory) {
                             history.add(0, statement);
-                            if (history.size() >= HISTORY_COUNT) {
+                            if (history.size() > HISTORY_COUNT) {
                                 history.remove(HISTORY_COUNT);
                             }
                         }

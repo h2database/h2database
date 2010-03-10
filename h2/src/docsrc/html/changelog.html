@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The Shell tool threw a IndexOutOfBoundsException after 20 statements.
+<ul><li>CREATE ALIAS ... AS: Compilation was incorrect if the source code contained
+    characters that are not supported by the default file encoding.
+</li><li>Issue 176: the JdbcDataSource now also supports a 'description' property.
+</li><li>The Shell tool threw a IndexOutOfBoundsException after 20 statements.
 </li><li>When using the small version of H2 ('jarClient'), the first call to
     Connection.createBlob (or similar) could throw a ClassNotFoundException
     because the file org.h2.store.fs.FileSystemZip is not included. This missing class

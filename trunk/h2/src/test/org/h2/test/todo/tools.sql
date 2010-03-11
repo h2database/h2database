@@ -13,6 +13,15 @@ java.util.Date toDate(String s) throws Exception {
 $$;
 call TO_DATE('1990.02.03')
 
+-- TO_CHAR
+drop alias if exists TO_CHAR;
+create alias TO_CHAR as $$
+String toChar(BigDecimal x, String pattern) throws Exception {
+    return new java.text.DecimalFormat(pattern).format(x); 
+}
+$$;
+call TO_CHAR(123456789.12, '###,###,###,###.##');
+
 -- update all rows in all tables
 select 'update ' || table_schema || '.' || table_name || ' set ' || column_name || '=' || column_name || ';'
 from information_schema.columns where ORDINAL_POSITION = 1 and table_schema <> 'INFORMATION_SCHEMA';

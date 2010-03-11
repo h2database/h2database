@@ -36,6 +36,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Full outer joins.
+</li><li>Automatic collection of statistics (auto ANALYZE; AUTOVACUUM). See http://www.postgresql.org/docs/current/static/routine-vacuuming.html#AUTOVACUUM
 </li><li>Support mixed clustering mode (one embedded, others in server mode).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Test very large databases and LOBs (up to 256 GB).
@@ -48,7 +49,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
 </li><li>Add a migration guide (list differences between databases).
 </li><li>Migrate database tool (also from other database engines).
-</li><li>Automatic collection of statistics (auto ANALYZE; AUTOVACUUM). See http://www.postgresql.org/docs/current/static/routine-vacuuming.html#AUTOVACUUM
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer.
 </li><li>Rebuild index functionality to shrink index size and improve performance.

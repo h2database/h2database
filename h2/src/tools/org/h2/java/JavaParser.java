@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -40,6 +41,8 @@ public class JavaParser {
     private HashMap<String, String> importMap = new HashMap<String, String>();
     private HashMap<String, ClassObj> classes = new HashMap<String, ClassObj>();
     private LinkedHashMap<String, FieldObj> localFields = new LinkedHashMap<String, FieldObj>();
+
+    private ArrayList<Statement> nativeHeaders = new ArrayList<Statement>();
 
     static {
         String[] list = new String[] { "abstract", "continue", "for", "new", "switch", "assert", "default", "if",
@@ -123,6 +126,13 @@ public class JavaParser {
             read(";");
         }
         while (true) {
+            Statement s = readNativeStatementIf();
+            if (s == null) {
+                break;
+            }
+            nativeHeaders.add(s);
+        }
+        while (true) {
             classObj = new ClassObj();
             classObj.isPublic = readIf("public");
             if (readIf("class")) {
@@ -192,9 +202,12 @@ public class JavaParser {
                 break;
             }
             thisPointer = null;
-            Statement s = readNativeStatementIf();
-            if (s != null) {
-                classObj.nativeInitializers.add(s);
+            while (true) {
+                Statement s = readNativeStatementIf();
+                if (s == null) {
+                    break;
+                }
+                classObj.nativeCode.add(s);
             }
             thisPointer = null;
             boolean isStatic = false;
@@ -354,6 +367,7 @@ public class JavaParser {
             }
             StatementNative stat = new StatementNative();
             stat.code = source.substring(start, current.index).trim();
+            current.index += 2;
             read();
             return stat;
         }
@@ -618,9 +632,7 @@ public class JavaParser {
             if (readIf(".")) {
                 String n = readIdentifier();
                 if (readIf("(")) {
-                    CallExpr e2 = new CallExpr();
-                    e2.expr = expr;
-                    e2.name = n;
+                    CallExpr e2 = new CallExpr(this, expr, null, n, false);
                     if (!readIf(")")) {
                         while (true) {
                             e2.args.add(readExpr());
@@ -696,11 +708,7 @@ public class JavaParser {
         }
         String name = readIdentifier();
         if (readIf("(")) {
-            CallExpr expr = new CallExpr();
-            expr.name  = name;
-            VariableExpr ve = new VariableExpr();
-            ve.field = thisPointer;
-            expr.expr = ve;
+            CallExpr expr = new CallExpr(this, null, classObj.name, name, false);
             if (!readIf(")")) {
                 while (true) {
                     expr.args.add(readExpr());
@@ -720,13 +728,41 @@ public class JavaParser {
                 f = classObj.instanceFields.get(name);
                 if (f == null) {
                     String imp = importMap.get(name);
+                    if (imp == null) {
+                        imp = JAVA_IMPORT_MAP.get(name);
+                    }
                     if (imp != null) {
                         name = imp;
+                        if (readIf(".")) {
+                            String n = readIdentifier();
+                            if (readIf("(")) {
+                                CallExpr e2 = new CallExpr(this, null, imp, n, true);
+                                if (!readIf(")")) {
+                                    while (true) {
+                                        e2.args.add(readExpr());
+                                        if (!readIf(",")) {
+                                            read(")");
+                                            break;
+                                        }
+                                    }
+                                }
+                                return e2;
+                            }
+                            VariableExpr e2 = new VariableExpr();
+                            // static member variable
+                            e2.name = imp + "." + n;
+                            ClassObj c = classes.get(imp);
+                            FieldObj sf = c.staticFields.get(n);
+                            e2.field = sf;
+                            return e2;
+                        }
+                        // TODO static field or method of a class
                     }
+                } else {
+                    expr.field = f;
                 }
             }
         }
-        expr.field = f;
         if (f != null && (!f.isLocal && !f.isStatic)) {
             VariableExpr ve = new VariableExpr();
             ve.field = thisPointer;
@@ -1143,16 +1179,17 @@ public class JavaParser {
      * @param out the output writer
      */
     void writeHeader(PrintWriter out) {
+        for (Statement s : nativeHeaders) {
+            out.println(s);
+        }
+        out.println();
         for (ClassObj c : classes.values()) {
             out.println("/* " + c.name + ".h */");
             for (FieldObj f : c.staticFields.values()) {
                 if (f.isFinal) {
                     out.println("#define " + toC(c.name + "." + f.name) + " (" + f.value + ")");
                 } else {
-                    out.print("extern " + toC(f.type.toString()) + " " + f.name);
-                    if (f.value != null) {
-                        out.print(" = " + f.value);
-                    }
+                    out.print("extern " + toC(f.type.toString()) + " " + toC(c.name + "." + f.name));
                     out.println(";");
                 }
             }
@@ -1164,7 +1201,11 @@ public class JavaParser {
                 }
                 out.println(";");
             }
+            if (c.instanceFields.size() == 0) {
+                out.println("int dummy;");
+            }
             out.println("};");
+            out.println("typedef struct " + toC(c.name) + " " + toC(c.name) + ";");
             for (MethodObj m : c.methods.values()) {
                 out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");
                 int i = 0;
@@ -1193,8 +1234,17 @@ public class JavaParser {
     void writeSource(PrintWriter out) {
         for (ClassObj c : classes.values()) {
             out.println("/* " + c.name + ".c */");
-            for (Statement s : c.nativeInitializers) {
+            for (Statement s : c.nativeCode) {
                 out.println(s);
+            }
+            for (FieldObj f : c.staticFields.values()) {
+                if (!f.isFinal) {
+                    out.print(toC(f.type.toString()) + " " + toC(c.name + "." + f.name));
+                    if (f.value != null) {
+                        out.print(" = " + f.value);
+                    }
+                    out.println(";");
+                }
             }
             for (MethodObj m : c.methods.values()) {
                 out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");
@@ -1255,6 +1305,10 @@ public class JavaParser {
      */
     static String toC(String identifier) {
         return identifier.replace('.', '_');
+    }
+
+    ClassObj getClassObj() {
+        return classObj;
     }
 
 }

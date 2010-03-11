@@ -54,7 +54,9 @@ public class ClassObj {
      */
     LinkedHashMap<String, MethodObj> methods = new LinkedHashMap<String, MethodObj>();
 
-    ArrayList<Statement> nativeInitializers = new ArrayList<Statement>();
+    ArrayList<Statement> nativeCode = new ArrayList<Statement>();
+
+    String id;
 
     /**
      * Add a method.

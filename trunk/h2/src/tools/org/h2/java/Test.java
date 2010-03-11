@@ -34,7 +34,6 @@ public class Test extends TestBase {
         // import *
         // initializer blocks
         // access to static fields with instance variable
-        // method call with "this": this.toString()
         // final variables (within blocks, parameter list)
         // Identifier : (labels)
         // ClassOrInterfaceDeclaration within blocks (or any other nested classes)
@@ -56,6 +55,7 @@ public class Test extends TestBase {
         assertEquals("6.022137e+23f", JavaParser.readNumber("6.022137e+23f+1"));
 
         JavaParser parser = new JavaParser();
+        parser.parse("src/tools/org/h2", "java.lang.Object");
         parser.parse("src/tools/org/h2", "java.lang.String");
         parser.parse("src/tools/org/h2", "java.io.PrintStream");
         parser.parse("src/tools/org/h2", "java.lang.System");

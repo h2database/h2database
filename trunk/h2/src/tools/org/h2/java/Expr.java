@@ -21,14 +21,33 @@ public interface Expr {
  */
 class CallExpr implements Expr {
 
-    Expr expr;
-    String name;
-    ArrayList<Expr> args = new ArrayList<Expr>();
+    final JavaParser context;
+    final Expr expr;
+    final ArrayList<Expr> args = new ArrayList<Expr>();
+    final boolean isStatic;
+    final String className;
+    final String name;
+
+    CallExpr(JavaParser context, Expr expr, String className, String name, boolean isStatic) {
+        this.context = context;
+        this.expr = expr;
+        this.className = className;
+        this.name = name;
+        this.isStatic = isStatic;
+    }
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append(expr.toString() + "_" + JavaParser.toC(name)).append("(");
+        if (className != null) {
+            buff.append(JavaParser.toC(className + "." + name)).append("(");
+        } else {
+            buff.append(JavaParser.toC(expr.getType().type.name + "." + name)).append("(");
+        }
         int i = 0;
+        if (expr != null) {
+            buff.append(expr.toString());
+            i++;
+        }
         for (Expr a : args) {
             if (i > 0) {
                 buff.append(", ");
@@ -38,10 +57,12 @@ class CallExpr implements Expr {
         }
         return buff.append(")").toString();
     }
+
     public Type getType() {
         // TODO
         return null;
     }
+
 }
 
 /**
@@ -136,9 +157,23 @@ class NewExpr implements Expr {
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append("new " + type);
-        for (Expr e : arrayInitExpr) {
-            buff.append("[").append(e).append("]");
+        if (arrayInitExpr.size() > 0) {
+            if (type.isPrimitive) {
+                buff.append("NEW_ARRAY(sizeof(" + type + ")");
+                buff.append(", 1 ");
+                for (Expr e : arrayInitExpr) {
+                    buff.append("* ").append(e);
+                }
+                buff.append(")");
+            } else {
+                buff.append("NEW_OBJ_ARRAY(1 ");
+                for (Expr e : arrayInitExpr) {
+                    buff.append("* ").append(e);
+                }
+                buff.append(")");
+            }
+        } else {
+            buff.append("NEW_OBJ(" + type.id + ", " + type + ")");
         }
         return buff.toString();
     }
@@ -237,13 +272,23 @@ class VariableExpr implements Expr {
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        if (base != null) {
-            buff.append(base.toString()).append("->");
-        }
-        if (field != null) {
-            buff.append(field.name);
+        if (field != null && "length".equals(field.name) && base != null && base.getType() != null && base.getType().arrayLevel > 0) {
+            buff.append("LENGTH(");
+            buff.append(base.toString());
+            buff.append(")");
         } else {
-            buff.append(JavaParser.toC(name));
+            if (base != null) {
+                buff.append(base.toString()).append("->");
+            }
+            if (field != null) {
+                if (field.isStatic) {
+                    buff.append(JavaParser.toC(field.type.type.name + "." + field.name));
+                } else {
+                    buff.append(field.name);
+                }
+            } else {
+                buff.append(JavaParser.toC(name));
+            }
         }
         return buff.toString();
     }
@@ -262,12 +307,12 @@ class VariableExpr implements Expr {
  */
 class ArrayExpr implements Expr {
 
-    Expr obj;
+    Expr expr;
     ArrayList<Expr> indexes = new ArrayList<Expr>();
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append(obj.toString());
+        buff.append(expr.toString());
         for (Expr e : indexes) {
             buff.append('[').append(e.toString()).append(']');
         }
@@ -275,7 +320,7 @@ class ArrayExpr implements Expr {
     }
 
     public Type getType() {
-        return obj.getType();
+        return expr.getType();
     }
 
 }

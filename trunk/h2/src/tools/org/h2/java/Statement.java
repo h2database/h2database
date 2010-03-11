@@ -12,7 +12,9 @@ import java.util.ArrayList;
  * A statement.
  */
 public interface Statement {
+
     // toString
+
 }
 
 /**
@@ -143,9 +145,21 @@ class ForStatement implements Statement {
         StringBuffer buff = new StringBuffer();
         buff.append("for (");
         if (iterableType != null) {
-            buff.append(iterableType).append(' ');
-            buff.append(iterableVariable).append(": ");
-            buff.append(iterable);
+            Type it = iterable.getType();
+            if (it != null && it.arrayLevel > 0) {
+                String idx = "i_" + iterableVariable;
+                buff.append("int " + idx + " = 0; " + idx + " < LEN(" + iterable + "); " + idx + "++");
+                buff.append(") {\n");
+                buff.append(JavaParser.indent(iterableType + " " + iterableVariable + " = " + iterable + "["+ idx +"];\n"));
+                buff.append(block.toString()).append("}");
+            } else {
+                // TODO iterate over a collection
+                buff.append(iterableType).append(' ');
+                buff.append(iterableVariable).append(": ");
+                buff.append(iterable);
+                buff.append(") {\n");
+                buff.append(block.toString()).append("}");
+            }
         } else {
             buff.append(init.toString());
             buff.append(" ").append(condition.toString()).append("; ");
@@ -155,9 +169,9 @@ class ForStatement implements Statement {
                 }
                 buff.append(updates.get(i));
             }
+            buff.append(") {\n");
+            buff.append(block.toString()).append("}");
         }
-        buff.append(") {\n");
-        buff.append(block.toString()).append("}");
         return buff.toString();
     }
 }

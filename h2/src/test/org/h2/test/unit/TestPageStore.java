@@ -35,6 +35,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testCheckpoint();
         testDropRecreate();
         testDropAll();
         testCloseTempTable();
@@ -56,6 +57,26 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testCheckpoint() throws SQLException {
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(data varchar)");
+        stat.execute("create sequence seq");
+        stat.execute("set max_log_size 1");
+        conn.setAutoCommit(false);
+        stat.execute("insert into test select space(1000) from system_range(1, 1000)");
+        long before = System.currentTimeMillis();
+        stat.execute("select nextval('SEQ') from system_range(1, 100000)");
+        long after = System.currentTimeMillis();
+        // it's hard to test - basically it shouldn't to too many checkpoint operations
+        assertTrue(after - before < 10000);
+        stat.execute("drop table test");
+        stat.execute("drop sequence seq");
+        conn.close();
     }
 
     private void testDropRecreate() throws SQLException {

@@ -139,7 +139,7 @@ public class Shell extends Tool implements Runnable {
     private void showHelp() {
         println("Commands are case insensitive; SQL statements end with ';'");
         println("help or ?      Display this help");
-        println("list           Toggle result list mode");
+        println("list           Toggle result list / stack trace mode");
         println("maxwidth       Set maximum column width (default is 100)");
         println("show           List all tables");
         println("describe       Describe a table");
@@ -454,6 +454,9 @@ public class Shell extends Tool implements Runnable {
             result = stat.execute(sql);
         } catch (SQLException e) {
             println("Error: " + e.toString());
+            if (listMode) {
+                e.printStackTrace(err);
+            }
             return;
         }
         ResultSet rs = null;

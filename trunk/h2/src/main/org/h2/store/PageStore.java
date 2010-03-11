@@ -334,10 +334,16 @@ public class PageStore implements CacheWriter {
         }
         synchronized (database) {
             database.checkPowerOff();
+            int firstUncommittedSection = getFirstUncommittedSection();
+            if (firstUncommittedSection <= log.getLogSectionId()) {
+                // can not truncate currently - avoid switching
+                return;
+            }
             writeIndexRowCounts();
             writeBack();
             log.checkpoint();
-            switchLog();
+            firstUncommittedSection = getFirstUncommittedSection();
+            log.removeUntil(firstUncommittedSection);
             // write back the free list
             writeBack();
             byte[] empty = new byte[pageSize];
@@ -548,8 +554,8 @@ public class PageStore implements CacheWriter {
         return p;
     }
 
-    private void switchLog() {
-        trace.debug("switchLog");
+    private int getFirstUncommittedSection() {
+        trace.debug("getFirstUncommittedSection");
         Session[] sessions = database.getSessions(true);
         int firstUncommittedSection = log.getLogSectionId();
         for (int i = 0; i < sessions.length; i++) {
@@ -561,7 +567,7 @@ public class PageStore implements CacheWriter {
                 }
             }
         }
-        log.removeUntil(firstUncommittedSection);
+        return firstUncommittedSection;
     }
 
     private void readStaticHeader() {
@@ -1049,7 +1055,8 @@ public class PageStore implements CacheWriter {
         if (!database.isReadOnly()) {
             if (log.getInDoubtTransactions().size() == 0) {
                 log.recoverEnd();
-                switchLog();
+                int firstUncommittedSection = getFirstUncommittedSection();
+                log.removeUntil(firstUncommittedSection);
             } else {
                 setReadOnly = true;
             }

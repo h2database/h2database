@@ -67,7 +67,12 @@ public class TestOutOfMemory extends TestBase {
             rs.next();
             assertEquals(3000, rs.getInt(1));
         } finally {
-            conn.close();
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                // out of memory will close the database
+                assertKnownException(e);
+            }
         }
         deleteDb("outOfMemory");
     }

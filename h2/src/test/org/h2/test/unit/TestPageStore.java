@@ -72,7 +72,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         long before = System.currentTimeMillis();
         stat.execute("select nextval('SEQ') from system_range(1, 100000)");
         long after = System.currentTimeMillis();
-        // it's hard to test - basically it shouldn't to too many checkpoint operations
+        // it's hard to test - basically it shouldn't checkpoint too often
         assertTrue(after - before < 10000);
         stat.execute("drop table test");
         stat.execute("drop sequence seq");

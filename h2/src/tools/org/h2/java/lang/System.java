@@ -7,8 +7,6 @@ import java.io.PrintStream;
  */
 public class System {
 
-    // c: #include <stdio>
-
     /**
      * The stdout stream.
      */

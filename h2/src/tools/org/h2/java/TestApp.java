@@ -9,10 +9,15 @@ package org.h2.java;
 /**
  * A test application.
  */
-/// #include <stdio.h>
 public class TestApp {
 
-    // private static final int FINAL_VALUE = 10;
+/* c:
+
+int main(char** args) {
+    org_h2_java_TestApp_main(null);
+}
+
+*/
 
     /**
      * Run this application.

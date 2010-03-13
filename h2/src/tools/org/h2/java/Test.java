@@ -26,6 +26,9 @@ public class Test extends TestBase {
     }
 
     public void test() throws IOException {
+        // gcc --std=c99 test.c
+        // (for "mixed declarations and code")
+
         // not supported yet:
         // HexadecimalFloatingPointLiteral
         // int x()[] { return null; }

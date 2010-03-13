@@ -59,6 +59,7 @@ public class Analyze extends DefineCommand {
                 columns[j].setSelectivity(selectivity);
             }
             db.update(session, table);
+
         }
         return 0;
     }

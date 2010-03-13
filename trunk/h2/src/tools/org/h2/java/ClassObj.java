@@ -56,7 +56,7 @@ public class ClassObj {
 
     ArrayList<Statement> nativeCode = new ArrayList<Statement>();
 
-    String id;
+    int id;
 
     /**
      * Add a method.
@@ -87,9 +87,9 @@ public class ClassObj {
 
     public String toString() {
         if (isPrimitive) {
-            return name;
+            return "j" + name;
         }
-        return "struct " + name;
+        return name;
     }
 
 }
@@ -127,7 +127,7 @@ class MethodObj {
     /**
      * The parameter list.
      */
-    ArrayList<FieldObj> parameters = new ArrayList<FieldObj>();
+    LinkedHashMap<String, FieldObj> parameters = new LinkedHashMap<String, FieldObj>();
 
     /**
      * Whether this method is final.
@@ -143,6 +143,11 @@ class MethodObj {
      * Whether this method is native.
      */
     boolean isNative;
+
+    /**
+     * Whether this is a constructor.
+     */
+    boolean isConstructor;
 }
 
 /**
@@ -209,7 +214,7 @@ class Type {
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append(JavaParser.toC(type.name));
+        buff.append(JavaParser.toC(type.toString()));
         if (!type.isPrimitive) {
             buff.append("*");
         }

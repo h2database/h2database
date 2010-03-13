@@ -31,16 +31,20 @@ public class JavaParser {
     private static final HashMap<String, ClassObj> BUILT_IN_TYPES = new HashMap<String, ClassObj>();
     private static final HashMap<String, String> JAVA_IMPORT_MAP = new HashMap<String, String>();
 
+    private static int firstClassId;
+
     private String source;
 
     private ParseState current = new ParseState();
 
     private String packageName;
     private ClassObj classObj;
+    private int classId = firstClassId;
+    private MethodObj method;
     private FieldObj thisPointer;
     private HashMap<String, String> importMap = new HashMap<String, String>();
     private HashMap<String, ClassObj> classes = new HashMap<String, ClassObj>();
-    private LinkedHashMap<String, FieldObj> localFields = new LinkedHashMap<String, FieldObj>();
+    private LinkedHashMap<String, FieldObj> localVars = new LinkedHashMap<String, FieldObj>();
 
     private ArrayList<Statement> nativeHeaders = new ArrayList<Statement>();
 
@@ -54,26 +58,29 @@ public class JavaParser {
         for (String s : list) {
             RESERVED.add(s);
         }
-        addBuiltInType(true, "void");
-        addBuiltInType(true, "int");
-        addBuiltInType(true, "char");
-        addBuiltInType(true, "byte");
-        addBuiltInType(true, "long");
-        addBuiltInType(true, "double");
-        addBuiltInType(true, "float");
-        addBuiltInType(true, "boolean");
-        addBuiltInType(true, "short");
+        int id = 0;
+        addBuiltInType(id++, true, "void");
+        addBuiltInType(id++, true, "int");
+        addBuiltInType(id++, true, "char");
+        addBuiltInType(id++, true, "byte");
+        addBuiltInType(id++, true, "long");
+        addBuiltInType(id++, true, "double");
+        addBuiltInType(id++, true, "float");
+        addBuiltInType(id++, true, "boolean");
+        addBuiltInType(id++, true, "short");
         String[] java = new String[] { "Boolean", "Byte", "Character", "Class", "ClassLoader", "Double", "Float",
                 "Integer", "Long", "Math", "Number", "Object", "Runtime", "Short", "String", "StringBuffer",
                 "StringBuilder", "System", "Thread", "ThreadGroup", "ThreadLocal", "Throwable", "Void" };
         for (String s : java) {
             JAVA_IMPORT_MAP.put(s, "java.lang." + s);
-            addBuiltInType(false, "java.lang." + s);
+            addBuiltInType(id++, false, "java.lang." + s);
         }
+        firstClassId = id;
     }
 
-    private static void addBuiltInType(boolean primitive, String type) {
+    private static void addBuiltInType(int id, boolean primitive, String type) {
         ClassObj typeObj = new ClassObj();
+        typeObj.id = id;
         typeObj.name = type;
         typeObj.isPrimitive = primitive;
         BUILT_IN_TYPES.put(type, typeObj);
@@ -134,6 +141,7 @@ public class JavaParser {
         }
         while (true) {
             classObj = new ClassObj();
+            classObj.id = classId++;
             classObj.isPublic = readIf("public");
             if (readIf("class")) {
                 classObj.isInterface = false;
@@ -196,7 +204,7 @@ public class JavaParser {
 
     private void parseClassBody() {
         read("{");
-        localFields.clear();
+        localVars.clear();
         while (true) {
             if (readIf("}")) {
                 break;
@@ -231,10 +239,10 @@ public class JavaParser {
                 }
             }
             if (readIf("{")) {
-                MethodObj method = new MethodObj();
+                method = new MethodObj();
                 method.name = isStatic ? "cl_init_obj" : "init_obj";
                 method.isStatic = isStatic;
-                localFields.clear();
+                localVars.clear();
                 if (!isStatic) {
                     initThisPointer();
                 }
@@ -243,14 +251,14 @@ public class JavaParser {
             } else {
                 String typeName = readTypeOrIdentifier();
                 Type type = readType(typeName);
-                MethodObj method = new MethodObj();
+                method = new MethodObj();
                 method.returnType = type;
                 method.isStatic = isStatic;
                 method.isFinal = isFinal;
                 method.isPublic = isPublic;
                 method.isPrivate = isPrivate;
                 method.isNative = isNative;
-                localFields.clear();
+                localVars.clear();
                 if (!isStatic) {
                     initThisPointer();
                 }
@@ -259,7 +267,8 @@ public class JavaParser {
                         throw getSyntaxException("Constructor of wrong type: " + type);
                     }
                     method.name = "init_obj";
-                    parseFormalParameters(method);
+                    method.isConstructor = true;
+                    parseFormalParameters();
                     if (!readIf(";")) {
                         method.block = readStatement();
                     }
@@ -268,7 +277,7 @@ public class JavaParser {
                     String name = readIdentifier();
                     method.name = name;
                     if (readIf("(")) {
-                        parseFormalParameters(method);
+                        parseFormalParameters();
                         if (!readIf(";")) {
                             method.block = readStatement();
                         }
@@ -317,7 +326,7 @@ public class JavaParser {
         return type;
     }
 
-    private void parseFormalParameters(MethodObj method) {
+    private void parseFormalParameters() {
         if (readIf(")")) {
             return;
         }
@@ -327,7 +336,7 @@ public class JavaParser {
             String typeName = readTypeOrIdentifier();
             field.type = readType(typeName);
             field.name = readIdentifier();
-            method.parameters.add(field);
+            method.parameters.put(field.name, field);
             if (readIf(")")) {
                 break;
             }
@@ -504,7 +513,7 @@ public class JavaParser {
                         f.isLocal = true;
                         f.type = dec.type;
                         f.name = varName;
-                        localFields.put(varName, f);
+                        localVars.put(varName, f);
                         dec.variables.add(varName);
                         dec.values.add(value);
                         if (readIf(";")) {
@@ -708,7 +717,9 @@ public class JavaParser {
         }
         String name = readIdentifier();
         if (readIf("(")) {
-            CallExpr expr = new CallExpr(this, null, classObj.name, name, false);
+            VariableExpr t = new VariableExpr();
+            t.field = thisPointer;
+            CallExpr expr = new CallExpr(this, t, classObj.name, name, false);
             if (!readIf(")")) {
                 while (true) {
                     expr.args.add(readExpr());
@@ -721,48 +732,50 @@ public class JavaParser {
             return expr;
         }
         VariableExpr expr = new VariableExpr();
-        FieldObj f = localFields.get(name);
+        FieldObj f = localVars.get(name);
+        if (f == null) {
+            f = method.parameters.get(name);
+        }
         if (f == null) {
             f = classObj.staticFields.get(name);
-            if (f == null) {
-                f = classObj.instanceFields.get(name);
-                if (f == null) {
-                    String imp = importMap.get(name);
-                    if (imp == null) {
-                        imp = JAVA_IMPORT_MAP.get(name);
-                    }
-                    if (imp != null) {
-                        name = imp;
-                        if (readIf(".")) {
-                            String n = readIdentifier();
-                            if (readIf("(")) {
-                                CallExpr e2 = new CallExpr(this, null, imp, n, true);
-                                if (!readIf(")")) {
-                                    while (true) {
-                                        e2.args.add(readExpr());
-                                        if (!readIf(",")) {
-                                            read(")");
-                                            break;
-                                        }
-                                    }
+        }
+        if (f == null) {
+            f = classObj.instanceFields.get(name);
+        }
+        if (f == null) {
+            String imp = importMap.get(name);
+            if (imp == null) {
+                imp = JAVA_IMPORT_MAP.get(name);
+            }
+            if (imp != null) {
+                name = imp;
+                if (readIf(".")) {
+                    String n = readIdentifier();
+                    if (readIf("(")) {
+                        CallExpr e2 = new CallExpr(this, null, imp, n, true);
+                        if (!readIf(")")) {
+                            while (true) {
+                                e2.args.add(readExpr());
+                                if (!readIf(",")) {
+                                    read(")");
+                                    break;
                                 }
-                                return e2;
                             }
-                            VariableExpr e2 = new VariableExpr();
-                            // static member variable
-                            e2.name = imp + "." + n;
-                            ClassObj c = classes.get(imp);
-                            FieldObj sf = c.staticFields.get(n);
-                            e2.field = sf;
-                            return e2;
                         }
-                        // TODO static field or method of a class
+                        return e2;
                     }
-                } else {
-                    expr.field = f;
+                    VariableExpr e2 = new VariableExpr();
+                    // static member variable
+                    e2.name = imp + "." + n;
+                    ClassObj c = classes.get(imp);
+                    FieldObj sf = c.staticFields.get(n);
+                    e2.field = sf;
+                    return e2;
                 }
+                // TODO static field or method of a class
             }
         }
+        expr.field = f;
         if (f != null && (!f.isLocal && !f.isStatic)) {
             VariableExpr ve = new VariableExpr();
             ve.field = thisPointer;
@@ -783,7 +796,7 @@ public class JavaParser {
 
     private String readQualifiedIdentifier() {
         String id = readIdentifier();
-        if (localFields.containsKey(id)) {
+        if (localVars.containsKey(id)) {
             return id;
         }
         if (classObj != null) {
@@ -1209,11 +1222,11 @@ public class JavaParser {
             for (MethodObj m : c.methods.values()) {
                 out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");
                 int i = 0;
-                if (!m.isStatic) {
+                if (!m.isStatic && !m.isConstructor) {
                     out.print(toC(c.name) + "* this");
                     i++;
                 }
-                for (FieldObj p : m.parameters) {
+                for (FieldObj p : m.parameters.values()) {
                     if (i > 0) {
                         out.print(", ");
                     }
@@ -1249,11 +1262,11 @@ public class JavaParser {
             for (MethodObj m : c.methods.values()) {
                 out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");
                 int i = 0;
-                if (!m.isStatic) {
+                if (!m.isStatic && !m.isConstructor) {
                     out.print(toC(c.name) + "* this");
                     i++;
                 }
-                for (FieldObj p : m.parameters) {
+                for (FieldObj p : m.parameters.values()) {
                     if (i > 0) {
                         out.print(", ");
                     }
@@ -1261,6 +1274,9 @@ public class JavaParser {
                     i++;
                 }
                 out.println(") {");
+                if (m.isConstructor) {
+                    out.println(indent(toC(c.name) + "* this = NEW_OBJ(" + c.id + ", " + toC(c.name) +");"));
+                }
                 if (m.block != null) {
                     out.print(m.block.toString());
                 }

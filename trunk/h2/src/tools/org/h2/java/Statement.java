@@ -77,7 +77,7 @@ class SwitchStatement implements Statement {
         StringBuilder buff = new StringBuilder();
         buff.append("switch (").append(expr).append(") {\n");
         for (int i = 0; i < cases.size(); i++) {
-            buff.append("case: " + cases.get(i) + ":\n");
+            buff.append("case " + cases.get(i) + ":\n");
             buff.append(blocks.get(i).toString());
         }
         if (defaultBlock != null) {
@@ -148,7 +148,7 @@ class ForStatement implements Statement {
             Type it = iterable.getType();
             if (it != null && it.arrayLevel > 0) {
                 String idx = "i_" + iterableVariable;
-                buff.append("int " + idx + " = 0; " + idx + " < LEN(" + iterable + "); " + idx + "++");
+                buff.append("int " + idx + " = 0; " + idx + " < LENGTH(" + iterable + "); " + idx + "++");
                 buff.append(") {\n");
                 buff.append(JavaParser.indent(iterableType + " " + iterableVariable + " = " + iterable + "["+ idx +"];\n"));
                 buff.append(block.toString()).append("}");

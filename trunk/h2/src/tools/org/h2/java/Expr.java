@@ -41,7 +41,7 @@ class CallExpr implements Expr {
         if (className != null) {
             buff.append(JavaParser.toC(className + "." + name)).append("(");
         } else {
-            buff.append(JavaParser.toC(expr.getType().type.name + "." + name)).append("(");
+            buff.append(JavaParser.toC(expr.getType().type + "." + name)).append("(");
         }
         int i = 0;
         if (expr != null) {
@@ -198,7 +198,7 @@ class StringExpr implements Expr {
     String text;
 
     public String toString() {
-        return "\"" + javaEncode(text) + "\"";
+        return "STRING(\"" + javaEncode(text) + "\")";
     }
 
     public Type getType() {
@@ -282,7 +282,8 @@ class VariableExpr implements Expr {
             }
             if (field != null) {
                 if (field.isStatic) {
-                    buff.append(JavaParser.toC(field.type.type.name + "." + field.name));
+                    // buff.append(JavaParser.toC(field.type.type.name + "." + field.name));
+                    buff.append(JavaParser.toC(name));
                 } else {
                     buff.append(field.name);
                 }

@@ -204,6 +204,8 @@ public class PageStore implements CacheWriter {
 
     private Data emptyPage;
 
+    private long logSizeBase;
+
     /**
      * Create a new page store object.
      *
@@ -334,15 +336,10 @@ public class PageStore implements CacheWriter {
         }
         synchronized (database) {
             database.checkPowerOff();
-            int firstUncommittedSection = getFirstUncommittedSection();
-            if (firstUncommittedSection <= log.getLogSectionId()) {
-                // can not truncate currently - avoid switching
-                return;
-            }
             writeIndexRowCounts();
             writeBack();
             log.checkpoint();
-            firstUncommittedSection = getFirstUncommittedSection();
+            int firstUncommittedSection = getFirstUncommittedSection();
             log.removeUntil(firstUncommittedSection);
             // write back the free list
             writeBack();
@@ -1115,8 +1112,9 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             checkOpen();
             log.commit(session.getId());
-            if (log.getSize() > maxLogSize) {
+            if (log.getSize() - logSizeBase > maxLogSize) {
                 checkpoint();
+                logSizeBase = log.getSize();
             }
         }
     }

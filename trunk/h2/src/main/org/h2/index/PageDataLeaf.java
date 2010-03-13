@@ -391,7 +391,7 @@ public class PageDataLeaf extends PageData {
     boolean remove(long key) {
         int i = find(key);
         if (keys[i] != key) {
-            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + key);
+            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + key + " " + keys[i]);
         }
         index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {

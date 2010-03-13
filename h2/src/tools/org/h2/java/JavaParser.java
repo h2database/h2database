@@ -1280,6 +1280,9 @@ public class JavaParser {
                 if (m.block != null) {
                     out.print(m.block.toString());
                 }
+                if (m.isConstructor) {
+                    out.println(indent("return this;"));
+                }
                 out.println("}");
                 out.println();
             }

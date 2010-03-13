@@ -5,11 +5,12 @@ package org.h2.java.lang;
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <wchar.h>
 
 #define jvoid void
 #define jboolean int8_t
 #define jbyte int8_t
-#define jchar int16_t
+#define jchar wchar_t
 #define jint int32_t
 #define jlong int64_t
 #define jfloat float
@@ -18,7 +19,7 @@ package org.h2.java.lang;
 #define false 0
 #define null 0
 
-#define LENGTH(a) (*(((jint*)(a))-1))
+#define LENGTH(a) (*(((jint*)(a))-2))
 #define NEW_ARRAY(size, length) new_array(0, size, length)
 #define NEW_OBJ_ARRAY(length) new_array(1, sizeof(void*), length)
 #define NEW_OBJ(typeId, typeName) new_object(typeId, sizeof(struct typeName))
@@ -42,7 +43,7 @@ public class String {
 void* new_array(jint object, jint size, jint length) {
     int count = sizeof(jint) * 2 + size * length;
     int* m = (jint*) calloc(1, count);
-    *m = object << 31 + length;
+    *m = (object << 31) + length;
     *(m+1) = 1;
     return m + 2;
 }
@@ -67,11 +68,12 @@ void* set_object(void** target, void* o) {
     if (o != 0) {
         (*(m - 2))++;
     }
+    return m;
 }
 
 void* string(char* s) {
     int len = strlen(s);
-    jchar* chars = NEW_ARRAY(sizeof(char), 1 * LENGTH(chars));
+    jchar* chars = NEW_ARRAY(sizeof(jchar), len);
     for (int i = 0; i < len; i++) {
         chars[i] = s[i];
     }
@@ -85,7 +87,7 @@ void* string(char* s) {
 
     public String(char[] chars) {
         this.chars = new char[chars.length];
-        System.arraycopy(chars, 0, this.chars, 0, chars.length);
+        System.arraycopyChars(chars, 0, this.chars, 0, chars.length);
     }
 
     public int hashCode() {

@@ -13,7 +13,7 @@ public class TestApp {
 
 /* c:
 
-int main(char** args) {
+int main(int argc, char** argv) {
     org_h2_java_TestApp_main(null);
 }
 
@@ -25,8 +25,8 @@ int main(char** args) {
      * @param args the command line arguments
      */
     public static void main(String... args) {
-        // c:printf("Hello\n");
         System.out.println("Hello World");
+        System.out.println("Hello!");
     }
 
     /**

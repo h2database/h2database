@@ -648,7 +648,7 @@ public class Recover extends Tool implements DataHandler {
         }
 
         public int read() {
-            byte[] b = new byte[1];
+            byte[] b = { 0 };
             int len = read(b);
             return len < 0 ? -1 : (b[0] & 255);
         }

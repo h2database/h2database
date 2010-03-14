@@ -246,7 +246,7 @@ public class MultiDimension implements Comparator<long[]> {
         }
         long range = high - low + 1;
         if (range == size) {
-            long[] item = new long[] { low, high };
+            long[] item = { low, high };
             list.add(item);
         } else {
             int middle = findMiddle(min[largest], max[largest]);

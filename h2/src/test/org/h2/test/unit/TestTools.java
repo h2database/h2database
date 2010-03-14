@@ -98,8 +98,8 @@ public class TestTools extends TestBase {
         rs.addColumn("j", Types.TIMESTAMP, 0, 0);
 
         Date d = Date.valueOf("2001-02-03");
-        byte[] b = new byte[]{(byte) 0xab};
-        Object[] a = new Object[]{1, 2};
+        byte[] b = {(byte) 0xab};
+        Object[] a = {1, 2};
         Time t = Time.valueOf("10:20:30");
         Timestamp ts = Timestamp.valueOf("2002-03-04 10:20:30");
         rs.addRow(1, b, true, d, "10.3", Math.PI, "-3", a, t, ts);
@@ -606,7 +606,7 @@ public class TestTools extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB) " +
                 "AS SELECT X, SPACE(3000) FROM SYSTEM_RANGE(1, 300)");
         conn.close();
-        String[] args = new String[] { "-dir", baseDir, "-db", "utils", "-cipher", "XTEA", "-decrypt", "abc", "-quiet" };
+        String[] args = { "-dir", baseDir, "-db", "utils", "-cipher", "XTEA", "-decrypt", "abc", "-quiet" };
         ChangeFileEncryption.main(args);
         args = new String[] { "-dir", baseDir, "-db", "utils", "-cipher", "AES", "-encrypt", "def", "-quiet" };
         ChangeFileEncryption.main(args);

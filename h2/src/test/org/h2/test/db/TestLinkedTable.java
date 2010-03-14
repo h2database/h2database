@@ -221,12 +221,12 @@ public class TestLinkedTable extends TestBase {
         Statement sb = cb.createStatement();
         sa.execute("CREATE TABLE TEST(ID INT)");
         sa.execute("INSERT INTO TEST VALUES(1)");
-        String[] suffix = new String[]{"", "READONLY", "EMIT UPDATES"};
+        String[] suffix = {"", "READONLY", "EMIT UPDATES"};
         for (int i = 0; i < suffix.length; i++) {
             String sql = "CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')" + suffix[i];
             sb.execute(sql);
             sb.executeQuery("SELECT * FROM T");
-            String[] update = new String[]{"DELETE FROM T", "INSERT INTO T VALUES(2)", "UPDATE T SET ID = 3"};
+            String[] update = {"DELETE FROM T", "INSERT INTO T VALUES(2)", "UPDATE T SET ID = 3"};
             for (String u : update) {
                 try {
                     sb.execute(u);

@@ -29,7 +29,7 @@ public class PageInputStream extends InputStream {
     private int dataPos;
     private boolean endOfFile;
     private int remaining;
-    private byte[] buffer = new byte[1];
+    private byte[] buffer = { 0 };
     private int logKey;
 
     PageInputStream(PageStore store, int logKey, int firstTrunkPage, int dataPage) {

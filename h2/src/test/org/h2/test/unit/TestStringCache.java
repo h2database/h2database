@@ -21,7 +21,7 @@ public class TestStringCache extends TestBase {
      */
     volatile boolean stop;
     private Random random = new Random(1);
-    private String[] some = new String[] { null, "", "ABC", "this is a medium sized string", "1", "2" };
+    private String[] some = { null, "", "ABC", "this is a medium sized string", "1", "2" };
     private boolean returnNew;
     private boolean useIntern;
 

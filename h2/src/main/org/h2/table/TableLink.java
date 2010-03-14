@@ -75,7 +75,7 @@ public class TableLink extends Table {
             if (!force) {
                 throw e;
             }
-            Column[] cols = new Column[0];
+            Column[] cols = { };
             setColumns(cols);
             linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), IndexType.createNonUnique(false));
             indexes.add(linkedIndex);

@@ -59,7 +59,7 @@ public class TestIndex extends TestBase {
         if (config.big) {
             for (int i = 0; i < 2000; i++) {
                 if ((i % 100) == 0) {
-                    System.out.println("width: " + i);
+                    println("width: " + i);
                 }
                 testWideIndex(i);
             }

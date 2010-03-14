@@ -66,7 +66,7 @@ public class TestScriptReader extends TestBase {
             switch (random.nextInt(10)) {
             case 0: {
                 int l = random.nextInt(4);
-                String[] ch = new String[] { "\n", "\r", " ", "*", "a", "0", "$ " };
+                String[] ch = { "\n", "\r", " ", "*", "a", "0", "$ " };
                 for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
@@ -75,7 +75,7 @@ public class TestScriptReader extends TestBase {
             case 1: {
                 buff.append('\'');
                 int l = random.nextInt(4);
-                String[] ch = new String[] { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\"", "$ " };
+                String[] ch = { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\"", "$ " };
                 for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
@@ -85,7 +85,7 @@ public class TestScriptReader extends TestBase {
             case 2: {
                 buff.append('"');
                 int l = random.nextInt(4);
-                String[] ch = new String[] { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\'", "$" };
+                String[] ch = { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\'", "$" };
                 for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
@@ -95,14 +95,14 @@ public class TestScriptReader extends TestBase {
             case 3: {
                 buff.append('-');
                 if (random.nextBoolean()) {
-                    String[] ch = new String[] { "\n", "\r", "*", "a", " ", "$ " };
+                    String[] ch = { "\n", "\r", "*", "a", " ", "$ " };
                     int l = 1 + random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
                     }
                 } else {
                     buff.append('-');
-                    String[] ch = new String[] { ";", "-", "//", "/*", "*/", "a", "$" };
+                    String[] ch = { ";", "-", "//", "/*", "*/", "a", "$" };
                     int l = random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
@@ -114,14 +114,14 @@ public class TestScriptReader extends TestBase {
             case 4: {
                 buff.append('/');
                 if (random.nextBoolean()) {
-                    String[] ch = new String[] { "\n", "\r", "a", " ", "- ", "$ " };
+                    String[] ch = { "\n", "\r", "a", " ", "- ", "$ " };
                     int l = 1 + random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
                     }
                 } else {
                     buff.append('*');
-                    String[] ch = new String[] { ";", "-", "//", "/* ", "--", "\n", "\r", "a", "$" };
+                    String[] ch = { ";", "-", "//", "/* ", "--", "\n", "\r", "a", "$" };
                     int l = random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
@@ -136,14 +136,14 @@ public class TestScriptReader extends TestBase {
                 }
                 buff.append("$");
                 if (random.nextBoolean()) {
-                    String[] ch = new String[] { "\n", "\r", "a", " ", "- ", "/ " };
+                    String[] ch = { "\n", "\r", "a", " ", "- ", "/ " };
                     int l = 1 + random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
                     }
                 } else {
                     buff.append("$");
-                    String[] ch = new String[] { ";", "-", "//", "/* ", "--", "\n", "\r", "a", "$ " };
+                    String[] ch = { ";", "-", "//", "/* ", "--", "\n", "\r", "a", "$ " };
                     int l = random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);

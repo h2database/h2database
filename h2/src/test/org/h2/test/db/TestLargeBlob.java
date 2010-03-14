@@ -44,7 +44,7 @@ public class TestLargeBlob extends TestBase {
         prep.setBinaryStream(1, new InputStream() {
             long remaining = testLength;
             int p;
-            byte[] oneByte = new byte[1];
+            byte[] oneByte = { 0 };
             public void close() {
                 // ignore
             }

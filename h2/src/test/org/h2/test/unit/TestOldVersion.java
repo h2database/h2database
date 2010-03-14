@@ -32,7 +32,7 @@ public class TestOldVersion extends TestBase {
     }
 
     public void test() throws Exception {
-        URL[] urls = new URL[] { new URL("file:ext/h2-1.2.127.jar") };
+        URL[] urls = { new URL("file:ext/h2-1.2.127.jar") };
         ClassLoader cl = new URLClassLoader(urls, null);
         // cl = getClass().getClassLoader();
         Class< ? > driverClass = cl.loadClass("org.h2.Driver");

@@ -821,7 +821,7 @@ public class MetaTable extends Table {
             add(rows, "info.VERSION_MINOR", "" + Constants.VERSION_MINOR);
             add(rows, "info.VERSION", "" + Constants.getFullVersion());
             if (session.getUser().isAdmin()) {
-                String[] settings = new String[]{
+                String[] settings = {
                         "java.runtime.version",
                         "java.vm.name", "java.vendor",
                         "os.name", "os.arch", "os.version", "sun.os.patch.level",

@@ -81,7 +81,7 @@ public class XMLChecker {
         // String lastElement = null;
         // <li>: replace <li>([^\r]*[^<]*) with <li>$1</li>
         // use this for html file, for example if <li> is not closed
-        String[] noClose = new String[] {};
+        String[] noClose = {};
         XMLParser parser = new XMLParser(xml);
         Stack<Object[]> stack = new Stack<Object[]>();
         boolean rootElement = false;

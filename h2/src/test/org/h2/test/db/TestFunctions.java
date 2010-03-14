@@ -69,13 +69,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         stat.execute(createSQL);
         stat.execute("insert into testGreatest values (1)");
 
-        String query = "SELECT GREATEST(id, " + ((long)Integer.MAX_VALUE) + ") FROM testGreatest";
+        String query = "SELECT GREATEST(id, " + ((long) Integer.MAX_VALUE) + ") FROM testGreatest";
         ResultSet rs = stat.executeQuery(query);
         rs.next();
         Object o = rs.getObject(1);
         assertEquals(Long.class.getName(), o.getClass().getName());
 
-        String query2 = "SELECT GREATEST(id, " + ((long)Integer.MAX_VALUE + 1) + ") FROM testGreatest";
+        String query2 = "SELECT GREATEST(id, " + ((long) Integer.MAX_VALUE + 1) + ") FROM testGreatest";
         ResultSet rs2 = stat.executeQuery(query2);
         rs2.next();
         Object o2 = rs2.getObject(1);

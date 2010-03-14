@@ -19,7 +19,7 @@ import org.h2.test.TestBase;
  */
 public class TestNativeSQL extends TestBase {
 
-    private static final String[] PAIRS = new String[] {
+    private static final String[] PAIRS = {
             "CREATE TABLE TEST(ID INT PRIMARY KEY)",
             "CREATE TABLE TEST(ID INT PRIMARY KEY)",
 

@@ -922,7 +922,7 @@ public class Parser {
         }
         if (readIf("DEFAULT")) {
             read("VALUES");
-            Expression[] expr = new Expression[0];
+            Expression[] expr = { };
             command.addRow(expr);
         } else if (readIf("VALUES")) {
             do {
@@ -4721,7 +4721,7 @@ public class Parser {
                         Column column = parseColumnForTable(columnName);
                         if (column.isAutoIncrement() && column.isPrimaryKey()) {
                             column.setPrimaryKey(false);
-                            IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
+                            IndexColumn[] cols = { new IndexColumn() };
                             cols[0].columnName = column.getName();
                             AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema, false);
                             pk.setType(AlterTableAddConstraint.PRIMARY_KEY);
@@ -4737,7 +4737,7 @@ public class Parser {
                         if (readIf("PRIMARY")) {
                             read("KEY");
                             boolean hash = readIf("HASH");
-                            IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
+                            IndexColumn[] cols = { new IndexColumn() };
                             cols[0].columnName = column.getName();
                             AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema, false);
                             pk.setPrimaryKeyHash(hash);
@@ -4752,7 +4752,7 @@ public class Parser {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema, false);
                             unique.setConstraintName(constraintName);
                             unique.setType(AlterTableAddConstraint.UNIQUE);
-                            IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
+                            IndexColumn[] cols = { new IndexColumn() };
                             cols[0].columnName = columnName;
                             unique.setIndexColumns(cols);
                             unique.setTableName(tableName);
@@ -4772,7 +4772,7 @@ public class Parser {
                             AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema, false);
                             ref.setConstraintName(constraintName);
                             ref.setType(AlterTableAddConstraint.REFERENTIAL);
-                            IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
+                            IndexColumn[] cols = { new IndexColumn() };
                             cols[0].columnName = columnName;
                             ref.setIndexColumns(cols);
                             ref.setTableName(tableName);

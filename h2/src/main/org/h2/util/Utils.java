@@ -29,17 +29,17 @@ public class Utils {
     /**
      * An 0-size byte array.
      */
-    public static final byte[] EMPTY_BYTES = new byte[0];
+    public static final byte[] EMPTY_BYTES = {};
 
     /**
      * An 0-size int array.
      */
-    public static final int[] EMPTY_INT_ARRAY = new int[0];
+    public static final int[] EMPTY_INT_ARRAY = {};
 
     /**
      * An 0-size long array.
      */
-    private static final long[] EMPTY_LONG_ARRAY = new long[0];
+    private static final long[] EMPTY_LONG_ARRAY = {};
 
     private static final int GC_DELAY = 50;
     private static final int MAX_GC = 8;

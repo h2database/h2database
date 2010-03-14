@@ -67,7 +67,7 @@ public class WebServer implements Service {
         { "zh_TW", "\u4e2d\u6587 (\u7e41\u9ad4)"},
     };
 
-    private static final String[] GENERIC = new String[] {
+    private static final String[] GENERIC = {
         "Generic JNDI Data Source|javax.naming.InitialContext|java:comp/env/jdbc/Test|sa",
         "Generic Firebird Server|org.firebirdsql.jdbc.FBDriver|jdbc:firebirdsql:localhost:c:/temp/firebird/test|sysdba",
         "Generic OneDollarDB|in.co.daffodil.db.jdbc.DaffodilDBDriver|jdbc:daffodilDB_embedded:school;path=C:/temp;create=true|sa",

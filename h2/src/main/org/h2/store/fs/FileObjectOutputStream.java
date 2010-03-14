@@ -15,7 +15,7 @@ import java.io.OutputStream;
 public class FileObjectOutputStream extends OutputStream {
 
     private FileObject file;
-    private byte[] buffer = new byte[1];
+    private byte[] buffer = { 0 };
 
     /**
      * Create a new file object output stream from the file object.

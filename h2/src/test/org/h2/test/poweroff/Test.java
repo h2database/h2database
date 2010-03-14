@@ -143,7 +143,7 @@ public class Test {
     }
 
     private void testDatabases(DataOutputStream out) throws Exception {
-        Test[] dbs = new Test[] {
+        Test[] dbs = {
                 new Test("org.h2.Driver", "jdbc:h2:test1", "sa", "", true),
                 new Test("org.h2.Driver", "jdbc:h2:test2", "sa", "", false),
                 new Test("org.hsqldb.jdbcDriver", "jdbc:hsqldb:test4", "sa", "", false),

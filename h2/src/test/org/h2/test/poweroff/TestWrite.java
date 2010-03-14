@@ -54,7 +54,7 @@ public class TestWrite {
         file.setLength(0);
         FileDescriptor fd = file.getFD();
         long start = System.currentTimeMillis();
-        byte[] data = new byte[] { 0 };
+        byte[] data = { 0 };
         file.write(data);
         int i = 0;
         if (flush) {

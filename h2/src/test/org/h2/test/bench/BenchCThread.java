@@ -44,7 +44,7 @@ public class BenchCThread {
      * Process the list of operations (a 'deck') in random order.
      */
     void process() throws SQLException {
-        int[] deck = new int[] { OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER,
+        int[] deck = { OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER,
                 OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER,
                 OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER, OP_PAYMENT,
                 OP_PAYMENT, OP_PAYMENT, OP_PAYMENT, OP_PAYMENT, OP_PAYMENT,

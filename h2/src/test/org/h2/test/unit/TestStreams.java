@@ -37,7 +37,7 @@ public class TestStreams extends TestBase {
     }
 
     private byte[] getRandomBytes(Random random) {
-        int[] sizes = new int[] { 0, 1, random.nextInt(1000), random.nextInt(100000), random.nextInt(1000000) };
+        int[] sizes = { 0, 1, random.nextInt(1000), random.nextInt(100000), random.nextInt(1000000) };
         int size = sizes[random.nextInt(sizes.length)];
         byte[] buffer = new byte[size];
         if (random.nextInt(5) == 1) {
@@ -74,7 +74,7 @@ public class TestStreams extends TestBase {
                 comp.write(buffer);
             } else {
                 for (int j = 0; j < buffer.length;) {
-                    int[] sizes = new int[] { 0, 1, random.nextInt(100), random.nextInt(100000) };
+                    int[] sizes = { 0, 1, random.nextInt(100), random.nextInt(100000) };
                     int size = sizes[random.nextInt(sizes.length)];
                     size = Math.min(size, buffer.length - j);
                     if (size == 1) {
@@ -91,7 +91,7 @@ public class TestStreams extends TestBase {
             LZFInputStream decompress = new LZFInputStream(in);
             byte[] test = new byte[buffer.length];
             for (int j = 0; j < buffer.length;) {
-                int[] sizes = new int[] { 0, 1, random.nextInt(100), random.nextInt(100000) };
+                int[] sizes = { 0, 1, random.nextInt(100), random.nextInt(100000) };
                 int size = sizes[random.nextInt(sizes.length)];
                 if (size == 1) {
                     int x = decompress.read();

@@ -464,8 +464,7 @@ public class Select extends Query {
                 first = topTableFilter.getTable().getTemplateSimpleRow(true);
             }
             first.setValue(columnIndex, value);
-            Value[] row = new Value[1];
-            row[0] = value;
+            Value[] row = { value };
             result.addRow(row);
             rowNumber++;
             if ((sort == null || sortUsingIndex) && limitRows != 0 && result.getRowCount() >= limitRows) {

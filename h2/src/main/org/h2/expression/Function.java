@@ -1467,7 +1467,7 @@ public class Function extends Expression implements FunctionCall {
 
     private static String getSoundex(String s) {
         int len = s.length();
-        char[] chars = new char[] { '0', '0', '0', '0' };
+        char[] chars = { '0', '0', '0', '0' };
         char lastDigit = '0';
         for (int i = 0, j = 0; i < len && j < 4; i++) {
             char c = s.charAt(i);

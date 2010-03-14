@@ -33,7 +33,7 @@ public class TestValue extends TestBase {
     }
 
     private void testDouble(boolean useFloat) {
-        double[] d = new double[]{
+        double[] d = {
                 Double.NEGATIVE_INFINITY,
                 -1,
                 0,

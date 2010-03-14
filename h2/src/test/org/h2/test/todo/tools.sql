@@ -17,7 +17,7 @@ call TO_DATE('1990.02.03')
 drop alias if exists TO_CHAR;
 create alias TO_CHAR as $$
 String toChar(BigDecimal x, String pattern) throws Exception {
-    return new java.text.DecimalFormat(pattern).format(x); 
+    return new java.text.DecimalFormat(pattern).format(x);
 }
 $$;
 call TO_CHAR(123456789.12, '###,###,###,###.##');

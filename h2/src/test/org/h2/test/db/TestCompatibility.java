@@ -66,7 +66,7 @@ public class TestCompatibility extends TestBase {
 
     private void testColumnAlias() throws SQLException {
         Statement stat = conn.createStatement();
-        String[] modes = new String[] { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
+        String[] modes = { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
         String columnAlias;
         columnAlias = "MySQL,Regular";
         stat.execute("CREATE TABLE TEST(ID INT)");
@@ -89,7 +89,7 @@ public class TestCompatibility extends TestBase {
 
     private void testUniqueIndexSingleNull() throws SQLException {
         Statement stat = conn.createStatement();
-        String[] modes = new String[] { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
+        String[] modes = { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
         String multiNull = "PostgreSQL,MySQL,Oracle,Regular";
         for (String mode : modes) {
             stat.execute("SET MODE " + mode);

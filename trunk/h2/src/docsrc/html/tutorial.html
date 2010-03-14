@@ -633,7 +633,7 @@ The <code>BACKUP</code> SQL statement and the <code>Backup</code> tool both crea
 with all database files. However, the contents of this file are not human readable.
 </p><p>
 Unlike than the SCRIPT statement, the <code>BACKUP</code> statement does not lock the
-database objects when using the multi-threaded mode, and therefore does not block other users. 
+database objects when using the multi-threaded mode, and therefore does not block other users.
 The resulting backup is transactionally consistent:
 </p>
 <pre>
@@ -644,7 +644,7 @@ The <code>Backup</code> tool (<code>org.h2.tools.Backup</code>) can not be used 
 the database must not be in use while running this program.
 </p>
 <p>
-Creating a backup by copying the database files while the database is running is not supported, 
+Creating a backup by copying the database files while the database is running is not supported,
 except if the file systems support creating snapshots. The problem is that it can't
 be guaranteed that the data is copied in the right order.
 </p>

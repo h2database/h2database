@@ -54,7 +54,7 @@ public class Product implements Table {
     }
 
     public static List<Product> getList() {
-        Product[] list = new Product[] {
+        Product[] list = {
                 create(1, "Chai", "Beverages", 18, 39),
                 create(2, "Chang", "Beverages", 19.0, 17),
                 create(3, "Aniseed Syrup", "Condiments", 10.0, 13),

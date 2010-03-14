@@ -34,7 +34,7 @@ public class Customer {
 
 //## Java 1.5 begin ##
     public static List<Customer> getList() {
-        Customer[] list = new Customer[] {
+        Customer[] list = {
                 new Customer("ALFKI", "WA"),
                 new Customer("ANATR", "WA"),
                 new Customer("ANTON", "CA") };

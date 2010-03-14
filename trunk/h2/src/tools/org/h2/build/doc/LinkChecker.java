@@ -23,7 +23,7 @@ import org.h2.util.StringUtils;
 public class LinkChecker {
 
     private static final boolean OPEN_EXTERNAL_LINKS = false;
-    private static final String[] IGNORE_MISSING_LINKS_TO = new String[]{
+    private static final String[] IGNORE_MISSING_LINKS_TO = {
         "SysProperties", "ErrorCode"
     };
 

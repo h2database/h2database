@@ -57,7 +57,7 @@ public class TestZloty extends TestBase {
         Connection conn = getConnection("zloty");
         conn.createStatement().execute("CREATE TABLE TEST(ID INT, DATA BINARY)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
-        byte[] shared = new byte[1];
+        byte[] shared = { 0 };
         prep.setInt(1, 0);
         prep.setBytes(2, shared);
         prep.execute();

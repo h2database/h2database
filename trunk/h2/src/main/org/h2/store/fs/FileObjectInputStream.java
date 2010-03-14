@@ -15,7 +15,7 @@ import java.io.InputStream;
 public class FileObjectInputStream extends InputStream {
 
     private FileObject file;
-    private byte[] buffer = new byte[1];
+    private byte[] buffer = { 0 };
 
     /**
      * Create a new file object input stream from the file object.

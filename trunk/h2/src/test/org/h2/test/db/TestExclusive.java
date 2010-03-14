@@ -43,7 +43,7 @@ public class TestExclusive extends TestBase {
         Connection conn2 = getConnection("exclusive");
         final Statement stat2 = conn2.createStatement();
         stat.execute("set exclusive true");
-        final int[] state = new int[1];
+        final int[] state = { 0 };
         Thread t = new Thread() {
             public void run() {
                 try {

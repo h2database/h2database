@@ -98,8 +98,8 @@ public class TestFullText extends TestBase {
 
     private void testMultiThreaded() throws Exception {
         deleteDb("fullText");
-        final boolean[] stop = new boolean[1];
-        final Exception[] exception = new Exception[1];
+        final boolean[] stop = { false };
+        final Exception[] exception = { null };
         int len = 2;
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {

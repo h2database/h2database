@@ -61,7 +61,7 @@ public class SecureKeyStoreBuilder {
             System.out.println(pkFormat + "EncodedKeySpec keySpec = new " + pkFormat + "EncodedKeySpec(getBytes(\""
                     + encoded + "\"));");
             System.out.println("PrivateKey privateKey = keyFactory.generatePrivate(keySpec);");
-            System.out.println("Certificate[] certs = new Certificate[] {");
+            System.out.println("Certificate[] certs = {");
             for (Certificate cert : store.getCertificateChain(alias)) {
                 System.out.println("  CertificateFactory.getInstance(\""+cert.getType()+"\").");
                 String enc = Utils.convertBytesToString(cert.getEncoded());

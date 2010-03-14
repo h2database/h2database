@@ -76,8 +76,7 @@ public class Call extends Prepared {
             return result;
         }
         LocalResult result = new LocalResult(session, expressions, 1);
-        Value[] row = new Value[1];
-        row[0] = v;
+        Value[] row = { v };
         result.addRow(row);
         result.done();
         return result;

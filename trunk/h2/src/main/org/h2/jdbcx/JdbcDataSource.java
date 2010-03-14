@@ -70,7 +70,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     private transient PrintWriter logWriter;
     private int loginTimeout;
     private String userName = "";
-    private char[] passwordChars = new char[0];
+    private char[] passwordChars = { };
     private String url = "";
     private String description;
 

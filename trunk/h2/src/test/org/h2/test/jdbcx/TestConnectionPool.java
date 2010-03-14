@@ -106,7 +106,7 @@ public class TestConnectionPool extends TestBase {
     private void testThreads() throws Exception {
         final int len = getSize(4, 20);
         final JdbcConnectionPool man = getConnectionPool(len - 2);
-        final boolean[] stop = new boolean[1];
+        final boolean[] stop = { false };
 
         /**
          * This class gets and returns connections from the pool.

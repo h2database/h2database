@@ -143,7 +143,7 @@ public class PageStore implements CacheWriter {
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
 
-    private static final SearchRow[] EMPTY_SEARCH_ROW = new SearchRow[0];
+    private static final SearchRow[] EMPTY_SEARCH_ROW = { };
 
     private Database database;
     private final Trace trace;

@@ -63,8 +63,8 @@ public class TestCompress extends TestBase {
 
     private void testMultiThreaded() throws Exception {
         Thread[] threads = new Thread[3];
-        final boolean[] stop = new boolean[1];
-        final Exception[] ex = new Exception[1];
+        final boolean[] stop = { false };
+        final Exception[] ex = { null };
         for (int i = 0; i < threads.length; i++) {
             Thread t = new Thread() {
                 public void run() {

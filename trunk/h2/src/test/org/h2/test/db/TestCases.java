@@ -381,7 +381,7 @@ public class TestCases extends TestBase {
         for (int i = 0; i < 1000; i++) {
             stat.execute("INSERT INTO TEST() VALUES()");
         }
-        final SQLException[] stopped = new SQLException[1];
+        final SQLException[] stopped = { null };
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {

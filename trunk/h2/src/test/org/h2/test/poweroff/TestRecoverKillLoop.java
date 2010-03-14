@@ -36,7 +36,7 @@ public class TestRecoverKillLoop extends TestBase {
         FileSystemDisk.getInstance().deleteRecursive("data/db", false);
         Random random = new Random(1);
         for (int i = 0; i < count; i++) {
-            String[] procDef = new String[] {
+            String[] procDef = {
                     "java", "-cp", getClassPath(),
                     "-Dtest.dir=data/db",
                     TestRecover.class.getName()

@@ -101,7 +101,7 @@ public class TestSessionsLocks extends TestBase {
         assertTrue(otherId != sessionId);
         assertFalse(rs.next());
         stat2.execute("set throttle 1");
-        final boolean[] done = new boolean[1];
+        final boolean[] done = { false };
         Runnable runnable = new Runnable() {
             public void run() {
                 try {

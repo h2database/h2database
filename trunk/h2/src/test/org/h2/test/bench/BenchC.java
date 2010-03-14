@@ -21,9 +21,9 @@ import java.sql.Types;
  */
 public class BenchC implements Bench {
 
-        private static final String[] TABLES = new String[] { "WAREHOUSE", "DISTRICT", "CUSTOMER", "HISTORY", "ORDERS",
+        private static final String[] TABLES = { "WAREHOUSE", "DISTRICT", "CUSTOMER", "HISTORY", "ORDERS",
             "NEW_ORDER", "ITEM", "STOCK", "ORDER_LINE", "RESULTS" };
-    private static final String[] CREATE_SQL = new String[] {
+    private static final String[] CREATE_SQL = {
             "CREATE TABLE  WAREHOUSE(\n" +
             " W_ID INT NOT NULL PRIMARY KEY,\n" +
             " W_NAME VARCHAR(10),\n" +

@@ -56,7 +56,7 @@ public class ResultTempTable implements ResultExternal {
         indexColumn.columnName = COLUMN_NAME;
         IndexType indexType;
         indexType = IndexType.createPrimaryKey(true, false);
-        IndexColumn[] indexCols = new IndexColumn[]{indexColumn};
+        IndexColumn[] indexCols = { indexColumn };
         index = new PageBtreeIndex(table, indexId, data.tableName, indexCols, indexType, true, session);
         index.setTemporary(true);
         table.getIndexes().add(index);

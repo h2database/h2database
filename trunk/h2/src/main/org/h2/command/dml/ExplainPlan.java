@@ -44,9 +44,7 @@ public class ExplainPlan extends Prepared {
     public ResultInterface query(int maxrows) {
         Column column = new Column("PLAN", Value.STRING);
         ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), column);
-        Expression[] expressions = new Expression[] {
-            expr
-        };
+        Expression[] expressions = { expr };
         result = new LocalResult(session, expressions, 1);
         if (maxrows >= 0) {
             String plan = command.getPlanSQL();
@@ -57,9 +55,7 @@ public class ExplainPlan extends Prepared {
     }
 
     private void add(String text) {
-        Value[] row = new Value[1];
-        Value value = ValueString.get(text);
-        row[0] = value;
+        Value[] row = { ValueString.get(text) };
         result.addRow(row);
     }
 

@@ -40,9 +40,7 @@ public class RangeTable extends Table {
      */
     public RangeTable(Schema schema, Expression min, Expression max) {
         super(schema, 0, NAME, true, true);
-        Column[] cols = new Column[]{
-                new Column("X", Value.LONG)
-        };
+        Column[] cols = { new Column("X", Value.LONG) };
         this.min = min;
         this.max = max;
         setColumns(cols);

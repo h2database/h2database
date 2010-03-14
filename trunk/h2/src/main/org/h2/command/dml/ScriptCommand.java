@@ -111,7 +111,7 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private LocalResult createResult() {
-        Expression[] expressions = new Expression[] { new ExpressionColumn(session.getDatabase(), new Column("SCRIPT",
+        Expression[] expressions = { new ExpressionColumn(session.getDatabase(), new Column("SCRIPT",
                 Value.STRING)) };
         return new LocalResult(session, expressions, 1);
     }
@@ -547,13 +547,11 @@ public class ScriptCommand extends ScriptBase {
             }
             out.write(buffer, 0, len);
             if (!insert) {
-                Value[] row = new Value[1];
-                row[0] = ValueString.get(s);
+                Value[] row = { ValueString.get(s) };
                 result.addRow(row);
             }
         } else {
-            Value[] row = new Value[1];
-            row[0] = ValueString.get(s);
+            Value[] row = { ValueString.get(s) };
             result.addRow(row);
         }
     }

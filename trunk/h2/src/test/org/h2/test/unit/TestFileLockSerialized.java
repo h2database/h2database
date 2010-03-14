@@ -99,8 +99,8 @@ public class TestFileLockSerialized extends TestBase {
         conn.close();
 
         final int len = 10;
-        final Exception[] ex = new Exception[1];
-        final boolean[] stop = new boolean[1];
+        final Exception[] ex = { null };
+        final boolean[] stop = { false };
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {
             Thread t = new Thread(new Runnable() {
@@ -161,7 +161,7 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
         String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
         final String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
-        final boolean[] stop = new boolean[1];
+        final boolean[] stop = { false };
         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
         conn.createStatement().execute("create table test(id identity) as select x from system_range(1, 100)");
         conn.close();
@@ -334,9 +334,9 @@ public class TestFileLockSerialized extends TestBase {
         conn.close();
 
         final long endTime = System.currentTimeMillis() + runTime;
-        final Exception[] ex = new Exception[1];
+        final Exception[] ex = { null };
         final Connection[] connList = new Connection[howManyThreads];
-        final boolean[] stop = new boolean[1];
+        final boolean[] stop = { false };
         final int[] nextInt = { 0 };
         Thread[] threads = new Thread[howManyThreads];
         for (int i = 0; i < howManyThreads; i++) {
@@ -402,9 +402,9 @@ public class TestFileLockSerialized extends TestBase {
         conn.close();
 
         final long endTime = System.currentTimeMillis() + runTime;
-        final Exception[] ex = new Exception[1];
+        final Exception[] ex = { null };
         final Connection[] connList = new Connection[howManyThreads];
-        final boolean[] stop = new boolean[1];
+        final boolean[] stop = { false };
         final int[] lastInt = { 1 };
         Thread[] threads = new Thread[howManyThreads];
         for (int i = 0; i < howManyThreads; i++) {
@@ -537,7 +537,7 @@ public class TestFileLockSerialized extends TestBase {
 
         final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;CACHE_SIZE=" + cacheSizeKb;
         final boolean[] importFinished = { false };
-        final Exception[] ex = new Exception[1];
+        final Exception[] ex = { null };
         final Thread importUpdate = new Thread() {
             public void run() {
                 try {

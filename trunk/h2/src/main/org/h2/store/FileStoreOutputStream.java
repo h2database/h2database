@@ -18,7 +18,7 @@ public class FileStoreOutputStream extends OutputStream {
     private Data page;
     private String compressionAlgorithm;
     private CompressTool compress;
-    private byte[] buffer = new byte[1];
+    private byte[] buffer = { 0 };
 
     public FileStoreOutputStream(FileStore store, DataHandler handler, String compressionAlgorithm) {
         this.store = store;

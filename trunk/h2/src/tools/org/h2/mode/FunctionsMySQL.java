@@ -34,7 +34,7 @@ public class FunctionsMySQL {
      * See
      * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_date-format
      */
-    private static final String[] FORMAT_REPLACE = new String[] {
+    private static final String[] FORMAT_REPLACE = {
             "%a", "EEE",
             "%b", "MMM",
             "%c", "MM",
@@ -68,7 +68,7 @@ public class FunctionsMySQL {
      * @param conn the connection
      */
     public static void register(Connection conn) throws SQLException {
-        String[] init = new String[] {
+        String[] init = {
             "UNIX_TIMESTAMP", "unixTimestamp",
             "FROM_UNIXTIME", "fromUnixTime",
             "DATE", "date",

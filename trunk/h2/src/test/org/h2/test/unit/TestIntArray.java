@@ -46,7 +46,7 @@ public class TestIntArray extends TestBase {
 
     private void testRandom() {
         IntArray array = new IntArray();
-        int[] test = new int[0];
+        int[] test = {};
         Random random = new Random(1);
         for (int i = 0; i < 10000; i++) {
             int idx = test.length == 0 ? 0 : random.nextInt(test.length);

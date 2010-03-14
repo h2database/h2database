@@ -44,9 +44,9 @@ public class TestMvccMultiThreaded extends TestBase {
         }
         Connection conn = connList[0];
         conn.createStatement().execute("create table test(id int primary key, name varchar)");
-        final SQLException[] ex = new SQLException[1];
+        final SQLException[] ex = { null };
         Thread[] threads = new Thread[len];
-        final boolean[] stop = new boolean[1];
+        final boolean[] stop = { false };
         for (int i = 0; i < len; i++) {
             final Connection c = connList[i];
             c.setAutoCommit(false);
@@ -88,7 +88,7 @@ public class TestMvccMultiThreaded extends TestBase {
         Connection conn = connList[0];
         conn.createStatement().execute("create table test(id int primary key, value int)");
         conn.createStatement().execute("insert into test values(0, 0)");
-        final Exception[] ex = new Exception[1];
+        final Exception[] ex = { null };
         final int count = 1000;
         Thread[] threads = new Thread[len];
 

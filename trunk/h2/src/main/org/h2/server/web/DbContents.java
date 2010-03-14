@@ -130,7 +130,7 @@ public class DbContents {
                 defaultSchema = schema;
             }
             schemas[i] = schema;
-            String[] tableTypes = new String[] { "TABLE", "SYSTEM TABLE", "VIEW", "SYSTEM VIEW",
+            String[] tableTypes = { "TABLE", "SYSTEM TABLE", "VIEW", "SYSTEM VIEW",
                     "TABLE LINK", "SYNONYM" };
             schema.readTables(meta, tableTypes);
         }

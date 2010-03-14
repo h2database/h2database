@@ -46,7 +46,7 @@ public class Order implements Table {
     }
 
     public static List<Order> getList() {
-        Order[] list = new Order[] {
+        Order[] list = {
                 new Order("ALFKI", 10702, "330.00", "2007-01-02"),
                 new Order("ALFKI", 10952, "471.20", "2007-02-03"),
                 new Order("ANATR", 10308, "88.80", "2007-01-03"),

@@ -54,8 +54,14 @@ public class ClassObj {
      */
     LinkedHashMap<String, MethodObj> methods = new LinkedHashMap<String, MethodObj>();
 
+    /**
+     * The list of native statements.
+     */
     ArrayList<Statement> nativeCode = new ArrayList<Statement>();
 
+    /**
+     * The class number.
+     */
     int id;
 
     /**
@@ -64,6 +70,9 @@ public class ClassObj {
      * @param method the method
      */
     void addMethod(MethodObj method) {
+        if (methods.containsKey(method.name)) {
+            throw new RuntimeException("Method overloading is not supported: " + method.name);
+        }
         methods.put(method.name, method);
     }
 
@@ -194,6 +203,11 @@ class FieldObj {
      * The initial value expression (may be null).
      */
     Expr value;
+
+    /**
+     * The class where this field is declared.
+     */
+    ClassObj declaredClass;
 
 }
 

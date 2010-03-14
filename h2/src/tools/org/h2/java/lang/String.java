@@ -1,3 +1,9 @@
+/*
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.java.lang;
 
 /* c:
@@ -6,6 +12,7 @@ package org.h2.java.lang;
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
+#include <stdint.h>
 
 #define jvoid void
 #define jboolean int8_t
@@ -15,6 +22,8 @@ package org.h2.java.lang;
 #define jlong int64_t
 #define jfloat float
 #define jdouble double
+#define ujint uint32_t
+#define ujlong uint64_t
 #define true 1
 #define false 0
 #define null 0
@@ -61,7 +70,7 @@ void* set_object(void** target, void* o) {
     if (*(m - 2) == 1) {
         free(m - 1);
     } else {
-         (*(m - 2))--;
+        (*(m - 2))--;
     }
     *target = o;
     m = (jint*) target;

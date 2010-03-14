@@ -137,7 +137,11 @@ class OpExpr implements Expr {
         } else if (right == null) {
             return left + op;
         }
-        return left + " " + op + " " + right;
+        if (op.equals(">>>")) {
+            // ujint / ujlong
+            return "(((u" + left.getType() + ") " + left + ") >> " + right + ")";
+        }
+        return "(" + left + " " + op + " " + right + ")";
     }
 
     public Type getType() {
@@ -282,8 +286,7 @@ class VariableExpr implements Expr {
             }
             if (field != null) {
                 if (field.isStatic) {
-                    // buff.append(JavaParser.toC(field.type.type.name + "." + field.name));
-                    buff.append(JavaParser.toC(name));
+                    buff.append(JavaParser.toC(field.declaredClass + "." + field.name));
                 } else {
                     buff.append(field.name);
                 }
@@ -322,6 +325,72 @@ class ArrayExpr implements Expr {
 
     public Type getType() {
         return expr.getType();
+    }
+
+}
+
+/**
+ * An array initializer expression.
+ */
+class ArrayInitExpr implements Expr {
+
+    Type type;
+    ArrayList<Expr> list = new ArrayList<Expr>();
+
+    public Type getType() {
+        return type;
+    }
+
+    public String toString() {
+        StringBuilder buff = new StringBuilder("{ ");
+        int i = 0;
+        for (Expr e : list) {
+            if (i++ > 0) {
+                buff.append(", ");
+            }
+            buff.append(e.toString());
+        }
+        buff.append(" }");
+        return buff.toString();
+    }
+
+}
+
+/**
+ * A type cast expression.
+ */
+class CastExpr implements Expr {
+
+    Type type;
+    Expr expr;
+
+    public Type getType() {
+        return type;
+    }
+
+    public String toString() {
+        return "(" + type + ") " + expr;
+    }
+
+}
+
+/**
+ * An array access expression (get or set).
+ */
+class ArrayAccessExpr implements Expr {
+
+    Expr base;
+    Expr index;
+
+    public Type getType() {
+        Type t = new Type();
+        t.type = base.getType().type;
+        t.arrayLevel = base.getType().arrayLevel - 1;
+        return t;
+    }
+
+    public String toString() {
+        return base + "[" + index + "]";
     }
 
 }

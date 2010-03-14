@@ -62,6 +62,7 @@ public class Test extends TestBase {
         parser.parse("src/tools/org/h2", "java.lang.String");
         parser.parse("src/tools/org/h2", "java.io.PrintStream");
         parser.parse("src/tools/org/h2", "java.lang.System");
+        parser.parse("src/tools/org/h2", "java.util.Arrays");
         parser.parse("src/tools", "org.h2.java.TestApp");
 
         PrintWriter w = new PrintWriter(System.out);

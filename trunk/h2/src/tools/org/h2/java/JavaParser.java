@@ -49,7 +49,7 @@ public class JavaParser {
     private ArrayList<Statement> nativeHeaders = new ArrayList<Statement>();
 
     static {
-        String[] list = new String[] { "abstract", "continue", "for", "new", "switch", "assert", "default", "if",
+        String[] list = { "abstract", "continue", "for", "new", "switch", "assert", "default", "if",
                 "package", "synchronized", "boolean", "do", "goto", "private", "this", "break", "double", "implements",
                 "protected", "throw", "byte", "else", "import", "public", "throws", "case", "enum", "instanceof",
                 "return", "transient", "catch", "extends", "int", "short", "try", "char", "final", "interface",
@@ -68,7 +68,7 @@ public class JavaParser {
         addBuiltInType(id++, true, "float");
         addBuiltInType(id++, true, "boolean");
         addBuiltInType(id++, true, "short");
-        String[] java = new String[] { "Boolean", "Byte", "Character", "Class", "ClassLoader", "Double", "Float",
+        String[] java = { "Boolean", "Byte", "Character", "Class", "ClassLoader", "Double", "Float",
                 "Integer", "Long", "Math", "Number", "Object", "Runtime", "Short", "String", "StringBuffer",
                 "StringBuilder", "System", "Thread", "ThreadGroup", "ThreadLocal", "Throwable", "Void" };
         for (String s : java) {
@@ -290,19 +290,42 @@ public class JavaParser {
                         field.isFinal = isFinal;
                         field.isPublic = isPublic;
                         field.isPrivate = isPrivate;
+                        field.declaredClass = classObj;
                         if (isStatic) {
                             classObj.addStaticField(field);
                         } else {
                             classObj.addInstanceField(field);
                         }
                         if (readIf("=")) {
-                            field.value = readExpr();
+                            if (field.type.arrayLevel > 0 && readIf("{")) {
+                                field.value = readArrayInit(field.type);
+                            } else {
+                                field.value = readExpr();
+                            }
                         }
                         read(";");
                     }
                 }
             }
         }
+    }
+
+    private Expr readArrayInit(Type type) {
+        ArrayInitExpr expr = new ArrayInitExpr();
+        expr.type = new Type();
+        expr.type.type = type.type;
+        expr.type.arrayLevel = type.arrayLevel - 1;
+        while (true) {
+            expr.list.add(readExpr());
+            if (readIf("}")) {
+                break;
+            }
+            read(",");
+            if (readIf("}")) {
+                break;
+            }
+        }
+        return expr;
     }
 
     private void initThisPointer() {
@@ -507,7 +530,11 @@ public class JavaParser {
                         String varName = readIdentifier();
                         Expr value = null;
                         if (readIf("=")) {
-                            value = readExpr();
+                            if (dec.type.arrayLevel > 0 && readIf("{")) {
+                                value = readArrayInit(dec.type);
+                            } else {
+                                value = readExpr();
+                            }
                         }
                         FieldObj f = new FieldObj();
                         f.isLocal = true;
@@ -590,6 +617,20 @@ public class JavaParser {
 
     private Expr readExpr3() {
         if (readIf("(")) {
+            if (isTypeOrIdentifier()) {
+                ParseState start = copyParseState();
+                String name = readTypeOrIdentifier();
+                ClassObj c = getClassIf(name);
+                if (c != null) {
+                    read(")");
+                    CastExpr expr = new CastExpr();
+                    expr.type = new Type();
+                    expr.type.type = c;
+                    expr.expr = readExpr();
+                    return expr;
+                }
+                current = start;
+            }
             Expr expr = readExpr();
             read(")");
             return expr;
@@ -675,10 +716,11 @@ public class JavaParser {
                 if (t.arrayLevel == 0) {
                     throw getSyntaxException("Not an array: " + expr);
                 }
-                Expr arrayIndex = readExpr();
+                ArrayAccessExpr arrayExpr = new ArrayAccessExpr();
+                arrayExpr.base = expr;
+                arrayExpr.index = readExpr();
                 read("]");
-                // TODO arrayGet or arraySet
-                return arrayIndex;
+                return arrayExpr;
             } else {
                 break;
             }
@@ -1006,7 +1048,7 @@ public class JavaParser {
         case '.':
             if (source.charAt(current.index) == '.' && source.charAt(current.index + 1) == '.') {
                 current.index += 2;
-           }
+            }
             break;
         case '+':
             if (source.charAt(current.index) == '=' || source.charAt(current.index) == '+') {
@@ -1199,12 +1241,21 @@ public class JavaParser {
         for (ClassObj c : classes.values()) {
             out.println("/* " + c.name + ".h */");
             for (FieldObj f : c.staticFields.values()) {
+                StringBuilder buff = new StringBuilder();
+                buff.append("extern ");
                 if (f.isFinal) {
-                    out.println("#define " + toC(c.name + "." + f.name) + " (" + f.value + ")");
-                } else {
-                    out.print("extern " + toC(f.type.toString()) + " " + toC(c.name + "." + f.name));
-                    out.println(";");
+                    buff.append("const ");
                 }
+                buff.append(toC(f.type.type.toString()));
+                if (!f.type.type.isPrimitive) {
+                    buff.append("*");
+                }
+                buff.append(" ").append(toC(c.name + "." + f.name));
+                for (int i = 0; i < f.type.arrayLevel; i++) {
+                    buff.append("[]");
+                }
+                buff.append(";");
+                out.println(buff.toString());
             }
             out.println("struct " + toC(c.name) + " {");
             for (FieldObj f : c.instanceFields.values()) {
@@ -1251,13 +1302,23 @@ public class JavaParser {
                 out.println(s);
             }
             for (FieldObj f : c.staticFields.values()) {
-                if (!f.isFinal) {
-                    out.print(toC(f.type.toString()) + " " + toC(c.name + "." + f.name));
-                    if (f.value != null) {
-                        out.print(" = " + f.value);
-                    }
-                    out.println(";");
+                StringBuilder buff = new StringBuilder();
+                if (f.isFinal) {
+                    buff.append("const ");
                 }
+                buff.append(toC(f.type.type.toString()));
+                if (!f.type.type.isPrimitive) {
+                    buff.append("*");
+                }
+                buff.append(" ").append(toC(c.name + "." + f.name));
+                for (int i = 0; i < f.type.arrayLevel; i++) {
+                    buff.append("[]");
+                }
+                if (f.value != null) {
+                    buff.append(" = " + f.value);
+                }
+                buff.append(";");
+                out.println(buff.toString());
             }
             for (MethodObj m : c.methods.values()) {
                 out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");

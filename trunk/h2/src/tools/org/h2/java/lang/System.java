@@ -1,3 +1,9 @@
+/*
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.java.lang;
 
 import java.io.PrintStream;
@@ -22,9 +28,11 @@ public class System {
      * @param destPos the first element in the destination
      * @param length the number of element to copy
      */
-    public static void arraycopy(java.lang.Object src, int srcPos, java.lang.Object dest, int destPos, int length) {
-        // TODO
-        // c: memmove(dest + destPos, src + srcPos, length);
+    public static void arraycopyChars(char[] src, int srcPos, char[] dest, int destPos, int length) {
+        /* c:
+        memmove(((jchar*)dest) + destPos,
+            ((jchar*)src) + srcPos, sizeof(jchar) * length);
+        */
     }
 
     /**
@@ -37,8 +45,12 @@ public class System {
      * @param destPos the first element in the destination
      * @param length the number of element to copy
      */
-    public static void arraycopyChars(char[] src, int srcPos, char[] dest, int destPos, int length) {
-        // c: memmove(((jchar*)dest) + destPos, ((jchar*)src) + srcPos, sizeof(jchar) * length);
+    public static void arraycopyByte(byte[] src, int srcPos, byte[] dest, int destPos, int length) {
+        /* c:
+        memmove(((jbyte*)dest) + destPos,
+            ((jbyte*)src) + srcPos, sizeof(jbyte) * length);
+        */
     }
+
 
 }

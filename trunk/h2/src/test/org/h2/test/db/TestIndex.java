@@ -249,6 +249,13 @@ public class TestIndex extends TestBase {
         rs.next();
         assertEquals(11, rs.getInt(1));
         stat.execute("DROP TABLE TEST");
+
+        stat.execute("create table test(x int, y int)");
+        stat.execute("insert into test values(1, 1), (1, 2)");
+        stat.execute("create index test_x_y on test (x desc, y desc)");
+        rs = stat.executeQuery("select * from test where x=1 and y<2");
+        assertTrue(rs.next());
+
         conn.close();
     }
 

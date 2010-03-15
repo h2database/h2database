@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using large transactions or a small log size, the database could get very slow
+<ul><li>Multi-column indexes where the second or later column was descending did not always
+    produce correct results (rows were missing in the result set, or the result set was empty).
+</li><li>When using large transactions or a small log size, the database could get very slow
     (profiling shows the hotspot is in FileObjectDisk.sync()).
 </li><li>The Shell tool now prints the stack trace when the list mode is enabled.
 </li><li>CREATE ALIAS ... AS: Compilation was incorrect if the source code contained

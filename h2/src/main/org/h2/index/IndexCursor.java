@@ -49,7 +49,7 @@ public class IndexCursor implements Cursor {
         if (idxCols != null) {
             for (int i = 0; i < columns.length; i++) {
                 int idx = index.getColumnIndex(columns[i]);
-                if (idx == 0) {
+                if (idx >= 0) {
                     indexColumns[i] = idxCols[idx];
                 }
             }

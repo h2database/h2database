@@ -29,6 +29,31 @@ public class Arrays {
      * @param array the array
      * @param x the value
      */
+    public static void fill(byte[] array, byte x) {
+        for (int i = 0; i < array.length; i++) {
+            array[i] = x;
+        }
+    }
+
+    /**
+     * Fill an array with the given value.
+     *
+     * @param array the array
+     * @param x the value
+     */
+    public static void fill(int[] array, int x) {
+        for (int i = 0; i < array.length; i++) {
+            array[i] = x;
+        }
+    }
+
+
+    /**
+     * Fill an array with the given value.
+     *
+     * @param array the array
+     * @param x the value
+     */
     public static void fillByte(byte[] array, byte x) {
         for (int i = 0; i < array.length; i++) {
             array[i] = x;

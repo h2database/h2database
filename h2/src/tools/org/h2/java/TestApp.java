@@ -6,6 +6,7 @@
  */
 package org.h2.java;
 
+
 /**
  * A test application.
  */

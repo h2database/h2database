@@ -80,27 +80,6 @@ public class Merge extends Prepared {
         int count;
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
-        if (keys == null) {
-            Index idx = table.getPrimaryKey();
-            if (idx == null) {
-                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "PRIMARY KEY");
-            }
-            keys = idx.getColumns();
-        }
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(table.getSQL()).append(" SET ");
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        buff.append(" WHERE ");
-        buff.resetCount();
-        for (Column c : keys) {
-            buff.appendExceptFirst(" AND ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        String sql = buff.toString();
-        update = session.prepare(sql);
         setCurrentRowNumber(0);
         session.setLastIdentity(ValueLong.get(0));
         if (list.size() > 0) {
@@ -263,6 +242,27 @@ public class Merge extends Prepared {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
+        if (keys == null) {
+            Index idx = table.getPrimaryKey();
+            if (idx == null) {
+                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "PRIMARY KEY");
+            }
+            keys = idx.getColumns();
+        }
+        StatementBuilder buff = new StatementBuilder("UPDATE ");
+        buff.append(table.getSQL()).append(" SET ");
+        for (Column c : columns) {
+            buff.appendExceptFirst(", ");
+            buff.append(c.getSQL()).append("=?");
+        }
+        buff.append(" WHERE ");
+        buff.resetCount();
+        for (Column c : keys) {
+            buff.appendExceptFirst(" AND ");
+            buff.append(c.getSQL()).append("=?");
+        }
+        String sql = buff.toString();
+        update = session.prepare(sql);
     }
 
     public boolean isTransactional() {

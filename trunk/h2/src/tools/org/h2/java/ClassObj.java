@@ -35,6 +35,11 @@ public class ClassObj {
     boolean isPrimitive;
 
     /**
+     * The primitive type (higher types are more complex)
+     */
+    int primitiveType;
+
+    /**
      * The imported classes.
      */
     ArrayList<ClassObj> imports = new ArrayList<ClassObj>();
@@ -52,7 +57,7 @@ public class ClassObj {
     /**
      * The methods.
      */
-    LinkedHashMap<String, MethodObj> methods = new LinkedHashMap<String, MethodObj>();
+    LinkedHashMap<String, ArrayList<MethodObj>> methods = new LinkedHashMap<String, ArrayList<MethodObj>>();
 
     /**
      * The list of native statements.
@@ -64,16 +69,27 @@ public class ClassObj {
      */
     int id;
 
+    Type baseType;
+
+    ClassObj() {
+        baseType = new Type();
+        baseType.classObj = this;
+    }
+
     /**
      * Add a method.
      *
      * @param method the method
      */
     void addMethod(MethodObj method) {
-        if (methods.containsKey(method.name)) {
-            throw new RuntimeException("Method overloading is not supported: " + method.name);
+        ArrayList<MethodObj> list = methods.get(method.name);
+        if (list == null) {
+            list = new ArrayList<MethodObj>();
+            methods.put(method.name, list);
+        } else {
+            method.name = method.name + "_" + (list.size() + 1);
         }
-        methods.put(method.name, method);
+        list.add(method);
     }
 
     /**
@@ -101,12 +117,46 @@ public class ClassObj {
         return name;
     }
 
+    String getMethodName(String find, ArrayList<Expr> args) {
+        ArrayList<MethodObj> list = methods.get(find);
+        if (list == null) {
+            return name;
+        }
+        if (list.size() == 1) {
+            return list.get(0).name;
+        }
+        for (MethodObj m : list) {
+            if (!m.isVarArgs && m.parameters.size() != args.size()) {
+                continue;
+            }
+            boolean match = true;
+            int i = 0;
+            for (FieldObj f : m.parameters.values()) {
+                Expr a = args.get(i++);
+                Type t = a.getType();
+                if (t == null) {
+                    System.out.println(a.getType());
+                }
+                if (!t.equals(f.type)) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                return m.name;
+            }
+        }
+        return name;
+    }
+
 }
 
 /**
  * A method.
  */
 class MethodObj {
+
+    boolean isVarArgs;
 
     /**
      * Whether this method is static.
@@ -219,17 +269,19 @@ class Type {
     /**
      * The class.
      */
-    ClassObj type;
+    ClassObj classObj;
 
     /**
      * The array nesting level. 0 if not an array.
      */
     int arrayLevel;
 
+    boolean isVarArgs;
+
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append(JavaParser.toC(type.toString()));
-        if (!type.isPrimitive) {
+        buff.append(JavaParser.toC(classObj.toString()));
+        if (!classObj.isPrimitive) {
             buff.append("*");
         }
         for (int i = 0; i < arrayLevel; i++) {
@@ -237,5 +289,21 @@ class Type {
         }
         return buff.toString();
     }
+
+    boolean isObject() {
+        return arrayLevel > 0 || !classObj.isPrimitive;
+    }
+
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
+    public boolean equals(Object other) {
+        if (other instanceof Type) {
+            return this.toString().equals(other.toString());
+        }
+        return false;
+    }
+
 }
 

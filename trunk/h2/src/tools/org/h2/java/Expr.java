@@ -27,6 +27,7 @@ class CallExpr implements Expr {
     final boolean isStatic;
     final String className;
     final String name;
+    ClassObj classObj;
 
     CallExpr(JavaParser context, Expr expr, String className, String name, boolean isStatic) {
         this.context = context;
@@ -39,10 +40,12 @@ class CallExpr implements Expr {
     public String toString() {
         StringBuilder buff = new StringBuilder();
         if (className != null) {
-            buff.append(JavaParser.toC(className + "." + name)).append("(");
+            classObj = context.getClassObj(className);
         } else {
-            buff.append(JavaParser.toC(expr.getType().type + "." + name)).append("(");
+            classObj = expr.getType().classObj;
         }
+        String methodName = classObj.getMethodName(name, args);
+        buff.append(JavaParser.toC(classObj.toString() + "." + methodName)).append("(");
         int i = 0;
         if (expr != null) {
             buff.append(expr.toString());
@@ -110,14 +113,25 @@ class ConditionalExpr implements Expr {
 class LiteralExpr implements Expr {
 
     String literal;
+    private final JavaParser context;
+    private final String className;
+    private Type type;
+
+    public LiteralExpr(JavaParser context, String className) {
+        this.context = context;
+        this.className = className;
+    }
 
     public String toString() {
         return literal;
     }
 
     public Type getType() {
-        // TODO
-        return null;
+        if (type == null) {
+            type = new Type();
+            type.classObj = context.getClassObj(className);
+        }
+        return type;
     }
 
 }
@@ -130,6 +144,11 @@ class OpExpr implements Expr {
     Expr left;
     String op;
     Expr right;
+    private final JavaParser context;
+
+    OpExpr(JavaParser context) {
+        this.context = context;
+    }
 
     public String toString() {
         if (left == null) {
@@ -140,13 +159,35 @@ class OpExpr implements Expr {
         if (op.equals(">>>")) {
             // ujint / ujlong
             return "(((u" + left.getType() + ") " + left + ") >> " + right + ")";
+        } else if (op.equals("+")) {
+            if (left.getType().isObject() || right.getType().isObject()) {
+                // TODO convert primitive to to String, call toString
+                return "STRING_CONCAT(" + left + ", " + right + ")";
+            }
         }
         return "(" + left + " " + op + " " + right + ")";
     }
 
     public Type getType() {
-        // TODO
-        return null;
+        if (left == null) {
+            return right.getType();
+        }
+        if (right == null) {
+            return left.getType();
+        }
+        if (op.equals("+")) {
+            if (left.getType().isObject() || right.getType().isObject()) {
+                Type t = new Type();
+                t.classObj = context.getClassObj("java.lang.String");
+                return t;
+            }
+        }
+        Type lt = left.getType();
+        Type rt = right.getType();
+        if (lt.classObj.primitiveType < rt.classObj.primitiveType) {
+            return rt;
+        }
+        return lt;
     }
 
 }
@@ -184,7 +225,7 @@ class NewExpr implements Expr {
 
     public Type getType() {
         Type t = new Type();
-        t.type = type;
+        t.classObj = type;
         t.arrayLevel = arrayInitExpr.size();
         return t;
     }
@@ -201,13 +242,23 @@ class StringExpr implements Expr {
      */
     String text;
 
+    private final JavaParser context;
+    private Type type;
+
+    StringExpr(JavaParser context) {
+        this.context = context;
+    }
+
     public String toString() {
         return "STRING(\"" + javaEncode(text) + "\")";
     }
 
     public Type getType() {
-        // TODO
-        return null;
+        if (type == null) {
+            type = new Type();
+            type.classObj = context.getClassObj("java.lang.String");
+        }
+        return type;
     }
 
     /**
@@ -384,7 +435,7 @@ class ArrayAccessExpr implements Expr {
 
     public Type getType() {
         Type t = new Type();
-        t.type = base.getType().type;
+        t.classObj = base.getType().classObj;
         t.arrayLevel = base.getType().arrayLevel - 1;
         return t;
     }

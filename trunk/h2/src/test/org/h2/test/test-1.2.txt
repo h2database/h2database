@@ -4322,8 +4322,8 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1;
 
 EXPLAIN MERGE INTO TEST VALUES(1, 'Hello');
 > PLAN
-> ----------------------------------------------------
-> MERGE INTO PUBLIC.TEST(ID, NAME) VALUES (1, 'Hello')
+> ------------------------------------------------------------
+> MERGE INTO PUBLIC.TEST(ID, NAME) KEY(ID) VALUES (1, 'Hello')
 > rows: 1
 
 MERGE INTO TEST VALUES(1, 'Hello');
@@ -4343,8 +4343,8 @@ MERGE INTO TEST(ID, NAME) VALUES(3, 'How are you');
 
 EXPLAIN MERGE INTO TEST(ID, NAME) VALUES(3, 'How are you');
 > PLAN
-> ----------------------------------------------------------
-> MERGE INTO PUBLIC.TEST(ID, NAME) VALUES (3, 'How are you')
+> ------------------------------------------------------------------
+> MERGE INTO PUBLIC.TEST(ID, NAME) KEY(ID) VALUES (3, 'How are you')
 > rows: 1
 
 MERGE INTO TEST(ID, NAME) KEY(ID) VALUES(3, 'How do you do');

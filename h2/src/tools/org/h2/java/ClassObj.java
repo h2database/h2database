@@ -15,6 +15,17 @@ import java.util.LinkedHashMap;
 public class ClassObj {
 
     /**
+     * The super class (null for java.lang.Object or primitive types).
+     */
+    String superClassName;
+
+    /**
+     * The list of interfaces that this class implements.
+     */
+    ArrayList<String> interfaceNames = new ArrayList<String>();
+
+
+    /**
      * The fully qualified class name.
      */
     String name;
@@ -69,6 +80,9 @@ public class ClassObj {
      */
     int id;
 
+    /**
+     * Get the base type of this class.
+     */
     Type baseType;
 
     ClassObj() {
@@ -117,13 +131,20 @@ public class ClassObj {
         return name;
     }
 
-    String getMethodName(String find, ArrayList<Expr> args) {
+    /**
+     * Get the method.
+     *
+     * @param find the method name in the source code
+     * @param args the parameters
+     * @return the method
+     */
+    MethodObj getMethod(String find, ArrayList<Expr> args) {
         ArrayList<MethodObj> list = methods.get(find);
         if (list == null) {
-            return name;
+            throw new RuntimeException("Method not found: " + name);
         }
         if (list.size() == 1) {
-            return list.get(0).name;
+            return list.get(0);
         }
         for (MethodObj m : list) {
             if (!m.isVarArgs && m.parameters.size() != args.size()) {
@@ -143,10 +164,10 @@ public class ClassObj {
                 }
             }
             if (match) {
-                return m.name;
+                return m;
             }
         }
-        return name;
+        throw new RuntimeException("Method not found: " + name);
     }
 
 }
@@ -156,6 +177,9 @@ public class ClassObj {
  */
 class MethodObj {
 
+    /**
+     * Whether the last parameter is a var args parameter.
+     */
     boolean isVarArgs;
 
     /**
@@ -167,6 +191,11 @@ class MethodObj {
      * Whether this method is private.
      */
     boolean isPrivate;
+
+    /**
+     * Whether this method is overridden.
+     */
+    boolean isVirtual;
 
     /**
      * The name.
@@ -276,6 +305,9 @@ class Type {
      */
     int arrayLevel;
 
+    /**
+     * Whether this is a var args parameter.
+     */
     boolean isVarArgs;
 
     public String toString() {

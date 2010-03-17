@@ -44,8 +44,14 @@ class CallExpr implements Expr {
         } else {
             classObj = expr.getType().classObj;
         }
-        String methodName = classObj.getMethodName(name, args);
-        buff.append(JavaParser.toC(classObj.toString() + "." + methodName)).append("(");
+        MethodObj m = classObj.getMethod(name, args);
+        String methodName;
+        if (m.isVirtual) {
+            methodName = "*virtual_" + m.name + "[CLASS_ID("+expr.toString()+")]";
+        } else {
+            methodName = JavaParser.toC(classObj.toString() + "." + m.name);
+        }
+        buff.append(methodName).append("(");
         int i = 0;
         if (expr != null) {
             buff.append(expr.toString());

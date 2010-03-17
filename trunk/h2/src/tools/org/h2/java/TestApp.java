@@ -6,7 +6,6 @@
  */
 package org.h2.java;
 
-
 /**
  * A test application.
  */
@@ -28,6 +27,10 @@ int main(int argc, char** argv) {
     public static void main(String... args) {
         System.out.println("Hello World");
         System.out.println("Hello!");
+    }
+
+    public int hashCode() {
+        return 1;
     }
 
     /**

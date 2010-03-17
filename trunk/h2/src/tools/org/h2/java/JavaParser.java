@@ -45,6 +45,7 @@ public class JavaParser {
     private HashMap<String, String> importMap = new HashMap<String, String>();
     private HashMap<String, ClassObj> classes = new HashMap<String, ClassObj>();
     private LinkedHashMap<String, FieldObj> localVars = new LinkedHashMap<String, FieldObj>();
+    private HashMap<String, MethodObj> allMethodsMap = new HashMap<String, MethodObj>();
 
     private ArrayList<Statement> nativeHeaders = new ArrayList<Statement>();
 
@@ -141,20 +142,37 @@ public class JavaParser {
             nativeHeaders.add(s);
         }
         while (true) {
-            classObj = new ClassObj();
-            classObj.id = classId++;
-            classObj.isPublic = readIf("public");
+            boolean isPublic = readIf("public");
+            boolean isInterface;
             if (readIf("class")) {
-                classObj.isInterface = false;
+                isInterface = false;
             } else {
                 read("interface");
-                classObj.isInterface = true;
+                isInterface = true;
             }
             String name = readIdentifier();
+            classObj = BUILT_IN_TYPES.get(packageName + "." + name);
+            if (classObj == null) {
+                classObj = new ClassObj();
+                classObj.id = classId++;
+            }
+            classObj.isPublic = isPublic;
+            classObj.isInterface = isInterface;
             classObj.name = packageName == null ? "" : (packageName + ".") + name;
             // import this class
             importMap.put(name, classObj.name);
             classes.put(classObj.name, classObj);
+            if (readIf("extends")) {
+                classObj.superClassName = readQualifiedIdentifier();
+            }
+            if (readIf("implements")) {
+                while (true) {
+                    classObj.interfaceNames.add(readQualifiedIdentifier());
+                    if (!readIf(",")) {
+                        break;
+                    }
+                }
+            }
             parseClassBody();
             if (current.token == null) {
                 break;
@@ -274,6 +292,7 @@ public class JavaParser {
                         method.block = readStatement();
                     }
                     classObj.addMethod(method);
+                    addMethod(method);
                 } else {
                     String name = readIdentifier();
                     method.name = name;
@@ -283,6 +302,7 @@ public class JavaParser {
                             method.block = readStatement();
                         }
                         classObj.addMethod(method);
+                        addMethod(method);
                     } else {
                         FieldObj field = new FieldObj();
                         field.type = type;
@@ -308,6 +328,19 @@ public class JavaParser {
                     }
                 }
             }
+        }
+    }
+
+    private void addMethod(MethodObj m) {
+        if (m.isStatic) {
+            return;
+        }
+        MethodObj old = allMethodsMap.get(m.name);
+        if (old != null) {
+            old.isVirtual = true;
+            m.isVirtual = true;
+        } else {
+            allMethodsMap.put(m.name, m);
         }
     }
 
@@ -423,10 +456,10 @@ public class JavaParser {
         } else if (readIf("{")) {
             StatementBlock stat = new StatementBlock();
             while (true) {
-                stat.instructions.add(readStatement());
                 if (readIf("}")) {
                     break;
                 }
+                stat.instructions.add(readStatement());
             }
             return stat;
         } else if (readIf("if")) {
@@ -496,6 +529,7 @@ public class JavaParser {
                 FieldObj f = new FieldObj();
                 f.name = name;
                 f.type = type;
+                f.isLocal = true;
                 localVars.put(name, f);
                 read(":");
                 forStat.iterableType = type;
@@ -831,9 +865,6 @@ public class JavaParser {
             }
         }
         expr.field = f;
-if (f == null) {
-    System.out.println("?");
-}
         if (f != null && (!f.isLocal && !f.isStatic)) {
             VariableExpr ve = new VariableExpr();
             ve.field = thisPointer;
@@ -1306,6 +1337,25 @@ if (f == null) {
             }
             out.println();
         }
+        out.println();
+        out.println("/* method pointers */");
+        for (MethodObj m : allMethodsMap.values()) {
+            out.print("extern " + m.returnType + " (*virtual_" + m.name + "[])(");
+            int i = 0;
+            if (!m.isConstructor) {
+                out.print("void*");
+                i++;
+            }
+            for (FieldObj p : m.parameters.values()) {
+                if (i > 0) {
+                    out.print(", ");
+                }
+                out.print(p.type);
+                i++;
+            }
+            out.println(");");
+            out.println();
+        }
     }
 
     /**
@@ -1314,6 +1364,32 @@ if (f == null) {
      * @param out the output writer
      */
     void writeSource(PrintWriter out) {
+        out.println("/* method pointers */");
+        for (MethodObj m : allMethodsMap.values()) {
+            out.print(m.returnType + " (*virtual_" + m.name + "[])(");
+            int i = 0;
+            if (!m.isConstructor) {
+                out.print("void*");
+                i++;
+            }
+            for (FieldObj p : m.parameters.values()) {
+                if (i > 0) {
+                    out.print(", ");
+                }
+                out.print(p.type);
+                i++;
+            }
+            out.println(") = {");
+            for (ClassObj c : classes.values()) {
+                if (c.methods.containsKey(m.name)) {
+                    out.println("    " + toC(c.name) + "_" + m.name + ", ");
+                } else {
+                    out.println("    0, ");
+                }
+            }
+            out.println("};");
+        }
+        out.println();
         for (ClassObj c : classes.values()) {
             out.println("/* " + c.name + ".c */");
             for (Statement s : c.nativeCode) {
@@ -1411,6 +1487,12 @@ if (f == null) {
         return classObj;
     }
 
+    /**
+     * Get the class of the given name.
+     *
+     * @param className the name
+     * @return the class
+     */
     ClassObj getClassObj(String className) {
         ClassObj c = BUILT_IN_TYPES.get(className);
         if (c == null) {

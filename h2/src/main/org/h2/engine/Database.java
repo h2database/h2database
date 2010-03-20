@@ -711,10 +711,11 @@ public class Database implements DataHandler {
         if (id > 0 && !starting) {
             SearchRow r = meta.getTemplateSimpleRow(false);
             r.setValue(0, ValueInt.get(id));
+            boolean wasLocked = meta.isLockedExclusivelyBy(session);
+            meta.lock(session, true, true);
             Cursor cursor = metaIdIndex.find(session, r, r);
             if (cursor.next()) {
                 Row found = cursor.get();
-                meta.lock(session, true, true);
                 meta.removeRow(session, found);
                 if (isMultiVersion()) {
                     // TODO this should work without MVCC, but avoid risks at the
@@ -725,6 +726,11 @@ public class Database implements DataHandler {
                 if (SysProperties.CHECK) {
                     checkMetaFree(session, id);
                 }
+            } else if (!wasLocked) {
+                // must not keep the lock if it was not locked
+                // otherwise updating sequences may cause a deadlock
+                meta.unlock(session);
+                session.unlock(meta);
             }
         }
     }

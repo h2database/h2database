@@ -628,6 +628,15 @@ public class Session extends SessionWithState implements SessionFactory {
         }
     }
 
+    /**
+     * Unlock just this table.
+     *
+     * @param t the table to unlock
+     */
+    public void unlock(Table t) {
+        locks.remove(t);
+    }
+
     private void unlockAll() {
         if (SysProperties.CHECK) {
             if (undoLog.size() > 0) {
@@ -643,7 +652,6 @@ public class Session extends SessionWithState implements SessionFactory {
             }
         }
         savepoints = null;
-
         if (modificationIdState != modificationId) {
             sessionStateChanged = true;
         }

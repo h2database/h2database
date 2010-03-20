@@ -1036,6 +1036,7 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
     smaller than the current scale. Usually, the scale is converted and 0s are added if required.
 </li><li>For unique indexes, <code>NULL</code> is distinct.
     That means only one row with <code>NULL</code> in one of the columns is allowed.
+</li><li>Text can be concatenated using '+'.
 </li></ul>
 
 <h3>MS SQL Server Compatibility Mode</h3>
@@ -1051,6 +1052,7 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
     That means only one row with <code>NULL</code> in one of the columns is allowed.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
+</li><li>Text can be concatenated using '+'.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>

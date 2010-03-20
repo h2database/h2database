@@ -103,6 +103,11 @@ public class Mode {
      */
     public boolean uniqueIndexSingleNullExceptAllColumnsAreNull;
 
+    /**
+     * Text can be concatenated using '+'.
+     */
+    public boolean allowPlusForStringConcat;
+
     private String name;
 
     static {
@@ -126,12 +131,14 @@ public class Mode {
         mode.convertOnlyToSmallerScale = true;
         mode.nullConcatIsNull = true;
         mode.uniqueIndexSingleNull = true;
+        mode.allowPlusForStringConcat = true;
         add(mode);
 
         mode = new Mode("MSSQLServer");
         mode.aliasColumnName = true;
         mode.squareBracketQuotedNames = true;
         mode.uniqueIndexSingleNull = true;
+        mode.allowPlusForStringConcat = true;
         add(mode);
 
         mode = new Mode("MySQL");

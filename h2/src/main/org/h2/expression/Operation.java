@@ -12,6 +12,7 @@ import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -171,9 +172,14 @@ public class Operation extends Expression {
             int l = left.getType();
             int r = right.getType();
             if ((l == Value.NULL && r == Value.NULL) || (l == Value.UNKNOWN && r == Value.UNKNOWN)) {
-                // example: (? + ?) - the most safe data type is probably
-                // decimal
-                dataType = Value.DECIMAL;
+                // (? + ?) - use decimal by default (the most safe data type) or
+                // string when text concatenation with + is enabled
+                if (opType == PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
+                    dataType = Value.STRING;
+                    opType = CONCAT;
+                } else {
+                    dataType = Value.DECIMAL;
+                }
             } else if (l == Value.DATE || l == Value.TIMESTAMP) {
                 if (r == Value.INT && (opType == PLUS || opType == MINUS)) {
                     // Oracle date add
@@ -198,6 +204,9 @@ public class Operation extends Expression {
                 }
             } else {
                 dataType = Value.getHigherOrder(l, r);
+                if (DataType.isStringType(dataType) && session.getDatabase().getMode().allowPlusForStringConcat) {
+                    opType = CONCAT;
+                }
             }
             break;
         default:
@@ -223,10 +232,10 @@ public class Operation extends Expression {
     public long getPrecision() {
         if (right != null) {
             switch (opType) {
-                case CONCAT:
-                    return left.getPrecision() + right.getPrecision();
-                default:
-                    return Math.max(left.getPrecision(), right.getPrecision());
+            case CONCAT:
+                return left.getPrecision() + right.getPrecision();
+            default:
+                return Math.max(left.getPrecision(), right.getPrecision());
             }
         }
         return left.getPrecision();
@@ -235,10 +244,10 @@ public class Operation extends Expression {
     public int getDisplaySize() {
         if (right != null) {
             switch (opType) {
-                case CONCAT:
-                    return MathUtils.convertLongToInt((long) left.getDisplaySize() + (long) right.getDisplaySize());
-                default:
-                    return Math.max(left.getDisplaySize(), right.getDisplaySize());
+            case CONCAT:
+                return MathUtils.convertLongToInt((long) left.getDisplaySize() + (long) right.getDisplaySize());
+            default:
+                return Math.max(left.getDisplaySize(), right.getDisplaySize());
             }
         }
         return left.getDisplaySize();

@@ -28,10 +28,10 @@ public class JavaParser {
     private static final int TOKEN_OTHER = 5;
 
     private static final HashSet<String> RESERVED = new HashSet<String>();
-    private static final HashMap<String, ClassObj> BUILT_IN_TYPES = new HashMap<String, ClassObj>();
     private static final HashMap<String, String> JAVA_IMPORT_MAP = new HashMap<String, String>();
 
-    private static int firstClassId;
+    private final ArrayList<ClassObj> allClasses = new ArrayList<ClassObj>();
+    private final HashMap<String, ClassObj> builtInTypes = new HashMap<String, ClassObj>();
 
     private String source;
 
@@ -39,7 +39,7 @@ public class JavaParser {
 
     private String packageName;
     private ClassObj classObj;
-    private int classId = firstClassId;
+    private int nextClassId;
     private MethodObj method;
     private FieldObj thisPointer;
     private HashMap<String, String> importMap = new HashMap<String, String>();
@@ -49,7 +49,11 @@ public class JavaParser {
 
     private ArrayList<Statement> nativeHeaders = new ArrayList<Statement>();
 
-    static {
+    public JavaParser() {
+        addBuiltInTypes();
+    }
+
+    private void addBuiltInTypes() {
         String[] list = { "abstract", "continue", "for", "new", "switch", "assert", "default", "if",
                 "package", "synchronized", "boolean", "do", "goto", "private", "this", "break", "double", "implements",
                 "protected", "throw", "byte", "else", "import", "public", "throws", "case", "enum", "instanceof",
@@ -76,16 +80,25 @@ public class JavaParser {
             JAVA_IMPORT_MAP.put(s, "java.lang." + s);
             addBuiltInType(id++, false, 0, "java.lang." + s);
         }
-        firstClassId = id;
+        nextClassId = id;
     }
 
-    private static void addBuiltInType(int id, boolean primitive, int primitiveType, String type) {
-        ClassObj typeObj = new ClassObj();
-        typeObj.id = id;
-        typeObj.name = type;
-        typeObj.isPrimitive = primitive;
-        typeObj.primitiveType = primitiveType;
-        BUILT_IN_TYPES.put(type, typeObj);
+    private void addBuiltInType(int id, boolean primitive, int primitiveType, String type) {
+        ClassObj c = new ClassObj();
+        c.id = id;
+        c.name = type;
+        c.isPrimitive = primitive;
+        c.primitiveType = primitiveType;
+        builtInTypes.put(type, c);
+        addClass(c);
+    }
+
+    private void addClass(ClassObj c) {
+        int id = c.id;
+        while (id >= allClasses.size()) {
+            allClasses.add(null);
+        }
+        allClasses.set(id, c);
     }
 
     /**
@@ -151,16 +164,17 @@ public class JavaParser {
                 isInterface = true;
             }
             String name = readIdentifier();
-            classObj = BUILT_IN_TYPES.get(packageName + "." + name);
+            classObj = builtInTypes.get(packageName + "." + name);
             if (classObj == null) {
                 classObj = new ClassObj();
-                classObj.id = classId++;
+                classObj.id = nextClassId++;
             }
             classObj.isPublic = isPublic;
             classObj.isInterface = isInterface;
             classObj.name = packageName == null ? "" : (packageName + ".") + name;
             // import this class
             importMap.put(name, classObj.name);
+            addClass(classObj);
             classes.put(classObj.name, classObj);
             if (readIf("extends")) {
                 classObj.superClassName = readQualifiedIdentifier();
@@ -181,7 +195,7 @@ public class JavaParser {
     }
 
     private boolean isTypeOrIdentifier() {
-        if (BUILT_IN_TYPES.containsKey(current.token)) {
+        if (builtInTypes.containsKey(current.token)) {
             return true;
         }
         return current.type == TOKEN_IDENTIFIER;
@@ -196,7 +210,7 @@ public class JavaParser {
     }
 
     private ClassObj getClassIf(String type) {
-        ClassObj c = BUILT_IN_TYPES.get(type);
+        ClassObj c = builtInTypes.get(type);
         if (c != null) {
             return c;
         }
@@ -213,7 +227,7 @@ public class JavaParser {
         }
         c = classes.get(mappedType);
         if (c == null) {
-            c = BUILT_IN_TYPES.get(mappedType);
+            c = builtInTypes.get(mappedType);
             if (c == null) {
                 throw new RuntimeException("Unknown class: " + mappedType);
             }
@@ -409,7 +423,7 @@ public class JavaParser {
 
     private String readTypeOrIdentifier() {
         if (current.type == TOKEN_RESERVED) {
-            if (BUILT_IN_TYPES.containsKey(current.token)) {
+            if (builtInTypes.containsKey(current.token)) {
                 return read();
             }
         }
@@ -745,7 +759,7 @@ public class JavaParser {
                     expr = e2;
                     if (n.equals("length") && t.arrayLevel > 0) {
                         e2.field = new FieldObj();
-                        e2.field.type = BUILT_IN_TYPES.get("int").baseType;
+                        e2.field.type = builtInTypes.get("int").baseType;
                         e2.field.name = "length";
                     } else {
                         if (t == null || t.classObj == null) {
@@ -1380,11 +1394,11 @@ public class JavaParser {
                 i++;
             }
             out.println(") = {");
-            for (ClassObj c : classes.values()) {
-                if (c.methods.containsKey(m.name)) {
-                    out.println("    " + toC(c.name) + "_" + m.name + ", ");
+            for (ClassObj c : allClasses) {
+                if (c != null && c.methods.containsKey(m.name)) {
+                    out.println(toC(c.name) + "_" + m.name + ", ");
                 } else {
-                    out.println("    0, ");
+                    out.print("0, ");
                 }
             }
             out.println("};");
@@ -1494,7 +1508,7 @@ public class JavaParser {
      * @return the class
      */
     ClassObj getClassObj(String className) {
-        ClassObj c = BUILT_IN_TYPES.get(className);
+        ClassObj c = builtInTypes.get(className);
         if (c == null) {
             c = classes.get(className);
         }

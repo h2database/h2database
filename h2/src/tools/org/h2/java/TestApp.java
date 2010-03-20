@@ -25,8 +25,7 @@ int main(int argc, char** argv) {
      * @param args the command line arguments
      */
     public static void main(String... args) {
-        System.out.println("Hello World");
-        System.out.println("Hello!");
+        System.out.println("Hello " + "World" + 1);
     }
 
     public int hashCode() {

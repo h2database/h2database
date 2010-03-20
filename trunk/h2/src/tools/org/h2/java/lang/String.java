@@ -28,9 +28,10 @@ package org.h2.java.lang;
 #define false 0
 #define null 0
 
-#define LENGTH(a) (*(((jint*)(a))-2))
+#define LENGTH(a) (*(((jint*)(a))-3))
+#define CLASS_ID(a) (*(((jint*)(a))-2))
 #define NEW_ARRAY(size, length) new_array(0, size, length)
-#define NEW_OBJ_ARRAY(length) new_array(1, sizeof(void*), length)
+#define NEW_OBJ_ARRAY(length) new_array(0, sizeof(void*), length)
 #define NEW_OBJ(typeId, typeName) new_object(typeId, sizeof(struct typeName))
 #define SET(variable, p) set_object(variable, p)
 #define STRING(s) ((java_lang_String*) string(s))
@@ -42,6 +43,13 @@ void* string(char* s);
 
 */
 
+/*
+ * Object layout:
+ * m-3: arrays: length; otherwise not allocated
+ * m-2: arrays: 0; otherwise type
+ * m-1: number of references
+ */
+
 /**
  * A java.lang.String implementation.
  */
@@ -50,32 +58,36 @@ public class String {
 /* c:
 
 void* new_array(jint object, jint size, jint length) {
-    int count = sizeof(jint) * 2 + size * length;
+    int count = sizeof(jint) * 3 + size * length;
     int* m = (jint*) calloc(1, count);
-    *m = (object << 31) + length;
-    *(m+1) = 1;
-    return m + 2;
+    *m = length;
+    *(m + 2) = 1;
+    return m + 3;
 }
 
 void* new_object(jint type, jint size) {
     int count = sizeof(jint) * 2 + size;
     int* m = (jint*) calloc(1, count);
     *m = type;
-    *(m+1) = 1;
+    *(m + 1) = 1;
     return m + 2;
 }
 
 void* set_object(void** target, void* o) {
     int* m = (jint*) target;
-    if (*(m - 2) == 1) {
-        free(m - 1);
+    if (*(m - 1) == 1) {
+        if (*(m - 2) == 0) {
+            free(m - 3);
+        } else {
+            free(m - 2);
+        }
     } else {
-        (*(m - 2))--;
+        (*(m - 1))--;
     }
     *target = o;
     m = (jint*) target;
     if (o != 0) {
-        (*(m - 2))++;
+        (*(m - 1))++;
     }
     return m;
 }
@@ -91,12 +103,16 @@ void* string(char* s) {
 
 */
 
-    private char[] chars;
+    /**
+     * The character array.
+     */
+    char[] chars;
+
     private int hashCode;
 
     public String(char[] chars) {
         this.chars = new char[chars.length];
-        System.arraycopyChars(chars, 0, this.chars, 0, chars.length);
+        System.arraycopy(chars, 0, this.chars, 0, chars.length);
     }
 
     public int hashCode() {

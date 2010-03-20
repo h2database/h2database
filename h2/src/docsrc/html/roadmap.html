@@ -360,6 +360,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>RunScript should be able to read from system in (or quite mode for Shell).
 </li><li>Natural join: support select x from dual natural join dual.
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
+</li><li>Use the Java service provider mechanism to register file systems and function libraries.
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
 </li><li>Optimization for multi-column IN: use an index if possible. Example: (A, B) IN((1, 2), (2, 3)).
 </li><li>Optimization for EXISTS: convert to inner join or IN(..) if possible.
@@ -470,7 +471,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 163: Allow to create foreign keys on metadata types.
 </li><li>Logback: write a native DBAppender.
 </li><li>Cache size: don't use more cache than what is available.
-</li><li>Use the Java service provider mechanism to register file systems and function libraries.
 </li><li>Tree index: Instead of an AVL tree, use a general balanced trees or a scapegoat tree.
 </li><li>User defined functions: allow to store the bytecode (of just the class, or the jar file of the extension) in the database.
 </li><li>Compatibility: ResultSet.getObject() on a CLOB (TEXT) should return String for PostgreSQL and MySQL.

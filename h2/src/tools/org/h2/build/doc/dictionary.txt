@@ -639,3 +639,4 @@ census genealogy scapegoat gov compacted migrating dies typtypmod latch await
 counting dtest fallback infix places formal extern destination stdout memmove
 stdio printf jchar sizeof stdlib jbyte jint uint ujlong typedef jdouble stdint
 jfloat wchar hotspot jvoid std ujint jlong vars jboolean calloc argc strlen
+equivalent synchronizes

@@ -39,6 +39,8 @@ Frequently Asked Questions
     Why is Opening my Database Slow?</a><br />
 <a href="#column_names_incorrect">
     Column Names are Incorrect?</a><br />
+<a href="#float_is_double">
+    Float is Double?</a><br />
 <a href="#gcj">
     Is the GCJ Version Stable? Faster?</a><br />
 <a href="#translate">
@@ -209,6 +211,19 @@ or set the system property <a href="../javadoc/org/h2/constant/SysProperties.htm
 This also applies to DatabaseMetaData calls that return a result set.
 The columns in the JDBC API are column labels, not column names.
 </p>
+
+<h3 id="float_is_double">Float is Double?</h3>
+<p>
+For a table defined as <code>CREATE TABLE TEST(X FLOAT)</code> the method
+<code>ResultSet.getObject()</code> returns a <code>java.lang.Double</code>, I expect it to
+return a <code>java.lang.Float</code>. What's wrong?
+</p>
+<p>
+This is not a bug. According the the JDBC specification, the JDBC data type <code>FLOAT</code> 
+is equivalent to <code>DOUBLE</code>, and both are mapped to <code>java.lang.Double</code>.
+See also 
+<a href="http://java.sun.com/j2se/1.5.0/docs/guide/jdbc/getstart/mapping.html#1055162">
+Mapping SQL and Java Types - 8.3.10 FLOAT</a>.</p>
 
 <h3 id="slow_open">Why is Opening my Database Slow?</h3>
 <p>

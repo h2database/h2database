@@ -361,7 +361,7 @@ public class TableData extends Table {
         rowCount = 0;
     }
 
-    boolean isLockedExclusivelyBy(Session session) {
+    public boolean isLockedExclusivelyBy(Session session) {
         return lockExclusive == session;
     }
 

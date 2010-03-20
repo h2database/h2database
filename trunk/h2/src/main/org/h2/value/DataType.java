@@ -926,6 +926,19 @@ public class DataType {
     }
 
     /**
+     * Check if the given value type is a String (VARCHAR,...).
+     *
+     * @param type the value type
+     * @return true if the value type is a String type
+     */
+    public static boolean isStringType(int type) {
+        if (type == Value.STRING || type == Value.STRING_FIXED || type == Value.STRING_IGNORECASE) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Check if the given value type supports the add operation.
      *
      * @param type the value type

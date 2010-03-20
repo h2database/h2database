@@ -36,6 +36,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Full outer joins.
+</li><li>Support nested outer joins (see todo.txt).
 </li><li>Automatic collection of statistics (auto ANALYZE; AUTOVACUUM). See http://www.postgresql.org/docs/current/static/routine-vacuuming.html#AUTOVACUUM
 </li><li>Support mixed clustering mode (one embedded, others in server mode).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
@@ -54,7 +55,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Rebuild index functionality to shrink index size and improve performance.
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA).
-</li><li>Support nested outer joins (see todo.txt).
 </li><li>Test performance again with SQL Server, Oracle, DB2.
 </li><li>Test with dbmonster: http://dbmonster.kernelpanic.pl
 </li><li>Test with dbcopy: http://dbcopyplugin.sourceforge.net
@@ -127,7 +127,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Default date format for input and output (local date constants).
 </li><li>Support custom Collators.
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery).
-</li><li>MS SQL Server compatibility: support string concatenation using +: 1+'2'=3, '1'+'2'='12'
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master.
 </li><li>File system that writes to two file systems (replication, replicating file system).
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
@@ -477,6 +476,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimizer: WHERE X=? AND Y IN(?), it always uses the index on Y. Should be cost based.
 </li><li>Support ALTER SCHEMA name RENAME TO newName (rename schema).
 </li><li>Make the cache scan resistant (currently a small cache is faster than a large cache for large table scans).
+</li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available 
+</li><li>Issue 179: Related subqueries in HAVING clause
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -40,6 +40,7 @@ public class TestCompatibility extends TestBase {
         testUniqueIndexOracle();
         testHsqlDb();
         testMySQL();
+        testPlusSignAsConcatOperator();
 
         conn.close();
         deleteDb("compatibility");
@@ -159,6 +160,51 @@ public class TestCompatibility extends TestBase {
         assertResult("1196418619", stat, "SELECT UNIX_TIMESTAMP(FROM_UNIXTIME(1196418619))");
         assertResult("2007 November", stat, "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
         assertResult("2003-12-31", stat, "SELECT DATE('2003-12-31 11:02:03')");
+
+    }
+
+    private void testPlusSignAsConcatOperator() throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("SET MODE MSSQLServer");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(NAME VARCHAR(50), SURNAME VARCHAR(50))");
+        stat.execute("INSERT INTO TEST VALUES('John', 'Doe')");
+        stat.execute("INSERT INTO TEST VALUES('Jack', 'Sullivan')");
+
+        assertResult("abcd123", stat, "SELECT 'abc' + 'd123'");
+
+        assertResult("Doe, John", stat,
+                "SELECT surname + ', ' + name FROM test WHERE SUBSTRING(NAME,1,1)+SUBSTRING(SURNAME,1,1) = 'JD'");
+
+        stat.execute("ALTER TABLE TEST ADD COLUMN full_name VARCHAR(100)");
+        stat.execute("UPDATE TEST SET full_name = name + ', ' + surname");
+        assertResult("John, Doe", stat, "SELECT full_name FROM TEST where name='John'");
+
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ? + ', ' + ?)");
+        int ca = 1;
+        prep.setString(ca++, "Paul");
+        prep.setString(ca++, "Frank");
+        prep.setString(ca++, "Paul");
+        prep.setString(ca++, "Frank");
+        prep.executeUpdate();
+        prep.close();
+
+        assertResult("Paul, Frank", stat, "SELECT full_name FROM test WHERE name = 'Paul'");
+
+        prep = conn.prepareStatement("SELECT ? + ?");
+        int cb = 1;
+        prep.setString(cb++, "abcd123");
+        prep.setString(cb++, "d123");
+        prep.executeQuery();
+        prep.close();
+
+        prep = conn.prepareStatement("SELECT full_name FROM test WHERE (SUBSTRING(name, 1, 1) + SUBSTRING(surname, 2, 3)) = ?");
+        prep.setString(1, "Joe");
+        ResultSet res = prep.executeQuery();
+        assertTrue("Result cannot be empty", res.next());
+        assertEquals("John, Doe", res.getString(1));
+        res.close();
+        prep.close();
 
     }
 

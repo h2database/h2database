@@ -64,9 +64,9 @@ public abstract class TableBase extends Table {
         }
         buff.append("\n)");
         if (tableEngine != null) {
-            buff.append("\nENGINE '");
+            buff.append("\nENGINE \"");
             buff.append(tableEngine);
-            buff.append("'");
+            buff.append("\"");
         }
         if (!isPersistIndexes() && !isPersistData()) {
             buff.append("\nNOT PERSISTENT");

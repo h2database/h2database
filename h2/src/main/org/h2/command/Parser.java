@@ -4789,7 +4789,7 @@ public class Parser {
             }
         }
         if (readIf("ENGINE")) {
-            command.setTableEngine(readString());
+            command.setTableEngine(readUniqueIdentifier());
         }
         if (temp) {
             if (readIf("ON")) {

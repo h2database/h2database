@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>User defined table implementation can now be used using CREATE TABLE ... ENGINE.
+<ul><li>The implementation of a Java to C (source code level) converter has been started.
+    The plan is: it should be possible to convert H2 (or a part of it) to C so that the database 
+    can be run without a JVM. This will be a long term project (it may take a year or so).
+</li><li>User defined table implementation can now be used using CREATE TABLE ... ENGINE.
     Thanks to Sergi Vladykin for implementing this feature!
 </li><li>Improved MS SQL Server compatibility: support string concatenation using "+".
     Thanks to Stepan for the patch!

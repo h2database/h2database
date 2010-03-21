@@ -13,6 +13,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(82,
+'New version available: 1.2.132 (2010-03-21)', '2010-03-21 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(81,
 'New version available: 1.2.131 (2010-03-05)', '2010-03-05 12:00:00',
 $$A new version of H2 is available for
@@ -188,43 +201,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>Issue 125: Renaming primary keys was not persistent. Fixed.
 </li><li>Issue 124: Hibernate schema validation failed for decimal/numeric columns.
 </li><li>Bugfixes in the page store.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(69,
-'New version available: 1.1.119 (2009-09-26)', '2009-09-26 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>The new page store mechanism is now alpha-level quality.
-</li><li>New committer: Christian Peter. He works for Docware.
-</li><li>The context class loader is used for user defined classes.
-</li><li>Non-unique in-memory hash indexes are now supported.
-</li><li>Improved performance for joins if indexes are missing.
-</li><li>New system property h2.defaultMaxLengthInplaceLob.
-</li><li>New system property h2.nullConcatIsNull.
-</li><li>The Recover tool now also processes the log files.
-</li><li>New sample application that shows how to pass data to a trigger.
-</li><li>The cache algorithm TQ is disabled.
-</li><li>SQL statements in the exception are no longer always included.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>ChangeFileEncryption did not work with Lob subdirectories.
-</li><li>SELECT COUNT(*) FROM SYSTEM_RANGE(...) returned the wrong result.
-</li><li>More bugs in the server-less multi-connection mode have been fixed.
-</li><li>Updating many rows with LOB could throw an exception.
-</li><li>The native fulltext index could leak memory.
-</li><li>Statement.getConnection() didn't work if the connection was closed.
-</li><li>Issue 121: JaQu: new simple update and merge methods.
-</li><li>Issue 120: JaQu didn't close result sets.
-</li><li>Issue 119: JaQu creates wrong WHERE conditions on some inputs.
-</li><li>Temporary local tables did not always work after reconnect if AUTO_SERVER=TRUE
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

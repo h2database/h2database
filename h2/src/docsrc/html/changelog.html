@@ -18,8 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.132 (2010-03-21)</h2>
 <ul><li>The implementation of a Java to C (source code level) converter has been started.
-    The plan is: it should be possible to convert H2 (or a part of it) to C so that the database 
+    The plan is: it should be possible to convert H2 (or a part of it) to C so that the database
     can be run without a JVM. This will be a long term project (it may take a year or so).
 </li><li>User defined table implementation can now be used using CREATE TABLE ... ENGINE.
     Thanks to Sergi Vladykin for implementing this feature!
@@ -593,21 +597,6 @@ Change Log
 </li><li>Running code coverage is now automated.
 </li><li>A file system implementation can now be registered using FileSystem.register.
 </li><li>The database file system is no longer included in the jar file, it moved to the test section.
-</li></ul>
-
-<h2>Version 1.1.111 (2009-04-10)</h2>
-<ul><li>In-memory databases can now run inside the Google App Engine.
-</li><li>Queries that are ordered by an indexed column returned no rows in certain cases
-    (if all rows were deleted from the table previously, and there is a low number of rows
-    in the table, and when not using other conditions, and when using the default b tree index).
-</li><li>The wrong exception was thrown when using unquoted text for
-    the SQL statements COMMENT, ALTER USER, and SET PASSWORD.
-</li><li>The built-in connection pool did not roll back transactions and
-    enable autocommit enabled after closing a connection.
-</li><li>Sometimes a StackOverflow occurred when checking for deadlock. See also
-    http://code.google.com/p/h2database/issues/detail?id=61
-</li><li>The Shell tool no longer truncates results with only one column, and displays
-    a message if data was truncated.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

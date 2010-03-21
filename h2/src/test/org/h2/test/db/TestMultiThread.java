@@ -53,6 +53,9 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentAnalyze() throws Exception {
+        if (config.mvcc) {
+            return;
+        }
         deleteDb("concurrentAnalyze");
         final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
         Connection conn = getConnection(url);

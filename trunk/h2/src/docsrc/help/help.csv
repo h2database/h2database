@@ -228,7 +228,7 @@ Selectivity 100 means values are unique, 10 means every distinct value appears 1
 
 SET DEFAULT changes the default value of a column.
 
-SET NULL sets a column to allow NULL. The row may not be part of a primary key. 
+SET NULL sets a column to allow NULL. The row may not be part of a primary key.
 Single column indexes on this column are dropped.
 
 SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
@@ -449,8 +449,8 @@ Creates a new index.
 This command commits an open transaction.
 
 Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE).
-For other tables, or if the index contains multiple columns, the HASH keyword is ignored. 
-Hash indexes can only test for equality, and do not support range queries (similar to a hash table). 
+For other tables, or if the index contains multiple columns, the HASH keyword is ignored.
+Hash indexes can only test for equality, and do not support range queries (similar to a hash table).
 Non-unique keys are supported.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
@@ -525,19 +525,22 @@ CREATE SEQUENCE SEQ_ID
 CREATE [ CACHED | MEMORY | TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
     TABLE [ IF NOT EXISTS ]
 name { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
-    | { AS select } } [ NOT PERSISTENT ]
+    | { AS select } } [ ENGINE tableEngineName ] [ NOT PERSISTENT ]
 ","
 Creates a new table.
 
-Cached tables (the default) are persistent, and the number of rows is not limited by the main memory. 
+Cached tables (the default) are persistent, and the number of rows is not limited by the main memory.
 
-Memory tables are persistent, but the index data is kept in main memory, 
+Memory tables are persistent, but the index data is kept in main memory,
 that means memory tables should not get too large.
 
-Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
-rows are lost when the database is closed. 
+The ENGINE option is only required when custom table implementations are used.
+The table engine class must implement the interface org.h2.api.TableEngine.
 
-Temporary tables are not persistent. Temporary tables can be global (accessible by all connections) 
+Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
+rows are lost when the database is closed.
+
+Temporary tables are not persistent. Temporary tables can be global (accessible by all connections)
 or local (only accessible by the current connection). The default is for temporary tables is global.
 
 This command commits an open transaction.

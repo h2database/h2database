@@ -12,7 +12,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 
@@ -26,10 +26,10 @@ public class HashIndex extends BaseIndex {
      */
     protected final int indexColumn;
 
-    private final TableData tableData;
+    private final RegularTable tableData;
     private ValueHashMap<Long> rows;
 
-    public HashIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
+    public HashIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, indexName, columns, indexType);
         this.indexColumn = columns[0].column.getColumnId();
         this.tableData = table;

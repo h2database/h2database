@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved MS SQL Server compatibility: support string concatenation using "+".
+<ul><li>User defined table implementation can now be used using CREATE TABLE ... ENGINE.
+    Thanks to Sergi Vladykin for implementing this feature!
+</li><li>Improved MS SQL Server compatibility: support string concatenation using "+".
     Thanks to Stepan for the patch!
 </li><li>When using the multi-threaded mode, running ANALYZE concurrently in multiple
     connections could throw an exception.

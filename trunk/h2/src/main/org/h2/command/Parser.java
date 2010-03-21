@@ -4790,7 +4790,7 @@ public class Parser {
         }
         if (readIf("ENGINE")) {
             command.setTableEngine(readString());
-        } 
+        }
         if (temp) {
             if (readIf("ON")) {
                 read("COMMIT");

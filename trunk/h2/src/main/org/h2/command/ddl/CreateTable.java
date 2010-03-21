@@ -263,9 +263,6 @@ public class CreateTable extends SchemaCommand {
         this.sortedInsertMode = sortedInsertMode;
     }
 
-    /**
-     * @param tableEngine the table engine to set
-     */
     public void setTableEngine(String tableEngine) {
         data.tableEngine = tableEngine;
     }

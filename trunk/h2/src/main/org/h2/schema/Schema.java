@@ -23,7 +23,7 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.table.TableLink;
 import org.h2.util.New;
 import org.h2.util.Utils;
@@ -498,7 +498,7 @@ public class Schema extends DbObjectBase {
                 }
                 return engine.createTable(data);
             }
-            return new TableData(data);
+            return new RegularTable(data);
         }
     }
 

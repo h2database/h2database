@@ -183,7 +183,7 @@ Creates a new sequence."
 CREATE [ CACHED | MEMORY | TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
     TABLE [ IF NOT EXISTS ]
 name { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
-    | { AS select } } [ NOT PERSISTENT ]
+    | { AS select } } [ ENGINE tableEngineName ] [ NOT PERSISTENT ]
 ","
 Creates a new table."
 "Commands (DDL)","CREATE TRIGGER","

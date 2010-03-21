@@ -47,7 +47,7 @@ import org.h2.value.Value;
  * in the database. The actual data is not kept here, instead it is kept in the
  * indexes. There is at least one index, the scan index.
  */
-public class TableData extends RecreatableTable {
+public class RegularTable extends TableBase {
     private Index scanIndex;
     private long rowCount;
     private volatile Session lockExclusive;
@@ -65,7 +65,7 @@ public class TableData extends RecreatableTable {
      */
     private boolean waitForLock;
 
-    public TableData(CreateTableData data) {
+    public RegularTable(CreateTableData data) {
         super(data);
         if (data.persistData && database.isPersistent()) {
             mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData), data.create, data.session);
@@ -483,8 +483,8 @@ public class TableData extends RecreatableTable {
                     buff.append(", ");
                 }
                 buff.append(t.toString());
-                if (t instanceof TableData) {
-                    if (((TableData) t).lockExclusive == s) {
+                if (t instanceof RegularTable) {
+                    if (((RegularTable) t).lockExclusive == s) {
                         buff.append(" (exclusive)");
                     } else {
                         buff.append(" (shared)");
@@ -498,7 +498,7 @@ public class TableData extends RecreatableTable {
 
     public ArrayList<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
         // only one deadlock check at any given time
-        synchronized (TableData.class) {
+        synchronized (RegularTable.class) {
             if (clash == null) {
                 // verification is started
                 clash = session;

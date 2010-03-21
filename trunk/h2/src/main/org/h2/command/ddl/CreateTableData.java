@@ -43,7 +43,7 @@ public class CreateTableData {
     public boolean temporary;
 
     /**
-     * Whether the table global temporary
+     * Whether the table is global temporary.
      */
     public boolean globalTemporary;
 
@@ -66,9 +66,9 @@ public class CreateTableData {
      * The session.
      */
     public Session session;
-    
+
     /**
-     * Table engine to use
+     * The table engine to use for creating the table.
      */
     public String tableEngine;
 

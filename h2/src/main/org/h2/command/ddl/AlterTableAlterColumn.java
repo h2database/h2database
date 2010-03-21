@@ -28,7 +28,6 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.table.TableData;
 import org.h2.table.TableView;
 import org.h2.util.New;
 
@@ -207,7 +206,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String tempName = db.getTempTableName(session);
         Column[] columns = table.getColumns();
         ArrayList<Column> newColumns = New.arrayList();
-        TableData newTable = cloneTableStructure(columns, db, tempName, newColumns);
+        Table newTable = cloneTableStructure(columns, db, tempName, newColumns);
         List<String> views;
         try {
             views = checkViews(table, newTable);
@@ -246,7 +245,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private TableData cloneTableStructure(Column[] columns, Database db, String tempName, ArrayList<Column> newColumns) {
+    private Table cloneTableStructure(Column[] columns, Database db, String tempName, ArrayList<Column> newColumns) {
         for (Column col : columns) {
             newColumns.add(col.getClone());
         }
@@ -282,7 +281,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         data.persistIndexes = table.isPersistIndexes();
         data.create = true;
         data.session = session;
-        TableData newTable = getSchema().createTable(data);
+        Table newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());
         StringBuilder buff = new StringBuilder();
         buff.append(newTable.getCreateSQL());
@@ -312,7 +311,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         newTable.removeChildrenAndResources(session);
 
         execute(newTableSQL, true);
-        newTable = (TableData) newTableSchema.getTableOrView(session, newTableName);
+        newTable = newTableSchema.getTableOrView(session, newTableName);
         ArrayList<String> triggers = New.arrayList();
         for (DbObject child : table.getChildren()) {
             if (child instanceof Sequence) {

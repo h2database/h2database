@@ -11,14 +11,16 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
 /**
- * The cursor for a hash index.
- * At most one row can be accessed.
+ * The cursor with at most one row.
  */
-public class HashCursor implements Cursor {
+public class SingleRowCursor implements Cursor {
     private Row row;
     private boolean end;
 
-    HashCursor(Row row) {
+    /**
+     * @param row - the single row (if null then cursor is empty) 
+     */
+    public SingleRowCursor(Row row) {
         this.row = row;
     }
 

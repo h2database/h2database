@@ -19,7 +19,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
+import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.value.DataType;
 
@@ -33,7 +33,6 @@ public class CreateTable extends SchemaCommand {
     private ArrayList<Prepared> constraintCommands = New.arrayList();
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
-    private boolean globalTemporary;
     private boolean onCommitDrop;
     private boolean onCommitTruncate;
     private Query asQuery;
@@ -137,10 +136,9 @@ public class CreateTable extends SchemaCommand {
         data.id = getObjectId();
         data.create = create;
         data.session = session;
-        TableData table = getSchema().createTable(data);
+        Table table = getSchema().createTable(data);
         table.setComment(comment);
-        table.setGlobalTemporary(globalTemporary);
-        if (data.temporary && !globalTemporary) {
+        if (data.temporary && !data.globalTemporary) {
             if (onCommitDrop) {
                 table.setOnCommitDrop(true);
             }
@@ -236,7 +234,7 @@ public class CreateTable extends SchemaCommand {
     }
 
     public void setGlobalTemporary(boolean globalTemporary) {
-        this.globalTemporary = globalTemporary;
+        data.globalTemporary = globalTemporary;
     }
 
     /**
@@ -263,6 +261,13 @@ public class CreateTable extends SchemaCommand {
 
     public void setSortedInsertMode(boolean sortedInsertMode) {
         this.sortedInsertMode = sortedInsertMode;
+    }
+
+    /**
+     * @param tableEngine the table engine to set
+     */
+    public void setTableEngine(String tableEngine) {
+        data.tableEngine = tableEngine;
     }
 
 }

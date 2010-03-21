@@ -43,6 +43,11 @@ public class CreateTableData {
     public boolean temporary;
 
     /**
+     * Whether the table global temporary
+     */
+    public boolean globalTemporary;
+
+    /**
      * Whether the indexes should be persisted.
      */
     public boolean persistIndexes;
@@ -61,5 +66,10 @@ public class CreateTableData {
      * The session.
      */
     public Session session;
+    
+    /**
+     * Table engine to use
+     */
+    public String tableEngine;
 
 }

@@ -9,6 +9,7 @@ package org.h2.schema;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -25,6 +26,7 @@ import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.table.TableLink;
 import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * A schema as created by the SQL statement
@@ -482,11 +484,20 @@ public class Schema extends DbObjectBase {
      * Add a table to the schema.
      *
      * @param data the create table information
-     * @return the created {@link TableData} object
+     * @return the created {@link Table} object
      */
-    public TableData createTable(CreateTableData data) {
+    public Table createTable(CreateTableData data) {
         synchronized (database) {
             data.schema = this;
+            if (data.tableEngine != null) {
+                TableEngine engine;
+                try {
+                    engine = (TableEngine) Utils.loadUserClass(data.tableEngine).newInstance();
+                } catch (Exception e) {
+                    throw DbException.convert(e);
+                }
+                return engine.createTable(data);
+            }
             return new TableData(data);
         }
     }

@@ -122,7 +122,6 @@ import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
-import org.h2.table.TableData;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.Utils;
@@ -3860,7 +3859,7 @@ public class Parser {
     private Query parserWith() {
         String tempViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
-        TableData recursiveTable;
+        Table recursiveTable;
         read("(");
         ArrayList<Column> columns = New.arrayList();
         String[] cols = parseColumnList();
@@ -4789,6 +4788,9 @@ public class Parser {
                 command.setQuery(parseSelect());
             }
         }
+        if (readIf("ENGINE")) {
+            command.setTableEngine(readString());
+        } 
         if (temp) {
             if (readIf("ON")) {
                 read("COMMIT");

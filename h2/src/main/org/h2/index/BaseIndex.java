@@ -48,7 +48,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *            not yet known
      * @param newIndexType the index type
      */
-    void initBaseIndex(Table newTable, int id, String name, IndexColumn[] newIndexColumns, IndexType newIndexType) {
+    protected void initBaseIndex(Table newTable, int id, String name, IndexColumn[] newIndexColumns, IndexType newIndexType) {
         initSchemaObjectBase(newTable.getSchema(), id, name, Trace.INDEX);
         this.indexType = newIndexType;
         this.table = newTable;

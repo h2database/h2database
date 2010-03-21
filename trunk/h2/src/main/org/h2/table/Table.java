@@ -76,6 +76,11 @@ public abstract class Table extends SchemaObjectBase {
     public static final String VIEW = "VIEW";
 
     /**
+     * The table type name for external table engines.
+     */
+    public static final String EXTERNAL_TABLE_ENGINE = "EXTERNAL";
+    
+    /**
      * The columns of this table.
      */
     protected Column[] columns;
@@ -101,7 +106,7 @@ public abstract class Table extends SchemaObjectBase {
     private boolean onCommitDrop, onCommitTruncate;
     private Row nullRow;
 
-    Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
+    public Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
         initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistIndexes = persistIndexes;
         this.persistData = persistData;
@@ -365,7 +370,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it is
      */
-    boolean isLockedExclusivelyBy(Session session) {
+    public boolean isLockedExclusivelyBy(Session session) {
         return false;
     }
 

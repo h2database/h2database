@@ -38,8 +38,6 @@ import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -49,13 +47,12 @@ import org.h2.value.Value;
  * in the database. The actual data is not kept here, instead it is kept in the
  * indexes. There is at least one index, the scan index.
  */
-public class TableData extends Table {
+public class TableData extends RecreatableTable {
     private Index scanIndex;
     private long rowCount;
     private volatile Session lockExclusive;
     private HashSet<Session> lockShared = New.hashSet();
     private Trace traceLock;
-    private boolean globalTemporary;
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private boolean containsLargeObject;
@@ -69,19 +66,15 @@ public class TableData extends Table {
     private boolean waitForLock;
 
     public TableData(CreateTableData data) {
-        super(data.schema, data.id, data.tableName, data.persistIndexes, data.persistData);
-        Column[] cols = new Column[data.columns.size()];
-        data.columns.toArray(cols);
-        setColumns(cols);
-        setTemporary(data.temporary);
+        super(data);
         if (data.persistData && database.isPersistent()) {
-            mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData), data.create, data.session);
+            mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData), data.create, data.session);
             scanIndex = mainIndex;
         } else {
-            scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(cols), IndexType.createScan(data.persistData));
+            scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData));
         }
         indexes.add(scanIndex);
-        for (Column col : cols) {
+        for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType())) {
                 containsLargeObject = true;
                 memoryPerRow = Row.MEMORY_CALCULATE;
@@ -554,40 +547,6 @@ public class TableData extends Table {
         }
     }
 
-    public String getDropSQL() {
-        return "DROP TABLE IF EXISTS " + getSQL();
-    }
-
-    public String getCreateSQL() {
-        StatementBuilder buff = new StatementBuilder("CREATE ");
-        if (isTemporary()) {
-            if (globalTemporary) {
-                buff.append("GLOBAL ");
-            } else {
-                buff.append("LOCAL ");
-            }
-            buff.append("TEMPORARY ");
-        } else if (isPersistIndexes()) {
-            buff.append("CACHED ");
-        } else {
-            buff.append("MEMORY ");
-        }
-        buff.append("TABLE ").append(getSQL());
-        if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
-        }
-        buff.append("(\n    ");
-        for (Column column : columns) {
-            buff.appendExceptFirst(",\n    ");
-            buff.append(column.getCreateSQL());
-        }
-        buff.append("\n)");
-        if (!isTemporary() && !isPersistIndexes() && !isPersistData()) {
-            buff.append("\nNOT PERSISTENT");
-        }
-        return buff.toString();
-    }
-
     public boolean isLockedExclusively() {
         return lockExclusive != null;
     }
@@ -684,14 +643,6 @@ public class TableData extends Table {
 
     public String getTableType() {
         return Table.TABLE;
-    }
-
-    public void setGlobalTemporary(boolean globalTemporary) {
-        this.globalTemporary = globalTemporary;
-    }
-
-    public boolean isGlobalTemporary() {
-        return globalTemporary;
     }
 
     public long getMaxDataModificationId() {

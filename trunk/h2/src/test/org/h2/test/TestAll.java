@@ -52,6 +52,7 @@ import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
 import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpeed;
+import org.h2.test.db.TestTableEngines;
 import org.h2.test.db.TestTempTables;
 import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
@@ -502,6 +503,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestSequence().runTest(this);
         new TestSpaceReuse().runTest(this);
         new TestSpeed().runTest(this);
+        new TestTableEngines().runTest(this);
         new TestTempTables().runTest(this);
         new TestTransaction().runTest(this);
         new TestTriggersConstraints().runTest(this);

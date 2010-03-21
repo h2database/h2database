@@ -48,7 +48,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
 import org.h2.table.Table;
-import org.h2.table.TableData;
 import org.h2.table.TableLinkConnection;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
@@ -111,7 +110,7 @@ public class Database implements DataHandler {
     private int nextTempTableId;
     private User systemUser;
     private Session systemSession;
-    private TableData meta;
+    private Table meta;
     private Index metaIdIndex;
     private FileLock lock;
     private WriterThread writer;

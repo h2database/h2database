@@ -49,7 +49,7 @@ public class ResultTempTable implements ResultExternal {
         data.persistData = true;
         data.create = true;
         data.session = session;
-        table = schema.createTable(data);
+        table = (TableData) schema.createTable(data);
         int indexId = session.getDatabase().allocateObjectId();
         IndexColumn indexColumn = new IndexColumn();
         indexColumn.column = column;

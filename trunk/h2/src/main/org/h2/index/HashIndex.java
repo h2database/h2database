@@ -70,7 +70,7 @@ public class HashIndex extends BaseIndex {
         } else {
             result = tableData.getRow(session, pos.intValue());
         }
-        return new HashCursor(result);
+        return new SingleRowCursor(result);
     }
 
     public long getRowCount(Session session) {

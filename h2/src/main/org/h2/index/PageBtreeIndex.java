@@ -18,7 +18,7 @@ import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.util.MathUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -30,11 +30,11 @@ import org.h2.value.ValueNull;
 public class PageBtreeIndex extends PageIndex {
 
     private PageStore store;
-    private TableData tableData;
+    private RegularTable tableData;
     private boolean needRebuild;
     private long rowCount;
 
-    public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
+    public PageBtreeIndex(RegularTable table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, indexName, columns, indexType);
         // int test;

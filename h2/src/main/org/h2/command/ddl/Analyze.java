@@ -12,7 +12,7 @@ import org.h2.engine.Session;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.util.StatementBuilder;
 
 /**
@@ -37,7 +37,7 @@ public class Analyze extends DefineCommand {
         session.getUser().checkAdmin();
         // TODO do we need to lock the table?
         for (Table table : db.getAllTablesAndViews(false)) {
-            if (!(table instanceof TableData)) {
+            if (!(table instanceof RegularTable)) {
                 continue;
             }
             StatementBuilder buff = new StatementBuilder("SELECT ");

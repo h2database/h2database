@@ -21,7 +21,7 @@ import org.h2.result.SearchRow;
 import org.h2.store.LobStorage;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.util.New;
 
 /**
@@ -33,13 +33,13 @@ import org.h2.util.New;
 public class ScanIndex extends BaseIndex {
     private long firstFree = -1;
     private ArrayList<Row> rows = New.arrayList();
-    private TableData tableData;
+    private RegularTable tableData;
     private int rowCountDiff;
     private HashMap<Integer, Integer> sessionRowCount;
     private HashSet<Row> delta;
     private long rowCount;
 
-    public ScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType) {
+    public ScanIndex(RegularTable table, int id, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
         if (database.isMultiVersion()) {
             sessionRowCount = New.hashMap();

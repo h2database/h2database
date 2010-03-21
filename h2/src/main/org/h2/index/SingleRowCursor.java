@@ -11,14 +11,16 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
 /**
- * The cursor with at most one row.
+ * A cursor with at most one row.
  */
 public class SingleRowCursor implements Cursor {
     private Row row;
     private boolean end;
 
     /**
-     * @param row - the single row (if null then cursor is empty) 
+     * Create a new cursor.
+     *
+     * @param row - the single row (if null then cursor is empty)
      */
     public SingleRowCursor(Row row) {
         this.row = row;

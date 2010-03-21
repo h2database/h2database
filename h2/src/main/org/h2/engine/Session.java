@@ -594,8 +594,10 @@ public class Session extends SessionWithState implements SessionFactory {
         if (SysProperties.CHECK) {
             int lockMode = database.getLockMode();
             if (lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
-                if (locks.indexOf(log.getTable()) < 0 && !Table.TABLE_LINK.equals(log.getTable().getTableType()) 
-                        && !Table.EXTERNAL_TABLE_ENGINE.equals(log.getTable().getTableType())) {
+                String type = log.getTable().getTableType();
+                if (locks.indexOf(log.getTable()) < 0
+                        && !Table.TABLE_LINK.equals(type)
+                        && !Table.EXTERNAL_TABLE_ENGINE.equals(type)) {
                     DbException.throwInternalError();
                 }
             }

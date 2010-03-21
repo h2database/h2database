@@ -79,7 +79,7 @@ public abstract class Table extends SchemaObjectBase {
      * The table type name for external table engines.
      */
     public static final String EXTERNAL_TABLE_ENGINE = "EXTERNAL";
-    
+
     /**
      * The columns of this table.
      */

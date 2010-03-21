@@ -12,7 +12,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.util.New;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
@@ -25,10 +25,10 @@ import org.h2.value.Value;
 public class NonUniqueHashIndex extends HashIndex {
 
     private ValueHashMap<ArrayList<Long>> rows;
-    private TableData tableData;
+    private RegularTable tableData;
     private long rowCount;
 
-    public NonUniqueHashIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
+    public NonUniqueHashIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
         this.tableData = table;
         reset();

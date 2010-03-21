@@ -6,21 +6,23 @@
  */
 package org.h2.api;
 
-import org.h2.table.RecreatableTable;
+import org.h2.table.TableBase;
 import org.h2.command.ddl.CreateTableData;
 
 /**
- * Class for creating custom table implementations
- * 
+ * A class that implements this interface can create custom table
+ * implementations.
+ *
  * @author Sergi Vladykin
  */
 public interface TableEngine {
-    
+
     /**
-     * Create new table
-     * @param data for table construction
-     * @return created table
+     * Create new table.
+     *
+     * @param data the data to construct the table
+     * @return the created table
      */
-    RecreatableTable createTable(CreateTableData data); 
-    
+    TableBase createTable(CreateTableData data);
+
 }

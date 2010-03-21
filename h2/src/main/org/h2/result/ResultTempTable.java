@@ -18,7 +18,7 @@ import org.h2.index.PageBtreeIndex;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -29,7 +29,7 @@ public class ResultTempTable implements ResultExternal {
 
     private static final String COLUMN_NAME = "DATA";
     private Session session;
-    private TableData table;
+    private RegularTable table;
     private SortOrder sort;
     private Index index;
     private Cursor resultCursor;
@@ -49,7 +49,7 @@ public class ResultTempTable implements ResultExternal {
         data.persistData = true;
         data.create = true;
         data.session = session;
-        table = (TableData) schema.createTable(data);
+        table = (RegularTable) schema.createTable(data);
         int indexId = session.getDatabase().allocateObjectId();
         IndexColumn indexColumn = new IndexColumn();
         indexColumn.column = column;

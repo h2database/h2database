@@ -41,7 +41,7 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
@@ -174,7 +174,7 @@ public class PageStore implements CacheWriter {
     private PageLog log;
 
     private Schema metaSchema;
-    private TableData metaTable;
+    private RegularTable metaTable;
     private PageDataIndex metaIndex;
     private IntIntHashMap metaRootPageId = new IntIntHashMap();
     private HashMap<Integer, PageIndex> metaObjects = New.hashMap();
@@ -1228,7 +1228,7 @@ public class PageStore implements CacheWriter {
         data.persistIndexes = true;
         data.create = false;
         data.session = systemSession;
-        metaTable = new TableData(data);
+        metaTable = new RegularTable(data);
         metaIndex = (PageDataIndex) metaTable.getScanIndex(
                 systemSession);
         metaObjects.clear();
@@ -1315,7 +1315,7 @@ public class PageStore implements CacheWriter {
             data.persistIndexes = true;
             data.create = false;
             data.session = session;
-            TableData table = new TableData(data);
+            RegularTable table = new RegularTable(data);
             CompareMode mode = CompareMode.getInstance(ops[0], Integer.parseInt(ops[1]));
             table.setCompareMode(mode);
             meta = table.getScanIndex(session);
@@ -1324,7 +1324,7 @@ public class PageStore implements CacheWriter {
             if (p == null) {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "Table not found:" + parent + " for " + row + " meta:" + metaObjects);
             }
-            TableData table = (TableData) p.getTable();
+            RegularTable table = (RegularTable) p.getTable();
             Column[] tableCols = table.getColumns();
             IndexColumn[] cols = new IndexColumn[columns.length];
             for (int i = 0; i < columns.length; i++) {

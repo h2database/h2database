@@ -17,7 +17,7 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -30,11 +30,11 @@ public class MultiVersionIndex implements Index {
 
     private final Index base;
     private final TreeIndex delta;
-    private final TableData table;
+    private final RegularTable table;
     private final Object sync;
     private final Column firstColumn;
 
-    public MultiVersionIndex(Index base, TableData table) {
+    public MultiVersionIndex(Index base, RegularTable table) {
         this.base = base;
         this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);

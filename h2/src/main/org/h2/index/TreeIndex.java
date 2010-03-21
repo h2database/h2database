@@ -12,7 +12,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -22,10 +22,10 @@ import org.h2.value.ValueNull;
 public class TreeIndex extends BaseIndex {
 
     private TreeNode root;
-    private TableData tableData;
+    private RegularTable tableData;
     private long rowCount;
 
-    public TreeIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
+    public TreeIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, indexName, columns, indexType);
         tableData = table;
     }

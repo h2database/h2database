@@ -219,9 +219,9 @@ For a table defined as <code>CREATE TABLE TEST(X FLOAT)</code> the method
 return a <code>java.lang.Float</code>. What's wrong?
 </p>
 <p>
-This is not a bug. According the the JDBC specification, the JDBC data type <code>FLOAT</code> 
+This is not a bug. According the the JDBC specification, the JDBC data type <code>FLOAT</code>
 is equivalent to <code>DOUBLE</code>, and both are mapped to <code>java.lang.Double</code>.
-See also 
+See also
 <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jdbc/getstart/mapping.html#1055162">
 Mapping SQL and Java Types - 8.3.10 FLOAT</a>.</p>
 

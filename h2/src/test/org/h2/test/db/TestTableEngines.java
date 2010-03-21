@@ -22,52 +22,63 @@ import org.h2.index.IndexType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
-import org.h2.table.RecreatableTable;
+import org.h2.table.TableBase;
 import org.h2.table.Table;
 import org.h2.test.TestBase;
 
 /**
  * The class for external table engines mechanism testing.
- * 
+ *
  * @author Sergi Vladykin
  */
 public class TestTableEngines extends TestBase {
 
-    public void test() throws Exception {
-        if (!config.mvcc) {
-            deleteDb("tableEngine");
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
-            Connection conn = getConnection("tableEngine");
-            Statement stat = conn.createStatement();
-            stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE '" + OneRowTableEngine.class.getName() + "'");
+    public void test() throws Exception {
+        if (config.mvcc) {
+            return;
+        }
+        deleteDb("tableEngine");
+
+        Connection conn = getConnection("tableEngine");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + OneRowTableEngine.class.getName() + "\"");
+
+        testStatements(stat);
+
+        stat.close();
+        conn.close();
+
+        if (!config.memory) {
+            conn = getConnection("tableEngine");
+            stat = conn.createStatement();
+
+            ResultSet rs = stat.executeQuery("SELECT name FROM t1");
+            assertFalse(rs.next());
+            rs.close();
 
             testStatements(stat);
 
             stat.close();
             conn.close();
-
-            if (!config.memory) {
-                conn = getConnection("tableEngine");
-                stat = conn.createStatement();
-
-                ResultSet rs = stat.executeQuery("SELECT name FROM t1");
-                assertFalse(rs.next());
-                rs.close();
-
-                testStatements(stat);
-
-                stat.close();
-                conn.close();
-            }
-
-            deleteDb("tableEngine");
         }
+
+        deleteDb("tableEngine");
+
     }
 
     private void testStatements(Statement stat) throws SQLException {
-        assertEquals(stat.executeUpdate("INSERT INTO t1 VALUES(2,'aaa')"), 1);
-        assertEquals(stat.executeUpdate("UPDATE t1 SET name = 'bbb' WHERE id=2"), 1);
-        assertEquals(stat.executeUpdate("INSERT INTO t1 VALUES(3,'ccc')"), 1);
+        assertEquals(stat.executeUpdate("INSERT INTO t1 VALUES(2, 'abc')"), 1);
+        assertEquals(stat.executeUpdate("UPDATE t1 SET name = 'abcdef' WHERE id=2"), 1);
+        assertEquals(stat.executeUpdate("INSERT INTO t1 VALUES(3, 'abcdefghi')"), 1);
 
         assertEquals(stat.executeUpdate("DELETE FROM t1 WHERE id=2"), 0);
         assertEquals(stat.executeUpdate("DELETE FROM t1 WHERE id=3"), 1);
@@ -76,40 +87,30 @@ public class TestTableEngines extends TestBase {
         assertFalse(rs.next());
         rs.close();
 
-        assertEquals(stat.executeUpdate("INSERT INTO t1 VALUES(2,'aaa')"), 1);
-        assertEquals(stat.executeUpdate("UPDATE t1 SET name = 'bbb' WHERE id=2"), 1);
-        assertEquals(stat.executeUpdate("INSERT INTO t1 VALUES(3,'ccc')"), 1);
+        assertEquals(stat.executeUpdate("INSERT INTO t1 VALUES(2, 'abc')"), 1);
+        assertEquals(stat.executeUpdate("UPDATE t1 SET name = 'abcdef' WHERE id=2"), 1);
+        assertEquals(stat.executeUpdate("INSERT INTO t1 VALUES(3, 'abcdefghi')"), 1);
 
         rs = stat.executeQuery("SELECT name FROM t1");
         assertTrue(rs.next());
-        assertEquals(rs.getString(1), "ccc");
+        assertEquals(rs.getString(1), "abcdefghi");
         assertFalse(rs.next());
         rs.close();
 
     }
 
     /**
-     * Execute only this test
-     * 
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-        TestBase.createCaller().init().test();
-    }
-
-    /**
-     * Test table factory
+     * A test table factory.
      */
     public static class OneRowTableEngine implements TableEngine {
 
         /**
-         * Table implementation with one row
+         * A table implementation with one row.
          */
-        private static class OneRowTable extends RecreatableTable {
+        private static class OneRowTable extends TableBase {
 
             /**
-             * One row scan index
+             * A scan index for one row.
              */
             private class Scan extends BaseIndex {
 
@@ -295,9 +296,12 @@ public class TestTableEngines extends TestBase {
         }
 
         /**
-         * Create new OneRowTable
+         * Create a new OneRowTable.
+         *
+         * @param data the meta data of the table to create
+         * @return the new table
          */
-        public OneRowTable createTable(final CreateTableData data) {
+        public OneRowTable createTable(CreateTableData data) {
             return new OneRowTable(data);
         }
     }

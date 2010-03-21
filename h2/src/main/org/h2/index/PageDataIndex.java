@@ -24,7 +24,7 @@ import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
+import org.h2.table.RegularTable;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
@@ -38,7 +38,7 @@ import org.h2.value.ValueNull;
 public class PageDataIndex extends PageIndex {
 
     private PageStore store;
-    private TableData tableData;
+    private RegularTable tableData;
     private long lastKey;
     private long rowCount;
     private HashSet<Row> delta;
@@ -48,7 +48,7 @@ public class PageDataIndex extends PageIndex {
     private DbException fastDuplicateKeyException;
     private int memorySizePerPage;
 
-    public PageDataIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) {
+    public PageDataIndex(RegularTable table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
 
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");

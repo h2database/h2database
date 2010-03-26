@@ -478,8 +478,8 @@ public class WebServer implements Service {
         String fileName = getPropertiesFileName();
         try {
             return SortedProperties.loadProperties(fileName);
-        } catch (IOException e) {
-            // TODO log exception
+        } catch (Exception e) {
+            TraceSystem.traceThrowable(e);
             return new Properties();
         }
     }

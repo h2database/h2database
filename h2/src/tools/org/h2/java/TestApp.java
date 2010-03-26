@@ -28,42 +28,4 @@ int main(int argc, char** argv) {
         System.out.println("Hello " + "World" + 1);
     }
 
-    public int hashCode() {
-        return 1;
-    }
-
-    /**
-     * A test method.
-     *
-     * @param name ignored
-     * @param x ignored
-     * @return ignored
-     */
-    public int getName(int name, int x) {
-        System.out.println("Hello");
-        int m = x;
-        // m = FINAL_VALUE;
-        switch (x) {
-        case 1:
-            m = 3;
-            m = 4;
-            break;
-        default:
-            m = 4;
-            m = 5;
-        }
-        for (int i = 0; i < 10; i++, i--) {
-            getName(0, 0);
-        }
-        if (m > 0) {
-            getName(2, 3);
-        } else {
-            getName(1, 12);
-        }
-        do {
-            getName(0, 0);
-            return name;
-        } while (true);
-    }
-
 }

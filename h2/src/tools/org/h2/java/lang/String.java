@@ -115,6 +115,11 @@ void* string(char* s) {
         System.arraycopy(chars, 0, this.chars, 0, chars.length);
     }
 
+    public String(char[] chars, int offset, int count) {
+        this.chars = new char[count];
+        System.arraycopy(chars, offset, this.chars, 0, count);
+    }
+
     public int hashCode() {
         if (hashCode == 0) {
             if (chars.length == 0) {

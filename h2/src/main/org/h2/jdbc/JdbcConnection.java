@@ -6,7 +6,9 @@
  */
 package org.h2.jdbc;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -32,7 +34,6 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
-import org.h2.store.LobStorage;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -1438,7 +1439,9 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("Clob", TraceObject.CLOB, id, "createClob()");
             checkClosedForWrite();
             try {
-                Value v = LobStorage.createSmallLob(Value.CLOB, Utils.EMPTY_BYTES);
+                Value v = session.getDataHandler().getLobStorage().createClob(
+                        new InputStreamReader(
+                        new ByteArrayInputStream(Utils.EMPTY_BYTES)), 0);
                 return new JdbcClob(this, v, id);
             } finally {
                 afterWriting();
@@ -1459,7 +1462,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
             checkClosedForWrite();
             try {
-                Value v = LobStorage.createSmallLob(Value.BLOB, Utils.EMPTY_BYTES);
+                Value v = session.getDataHandler().getLobStorage().createBlob(new ByteArrayInputStream(Utils.EMPTY_BYTES), 0);
                 return new JdbcBlob(this, v, id);
             } finally {
                 afterWriting();
@@ -1480,8 +1483,14 @@ public class JdbcConnection extends TraceObject implements Connection {
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosedForWrite();
-            Value v = LobStorage.createSmallLob(Value.CLOB, Utils.EMPTY_BYTES);
-            return new JdbcClob(this, v, id);
+            try {
+                Value v = session.getDataHandler().getLobStorage().createClob(
+                        new InputStreamReader(
+                        new ByteArrayInputStream(Utils.EMPTY_BYTES)), 0);
+                return new JdbcClob(this, v, id);
+            } finally {
+                afterWriting();
+            }
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1614,7 +1623,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         if (length <= 0) {
             length = -1;
         }
-        Value v = LobStorage.createClob(x, length, session.getDataHandler());
+        Value v = session.getDataHandler().getLobStorage().createClob(x, length);
         return v;
     }
 
@@ -1633,7 +1642,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         if (length <= 0) {
             length = -1;
         }
-        Value v = LobStorage.createBlob(x, length, session.getDataHandler());
+        Value v = session.getDataHandler().getLobStorage().createBlob(x, length);
         return v;
     }
 

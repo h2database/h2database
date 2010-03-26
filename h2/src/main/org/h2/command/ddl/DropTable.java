@@ -12,7 +12,6 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.store.LobStorage;
 import org.h2.table.Table;
 
 /**
@@ -83,7 +82,7 @@ public class DropTable extends SchemaCommand {
             table.setModified();
             Database db = session.getDatabase();
             db.removeSchemaObject(session, table);
-            LobStorage.removeAllForTable(db, dropTableId);
+            db.getLobStorage().removeAllForTable(dropTableId);
         }
         if (next != null) {
             next.executeDrop();

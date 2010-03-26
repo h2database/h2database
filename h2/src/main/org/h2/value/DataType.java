@@ -546,7 +546,7 @@ public class DataType {
                     if (in == null) {
                         v = ValueNull.INSTANCE;
                     } else {
-                        v = LobStorage.createClob(new BufferedReader(in), -1, session.getDataHandler());
+                        v = session.getDataHandler().getLobStorage().createClob(new BufferedReader(in), -1);
                     }
                 }
                 break;
@@ -556,7 +556,7 @@ public class DataType {
                     v = LobStorage.createSmallLob(Value.BLOB, rs.getBytes(columnIndex));
                 } else {
                     InputStream in = rs.getBinaryStream(columnIndex);
-                    v = (in == null) ? (Value) ValueNull.INSTANCE : LobStorage.createBlob(in, -1, session.getDataHandler());
+                    v = (in == null) ? (Value) ValueNull.INSTANCE : session.getDataHandler().getLobStorage().createBlob(in, -1);
                 }
                 break;
             }
@@ -864,19 +864,19 @@ public class DataType {
             return ValueTimestamp.get(new Timestamp(((java.util.Date) x).getTime()));
         } else if (x instanceof java.io.Reader) {
             Reader r = new BufferedReader((java.io.Reader) x);
-            return LobStorage.createClob(r, -1, session.getDataHandler());
+            return session.getDataHandler().getLobStorage().createClob(r, -1);
         } else if (x instanceof java.sql.Clob) {
             try {
                 Reader r = new BufferedReader(((java.sql.Clob) x).getCharacterStream());
-                return LobStorage.createClob(r, -1, session.getDataHandler());
+                return session.getDataHandler().getLobStorage().createClob(r, -1);
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
         } else if (x instanceof java.io.InputStream) {
-            return LobStorage.createBlob((java.io.InputStream) x, -1, session.getDataHandler());
+            return session.getDataHandler().getLobStorage().createBlob((java.io.InputStream) x, -1);
         } else if (x instanceof java.sql.Blob) {
             try {
-                return LobStorage.createBlob(((java.sql.Blob) x).getBinaryStream(), -1, session.getDataHandler());
+                return session.getDataHandler().getLobStorage().createBlob(((java.sql.Blob) x).getBinaryStream(), -1);
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }

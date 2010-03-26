@@ -1223,4 +1223,11 @@ public class Recover extends Tool implements DataHandler {
         return null;
     }
 
+    /**
+     * INTERNAL
+     */
+    public Connection getLobConnection() {
+        return null;
+    }
+
 }

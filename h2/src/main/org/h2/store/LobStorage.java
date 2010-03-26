@@ -22,16 +22,17 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
+import org.h2.util.Utils;
+import org.h2.value.Value;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLob2;
 
 /**
  * This class stores LOB objects in the database.
  */
 public class LobStorage {
 
-    /**
-     * The 'table id' to use for session variables.
-     */
     public static final int TABLE_ID_SESSION_VARIABLE = -1;
 
     private static final String LOBS = "INFORMATION_SCHEMA.LOBS";
@@ -46,15 +47,33 @@ public class LobStorage {
     private long nextLob;
     private long nextBlock;
 
-    public LobStorage(Connection newConn) {
+    private final DataHandler handler;
+    private boolean init;
+
+    public LobStorage(DataHandler handler) {
+        this.handler = handler;
+    }
+
+    /**
+     * Initialize the lob storage.
+     */
+    public void init() {
+        if (init) {
+            return;
+        }
+        conn = handler.getLobConnection();
+        init = true;
+        if (conn == null) {
+            return;
+        }
+        int todoDatabaseGetFirstUserTable;
         try {
-            this.conn = newConn;
             Statement stat = conn.createStatement();
             // stat.execute("SET UNDO_LOG 0");
             // stat.execute("SET REDO_LOG_BINARY 0");
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, LENGTH BIGINT, TABLE INT)");
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ))");
-            stat.execute("CREATE INDEX INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
+            stat.execute("CREATE INDEX IF NOT EXISTS INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, DATA BINARY)");
             ResultSet rs;
             rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
@@ -77,8 +96,10 @@ public class LobStorage {
      * @param handler the data handler
      * @param tableId the table id
      */
-    public static void removeAllForTable(DataHandler handler, int tableId) {
+    public void removeAllForTable(int tableId) {
         if (SysProperties.LOB_IN_DATABASE) {
+            init();
+            int todo;
             // remove both lobs in the database as well as in the file system
         }
         ValueLob.removeAllForTable(handler, tableId);
@@ -91,42 +112,11 @@ public class LobStorage {
      * @param small the byte array
      * @return the LOB
      */
-    public static ValueLob createSmallLob(int type, byte[] small) {
+    public static Value createSmallLob(int type, byte[] small) {
         if (SysProperties.LOB_IN_DATABASE) {
-            return null;
+            return ValueLob2.createSmallLob(type, small);
         }
         return ValueLob.createSmallLob(type, small);
-    }
-
-    /**
-     * Create a BLOB object.
-     *
-     * @param in the input stream
-     * @param maxLength the maximum length (-1 if not known)
-     * @param handler the data handler
-     * @return the LOB
-     */
-    public static ValueLob createBlob(InputStream in, long maxLength, DataHandler handler) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            handler.getLobStorage().addLob(in, maxLength, LobStorage.TABLE_ID_SESSION_VARIABLE);
-        }
-        return ValueLob.createBlob(in, maxLength, handler);
-    }
-
-    /**
-     * Create a CLOB object.
-     *
-     * @param reader the reader
-     * @param maxLength the maximum length (-1 if not known)
-     * @param handler the data handler
-     * @return the LOB
-     */
-    public static ValueLob createClob(Reader reader, long maxLength, DataHandler handler) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            CountingReaderInputStream in = new CountingReaderInputStream(reader);
-            handler.getLobStorage().addLob(in, maxLength, LobStorage.TABLE_ID_SESSION_VARIABLE);
-        }
-        return ValueLob.createClob(reader, maxLength, handler);
     }
 
     /**
@@ -134,7 +124,7 @@ public class LobStorage {
      */
     public static class LobInputStream extends InputStream {
 
-        private Connection conn;
+        private final Connection conn;
         private PreparedStatement prepSelect;
         private byte[] buffer;
         private int pos;
@@ -143,6 +133,7 @@ public class LobStorage {
         private int seq;
 
         public LobInputStream(Connection conn, long lob) throws IOException {
+            this.conn = conn;
             try {
                 this.lob = lob;
                 PreparedStatement prep = conn.prepareStatement(
@@ -151,8 +142,9 @@ public class LobStorage {
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
                     throw DbException.get(ErrorCode.IO_EXCEPTION_1, "lob: "+ lob + " seq: " + seq).getSQLException();
-
                 }
+                remaining = rs.getLong(1);
+                rs.close();
             } catch (SQLException e) {
                 throw DbException.convertToIOException(e);
             }
@@ -257,21 +249,18 @@ public class LobStorage {
         prep.execute();
     }
 
-    /**
-     * Store the LOB in the database.
-     *
-     * @param in the input stream
-     * @param maxLength the maximum length (-1 for unknown)
-     * @param table the table
-     * @return the LOB id
-     */
-    public long addLob(InputStream in, long maxLength, int table) {
+    public InputStream getInputStream(long lobId) throws IOException {
+        init();
+        return new LobInputStream(conn, lobId);
+    }
+
+    private ValueLob2 addLob(InputStream in, long maxLength, int type) {
         byte[] buff = new byte[BLOCK_LENGTH];
         if (maxLength < 0) {
             maxLength = Long.MAX_VALUE;
         }
         long length = 0;
-        long lob = nextLob++;
+        long lobId = nextLob++;
         try {
             try {
                 for (int seq = 0; maxLength > 0; seq++) {
@@ -281,7 +270,6 @@ public class LobStorage {
                     }
                     length += len;
                     maxLength -= len;
-
                     byte[] b;
                     if (len != buff.length) {
                         b = new byte[len];
@@ -319,20 +307,21 @@ public class LobStorage {
                     }
                     PreparedStatement prep = prepare(
                             "INSERT INTO " + LOB_MAP + "(LOB, SEQ, BLOCK) VALUES(?, ?, ?)");
-                    prep.setLong(1, lob);
+                    prep.setLong(1, lobId);
                     prep.setInt(2, seq);
                     prep.setLong(3, block);
                     prep.execute();
                 }
                 PreparedStatement prep = prepare(
                         "INSERT INTO " + LOBS + "(ID, LENGTH, TABLE) VALUES(?, ?, ?)");
-                prep.setLong(1, lob);
+                prep.setLong(1, lobId);
                 prep.setLong(2, length);
-                prep.setInt(3, table);
+                prep.setInt(3, TABLE_ID_SESSION_VARIABLE);
                 prep.execute();
-                return lob;
+                ValueLob2 v = ValueLob2.create(type, this, null, lobId, length);
+                return v;
             } catch (IOException e) {
-                deleteLob(lob);
+                deleteLob(lobId);
                 throw DbException.convertIOException(e, "adding blob");
             }
         } catch (SQLException e) {
@@ -347,16 +336,87 @@ public class LobStorage {
 
         private final Reader reader;
         private long length;
-        private char[] buffer = new char[Constants.IO_BUFFER_SIZE];
+        private int pos;
+        private char[] charBuffer = new char[Constants.IO_BUFFER_SIZE];
+        private byte[] buffer;
 
         CountingReaderInputStream(Reader reader) {
             this.reader = reader;
+            buffer = Utils.EMPTY_BYTES;
+        }
+
+        public int read(byte[] buff, int offset, int len) throws IOException {
+            if (pos >= buffer.length) {
+                fillBuffer();
+                if (buffer == null) {
+                    return -1;
+                }
+            }
+            len = Math.min(len, buffer.length - pos);
+            System.arraycopy(buffer, pos, buff, offset, len);
+            return len;
         }
 
         public int read() throws IOException {
-            return 0;
+            if (pos >= buffer.length) {
+                fillBuffer();
+                if (buffer == null) {
+                    return -1;
+                }
+            }
+            return buffer[pos++];
         }
 
+        private void fillBuffer() throws IOException {
+            int len = reader.read(charBuffer);
+            if (len < 0) {
+                buffer = null;
+            } else {
+                buffer = StringUtils.utf8Encode(new String(charBuffer, 0, len));
+                length += len;
+            }
+        }
+
+        public long getLength() {
+            return length;
+        }
+
+        public void close() throws IOException {
+            reader.close();
+        }
+
+    }
+
+    /**
+     * Create a BLOB object.
+     *
+     * @param in the input stream
+     * @param maxLength the maximum length (-1 if not known)
+     * @return the LOB
+     */
+    public Value createBlob(InputStream in, long maxLength) {
+        if (SysProperties.LOB_IN_DATABASE) {
+            init();
+            if (conn == null) {
+                return ValueLob2.createTempBlob(in, maxLength, handler);
+            }
+            return addLob(in, maxLength, Value.BLOB);
+        }
+        return ValueLob.createBlob(in, maxLength, handler);
+    }
+
+    public Value createClob(Reader reader, long maxLength) {
+        if (SysProperties.LOB_IN_DATABASE) {
+            init();
+            if (conn == null) {
+                return ValueLob2.createTempClob(reader, maxLength, handler);
+            }
+            CountingReaderInputStream in = new CountingReaderInputStream(reader);
+            ValueLob2 lob = addLob(in, maxLength, Value.BLOB);
+            lob.setPrecision(in.getLength());
+            return lob;
+        }
+        return ValueLob.createClob(reader, maxLength, handler);
     }
 
 }

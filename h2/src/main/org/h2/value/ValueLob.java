@@ -44,9 +44,6 @@ import org.h2.util.Utils;
  * Data compression is supported.
  */
 public class ValueLob extends Value {
-    // TODO lob: concatenate function for blob and clob
-    // (to create a large blob from pieces)
-    // and a getpart function (to get it in pieces) and make sure a file is created!
 
     /**
      * This counter is used to calculate the next directory to store lobs. It is

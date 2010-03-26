@@ -11,6 +11,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.Connection;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -225,6 +226,10 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     public LobStorage getLobStorage() {
+        return null;
+    }
+
+    public Connection getLobConnection() {
         return null;
     }
 

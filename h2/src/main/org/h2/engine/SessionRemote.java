@@ -8,6 +8,7 @@ package org.h2.engine;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.Connection;
 import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.CommandInterface;
@@ -80,6 +81,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     private int lastReconnect;
     private SessionInterface embedded;
     private DatabaseEventListener eventListener;
+    private LobStorage lobStorage;
 
     public SessionRemote() {
         // nothing to do
@@ -620,6 +622,13 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     }
 
     public LobStorage getLobStorage() {
+        if (lobStorage == null) {
+            lobStorage = new LobStorage(this);
+        }
+        return lobStorage;
+    }
+
+    public Connection getLobConnection() {
         return null;
     }
 

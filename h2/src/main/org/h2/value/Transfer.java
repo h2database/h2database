@@ -29,13 +29,12 @@ import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
-import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.Utils;
 import org.h2.util.ExactUTF8InputStreamReader;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * The transfer class is used to send and receive Value objects.
@@ -484,7 +483,7 @@ public class Transfer {
             return ValueStringFixed.get(readString());
         case Value.BLOB: {
             long length = readLong();
-            Value v = LobStorage.createBlob(in, length, session.getDataHandler());
+            Value v = session.getDataHandler().getLobStorage().createBlob(in, length);
             int magic = readInt();
             if (magic != LOB_MAGIC) {
                 throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
@@ -493,7 +492,7 @@ public class Transfer {
         }
         case Value.CLOB: {
             long length = readLong();
-            Value v = LobStorage.createClob(new ExactUTF8InputStreamReader(in), length, session.getDataHandler());
+            Value v = session.getDataHandler().getLobStorage().createClob(new ExactUTF8InputStreamReader(in), length);
             int magic = readInt();
             if (magic != LOB_MAGIC) {
                 throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);

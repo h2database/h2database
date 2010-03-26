@@ -7,6 +7,7 @@
 
 var pages = new Array();
 var ref = new Array();
+var ignored = '';
 var firstLink = null;
 var firstLinkWord = null;
 
@@ -84,7 +85,11 @@ function listWords(value, open) {
         }
     }
     if (x == 0) {
-        noResults(table);
+        if (ignored.indexOf(';' + value + ';') >= 0) {
+            noResults(table, 'Common word (not indexed)');
+        } else {
+            noResults(table, 'No results found!');
+        }
     }
     return true;
 }
@@ -187,7 +192,7 @@ function listAnd(keywords) {
     }
     addReferences(0, piList, keywords);
     if (piList.length == 0) {
-        noResults(table);
+        noResults(table, 'No results found');
     }
 }
 
@@ -247,13 +252,13 @@ function replaceOtherChars(s) {
     return x;
 }
 
-function noResults(table) {
+function noResults(table, message) {
     var tr = table.insertRow(0);
     var td = document.createElement('td');
     var tdClass = document.createAttribute('class');
     tdClass.nodeValue = 'searchKeyword';
     td.setAttributeNode(tdClass);
-    var text = document.createTextNode('No results found');
+    var text = document.createTextNode(message);
     td.appendChild(text);
     tr.appendChild(td);
 }

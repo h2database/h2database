@@ -4877,7 +4877,7 @@ H2 データベース エンジン
 #William Gilbert, USA 
 
 @history_1040_li
-#Antonio Dieguez, Chile 
+#Antonio Dieguez Rojas, Chile 
 
 @history_1041_a
 #Ontology Works, USA

@@ -49,6 +49,7 @@ public class Indexer {
     private Page page;
     private boolean title;
     private boolean heading;
+    private String ignored;
 
     /**
      * This method is called when executing this application from the command
@@ -80,6 +81,7 @@ public class Indexer {
         readPages("", file, 0);
         output.println("var pages=new Array();");
         output.println("var ref=new Array();");
+        output.println("var ignored='';");
         output.println("function Page(title, file) { this.title=title; this.file=file; }");
         output.println("function load() {");
         sortWords();
@@ -113,7 +115,7 @@ public class Indexer {
         }
         wordList = new ArrayList<Word>(words.values());
         // ignored very common words (to shrink the index)
-        String ignored = "";
+        StringBuilder ignoredBuff = new StringBuilder(";");
         int maxSize = pages.size() / 4;
         for (int i = 0; i < wordList.size(); i++) {
             Word word = wordList.get(i);
@@ -121,14 +123,12 @@ public class Indexer {
             int idxCommon = VERY_COMMON.indexOf(search);
             if (word.pages.size() >= maxSize || idxCommon >= 0) {
                 wordList.remove(i);
-                if (ignored.length() > 0) {
-                    ignored += ",";
-                }
-                ignored += word.name;
+                ignoredBuff.append(word.name);
+                ignoredBuff.append(';');
                 i--;
             }
         }
-        // output.println("var ignored = '" + convertUTF(ignored) + "'");
+        ignored = ignoredBuff.toString();
         // TODO support A, B, C,... class links in the index file and use them
         // for combined AND searches
         Collections.sort(wordList, new Comparator<Word>() {
@@ -246,6 +246,7 @@ public class Indexer {
         }
         output.println("ref['" + convertUTF(first) + "']='" + buff.toString() + "';");
         output.println("// totalRelations: " + totalRelations);
+        output.println("ignored='" + ignored.toLowerCase() + "';");
     }
 
     private void readPage(File file) throws Exception {

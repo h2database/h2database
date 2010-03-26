@@ -9,6 +9,7 @@ package org.h2.test.unit;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -49,6 +50,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
 
     private Random random = new Random(1);
     private SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache.newInstance(128);
+    private LobStorage lobStorage;
 
     /**
      * Run just this test.
@@ -137,12 +139,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.BLOB: {
             int len = (int) Math.abs(random.nextGaussian() * 10);
             byte[] data = randomBytes(len);
-            return LobStorage.createBlob(new ByteArrayInputStream(data), len, this);
+            return getLobStorage().createBlob(new ByteArrayInputStream(data), len);
         }
         case Value.CLOB: {
             int len = (int) Math.abs(random.nextGaussian() * 10);
             String s = randomString(len);
-            return LobStorage.createClob(new StringReader(s), len, this);
+            return getLobStorage().createClob(new StringReader(s), len);
         }
         case Value.ARRAY: {
             int len = random.nextInt(20);
@@ -227,6 +229,13 @@ public class TestValueMemory extends TestBase implements DataHandler {
     }
 
     public LobStorage getLobStorage() {
+        if (lobStorage == null) {
+            lobStorage = new LobStorage(this);
+        }
+        return lobStorage;
+    }
+
+    public Connection getLobConnection() {
         return null;
     }
 

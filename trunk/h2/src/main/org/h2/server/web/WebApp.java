@@ -1572,7 +1572,7 @@ public class WebApp {
             buff.append("<br /><br /><form name=\"editResult\" method=\"post\" action=\"query.do?jsessionid=${sessionId}\" target=\"h2result\">" +
                 "<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />" +
                 "<input type=\"hidden\" name=\"sql\" value=\"@EDIT ").
-                append(PageParser.escapeHtml(sql)).
+                append(PageParser.escapeHtmlData(sql)).
                 append("\" /></form>");
         }
         return buff.toString();

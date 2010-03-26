@@ -60,6 +60,9 @@ public class Test extends TestBase {
         JavaParser parser = new JavaParser();
         parser.parse("src/tools/org/h2", "java.lang.Object");
         parser.parse("src/tools/org/h2", "java.lang.String");
+        parser.parse("src/tools/org/h2", "java.lang.Math");
+        parser.parse("src/tools/org/h2", "java.lang.Integer");
+        parser.parse("src/tools/org/h2", "java.lang.StringBuilder");
         parser.parse("src/tools/org/h2", "java.io.PrintStream");
         parser.parse("src/tools/org/h2", "java.lang.System");
         parser.parse("src/tools/org/h2", "java.util.Arrays");

@@ -83,10 +83,38 @@ public class JavaParser {
         nextClassId = id;
     }
 
+    /**
+     * Get the wrapper class for the given primitive class.
+     *
+     * @param c the class
+     * @return the wrapper class
+     */
+    ClassObj getWrapper(ClassObj c) {
+        switch (c.id) {
+        case 1:
+            return getClass("java.lang.Boolean");
+        case 2:
+            return getClass("java.lang.Byte");
+        case 3:
+            return getClass("java.lang.Short");
+        case 4:
+            return getClass("java.lang.Character");
+        case 5:
+            return getClass("java.lang.Integer");
+        case 6:
+            return getClass("java.lang.Long");
+        case 7:
+            return getClass("java.lang.Float");
+        case 8:
+            return getClass("java.lang.Double");
+        }
+        throw new RuntimeException("not a primitive type: " + classObj);
+    }
+
     private void addBuiltInType(int id, boolean primitive, int primitiveType, String type) {
         ClassObj c = new ClassObj();
         c.id = id;
-        c.name = type;
+        c.className = type;
         c.isPrimitive = primitive;
         c.primitiveType = primitiveType;
         builtInTypes.put(type, c);
@@ -171,11 +199,11 @@ public class JavaParser {
             }
             classObj.isPublic = isPublic;
             classObj.isInterface = isInterface;
-            classObj.name = packageName == null ? "" : (packageName + ".") + name;
+            classObj.className = packageName == null ? "" : (packageName + ".") + name;
             // import this class
-            importMap.put(name, classObj.name);
+            importMap.put(name, classObj.className);
             addClass(classObj);
-            classes.put(classObj.name, classObj);
+            classes.put(classObj.className, classObj);
             if (readIf("extends")) {
                 classObj.superClassName = readQualifiedIdentifier();
             }
@@ -737,7 +765,6 @@ public class JavaParser {
         }
         Expr expr;
         expr = readExpr5();
-        Type t = expr.getType();
         while (true) {
             if (readIf(".")) {
                 String n = readIdentifier();
@@ -754,29 +781,12 @@ public class JavaParser {
                     }
                     expr = e2;
                 } else {
-                    VariableExpr e2 = new VariableExpr();
+                    VariableExpr e2 = new VariableExpr(this);
                     e2.base = expr;
                     expr = e2;
-                    if (n.equals("length") && t.arrayLevel > 0) {
-                        e2.field = new FieldObj();
-                        e2.field.type = builtInTypes.get("int").baseType;
-                        e2.field.name = "length";
-                    } else {
-                        if (t == null || t.classObj == null) {
-                            e2.name = n;
-                        } else {
-                            FieldObj f = t.classObj.instanceFields.get(n);
-                            if (f == null) {
-                                throw getSyntaxException("Unknown field: " + expr + "." + n);
-                            }
-                            e2.field = f;
-                        }
-                    }
+                    e2.name = n;
                 }
             } else if (readIf("[")) {
-                if (t.arrayLevel == 0) {
-                    throw getSyntaxException("Not an array: " + expr);
-                }
                 ArrayAccessExpr arrayExpr = new ArrayAccessExpr();
                 arrayExpr.base = expr;
                 arrayExpr.index = readExpr();
@@ -791,11 +801,19 @@ public class JavaParser {
 
     private Expr readExpr5() {
         if (readIf("new")) {
-            NewExpr expr = new NewExpr();
+            NewExpr expr = new NewExpr(this);
             String typeName = readTypeOrIdentifier();
-            expr.type = getClass(typeName);
+            expr.classObj = getClass(typeName);
             if (readIf("(")) {
-                read(")");
+                if (!readIf(")")) {
+                    while (true) {
+                        expr.args.add(readExpr());
+                        if (!readIf(",")) {
+                            read(")");
+                            break;
+                        }
+                    }
+                }
             } else {
                 while (readIf("[")) {
                     expr.arrayInitExpr.add(readExpr());
@@ -811,7 +829,7 @@ public class JavaParser {
             return expr;
         }
         if (readIf("this")) {
-            VariableExpr expr = new VariableExpr();
+            VariableExpr expr = new VariableExpr(this);
             expr.field = thisPointer;
             if (thisPointer == null) {
                 throw getSyntaxException("this usage in static context");
@@ -820,9 +838,9 @@ public class JavaParser {
         }
         String name = readIdentifier();
         if (readIf("(")) {
-            VariableExpr t = new VariableExpr();
+            VariableExpr t = new VariableExpr(this);
             t.field = thisPointer;
-            CallExpr expr = new CallExpr(this, t, classObj.name, name, false);
+            CallExpr expr = new CallExpr(this, t, classObj.className, name, false);
             if (!readIf(")")) {
                 while (true) {
                     expr.args.add(readExpr());
@@ -834,7 +852,7 @@ public class JavaParser {
             }
             return expr;
         }
-        VariableExpr expr = new VariableExpr();
+        VariableExpr expr = new VariableExpr(this);
         FieldObj f = localVars.get(name);
         if (f == null) {
             f = method.parameters.get(name);
@@ -867,7 +885,7 @@ public class JavaParser {
                         }
                         return e2;
                     }
-                    VariableExpr e2 = new VariableExpr();
+                    VariableExpr e2 = new VariableExpr(this);
                     // static member variable
                     e2.name = imp + "." + n;
                     ClassObj c = classes.get(imp);
@@ -880,7 +898,7 @@ public class JavaParser {
         }
         expr.field = f;
         if (f != null && (!f.isLocal && !f.isStatic)) {
-            VariableExpr ve = new VariableExpr();
+            VariableExpr ve = new VariableExpr(this);
             ve.field = thisPointer;
             expr.base = ve;
             if (thisPointer == null) {
@@ -1300,7 +1318,7 @@ public class JavaParser {
         }
         out.println();
         for (ClassObj c : classes.values()) {
-            out.println("/* " + c.name + ".h */");
+            out.println("/* " + c.className + ".h */");
             for (FieldObj f : c.staticFields.values()) {
                 StringBuilder buff = new StringBuilder();
                 buff.append("extern ");
@@ -1311,14 +1329,14 @@ public class JavaParser {
                 if (!f.type.classObj.isPrimitive) {
                     buff.append("*");
                 }
-                buff.append(" ").append(toC(c.name + "." + f.name));
+                buff.append(" ").append(toC(c.className + "." + f.name));
                 for (int i = 0; i < f.type.arrayLevel; i++) {
                     buff.append("[]");
                 }
                 buff.append(";");
                 out.println(buff.toString());
             }
-            out.println("struct " + toC(c.name) + " {");
+            out.println("struct " + toC(c.className) + " {");
             for (FieldObj f : c.instanceFields.values()) {
                 out.print("    " + toC(f.type.toString()) + " " + f.name);
                 if (f.value != null) {
@@ -1330,13 +1348,13 @@ public class JavaParser {
                 out.println("int dummy;");
             }
             out.println("};");
-            out.println("typedef struct " + toC(c.name) + " " + toC(c.name) + ";");
+            out.println("typedef struct " + toC(c.className) + " " + toC(c.className) + ";");
             for (ArrayList<MethodObj> list : c.methods.values()) {
                 for (MethodObj m : list) {
-                    out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");
+                    out.print(m.returnType + " " + toC(c.className) + "_" + m.name + "(");
                     int i = 0;
                     if (!m.isStatic && !m.isConstructor) {
-                        out.print(toC(c.name) + "* this");
+                        out.print(toC(c.className) + "* this");
                         i++;
                     }
                     for (FieldObj p : m.parameters.values()) {
@@ -1396,7 +1414,7 @@ public class JavaParser {
             out.println(") = {");
             for (ClassObj c : allClasses) {
                 if (c != null && c.methods.containsKey(m.name)) {
-                    out.println(toC(c.name) + "_" + m.name + ", ");
+                    out.println(toC(c.className) + "_" + m.name + ", ");
                 } else {
                     out.print("0, ");
                 }
@@ -1405,7 +1423,7 @@ public class JavaParser {
         }
         out.println();
         for (ClassObj c : classes.values()) {
-            out.println("/* " + c.name + ".c */");
+            out.println("/* " + c.className + ".c */");
             for (Statement s : c.nativeCode) {
                 out.println(s);
             }
@@ -1418,7 +1436,7 @@ public class JavaParser {
                 if (!f.type.classObj.isPrimitive) {
                     buff.append("*");
                 }
-                buff.append(" ").append(toC(c.name + "." + f.name));
+                buff.append(" ").append(toC(c.className + "." + f.name));
                 for (int i = 0; i < f.type.arrayLevel; i++) {
                     buff.append("[]");
                 }
@@ -1430,10 +1448,10 @@ public class JavaParser {
             }
             for (ArrayList<MethodObj> list : c.methods.values()) {
                 for (MethodObj m : list) {
-                    out.print(m.returnType + " " + toC(c.name) + "_" + m.name + "(");
+                    out.print(m.returnType + " " + toC(c.className) + "_" + m.name + "(");
                     int i = 0;
                     if (!m.isStatic && !m.isConstructor) {
-                        out.print(toC(c.name) + "* this");
+                        out.print(toC(c.className) + "* this");
                         i++;
                     }
                     for (FieldObj p : m.parameters.values()) {
@@ -1445,7 +1463,7 @@ public class JavaParser {
                     }
                     out.println(") {");
                     if (m.isConstructor) {
-                        out.println(indent(toC(c.name) + "* this = NEW_OBJ(" + c.id + ", " + toC(c.name) +");"));
+                        out.println(indent(toC(c.className) + "* this = NEW_OBJ(" + c.id + ", " + toC(c.className) +");"));
                     }
                     if (m.block != null) {
                         out.print(m.block.toString());

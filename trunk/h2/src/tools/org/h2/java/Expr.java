@@ -27,7 +27,8 @@ class CallExpr implements Expr {
     final boolean isStatic;
     final String className;
     final String name;
-    ClassObj classObj;
+    private ClassObj classObj;
+    private MethodObj method;
 
     CallExpr(JavaParser context, Expr expr, String className, String name, boolean isStatic) {
         this.context = context;
@@ -37,19 +38,26 @@ class CallExpr implements Expr {
         this.isStatic = isStatic;
     }
 
-    public String toString() {
-        StringBuilder buff = new StringBuilder();
+    private void initMethod() {
+        if (method != null) {
+            return;
+        }
         if (className != null) {
             classObj = context.getClassObj(className);
         } else {
             classObj = expr.getType().classObj;
         }
-        MethodObj m = classObj.getMethod(name, args);
+        method = classObj.getMethod(name, args);
+    }
+
+    public String toString() {
+        StringBuilder buff = new StringBuilder();
         String methodName;
-        if (m.isVirtual) {
-            methodName = "virtual_" + m.name + "[CLASS_ID("+expr.toString()+")]";
+        initMethod();
+        if (method.isVirtual) {
+            methodName = "virtual_" + method.name + "[CLASS_ID("+expr.toString()+")]";
         } else {
-            methodName = JavaParser.toC(classObj.toString() + "." + m.name);
+            methodName = JavaParser.toC(classObj.toString() + "." + method.name);
         }
         buff.append(methodName).append("(");
         int i = 0;
@@ -68,8 +76,8 @@ class CallExpr implements Expr {
     }
 
     public Type getType() {
-        // TODO
-        return null;
+        initMethod();
+        return method.returnType;
     }
 
 }
@@ -168,10 +176,32 @@ class OpExpr implements Expr {
         } else if (op.equals("+")) {
             if (left.getType().isObject() || right.getType().isObject()) {
                 // TODO convert primitive to to String, call toString
-                return "STRING_CONCAT(" + left + ", " + right + ")";
+                StringBuilder buff = new StringBuilder();
+                buff.append("java_lang_StringBuilder_toString(");
+                buff.append("java_lang_StringBuilder_append(");
+                buff.append("java_lang_StringBuilder_init_obj(");
+                buff.append(convertToString(left));
+                buff.append("), ");
+                buff.append(convertToString(right));
+                buff.append("))");
+                return buff.toString();
             }
         }
         return "(" + left + " " + op + " " + right + ")";
+    }
+
+    private String convertToString(Expr e) {
+        Type t = e.getType();
+        if (t.arrayLevel > 0) {
+            return e.toString() + ".toString()";
+        }
+        if (t.classObj.isPrimitive) {
+            ClassObj wrapper = context.getWrapper(t.classObj);
+            return JavaParser.toC(wrapper + ".toString") + "(" + e.toString() + ")";
+        } else if (e.getType().toString().equals("java_lang_String*")) {
+            return e.toString();
+        }
+        return e.toString() + ".toString()";
     }
 
     public Type getType() {
@@ -203,14 +233,20 @@ class OpExpr implements Expr {
  */
 class NewExpr implements Expr {
 
-    ClassObj type;
+    ClassObj classObj;
     ArrayList<Expr> arrayInitExpr = new ArrayList<Expr>();
+    ArrayList<Expr> args = new ArrayList<Expr>();
+    final JavaParser context;
+
+    NewExpr(JavaParser context) {
+        this.context = context;
+    }
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
         if (arrayInitExpr.size() > 0) {
-            if (type.isPrimitive) {
-                buff.append("NEW_ARRAY(sizeof(" + type + ")");
+            if (classObj.isPrimitive) {
+                buff.append("NEW_ARRAY(sizeof(" + classObj + ")");
                 buff.append(", 1 ");
                 for (Expr e : arrayInitExpr) {
                     buff.append("* ").append(e);
@@ -224,14 +260,23 @@ class NewExpr implements Expr {
                 buff.append(")");
             }
         } else {
-            buff.append("NEW_OBJ(" + type.id + ", " + JavaParser.toC(type.toString()) + ")");
+            MethodObj m = classObj.getMethod("init_obj", args);
+            buff.append(JavaParser.toC(classObj.toString() + "." + m.name)).append("(");
+            int i = 0;
+            for (Expr a : args) {
+                if (i++ > 0) {
+                    buff.append(", ");
+                }
+                buff.append(a);
+            }
+            buff.append(")");
         }
         return buff.toString();
     }
 
     public Type getType() {
         Type t = new Type();
-        t.classObj = type;
+        t.classObj = classObj;
         t.arrayLevel = arrayInitExpr.size();
         return t;
     }
@@ -330,10 +375,16 @@ class VariableExpr implements Expr {
     Expr base;
     FieldObj field;
     String name;
+    private final JavaParser context;
+
+    VariableExpr(JavaParser context) {
+        this.context = context;
+    }
 
     public String toString() {
+        init();
         StringBuilder buff = new StringBuilder();
-        if (field != null && "length".equals(field.name) && base != null && base.getType() != null && base.getType().arrayLevel > 0) {
+        if ("length".equals(name) && base.getType().arrayLevel > 0) {
             buff.append("LENGTH(");
             buff.append(base.toString());
             buff.append(")");
@@ -354,10 +405,24 @@ class VariableExpr implements Expr {
         return buff.toString();
     }
 
-    public Type getType() {
+    private void init() {
         if (field == null) {
-            return null;
+            Type t = base.getType();
+            if (t.arrayLevel > 0) {
+                if ("length".equals(name)) {
+                    field = new FieldObj();
+                    field.type = context.getClassObj("int").baseType;
+                } else {
+                    throw new RuntimeException("Unknown array method: " + name);
+                }
+            } else {
+                field = t.classObj.getField(name);
+            }
         }
+    }
+
+    public Type getType() {
+        init();
         return field.type;
     }
 

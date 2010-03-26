@@ -14,22 +14,45 @@ public class StringBuilder {
     private int length;
     private char[] buffer;
 
+    public StringBuilder(String s) {
+        char[] chars = s.chars;
+        int len = chars.length;
+        buffer = new char[len];
+        System.arraycopy(chars, 0, buffer, 0, len);
+        this.length = len;
+    }
+
     public StringBuilder() {
         buffer = new char[10];
     }
 
     /**
-     * Append the given string.
+     * Append the given value.
      *
-     * @param s the string
+     * @param x the value
      * @return this
      */
-    public StringBuilder append(String s) {
-        int l = s.length();
+    public StringBuilder append(String x) {
+        int l = x.length();
         ensureCapacity(l);
-        System.arraycopy(s.chars, 0, buffer, length, l);
+        System.arraycopy(x.chars, 0, buffer, length, l);
         length += l;
         return this;
+    }
+
+    /**
+     * Append the given value.
+     *
+     * @param x the value
+     * @return this
+     */
+    public StringBuilder append(int x) {
+        append(Integer.toString(x));
+        return this;
+    }
+
+    public java.lang.String toString() {
+        return new java.lang.String(buffer, 0, length);
     }
 
     private void ensureCapacity(int plus) {

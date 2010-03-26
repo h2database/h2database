@@ -28,7 +28,7 @@ public class ClassObj {
     /**
      * The fully qualified class name.
      */
-    String name;
+    String className;
 
     /**
      * Whether this is an interface.
@@ -126,9 +126,9 @@ public class ClassObj {
 
     public String toString() {
         if (isPrimitive) {
-            return "j" + name;
+            return "j" + className;
         }
-        return name;
+        return className;
     }
 
     /**
@@ -141,7 +141,7 @@ public class ClassObj {
     MethodObj getMethod(String find, ArrayList<Expr> args) {
         ArrayList<MethodObj> list = methods.get(find);
         if (list == null) {
-            throw new RuntimeException("Method not found: " + name);
+            throw new RuntimeException("Method not found: " + className + " " + find);
         }
         if (list.size() == 1) {
             return list.get(0);
@@ -155,9 +155,6 @@ public class ClassObj {
             for (FieldObj f : m.parameters.values()) {
                 Expr a = args.get(i++);
                 Type t = a.getType();
-                if (t == null) {
-                    System.out.println(a.getType());
-                }
                 if (!t.equals(f.type)) {
                     match = false;
                     break;
@@ -167,7 +164,17 @@ public class ClassObj {
                 return m;
             }
         }
-        throw new RuntimeException("Method not found: " + name);
+        throw new RuntimeException("Method not found: " + className);
+    }
+
+    /**
+     * Get the field with the given name.
+     *
+     * @param name the field name
+     * @return the field
+     */
+    FieldObj getField(String name) {
+        return instanceFields.get(name);
     }
 
 }

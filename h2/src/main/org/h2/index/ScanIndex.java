@@ -18,7 +18,6 @@ import org.h2.engine.UndoLogRecord;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.store.LobStorage;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
@@ -55,7 +54,7 @@ public class ScanIndex extends BaseIndex {
         rows = New.arrayList();
         firstFree = -1;
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
-            LobStorage.removeAllForTable(database, table.getId());
+            database.getLobStorage().removeAllForTable(table.getId());
         }
         tableData.setRowCount(0);
         rowCount = 0;

@@ -19,7 +19,6 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
-import org.h2.store.LobStorage;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
@@ -347,7 +346,7 @@ public class PageDataIndex extends PageIndex {
         store.logTruncate(session, tableData.getId());
         removeAllRows();
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
-            LobStorage.removeAllForTable(database, table.getId());
+            database.getLobStorage().removeAllForTable(table.getId());
         }
         if (database.isMultiVersion()) {
             sessionRowCount.clear();

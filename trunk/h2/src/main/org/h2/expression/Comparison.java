@@ -7,7 +7,6 @@
 package org.h2.expression;
 
 import java.util.Arrays;
-import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -86,7 +85,6 @@ public class Comparison extends Condition {
     private int compareType;
     private Expression left;
     private Expression right;
-    private int dataType = -2;
 
     public Comparison(Session session, int compareType, Expression left, Expression right) {
         this.database = session.getDatabase();
@@ -128,72 +126,26 @@ public class Comparison extends Condition {
         return "(" + sql + ")";
     }
 
-    private Expression getCast(Expression expr, int targetDataType, long precision, int scale, int displaySize, Session session)
-            {
-        if (expr == ValueExpression.getNull()) {
-            return expr;
-        }
-        Function function = Function.getFunction(session.getDatabase(), "CAST");
-        function.setParameter(0, expr);
-        function.setDataType(targetDataType, precision, scale, displaySize);
-        function.doneWithParameters();
-        return function.optimize(session);
-    }
-
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        if (right == null) {
-            dataType = left.getType();
-        } else {
+        if (right != null) {
             right = right.optimize(session);
-            try {
-                if (right instanceof ExpressionColumn) {
-                    if (left.isConstant() || left instanceof Parameter) {
-                        Expression temp = left;
-                        left = right;
-                        right = temp;
-                        compareType = getReversedCompareType(compareType);
-                    }
+            if (right instanceof ExpressionColumn) {
+                if (left.isConstant() || left instanceof Parameter) {
+                    Expression temp = left;
+                    left = right;
+                    right = temp;
+                    compareType = getReversedCompareType(compareType);
                 }
-                if (left instanceof ExpressionColumn) {
-                    if (right.isConstant()) {
-                        Value r = right.getValue(session);
-                        if (r == ValueNull.INSTANCE) {
-                            return ValueExpression.getNull();
-                        }
-                        Expression test = getCast(right, left.getType(), left.getPrecision(), left.getScale(), left.getDisplaySize(), session);
-                        if (!database.areEqual(r, test.getValue(session))) {
-                            return ValueExpression.get(ValueBoolean.get(false));
-                        }
-                        right = test;
-                    } else if (right instanceof Parameter) {
-                        ((Parameter) right).setColumn(((ExpressionColumn) left).getColumn());
-                    }
-
-                }
-            } catch (DbException e) {
-                if (e.getErrorCode() == ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE) {
-                    // WHERE ID=100000000000
-                    return ValueExpression.get(ValueBoolean.get(false));
-                }
-                throw e;
             }
-            int lt = left.getType(), rt = right.getType();
-            if (lt == rt) {
-                if (lt == Value.UNKNOWN) {
-                    throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, getSQL());
-                }
-                dataType = lt;
-            } else {
-                dataType = Value.getHigherOrder(left.getType(), right.getType());
-                long precision = Math.max(left.getPrecision(), right.getPrecision());
-                int scale = Math.max(left.getScale(), right.getScale());
-                int displaySize = Math.max(left.getDisplaySize(), right.getDisplaySize());
-                if (dataType != lt) {
-                    left = getCast(left, dataType, precision, scale, displaySize, session);
-                }
-                if (dataType != rt) {
-                    right = getCast(right, dataType, precision, scale, displaySize, session);
+            if (left instanceof ExpressionColumn) {
+                if (right.isConstant()) {
+                    Value r = right.getValue(session);
+                    if (r == ValueNull.INSTANCE) {
+                        return ValueExpression.getNull();
+                    }
+                } else if (right instanceof Parameter) {
+                    ((Parameter) right).setColumn(((ExpressionColumn) left).getColumn());
                 }
             }
         }
@@ -240,6 +192,7 @@ public class Comparison extends Condition {
         if (r == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
+        int dataType = Value.getHigherOrder(left.getType(), right.getType());
         l = l.convertTo(dataType);
         r = r.convertTo(dataType);
         boolean result = compareNotNull(database, l, r, compareType);

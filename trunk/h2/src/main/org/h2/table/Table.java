@@ -920,8 +920,8 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Compare two values with the current comparison mode. The values must be
-     * of the same type.
+     * Compare two values with the current comparison mode. The values may be of
+     * different type.
      *
      * @param a the first value
      * @param b the second value
@@ -929,6 +929,9 @@ public abstract class Table extends SchemaObjectBase {
      *         1 otherwise
      */
     public int compareTypeSave(Value a, Value b) {
+        int dataType = Value.getHigherOrder(a.getType(), b.getType());
+        a = a.convertTo(dataType);
+        b = b.convertTo(dataType);
         return a.compareTypeSave(b, compareMode);
     }
 

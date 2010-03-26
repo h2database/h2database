@@ -35,6 +35,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testCompareDoubleWithIntColumn();
         testDeleteIndexOutOfBounds();
         testOrderByWithSubselect();
         testInsertDeleteRollback();
@@ -75,6 +76,40 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testCompareDoubleWithIntColumn() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        testCompareDoubleWithIntColumn(stat, false, 0.1, false);
+        testCompareDoubleWithIntColumn(stat, false, 0.1, true);
+        testCompareDoubleWithIntColumn(stat, false, 0.9, false);
+        testCompareDoubleWithIntColumn(stat, false, 0.9, true);
+        testCompareDoubleWithIntColumn(stat, true, 0.1, false);
+        testCompareDoubleWithIntColumn(stat, true, 0.1, true);
+        testCompareDoubleWithIntColumn(stat, true, 0.9, false);
+        testCompareDoubleWithIntColumn(stat, true, 0.9, true);
+        conn.close();
+    }
+
+    private void testCompareDoubleWithIntColumn(Statement stat, boolean pk, double x, boolean prepared) throws SQLException {
+        if (pk) {
+            stat.execute("create table test(id int primary key)");
+        } else {
+            stat.execute("create table test(id int)");
+        }
+        stat.execute("insert into test values(1)");
+        ResultSet rs;
+        if (prepared) {
+            PreparedStatement prep = stat.getConnection().prepareStatement("select * from test where id > ?");
+            prep.setDouble(1, x);
+            rs = prep.executeQuery();
+        } else {
+            rs = stat.executeQuery("select * from test where id > " + x);
+        }
+        assertTrue(rs.next());
+        stat.execute("drop table test");
     }
 
     private void testDeleteIndexOutOfBounds() throws SQLException {

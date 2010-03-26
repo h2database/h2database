@@ -87,7 +87,7 @@ public class IndexCursor implements Cursor {
                     inResult = condition.getCurrentResult(s);
                 }
             } else {
-                Value v = column.convert(condition.getCurrentValue(s));
+                Value v = condition.getCurrentValue(s);
                 boolean isStart = condition.isStart();
                 boolean isEnd = condition.isEnd();
                 int id = column.getColumnId();

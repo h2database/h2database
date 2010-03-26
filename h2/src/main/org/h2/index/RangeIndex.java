@@ -39,10 +39,18 @@ public class RangeIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        long min = rangeTable.getMin(session);
-        long max = rangeTable.getMax(session);
-        long start = Math.max(min, first == null ? min : first.getValue(0).getLong());
-        long end = Math.min(max, last == null ? max : last.getValue(0).getLong());
+        long min = rangeTable.getMin(session), start = min;
+        long max = rangeTable.getMax(session), end = max;
+        try {
+            start = Math.max(min, first == null ? min : first.getValue(0).getLong());
+        } catch (Exception e) {
+            // error when converting the value - ignore
+        }
+        try {
+            end = Math.min(max, last == null ? max : last.getValue(0).getLong());
+        } catch (Exception e) {
+            // error when converting the value - ignore
+        }
         return new RangeCursor(start, end);
     }
 

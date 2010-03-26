@@ -1008,8 +1008,8 @@ explain select * from (select dir_num, count(*) as cnt from multi_pages  t, b_ho
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num) as x
 where cnt < 1000 order by dir_num asc;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT X.DIR_NUM, X.CNT FROM (SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES.tableScan */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= CAST(?1 AS BIGINT): CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT X.DIR_NUM, X.CNT FROM (SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES.tableScan */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
 > rows (ordered): 1
 
 select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
@@ -1083,8 +1083,8 @@ explain select * from test where id = 3;
 
 explain select * from test where id = 255;
 > PLAN
-> ------------------------------------------------------------------------------
-> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
+> -----------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 255 */ WHERE ID = 255
 > rows: 1
 
 drop table test;
@@ -1404,8 +1404,8 @@ select * from test where name = -1 and name = id;
 
 explain select * from test where name = -1 and name = id;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE (NAME = '-1') AND (CAST(NAME AS INTEGER) = ID)
+> --------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = -1 */ WHERE ((NAME = -1) AND (NAME = ID)) AND (ID = -1)
 > rows: 1
 
 DROP TABLE TEST;
@@ -2647,8 +2647,8 @@ select * from test2 where name like 'HELLO';
 
 explain plan for select * from test2, test where test2.name = test.name;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.IDX_TEST_NAME: NAME = TEST2.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
 > rows: 1
 
 select * from test2, test where test2.name = test.name;
@@ -2660,8 +2660,8 @@ select * from test2, test where test2.name = test.name;
 
 explain plan for select * from test, test2 where test2.name = test.name;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.IDX_TEST_NAME: NAME = TEST2.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
 > rows: 1
 
 select * from test, test2 where test2.name = test.name;
@@ -2676,8 +2676,8 @@ create index idx_test2_name on test2(name);
 
 explain plan for select * from test2, test where test2.name = test.name;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255)) */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.IDX_TEST_NAME: NAME = TEST2.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
 > rows: 1
 
 select * from test2, test where test2.name = test.name;
@@ -2689,8 +2689,8 @@ select * from test2, test where test2.name = test.name;
 
 explain plan for select * from test, test2 where test2.name = test.name;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255)) */ ON 1=1 WHERE TEST2.NAME = CAST(TEST.NAME AS VARCHAR_IGNORECASE(255))
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
 > rows: 1
 
 select * from test, test2 where test2.name = test.name;
@@ -7324,9 +7324,9 @@ select * from s;
 > rows: 1
 
 select some(y>10), every(y>10), min(y), max(y) from t;
-> BOOL_OR(Y > 10.0) BOOL_AND(Y > 10.0) MIN(Y) MAX(Y)
-> ----------------- ------------------ ------ ------
-> null              null               null   null
+> BOOL_OR(Y > 10) BOOL_AND(Y > 10) MIN(Y) MAX(Y)
+> --------------- ---------------- ------ ------
+> null            null             null   null
 > rows: 1
 
 insert into t values(1000000004, 4);
@@ -7382,9 +7382,9 @@ stddev_pop(distinct y) s_py, stddev_samp(distinct y) s_sy, var_pop(distinct y) v
 > rows: 1
 
 select some(y>10), every(y>10), min(y), max(y) from t;
-> BOOL_OR(Y > 10.0) BOOL_AND(Y > 10.0) MIN(Y) MAX(Y)
-> ----------------- ------------------ ------ ------
-> TRUE              FALSE              4.0    16.0
+> BOOL_OR(Y > 10) BOOL_AND(Y > 10) MIN(Y) MAX(Y)
+> --------------- ---------------- ------ ------
+> TRUE            FALSE            4.0    16.0
 > rows: 1
 
 drop view s;

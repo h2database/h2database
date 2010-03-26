@@ -6,6 +6,7 @@
  */
 package org.h2.store;
 
+import java.sql.Connection;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 
@@ -91,6 +92,18 @@ public interface DataHandler {
      */
     SmallLRUCache<String, String[]> getLobFileListCache();
 
+    /**
+     * Get the lob storage mechanism to use.
+     *
+     * @return the lob storage mechanism
+     */
     LobStorage getLobStorage();
+
+    /**
+     * Get a database connection to be used for LOB access.
+     *
+     * @return the connection or null
+     */
+    Connection getLobConnection();
 
 }

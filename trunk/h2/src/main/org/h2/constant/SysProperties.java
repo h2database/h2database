@@ -66,7 +66,7 @@ public class SysProperties {
     public static final String LINE_SEPARATOR = getStringSetting("line.separator", "\n");
 
     /**
-     * System property <code>user.home</code> (default: empty string).<br />
+     * System property <code>user.home</code> (empty string if not set).<br />
      * It is usually set by the system, and used as a replacement for ~ in file
      * names.
      */
@@ -436,6 +436,12 @@ public class SysProperties {
      * sends his encoding.
      */
     public static final String PG_DEFAULT_CLIENT_ENCODING = getStringSetting("h2.pgClientEncoding", "UTF-8");
+
+    /**
+     * System property <code>h2.prefixTempFile</code> (default: h2.temp).<br />
+     * The prefix for temporary files in the temp directory.
+     */
+    public static final String PREFIX_TEMP_FILE = getStringSetting("h2.prefixTempFile", "h2.temp");
 
     /**
      * System property <code>h2.recompileAlways</code> (default: false).<br />

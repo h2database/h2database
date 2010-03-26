@@ -706,6 +706,7 @@ public abstract class Value {
         case BLOB: {
             switch(getType()) {
             case BYTES:
+
                 return LobStorage.createSmallLob(Value.BLOB, getBytesNoCopy());
             }
             break;

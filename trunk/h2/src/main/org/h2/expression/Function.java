@@ -34,7 +34,6 @@ import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
-import org.h2.store.LobStorage;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.LinkSchema;
@@ -1114,7 +1113,7 @@ public class Function extends Expression implements FunctionCall {
             try {
                 InputStream in = new AutoCloseInputStream(IOUtils.openFileInputStream(fileName));
                 if (blob) {
-                    result = LobStorage.createBlob(in, -1, database);
+                    result = database.getLobStorage().createBlob(in, -1);
                 } else {
                     Reader reader;
                     if (v1 == ValueNull.INSTANCE) {
@@ -1122,7 +1121,7 @@ public class Function extends Expression implements FunctionCall {
                     } else {
                         reader = new InputStreamReader(in, v1.getString());
                     }
-                    result = LobStorage.createClob(reader, -1, database);
+                    result = database.getLobStorage().createClob(reader, -1);
                 }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);

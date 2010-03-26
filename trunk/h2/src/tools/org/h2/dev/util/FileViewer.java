@@ -39,9 +39,7 @@ public class FileViewer extends Tool {
                 " [-head]          Display the first lines\n" +
                 " [-tail]          Display the last lines\n" +
                 " [-lines <x>]     Display only x lines (default: 30)\n" +
-                " [-quiet]         Do not print progress information)");
-        // out.println("See also http://h2database.com/javadoc/" +
-        // getClass().getName().replace('.', '/') + ".html");
+                " [-quiet]         Do not print progress information");
     }
 
     public void runTool(String... args) throws SQLException {

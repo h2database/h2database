@@ -6,6 +6,7 @@
  */
 package org.h2.test.unit;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -149,6 +150,10 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     public LobStorage getLobStorage() {
+        return null;
+    }
+
+    public Connection getLobConnection() {
         return null;
     }
 

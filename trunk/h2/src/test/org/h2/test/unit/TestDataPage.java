@@ -7,6 +7,7 @@
 package org.h2.test.unit;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -306,6 +307,10 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     public LobStorage getLobStorage() {
+        return null;
+    }
+
+    public Connection getLobConnection() {
         return null;
     }
 

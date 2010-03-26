@@ -163,7 +163,7 @@ public class Database implements DataHandler {
     private int cacheSize;
     private boolean compactFully;
     private SourceCompiler compiler;
-    private boolean metaTablesInitialized;
+    private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
     private LobStorage lobStorage;
 
@@ -589,6 +589,7 @@ public class Database implements DataHandler {
         addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
         addDefaultSetting(systemSession, SetTypes.CREATE_BUILD, null, Constants.BUILD_ID);
+        getLobStorage().init();
         systemSession.commit(true);
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
         afterWriting();
@@ -677,11 +678,15 @@ public class Database implements DataHandler {
         if (metaTablesInitialized) {
             return;
         }
-        for (int type = 0; type < MetaTable.getMetaTableTypeCount(); type++) {
-            MetaTable m = new MetaTable(infoSchema, -1 - type, type);
-            infoSchema.add(m);
+        synchronized (infoSchema) {
+            if (!metaTablesInitialized) {
+                for (int type = 0; type < MetaTable.getMetaTableTypeCount(); type++) {
+                    MetaTable m = new MetaTable(infoSchema, -1 - type, type);
+                    infoSchema.add(m);
+                }
+                metaTablesInitialized = true;
+            }
         }
-        metaTablesInitialized = true;
     }
 
     private synchronized void addMeta(Session session, DbObject obj) {
@@ -1055,7 +1060,8 @@ public class Database implements DataHandler {
         // remove all session variables
         if (persistent) {
             try {
-                LobStorage.removeAllForTable(this, LobStorage.TABLE_ID_SESSION_VARIABLE);
+                getLobStorage();
+                lobStorage.removeAllForTable(LobStorage.TABLE_ID_SESSION_VARIABLE);
             } catch (DbException e) {
                 traceSystem.getTrace(Trace.DATABASE).error("close", e);
             }
@@ -2028,6 +2034,9 @@ public class Database implements DataHandler {
     public Table getFirstUserTable() {
         for (Table table : getAllTablesAndViews(false)) {
             if (table.getCreateSQL() != null) {
+                if (SysProperties.LOB_IN_DATABASE && table.getSchema() == infoSchema) {
+                    continue;
+                }
                 return table;
             }
         }
@@ -2216,11 +2225,17 @@ public class Database implements DataHandler {
 
     public LobStorage getLobStorage() {
         if (lobStorage == null) {
-            String url = Constants.CONN_URL_INTERNAL;
-            Connection conn = new JdbcConnection(systemSession, systemUser.getName(), url);
-            lobStorage = new LobStorage(conn);
+            lobStorage = new LobStorage(this);
         }
         return lobStorage;
+    }
+
+    public Connection getLobConnection() {
+        if (SysProperties.LOB_IN_DATABASE) {
+            String url = Constants.CONN_URL_INTERNAL;
+            return new JdbcConnection(systemSession, systemUser.getName(), url);
+        }
+        return null;
     }
 
 }

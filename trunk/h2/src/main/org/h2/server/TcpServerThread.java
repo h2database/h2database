@@ -70,8 +70,7 @@ public class TcpServerThread implements Runnable {
                 }
                 clientVersion = transfer.readInt();
                 if (clientVersion < Constants.TCP_PROTOCOL_VERSION) {
-                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "current client version: " +
-                            clientVersion + "; minimum version: " + Constants.TCP_PROTOCOL_VERSION);
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION);
                 }
                 // max version (currently not used)
                 transfer.readInt();

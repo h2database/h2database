@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using MULTI_THREADED=TRUE, the exception following exception could be thrown:
+<ul><li>Prepared statements with nested subqueries did not always return the correct result. Example:
+    select ?, ?, (select count(*) from test t, (select id from test where 0=?) t2 where t2.id=t.id) from test
+</li><li>When using MULTI_THREADED=TRUE, the exception following exception could be thrown:
     "object already exists: TABLES"
 </li><li>Comparison of integer columns against float numbers was not always correct. Issue 182.
 </li><li>H2 Console: Editing the result of a multi-line queries failed. Issue 183.

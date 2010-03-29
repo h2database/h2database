@@ -35,6 +35,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testPreparedSubquery();
         testCompareDoubleWithIntColumn();
         testDeleteIndexOutOfBounds();
         testOrderByWithSubselect();
@@ -76,6 +77,28 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testPreparedSubquery() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("insert into test values(1)");
+        String sql = "select ?, ?, (select count(*) from test inner join " +
+            "(select id from test where 0=?) as t2 on t2.id=test.id) from test";
+        ResultSet rs;
+        rs = stat.executeQuery(sql.replace('?', '0'));
+        rs.next();
+        assertEquals(1, rs.getInt(3));
+        PreparedStatement prep = conn.prepareStatement(sql);
+        prep.setInt(1, 0);
+        prep.setInt(2, 0);
+        prep.setInt(3, 0);
+        rs = prep.executeQuery();
+        rs.next();
+        assertEquals(1, rs.getInt(3));
+        conn.close();
     }
 
     private void testCompareDoubleWithIntColumn() throws SQLException {

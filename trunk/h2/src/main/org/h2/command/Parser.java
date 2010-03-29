@@ -950,12 +950,11 @@ public class Parser {
         if (readIf("(")) {
             if (isSelect()) {
                 int start = lastParseIndex;
-                int paramIndex = parameters.size();
                 Query query = parseSelectUnion();
                 read(")");
                 query = parseSelectUnionExtension(query, start, true);
                 ArrayList<Parameter> params = New.arrayList();
-                for (int i = paramIndex; i < parameters.size(); i++) {
+                for (int i = 0; i < parameters.size(); i++) {
                     params.add(parameters.get(i));
                 }
                 query.setParameterList(params);

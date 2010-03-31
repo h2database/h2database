@@ -135,19 +135,14 @@ public class ValueExpression extends Expression {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
-            return true;
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.READONLY:
-            return true;
         case ExpressionVisitor.INDEPENDENT:
-            return true;
         case ExpressionVisitor.EVALUATABLE:
-            return true;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-            return true;
         case ExpressionVisitor.NOT_FROM_RESOLVER:
-            return true;
         case ExpressionVisitor.GET_DEPENDENCIES:
+        case ExpressionVisitor.QUERY_COMPARABLE:
             return true;
         default:
             throw DbException.throwInternalError("type=" + visitor.getType());

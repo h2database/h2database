@@ -70,19 +70,17 @@ public class SequenceValue extends Expression {
 
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
+        case ExpressionVisitor.EVALUATABLE:
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.READONLY:
-            return false;
         case ExpressionVisitor.INDEPENDENT:
+        case ExpressionVisitor.QUERY_COMPARABLE:
             return false;
-        case ExpressionVisitor.EVALUATABLE:
-            return true;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             visitor.addDataModificationId(sequence.getModificationId());
-            return true;
-        case ExpressionVisitor.NOT_FROM_RESOLVER:
             return true;
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(sequence);

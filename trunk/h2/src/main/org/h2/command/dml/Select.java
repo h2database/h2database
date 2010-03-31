@@ -997,9 +997,15 @@ public class Select extends Query {
 
     public void addGlobalCondition(Parameter param, int columnId, int comparisonType) {
         addParameter(param);
+        Expression comp;
         Expression col = expressions.get(columnId);
         col = col.getNonAliasExpression();
-        Expression comp = new Comparison(session, comparisonType, col, param);
+        if (col.isEverything(ExpressionVisitor.QUERY_COMPARABLE)) {
+            comp = new Comparison(session, comparisonType, col, param);
+        } else {
+            // add the parameters, so they can be set later
+            comp = new Comparison(session, Comparison.EQUAL, param, param);
+        }
         comp = comp.optimize(session);
         boolean addToCondition = true;
         if (isGroupQuery) {

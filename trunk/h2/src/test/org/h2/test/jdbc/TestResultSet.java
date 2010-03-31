@@ -729,6 +729,19 @@ public class TestResultSet extends TestBase {
         ResultSet rs;
         Object o;
 
+        rs = stat.executeQuery("call date '99999-12-23'");
+        rs.next();
+        assertEquals("99999-12-23", rs.getString(1));
+        rs = stat.executeQuery("call timestamp '99999-12-23 01:02:03.000'");
+        rs.next();
+        assertEquals("99999-12-23 01:02:03.0", rs.getString(1));
+        rs = stat.executeQuery("call date '-99999-12-23'");
+        rs.next();
+        assertEquals("-99999-12-23", rs.getString(1));
+        rs = stat.executeQuery("call timestamp '-99999-12-23 01:02:03.000'");
+        rs.next();
+        assertEquals("-99999-12-23 01:02:03.0", rs.getString(1));
+
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DATETIME)");
         stat.execute("INSERT INTO TEST VALUES(1,DATE '2011-11-11')");
         stat.execute("INSERT INTO TEST VALUES(2,TIMESTAMP '2002-02-02 02:02:02')");

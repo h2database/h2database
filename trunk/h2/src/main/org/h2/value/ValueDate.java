@@ -71,10 +71,10 @@ public class ValueDate extends Value {
         String s = value.toString();
         long time = value.getTime();
         // special case: java.sql.Date doesn't format
-        // years below year 1 (BC) correctly
-        if (time < ValueTimestamp.YEAR_ONE) {
+        // years below year 1 (BC) and years above 9999 correctly
+        if (time < ValueTimestamp.YEAR_ONE || time > ValueTimestamp.YEAR_9999) {
             int year = DateTimeUtils.getDatePart(value, Calendar.YEAR);
-            if (year < 1) {
+            if (year < 1 || year > 9999) {
                 s = year + s.substring(s.indexOf('-'));
             }
         }

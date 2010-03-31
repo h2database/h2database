@@ -45,6 +45,14 @@ public class ValueTimestamp extends Value {
      */
     static final long YEAR_ONE = java.sql.Date.valueOf("0001-01-02").getTime();
 
+    /**
+     * This is used to find out if the year is possibly larger than 9999.
+     * Because of time zone issues (the date is time zone specific), it's a few
+     * days before the last day. That means the value is not exact, but it does
+     * not need to be.
+     */
+    static final long YEAR_9999 = java.sql.Date.valueOf("9999-12-20").getTime();
+
     private final Timestamp value;
 
     private ValueTimestamp(Timestamp value) {

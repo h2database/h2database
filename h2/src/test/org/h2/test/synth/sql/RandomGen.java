@@ -294,9 +294,17 @@ public class RandomGen {
         StringBuilder buff = new StringBuilder();
         buff.append(getInt(10) + 2000);
         buff.append('-');
-        buff.append(getInt(11) + 1);
+        int month = getInt(12) + 1;
+        if (month < 10) {
+            buff.append('0');
+        }
+        buff.append(month);
         buff.append('-');
-        buff.append(getInt(29) + 1);
+        int day = getInt(28) + 1;
+        if (day < 10) {
+            buff.append('0');
+        }
+        buff.append(day);
         return Date.valueOf(buff.toString());
     }
 

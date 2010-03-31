@@ -67,22 +67,17 @@ public class Rownum extends Expression {
 
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
+        case ExpressionVisitor.QUERY_COMPARABLE:
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
-            return false;
         case ExpressionVisitor.DETERMINISTIC:
-            return false;
         case ExpressionVisitor.INDEPENDENT:
             return false;
         case ExpressionVisitor.EVALUATABLE:
-            return true;
+        case ExpressionVisitor.READONLY:
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+        case ExpressionVisitor.GET_DEPENDENCIES:
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             // if everything else is the same, the rownum is the same
-            return true;
-        case ExpressionVisitor.READONLY:
-            return true;
-        case ExpressionVisitor.NOT_FROM_RESOLVER:
-            return true;
-        case ExpressionVisitor.GET_DEPENDENCIES:
             return true;
         default:
             throw DbException.throwInternalError("type="+visitor.getType());

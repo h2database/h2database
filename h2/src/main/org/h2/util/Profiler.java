@@ -155,6 +155,7 @@ public class Profiler implements Runnable {
      * @return the stack traces.
      */
     public String getTop(int count) {
+        stopCollecting();
         StringBuilder buff = new StringBuilder();
         buff.append("Profiler: top ").append(count).append(" stack trace(s) of ").append(time).
             append(" ms [build-").append(Constants.BUILD_ID).append("]\n");

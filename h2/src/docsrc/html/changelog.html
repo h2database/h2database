@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>ROWNUM could not be used for pagination. The follow query returned no rows:
+<ul><li>The default maximum log stream size is now 2 MB. This is a good value
+    according to some performance tests.
+</li><li>New system property "h2.syncMethod" to configure what method to call when 
+    closing the database, on checkpoint, and on CHECKPOINT SYNC. The default is "sync" which
+    calls RandomAccessFile.getFD().sync().
+</li><li>ROWNUM could not be used for pagination. The follow query returned no rows:
     select x from (select *, rownum as r from system_range(1, 3)) where r=2;
 </li><li>Workaround for a java.sql.Date issue: years above 9999 are not formatted correctly.
     When calling ResultSet.getString() on a date value, an alternative formatting algorithm is used.
@@ -50,7 +55,7 @@ Change Log
 </li><li>CREATE ALIAS ... AS: Compilation was incorrect if the source code contained
     characters that are not supported by the default file encoding.
 </li><li>Issue 176: the JdbcDataSource now also supports a 'description' property.
-</li><li>The Shell tool threw a IndexOutOfBoundsException after 20 statements.
+</li><li>The Shell tool threw a ArrayIndexOutOfBoundsException after 20 statements.
 </li><li>When using the small version of H2 ('jarClient'), the first call to
     Connection.createBlob (or similar) could throw a ClassNotFoundException
     because the file org.h2.store.fs.FileSystemZip is not included. This missing class
@@ -66,7 +71,7 @@ Change Log
     The exception contained the text "parent not found" (version 1.2.129) or
     "Table not found" (version 1.2.130).
 </li><li>After the database was closed, a null pointer exception could occur in Database.flush.
-</li><li>An IndexOutOfBoundsException could occur in the page store (eg. on "delete from table"). Fixed.
+</li><li>An ArrayIndexOutOfBoundsException could occur in the page store (eg. on "delete from table"). Fixed.
 </li></ul>
 
 <h2>Version 1.2.130 (2010-02-26)</h2>

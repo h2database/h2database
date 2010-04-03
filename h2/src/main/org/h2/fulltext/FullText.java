@@ -164,7 +164,8 @@ public class FullText {
     }
 
     /**
-     * Re-creates the full text index for this database
+     * Re-creates the full text index for this database. Calling this method is
+     * usually not needed, as the index is kept up-to-date automatically.
      *
      * @param conn the connection
      */

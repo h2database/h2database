@@ -131,12 +131,12 @@ public class PageDataNode extends PageData {
         keys = newKeys;
         childPageIds = newChildPageIds;
         entryCount++;
-        length += 4 + data.getVarLongLen(key);
+        length += 4 + Data.getVarLongLen(key);
     }
 
     int addRowTry(Row row) {
         index.getPageStore().logUndo(this, data);
-        int keyOffsetPairLen = 4 + data.getVarLongLen(row.getKey());
+        int keyOffsetPairLen = 4 + Data.getVarLongLen(row.getKey());
         while (true) {
             int x = find(row.getKey());
             PageData page = index.getPage(childPageIds[x], getPos());
@@ -213,7 +213,7 @@ public class PageDataNode extends PageData {
         entryCount = 1;
         childPageIds = new int[] { page1.getPos(), page2.getPos() };
         keys = new long[] { pivot };
-        length += 4 + data.getVarLongLen(pivot);
+        length += 4 + Data.getVarLongLen(pivot);
         check();
     }
 
@@ -362,7 +362,7 @@ public class PageDataNode extends PageData {
         changeCount = index.getPageStore().getChangeCount();
         entryCount--;
         int removedKeyIndex = i < keys.length ? i : i - 1;
-        length -= 4 + data.getVarLongLen(keys[removedKeyIndex]);
+        length -= 4 + Data.getVarLongLen(keys[removedKeyIndex]);
         if (entryCount < 0) {
             DbException.throwInternalError();
         }

@@ -80,7 +80,7 @@ public class Data {
     /**
      * The data itself.
      */
-    private byte[] data;
+    protected byte[] data;
 
     /**
      * The current write or read position.
@@ -92,7 +92,7 @@ public class Data {
      */
     private final DataHandler handler;
 
-    private Data(DataHandler handler, byte[] data) {
+    protected Data(DataHandler handler, byte[] data) {
         this.handler = handler;
         this.data = data;
     }
@@ -146,12 +146,12 @@ public class Data {
      * @param s the value
      * @return the length
      */
-    public int getStringLen(String s) {
+    public static int getStringLen(String s) {
         int len = s.length();
         return getStringWithoutLengthLen(s, len) + getVarIntLen(len);
     }
 
-    private int getStringWithoutLengthLen(String s, int len) {
+    public static int getStringWithoutLengthLen(String s, int len) {
         int plus = 0;
         for (int i = 0; i < len; i++) {
             char c = s.charAt(i);
@@ -298,6 +298,15 @@ public class Data {
         System.arraycopy(buff, off, data, pos, len);
         pos += len;
     }
+    
+    /**
+     * Append a number of bytes to this buffer.
+     *
+     * @param buff the data
+     */
+    public void write(byte[] buff) {
+        write(buff, 0, buff.length);
+    }
 
     /**
      * Copy a number of bytes to the given buffer from the current position. The
@@ -311,7 +320,17 @@ public class Data {
         System.arraycopy(data, pos, buff, off, len);
         pos += len;
     }
-
+    
+    /**
+     * Copy a number of bytes to the given buffer from the current position. The
+     * current position is incremented accordingly.
+     *
+     * @param buff the output buffer
+     */
+    public void read(byte[] buff) {
+        read(buff, 0, buff.length);
+    }
+    
     /**
      * Append one single byte.
      *
@@ -326,7 +345,7 @@ public class Data {
      *
      * @return the value
      */
-    public int readByte() {
+    public byte readByte() {
         return data[pos++];
     }
 
@@ -563,9 +582,9 @@ public class Data {
             DbException.throwInternalError("type=" + v.getType());
         }
         if (SysProperties.CHECK2) {
-            if (pos - start != getValueLen(v)) {
+            if (pos - start != getValueLen(v, handler)) {
                 throw DbException
-                        .throwInternalError("value size error: got " + (pos - start) + " expected " + getValueLen(v));
+                        .throwInternalError("value size error: got " + (pos - start) + " expected " + getValueLen(v, handler));
             }
         }
     }
@@ -596,9 +615,9 @@ public class Data {
         case Value.LONG:
             return ValueLong.get(readVarLong());
         case Value.BYTE:
-            return ValueByte.get((byte) readByte());
+            return ValueByte.get(readByte());
         case Value.SHORT:
-            return ValueShort.get((short) readShortInt());
+            return ValueShort.get(readShortInt());
         case DECIMAL_0_1:
             return (ValueDecimal) ValueDecimal.ZERO;
         case DECIMAL_0_1 + 1:
@@ -724,10 +743,21 @@ public class Data {
      * @return the number of bytes required to store this value
      */
     public int getValueLen(Value v) {
-        return getValueLen2(v) + TEST_OFFSET;
+        return getValueLen(v, handler);
+    }
+    
+    /**
+     * Calculate the number of bytes required to encode the given value.
+     *
+     * @param v the value
+     * @param handler the data handler for lobs
+     * @return the number of bytes required to store this value
+     */
+    public static int getValueLen(Value v, DataHandler handler) {
+        return getValueLen2(v, handler) + TEST_OFFSET;
     }
 
-    private int getValueLen2(Value v) {
+    private static int getValueLen2(Value v, DataHandler handler) {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }
@@ -868,7 +898,7 @@ public class Data {
             Value[] list = ((ValueArray) v).getList();
             int len = 1 + getVarIntLen(list.length);
             for (Value x : list) {
-                len += getValueLen(x);
+                len += getValueLen(x, handler);
             }
             return len;
         }
@@ -904,9 +934,9 @@ public class Data {
      *
      * @return the value
      */
-    public int readShortInt() {
+    public short readShortInt() {
         byte[] buff = data;
-        return ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
+        return (short) (((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff));
     }
 
     /**
@@ -929,7 +959,7 @@ public class Data {
      * @param x the value
      * @return the len
      */
-    private int getVarIntLen(int x) {
+    public static int getVarIntLen(int x) {
         if ((x & (-1 << 7)) == 0) {
             return 1;
         } else if ((x & (-1 << 14)) == 0) {
@@ -995,7 +1025,7 @@ public class Data {
      * @param x the value
      * @return the len
      */
-    public int getVarLongLen(long x) {
+    public static int getVarLongLen(long x) {
         int i = 1;
         while (true) {
             x >>>= 7;

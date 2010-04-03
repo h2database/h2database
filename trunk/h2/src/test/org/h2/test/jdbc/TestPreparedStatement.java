@@ -257,7 +257,7 @@ public class TestPreparedStatement extends TestBase {
 
     private void testCancelReuse(Connection conn) throws Exception {
         conn.createStatement().execute("CREATE ALIAS YIELD FOR \"java.lang.Thread.yield\"");
-        final PreparedStatement prep = conn.prepareStatement("SELECT YIELD() FROM SYSTEM_RANGE(1, 1000000) LIMIT ?");
+        final PreparedStatement prep = conn.prepareStatement("SELECT YIELD() FROM SYSTEM_RANGE(1, 100000000) LIMIT ?");
         prep.setInt(1, 100000000);
         Thread t = new Thread() {
             public void run() {
@@ -269,7 +269,7 @@ public class TestPreparedStatement extends TestBase {
             }
         };
         t.start();
-        Thread.sleep(10);
+        Thread.sleep(100);
         try {
             prep.cancel();
         } catch (SQLException e) {

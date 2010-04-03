@@ -115,7 +115,7 @@ public class Constants {
     /**
      * The default value for the maximum transaction log size.
      */
-    public static final long DEFAULT_MAX_LOG_SIZE = 32 * 1024 * 1024;
+    public static final long DEFAULT_MAX_LOG_SIZE = 2 * 1024 * 1024;
 
     /**
      * The default maximum length on an in-memory LOB object.

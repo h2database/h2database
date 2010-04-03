@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import org.h2.constant.SysProperties;
 import org.h2.util.IOUtils;
 
 /**
@@ -25,7 +26,18 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
     }
 
     public void sync() throws IOException {
-        getFD().sync();
+        String m = SysProperties.SYNC_METHOD;
+        if ("".equals(m)) {
+            // do nothing
+        } else if ("sync".equals(m)) {
+            getFD().sync();
+        } else if ("force".equals(m)) {
+            getChannel().force(true);
+        } else if ("forceFalse".equals(m)) {
+            getChannel().force(false);
+        } else {
+            getFD().sync();
+        }
     }
 
     public void setFileLength(long newLength) throws IOException {

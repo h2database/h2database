@@ -66,6 +66,16 @@ public class ValueLob2 extends Value {
         }
     }
 
+    /**
+     * Create a LOB value.
+     *
+     * @param type the type
+     * @param lobStorage the storage
+     * @param fileName the file name (may be null)
+     * @param id the lob id
+     * @param precision the precision (number of bytes / characters)
+     * @return the value
+     */
     public static ValueLob2 create(int type, LobStorage lobStorage, String fileName, long id, long precision) {
         return new ValueLob2(type, lobStorage, fileName, LobStorage.TABLE_ID_SESSION_VARIABLE, id, precision);
     }

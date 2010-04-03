@@ -33,7 +33,8 @@ public class TestClearReferences extends TestBase {
         "org.h2.util.MemoryUtils.reserveMemory",
         "org.h2.util.NetUtils.cachedLocalAddress",
         "org.h2.util.MathUtils.cachedSecureRandom",
-        "org.h2.value.CompareMode.lastUsed"
+        "org.h2.value.CompareMode.lastUsed",
+        "org.h2.store.fs.FileSystem.tempRandom",
     };
 
     private boolean hasError;

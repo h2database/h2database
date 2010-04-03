@@ -10,12 +10,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * The file system is a storage abstraction.
  */
 public abstract class FileSystem {
+
+    /**
+     * The prefix for temporary files. See also TestClearReferences.
+     */
+    private static String tempRandom;
+    private static long tempSequence;
 
     private static boolean defaultServicesRegistered;
 
@@ -133,19 +141,6 @@ public abstract class FileSystem {
      * @return true if it could be deleted
      */
     public abstract boolean tryDelete(String fileName);
-
-    /**
-     * Create a new temporary file.
-     *
-     * @param prefix the prefix of the file name (including directory name if
-     *            required)
-     * @param suffix the suffix
-     * @param deleteOnExit if the file should be deleted when the virtual
-     *            machine exists
-     * @param inTempDir if the file should be stored in the temporary directory
-     * @return the name of the created file
-     */
-    public abstract String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException;
 
     /**
      * List the files in the given directory.
@@ -294,5 +289,44 @@ public abstract class FileSystem {
      * @return the input stream
      */
     public abstract InputStream openFileInputStream(String fileName) throws IOException;
+
+    /**
+     * Get the next temporary file name part (the part in the middle).
+     *
+     * @param newRandom if the random part of the filename should change
+     * @return the file name part
+     */
+    protected synchronized String getNextTempFileNamePart(boolean newRandom) {
+        if (newRandom || tempRandom == null) {
+            byte[] prefix = new byte[8];
+            MathUtils.randomBytes(prefix);
+            tempRandom = Utils.convertBytesToString(prefix) + ".";
+        }
+        return tempRandom + tempSequence++;
+    }
+
+    /**
+     * Create a new temporary file.
+     *
+     * @param prefix the prefix of the file name (including directory name if
+     *            required)
+     * @param suffix the suffix
+     * @param deleteOnExit if the file should be deleted when the virtual
+     *            machine exists
+     * @param inTempDir if the file should be stored in the temporary directory
+     * @return the name of the created file
+     */
+    public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
+        while (true) {
+            String n = name + getNextTempFileNamePart(false) + suffix;
+            if (exists(n)) {
+                // in theory, the random number could collide
+                getNextTempFileNamePart(true);
+            }
+            // creates the file (not thread safe)
+            openFileObject(n, "rw").close();
+            return n;
+        }
+    }
 
 }

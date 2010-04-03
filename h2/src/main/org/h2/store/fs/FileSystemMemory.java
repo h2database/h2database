@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.New;
 
 /**
@@ -86,19 +85,6 @@ public class FileSystemMemory extends FileSystem {
     public boolean tryDelete(String fileName) {
         delete(fileName);
         return true;
-    }
-
-    public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) {
-        name += ".";
-        synchronized (MEMORY_FILES) {
-            for (int i = 0;; i++) {
-                String n = name + (MathUtils.secureRandomLong() >>> 1) + suffix;
-                if (!exists(n)) {
-                    getMemoryFile(n);
-                    return n;
-                }
-            }
-        }
     }
 
     public String[] listFiles(String path) {

@@ -249,7 +249,6 @@ public class FileStore {
     public void closeAndDeleteSilently() {
         if (file != null) {
             closeSilently();
-            tempFileDeleter.updateAutoDelete(autoDeleteReference);
             tempFileDeleter.deleteFile(autoDeleteReference, name);
             name = null;
         }
@@ -462,8 +461,6 @@ public class FileStore {
     public void autoDelete() {
         if (autoDeleteReference == null) {
             autoDeleteReference = tempFileDeleter.addFile(name, this);
-        } else {
-            tempFileDeleter.updateAutoDelete(autoDeleteReference);
         }
     }
 

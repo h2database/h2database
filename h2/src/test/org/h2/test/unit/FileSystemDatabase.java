@@ -240,18 +240,6 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
-        name += ".";
-        for (int i = 0;; i++) {
-            String n = name + i + suffix;
-            if (!exists(n)) {
-                // creates the file (not thread safe)
-                openFileObject(n, "rw").close();
-                return n;
-            }
-        }
-    }
-
     public synchronized void delete(String fileName) {
         try {
             long id = getId(fileName, false);

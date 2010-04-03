@@ -377,7 +377,7 @@ public class PageBtreeIndex extends PageIndex {
      * @return the number of bytes
      */
     int getRowSize(Data dummy, SearchRow row, boolean onlyPosition) {
-        int rowsize = dummy.getVarLongLen(row.getKey());
+        int rowsize = Data.getVarLongLen(row.getKey());
         if (!onlyPosition) {
             for (Column col : columns) {
                 Value v = row.getValue(col.getColumnId());

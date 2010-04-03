@@ -154,7 +154,7 @@ public class PageDataLeaf extends PageData {
         int rowLength = getRowLength(row);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-        int keyOffsetPairLen = 2 + data.getVarLongLen(row.getKey());
+        int keyOffsetPairLen = 2 + Data.getVarLongLen(row.getKey());
         if (entryCount > 0 && last - rowLength < start + keyOffsetPairLen) {
             int x = findInsertionPoint(row.getKey());
             if (entryCount > 1) {
@@ -271,7 +271,7 @@ public class PageDataLeaf extends PageData {
         firstOverflowPageId = 0;
         overflowRowSize = 0;
         rowRef = null;
-        int keyOffsetPairLen = 2 + data.getVarLongLen(keys[i]);
+        int keyOffsetPairLen = 2 + Data.getVarLongLen(keys[i]);
         int[] newOffsets = new int[entryCount];
         long[] newKeys = new long[entryCount];
         Row[] newRows = new Row[entryCount];

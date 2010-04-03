@@ -186,8 +186,7 @@ public class PageStore implements CacheWriter {
      */
     private HashMap<Integer, Integer> reservedPages;
     private boolean isNew;
-    // TODO reduce DEFAULT_MAX_LOG_SIZE, and don't divide here
-    private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE / 10;
+    private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
     private Session systemSession;
     private BitSet freed = new BitSet();
 

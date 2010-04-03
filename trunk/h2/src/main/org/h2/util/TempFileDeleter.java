@@ -20,7 +20,7 @@ import org.h2.message.DbException;
 public class TempFileDeleter {
 
     private final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
-    private final HashMap<PhantomReference< ? >, TempFile> refMap = New.hashMap();
+    private final HashMap<PhantomReference< ? >, String> refMap = New.hashMap();
 
     private TempFileDeleter() {
         // utility class
@@ -28,22 +28,6 @@ public class TempFileDeleter {
 
     public static TempFileDeleter getInstance() {
         return new TempFileDeleter();
-    }
-
-    /**
-     * Contains information about a file.
-     */
-    static class TempFile {
-
-        /**
-         * The file name.
-         */
-        String fileName;
-
-        /**
-         * The last modified date of this file.
-         */
-        long lastModified;
     }
 
     /**
@@ -57,28 +41,9 @@ public class TempFileDeleter {
     public synchronized Reference< ? > addFile(String fileName, Object file) {
         IOUtils.trace("TempFileDeleter.addFile", fileName, file);
         PhantomReference< ? > ref = new PhantomReference<Object>(file, queue);
-        TempFile f = new TempFile();
-        f.fileName = fileName;
-        f.lastModified = IOUtils.getLastModified(fileName);
-        refMap.put(ref, f);
+        refMap.put(ref, fileName);
         deleteUnused();
         return ref;
-    }
-
-    /**
-     * Update the last modified date of the auto-delete reference. If the file
-     * was modified after that, it will not be deleted (because it might have
-     * been deleted and then re-created).
-     *
-     * @param ref the reference
-     */
-    public synchronized void updateAutoDelete(Reference< ? > ref) {
-        TempFile f2 = refMap.get(ref);
-        if (f2 != null) {
-            String fileName = f2.fileName;
-            long mod = IOUtils.getLastModified(fileName);
-            f2.lastModified = mod;
-        }
     }
 
     /**
@@ -89,18 +54,12 @@ public class TempFileDeleter {
      */
     public synchronized void deleteFile(Reference< ? > ref, String fileName) {
         if (ref != null) {
-            TempFile f2 = refMap.remove(ref);
+            String f2 = refMap.remove(ref);
             if (f2 != null) {
-                if (SysProperties.CHECK && fileName != null && !f2.fileName.equals(fileName)) {
-                    DbException.throwInternalError("f2:" + f2.fileName + " f:" + fileName);
+                if (SysProperties.CHECK && fileName != null && !f2.equals(fileName)) {
+                    DbException.throwInternalError("f2:" + f2 + " f:" + fileName);
                 }
-                fileName = f2.fileName;
-                long mod = IOUtils.getLastModified(fileName);
-                if (mod != f2.lastModified) {
-                    // the file has been deleted and a new one created
-                    // or it has been modified afterwards
-                    return;
-                }
+                fileName = f2;
             }
         }
         if (fileName != null && IOUtils.exists(fileName)) {
@@ -117,8 +76,8 @@ public class TempFileDeleter {
      * Delete all registered temp files.
      */
     public void deleteAll() {
-        for (TempFile tempFile : refMap.values()) {
-            deleteFile(null, tempFile.fileName);
+        for (String tempFile : refMap.values()) {
+            deleteFile(null, tempFile);
         }
         deleteUnused();
     }
@@ -146,9 +105,9 @@ public class TempFileDeleter {
     public void stopAutoDelete(Reference< ? > ref, String fileName) {
         IOUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {
-            TempFile f2 = refMap.remove(ref);
-            if (SysProperties.CHECK && (f2 == null || !f2.fileName.equals(fileName))) {
-                DbException.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2.fileName) + " f:" + fileName);
+            String f2 = refMap.remove(ref);
+            if (SysProperties.CHECK && (f2 == null || !f2.equals(fileName))) {
+                DbException.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2) + " f:" + fileName);
             }
         }
         deleteUnused();

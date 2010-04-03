@@ -183,10 +183,16 @@ public class FileSystemDisk extends FileSystem {
             dir = new File(name).getAbsoluteFile().getParentFile();
             IOUtils.mkdirs(dir);
         }
-        if (prefix.length() < 3) {
-            prefix += "0";
+        File f;
+        while (true) {
+            f = new File(dir, prefix + getNextTempFileNamePart(false) + suffix);
+            if (f.exists()) {
+                // in theory, the random number could collide
+                getNextTempFileNamePart(true);
+            } else {
+                break;
+            }
         }
-        File f = File.createTempFile(prefix, suffix, dir);
         if (deleteOnExit) {
             try {
                 f.deleteOnExit();

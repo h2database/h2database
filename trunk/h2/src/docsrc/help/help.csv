@@ -1131,7 +1131,7 @@ SET MAX_LOG_SIZE int
 ","
 Sets the maximum size of the transaction log, in megabytes. If the log exceeds the
 limit, a new stream is created. Old streams (that are not used for recovery) are
-freed automatically. The default max size is 32 MB.
+freed automatically. The default max size is 2 MB.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.

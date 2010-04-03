@@ -32,12 +32,12 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Priority 2</h2>
 <ul><li>Improve test code coverage.
+</li><li>Automatic collection of statistics (auto ANALYZE; AUTOVACUUM). See http://www.postgresql.org/docs/current/static/routine-vacuuming.html#AUTOVACUUM
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Full outer joins.
 </li><li>Support nested outer joins (see todo.txt).
-</li><li>Automatic collection of statistics (auto ANALYZE; AUTOVACUUM). See http://www.postgresql.org/docs/current/static/routine-vacuuming.html#AUTOVACUUM
 </li><li>Support mixed clustering mode (one embedded, others in server mode).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Test very large databases and LOBs (up to 256 GB).
@@ -408,7 +408,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support date/time/timestamp as documented in http://en.wikipedia.org/wiki/ISO_8601
 </li><li>PostgreSQL compatibility: when in PG mode, treat BYTEA data like PG.
 </li><li>MySQL compatibility: REPLACE http://dev.mysql.com/doc/refman/6.0/en/replace.html
-</li><li>Support =ANY(array) as in PostgreSQL.
+</li><li>Support =ANY(array) as in PostgreSQL. See also http://www.postgresql.org/docs/8.0/interactive/arrays.html
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
 </li><li>MySQL compatibility: alter table add index i(c), add constraint c foreign key(c) references t(c);
 </li><li>Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle, MSSQLServer).
@@ -478,6 +478,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Make the cache scan resistant (currently a small cache is faster than a large cache for large table scans).
 </li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available
 </li><li>Issue 179: Related subqueries in HAVING clause
+</li><li>IBM DB2 compatibility: NOT NULL WITH DEFAULT. Similar to MySQL Mode.convertInsertNullToZero.
+</li><li>Creating primary key: always create a constraint.
+</li><li>Support a data type "timestamp with timezone" using java.util.Calendar.
 </li></ul>
 
 <h2>Not Planned</h2>

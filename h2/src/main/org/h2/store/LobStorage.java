@@ -33,6 +33,9 @@ import org.h2.value.ValueLob2;
  */
 public class LobStorage {
 
+    /**
+     * The table id for session variables (LOBs not assigned to a table).
+     */
     public static final int TABLE_ID_SESSION_VARIABLE = -1;
 
     private static final String LOBS = "INFORMATION_SCHEMA.LOBS";
@@ -93,7 +96,6 @@ public class LobStorage {
     /**
      * Remove all LOBs for this table.
      *
-     * @param handler the data handler
      * @param tableId the table id
      */
     public void removeAllForTable(int tableId) {
@@ -249,6 +251,12 @@ public class LobStorage {
         prep.execute();
     }
 
+    /**
+     * Get the input stream for the given lob.
+     *
+     * @param lobId the lob id
+     * @return the stream
+     */
     public InputStream getInputStream(long lobId) throws IOException {
         init();
         return new LobInputStream(conn, lobId);
@@ -405,6 +413,13 @@ public class LobStorage {
         return ValueLob.createBlob(in, maxLength, handler);
     }
 
+    /**
+     * Create a CLOB object.
+     *
+     * @param reader the reader
+     * @param maxLength the maximum length (-1 if not known)
+     * @return the LOB
+     */
     public Value createClob(Reader reader, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
             init();

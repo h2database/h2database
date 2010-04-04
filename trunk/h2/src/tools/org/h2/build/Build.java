@@ -354,6 +354,7 @@ public class Build extends BuildBase {
             exclude("*.bat").
             exclude("*.sh").
             exclude("*.txt");
+        files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
         jar("bin/h2small" + getJarSuffix(), files, "temp");
     }
 

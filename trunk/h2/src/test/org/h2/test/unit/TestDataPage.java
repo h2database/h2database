@@ -222,7 +222,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         page.checkCapacity(s.length() * 4);
         page.writeString(s);
         int len = page.length();
-        assertEquals(len, page.getStringLen(s));
+        assertEquals(len, Data.getStringLen(s));
         page.reset();
         assertEquals(s, page.readString());
         page.reset();

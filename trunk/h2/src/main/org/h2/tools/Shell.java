@@ -317,6 +317,9 @@ public class Shell extends Tool implements Runnable {
     }
 
     private boolean isNumber(String s) {
+        if (s.length() == 0) {
+            return false;
+        }
         for (char c : s.toCharArray()) {
             if (!Character.isDigit(c)) {
                 return false;

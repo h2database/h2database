@@ -267,4 +267,8 @@ public class CreateTable extends SchemaCommand {
         data.tableEngine = tableEngine;
     }
 
+    public void setHidden(boolean isHidden) {
+        data.isHidden = isHidden;
+    }
+
 }

@@ -18,14 +18,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The Shell tool threw a NumberFormatException on a empty statement.
+<ul><li>A new experimental LOB storage mechanism is available.
+    When enabled, CLOB and BLOB data is stored in hidden tables in the database.
+    To use it, set the system property "h2.lobInDatabase" to "true".
+    Compression is not yet implemented. Duplicate objects are only stored once.
+    Usually writing is slower, but reading is faster (mainly because of caching).
+</li><li>The Shell tool threw a NumberFormatException on a empty statement.
 </li><li>The h2small-*.jar did not support "drop all objects delete files".
     Now it is supported (the DeleteDbFiles tool is now included).
-</li><li>Operations that don't fit in memory are now faster. 
+</li><li>Operations that don't fit in memory are now faster.
     Temporary file handling was changed.
 </li><li>The default maximum log stream size is now 2 MB. This is a good value
     according to some performance tests.
-</li><li>New system property "h2.syncMethod" to configure what method to call when 
+</li><li>New system property "h2.syncMethod" to configure what method to call when
     closing the database, on checkpoint, and on CHECKPOINT SYNC. The default is "sync" which
     calls RandomAccessFile.getFD().sync().
 </li><li>ROWNUM could not be used for pagination. The follow query returned no rows:

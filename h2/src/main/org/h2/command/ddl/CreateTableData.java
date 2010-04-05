@@ -72,4 +72,9 @@ public class CreateTableData {
      */
     public String tableEngine;
 
+    /**
+     * The table is hidden.
+     */
+    public boolean isHidden;
+
 }

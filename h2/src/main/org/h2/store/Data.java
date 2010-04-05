@@ -141,16 +141,25 @@ public class Data {
     }
 
     /**
-     * Get the length of a String value.
+     * Get the length of a String. This includes the bytes required to encode
+     * the length.
      *
-     * @param s the value
-     * @return the length
+     * @param s the string
+     * @return the number of bytes required
      */
     public static int getStringLen(String s) {
         int len = s.length();
         return getStringWithoutLengthLen(s, len) + getVarIntLen(len);
     }
 
+    /**
+     * Calculate the length of String, excluding the bytes required to encode
+     * the length.
+     *
+     * @param s the string
+     * @param len the length of the string
+     * @return the number of bytes required
+     */
     public static int getStringWithoutLengthLen(String s, int len) {
         int plus = 0;
         for (int i = 0; i < len; i++) {
@@ -298,7 +307,7 @@ public class Data {
         System.arraycopy(buff, off, data, pos, len);
         pos += len;
     }
-    
+
     /**
      * Append a number of bytes to this buffer.
      *
@@ -320,7 +329,7 @@ public class Data {
         System.arraycopy(data, pos, buff, off, len);
         pos += len;
     }
-    
+
     /**
      * Copy a number of bytes to the given buffer from the current position. The
      * current position is incremented accordingly.
@@ -330,7 +339,7 @@ public class Data {
     public void read(byte[] buff) {
         read(buff, 0, buff.length);
     }
-    
+
     /**
      * Append one single byte.
      *
@@ -745,7 +754,7 @@ public class Data {
     public int getValueLen(Value v) {
         return getValueLen(v, handler);
     }
-    
+
     /**
      * Calculate the number of bytes required to encode the given value.
      *

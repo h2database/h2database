@@ -367,6 +367,7 @@ public class TestTools extends TestBase {
         assertTrue(trace.exists());
         File newTrace = new File(baseDir + "/test.trace.db");
         newTrace.delete();
+        assertFalse(newTrace.exists());
         assertTrue(trace.renameTo(newTrace));
         deleteDb("toolsConvertTraceFile");
         Player.main(baseDir + "/test.trace.db");

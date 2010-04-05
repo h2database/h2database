@@ -316,9 +316,9 @@ public abstract class FileSystem {
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
      */
-    public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
+    public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
         while (true) {
-            String n = name + getNextTempFileNamePart(false) + suffix;
+            String n = prefix + getNextTempFileNamePart(false) + suffix;
             if (exists(n)) {
                 // in theory, the random number could collide
                 getNextTempFileNamePart(true);

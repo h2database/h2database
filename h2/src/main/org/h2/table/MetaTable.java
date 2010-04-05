@@ -619,6 +619,9 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
+                if (table.isHidden()) {
+                    continue;
+                }
                 String storageType;
                 if (table.isTemporary()) {
                     if (table.isGlobalTemporary()) {
@@ -658,6 +661,9 @@ public class MetaTable extends Table {
             for (Table table : getAllTables(session)) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                if (table.isHidden()) {
                     continue;
                 }
                 Column[] cols = table.getColumns();
@@ -721,6 +727,9 @@ public class MetaTable extends Table {
             for (Table table : getAllTables(session)) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                if (table.isHidden()) {
                     continue;
                 }
                 ArrayList<Index> indexes = table.getIndexes();
@@ -1175,7 +1184,7 @@ public class MetaTable extends Table {
         case TABLE_PRIVILEGES: {
             for (Right r : database.getAllRights()) {
                 Table table = r.getGrantedTable();
-                if (table == null) {
+                if (table == null || table.isHidden()) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1189,7 +1198,7 @@ public class MetaTable extends Table {
         case COLUMN_PRIVILEGES: {
             for (Right r : database.getAllRights()) {
                 Table table = r.getGrantedTable();
-                if (table == null) {
+                if (table == null || table.isHidden()) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1321,6 +1330,9 @@ public class MetaTable extends Table {
                 String checkExpression = null;
                 IndexColumn[] indexColumns = null;
                 Table table = constraint.getTable();
+                if (table.isHidden()) {
+                    continue;
+                }
                 Index index = constraint.getUniqueIndex();
                 String uniqueIndexName = null;
                 if (index != null) {

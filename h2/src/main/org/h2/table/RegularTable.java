@@ -67,6 +67,7 @@ public class RegularTable extends TableBase {
 
     public RegularTable(CreateTableData data) {
         super(data);
+        this.isHidden = data.isHidden;
         if (data.persistData && database.isPersistent()) {
             mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData), data.create, data.session);
             scanIndex = mainIndex;

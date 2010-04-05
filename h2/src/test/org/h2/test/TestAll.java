@@ -290,6 +290,10 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
+
+        int testing;
+        System.setProperty("h2.lobInDatabase", "true");
+
 /*
 
 power failure test
@@ -303,8 +307,6 @@ delete from test;
 
 rename Page* classes
 move classes to the right packages
-
-Fix the default value and documentation for MAX_LOG_SIZE.
 
 // System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64
@@ -351,12 +353,12 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         } else {
             test.runTests();
             Profiler prof = new Profiler();
-            prof.depth = 10;
+            prof.depth = 4;
             prof.interval = 1;
             prof.startCollecting();
             TestPerformance.main("-init", "-db", "1");
             prof.stopCollecting();
-            System.out.println(prof.getTop(2));
+            System.out.println(prof.getTop(3));
 //            Recover.execute("data", null);
 //            RunScript.execute("jdbc:h2:data/test2",
 //                 "sa1", "sa1", "data/test.h2.sql", null, false);

@@ -53,7 +53,11 @@ public abstract class TableBase extends Table {
         } else {
             buff.append("MEMORY ");
         }
-        buff.append("TABLE ").append(getSQL());
+        buff.append("TABLE ");
+        if (isHidden) {
+            buff.append("IF NOT EXISTS ");
+        }
+        buff.append(getSQL());
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
@@ -70,6 +74,9 @@ public abstract class TableBase extends Table {
         }
         if (!isPersistIndexes() && !isPersistData()) {
             buff.append("\nNOT PERSISTENT");
+        }
+        if (isHidden) {
+            buff.append("\nHIDDEN");
         }
         return buff.toString();
     }

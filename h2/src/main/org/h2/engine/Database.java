@@ -2233,7 +2233,9 @@ public class Database implements DataHandler {
     public Connection getLobConnection() {
         if (SysProperties.LOB_IN_DATABASE) {
             String url = Constants.CONN_URL_INTERNAL;
-            return new JdbcConnection(systemSession, systemUser.getName(), url);
+            JdbcConnection conn = new JdbcConnection(systemSession, systemUser.getName(), url);
+            conn.setTraceLevel(TraceSystem.OFF);
+            return conn;
         }
         return null;
     }

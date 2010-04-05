@@ -74,10 +74,10 @@ public class LobStorage {
             Statement stat = conn.createStatement();
             // stat.execute("SET UNDO_LOG 0");
             // stat.execute("SET REDO_LOG_BINARY 0");
-            stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, LENGTH BIGINT, TABLE INT)");
-            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ))");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, LENGTH BIGINT, TABLE INT) HIDDEN");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
             stat.execute("CREATE INDEX IF NOT EXISTS INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
-            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, DATA BINARY)");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, DATA BINARY) HIDDEN");
             ResultSet rs;
             rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
             rs.next();
@@ -166,7 +166,7 @@ public class LobStorage {
         }
 
         public int read(byte[] buff, int off, int length) throws IOException {
-            return readFully(buff, 0, buff.length);
+            return readFully(buff, off, length);
         }
 
         private int readFully(byte[] buff, int off, int length) throws IOException {
@@ -182,6 +182,7 @@ public class LobStorage {
                 int len = (int) Math.min(length, remaining);
                 len = Math.min(len, buffer.length - pos);
                 System.arraycopy(buffer, pos, buff, off, len);
+                pos += len;
                 read += len;
                 remaining -= len;
                 off += len;
@@ -263,6 +264,8 @@ public class LobStorage {
     }
 
     private ValueLob2 addLob(InputStream in, long maxLength, int type) {
+        int todo;
+        // TODO support in-place lobs, and group lobs much smaller than the page size
         byte[] buff = new byte[BLOCK_LENGTH];
         if (maxLength < 0) {
             maxLength = Long.MAX_VALUE;
@@ -272,7 +275,8 @@ public class LobStorage {
         try {
             try {
                 for (int seq = 0; maxLength > 0; seq++) {
-                    int len = IOUtils.readFully(in, buff, 0, BLOCK_LENGTH);
+                    int len = (int) Math.min(BLOCK_LENGTH, maxLength);
+                    len = IOUtils.readFully(in, buff, 0, len);
                     if (len <= 0) {
                         break;
                     }
@@ -344,16 +348,21 @@ public class LobStorage {
 
         private final Reader reader;
         private long length;
+        private long remaining;
         private int pos;
         private char[] charBuffer = new char[Constants.IO_BUFFER_SIZE];
         private byte[] buffer;
 
-        CountingReaderInputStream(Reader reader) {
+        CountingReaderInputStream(Reader reader, long maxLength) {
             this.reader = reader;
+            this.remaining = maxLength;
             buffer = Utils.EMPTY_BYTES;
         }
 
         public int read(byte[] buff, int offset, int len) throws IOException {
+            if (buffer == null) {
+                return -1;
+            }
             if (pos >= buffer.length) {
                 fillBuffer();
                 if (buffer == null) {
@@ -362,10 +371,14 @@ public class LobStorage {
             }
             len = Math.min(len, buffer.length - pos);
             System.arraycopy(buffer, pos, buff, offset, len);
+            pos += len;
             return len;
         }
 
         public int read() throws IOException {
+            if (buffer == null) {
+                return -1;
+            }
             if (pos >= buffer.length) {
                 fillBuffer();
                 if (buffer == null) {
@@ -376,13 +389,20 @@ public class LobStorage {
         }
 
         private void fillBuffer() throws IOException {
-            int len = reader.read(charBuffer);
+            int len = (int) Math.min(charBuffer.length, remaining);
+            if (len > 0) {
+                len = reader.read(charBuffer, 0, len);
+            } else {
+                len = -1;
+            }
             if (len < 0) {
                 buffer = null;
             } else {
                 buffer = StringUtils.utf8Encode(new String(charBuffer, 0, len));
                 length += len;
+                remaining -= len;
             }
+            pos = 0;
         }
 
         public long getLength() {
@@ -426,8 +446,9 @@ public class LobStorage {
             if (conn == null) {
                 return ValueLob2.createTempClob(reader, maxLength, handler);
             }
-            CountingReaderInputStream in = new CountingReaderInputStream(reader);
-            ValueLob2 lob = addLob(in, maxLength, Value.BLOB);
+            long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
+            CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
+            ValueLob2 lob = addLob(in, Long.MAX_VALUE, Value.CLOB);
             lob.setPrecision(in.getLength());
             return lob;
         }

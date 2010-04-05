@@ -102,11 +102,15 @@ public class ValueLob2 extends Value {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
-            Value copy = handler.getLobStorage().createClob(getReader(), -1);
-            return copy;
+            if (lobStorage != null) {
+                Value copy = lobStorage.createClob(getReader(), -1);
+                return copy;
+            }
         } else if (t == Value.BLOB) {
-            Value copy = handler.getLobStorage().createBlob(getInputStream(), -1);
-            return copy;
+            if (lobStorage != null) {
+                Value copy = lobStorage.createBlob(getInputStream(), -1);
+                return copy;
+            }
         }
         return super.convertTo(t);
     }
@@ -474,6 +478,7 @@ public class ValueLob2 extends Value {
     private FileStoreOutputStream initTemp(DataHandler h) {
         this.precision = 0;
         this.handler = h;
+        this.lobStorage = h.getLobStorage();
         this.small = null;
         try {
             String path = h.getDatabasePath();

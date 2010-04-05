@@ -3372,6 +3372,7 @@ To get the row number after ordering and grouping, use a subquery.
 ","
 SELECT ROWNUM(), * FROM TEST;
 SELECT ROWNUM(), * FROM (SELECT * FROM TEST ORDER BY NAME);
+SELECT ID FROM (SELECT T.*, ROWNUM AS R FROM TEST T) WHERE R BETWEEN 2 AND 3;
 "
 
 "Functions (System)","SCHEMA","

@@ -64,13 +64,17 @@ auto-complete in the IDE and Javadoc and are supported. Type checking is perform
 JaQu fully protects against SQL injection.
 </p>
 <p>
-JaQu is much smaller than persistence frameworks such as Hibernate.
+JaQu is more a replacement for JDBC than it is a replacement for tools like Hibernate.
+With JaQu, you don't write SQL statements as Strings.
+JaQu is much smaller and simpler than other persistence frameworks such as Hibernate,
+but it also does not provide all the features of those.
 Unlike iBatis and Hibernate, no XML or annotation based configuration is required;
 instead the configuration (if required at all) is done in pure Java, in the application itself.
 </p>
 <p>
 JaQu does not require or contain any data caching mechanism. Like JDBC and iBatis,
-JaQu provides full control over when and what SQL statements are executed.
+JaQu provides full control over when and what SQL statements are executed
+(but without having to write SQL statements as Strings).
 </p>
 
 <h3>Restrictions</h3>

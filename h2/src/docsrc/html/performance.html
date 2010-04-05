@@ -127,7 +127,7 @@ It will be hard for the developers of Derby to improve the performance to a reas
 A few problems have been identified: leaving autocommit on is a problem for Derby.
 If it is switched off during the whole test, the results are about 20% better for Derby.
 Derby does not call FileDescriptor.sync() or FileChannel.force(..) on each commit.
-Derby supports a testing mode (system property <code>derby.system.durability=test</code>) 
+Derby supports a testing mode (system property <code>derby.system.durability=test</code>)
 where durability is disabled. According to the documentation, this setting should be used for testing only,
 as the database may not recover after a crash. Enabling this setting improves performance
 by a factor of 2.6 (embedded mode) or 1.4 (server mode). Even if enabled, Derby is still less

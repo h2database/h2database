@@ -1700,4 +1700,11 @@ public class JdbcConnection extends TraceObject implements Connection {
         return compareMode;
     }
 
+    /**
+     * INTERNAL
+     */
+    public void setTraceLevel(int level) {
+        trace.setLevel(level);
+    }
+
 }

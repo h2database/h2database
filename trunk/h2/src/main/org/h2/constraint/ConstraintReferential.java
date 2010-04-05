@@ -112,7 +112,11 @@ public class ConstraintReferential extends Constraint {
     public String getCreateSQLForCopy(Table forTable, Table forRefTable, String quotedName, boolean internalIndex) {
         StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
         String mainTable = forTable.getSQL();
-        buff.append(mainTable).append(" ADD CONSTRAINT ").append(quotedName);
+        buff.append(mainTable).append(" ADD CONSTRAINT ");
+        if (forTable.isHidden()) {
+            buff.append("IF NOT EXISTS ");
+        }
+        buff.append(quotedName);
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }

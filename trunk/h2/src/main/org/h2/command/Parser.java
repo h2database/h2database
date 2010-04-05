@@ -4810,6 +4810,9 @@ public class Parser {
             read("PERSISTENT");
             command.setPersistData(false);
         }
+        if (readIf("HIDDEN")) {
+            command.setHidden(true);
+        }
         return command;
     }
 

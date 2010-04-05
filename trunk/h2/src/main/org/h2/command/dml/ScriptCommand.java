@@ -180,6 +180,9 @@ public class ScriptCommand extends ScriptBase {
                 }
             });
             for (Table table : tables) {
+                if (table.isHidden()) {
+                    continue;
+                }
                 table.lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
@@ -198,6 +201,9 @@ public class ScriptCommand extends ScriptBase {
                 add(sequence.getCreateSQL(), false);
             }
             for (Table table : tables) {
+                if (table.isHidden()) {
+                    continue;
+                }
                 table.lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
@@ -299,6 +305,9 @@ public class ScriptCommand extends ScriptBase {
             });
             for (SchemaObject obj : constraints) {
                 Constraint constraint = (Constraint) obj;
+                if (constraint.getTable().isHidden()) {
+                    continue;
+                }
                 if (!Constraint.PRIMARY_KEY.equals(constraint.getConstraintType())) {
                     add(constraint.getCreateSQLWithoutIndexes(), false);
                 }

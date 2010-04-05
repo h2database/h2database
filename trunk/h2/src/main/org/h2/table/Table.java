@@ -95,6 +95,12 @@ public abstract class Table extends SchemaObjectBase {
      */
     protected CompareMode compareMode;
 
+    /**
+     * Protected tables are not listed in the meta data and are excluded when
+     * using the SCRIPT command.
+     */
+    protected boolean isHidden;
+
     private final HashMap<String, Column> columnMap = New.hashMap();
     private boolean persistIndexes;
     private boolean persistData;
@@ -964,6 +970,16 @@ public abstract class Table extends SchemaObjectBase {
             v = defaultExpr.getValue(session);
         }
         return column.convert(v);
+    }
+
+    /**
+     * Check whether this is a hidden table that doesn't appear in the meta
+     * data and in the script.
+     *
+     * @return true if it is hidden
+     */
+    public boolean isHidden() {
+        return isHidden;
     }
 
 }

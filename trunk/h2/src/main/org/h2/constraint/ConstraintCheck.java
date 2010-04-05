@@ -45,7 +45,11 @@ public class ConstraintCheck extends Constraint {
 
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
         StringBuilder buff = new StringBuilder("ALTER TABLE ");
-        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ").append(quotedName);
+        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
+        if (forTable.isHidden()) {
+            buff.append("IF NOT EXISTS ");
+        }
+        buff.append(quotedName);
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }

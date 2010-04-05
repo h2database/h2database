@@ -138,6 +138,9 @@ public class TestLob extends TestBase {
     }
 
     private void testLobDeleteTemp() throws SQLException {
+        if (SysProperties.LOB_IN_DATABASE) {
+            return;
+        }
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
@@ -161,7 +164,7 @@ public class TestLob extends TestBase {
     }
 
     private void testLobDelete() throws SQLException {
-        if (config.memory) {
+        if (config.memory || SysProperties.LOB_IN_DATABASE) {
             return;
         }
         deleteDb("lob");

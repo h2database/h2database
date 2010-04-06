@@ -174,4 +174,8 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
         return thisType - otherType;
     }
 
+    public boolean isHidden() {
+        return table.isHidden();
+    }
+
 }

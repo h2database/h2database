@@ -972,12 +972,6 @@ public abstract class Table extends SchemaObjectBase {
         return column.convert(v);
     }
 
-    /**
-     * Check whether this is a hidden table that doesn't appear in the meta
-     * data and in the script.
-     *
-     * @return true if it is hidden
-     */
     public boolean isHidden() {
         return isHidden;
     }

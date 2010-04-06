@@ -137,15 +137,23 @@ public class ValueLob2 extends Value {
     }
 
     public void unlink() {
+        if (small == null && tableId != LobStorage.TABLE_ID_SESSION_VARIABLE) {
+            lobStorage.setTable(lobId, LobStorage.TABLE_ID_SESSION_VARIABLE);
+            tableId = LobStorage.TABLE_ID_SESSION_VARIABLE;
+        }
     }
 
     public Value link(DataHandler h, int tabId) {
-        int todo;
+        if (small == null) {
+            if (tabId != tableId) {
+                if (tableId != LobStorage.TABLE_ID_SESSION_VARIABLE) {
+                    throw DbException.throwInternalError();
+                }
+                lobStorage.setTable(lobId, tabId);
+                this.tableId = tabId;
+            }
+        }
         return this;
-    }
-
-    private int getNewObjectId(DataHandler h) {
-        return 0;
     }
 
     /**

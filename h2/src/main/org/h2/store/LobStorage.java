@@ -69,7 +69,6 @@ public class LobStorage {
         if (conn == null) {
             return;
         }
-        int todoDatabaseGetFirstUserTable;
         try {
             Statement stat = conn.createStatement();
             // stat.execute("SET UNDO_LOG 0");
@@ -101,8 +100,18 @@ public class LobStorage {
     public void removeAllForTable(int tableId) {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
-            int todo;
+            try {
+                PreparedStatement prep = prepare("SELECT ID FROM " + LOBS + " WHERE TABLE=?");
+                prep.setInt(1, tableId);
+                ResultSet rs = prep.executeQuery();
+                while (rs.next()) {
+                    deleteLob(rs.getLong(1));
+                }
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
             // remove both lobs in the database as well as in the file system
+            // (compatibility)
         }
         ValueLob.removeAllForTable(handler, tableId);
     }
@@ -453,6 +462,20 @@ public class LobStorage {
             return lob;
         }
         return ValueLob.createClob(reader, maxLength, handler);
+    }
+
+    public void setTable(long lobId, int table) {
+        try {
+            PreparedStatement prep = prepare("UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?");
+            prep.setInt(1, table);
+            prep.setLong(2, lobId);
+            int updateCount = prep.executeUpdate();
+            if (updateCount != 1) {
+                throw DbException.throwInternalError("count: " + updateCount);
+            }
+        } catch (SQLException e) {
+            throw DbException.convert(e);
+        }
     }
 
 }

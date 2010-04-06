@@ -62,7 +62,7 @@ public class DropDatabase extends DefineCommand {
             }
         }
         for (Table t : tables) {
-            if (t.getName() != null && Table.TABLE.equals(t.getTableType())) {
+            if (t.getName() != null && Table.TABLE.equals(t.getTableType()) && !t.isHidden()) {
                 db.removeSchemaObject(session, t);
             }
         }
@@ -75,6 +75,9 @@ public class DropDatabase extends DefineCommand {
         list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
         for (SchemaObject obj : list) {
+            if (obj.isHidden()) {
+                continue;
+            }
             db.removeSchemaObject(session, obj);
         }
         for (User user : db.getAllUsers()) {

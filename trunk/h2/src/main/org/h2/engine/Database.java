@@ -2034,7 +2034,8 @@ public class Database implements DataHandler {
     public Table getFirstUserTable() {
         for (Table table : getAllTablesAndViews(false)) {
             if (table.getCreateSQL() != null) {
-                if (SysProperties.LOB_IN_DATABASE && table.getSchema() == infoSchema) {
+                if (table.isHidden()) {
+                    // LOB tables
                     continue;
                 }
                 return table;

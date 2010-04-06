@@ -36,4 +36,8 @@ public abstract class SchemaObjectBase extends DbObjectBase implements SchemaObj
         return schema.getSQL() + "." + super.getSQL();
     }
 
+    public boolean isHidden() {
+        return false;
+    }
+
 }

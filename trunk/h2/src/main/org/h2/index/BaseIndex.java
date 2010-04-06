@@ -371,4 +371,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         throw DbException.getUnsupportedException(toString());
     }
 
+    public boolean isHidden() {
+        return table.isHidden();
+    }
+
 }

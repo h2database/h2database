@@ -19,4 +19,13 @@ public interface SchemaObject extends DbObject {
      * @return the schema
      */
     Schema getSchema();
+
+    /**
+     * Check whether this is a hidden object that doesn't appear in the meta
+     * data and in the script, and is not dropped on DROP ALL OBJECTS.
+     *
+     * @return true if it is hidden
+     */
+    boolean isHidden();
+
 }

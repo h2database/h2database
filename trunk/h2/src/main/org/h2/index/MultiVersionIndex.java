@@ -320,4 +320,8 @@ public class MultiVersionIndex implements Index {
         return base.getRow(session, key);
     }
 
+    public boolean isHidden() {
+        return base.isHidden();
+    }
+
 }

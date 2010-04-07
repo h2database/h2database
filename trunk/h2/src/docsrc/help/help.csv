@@ -1449,7 +1449,7 @@ CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
 "Other Grammar","Cipher","
 { AES | XTEA }
 ","
-Two algorithms are supported, AES (AES-256) and XTEA (using 32 rounds). The AES
+Two algorithms are supported, AES (AES-128) and XTEA (using 32 rounds). The AES
 algorithm is about half as fast as XTEA.
 ","
 AES

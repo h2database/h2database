@@ -161,17 +161,13 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
 The translation of this software is split into the following parts:
 </p>
 <ul>
-<li>H2 Console: <code>src/main/org/h2/server/web/res/_text_*.properties</code>
-</li><li>Error messages: <code>src/main/org/h2/res/_messages_*.properties</code>
-</li><li>Web site: <code>src/docsrc/text/_docs_*.utf8.txt</code>
+<li>H2 Console: <code>src/main/org/h2/server/web/res/_text_*.prop</code>
+</li><li>Error messages: <code>src/main/org/h2/res/_messages_*.prop</code>
 </li></ul>
 <p>
 To translate the H2 Console, start it and select Preferences / Translate.
-The conversion between UTF-8 and Java encoding (using the <code>\u</code> syntax),
-as well as the HTML entities (<code>&amp;#..;</code>)
-is automated by running the tool <code>PropertiesToUTF8</code>.
-The web site translation is automated as well,
-using <code>build docs</code>.
+After you are done, send the translated <code>*.prop</code> file to the Google Group.
+The web site is currently translated using Google.
 </p>
 
 <h2 id="providing_patches">Providing Patches</h2>

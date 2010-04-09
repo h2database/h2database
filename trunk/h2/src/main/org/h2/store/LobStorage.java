@@ -464,6 +464,12 @@ public class LobStorage {
         return ValueLob.createClob(reader, maxLength, handler);
     }
 
+    /**
+     * Set the table reference of this lob.
+     *
+     * @param lobId the lob
+     * @param table the table
+     */
     public void setTable(long lobId, int table) {
         try {
             PreparedStatement prep = prepare("UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?");

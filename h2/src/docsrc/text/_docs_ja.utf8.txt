@@ -1265,135 +1265,132 @@ Centralリポジトリの利用
 # The translation of this software is split into the following parts: 
 
 @build_1053_li
-#H2 Console: <code>src/main/org/h2/server/web/res/_text_*.properties</code> 
+#H2 Console: <code>src/main/org/h2/server/web/res/_text_*.prop</code> 
 
 @build_1054_li
-#Error messages: <code>src/main/org/h2/res/_messages_*.properties</code> 
+#Error messages: <code>src/main/org/h2/res/_messages_*.prop</code> 
 
-@build_1055_li
-#Web site: <code>src/docsrc/text/_docs_*.utf8.txt</code> 
+@build_1055_p
+# To translate the H2 Console, start it and select Preferences / Translate. After you are done, send the translated <code>*.prop</code> file to the Google Group. The web site is currently translated using Google. 
 
-@build_1056_p
-# To translate the H2 Console, start it and select Preferences / Translate. The conversion between UTF-8 and Java encoding (using the <code>\u</code> syntax), as well as the HTML entities (<code>&amp;#..;</code>) is automated by running the tool <code>PropertiesToUTF8</code>. The web site translation is automated as well, using <code>build docs</code>. 
-
-@build_1057_h2
+@build_1056_h2
 #Providing Patches
 
-@build_1058_p
+@build_1057_p
 # If you like to provide patches, please consider the following guidelines to simplify merging them: 
 
-@build_1059_li
+@build_1058_li
 #Only use Java 1.5 features (do not use Java 1.6) (see <a href="#environment">Environment</a>). 
 
-@build_1060_li
+@build_1059_li
 #Follow the coding style used in the project, and use Checkstyle (see above) to verify. For example, do not use tabs (use spaces instead). The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>. 
 
-@build_1061_li
+@build_1060_li
 #A template of the Eclipse settings are in <code>src/installer/eclipse.settings/*</code>. If you want to use them, you need to copy them to the <code>.settings</code> directory. The formatting options (<code>eclipseCodeStyle</code>) are also included. 
 
-@build_1062_li
+@build_1061_li
 #Please provide test cases and integrate them into the test suite. For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>. For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or <code>testSimple.in.txt</code>. 
 
-@build_1063_li
+@build_1062_li
 #The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above). or use the build target <code>coverage</code>. 
 
-@build_1064_li
+@build_1063_li
 #Verify that you did not break other features: run the test cases by executing <code>build test</code>. 
 
-@build_1065_li
+@build_1064_li
 #Provide end user documentation if required (<code>src/docsrc/html/*</code>). 
 
-@build_1066_li
+@build_1065_li
 #Document grammar changes in <code>src/docsrc/help/help.csv</code> 
 
-@build_1067_li
+@build_1066_li
 #Provide a change log entry (<code>src/docsrc/html/changelog.html</code>). 
 
-@build_1068_li
+@build_1067_li
 #Verify the spelling using <code>build spellcheck</code>. If required add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>. 
 
-@build_1069_li
+@build_1068_li
 #Run <code>src/installer/buildRelease</code> to find and fix formatting errors. 
 
-@build_1070_li
+@build_1069_li
 #Verify the formatting using <code>build docs</code> and <code>build javadoc</code>. 
 
-@build_1071_li
+@build_1070_li
 #Submit patches as <code>.patch</code> files (compressed if big). To create a patch using Eclipse, use Team / Create Patch. 
 
-@build_1072_p
+@build_1071_p
 # For legal reasons, patches need to be public in the form of an email to the <a href="http://groups.google.com/group/h2-database">group</a>, or in the form of an <a href="http://code.google.com/p/h2database/issues/list">issue report or attachment</a>. Significant contributions need to include the following statement: 
 
-@build_1073_p
+@build_1072_p
 # "I wrote the code, it's mine, and I'm contributing it to H2 for distribution multiple-licensed under the H2 License, version 1.0, and under the Eclipse Public License, version 1.0 (http://h2database.com/html/license.html)." 
 
-@build_1074_h2
+@build_1073_h2
 #Reporting Problems or Requests
 
-@build_1075_p
+@build_1074_p
 # Please consider the following checklist if you have a question, want to report a problem, or if you have a feature request: 
 
-@build_1076_li
+@build_1075_li
 #Feature requests are always welcome, even if the feature is already on the <a href="roadmap.html">roadmap</a>. Your mail will help prioritize feature requests. If you urgently need a feature, consider <a href="#providing_patches">providing a patch</a>. 
 
-@build_1077_li
+@build_1076_li
 #Before posting problems, check the <a href="faq.html">FAQ</a> and do a <a href="http://google.com">Google search</a>. 
 
-@build_1078_li
+@build_1077_li
 #When got an unexpected exception, please try the <a href="sourceError.html">Error Analyzer tool</a>. If this doesn't help, please report the problem, including the complete error message and stack trace, and the root cause stack trace(s). 
 
-@build_1079_li
+@build_1078_li
 #When sending source code, please use a public web clipboard such as <a href="http://pastebin.com">Pastebin</a>, <a href="http://cl1p.net">Cl1p</a>, or <a href="http://www.mysticpaste.com/new">Mystic Paste</a> to avoid formatting problems. Please keep test cases as simple and short as possible, but so that the problem can still be reproduced. As a template, use: <a href="http://h2database.googlecode.com/svn/trunk/h2/src/test/org/h2/samples/HelloWorld.java">HelloWorld.java</a>. Method that simply call other methods should be avoided, as well as unnecessary exception handling. Please use the JDBC API and no external tools or libraries. The test should include all required initialization code, and should be started with the main method. 
 
-@build_1080_li
+@build_1079_li
 #For large attachments, use a public temporary storage such as <a href="http://rapidshare.com">Rapidshare</a>. 
 
-@build_1081_li
+@build_1080_li
 #Google Group versus issue tracking: Use the <a href="http://groups.google.com/group/h2-database">Google Group</a> for questions or if you are not sure it's a bug. If you are sure it's a bug, you can create an <a href="http://code.google.com/p/h2database/issues/list">issue</a>, but you don't need to (sending an email to the group is enough). Please note that only few people monitor the issue tracking system. 
 
-@build_1082_li
+@build_1081_li
 #For out-of-memory problems, please analyze the problem yourself first, for example using the command line option <code>-XX:+HeapDumpOnOutOfMemoryError</code> and a memory analysis tool such as the <a href="http://www.eclipse.org/mat">Eclipse Memory Analyzer (MAT)</a>. 
 
-@build_1083_li
+@build_1082_li
 #It may take a few days to get an answers. Please do not double post. 
 
-@build_1084_h2
+@build_1083_h2
 #Automated Build
 
-@build_1085_p
+@build_1084_p
 # This build process is automated and runs regularly. The build process includes running the tests and code coverage, using the command line <code>./build.sh clean jar coverage -Dh2.ftpPassword=... uploadBuild</code>. The last results are available here: 
 
-@build_1086_a
+@build_1085_a
 #Test Output
 
-@build_1087_a
+@build_1086_a
 #Code Coverage Summary
 
-@build_1088_a
+@build_1087_a
 #Code Coverage Details (download, 1.3 MB)
 
-@build_1089_a
+@build_1088_a
 #Build Newsfeed
 
-@build_1090_a
+@build_1089_a
 #Latest Jar File (download, 1 MB)
 
-@build_1091_h2
+@build_1090_h2
 #Generating Railroad Diagrams
 
-@build_1092_p
+@build_1091_p
 # The railroad diagrams are HTML, formatted as nested tables. The diagrams are generated as follows: 
 
-@build_1093_li
+@build_1092_li
 #The BNF parser (<code>org.h2.bnf.Bnf</code>) reads and parses the BNF from the file <code>help.csv</code>. 
 
-@build_1094_li
+@build_1093_li
 #The page parser (<code>org.h2.server.web.PageParser</code>) reads the template HTML file and fills in the diagrams. 
 
-@build_1095_li
+@build_1094_li
 #The rail images (one straight, four junctions, two turns) are generated using a simple Java application. 
 
-@build_1096_p
+@build_1095_p
 # To generate railroad diagrams for other grammars, see the package <code>org.h2.jcr</code>. This package is used to generate the SQL-2 railroad diagrams for the JCR 2.0 specification. 
 
 @changelog_1000_h1
@@ -3059,7 +3056,7 @@ ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
 #For server mode connections, user passwords are never transmitted in plain text over the network (even when using insecure connections; this only applies to the TCP server and not to the H2 Console however; it also doesn't apply if you set the password in the database URL) 
 
 @features_1065_li
-#All database files (including script files that can be used to backup data) can be encrypted using AES-256 and XTEA encryption algorithms 
+#All database files (including script files that can be used to backup data) can be encrypted using AES-128 and XTEA encryption algorithms 
 
 @features_1066_li
 #The remote JDBC driver supports TCP/IP connections over SSL/TLS 
@@ -4868,87 +4865,90 @@ H2 データベース エンジン
 # Many thanks for those who reported bugs, gave valuable feedback, spread the word, and translated this project. Also many thanks to the donors who contributed via PayPal: 
 
 @history_1025_a
-#NetSuxxess GmbH, Germany
+#Code 42 Software, Inc., Minneapolis
 
 @history_1026_a
-#Poker Copilot, Steve McLeod, Germany
+#NetSuxxess GmbH, Germany
 
 @history_1027_a
-#SkyCash, Poland
+#Poker Copilot, Steve McLeod, Germany
 
 @history_1028_a
+#SkyCash, Poland
+
+@history_1029_a
 #Lumber-mill, Inc., Japan
 
-@history_1029_li
+@history_1030_li
 #Martin Wildam, Austria 
 
-@history_1030_li
+@history_1031_li
 #Donald Bleyl, USA 
 
-@history_1031_li
+@history_1032_li
 #Frank Berger, Germany 
 
-@history_1032_li
+@history_1033_li
 #Ashwin Jayaprakash, USA 
 
-@history_1033_li
+@history_1034_li
 #Florent Ramiere, France 
 
-@history_1034_li
+@history_1035_li
 #Jun Iyama, Japan 
 
-@history_1035_li
+@history_1036_li
 #Antonio Casqueiro, Portugal 
 
-@history_1036_li
+@history_1037_li
 #Oliver Computing LLC, USA 
 
-@history_1037_li
+@history_1038_li
 #Harpal Grover Consulting Inc., USA 
 
-@history_1038_li
+@history_1039_li
 #Elisabetta Berlini, Italy 
 
-@history_1039_li
+@history_1040_li
 #William Gilbert, USA 
 
-@history_1040_li
+@history_1041_li
 #Antonio Dieguez Rojas, Chile 
 
-@history_1041_a
+@history_1042_a
 #Ontology Works, USA
 
-@history_1042_li
+@history_1043_li
 #Pete Haidinyak, USA 
 
-@history_1043_li
+@history_1044_li
 #William Osmond, USA 
 
-@history_1044_li
+@history_1045_li
 #Joachim Ansorg, Germany 
 
-@history_1045_li
+@history_1046_li
 #Oliver Soerensen, Germany 
 
-@history_1046_li
+@history_1047_li
 #Christos Vasilakis, Greece 
 
-@history_1047_li
+@history_1048_li
 #Fyodor Kupolov, Denmark 
 
-@history_1048_li
+@history_1049_li
 #Jakob Jenkov, Denmark 
 
-@history_1049_li
+@history_1050_li
 #St&eacute;phane Chartrand, Switzerland 
 
-@history_1050_li
+@history_1051_li
 #Glenn Kidd, USA 
 
-@history_1051_li
+@history_1052_li
 #Gustav Trede, Sweden 
 
-@history_1052_li
+@history_1053_li
 #Joonas Pulakka, Finland 
 
 @installation_1000_h1
@@ -8018,7 +8018,7 @@ MySQL
 # See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries that benefit from special optimizations built into the database. 
 
 @performance_1435_h3
-#Cache Size and Type #データ型
+#Cache Size and Type
 
 @performance_1436_p
 # By default the cache size of H2 is quite small. Consider using a larger cache size, or enable the second level soft reference cache. See also <a href="features.html#cache_settings">Cache Settings</a>. 

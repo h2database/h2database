@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.133 (2010-04-10)</h2>
 <ul><li>A new experimental LOB storage mechanism is available.
     When enabled, CLOB and BLOB data is stored in hidden tables in the database.
     To use it, set the system property "h2.lobInDatabase" to "true".
@@ -43,7 +47,7 @@ Change Log
     "object already exists: TABLES"
 </li><li>Comparison of integer columns against float numbers was not always correct. Issue 182.
 </li><li>H2 Console: Editing the result of a multi-line queries failed. Issue 183.
-</li><li>H2 Console: if the settings file (.h2.properties) can't be accessed, the exception is ignored.
+</li><li>H2 Console: if the settings file (.h2.properties) can't be accessed, the exception is now ignored.
 </li></ul>
 
 <h2>Version 1.2.132 (2010-03-21)</h2>
@@ -602,26 +606,6 @@ Change Log
     Enabling the second level cache reduces performance for
     small databases, but speeds up large databases. It makes sense to use it
     if the available memory size is unknown. Thanks a lot to Jan Kotek!
-</li></ul>
-
-<h2>Version 1.1.112 (2009-05-01)</h2>
-<ul><li>JdbcPreparedStatement.toString() could throw a NullPointerException.
-</li><li>EclipseLink: added H2Platform.supportsIdentity().
-</li><li>Connection pool: the default login timeout is now 5 minutes.
-</li><li>After truncating tables, opening large databases could become slow
-    because indexes were always re-built unnecessarily when opening.
-</li><li>More bugs in the server-less multi-connection mode have been fixed:
-    Sometimes parameters of prepared statements were lost when a reconnecting.
-    Concurrent read operations were slow.
-    To improve performance, executeQuery(..) must be used for queries
-    (execute(..) switches to the write mode, which is slow).
-</li><li>GROUP BY queries with a self-join (join to the same table) that were grouped by
-    columns with indexes returned the wrong result in some cases.
-</li><li>Improved error message when the .lock.db file modification time is in the future.
-</li><li>The MERGE statement now returns 0 as the generated key if the row was updated.
-</li><li>Running code coverage is now automated.
-</li><li>A file system implementation can now be registered using FileSystem.register.
-</li><li>The database file system is no longer included in the jar file, it moved to the test section.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

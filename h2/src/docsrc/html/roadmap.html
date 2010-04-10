@@ -181,6 +181,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support updatable views with join on primary keys (to extend a table)
 </li><li>Public interface for functions (not public static)
 </li><li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
+</li><li>Support reading the transaction log.
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index
@@ -240,6 +241,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Sequence: PostgreSQL compatibility (rename, create) http://www.postgresql.org/docs/8.2/static/sql-altersequence.html
 </li><li>DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
+</li><li>Support a special trigger on all tables to allow building a transaction log reader.
 </li><li>File system with a background writer thread; test if this is faster
 </li><li>Better document the source code
 </li><li>Support select * from dual a left join dual b on b.x=(select max(x) from dual)
@@ -343,7 +345,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Docs: add a one line description for each functions and SQL statements at the top (in the link section).
 </li><li>Javadoc search: weight for titles should be higher ('random' should list Functions as the best match).
 </li><li>Replace information_schema tables with regular tables that are automatically re-built when needed. Use indexes.
-</li><li>Support a special trigger on all tables.
 </li><li>Delete temporary files or objects using finalize.
 </li><li>Oracle compatibility: support calling 0-parameters functions without parenthesis. Make constants obsolete.
 </li><li>MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL)
@@ -481,6 +482,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>IBM DB2 compatibility: NOT NULL WITH DEFAULT. Similar to MySQL Mode.convertInsertNullToZero.
 </li><li>Creating primary key: always create a constraint.
 </li><li>Support a data type "timestamp with timezone" using java.util.Calendar.
+</li><li>Maybe use a different page layout: keep the data at the head of the page, and ignore the tail
+    (don't store / read it). This may increase write / read performance depending on the file system.
 </li></ul>
 
 <h2>Not Planned</h2>

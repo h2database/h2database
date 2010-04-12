@@ -129,7 +129,7 @@ public class Database implements DataHandler {
     private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
     private int maxMemoryUndo = SysProperties.DEFAULT_MAX_MEMORY_UNDO;
     private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
-    private int maxLengthInplaceLob = SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB;
+    private int maxLengthInplaceLob;
     private int allowLiterals = Constants.ALLOW_LITERALS_ALL;
 
     private int powerOffCount = initialPowerOffCount;
@@ -173,6 +173,8 @@ public class Database implements DataHandler {
         this.filePasswordHash = ci.getFilePasswordHash();
         this.databaseName = name;
         this.databaseShortName = parseDatabaseShortName();
+        this.maxLengthInplaceLob = SysProperties.LOB_IN_DATABASE ?
+                SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB2 : SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
         String lockMethodName = ci.getProperty("FILE_LOCK", null);
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();

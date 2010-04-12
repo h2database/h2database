@@ -292,11 +292,15 @@ java org.h2.test.TestAll timer
 
 
         int testing;
-//        System.setProperty("h2.lobInDatabase", "true");
+        System.setProperty("h2.lobInDatabase", "true");
 
 /*
 
+new lob storage: test compression
+new lob storage: test in-place storage (old and new)
+
 power failure test
+power failure test: MULTI_THREADED=TRUE
 power failure test: larger binaries and additional index.
 power failure test with randomly generating / dropping indexes and tables.
 

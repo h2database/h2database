@@ -176,6 +176,14 @@ public class SysProperties {
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = getIntSetting("h2.defaultMaxLengthInplaceLob", 4096);
 
     /**
+     * System property <code>h2.defaultMaxLengthInplaceLob2</code>
+     * (default: 128).<br />
+     * The default maximum length of an LOB that is stored with the record itself.
+     * Only used if h2.lobInDatabase is enabled.
+     */
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB2 = getIntSetting("h2.defaultMaxLengthInplaceLob2", 128);
+
+    /**
      * System property <code>h2.defaultResultSetConcurrency</code> (default:
      * ResultSet.CONCUR_READ_ONLY).<br />
      * The default result set concurrency for statements created with

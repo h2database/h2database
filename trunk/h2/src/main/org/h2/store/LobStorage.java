@@ -16,10 +16,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -47,8 +49,9 @@ public class LobStorage {
     private static final long UNIQUE = 0xffff;
     private Connection conn;
     private HashMap<String, PreparedStatement> prepared = New.hashMap();
-    private long nextLob;
+    private AtomicLong nextLob = new AtomicLong();
     private long nextBlock;
+    private CompressTool compress = CompressTool.getInstance();
 
     private final DataHandler handler;
     private boolean init;
@@ -76,17 +79,17 @@ public class LobStorage {
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, LENGTH BIGINT, TABLE INT) HIDDEN");
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
             stat.execute("CREATE INDEX IF NOT EXISTS INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
-            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, DATA BINARY) HIDDEN");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
             ResultSet rs;
             rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
             rs.next();
             nextBlock = rs.getLong(1) + 1;
             if (HASH) {
-                nextBlock = Math.max(UNIQUE + 1, nextLob);
+                nextBlock = Math.max(UNIQUE + 1, nextLob.get());
             }
             rs = stat.executeQuery("SELECT MAX(ID) FROM " + LOBS);
             rs.next();
-            nextLob = rs.getLong(1) + 1;
+            nextLob.set(rs.getLong(1) + 1);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
@@ -125,7 +128,13 @@ public class LobStorage {
      */
     public static Value createSmallLob(int type, byte[] small) {
         if (SysProperties.LOB_IN_DATABASE) {
-            return ValueLob2.createSmallLob(type, small);
+            int precision;
+            if (type == Value.CLOB) {
+                precision = StringUtils.utf8Decode(small).length();
+            } else {
+                precision = small.length;
+            }
+            return ValueLob2.createSmallLob(type, small, precision);
         }
         return ValueLob.createSmallLob(type, small);
     }
@@ -142,6 +151,7 @@ public class LobStorage {
         private long remaining;
         private long lob;
         private int seq;
+        private CompressTool compress;
 
         public LobInputStream(Connection conn, long lob) throws IOException {
             this.conn = conn;
@@ -152,7 +162,7 @@ public class LobStorage {
                 prep.setLong(1, lob);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
-                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "lob: "+ lob + " seq: " + seq).getSQLException();
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob: "+ lob).getSQLException();
                 }
                 remaining = rs.getLong(1);
                 rs.close();
@@ -210,7 +220,7 @@ public class LobStorage {
             try {
                 if (prepSelect == null) {
                     prepSelect = conn.prepareStatement(
-                        "SELECT DATA FROM " + LOB_MAP + " M " +
+                        "SELECT COMPRESSED, DATA FROM " + LOB_MAP + " M " +
                         "INNER JOIN " + LOB_DATA + " D ON M.BLOCK = D.BLOCK " +
                         "WHERE M.LOB = ? AND M.SEQ = ?");
                 }
@@ -218,10 +228,17 @@ public class LobStorage {
                 prepSelect.setInt(2, seq);
                 ResultSet rs = prepSelect.executeQuery();
                 if (!rs.next()) {
-                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "lob: "+ lob + " seq: " + seq).getSQLException();
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry: "+ lob + "/" + seq).getSQLException();
                 }
                 seq++;
-                buffer = rs.getBytes(1);
+                int compressed = rs.getInt(1);
+                buffer = rs.getBytes(2);
+                if (compressed != 0) {
+                    if (compress == null) {
+                        compress = CompressTool.getInstance();
+                    }
+                    buffer = compress.expand(buffer);
+                }
                 pos = 0;
             } catch (SQLException e) {
                 throw DbException.convertToIOException(e);
@@ -273,14 +290,15 @@ public class LobStorage {
     }
 
     private ValueLob2 addLob(InputStream in, long maxLength, int type) {
-        int todo;
-        // TODO support in-place lobs, and group lobs much smaller than the page size
         byte[] buff = new byte[BLOCK_LENGTH];
         if (maxLength < 0) {
             maxLength = Long.MAX_VALUE;
         }
         long length = 0;
-        long lobId = nextLob++;
+        long lobId;
+        lobId = nextLob.getAndIncrement();
+        int maxLengthInPlaceLob = handler.getMaxLengthInplaceLob();
+        String compressAlgorithm = handler.getLobCompressionAlgorithm(type);
         try {
             try {
                 for (int seq = 0; maxLength > 0; seq++) {
@@ -298,40 +316,12 @@ public class LobStorage {
                     } else {
                         b = buff;
                     }
-                    long block;
-                    boolean blockExists = false;
-                    if (HASH) {
-                        block = Arrays.hashCode(b) & UNIQUE;
-                        int todoSynchronize;
-                        PreparedStatement prep = prepare(
-                                "SELECT DATA FROM " + LOB_DATA +
-                                " WHERE BLOCK = ?");
-                        prep.setLong(1, block);
-                        ResultSet rs = prep.executeQuery();
-                        if (rs.next()) {
-                            byte[] compare = rs.getBytes(1);
-                            if (Arrays.equals(b, compare)) {
-                                blockExists = true;
-                            } else {
-                                block = nextBlock++;
-                            }
-                        }
-                    } else {
-                        block = nextBlock++;
+                    if (seq == 0 && b.length < BLOCK_LENGTH && b.length <= maxLengthInPlaceLob) {
+                        // CLOB: the precision will be fixed later
+                        ValueLob2 v = ValueLob2.createSmallLob(type, b, b.length);
+                        return v;
                     }
-                    if (!blockExists) {
-                        PreparedStatement prep = prepare(
-                                "INSERT INTO " + LOB_DATA + "(BLOCK, DATA) VALUES(?, ?)");
-                        prep.setLong(1, block);
-                        prep.setBytes(2, b);
-                        prep.execute();
-                    }
-                    PreparedStatement prep = prepare(
-                            "INSERT INTO " + LOB_MAP + "(LOB, SEQ, BLOCK) VALUES(?, ?, ?)");
-                    prep.setLong(1, lobId);
-                    prep.setInt(2, seq);
-                    prep.setLong(3, block);
-                    prep.execute();
+                    storeBlock(lobId, seq, b, compressAlgorithm);
                 }
                 PreparedStatement prep = prepare(
                         "INSERT INTO " + LOBS + "(ID, LENGTH, TABLE) VALUES(?, ?, ?)");
@@ -348,6 +338,47 @@ public class LobStorage {
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
+    }
+
+    synchronized void storeBlock(long lobId, int seq, byte[] b, String compressAlgorithm) throws SQLException {
+        long block;
+        boolean blockExists = false;
+        if (compressAlgorithm != null) {
+            b = compress.compress(b, compressAlgorithm);
+        }
+        if (HASH) {
+            block = Arrays.hashCode(b) & UNIQUE;
+            PreparedStatement prep = prepare(
+                    "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
+                    " WHERE BLOCK = ?");
+            prep.setLong(1, block);
+            ResultSet rs = prep.executeQuery();
+            if (rs.next()) {
+                boolean compressed = rs.getInt(1) != 0;
+                byte[] compare = rs.getBytes(2);
+                if (Arrays.equals(b, compare) && compressed == (compressAlgorithm != null)) {
+                    blockExists = true;
+                } else {
+                    block = nextBlock++;
+                }
+            }
+        } else {
+            block = nextBlock++;
+        }
+        if (!blockExists) {
+            PreparedStatement prep = prepare(
+                    "INSERT INTO " + LOB_DATA + "(BLOCK, COMPRESSED, DATA) VALUES(?, ?, ?)");
+            prep.setLong(1, block);
+            prep.setInt(2, compressAlgorithm == null ? 0 : 1);
+            prep.setBytes(3, b);
+            prep.execute();
+        }
+        PreparedStatement prep = prepare(
+                "INSERT INTO " + LOB_MAP + "(LOB, SEQ, BLOCK) VALUES(?, ?, ?)");
+        prep.setLong(1, lobId);
+        prep.setInt(2, seq);
+        prep.setLong(3, block);
+        prep.execute();
     }
 
     /**

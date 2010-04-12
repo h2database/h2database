@@ -54,16 +54,10 @@ public class ValueLob2 extends Value {
         this.precision = precision;
     }
 
-    private ValueLob2(int type, byte[] small) {
+    private ValueLob2(int type, byte[] small, long precision) {
         this.type = type;
         this.small = small;
-        if (small != null) {
-            if (type == Value.BLOB) {
-                this.precision = small.length;
-            } else {
-                this.precision = getString().length();
-            }
-        }
+        this.precision = precision;
     }
 
     /**
@@ -87,8 +81,8 @@ public class ValueLob2 extends Value {
      * @param small the byte array
      * @return the lob value
      */
-    public static ValueLob2 createSmallLob(int type, byte[] small) {
-        return new ValueLob2(type, small);
+    public static ValueLob2 createSmallLob(int type, byte[] small, long precision) {
+        return new ValueLob2(type, small, precision);
     }
 
     /**
@@ -384,9 +378,9 @@ public class ValueLob2 extends Value {
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = StringUtils.utf8Encode(new String(buff, 0, len));
-                return ValueLob2.createSmallLob(Value.CLOB, small);
+                return ValueLob2.createSmallLob(Value.CLOB, small, len);
             }
-            ValueLob2 lob = new ValueLob2(Value.CLOB, null);
+            ValueLob2 lob = new ValueLob2(Value.CLOB, null, 0);
             lob.createTempFromReader(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {
@@ -421,9 +415,9 @@ public class ValueLob2 extends Value {
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = Utils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
-                return ValueLob2.createSmallLob(Value.BLOB, small);
+                return ValueLob2.createSmallLob(Value.BLOB, small, small.length);
             }
-            ValueLob2 lob = new ValueLob2(Value.BLOB, null);
+            ValueLob2 lob = new ValueLob2(Value.BLOB, null, 0);
             lob.createTempFromStream(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {

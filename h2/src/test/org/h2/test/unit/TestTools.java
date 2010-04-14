@@ -672,6 +672,16 @@ public class TestTools extends TestBase {
         } catch (SQLException e) {
             // ignore
         }
+        // Test filesystem prefix
+        deleteDb("testsplit");
+        server = Server.createTcpServer(
+                        "-baseDir", baseDir,
+                        "-tcpPort", "9192",
+                        "-tcpAllowOthers").start();
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/split:testsplit", "sa", "");
+        conn.close();
+        server.stop();
+        deleteDb("testsplit");
     }
 
 }

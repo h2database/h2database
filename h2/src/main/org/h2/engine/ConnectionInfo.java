@@ -131,8 +131,17 @@ public class ConnectionInfo implements Cloneable {
      */
     public void setBaseDir(String dir) {
         if (persistent) {
-            if (!name.startsWith("~")) {
-                name = dir + SysProperties.FILE_SEPARATOR + name;
+            String fileSystemPrefix = "";
+            int colonIndex = name.lastIndexOf(':');
+            if (colonIndex != -1) {
+                // cut "split:" and similar things
+                fileSystemPrefix = name.substring(0, colonIndex+1);
+                name = name.substring(colonIndex+1);
+            }
+            if (name.startsWith("~")) {
+                name = fileSystemPrefix + name;
+            } else {
+                name = fileSystemPrefix + dir + SysProperties.FILE_SEPARATOR + name;
             }
         }
     }

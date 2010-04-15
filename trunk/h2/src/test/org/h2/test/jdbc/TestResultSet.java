@@ -54,6 +54,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testBeforeFirstAfterLast();
         testParseSpecialValues();
         testSpecialLocale();
         testSubstringPrecision();
@@ -86,6 +87,31 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+    
+    private void testBeforeFirstAfterLast() throws SQLException {
+        stat.executeUpdate("create table test(id int)");
+        stat.executeUpdate("insert into test values(1)");
+        // With a result
+        ResultSet rs = stat.executeQuery("select * from test");        
+        assertTrue(rs.isBeforeFirst());
+        assertFalse(rs.isAfterLast());
+        rs.next();
+        assertFalse(rs.isBeforeFirst());
+        assertFalse(rs.isAfterLast());
+        rs.next();
+        assertFalse(rs.isBeforeFirst());
+        assertTrue(rs.isAfterLast());
+        rs.close();
+        // With no result
+        rs = stat.executeQuery("select * from test where 1 = 2");        
+        assertFalse(rs.isBeforeFirst());
+        assertFalse(rs.isAfterLast());
+        rs.next();
+        assertFalse(rs.isBeforeFirst());
+        assertFalse(rs.isAfterLast());
+        rs.close();
+        stat.execute("drop table test");
     }
 
     private void testParseSpecialValues() throws SQLException {

@@ -2429,14 +2429,16 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * Checks if the current position is before the first row, that means next()
      * was not called yet.
      *
-     * @return if the current position is before the first row
+     * @return if there are results and the current position is before the first row
      * @throws SQLException if the result set is closed
      */
     public boolean isBeforeFirst() throws SQLException {
         try {
             debugCodeCall("isBeforeFirst");
             checkClosed();
-            return result.getRowId() < 0;
+            int row = result.getRowId();
+            int count = result.getRowCount();
+            return count > 0 && row < 0;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2446,7 +2448,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * Checks if the current position is after the last row, that means next()
      * was called and returned false.
      *
-     * @return if the current position is after the last row
+     * @return if there are results and the current position is after the last row
      * @throws SQLException if the result set is closed
      */
     public boolean isAfterLast() throws SQLException {
@@ -2455,7 +2457,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             checkClosed();
             int row = result.getRowId();
             int count = result.getRowCount();
-            return row >= count || count == 0;
+            return count > 0 && row >= count;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

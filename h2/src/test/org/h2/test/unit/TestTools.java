@@ -672,7 +672,7 @@ public class TestTools extends TestBase {
         } catch (SQLException e) {
             // ignore
         }
-        // Test filesystem prefix
+        // Test filesystem prefix and escape from baseDir
         deleteDb("testsplit");
         server = Server.createTcpServer(
                         "-baseDir", baseDir,
@@ -680,6 +680,14 @@ public class TestTools extends TestBase {
                         "-tcpAllowOthers").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/split:testsplit", "sa", "");
         conn.close();
+        
+        try {
+            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
+            fail("Should throw an exception!");
+        } catch (Throwable e) {
+            // Expected
+        }
+        
         server.stop();
         deleteDb("testsplit");
     }

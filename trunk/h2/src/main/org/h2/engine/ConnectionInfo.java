@@ -6,6 +6,7 @@
  */
 package org.h2.engine;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -137,6 +138,19 @@ public class ConnectionInfo implements Cloneable {
                 // cut "split:" and similar things
                 fileSystemPrefix = name.substring(0, colonIndex+1);
                 name = name.substring(colonIndex+1);
+            }
+            String testDbFilename;
+            if (name.startsWith("~")) {
+                testDbFilename = System.getProperty("user.home") + SysProperties.FILE_SEPARATOR + name.substring(1);
+            } else {
+                testDbFilename = dir + SysProperties.FILE_SEPARATOR + name;
+            }
+
+            File dbFile = new File(testDbFilename);
+            File baseDirFile = new File(dir);
+            if (!Utils.isInDir(dbFile, baseDirFile)) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, dbFile.getAbsolutePath() + " outside " +
+                        baseDirFile.getAbsolutePath());
             }
             if (name.startsWith("~")) {
                 name = fileSystemPrefix + name;

@@ -960,8 +960,9 @@ the TCP server, or the PG server. Remote access can be enabled using the command
 options <code>-webAllowOthers, -tcpAllowOthers, -pgAllowOthers</code>.
 If you enable remote access, please also consider using the options
 <code>-baseDir, -ifExists</code>, so that remote
-users can not create new databases or access existing databases with weak passwords. Also,
-ensure the existing accessible databases are protected using a strong password.
+users can not create new databases or access existing databases with weak passwords. 
+When using the option <code>-baseDir</code>, only databases within that directory may be accessed.
+Ensure the existing accessible databases are protected using strong passwords.
 </p>
 
 <h2 id="restricting_classes">Restricting Class Loading and Usage</h2>

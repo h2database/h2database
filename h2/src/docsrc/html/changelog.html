@@ -25,8 +25,8 @@ Change Log
 </li><li>The functions isBeforeFirst() and isAfterLast() were not compliant to the
     JDBC spec. If the ResultSet contains no rows, they must return false. Fixed.
 </li><li>Filesystem parameters like "split:" didn't work in server mode with baseDir set.
-</li><li>If baseDir is set, and a database name is given which points to a directory above
-    (eg. "../dbname"), an exception is thrown.
+</li><li>If baseDir is set, and a database name is given which points to a directory outside
+    the baseDir (eg. "../dbname"), an exception is thrown.
 </li></ul>
 
 <h2>Version 1.2.133 (2010-04-10)</h2>

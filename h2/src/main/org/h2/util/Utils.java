@@ -8,7 +8,6 @@ package org.h2.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -529,27 +528,6 @@ public class Utils {
         } catch (IOException e) {
             // if this happens we have a real problem
             e.printStackTrace();
-        }
-    }
-    
-    /**
-     * Checks if a file is below a given directory
-     *
-     * @param file the file to check
-     * @param dir the directory the file must be in
-     * @return true if the file is below the directory
-     */
-    public static boolean isInDir(File file, File dir) {
-        try {
-            String canonicalFilename = file.getCanonicalPath();
-            String canonicalDirname = dir.getCanonicalPath();
-            if (canonicalFilename.equals(canonicalDirname)) {
-                // the file is the dir => not allowed (file "../test" in dir "test")
-                return false;
-            }
-            return canonicalFilename.startsWith(canonicalDirname);
-        } catch (IOException e) {
-            return false;
         }
     }
 

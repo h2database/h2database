@@ -691,4 +691,25 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Checks if a file is below a given directory
+     *
+     * @param file the file to check
+     * @param dir the directory the file must be in
+     * @return true if the file is within the directory
+     */
+    public static boolean isInDir(File file, File dir) {
+        try {
+            String canonicalFileName = file.getCanonicalPath();
+            String canonicalDirName = dir.getCanonicalPath();
+            if (canonicalFileName.equals(canonicalDirName)) {
+                // the file is the directory: not allowed (file "../test" in dir "test")
+                return false;
+            }
+            return canonicalFileName.startsWith(canonicalDirName);
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
 }

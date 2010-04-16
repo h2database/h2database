@@ -2427,7 +2427,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Checks if the current position is before the first row, that means next()
-     * was not called yet.
+     * was not called yet, and there is at least one row.
      *
      * @return if there are results and the current position is before the first row
      * @throws SQLException if the result set is closed
@@ -2446,7 +2446,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Checks if the current position is after the last row, that means next()
-     * was called and returned false.
+     * was called and returned false, and there was at least one row.
      *
      * @return if there are results and the current position is after the last row
      * @throws SQLException if the result set is closed

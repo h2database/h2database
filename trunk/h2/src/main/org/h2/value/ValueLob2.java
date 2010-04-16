@@ -79,6 +79,7 @@ public class ValueLob2 extends Value {
      *
      * @param type the type (Value.BLOB or CLOB)
      * @param small the byte array
+     * @param precision the precision
      * @return the lob value
      */
     public static ValueLob2 createSmallLob(int type, byte[] small, long precision) {

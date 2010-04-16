@@ -340,6 +340,14 @@ public class LobStorage {
         }
     }
 
+    /**
+     * Store a block in the LOB storage.
+     *
+     * @param lobId the lob id
+     * @param seq the sequence number
+     * @param b the data
+     * @param compressAlgorithm the compression algorithm (may be null)
+     */
     synchronized void storeBlock(long lobId, int seq, byte[] b, String compressAlgorithm) throws SQLException {
         long block;
         boolean blockExists = false;

@@ -18,6 +18,8 @@ Tutorial
 <h1>Tutorial</h1>
 <a href="#tutorial_starting_h2_console">
     Starting and Using the H2 Console</a><br />
+<a href="#console_syntax">
+    Special H2 Console Syntax</a><br />
 <a href="#console_settings">
     Settings of the H2 Console</a><br />
 <a href="#connecting_using_jdbc">
@@ -227,6 +229,168 @@ navigate to [Preferences] and click [Shutdown],
 press [Ctrl]+[C] in the console where the server was started (Windows),
 or close the console window.
 </p>
+
+<h2 id="console_settings">Special H2 Console Syntax</h2>
+<p>
+The H2 Console supports a few built-in commands.
+Those are interpreted within the H2 Console, that means they work with any database.
+They need to be at the beginning of a statement (before any remarks), 
+otherwise they are not parsed correctly. If in doubt, add ';' before the command.
+</p>
+<table>
+    <tr>
+        <th>Command(s)</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @autocommit_true;<br />
+            @autocommit_false;
+        </td>
+        <td>
+            Enable or disable autocommit.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @cancel;
+        </td>
+        <td>
+            Cancel the currently running statement.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @columns null null TEST;<br />
+            @index_info&nbsp;null&nbsp;null&nbsp;TEST;<br />
+            @tables;<br />
+            @tables null null TEST;<br />
+        </td>
+        <td>
+            Call the corresponding DatabaseMetaData.get method. 
+            Patterns are case sensitive (usually identifiers are uppercase).
+            For information about the parameters, see the Javadoc documentation.
+            Missing parameters at the end are set to null. The complete list of commands is:
+            <code>
+            @attributes @best_row_identifier @catalogs @columns 
+            @column_privileges @cross_references @exported_keys 
+            @imported_keys @index_info  @primary_keys @procedures 
+            @procedure_columns @schemas @super_tables @super_types
+            @tables @table_privileges @table_types @type_info @udts 
+            @version_columns 
+            </code> 
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @edit select * from test;
+        </td>
+        <td>
+            Use an updatable result set.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @generated&nbsp;insert&nbsp;into&nbsp;test()&nbsp;values();
+        </td>
+        <td>
+            Show the result of <code>Statement.getGeneratedKeys()</code>.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @history;
+        </td>
+        <td>
+            Show the command history.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @info;
+        </td>
+        <td>
+            Display the result of various <code>Connection</code> and <code>DatabaseMetaData</code> methods.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @list select * from test;
+        </td>
+        <td>
+            Show the result set in list format (each column on its own line, with row numbers).
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @loop 1000 select ?, ?/*rnd*/;<br />
+            @loop 1000 @statement select ?;
+        </td>
+        <td>
+            Run the statement this many times. 
+            Parameters (<code>?</code>) are set using a loop from 0 up to x - 1. 
+            Random values are used for each <code>?/*rnd*/</code>.
+            A Statement object is used instead of a PreparedStatement if <code>@statement</code> is used.        
+            Result sets are read until <code>ResultSet.next()</code> returns <code>false</code>.
+            Timing information is printed.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @maxrows&nbsp;20;
+        </td>
+        <td>
+            Set the maximum number of rows to display.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @memory;
+        </td>
+        <td>
+            Show the used and free memory. This will call <code>System.gc()</code>.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @meta&nbsp;select&nbsp;1;
+        </td>
+        <td>
+            List the <code>ResultSetMetaData</code> after running the query.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @parameter_meta&nbsp;select&nbsp;?;
+        </td>
+        <td>
+            Show the result of the <code>PreparedStatement.getParameterMetaData()</code> calls.
+            The statement is not executed.
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @prof_start;<br />
+            call&nbsp;hash('SHA256',&nbsp;'',&nbsp;1000000);<br />
+            @prof_stop;
+        </td>
+        <td>
+            Start / stop the built-in profiling tool.
+            The top 3 stack traces of the statement(s) between start and stop are listed
+            (if there are 3).
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
+            @transaction_isolation;<br />
+            @transaction_isolation&nbsp;2;
+        </td>
+        <td>
+            Display (without parameters) or change 
+            (with parameters 1, 2, 4, 8) the transaction isolation level.
+        </td>
+    </tr>
+</table>
 
 <h2 id="console_settings">Settings of the H2 Console</h2>
 <p>

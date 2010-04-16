@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Queries with DISTINCT and ORDER BY will now use the index on ORDER BY if possible.
+<ul><li>H2 Console: the built-in commands are now documented.
+</li><li>REPLACE: if any parameter is null, the result is null.
+</li><li>Queries with DISTINCT and ORDER BY will now use the index on ORDER BY if possible.
     This is specially important for queries used inside IN(SELECT ...).
 </li><li>The new statement EXPLAIN ANALYZE executes the statement, 
     and displays the query plan with the actual row scan count for each table.

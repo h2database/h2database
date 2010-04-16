@@ -2756,6 +2756,7 @@ REGEXP_REPLACE(inputString, regexString, replacementString)
 ","
 Replaces each substring that matches a regular expression.
 For details, see the Java String.replaceAll() method.
+If any parameter is null, the result is null.
 ","
 REGEXP_REPLACE('Hello    World', ' +', ' ')
 "
@@ -2773,6 +2774,7 @@ REPLACE(string, searchString [, replacementString])
 ","
 Replaces all occurrences of a search string in a text with another string.
 If no replacement is specified, the search string is removed from the original string.
+If any parameter is null, the result is null.
 ","
 REPLACE(NAME, ' ')
 "

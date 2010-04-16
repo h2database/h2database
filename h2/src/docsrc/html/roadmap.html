@@ -22,6 +22,10 @@ Of course, patches are always welcome, but are not always applied as is.
 See also <a href="build.html#providing_patches">Providing Patches</a>.
 </p>
 
+<h2>Version 1.3.x: Planned Changes</h2>
+<ul><li>Lob storage: enable the system property h2.lobInDatabase by default.
+</li></ul>
+
 <h2>Priority 1</h2>
 <ul><li>Bugfixes
 </li><li>Support very large transactions. Reduce memory usage of undo log.
@@ -38,13 +42,12 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Full outer joins.
 </li><li>Support nested outer joins (see todo.txt).
-</li><li>Support mixed clustering mode (one embedded, others in server mode).
+</li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
+</li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
+</li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Test very large databases and LOBs (up to 256 GB).
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
-</li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file).
-</li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
-</li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
@@ -89,7 +92,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>iReport to support H2.
 </li><li>Implement missing JDBC API (CallableStatement,...).
 </li><li>Compression of the cache.
-</li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...).
+</li><li>Include SMPT (mail) client (alert on cluster failure, low disk space,...).
 </li><li>Drop with restrict (currently cascade is the default).
 </li><li>JSON parser and functions.
 </li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?).
@@ -104,8 +107,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero.
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R).
 </li><li>Custom class loader to reload functions on demand.
+</li><li>Clustering: when a database is back alive, automatically synchronize with the master.
 </li><li>Test http://mysql-je.sourceforge.net/
-</li><li>Close all files when closing the database (including LOB files that are open on the client side).
 </li><li>EXE file: maybe use http://jsmooth.sourceforge.net
 </li><li>Performance: automatically build in-memory indexes if the whole table is in memory.
 </li><li>H2 Console: the webclient could support more features like phpMyAdmin.
@@ -127,7 +130,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Default date format for input and output (local date constants).
 </li><li>Support custom Collators.
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery).
-</li><li>Clustering: when a database is back alive, automatically synchronize with the master.
 </li><li>File system that writes to two file systems (replication, replicating file system).
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle).
@@ -157,7 +159,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Java static code analysis: http://www.eclipse.org/tptp/
 </li><li>Compatibility for CREATE SCHEMA AUTHORIZATION.
 </li><li>Implement Clob / Blob truncate and the remaining functionality.
-</li><li>Maybe close LOBs after closing connection.
 </li><li>Tree join functionality.
 </li><li>Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ...
 </li><li>Use JDK 1.4 file locking for the database file and for the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
@@ -207,6 +208,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Option for SCRIPT to only process one or a set of tables, and append to a file
 </li><li>Support linked tables to the current database
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
+</li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 </li><li>Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
 </li><li>Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
 </li><li>Run benchmarks with JDK 1.5, JDK 1.6, java -server
@@ -221,7 +223,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
 </li><li>Support native XML data type
 </li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
-</li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Time based cache writing (one second after writing the log)
 </li><li>Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
@@ -248,6 +249,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimization: don't lock when the database is read-only
 </li><li>Issue 146: Support merge join.
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
+</li><li>Cluster: hot deploy (adding a node at runtime)
 </li><li>Support COSH, SINH, and TANH functions
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
@@ -265,13 +267,11 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Write an article about SQLInjection (h2/src/docsrc/html/images/SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 </li><li>Support OUT parameters in user-defined procedures.
-</li><li>Improve LOB in directories performance
 </li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 </li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;
     CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
 </li><li>Translation: use ${.} in help.csv
 </li><li>Translated .pdf
-</li><li>Cluster: hot deploy (adding a node at runtime)
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
 </li><li>RECOVER=2 to backup the database, run recovery, open the database
@@ -297,6 +297,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
 </li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular b-tree index solves the problem).
 </li><li>Oracle compatibility: support NLS_DATE_FORMAT.
+</li><li>Cluster: add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
 </li><li>H2 Console: support CLOB/BLOB download using a link.
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
@@ -307,9 +308,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>H2 Console: in-place autocomplete.
-</li><li>Support large databases: split LOB (BLOB, CLOB) to multiple directories / disks (similar to tablespaces).
+</li><li>Support large databases: split database files to multiple directories / disks (similar to tablespaces).
 </li><li>Support to assign a primary key index a user defined name.
-</li><li>Cluster: add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
 </li><li>H2 Console: support configuration option for fixed width (monospace) font.
 </li><li>Native fulltext search: support analyzers (specially for Chinese, Japanese).
 </li><li>Automatically compact databases from time to time (as a background process).
@@ -433,7 +433,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve concurrency for in-memory database operations.
 </li><li>Issue 122: Support for connection aliases for remote tcp connections.
 </li><li>Fast scrambling (strong encryption doesn't help if the password is included in the application).
-</li><li>Faster startup if there is a large number of LOB files.
 </li><li>Support using system properties in database URLs (may be a security problem).
 </li><li>Issue 126: The index name should be "IDX_" plus the constraint name unless there is a conflict, in which case append a number.
 </li><li>Issue 127: Support activation/deactivation of triggers
@@ -441,6 +440,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 131: IBM DB2 compatibility: sysibm.sysdummy1
 </li><li>Issue 132: Use Java enum trigger type.
 </li><li>Issue 134: IBM DB2 compatibility: session global variables.
+</li><li>Cluster: support load balance with values for each server / auto detect.
 </li><li>FTL_SET_OPTION(keyString, valueString) with key stopWords at first.
 </li><li>Pluggable access control mechanism.
 </li><li>Fulltext search (Lucene): support streaming CLOB data.
@@ -451,12 +451,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Scripting language support (Javascript).
 </li><li>The network client should better detect if the server is not an H2 server and fail early.
 </li><li>H2 Console: support CLOB/BLOB upload.
-</li><li>Recover tool: stream blob / clob data (problem: currently using varchar data type).
 </li><li>Move away from system properties where possible.
 </li><li>Database file lock: detect hibernate / standby / very slow threads (compare system time).
 </li><li>Automatic detection of redundant indexes.
 </li><li>Maybe reject join without "on" (except natural join).
-</li><li>Cluster: support load balance with values for each server / auto detect.
 </li><li>Implement GiST (Generalized Search Tree for Secondary Storage).
 </li><li>Function to read a number of bytes/characters from an BLOB or CLOB.
 </li><li>Issue 156: Support SELECT ? UNION SELECT ?.

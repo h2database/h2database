@@ -73,6 +73,12 @@ public class DbContents {
     boolean isSQLite;
 
     /**
+     * True if the unquoted names are stored as upper case.
+     * False for MySQL and PostgreSQL.
+     */
+    boolean storedUpperCaseIdentifiers;
+
+    /**
      * Get the column index of a column in a result set. If the column is not
      * found, the default column index is returned.
      * This is a workaround for a JDBC-ODBC bridge problem.
@@ -119,6 +125,7 @@ public class DbContents {
             isDerby = url.startsWith("jdbc:derby:");
             isFirebird = url.startsWith("jdbc:firebirdsql:");
         }
+        storedUpperCaseIdentifiers = meta.storesUpperCaseIdentifiers();
         String defaultSchemaName = getDefaultSchemaName(meta);
         String[] schemaNames = getSchemaNames(meta);
         schemas = new DbSchema[schemaNames.length];
@@ -225,6 +232,27 @@ public class DbContents {
             return Parser.quoteIdentifier(identifier);
         }
         return StringUtils.toUpperEnglish(identifier);
+    }
+
+    /**
+     * Check whether an identifier from the database meta data needs to be
+     * quoted. This depends on how the database stores the identifiers ("test"
+     * doesn't need to be quoted if the database stores identifiers lowercase)
+     *
+     * @param identifier the identifier
+     * @return true if the identifier needs to be quoted
+     */
+    boolean needsQuotes(String identifier) {
+        if (storedUpperCaseIdentifiers) {
+            if (identifier.equals(identifier.toUpperCase())) {
+                return false;
+            }
+        } else {
+            if (identifier.equals(identifier.toLowerCase())) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

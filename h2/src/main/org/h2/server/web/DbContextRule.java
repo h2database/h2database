@@ -259,7 +259,13 @@ public class DbContextRule implements Rule {
                     continue;
                 }
                 if (columnPattern.length() < columnName.length()) {
-                    sentence.add(columnName, columnName.substring(columnPattern.length()), Sentence.CONTEXT);
+                    String sub = columnName.substring(columnPattern.length());
+                    if (sub.equals(columnName) && contents.needsQuotes(columnName)) {
+                        columnName = StringUtils.quoteIdentifier(columnName);
+                        sub = columnName;
+                    }
+System.out.println("add " + columnName + " " + columnName.substring(columnPattern.length()));
+                    sentence.add(columnName, sub, Sentence.CONTEXT);
                 }
             }
         }

@@ -134,23 +134,24 @@ public class ConnectionInfo implements Cloneable {
         if (persistent) {
             String fileSystemPrefix = "";
             int colonIndex = name.lastIndexOf(':');
-            if (colonIndex != -1) {
-                // cut "split:" and similar things
+            if (colonIndex > 1) {
+                // cut FileSystem prefixes, but not
+                //  C: and D: (Microsoft Windows drive letters)
                 fileSystemPrefix = name.substring(0, colonIndex+1);
                 name = name.substring(colonIndex+1);
             }
-            String testDbFilename;
+            String testFileName;
             if (name.startsWith("~")) {
-                testDbFilename = System.getProperty("user.home") + SysProperties.FILE_SEPARATOR + name.substring(1);
+                testFileName = System.getProperty("user.home") + SysProperties.FILE_SEPARATOR + name.substring(1);
             } else {
-                testDbFilename = dir + SysProperties.FILE_SEPARATOR + name;
+                testFileName = dir + SysProperties.FILE_SEPARATOR + name;
             }
 
-            File dbFile = new File(testDbFilename);
-            File baseDirFile = new File(dir);
-            if (!Utils.isInDir(dbFile, baseDirFile)) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, dbFile.getAbsolutePath() + " outside " +
-                        baseDirFile.getAbsolutePath());
+            File testFile = new File(testFileName);
+            File baseDir = new File(dir);
+            if (!IOUtils.isInDir(testFile, baseDir)) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, testFile.getAbsolutePath() + " outside " +
+                        baseDir.getAbsolutePath());
             }
             if (name.startsWith("~")) {
                 name = fileSystemPrefix + name;

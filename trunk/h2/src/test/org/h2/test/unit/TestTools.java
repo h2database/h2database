@@ -673,23 +673,23 @@ public class TestTools extends TestBase {
             // ignore
         }
         // Test filesystem prefix and escape from baseDir
-        deleteDb("testsplit");
+        deleteDb("testSplit");
         server = Server.createTcpServer(
                         "-baseDir", baseDir,
                         "-tcpPort", "9192",
                         "-tcpAllowOthers").start();
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/split:testsplit", "sa", "");
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/split:testSplit", "sa", "");
         conn.close();
-        
+
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
             fail("Should throw an exception!");
         } catch (Throwable e) {
             // Expected
         }
-        
+
         server.stop();
-        deleteDb("testsplit");
+        deleteDb("testSplit");
     }
 
 }

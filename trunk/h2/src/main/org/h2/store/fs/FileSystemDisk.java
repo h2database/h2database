@@ -398,7 +398,7 @@ public class FileSystemDisk extends FileSystem {
     public InputStream openFileInputStream(String fileName) throws IOException {
         if (fileName.indexOf(':') > 1) {
             // if the : is in position 1, a windows file access is assumed: C:.. or D:
-            // otherwise a URL is assumed
+            // otherwise an URL is assumed
             URL url = new URL(fileName);
             InputStream in = url.openStream();
             return in;

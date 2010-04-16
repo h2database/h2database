@@ -503,6 +503,9 @@ public class TableFilter implements ColumnResolver {
             condition = StringUtils.quoteRemarkSQL(condition);
             buff.append(condition).append(" */");
         }
+        if (scanCount > 0) {
+            buff.append(" /* scanCount: ").append(scanCount).append(" */");
+        }
         return buff.toString();
     }
 

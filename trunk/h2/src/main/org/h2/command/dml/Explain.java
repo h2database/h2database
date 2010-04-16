@@ -20,12 +20,13 @@ import org.h2.value.ValueString;
  * This class represents the statement
  * EXPLAIN
  */
-public class ExplainPlan extends Prepared {
+public class Explain extends Prepared {
 
     private Prepared command;
     private LocalResult result;
+    private boolean executeCommand;
 
-    public ExplainPlan(Session session) {
+    public Explain(Session session) {
         super(session);
     }
 
@@ -35,6 +36,10 @@ public class ExplainPlan extends Prepared {
 
     public void prepare() {
         command.prepare();
+    }
+
+    public void setExecuteCommand(boolean executeCommand) {
+        this.executeCommand = executeCommand;
     }
 
     public ResultInterface queryMeta() {
@@ -47,6 +52,13 @@ public class ExplainPlan extends Prepared {
         Expression[] expressions = { expr };
         result = new LocalResult(session, expressions, 1);
         if (maxrows >= 0) {
+            if (executeCommand) {
+                if (command.isQuery()) {
+                    command.query(maxrows);
+                } else {
+                    command.update();
+                }
+            }
             String plan = command.getPlanSQL();
             add(plan);
         }

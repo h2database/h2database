@@ -531,7 +531,7 @@ public class Select extends Query {
         }
         int columnCount = expressions.size();
         LocalResult result = new LocalResult(session, expressionArray, visibleColumnCount);
-        if (!sortUsingIndex) {
+        if (!sortUsingIndex || distinct) {
             result.setSortOrder(sort);
         }
         if (distinct && !isDistinctQuery) {
@@ -754,10 +754,8 @@ public class Select extends Query {
             Index current = topTableFilter.getIndex();
             if (index != null && (current.getIndexType().isScan() || current == index)) {
                 topTableFilter.setIndex(index);
-                if ((!distinct || isDistinctQuery) && (!topTableFilter.hasInComparisons())) {
-                    // - sort using index would not work correctly for distinct result sets
-                    //   because it would break too early when limit is used
-                    // - in(select ...) and in(1,2,3) indices are unsorted
+                if (!topTableFilter.hasInComparisons()) {
+                    // in(select ...) and in(1,2,3) my return the key is another order
                     sortUsingIndex = true;
                 }
             }

@@ -88,12 +88,12 @@ public class TestResultSet extends TestBase {
         deleteDb("resultSet");
 
     }
-    
+
     private void testBeforeFirstAfterLast() throws SQLException {
         stat.executeUpdate("create table test(id int)");
         stat.executeUpdate("insert into test values(1)");
         // With a result
-        ResultSet rs = stat.executeQuery("select * from test");        
+        ResultSet rs = stat.executeQuery("select * from test");
         assertTrue(rs.isBeforeFirst());
         assertFalse(rs.isAfterLast());
         rs.next();
@@ -104,7 +104,7 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.isAfterLast());
         rs.close();
         // With no result
-        rs = stat.executeQuery("select * from test where 1 = 2");        
+        rs = stat.executeQuery("select * from test where 1 = 2");
         assertFalse(rs.isBeforeFirst());
         assertFalse(rs.isAfterLast());
         rs.next();

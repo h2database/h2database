@@ -23,7 +23,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -934,47 +936,24 @@ public class WebApp {
         try {
             Connection conn = session.getConnection();
             String result;
-            if ("@AUTOCOMMIT TRUE".equals(sql)) {
-                conn.setAutoCommit(true);
-                result = "${text.result.autoCommitOn}";
-            } else if ("@AUTOCOMMIT FALSE".equals(sql)) {
-                conn.setAutoCommit(false);
-                result = "${text.result.autoCommitOff}";
-            } else if (sql.startsWith("@TRANSACTION_ISOLATION")) {
-                String s = sql.substring("@TRANSACTION_ISOLATION".length()).trim();
-                if (s.length() > 0) {
-                    int level = Integer.parseInt(s);
-                    conn.setTransactionIsolation(level);
+            ScriptReader r = new ScriptReader(new StringReader(sql));
+            ArrayList<String> list = New.arrayList();
+            while (true) {
+                String s = r.readStatement();
+                if (s == null) {
+                    break;
                 }
-                result = "Transaction Isolation: " + conn.getTransactionIsolation() + "<br />";
-                result += Connection.TRANSACTION_READ_UNCOMMITTED + ": READ_UNCOMMITTED<br />";
-                result += Connection.TRANSACTION_READ_COMMITTED + ": READ_COMMITTED<br />";
-                result += Connection.TRANSACTION_REPEATABLE_READ + ": REPEATABLE_READ<br />";
-                result += Connection.TRANSACTION_SERIALIZABLE + ": SERIALIZABLE";
-            } else if (sql.startsWith("@SET MAXROWS ")) {
-                int maxrows = Integer.parseInt(sql.substring("@SET MAXROWS ".length()));
-                session.put("maxrows", "" + maxrows);
-                result = "${text.result.maxrowsSet}";
-            } else {
-                ScriptReader r = new ScriptReader(new StringReader(sql));
-                ArrayList<String> list = New.arrayList();
-                while (true) {
-                    String s = r.readStatement();
-                    if (s == null) {
-                        break;
-                    }
-                    list.add(s);
-                }
-                StringBuilder buff = new StringBuilder();
-                for (int i = 0; i < list.size(); i++) {
-                    String s = list.get(i);
-                    if (!s.startsWith("@")) {
-                        buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
-                    }
-                    buff.append(getResult(conn, i + 1, s, list.size() == 1, false)).append("<br />");
-                }
-                result = buff.toString();
+                list.add(s);
             }
+            StringBuilder buff = new StringBuilder();
+            for (int i = 0; i < list.size(); i++) {
+                String s = list.get(i);
+                if (!(s.startsWith("@") && s.endsWith("."))) {
+                    buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
+                }
+                buff.append(getResult(conn, i + 1, s, list.size() == 1, false)).append("<br />");
+            }
+            result = buff.toString();
             session.put("result", result);
         } catch (Throwable e) {
             session.put("result", getStackTrace(0, e, session.getContents().isH2));
@@ -1014,7 +993,7 @@ public class WebApp {
             result = "<br />" + getStackTrace(0, e, session.getContents().isH2);
             error = formatAsError(e.getMessage());
         }
-        String sql = "@EDIT " + (String) session.get("resultSetSQL");
+        String sql = "@edit " + (String) session.get("resultSetSQL");
         Connection conn = session.getConnection();
         result = error + getResult(conn, -1, sql, true, true) + result;
         session.put("result", result);
@@ -1023,42 +1002,79 @@ public class WebApp {
 
     private ResultSet getMetaResultSet(Connection conn, String sql) throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
-        if (sql.startsWith("@TABLES")) {
+        if (isBuiltIn(sql, "@best_row_identifier")) {
             String[] p = split(sql);
-            String[] types = p[4] == null ? null : StringUtils.arraySplit(p[4], ',', false);
-            return meta.getTables(p[1], p[2], p[3], types);
-        } else if (sql.startsWith("@COLUMNS")) {
+            int scale = p[4] == null ? 0 : Integer.parseInt(p[4]);
+            boolean nullable = p[5] == null ? false : Boolean.valueOf(p[5]).booleanValue();
+            return meta.getBestRowIdentifier(p[1], p[2], p[3], scale, nullable);
+        } else if (isBuiltIn(sql, "@catalogs")) {
+            return meta.getCatalogs();
+        } else if (isBuiltIn(sql, "@columns")) {
             String[] p = split(sql);
             return meta.getColumns(p[1], p[2], p[3], p[4]);
-        } else if (sql.startsWith("@INDEX_INFO")) {
+        } else if (isBuiltIn(sql, "@column_privileges")) {
+            String[] p = split(sql);
+            return meta.getColumnPrivileges(p[1], p[2], p[3], p[4]);
+        } else if (isBuiltIn(sql, "@cross_references")) {
+            String[] p = split(sql);
+            return meta.getCrossReference(p[1], p[2], p[3], p[4], p[5], p[6]);
+        } else if (isBuiltIn(sql, "@exported_keys")) {
+            String[] p = split(sql);
+            return meta.getExportedKeys(p[1], p[2], p[3]);
+        } else if (isBuiltIn(sql, "@imported_keys")) {
+            String[] p = split(sql);
+            return meta.getImportedKeys(p[1], p[2], p[3]);
+        } else if (isBuiltIn(sql, "@index_info")) {
             String[] p = split(sql);
             boolean unique = p[4] == null ? false : Boolean.valueOf(p[4]).booleanValue();
             boolean approx = p[5] == null ? false : Boolean.valueOf(p[5]).booleanValue();
             return meta.getIndexInfo(p[1], p[2], p[3], unique, approx);
-        } else if (sql.startsWith("@PRIMARY_KEYS")) {
+        } else if (isBuiltIn(sql, "@primary_keys")) {
             String[] p = split(sql);
             return meta.getPrimaryKeys(p[1], p[2], p[3]);
-        } else if (sql.startsWith("@PROCEDURES")) {
+        } else if (isBuiltIn(sql, "@procedures")) {
             String[] p = split(sql);
             return meta.getProcedures(p[1], p[2], p[3]);
-        } else if (sql.startsWith("@PROCEDURE_COLUMNS")) {
+        } else if (isBuiltIn(sql, "@procedure_columns")) {
             String[] p = split(sql);
             return meta.getProcedureColumns(p[1], p[2], p[3], p[4]);
-        } else if (sql.startsWith("@SCHEMAS")) {
+        } else if (isBuiltIn(sql, "@schemas")) {
             return meta.getSchemas();
-        } else if (sql.startsWith("@CATALOG")) {
-            SimpleResultSet rs = new SimpleResultSet();
-            rs.addColumn("CATALOG", Types.VARCHAR, 0, 0);
-            rs.addRow(conn.getCatalog());
-            return rs;
-        } else if (sql.startsWith("@MEMORY")) {
+        } else if (isBuiltIn(sql, "@tables")) {
+            String[] p = split(sql);
+            String[] types = p[4] == null ? null : StringUtils.arraySplit(p[4], ',', false);
+            return meta.getTables(p[1], p[2], p[3], types);
+        } else if (isBuiltIn(sql, "@table_privileges")) {
+            String[] p = split(sql);
+            return meta.getTablePrivileges(p[1], p[2], p[3]);
+        } else if (isBuiltIn(sql, "@table_types")) {
+            return meta.getTableTypes();
+        } else if (isBuiltIn(sql, "@type_info")) {
+            return meta.getTypeInfo();
+        } else if (isBuiltIn(sql, "@udts")) {
+            String[] p = split(sql);
+            int[] types;
+            if (p[4] == null) {
+                types = null;
+            } else {
+                String[] t = StringUtils.arraySplit(p[4], ',', false);
+                types = new int[t.length];
+                for (int i = 0; i < t.length; i++) {
+                    types[i] = Integer.parseInt(t[i]);
+                }
+            }
+            return meta.getUDTs(p[1], p[2], p[3], types);
+        } else if (isBuiltIn(sql, "@version_columns")) {
+            String[] p = split(sql);
+            return meta.getVersionColumns(p[1], p[2], p[3]);
+        } else if (isBuiltIn(sql, "@memory")) {
             SimpleResultSet rs = new SimpleResultSet();
             rs.addColumn("Type", Types.VARCHAR, 0, 0);
-            rs.addColumn("Value", Types.VARCHAR, 0, 0);
+            rs.addColumn("KB", Types.VARCHAR, 0, 0);
             rs.addRow("Used Memory", "" + Utils.getMemoryUsed());
             rs.addRow("Free Memory", "" + Utils.getMemoryFree());
             return rs;
-        } else if (sql.startsWith("@INFO")) {
+        } else if (isBuiltIn(sql, "@info")) {
             SimpleResultSet rs = new SimpleResultSet();
             rs.addColumn("KEY", Types.VARCHAR, 0, 0);
             rs.addColumn("VALUE", Types.VARCHAR, 0, 0);
@@ -1079,66 +1095,18 @@ public class WebApp {
 //## Java 1.4 end ##
             addDatabaseMetaData(rs, meta);
             return rs;
-        } else if (sql.startsWith("@CATALOGS")) {
-            return meta.getCatalogs();
-        } else if (sql.startsWith("@TABLE_TYPES")) {
-            return meta.getTableTypes();
-        } else if (sql.startsWith("@COLUMN_PRIVILEGES")) {
-            String[] p = split(sql);
-            return meta.getColumnPrivileges(p[1], p[2], p[3], p[4]);
-        } else if (sql.startsWith("@TABLE_PRIVILEGES")) {
-            String[] p = split(sql);
-            return meta.getTablePrivileges(p[1], p[2], p[3]);
-        } else if (sql.startsWith("@BEST_ROW_IDENTIFIER")) {
-            String[] p = split(sql);
-            int scale = p[4] == null ? 0 : Integer.parseInt(p[4]);
-            boolean nullable = p[5] == null ? false : Boolean.valueOf(p[5]).booleanValue();
-            return meta.getBestRowIdentifier(p[1], p[2], p[3], scale, nullable);
-        } else if (sql.startsWith("@VERSION_COLUMNS")) {
-            String[] p = split(sql);
-            return meta.getVersionColumns(p[1], p[2], p[3]);
-        } else if (sql.startsWith("@IMPORTED_KEYS")) {
-            String[] p = split(sql);
-            return meta.getImportedKeys(p[1], p[2], p[3]);
-        } else if (sql.startsWith("@EXPORTED_KEYS")) {
-            String[] p = split(sql);
-            return meta.getExportedKeys(p[1], p[2], p[3]);
-        } else if (sql.startsWith("@CROSS_REFERENCE")) {
-            String[] p = split(sql);
-            return meta.getCrossReference(p[1], p[2], p[3], p[4], p[5], p[6]);
-        } else if (sql.startsWith("@UDTS")) {
-            String[] p = split(sql);
-            int[] types;
-            if (p[4] == null) {
-                types = null;
-            } else {
-                String[] t = StringUtils.arraySplit(p[4], ',', false);
-                types = new int[t.length];
-                for (int i = 0; i < t.length; i++) {
-                    types[i] = Integer.parseInt(t[i]);
-                }
-            }
-            return meta.getUDTs(p[1], p[2], p[3], types);
-        } else if (sql.startsWith("@TYPE_INFO")) {
-            return meta.getTypeInfo();
 //## Java 1.4 begin ##
-        } else if (sql.startsWith("@SUPER_TYPES")) {
-            String[] p = split(sql);
-            return meta.getSuperTypes(p[1], p[2], p[3]);
-        } else if (sql.startsWith("@SUPER_TABLES")) {
-            String[] p = split(sql);
-            return meta.getSuperTables(p[1], p[2], p[3]);
-        } else if (sql.startsWith("@ATTRIBUTES")) {
+        } else if (isBuiltIn(sql, "@attributes")) {
             String[] p = split(sql);
             return meta.getAttributes(p[1], p[2], p[3], p[4]);
+        } else if (isBuiltIn(sql, "@super_tables")) {
+            String[] p = split(sql);
+            return meta.getSuperTables(p[1], p[2], p[3]);
+        } else if (isBuiltIn(sql, "@super_types")) {
+            String[] p = split(sql);
+            return meta.getSuperTypes(p[1], p[2], p[3]);
 //## Java 1.4 end ##
-        } else if (sql.startsWith("@PROF_START")) {
-            if (profiler != null) {
-                profiler.stopCollecting();
-            }
-            profiler = new Profiler();
-            profiler.startCollecting();
-        } else if (sql.startsWith("@PROF_STOP")) {
+        } else if (isBuiltIn(sql, "@prof_stop")) {
             if (profiler != null) {
                 profiler.stopCollecting();
                 SimpleResultSet rs = new SimpleResultSet();
@@ -1152,7 +1120,13 @@ public class WebApp {
     }
 
     private void addDatabaseMetaData(SimpleResultSet rs, DatabaseMetaData meta) {
-        for (Method m : DatabaseMetaData.class.getDeclaredMethods()) {
+        Method[] methods = DatabaseMetaData.class.getDeclaredMethods();
+        Arrays.sort(methods, new Comparator<Method>() {
+            public int compare(Method o1, Method o2) {
+                return o1.toString().compareTo(o2.toString());
+            }
+        });
+        for (Method m : methods) {
             if (m.getParameterTypes().length == 0) {
                 try {
                     Object o = m.invoke(meta);
@@ -1208,7 +1182,13 @@ public class WebApp {
             boolean generatedKeys = false;
             boolean edit = false;
             boolean list = false;
-            if ("@CANCEL".equals(sql)) {
+            if (isBuiltIn(sql, "@autocommit_true")) {
+                conn.setAutoCommit(true);
+                return "${text.result.autoCommitOn}";
+            } else if (isBuiltIn(sql, "@autocommit_false")) {
+                conn.setAutoCommit(false);
+                return "${text.result.autoCommitOff}";
+            } else if (isBuiltIn(sql, "@cancel")) {
                 stat = session.executingStatement;
                 if (stat != null) {
                     stat.cancel();
@@ -1217,33 +1197,55 @@ public class WebApp {
                     buff.append("${text.result.noRunningStatement}");
                 }
                 return buff.toString();
-            } else if (sql.startsWith("@PARAMETER_META")) {
-                sql = sql.substring("@PARAMETER_META".length()).trim();
-                PreparedStatement prep = conn.prepareStatement(sql);
-                buff.append(getParameterResultSet(prep.getParameterMetaData()));
-                return buff.toString();
-            } else if (sql.startsWith("@META")) {
-                metadata = true;
-                sql = sql.substring("@META".length()).trim();
-            } else if (sql.startsWith("@LIST")) {
-                list = true;
-                sql = sql.substring("@LIST".length()).trim();
-            } else if (sql.startsWith("@GENERATED")) {
+            } else if (isBuiltIn(sql, "@edit")) {
+                edit = true;
+                sql = sql.substring("@edit".length()).trim();
+                session.put("resultSetSQL", sql);
+            } else if (isBuiltIn(sql, "@generated")) {
                 generatedKeys = true;
-                sql = sql.substring("@GENERATED".length()).trim();
-            } else if (sql.startsWith("@LOOP")) {
-                sql = sql.substring("@LOOP".length()).trim();
+                sql = sql.substring("@generated".length()).trim();
+            } else if (isBuiltIn(sql, "@history")) {
+                buff.append(getHistoryString());
+                return buff.toString();
+            } else if (isBuiltIn(sql, "@list")) {
+                list = true;
+                sql = sql.substring("@list".length()).trim();
+            } else if (isBuiltIn(sql, "@loop")) {
+                sql = sql.substring("@loop".length()).trim();
                 int idx = sql.indexOf(' ');
                 int count = Integer.decode(sql.substring(0, idx));
                 sql = sql.substring(idx).trim();
                 return executeLoop(conn, count, sql);
-            } else if (sql.startsWith("@EDIT")) {
-                edit = true;
-                sql = sql.substring("@EDIT".length()).trim();
-                session.put("resultSetSQL", sql);
-            } else if ("@HISTORY".equals(sql)) {
-                buff.append(getHistoryString());
+            } else if (isBuiltIn(sql, "@maxrows")) {
+                int maxrows = (int) Double.parseDouble(sql.substring("@maxrows".length()).trim());
+                session.put("maxrows", "" + maxrows);
+                return "${text.result.maxrowsSet}";
+            } else if (isBuiltIn(sql, "@meta")) {
+                metadata = true;
+                sql = sql.substring("@meta".length()).trim();
+            } else if (isBuiltIn(sql, "@parameter_meta")) {
+                sql = sql.substring("@parameter_meta".length()).trim();
+                PreparedStatement prep = conn.prepareStatement(sql);
+                buff.append(getParameterResultSet(prep.getParameterMetaData()));
                 return buff.toString();
+            } else if (isBuiltIn(sql, "@prof_start")) {
+                if (profiler != null) {
+                    profiler.stopCollecting();
+                }
+                profiler = new Profiler();
+                profiler.startCollecting();
+                return "Ok";
+            } else if (isBuiltIn(sql, "@transaction_isolation")) {
+                String s = sql.substring("@transaction_isolation".length()).trim();
+                if (s.length() > 0) {
+                    int level = Integer.parseInt(s);
+                    conn.setTransactionIsolation(level);
+                }
+                buff.append("Transaction Isolation: " + conn.getTransactionIsolation() + "<br />");
+                buff.append(Connection.TRANSACTION_READ_UNCOMMITTED + ": read_uncommitted<br />");
+                buff.append(Connection.TRANSACTION_READ_COMMITTED + ": read_committed<br />");
+                buff.append(Connection.TRANSACTION_REPEATABLE_READ + ": repeatable_read<br />");
+                buff.append(Connection.TRANSACTION_SERIALIZABLE + ": serializable");
             }
             if (sql.startsWith("@")) {
                 rs = getMetaResultSet(conn, sql);
@@ -1292,6 +1294,10 @@ public class WebApp {
         }
     }
 
+    private boolean isBuiltIn(String sql, String builtIn) {
+        return StringUtils.startsWithIgnoreCase(sql, builtIn);
+    }
+
     private String executeLoop(Connection conn, int count, String sql) throws SQLException {
         ArrayList<Integer> params = New.arrayList();
         int idx = 0;
@@ -1300,9 +1306,9 @@ public class WebApp {
             if (idx < 0) {
                 break;
             }
-            if (sql.substring(idx).startsWith("?/*RND*/")) {
+            if (isBuiltIn(sql.substring(idx), "?/*rnd*/")) {
                 params.add(1);
-                sql = sql.substring(0, idx) + "?" + sql.substring(idx + "/*RND*/".length() + 1);
+                sql = sql.substring(0, idx) + "?" + sql.substring(idx + "/*rnd*/".length() + 1);
             } else {
                 params.add(0);
             }
@@ -1312,8 +1318,8 @@ public class WebApp {
         boolean prepared;
         Random random = new Random(1);
         long time = System.currentTimeMillis();
-        if (sql.startsWith("@STATEMENT")) {
-            sql = sql.substring("@STATEMENT".length()).trim();
+        if (isBuiltIn(sql, "@statement")) {
+            sql = sql.substring("@statement".length()).trim();
             prepared = false;
             Statement stat = conn.createStatement();
             for (int i = 0; !stop && i < count; i++) {
@@ -1333,7 +1339,6 @@ public class WebApp {
                         // maybe get the data as well
                     }
                     rs.close();
-                    // maybe close result set
                 }
             }
         } else {
@@ -1571,7 +1576,7 @@ public class WebApp {
         if (!edit && isUpdatable && allowEdit) {
             buff.append("<br /><br /><form name=\"editResult\" method=\"post\" action=\"query.do?jsessionid=${sessionId}\" target=\"h2result\">" +
                 "<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />" +
-                "<input type=\"hidden\" name=\"sql\" value=\"@EDIT ").
+                "<input type=\"hidden\" name=\"sql\" value=\"@edit ").
                 append(PageParser.escapeHtmlData(sql)).
                 append("\" /></form>");
         }

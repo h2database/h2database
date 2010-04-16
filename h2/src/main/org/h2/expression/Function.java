@@ -220,7 +220,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.LONG);
         addFunction("RAWTOHEX", RAWTOHEX, 1, Value.STRING);
         addFunction("REPEAT", REPEAT, 2, Value.STRING);
-        addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.STRING);
+        addFunction("REPLACE", REPLACE, VAR_ARGS, Value.STRING);
         addFunction("RIGHT", RIGHT, 2, Value.STRING);
         addFunction("RTRIM", RTRIM, VAR_ARGS, Value.STRING);
         addFunction("SOUNDEX", SOUNDEX, 1, Value.STRING);
@@ -945,9 +945,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case REPLACE: {
-            String s0 = v0 == ValueNull.INSTANCE ? "" : v0.getString();
-            String s1 = v1 == ValueNull.INSTANCE ? "" : v1.getString();
-            String s2 = (v2 == null || v2 == ValueNull.INSTANCE) ? "" : v2.getString();
+            String s0 = v0.getString();
+            String s1 = v1.getString();
+            String s2 = (v2 == null) ? "" : v2.getString();
             result = ValueString.get(replace(s0, s1, s2));
             break;
         }
@@ -1313,7 +1313,10 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static String replace(String s, String replace, String with) {
-        if (replace == null || replace.length() == 0) {
+        if (s == null || replace == null || with == null) {
+            return null;
+        }
+        if (replace.length() == 0) {
             // avoid out of memory
             return s;
         }

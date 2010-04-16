@@ -426,14 +426,14 @@ public class TestUpdatableResultSet extends TestBase {
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         assertEquals(type, rs.getType());
 
-        assertState(rs, true, false, false, rows == 0);
+        assertState(rs, rows > 0, false, false, false);
         for (int i = 0; i < rows; i++) {
             rs.next();
             assertState(rs, rows == 0, i == 0, i == rows - 1, rows == 0 || i == rows);
         }
         try {
             rs.beforeFirst();
-            assertState(rs, true, false, false, rows == 0);
+            assertState(rs, rows > 0, false, false, false);
         } catch (SQLException e) {
             if (!error) {
                 throw e;
@@ -441,7 +441,7 @@ public class TestUpdatableResultSet extends TestBase {
         }
         try {
             rs.afterLast();
-            assertState(rs, false, false, false, true);
+            assertState(rs, false, false, false, rows > 0);
         } catch (SQLException e) {
             if (!error) {
                 throw e;

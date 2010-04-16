@@ -264,7 +264,6 @@ public class DbContextRule implements Rule {
                         columnName = StringUtils.quoteIdentifier(columnName);
                         sub = columnName;
                     }
-System.out.println("add " + columnName + " " + columnName.substring(columnPattern.length()));
                     sentence.add(columnName, sub, Sentence.CONTEXT);
                 }
             }

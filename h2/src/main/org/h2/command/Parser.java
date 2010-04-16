@@ -59,7 +59,7 @@ import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
 import org.h2.command.dml.Delete;
 import org.h2.command.dml.ExecuteProcedure;
-import org.h2.command.dml.ExplainPlan;
+import org.h2.command.dml.Explain;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
 import org.h2.command.dml.NoOperation;
@@ -1330,10 +1330,15 @@ public class Parser {
         return command;
     }
 
-    private ExplainPlan parseExplain() {
-        ExplainPlan command = new ExplainPlan(session);
-        readIf("PLAN");
-        readIf("FOR");
+    private Explain parseExplain() {
+        Explain command = new Explain(session);
+        if (readIf("ANALYZE")) {
+            command.setExecuteCommand(true);
+        } else {
+            if (readIf("PLAN")) {
+                readIf("FOR");
+            }
+        }
         if (isToken("SELECT") || isToken("FROM") || isToken("(")) {
             command.setCommand(parseSelect());
         } else if (readIf("DELETE")) {

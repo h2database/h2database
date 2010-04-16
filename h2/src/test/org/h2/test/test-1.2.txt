@@ -2511,8 +2511,8 @@ insert into x values(0), (1), (10);
 > update count: 3
 
 SELECT t1.ID, (SELECT t1.id || ':' || AVG(t2.ID) FROM X t2) FROM X t1;
-> ID SELECT ((T1.ID || ':') || AVG(T2.ID)) FROM PUBLIC.X T2 /* PUBLIC.X.tableScan */
-> -- -------------------------------------------------------------------------------
+> ID SELECT ((T1.ID || ':') || AVG(T2.ID)) FROM PUBLIC.X T2 /* PUBLIC.X.tableScan */ /* scanCount: 4 */
+> -- --------------------------------------------------------------------------------------------------
 > 0  0:3
 > 1  1:3
 > 10 10:3
@@ -2522,8 +2522,8 @@ drop table x;
 > ok
 
 select (select t1.x from system_range(1,1) t2) from system_range(1,1) t1;
-> SELECT T1.X FROM SYSTEM_RANGE(1, 1) T2 /* PUBLIC.RANGE_INDEX */
-> ---------------------------------------------------------------
+> SELECT T1.X FROM SYSTEM_RANGE(1, 1) T2 /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
+> ----------------------------------------------------------------------------------
 > 1
 > rows: 1
 
@@ -3212,8 +3212,8 @@ call /* remark * / * /* ** // end */ 1;
 > rows: 1
 
 call (select x from dual where x is null);
-> SELECT X FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ WHERE X IS NULL
-> -------------------------------------------------------------------------
+> SELECT X FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */ WHERE X IS NULL
+> --------------------------------------------------------------------------------------------
 > null
 > rows: 1
 
@@ -3311,14 +3311,14 @@ insert into test values(1, 'Y');
 > update count: 1
 
 call select a from test order by id;
-> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY =ID /* index sorted */
-> ------------------------------------------------------------------------------------
+> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY =ID /* index sorted */
+> -------------------------------------------------------------------------------------------------------
 > TRUE
 > rows (ordered): 1
 
 select select a from test order by id;
-> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY =ID /* index sorted */
-> ------------------------------------------------------------------------------------
+> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY =ID /* index sorted */
+> -------------------------------------------------------------------------------------------------------
 > TRUE
 > rows (ordered): 1
 
@@ -6688,19 +6688,19 @@ SELECT * FROM TEST T WHERE T.ID = (SELECT T2.ID FROM TEST T2 WHERE T2.ID=T.ID);
 > rows: 3
 
 SELECT (SELECT T2.NAME FROM TEST T2 WHERE T2.ID=T.ID), T.NAME FROM TEST T;
-> SELECT T2.NAME FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T.ID */ WHERE T2.ID = T.ID NAME
-> ------------------------------------------------------------------------------------------- -----
-> Hello                                                                                       Hello
-> World                                                                                       World
-> null                                                                                        null
+> SELECT T2.NAME FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T.ID */ /* scanCount: 2 */ WHERE T2.ID = T.ID NAME
+> -------------------------------------------------------------------------------------------------------------- -----
+> Hello                                                                                                          Hello
+> World                                                                                                          World
+> null                                                                                                           null
 > rows: 3
 
 SELECT (SELECT SUM(T2.ID) FROM TEST T2 WHERE T2.ID>T.ID), T.ID FROM TEST T;
-> SELECT SUM(T2.ID) FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID > T.ID */ WHERE T2.ID > T.ID ID
-> ---------------------------------------------------------------------------------------------- --
-> 2                                                                                              1
-> 3                                                                                              0
-> null                                                                                           2
+> SELECT SUM(T2.ID) FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID > T.ID */ /* scanCount: 2 */ WHERE T2.ID > T.ID ID
+> ----------------------------------------------------------------------------------------------------------------- --
+> 2                                                                                                                 1
+> 3                                                                                                                 0
+> null                                                                                                              2
 > rows: 3
 
 select * from test t where t.id+1 in (select id from test);

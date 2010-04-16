@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: the auto-complete feature didn't quote column names
+<ul><li>The new statement EXPLAIN ANALYZE executes the statement, 
+    and displays the query plan with the actual row scan count for each table.
+</li><li>H2 Console: the auto-complete feature didn't quote column names
     that need quoting. Issue 186.
 </li><li>The experimental LOB storage mechanism now supports all features of the
     old one. To use it, set the system property "h2.lobInDatabase" to "true".

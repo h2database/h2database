@@ -59,6 +59,7 @@ public class TcpServer implements Service {
     private Set<TcpServerThread> running = Collections.synchronizedSet(new HashSet<TcpServerThread>());
     private String baseDir;
     private boolean allowOthers;
+    private boolean isDaemon;
     private boolean ifExists;
     private Connection managementDb;
     private PreparedStatement managementDbAdd;
@@ -161,6 +162,8 @@ public class TcpServer implements Service {
                 keyDatabase = args[++i];
             } else if ("-tcpAllowOthers".equals(a)) {
                 allowOthers = true;
+            } else if ("-tcpDaemon".equals(a)) {
+                isDaemon = true;
             } else if ("-ifExists".equals(a)) {
                 ifExists = true;
             }
@@ -211,6 +214,7 @@ public class TcpServer implements Service {
                 TcpServerThread c = new TcpServerThread(s, this, nextThreadId++);
                 running.add(c);
                 Thread thread = new Thread(c);
+                thread.setDaemon(isDaemon);
                 thread.setName(threadName + " thread");
                 c.setThread(thread);
                 thread.start();
@@ -453,6 +457,10 @@ public class TcpServer implements Service {
             return keyDatabase;
         }
         throw DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
+    }
+
+    public boolean isDaemon() {
+        return isDaemon;
     }
 
 }

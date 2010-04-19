@@ -552,4 +552,8 @@ public class FtpServer extends Tool implements Service {
         return new Server(new FtpServer(), args);
     }
 
+    public boolean isDaemon() {
+        return false;
+    }
+
 }

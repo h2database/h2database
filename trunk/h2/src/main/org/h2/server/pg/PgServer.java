@@ -72,6 +72,7 @@ public class PgServer implements Service {
     private Set<PgServerThread> running = Collections.synchronizedSet(new HashSet<PgServerThread>());
     private String baseDir;
     private boolean allowOthers;
+    private boolean isDaemon;
     private boolean ifExists;
 
     public void init(String... args) {
@@ -86,6 +87,8 @@ public class PgServer implements Service {
                 baseDir = args[++i];
             } else if ("-pgAllowOthers".equals(a)) {
                 allowOthers = true;
+            } else if ("-pgDaemon".equals(a)) {
+                isDaemon = true;
             } else if ("-ifExists".equals(a)) {
                 ifExists = true;
             }
@@ -167,6 +170,7 @@ public class PgServer implements Service {
                     running.add(c);
                     c.setProcessId(running.size());
                     Thread thread = new Thread(c);
+                    thread.setDaemon(isDaemon);
                     thread.setName(threadName+" thread");
                     c.setThread(thread);
                     thread.start();
@@ -448,6 +452,10 @@ public class PgServer implements Service {
         if (!typeSet.contains(type)) {
             trace("Unsupported type: " + type);
         }
+    }
+
+    public boolean isDaemon() {
+        return isDaemon;
     }
 
 }

@@ -602,6 +602,7 @@ public class Database implements DataHandler {
             server = Server.createTcpServer(
                     "-tcpPort", "0",
                     "-tcpAllowOthers",
+                    "-tcpDaemon",
                     "-key", key, databaseName);
             server.start();
         } catch (SQLException e) {

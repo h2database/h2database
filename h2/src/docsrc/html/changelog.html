@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: the built-in commands are now documented.
+<ul><li>When using AUTO_SERVER=TRUE, the server is now started as a daemon thread.
+    This was a problem when using Tomcat and a connection pool.
+</li><li>Servers can now be started as a daemon thread using the command line options
+    -tcpDaemon, -pgDaemon, and -webDaemon.
+</li><li>H2 Console: the built-in commands are now documented.
 </li><li>REPLACE: if any parameter is null, the result is null.
 </li><li>Queries with DISTINCT and ORDER BY will now use the index on ORDER BY if possible.
     This is specially important for queries used inside IN(SELECT ...).

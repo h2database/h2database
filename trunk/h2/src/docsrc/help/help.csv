@@ -917,7 +917,11 @@ SET ALLOW_LITERALS NONE
 SET AUTOCOMMIT { TRUE | ON | FALSE | OFF }
 ","
 Switches auto commit on or off.
-This setting can be appended to the database URL: jdbc:h2:test;AUTOCOMMIT=OFF
+This setting can be appended to the database URL: jdbc:h2:test;AUTOCOMMIT=OFF -
+however this will not work as expected when using a connection pool
+(the connection pool manager will re-enable autocommit when returning 
+the connection to the pool, so autocommit will only be disabled the first 
+time the connection is used.
 ","
 SET AUTOCOMMIT OFF
 "

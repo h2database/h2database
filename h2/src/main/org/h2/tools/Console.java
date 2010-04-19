@@ -69,7 +69,7 @@ ShutdownHandler {
      * <tr><td>[-tool]</td>
      * <td>Start the icon or window that allows to start a browser</td></tr>
      * <tr><td>[-browser]</td>
-     * <td>Start a browser and open a page to connect to the web server</td></tr>
+     * <td>Start a browser connecting to the web server</td></tr>
      * <tr><td>[-tcp]</td>
      * <td>Start the TCP server</td></tr>
      * <tr><td>[-pg]</td>

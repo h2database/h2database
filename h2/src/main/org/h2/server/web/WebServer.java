@@ -109,6 +109,7 @@ public class WebServer implements Service {
     // private URLClassLoader urlClassLoader;
     private int port;
     private boolean allowOthers;
+    private boolean isDaemon;
     private Set<WebThread> running = Collections.synchronizedSet(new HashSet<WebThread>());
     private boolean ssl;
     private HashMap<String, ConnectionInfo> connInfoMap = New.hashMap();
@@ -227,6 +228,8 @@ public class WebServer implements Service {
                 ssl = true;
             } else if ("-webAllowOthers".equals(a)) {
                 allowOthers = true;
+            } else if ("-webDaemon".equals(a)) {
+                isDaemon = true;
             } else if ("-baseDir".equals(a)) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
@@ -689,6 +692,10 @@ public class WebServer implements Service {
         translateThread.setDaemon(true);
         translateThread.start();
         return translateThread.getFileName();
+    }
+
+    public boolean isDaemon() {
+        return isDaemon;
     }
 
 }

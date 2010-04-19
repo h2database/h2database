@@ -83,4 +83,11 @@ public interface Service {
      */
     int getPort();
 
+    /**
+     * Check if a daemon thread should be used.
+     *
+     * @return true if a daemon thread should be used
+     */
+    boolean isDaemon();
+
 }

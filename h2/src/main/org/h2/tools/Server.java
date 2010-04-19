@@ -62,16 +62,20 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Start the web server with the H2 Console</td></tr>
      * <tr><td>[-webAllowOthers]</td>
      * <td>Allow other computers to connect - see below</td></tr>
+     * <tr><td>[-webDaemon]</td>
+     * <td>Use a daemon thread</td></tr>
      * <tr><td>[-webPort &lt;port&gt;]</td>
      * <td>The port (default: 8082)</td></tr>
      * <tr><td>[-webSSL]</td>
      * <td>Use encrypted (HTTPS) connections</td></tr>
      * <tr><td>[-browser]</td>
-     * <td>Start a browser and open a page to connect to the web server</td></tr>
+     * <td>Start a browser connecting to the web server</td></tr>
      * <tr><td>[-tcp]</td>
      * <td>Start the TCP server</td></tr>
      * <tr><td>[-tcpAllowOthers]</td>
      * <td>Allow other computers to connect - see below</td></tr>
+     * <tr><td>[-tcpDaemon]</td>
+     * <td>Use a daemon thread</td></tr>
      * <tr><td>[-tcpPort &lt;port&gt;]</td>
      * <td>The port (default: 9092)</td></tr>
      * <tr><td>[-tcpSSL]</td>
@@ -79,21 +83,23 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <tr><td>[-tcpPassword &lt;pwd&gt;]</td>
      * <td>The password for shutting down a TCP server</td></tr>
      * <tr><td>[-tcpShutdown "&lt;url&gt;"]</td>
-     * <td>Stop the TCP server; example: tcp://localhost:9094</td></tr>
+     * <td>Stop the TCP server; example: tcp://localhost</td></tr>
      * <tr><td>[-tcpShutdownForce]</td>
      * <td>Do not wait until all connections are closed</td></tr>
      * <tr><td>[-pg]</td>
      * <td>Start the PG server</td></tr>
      * <tr><td>[-pgAllowOthers]</td>
      * <td>Allow other computers to connect - see below</td></tr>
+     * <tr><td>[-pgDaemon]</td>
+     * <td>Use a daemon thread</td></tr>
      * <tr><td>[-pgPort &lt;port&gt;]</td>
      * <td>The port (default: 5435)</td></tr>
      * <tr><td>[-baseDir &lt;dir&gt;]</td>
-     * <td>The base directory for H2 databases; for all servers</td></tr>
+     * <td>The base directory for H2 databases (all servers)</td></tr>
      * <tr><td>[-ifExists]</td>
-     * <td>Only existing databases may be opened; for all servers</td></tr>
+     * <td>Only existing databases may be opened (all servers)</td></tr>
      * <tr><td>[-trace]</td>
-     * <td>Print additional trace information; for all servers</td></tr>
+     * <td>Print additional trace information (all servers)</td></tr>
      * </table>
      * The options -xAllowOthers are potentially risky.
      * <br />
@@ -126,6 +132,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     webStart = true;
                 } else if ("-webAllowOthers".equals(arg)) {
                     // no parameters
+                } else if ("-webDaemon".equals(arg)) {
+                    // no parameters
                 } else if ("-webSSL".equals(arg)) {
                     // no parameters
                 } else if ("-webPort".equals(arg)) {
@@ -143,6 +151,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     tcpStart = true;
                 } else if ("-tcpAllowOthers".equals(arg)) {
+                    // no parameters
+                } else if ("-tcpDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-tcpSSL".equals(arg)) {
                     // no parameters
@@ -164,6 +174,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     pgStart = true;
                 } else if ("-pgAllowOthers".equals(arg)) {
+                    // no parameters
+                } else if ("-pgDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-pgPort".equals(arg)) {
                     i++;
@@ -329,6 +341,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         try {
             service.start();
             Thread t = new Thread(this);
+            t.setDaemon(service.isDaemon());
             String name = service.getName() + " (" + service.getURL() + ")";
             t.setName(name);
             t.start();

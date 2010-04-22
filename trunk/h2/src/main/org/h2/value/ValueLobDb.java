@@ -29,7 +29,7 @@ import org.h2.util.Utils;
 /**
  * An alternate LOB implementation.
  */
-public class ValueLob2 extends Value {
+public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlob {
 
     private final int type;
     private long precision;
@@ -45,7 +45,7 @@ public class ValueLob2 extends Value {
     private FileStore tempFile;
     private String fileName;
 
-    private ValueLob2(int type, LobStorage lobStorage, String fileName, int tableId, long lobId, long precision) {
+    private ValueLobDb(int type, LobStorage lobStorage, String fileName, int tableId, long lobId, long precision) {
         this.type = type;
         this.lobStorage = lobStorage;
         this.fileName = fileName;
@@ -54,7 +54,7 @@ public class ValueLob2 extends Value {
         this.precision = precision;
     }
 
-    private ValueLob2(int type, byte[] small, long precision) {
+    private ValueLobDb(int type, byte[] small, long precision) {
         this.type = type;
         this.small = small;
         this.precision = precision;
@@ -66,12 +66,13 @@ public class ValueLob2 extends Value {
      * @param type the type
      * @param lobStorage the storage
      * @param fileName the file name (may be null)
+     * @param tableId the table id
      * @param id the lob id
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */
-    public static ValueLob2 create(int type, LobStorage lobStorage, String fileName, long id, long precision) {
-        return new ValueLob2(type, lobStorage, fileName, LobStorage.TABLE_ID_SESSION_VARIABLE, id, precision);
+    public static ValueLobDb create(int type, LobStorage lobStorage, String fileName, int tableId, long id, long precision) {
+        return new ValueLobDb(type, lobStorage, fileName, tableId, id, precision);
     }
 
     /**
@@ -82,8 +83,8 @@ public class ValueLob2 extends Value {
      * @param precision the precision
      * @return the lob value
      */
-    public static ValueLob2 createSmallLob(int type, byte[] small, long precision) {
-        return new ValueLob2(type, small, precision);
+    public static ValueLobDb createSmallLob(int type, byte[] small, long precision) {
+        return new ValueLobDb(type, small, precision);
     }
 
     /**
@@ -141,12 +142,21 @@ public class ValueLob2 extends Value {
     public Value link(DataHandler h, int tabId) {
         if (small == null) {
             if (tabId != tableId) {
-                if (tableId != LobStorage.TABLE_ID_SESSION_VARIABLE) {
-                    throw DbException.throwInternalError();
+                if (tableId != LobStorage.TABLE_TEMP) {
+                    return lobStorage.copyLob(type, lobId, tabId, getPrecision());
                 }
                 lobStorage.setTable(lobId, tabId);
                 this.tableId = tabId;
             }
+        } else if (small.length > h.getMaxLengthInplaceLob()) {
+            LobStorage s = h.getLobStorage();
+            Value v;
+            if (type == Value.BLOB) {
+                v = s.createBlob(getInputStream(), getPrecision());
+            } else {
+                v = s.createClob(getReader(), getPrecision());
+            }
+            return v.link(h, tabId);
         }
         return this;
     }
@@ -335,7 +345,7 @@ public class ValueLob2 extends Value {
      *
      * @return the value
      */
-    public ValueLob2 copyToTemp() {
+    public ValueLobDb copyToTemp() {
         return this;
     }
 
@@ -359,7 +369,7 @@ public class ValueLob2 extends Value {
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLob2 createTempClob(Reader in, long length, DataHandler handler) {
+    public static ValueLobDb createTempClob(Reader in, long length, DataHandler handler) {
         try {
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
             long remaining = Long.MAX_VALUE;
@@ -379,9 +389,9 @@ public class ValueLob2 extends Value {
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = StringUtils.utf8Encode(new String(buff, 0, len));
-                return ValueLob2.createSmallLob(Value.CLOB, small, len);
+                return ValueLobDb.createSmallLob(Value.CLOB, small, len);
             }
-            ValueLob2 lob = new ValueLob2(Value.CLOB, null, 0);
+            ValueLobDb lob = new ValueLobDb(Value.CLOB, null, 0);
             lob.createTempFromReader(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {
@@ -397,7 +407,7 @@ public class ValueLob2 extends Value {
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLob2 createTempBlob(InputStream in, long length, DataHandler handler) {
+    public static ValueLobDb createTempBlob(InputStream in, long length, DataHandler handler) {
         try {
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -416,9 +426,9 @@ public class ValueLob2 extends Value {
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = Utils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
-                return ValueLob2.createSmallLob(Value.BLOB, small, small.length);
+                return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
             }
-            ValueLob2 lob = new ValueLob2(Value.BLOB, null, 0);
+            ValueLobDb lob = new ValueLobDb(Value.BLOB, null, 0);
             lob.createTempFromStream(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {

@@ -16,7 +16,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -28,7 +27,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLob2;
+import org.h2.value.ValueLobDb;
 
 /**
  * This class stores LOB objects in the database.
@@ -40,6 +39,12 @@ public class LobStorage {
      */
     public static final int TABLE_ID_SESSION_VARIABLE = -1;
 
+    /**
+     * The table id for temporary objects (not assigned to any object).
+     */
+    public static final int TABLE_TEMP = -2;
+
+
     private static final String LOBS = "INFORMATION_SCHEMA.LOBS";
     private static final String LOB_MAP = "INFORMATION_SCHEMA.LOB_MAP";
     private static final String LOB_DATA = "INFORMATION_SCHEMA.LOB_DATA";
@@ -49,7 +54,6 @@ public class LobStorage {
     private static final long UNIQUE = 0xffff;
     private Connection conn;
     private HashMap<String, PreparedStatement> prepared = New.hashMap();
-    private AtomicLong nextLob = new AtomicLong();
     private long nextBlock;
     private CompressTool compress = CompressTool.getInstance();
 
@@ -76,7 +80,7 @@ public class LobStorage {
             Statement stat = conn.createStatement();
             // stat.execute("SET UNDO_LOG 0");
             // stat.execute("SET REDO_LOG_BINARY 0");
-            stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, LENGTH BIGINT, TABLE INT) HIDDEN");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, BYTE_COUNT BIGINT, TABLE INT) HIDDEN");
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
             stat.execute("CREATE INDEX IF NOT EXISTS INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
@@ -85,14 +89,18 @@ public class LobStorage {
             rs.next();
             nextBlock = rs.getLong(1) + 1;
             if (HASH) {
-                nextBlock = Math.max(UNIQUE + 1, nextLob.get());
+                nextBlock = Math.max(UNIQUE + 1, nextBlock);
             }
-            rs = stat.executeQuery("SELECT MAX(ID) FROM " + LOBS);
-            rs.next();
-            nextLob.set(rs.getLong(1) + 1);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
+    }
+
+    private long getNextLobId() throws SQLException {
+        PreparedStatement prep = prepare("SELECT MAX(ID) FROM " + LOBS);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        return rs.getLong(1) + 1;
     }
 
     /**
@@ -104,7 +112,7 @@ public class LobStorage {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
             try {
-                PreparedStatement prep = prepare("SELECT ID FROM " + LOBS + " WHERE TABLE=?");
+                PreparedStatement prep = prepare("SELECT ID FROM " + LOBS + " WHERE TABLE = ?");
                 prep.setInt(1, tableId);
                 ResultSet rs = prep.executeQuery();
                 while (rs.next()) {
@@ -112,6 +120,9 @@ public class LobStorage {
                 }
             } catch (SQLException e) {
                 throw DbException.convert(e);
+            }
+            if (tableId == TABLE_ID_SESSION_VARIABLE) {
+                removeAllForTable(TABLE_TEMP);
             }
             // remove both lobs in the database as well as in the file system
             // (compatibility)
@@ -134,7 +145,7 @@ public class LobStorage {
             } else {
                 precision = small.length;
             }
-            return ValueLob2.createSmallLob(type, small, precision);
+            return ValueLobDb.createSmallLob(type, small, precision);
         }
         return ValueLob.createSmallLob(type, small);
     }
@@ -148,7 +159,7 @@ public class LobStorage {
         private PreparedStatement prepSelect;
         private byte[] buffer;
         private int pos;
-        private long remaining;
+        private long remainingBytes;
         private long lob;
         private int seq;
         private CompressTool compress;
@@ -158,13 +169,13 @@ public class LobStorage {
             try {
                 this.lob = lob;
                 PreparedStatement prep = conn.prepareStatement(
-                        "SELECT LENGTH FROM " + LOBS + " WHERE ID = ?");
+                        "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?");
                 prep.setLong(1, lob);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
                     throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob: "+ lob).getSQLException();
                 }
-                remaining = rs.getLong(1);
+                remainingBytes = rs.getLong(1);
                 rs.close();
             } catch (SQLException e) {
                 throw DbException.convertToIOException(e);
@@ -173,10 +184,10 @@ public class LobStorage {
 
         public int read() throws IOException {
             fillBuffer();
-            if (remaining <= 0) {
+            if (remainingBytes <= 0) {
                 return -1;
             }
-            remaining--;
+            remainingBytes--;
             return buffer[pos++] & 255;
         }
 
@@ -195,15 +206,15 @@ public class LobStorage {
             int read = 0;
             while (length > 0) {
                 fillBuffer();
-                if (remaining <= 0) {
+                if (remainingBytes <= 0) {
                     break;
                 }
-                int len = (int) Math.min(length, remaining);
+                int len = (int) Math.min(length, remainingBytes);
                 len = Math.min(len, buffer.length - pos);
                 System.arraycopy(buffer, pos, buff, off, len);
                 pos += len;
                 read += len;
-                remaining -= len;
+                remainingBytes -= len;
                 off += len;
                 length -= len;
             }
@@ -214,7 +225,7 @@ public class LobStorage {
             if (buffer != null && pos < buffer.length) {
                 return;
             }
-            if (remaining <= 0) {
+            if (remainingBytes <= 0) {
                 return;
             }
             try {
@@ -289,17 +300,17 @@ public class LobStorage {
         return new LobInputStream(conn, lobId);
     }
 
-    private ValueLob2 addLob(InputStream in, long maxLength, int type) {
+    private ValueLobDb addLob(InputStream in, long maxLength, int type) {
         byte[] buff = new byte[BLOCK_LENGTH];
         if (maxLength < 0) {
             maxLength = Long.MAX_VALUE;
         }
         long length = 0;
         long lobId;
-        lobId = nextLob.getAndIncrement();
         int maxLengthInPlaceLob = handler.getMaxLengthInplaceLob();
         String compressAlgorithm = handler.getLobCompressionAlgorithm(type);
         try {
+            lobId = getNextLobId();
             try {
                 for (int seq = 0; maxLength > 0; seq++) {
                     int len = (int) Math.min(BLOCK_LENGTH, maxLength);
@@ -318,23 +329,63 @@ public class LobStorage {
                     }
                     if (seq == 0 && b.length < BLOCK_LENGTH && b.length <= maxLengthInPlaceLob) {
                         // CLOB: the precision will be fixed later
-                        ValueLob2 v = ValueLob2.createSmallLob(type, b, b.length);
+                        ValueLobDb v = ValueLobDb.createSmallLob(type, b, b.length);
                         return v;
                     }
                     storeBlock(lobId, seq, b, compressAlgorithm);
                 }
-                PreparedStatement prep = prepare(
-                        "INSERT INTO " + LOBS + "(ID, LENGTH, TABLE) VALUES(?, ?, ?)");
-                prep.setLong(1, lobId);
-                prep.setLong(2, length);
-                prep.setInt(3, TABLE_ID_SESSION_VARIABLE);
-                prep.execute();
-                ValueLob2 v = ValueLob2.create(type, this, null, lobId, length);
-                return v;
+                return registerLob(type, lobId, TABLE_TEMP, length);
             } catch (IOException e) {
                 deleteLob(lobId);
                 throw DbException.convertIOException(e, "adding blob");
             }
+        } catch (SQLException e) {
+            throw DbException.convert(e);
+        }
+    }
+
+    private ValueLobDb registerLob(int type, long lobId, int tableId, long byteCount) {
+        try {
+            PreparedStatement prep = prepare(
+                    "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)");
+            prep.setLong(1, lobId);
+            prep.setLong(2, byteCount);
+            prep.setInt(3, tableId);
+            prep.execute();
+            ValueLobDb v = ValueLobDb.create(type, this, null, tableId, lobId, byteCount);
+            return v;
+        } catch (SQLException e) {
+            throw DbException.convert(e);
+        }
+    }
+
+    /**
+     * Copy a lob.
+     *
+     * @param type the type
+     * @param oldLobId the old lob id
+     * @param tableId the new table id
+     * @param length the length
+     * @return the new lob
+     */
+    public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
+        try {
+            long lobId = getNextLobId();
+            PreparedStatement prep = prepare(
+                    "INSERT INTO " + LOB_MAP + "(LOB, SEQ, BLOCK) " +
+                    "SELECT ?, SEQ, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?");
+            prep.setLong(1, lobId);
+            prep.setLong(2, oldLobId);
+            prep.executeUpdate();
+            prep = prepare(
+                    "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) " +
+                    "SELECT ?, BYTE_COUNT, ? FROM " + LOBS + " WHERE ID = ?");
+            prep.setLong(1, lobId);
+            prep.setLong(2, tableId);
+            prep.setLong(3, oldLobId);
+            prep.executeUpdate();
+            ValueLobDb v = ValueLobDb.create(type, this, null, tableId, lobId, length);
+            return v;
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
@@ -474,7 +525,7 @@ public class LobStorage {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
             if (conn == null) {
-                return ValueLob2.createTempBlob(in, maxLength, handler);
+                return ValueLobDb.createTempBlob(in, maxLength, handler);
             }
             return addLob(in, maxLength, Value.BLOB);
         }
@@ -492,11 +543,11 @@ public class LobStorage {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
             if (conn == null) {
-                return ValueLob2.createTempClob(reader, maxLength, handler);
+                return ValueLobDb.createTempClob(reader, maxLength, handler);
             }
             long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
             CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
-            ValueLob2 lob = addLob(in, Long.MAX_VALUE, Value.CLOB);
+            ValueLobDb lob = addLob(in, Long.MAX_VALUE, Value.CLOB);
             lob.setPrecision(in.getLength());
             return lob;
         }
@@ -516,7 +567,8 @@ public class LobStorage {
             prep.setLong(2, lobId);
             int updateCount = prep.executeUpdate();
             if (updateCount != 1) {
-                throw DbException.throwInternalError("count: " + updateCount);
+                // can be zero when recovering
+                // throw DbException.throwInternalError("count: " + updateCount);
             }
         } catch (SQLException e) {
             throw DbException.convert(e);

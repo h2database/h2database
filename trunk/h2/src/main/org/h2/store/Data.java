@@ -32,7 +32,7 @@ import org.h2.value.ValueFloat;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLob2;
+import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueShort;
@@ -565,10 +565,11 @@ public class Data {
                     write(small, 0, small.length);
                 }
             } else {
-                ValueLob2 lob = (ValueLob2) v;
+                ValueLobDb lob = (ValueLobDb) v;
                 byte[] small = lob.getSmall();
                 if (small == null) {
                     writeVarInt(-3);
+                    writeVarInt(lob.getTableId());
                     writeVarLong(lob.getLobId());
                     writeVarLong(lob.getPrecision());
                 } else {
@@ -697,10 +698,11 @@ public class Data {
                 read(small, 0, smallLen);
                 return LobStorage.createSmallLob(type, small);
             } else if (smallLen == -3) {
+                int tableId = readVarInt();
                 long lobId = readVarLong();
                 long precision = readVarLong();
                 LobStorage lobStorage = handler.getLobStorage();
-                ValueLob2 lob = ValueLob2.create(type, lobStorage, null, lobId, precision);
+                ValueLobDb lob = ValueLobDb.create(type, lobStorage, null, tableId, lobId, precision);
                 return lob;
             } else {
                 int tableId = readVarInt();
@@ -890,10 +892,11 @@ public class Data {
                     len += small.length;
                 }
             } else {
-                ValueLob2 lob = (ValueLob2) v;
+                ValueLobDb lob = (ValueLobDb) v;
                 byte[] small = lob.getSmall();
                 if (small == null) {
                     len += getVarIntLen(-3);
+                    len += getVarIntLen(lob.getTableId());
                     len += getVarLongLen(lob.getLobId());
                     len += getVarLongLen(lob.getPrecision());
                 } else {

@@ -18,6 +18,7 @@ import java.io.Reader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SimpleRow;
@@ -55,7 +57,7 @@ import org.h2.util.Tool;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLob2;
+import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
 
 /**
@@ -74,14 +76,45 @@ public class Recover extends Tool implements DataHandler {
     private ArrayList<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
+    private HashMap<String, String> columnTypeMap;
     private boolean remove;
 
-    private long pageDataEmpty;
-    private int pageDataRows;
-    private int pageDataHead;
     private int pageSize;
     private FileStore store;
     private int[] parents;
+
+    private Stats stat;
+
+    /**
+     * Statistic data
+     */
+    class Stats {
+
+        /**
+         * The empty space in bytes in a data leaf pages.
+         */
+        long pageDataEmpty;
+
+        /**
+         * The number of bytes used for data.
+         */
+        int pageDataRows;
+
+        /**
+         * The number of bytes used for the page headers.
+         */
+        int pageDataHead;
+
+        /**
+         * The count per page type.
+         */
+        int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
+
+        /**
+         * The number of free pages.
+         */
+        int free;
+    }
 
     /**
      * Options are case sensitive. Supported options are:
@@ -155,17 +188,20 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static Reader readClobDb(Connection conn, long lobId) throws IOException {
-        return new BufferedReader(new InputStreamReader(readBlobDb(conn, lobId), "UTF-8"));
+    public static Value.ValueBlob readBlobDb(Connection conn, long lobId, long precision) {
+        DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
+        LobStorage lobStorage = h.getLobStorage();
+        return ValueLobDb.create(Value.BLOB, lobStorage, null, LobStorage.TABLE_TEMP, lobId, precision);
     }
 
     /**
      * INTERNAL
      */
-    public static InputStream readBlobDb(Connection conn, long lobId) throws IOException {
-        return new BufferedInputStream(new LobStorage.LobInputStream(conn, lobId));
+    public static Value.ValueClob readClobDb(Connection conn, long lobId, long precision) {
+        DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
+        LobStorage lobStorage = h.getLobStorage();
+        return ValueLobDb.create(Value.CLOB, lobStorage, null, LobStorage.TABLE_TEMP, lobId, precision);
     }
-
 
     private void trace(String message) {
         if (trace) {
@@ -279,7 +315,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private String getSQL(Value v) {
+    private String getSQL(String column, Value v) {
         if (v instanceof ValueLob) {
             ValueLob lob = (ValueLob) v;
             byte[] small = lob.getSmall();
@@ -290,15 +326,24 @@ public class Recover extends Tool implements DataHandler {
                 }
                 return "READ_CLOB('" + file + ".txt')";
             }
-        } else if (v instanceof ValueLob2) {
-            ValueLob2 lob = (ValueLob2) v;
+        } else if (v instanceof ValueLobDb) {
+            ValueLobDb lob = (ValueLobDb) v;
             byte[] small = lob.getSmall();
             if (small == null) {
+                int type = lob.getType();
                 long id = lob.getLobId();
-                if (lob.getType() == Value.BLOB) {
-                    return "READ_BLOB_DB(" + id + ")";
+                long precision = lob.getPrecision();
+                String m;
+                String columnType;
+                if (type == Value.BLOB) {
+                    columnType = "BLOB";
+                    m = "READ_BLOB_DB";
+                } else {
+                    columnType = "CLOB";
+                    m = "READ_CLOB_DB";
                 }
-                return "READ_CLOB_DB(" + id + ")";
+                columnTypeMap.put(column, columnType);
+                return m + "(" + id + ", " + precision + ")";
             }
         }
         return v.getSQL();
@@ -311,17 +356,13 @@ public class Recover extends Tool implements DataHandler {
     private void dumpPageStore(String fileName) {
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length()));
         PrintWriter writer = null;
-        int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
-        int emptyPages = 0;
-        pageDataEmpty = 0;
-        pageDataRows = 0;
-        pageDataHead = 0;
+        stat = new Stats();
         try {
             writer = getWriter(fileName, ".sql");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" + this.getClass().getName() + ".readClobDb\";");
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" + this.getClass().getName() + ".readBlobDb\";");
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" + this.getClass().getName() + ".readClobDb\";");
             resetSchema();
             store = FileStore.open(null, fileName, remove ? "rw" : "r");
             long length = store.length();
@@ -356,6 +397,7 @@ public class Recover extends Tool implements DataHandler {
                 parents[i] = s.readInt();
             }
             int logKey = 0, logFirstTrunkPage = 0, logFirstDataPage = 0;
+            s = Data.create(this, pageSize);
             for (int i = 1;; i++) {
                 if (i == 3) {
                     break;
@@ -363,7 +405,6 @@ public class Recover extends Tool implements DataHandler {
                 s.reset();
                 store.seek(i * pageSize);
                 store.readFully(s.getBytes(), 0, pageSize);
-
                 CRC32 crc = new CRC32();
                 crc.update(s.getBytes(), 4, pageSize - 4);
                 int expected = (int) crc.getValue();
@@ -386,98 +427,18 @@ public class Recover extends Tool implements DataHandler {
             writer.println("-- firstTrunkPage: " + logFirstTrunkPage +
                     " firstDataPage: " + logFirstDataPage);
 
-            s = Data.create(this, pageSize);
-            int free = 0;
-            for (int page = 3; page < pageCount; page++) {
-                s = Data.create(this, pageSize);
-                store.seek(page * pageSize);
-                store.readFully(s.getBytes(), 0, pageSize);
-                int type = s.readByte();
-                switch (type) {
-                case Page.TYPE_EMPTY:
-                    pageTypeCount[type]++;
-                    emptyPages++;
-                    continue;
+            int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
+            PrintWriter devNull = new PrintWriter(new OutputStream() {
+                public void write(int b) {
+                    // ignore
                 }
-                boolean last = (type & Page.FLAG_LAST) != 0;
-                type &= ~Page.FLAG_LAST;
-                if (!PageStore.checksumTest(s.getBytes(), page, pageSize)) {
-                    writer.println("-- ERROR: page " + page + " checksum mismatch type: " + type);
-                }
-                s.readShortInt();
-                switch (type) {
-                // type 1
-                case Page.TYPE_DATA_LEAF: {
-                    pageTypeCount[type]++;
-                    int parentPageId = s.readInt();
-                    setStorage(s.readVarInt());
-                    int columnCount = s.readVarInt();
-                    int entries = s.readShortInt();
-                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " parent: " + parentPageId +
-                            " table: " + storageId + " entries: " + entries + " columns: " + columnCount);
-                    dumpPageDataLeaf(writer, s, last, page, columnCount, entries);
-                    break;
-                }
-                // type 2
-                case Page.TYPE_DATA_NODE: {
-                    pageTypeCount[type]++;
-                    int parentPageId = s.readInt();
-                    setStorage(s.readVarInt());
-                    int rowCount = s.readInt();
-                    int entries = s.readShortInt();
-                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " parent: " + parentPageId +
-                            " entries: " + entries + " rowCount: " + rowCount);
-                    dumpPageDataNode(writer, s, page, entries);
-                    break;
-                }
-                // type 3
-                case Page.TYPE_DATA_OVERFLOW:
-                    pageTypeCount[type]++;
-                    writer.println("-- page " + page + ": data overflow " + (last ? "(last)" : ""));
-                    break;
-                // type 4
-                case Page.TYPE_BTREE_LEAF: {
-                    pageTypeCount[type]++;
-                    int parentPageId = s.readInt();
-                    setStorage(s.readVarInt());
-                    int entries = s.readShortInt();
-                    writer.println("-- page " + page + ": b-tree leaf " + (last ? "(last)" : "") + " parent: " + parentPageId +
-                            " index: " + storageId + " entries: " + entries);
-                    if (trace) {
-                        dumpPageBtreeLeaf(writer, s, entries, !last);
-                    }
-                    break;
-                }
-                // type 5
-                case Page.TYPE_BTREE_NODE:
-                    pageTypeCount[type]++;
-                    int parentPageId = s.readInt();
-                    setStorage(s.readVarInt());
-                    writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : "") +  " parent: " + parentPageId +
-                            " index: " + storageId);
-                    dumpPageBtreeNode(writer, s, page, !last);
-                    break;
-                // type 6
-                case Page.TYPE_FREE_LIST:
-                    pageTypeCount[type]++;
-                    writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
-                    free += dumpPageFreeList(writer, s, page, pageCount);
-                    break;
-                // type 7
-                case Page.TYPE_STREAM_TRUNK:
-                    pageTypeCount[type]++;
-                    writer.println("-- page " + page + ": log trunk");
-                    break;
-                // type 8
-                case Page.TYPE_STREAM_DATA:
-                    pageTypeCount[type]++;
-                    writer.println("-- page " + page + ": log data");
-                    break;
-                default:
-                    writer.println("-- ERROR page " + page + " unknown type " + type);
-                    break;
-                }
-            }
+            });
+            dumpPageStore(devNull, pageCount);
+            Arrays.fill(pageTypeCount, 0);
+            stat = new Stats();
+            schema.clear();
+            objectIdSet = New.hashSet();
+            dumpPageStore(writer, pageCount);
             writeSchema(writer);
             try {
                 dumpPageLogStream(writer, logKey, logFirstTrunkPage, logFirstDataPage);
@@ -485,20 +446,114 @@ public class Recover extends Tool implements DataHandler {
                 // ignore
             }
             writer.println("---- Statistics ----------");
-            writer.println("-- page count: " + pageCount + " empty: " + emptyPages + " free: " + free);
-            writer.println("-- page data head: " + pageDataHead + " empty: " + pageDataEmpty + " rows: " + pageDataRows);
+            writer.println("-- page count: " + pageCount + " free: " + stat.free);
+            writer.println("-- page data head: " + stat.pageDataHead + " empty: " + stat.pageDataEmpty + " rows: " + stat.pageDataRows);
             for (int i = 0; i < pageTypeCount.length; i++) {
                 int count = pageTypeCount[i];
                 if (count > 0) {
                     writer.println("-- page count type: " + i + " " + (100 * count / pageCount) + "% count: " + count);
                 }
             }
+
             writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
         } finally {
             IOUtils.closeSilently(writer);
             closeSilently(store);
+        }
+    }
+
+    private void dumpPageStore(PrintWriter writer, int pageCount) {
+        Data s = Data.create(this, pageSize);
+        for (int page = 3; page < pageCount; page++) {
+            s = Data.create(this, pageSize);
+            store.seek(page * pageSize);
+            store.readFully(s.getBytes(), 0, pageSize);
+            int type = s.readByte();
+            switch (type) {
+            case Page.TYPE_EMPTY:
+                stat.pageTypeCount[type]++;
+                continue;
+            }
+            boolean last = (type & Page.FLAG_LAST) != 0;
+            type &= ~Page.FLAG_LAST;
+            if (!PageStore.checksumTest(s.getBytes(), page, pageSize)) {
+                writer.println("-- ERROR: page " + page + " checksum mismatch type: " + type);
+            }
+            s.readShortInt();
+            switch (type) {
+            // type 1
+            case Page.TYPE_DATA_LEAF: {
+                stat.pageTypeCount[type]++;
+                int parentPageId = s.readInt();
+                setStorage(s.readVarInt());
+                int columnCount = s.readVarInt();
+                int entries = s.readShortInt();
+                writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " parent: " + parentPageId +
+                        " table: " + storageId + " entries: " + entries + " columns: " + columnCount);
+                dumpPageDataLeaf(writer, s, last, page, columnCount, entries);
+                break;
+            }
+            // type 2
+            case Page.TYPE_DATA_NODE: {
+                stat.pageTypeCount[type]++;
+                int parentPageId = s.readInt();
+                setStorage(s.readVarInt());
+                int rowCount = s.readInt();
+                int entries = s.readShortInt();
+                writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " parent: " + parentPageId +
+                        " entries: " + entries + " rowCount: " + rowCount);
+                dumpPageDataNode(writer, s, page, entries);
+                break;
+            }
+            // type 3
+            case Page.TYPE_DATA_OVERFLOW:
+                stat.pageTypeCount[type]++;
+                writer.println("-- page " + page + ": data overflow " + (last ? "(last)" : ""));
+                break;
+            // type 4
+            case Page.TYPE_BTREE_LEAF: {
+                stat.pageTypeCount[type]++;
+                int parentPageId = s.readInt();
+                setStorage(s.readVarInt());
+                int entries = s.readShortInt();
+                writer.println("-- page " + page + ": b-tree leaf " + (last ? "(last)" : "") + " parent: " + parentPageId +
+                        " index: " + storageId + " entries: " + entries);
+                if (trace) {
+                    dumpPageBtreeLeaf(writer, s, entries, !last);
+                }
+                break;
+            }
+            // type 5
+            case Page.TYPE_BTREE_NODE:
+                stat.pageTypeCount[type]++;
+                int parentPageId = s.readInt();
+                setStorage(s.readVarInt());
+                writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : "") +  " parent: " + parentPageId +
+                        " index: " + storageId);
+                dumpPageBtreeNode(writer, s, page, !last);
+                break;
+            // type 6
+            case Page.TYPE_FREE_LIST:
+                stat.pageTypeCount[type]++;
+                writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
+                stat.free += dumpPageFreeList(writer, s, page, pageCount);
+                break;
+            // type 7
+            case Page.TYPE_STREAM_TRUNK:
+                stat.pageTypeCount[type]++;
+                writer.println("-- page " + page + ": log trunk");
+                break;
+            // type 8
+            case Page.TYPE_STREAM_DATA:
+                stat.pageTypeCount[type]++;
+                writer.println("-- page " + page + ": log data");
+                break;
+            default:
+                writer.println("-- ERROR page " + page + " unknown type " + type);
+                break;
+            }
         }
     }
 
@@ -906,10 +961,10 @@ public class Recover extends Tool implements DataHandler {
             empty = Math.min(off, empty);
             offsets[i] = off;
         }
-        pageDataRows += pageSize - empty;
+        stat.pageDataRows += pageSize - empty;
         empty = empty - s.length();
-        pageDataHead += s.length();
-        pageDataEmpty += empty;
+        stat.pageDataHead += s.length();
+        stat.pageDataEmpty += empty;
         if (trace) {
             writer.println("--   empty: " + empty);
         }
@@ -1020,7 +1075,8 @@ public class Recover extends Tool implements DataHandler {
                 if (valueId > 0) {
                     sb.append(", ");
                 }
-                sb.append(getSQL(v));
+                String columnName = storageName + "." + valueId;
+                sb.append(getSQL(columnName, v));
             } catch (Exception e) {
                 writeDataError(writer, "exception " + e, s.getBytes());
                 continue;
@@ -1051,6 +1107,7 @@ public class Recover extends Tool implements DataHandler {
         schema = New.arrayList();
         objectIdSet = New.hashSet();
         tableMap = New.hashMap();
+        columnTypeMap = New.hashMap();
     }
 
     private void writeSchema(PrintWriter writer) {
@@ -1063,11 +1120,31 @@ public class Recover extends Tool implements DataHandler {
                 writer.println(sql + ";");
             }
         }
+        // first, copy the lob storage (if there is any)
+        // must occur before copying data,
+        // otherwise the lob storage may be overwritten
+        for (Map.Entry<Integer, String> entry : tableMap.entrySet()) {
+            Integer objectId = entry.getKey();
+            String name = entry.getValue();
+            if (objectIdSet.contains(objectId)) {
+                if (name.startsWith("INFORMATION_SCHEMA.LOB")) {
+                    setStorage(objectId);
+                    writer.println("DELETE FROM " + name + ";");
+                    writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
+                    if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
+                        writer.println("UPDATE " + name + " SET TABLE = " + LobStorage.TABLE_TEMP + ";");
+                    }
+                }
+            }
+        }
         for (Map.Entry<Integer, String> entry : tableMap.entrySet()) {
             Integer objectId = entry.getKey();
             String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
                 setStorage(objectId);
+                if (name.startsWith("INFORMATION_SCHEMA.LOB")) {
+                    continue;
+                }
                 writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
             }
         }
@@ -1075,10 +1152,11 @@ public class Recover extends Tool implements DataHandler {
             setStorage(objectId);
             writer.println("DROP TABLE " + storageName + ";");
         }
-        writer.println("DROP ALIAS READ_CLOB;");
         writer.println("DROP ALIAS READ_BLOB;");
-        writer.println("DROP ALIAS READ_CLOB_DB;");
+        writer.println("DROP ALIAS READ_CLOB;");
         writer.println("DROP ALIAS READ_BLOB_DB;");
+        writer.println("DROP ALIAS READ_CLOB_DB;");
+        writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " + LobStorage.TABLE_TEMP + ";");
         for (MetaRecord m : schema) {
             String sql = m.getSQL();
             // everything except create
@@ -1095,7 +1173,13 @@ public class Recover extends Tool implements DataHandler {
             buff.append(storageName).append('(');
             for (int i = 0; i < recordLength; i++) {
                 buff.appendExceptFirst(", ");
-                buff.append('C').append(i).append(" VARCHAR");
+                buff.append('C').append(i).append(' ');
+                String columnType = columnTypeMap.get(storageName + "." + i);
+                if (columnType == null) {
+                    buff.append("VARCHAR");
+                } else {
+                    buff.append(columnType);
+                }
             }
             writer.println(buff.append(");").toString());
             writer.flush();
@@ -1118,6 +1202,9 @@ public class Recover extends Tool implements DataHandler {
             sql = sql.substring(indexTable + " TABLE ".length());
         } else {
             return "UNKNOWN";
+        }
+        if (sql.startsWith("IF NOT EXISTS ")) {
+            sql = sql.substring("IF NOT EXISTS ".length());
         }
         boolean ignore = false;
         for (int i = 0; i < sql.length(); i++) {

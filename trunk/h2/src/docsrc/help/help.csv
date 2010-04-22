@@ -919,8 +919,8 @@ SET AUTOCOMMIT { TRUE | ON | FALSE | OFF }
 Switches auto commit on or off.
 This setting can be appended to the database URL: jdbc:h2:test;AUTOCOMMIT=OFF -
 however this will not work as expected when using a connection pool
-(the connection pool manager will re-enable autocommit when returning 
-the connection to the pool, so autocommit will only be disabled the first 
+(the connection pool manager will re-enable autocommit when returning
+the connection to the pool, so autocommit will only be disabled the first
 time the connection is used.
 ","
 SET AUTOCOMMIT OFF
@@ -2941,12 +2941,13 @@ DATEADD('MONTH', 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","
-DATEDIFF(unitString, aTimestamp, bTimestamp)
+{ DATEDIFF | TIMESTAMPDIFF } (unitString, aTimestamp, bTimestamp)
 ","
 Returns the difference between two timestamps.
 This method returns a long.
 The string indicates the unit.
 The same units as in the EXTRACT function are supported.
+TIMESTAMPDIFF is supported for MySQL compatibility.
 ","
 DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
 "

@@ -293,11 +293,9 @@ java org.h2.test.TestAll timer
 
         int testing;
         System.setProperty("h2.lobInDatabase", "true");
+        System.setProperty("h2.analyzeAuto", "100");
 
 /*
-
-new lob storage: test compression
-new lob storage: test in-place storage (old and new)
 
 power failure test
 power failure test: MULTI_THREADED=TRUE
@@ -308,9 +306,6 @@ drop table test;
 create table test(id identity, name varchar(100) default space(100));
 @LOOP 10 insert into test select null, null from system_range(1, 100000);
 delete from test;
-
-rename Page* classes
-move classes to the right packages
 
 // System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64

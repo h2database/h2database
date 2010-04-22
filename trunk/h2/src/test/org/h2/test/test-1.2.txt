@@ -1,4 +1,13 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(a int primary key, b int references(a));
+> ok
+
+merge into test values(1, 2);
+> exception
+
+drop table test;
+> ok
+
 create table test(id int primary key, d int);
 > ok
 
@@ -5280,7 +5289,7 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
 > CREATE INDEX PUBLIC.IDXNAME ON PUBLIC.TEST(NAME);
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) DEFAULT 1,     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP );
-> CREATE MEMORY TABLE PUBLIC.TEST_SEQ(     ID INT DEFAULT 20,     DATA VARCHAR );
+> CREATE MEMORY TABLE PUBLIC.TEST_SEQ(     ID INT DEFAULT 20 NOT NULL,     DATA VARCHAR );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFY_DATE) VALUES(1, 'Hi', '2001-01-01', NULL);
 > INSERT INTO PUBLIC.TEST_SEQ(ID, DATA) VALUES(-1, '-1');

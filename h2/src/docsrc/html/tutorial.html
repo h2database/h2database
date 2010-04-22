@@ -230,11 +230,11 @@ press [Ctrl]+[C] in the console where the server was started (Windows),
 or close the console window.
 </p>
 
-<h2 id="console_settings">Special H2 Console Syntax</h2>
+<h2 id="console_syntax">Special H2 Console Syntax</h2>
 <p>
 The H2 Console supports a few built-in commands.
 Those are interpreted within the H2 Console, that means they work with any database.
-They need to be at the beginning of a statement (before any remarks), 
+They need to be at the beginning of a statement (before any remarks),
 otherwise they are not parsed correctly. If in doubt, add ';' before the command.
 </p>
 <table>
@@ -267,18 +267,18 @@ otherwise they are not parsed correctly. If in doubt, add ';' before the command
             @tables null null TEST;<br />
         </td>
         <td>
-            Call the corresponding DatabaseMetaData.get method. 
+            Call the corresponding DatabaseMetaData.get method.
             Patterns are case sensitive (usually identifiers are uppercase).
             For information about the parameters, see the Javadoc documentation.
             Missing parameters at the end are set to null. The complete list of commands is:
             <code>
-            @attributes @best_row_identifier @catalogs @columns 
-            @column_privileges @cross_references @exported_keys 
-            @imported_keys @index_info  @primary_keys @procedures 
+            @attributes @best_row_identifier @catalogs @columns
+            @column_privileges @cross_references @exported_keys
+            @imported_keys @index_info  @primary_keys @procedures
             @procedure_columns @schemas @super_tables @super_types
-            @tables @table_privileges @table_types @type_info @udts 
-            @version_columns 
-            </code> 
+            @tables @table_privileges @table_types @type_info @udts
+            @version_columns
+            </code>
         </td>
     </tr>
     <tr>
@@ -327,10 +327,10 @@ otherwise they are not parsed correctly. If in doubt, add ';' before the command
             @loop 1000 @statement select ?;
         </td>
         <td>
-            Run the statement this many times. 
-            Parameters (<code>?</code>) are set using a loop from 0 up to x - 1. 
+            Run the statement this many times.
+            Parameters (<code>?</code>) are set using a loop from 0 up to x - 1.
             Random values are used for each <code>?/*rnd*/</code>.
-            A Statement object is used instead of a PreparedStatement if <code>@statement</code> is used.        
+            A Statement object is used instead of a PreparedStatement if <code>@statement</code> is used.
             Result sets are read until <code>ResultSet.next()</code> returns <code>false</code>.
             Timing information is printed.
         </td>
@@ -386,7 +386,7 @@ otherwise they are not parsed correctly. If in doubt, add ';' before the command
             @transaction_isolation&nbsp;2;
         </td>
         <td>
-            Display (without parameters) or change 
+            Display (without parameters) or change
             (with parameters 1, 2, 4, 8) the transaction isolation level.
         </td>
     </tr>

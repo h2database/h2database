@@ -29,7 +29,7 @@ Initial Developer: H2 Group
     ><img src="icon_line.gif" class="iconLine" alt=""
     /></td><td class="toolbar"><input type="checkbox" name="autoCommit" value="autoCommit"
         onclick="javascript:
-        top.frames['h2result'].document.location='query.do?jsessionid=${sessionId}&amp;sql=@autocommit_' + 
+        top.frames['h2result'].document.location='query.do?jsessionid=${sessionId}&amp;sql=@autocommit_' +
         (document.header.autoCommit.checked ? 'true' : 'false') + '.';
         "
     /></td><td class="toolbar">${text.toolbar.autoCommit}&nbsp;</td><td class="toolbar"

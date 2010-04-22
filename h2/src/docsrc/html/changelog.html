@@ -18,7 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using AUTO_SERVER=TRUE, the server is now started as a daemon thread.
+<ul><li>New system property h2.analyzeAuto (default 0 meaning disabled) to
+    automatically run ANALYZE after that many changes to a table.
+    For details, see the Javadoc of this system property.
+    The plan is to set this property to 2000 in version 1.3.x.
+</li><li>JdbcXAConnection.start() does not support TMJOIN. Issue 189.
+</li><li>MySQL compatibility: TIMESTAMPDIFF is now an alias for DATEDIFF.
+</li><li>MERGE did not respect foreign key and check constraints.
+</li><li>ALTER TABLE ALTER COLUMN: changing the data type of a column
+    no longer makes it nullable.
+</li><li>When using AUTO_SERVER=TRUE, the server is now started as a daemon thread.
     This was a problem when using Tomcat and a connection pool.
 </li><li>Servers can now be started as a daemon thread using the command line options
     -tcpDaemon, -pgDaemon, and -webDaemon.
@@ -26,12 +35,14 @@ Change Log
 </li><li>REPLACE: if any parameter is null, the result is null.
 </li><li>Queries with DISTINCT and ORDER BY will now use the index on ORDER BY if possible.
     This is specially important for queries used inside IN(SELECT ...).
-</li><li>The new statement EXPLAIN ANALYZE executes the statement, 
+</li><li>The new statement EXPLAIN ANALYZE executes the statement,
     and displays the query plan with the actual row scan count for each table.
 </li><li>H2 Console: the auto-complete feature didn't quote column names
     that need quoting. Issue 186.
 </li><li>The experimental LOB storage mechanism now supports all features of the
     old one. To use it, set the system property "h2.lobInDatabase" to "true".
+    If you have used this feature in version 1.2.133, you need to export 
+    and re-import the database using SCRIPT / RUNSCRIPT.
 </li><li>The functions isBeforeFirst() and isAfterLast() were not compliant to the
     JDBC spec. If the ResultSet contains no rows, they must return false. Fixed.
 </li><li>Filesystem parameters like "split:" didn't work in server mode with baseDir set.

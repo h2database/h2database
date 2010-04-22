@@ -641,3 +641,4 @@ stdio printf jchar sizeof stdlib jbyte jint uint ujlong typedef jdouble stdint
 jfloat wchar hotspot jvoid std ujint jlong vars jboolean calloc argc strlen
 equivalent synchronizes sullivan surname doe stepan getstart rojas snprintf
 pulakka pagination collide visual aejaks simulation joonas finland minneapolis
+determine timestampdiff

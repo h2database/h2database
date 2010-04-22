@@ -255,6 +255,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("NOW", NOW, VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATEADD", DATE_ADD, 3, Value.TIMESTAMP);
         addFunction("DATEDIFF", DATE_DIFF, 3, Value.LONG);
+        addFunction("TIMESTAMPDIFF", DATE_DIFF, 3, Value.LONG);
         addFunction("DAYNAME", DAY_NAME, 1, Value.STRING);
         addFunction("DAYNAME", DAY_NAME, 1, Value.STRING);
         addFunction("DAY", DAY_OF_MONTH, 1, Value.INT);

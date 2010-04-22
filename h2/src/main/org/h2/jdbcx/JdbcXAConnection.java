@@ -348,7 +348,11 @@ implements XAConnection, XAResource
         if (flags == TMRESUME) {
             return;
         }
-        if (currentTransaction != null) {
+        if (flags == TMJOIN) {
+            if (currentTransaction != null && !currentTransaction.equals(xid)) {
+                throw new XAException(XAException.XAER_RMERR);
+            }
+        } else if (currentTransaction != null) {
             throw new XAException(XAException.XAER_NOTA);
         }
         try {

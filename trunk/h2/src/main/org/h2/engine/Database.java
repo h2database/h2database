@@ -562,6 +562,7 @@ public class Database implements DataHandler {
         data.persistData = persistent;
         data.persistIndexes = persistent;
         data.create = create;
+        data.isHidden = true;
         data.session = systemSession;
         meta = mainSchema.createTable(data);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });

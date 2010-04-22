@@ -742,6 +742,22 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Check whether this table has a select trigger.
+     *
+     * @return true if it has
+     */
+    public boolean hasSelectTrigger() {
+        if (triggers != null) {
+            for (TriggerObject trigger : triggers) {
+                if (trigger.isSelectTrigger()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check if row based triggers or constraints are defined.
      * In this case the fire after and before row methods need to be called.
      *

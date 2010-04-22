@@ -374,4 +374,13 @@ public class TriggerObject extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Check whether this is a select trigger.
+     *
+     * @return true if it is
+     */
+    public boolean isSelectTrigger() {
+        return (typeMask & Trigger.SELECT) != 0;
+    }
+
 }

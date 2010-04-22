@@ -73,6 +73,23 @@ public class SysProperties {
     public static final String USER_HOME = getStringSetting("user.home", "");
 
     /**
+     * System property <code>h2.analyzeSample</code> (default: 10000).<br />
+     * The default sample size when analyzing a table.
+     */
+    public static final int ANALYZE_SAMPLE = getIntSetting("h2.analyzeSample", 10000);
+
+    /**
+     * System property <code>h2.analyzeSample</code> (default: 0).<br />
+     * After changing this many rows, ANALYZE is automatically run for a table.
+     * Automatically running ANALYZE is disabled if set to 0. If set to 1000,
+     * then ANALYZE will run against each user table after about 1000 changes to
+     * that table. The time between running ANALYZE doubles each time since
+     * starting the database. It is not run on local temporary tables, and
+     * tables that have a trigger on SELECT.
+     */
+    public static final int ANALYZE_AUTO = getIntSetting("h2.analyzeAuto", 0);
+
+    /**
      * System property <code>h2.aliasColumnName</code> (default: false).<br />
      * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
      * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in

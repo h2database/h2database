@@ -166,6 +166,7 @@ public class Merge extends Prepared {
                     // concurrent merge or insert
                     throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
                 }
+                throw e;
             }
         } else if (count != 1) {
             throw DbException.get(ErrorCode.DUPLICATE_KEY_1, table.getSQL());

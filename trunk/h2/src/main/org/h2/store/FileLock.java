@@ -262,7 +262,7 @@ public class FileLock implements Runnable {
     }
 
     private void waitUntilOld() {
-        for (int i = 0; i < TIME_GRANULARITY / SLEEP_GAP; i++) {
+        for (int i = 0; i < 2 * TIME_GRANULARITY / SLEEP_GAP; i++) {
             long last = fs.getLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
             if (dist < -TIME_GRANULARITY) {

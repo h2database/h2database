@@ -557,7 +557,7 @@ public class Parser {
         if (readIf("(")) {
             ArrayList<Column> list = New.arrayList();
             for (int i = 0;; i++) {
-                Column column = parseColumnForTable("C" + i);
+                Column column = parseColumnForTable("C" + i, true);
                 list.add(column);
                 if (readIf(")")) {
                     break;
@@ -3253,7 +3253,7 @@ public class Parser {
         return IDENTIFIER;
     }
 
-    private Column parseColumnForTable(String columnName) {
+    private Column parseColumnForTable(String columnName, boolean defaultNullable) {
         Column column;
         boolean isIdentity = false;
         if (readIf("IDENTITY") || readIf("SERIAL")) {
@@ -3267,9 +3267,10 @@ public class Parser {
         if (readIf("NOT")) {
             read("NULL");
             column.setNullable(false);
-        } else {
-            readIf("NULL");
+        } else if (readIf("NULL")) {
             column.setNullable(true);
+        } else {
+            column.setNullable(defaultNullable);
         }
         if (readIf("AS")) {
             if (isIdentity) {
@@ -3743,7 +3744,7 @@ public class Parser {
         CreateUserDataType command = new CreateUserDataType(session);
         command.setTypeName(readUniqueIdentifier());
         read("AS");
-        Column col = parseColumnForTable("VALUE");
+        Column col = parseColumnForTable("VALUE", true);
         if (readIf("CHECK")) {
             Expression expr = readExpression();
             col.addCheckConstraint(session, expr);
@@ -4453,7 +4454,7 @@ public class Parser {
                 if (readIf("DATA")) {
                     // Derby compatibility
                     read("TYPE");
-                    Column newColumn = parseColumnForTable(columnName);
+                    Column newColumn = parseColumnForTable(columnName, column.isNullable());
                     AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                     command.setTable(table);
                     command.setType(AlterTableAlterColumn.CHANGE_TYPE);
@@ -4492,7 +4493,7 @@ public class Parser {
                 command.setSelectivity(readExpression());
                 return command;
             } else {
-                Column newColumn = parseColumnForTable(columnName);
+                Column newColumn = parseColumnForTable(columnName, column.isNullable());
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
                 command.setType(AlterTableAlterColumn.CHANGE_TYPE);
@@ -4511,7 +4512,7 @@ public class Parser {
         command.setType(AlterTableAlterColumn.ADD);
         command.setTable(table);
         String columnName = readColumnIdentifier();
-        Column column = parseColumnForTable(columnName);
+        Column column = parseColumnForTable(columnName, true);
         command.setNewColumn(column);
         if (readIf("BEFORE")) {
             command.setAddBefore(readColumnIdentifier());
@@ -4721,7 +4722,7 @@ public class Parser {
                         command.addConstraintCommand(c);
                     } else {
                         String columnName = readColumnIdentifier();
-                        Column column = parseColumnForTable(columnName);
+                        Column column = parseColumnForTable(columnName, true);
                         if (column.isAutoIncrement() && column.isPrimaryKey()) {
                             column.setPrimaryKey(false);
                             IndexColumn[] cols = { new IndexColumn() };

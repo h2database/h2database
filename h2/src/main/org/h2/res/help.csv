@@ -1120,7 +1120,7 @@ DATEADD(unitString, addInt, timestamp)
 ","
 Adds units to a timestamp."
 "Functions (Time and Date)","DATEDIFF","
-DATEDIFF(unitString, aTimestamp, bTimestamp)
+{ DATEDIFF | TIMESTAMPDIFF } (unitString, aTimestamp, bTimestamp)
 ","
 Returns the difference between two timestamps."
 "Functions (Time and Date)","DAYNAME","

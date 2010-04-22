@@ -1978,7 +1978,7 @@ public class Database implements DataHandler {
      * @return true if it is currently locked
      */
     public boolean isSysTableLocked() {
-        return meta.isLockedExclusively();
+        return meta != null && meta.isLockedExclusively();
     }
 
     /**

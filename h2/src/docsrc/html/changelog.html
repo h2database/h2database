@@ -41,7 +41,7 @@ Change Log
     that need quoting. Issue 186.
 </li><li>The experimental LOB storage mechanism now supports all features of the
     old one. To use it, set the system property "h2.lobInDatabase" to "true".
-    If you have used this feature in version 1.2.133, you need to export 
+    If you have used this feature in version 1.2.133, you need to export
     and re-import the database using SCRIPT / RUNSCRIPT.
 </li><li>The functions isBeforeFirst() and isAfterLast() were not compliant to the
     JDBC spec. If the ResultSet contains no rows, they must return false. Fixed.

@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import org.h2.api.DatabaseEventListener;
+import org.h2.command.ddl.Analyze;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -57,6 +58,8 @@ public class RegularTable extends TableBase {
     private long lastModificationId;
     private boolean containsLargeObject;
     private PageDataIndex mainIndex;
+    private int changesSinceAnalyze;
+    private int nextAnalyze = SysProperties.ANALYZE_AUTO;
 
     /**
      * True if one thread ever was waiting to lock this table. This is to avoid
@@ -130,6 +133,7 @@ public class RegularTable extends TableBase {
             }
             throw DbException.convert(e);
         }
+        analyzeIfRequired(session);
     }
 
     private void checkRowCount(Session session, Index index, int offset) {
@@ -344,6 +348,7 @@ public class RegularTable extends TableBase {
             }
             throw DbException.convert(e);
         }
+        analyzeIfRequired(session);
     }
 
     public void truncate(Session session) {
@@ -353,6 +358,20 @@ public class RegularTable extends TableBase {
             index.truncate(session);
         }
         rowCount = 0;
+        changesSinceAnalyze = 0;
+    }
+
+    private void analyzeIfRequired(Session session) {
+        if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
+            return;
+        }
+        changesSinceAnalyze = 0;
+        int n = 2 * nextAnalyze;
+        if (n > 0) {
+            nextAnalyze = n;
+        }
+        int rows = SysProperties.ANALYZE_SAMPLE;
+        Analyze.analyzeTable(session, this, rows, false);
     }
 
     public boolean isLockedExclusivelyBy(Session session) {

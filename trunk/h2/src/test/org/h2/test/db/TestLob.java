@@ -548,7 +548,7 @@ public class TestLob extends TestBase {
             len = 5;
         }
         StringBuilder buff = new StringBuilder();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             buff.append(StringUtils.xmlNode("content", null, "This is a test " + i));
         }
         String xml = buff.toString();
@@ -572,6 +572,10 @@ public class TestLob extends TestBase {
         time = System.currentTimeMillis() - time;
         trace("time: " + time + " compress: " + compress);
         conn.close();
+        if (!config.memory && SysProperties.LOB_IN_DATABASE) {
+            long length = new File(baseDir + "/lob.h2.db").length();
+            trace("len: " + length + " compress: " + compress);
+        }
     }
 
     private void testManyLobs() throws Exception {

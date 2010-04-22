@@ -770,6 +770,10 @@ public class DataType {
         }
         if (ResultSet.class.isAssignableFrom(x)) {
             return Value.RESULT_SET;
+        } else if (Value.ValueBlob.class.isAssignableFrom(x)) {
+            return Value.BLOB;
+        } else if (Value.ValueClob.class.isAssignableFrom(x)) {
+            return Value.CLOB;
         } else if (String.class.isAssignableFrom(x)) {
             return Value.STRING;
         } else if (BigDecimal.class.isAssignableFrom(x)) {
@@ -836,6 +840,12 @@ public class DataType {
         }
         if (x instanceof String) {
             return ValueString.get((String) x);
+        } else if (x instanceof Value) {
+            return (Value) x;
+        } else if (x instanceof Long) {
+            return ValueLong.get(((Long) x).longValue());
+        } else if (x instanceof Integer) {
+            return ValueInt.get(((Integer) x).intValue());
         } else if (x instanceof BigDecimal) {
             return ValueDecimal.get((BigDecimal) x);
         } else if (x instanceof Boolean) {
@@ -844,10 +854,6 @@ public class DataType {
             return ValueByte.get(((Byte) x).byteValue());
         } else if (x instanceof Short) {
             return ValueShort.get(((Short) x).shortValue());
-        } else if (x instanceof Integer) {
-            return ValueInt.get(((Integer) x).intValue());
-        } else if (x instanceof Long) {
-            return ValueLong.get(((Long) x).longValue());
         } else if (x instanceof Float) {
             return ValueFloat.get(((Float) x).floatValue());
         } else if (x instanceof Double) {

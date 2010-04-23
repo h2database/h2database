@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>
+</li></ul>
+
+<h2>Version 1.2.134 (2010-04-23)</h2>
 <ul><li>New system property h2.analyzeAuto (default 0 meaning disabled) to
     automatically run ANALYZE after that many changes to a table.
     For details, see the Javadoc of this system property.
@@ -601,40 +605,6 @@ Change Log
     referential integrity constraints.
 </li><li>Java 1.5 is now required to run H2. If required, Retrotranslator can be used
     to create a Java 1.4 version (http://retrotranslator.sourceforge.net/).
-</li></ul>
-
-<h2>Version 1.1.113 (2009-05-21)</h2>
-<ul><li>Shell tool: the built-in commands EXIT, HELP, ?, LIST, and so on didn't
-    work with a semicolon at the end.
-</li><li>JDK 1.5 is now required to build the jar file. However it is still possible to create
-    a jar file for Java 1.4. For details, see buildRelease.sh and buildRelease.bat.
-    As an alternative, compile using JDK 1.5 or 1.6 and use Retrotranslator to create a Java 1.4
-    version (http://retrotranslator.sourceforge.net/).
-</li><li>When deleting or updating many rows in a table, the space in the index
-    file was not re-used in the default mode (persistent database, b-tree index,
-    LOG=1). This caused the index file to grow over time. Workarounds were to
-    delete and re-created the index file, alter the table (add a remove a column),
-    or append ;LOG=2 to the database URL. To disable the change, set the system
-    property h2.reuseSpaceBtreeIndex to false.
-</li><li>Identifiers with a digit and then a dollar sign didn't work. Example: A1$B.
-</li><li>MS SQL Server compatibility: support for linked tables with
-    NVARCHAR, NCHAR, NCLOB, and LONGNVARCHAR.
-</li><li>Android: workaround for a problem when using read-only databases in zip files
-    (skip seems to be implemented incorrectly on the Android system).
-</li><li>Calling execute() or prepareStatement() with null as the SQL statement
-    now throws an exception.
-</li><li>Benchmark: the number of executed statements was incorrect. The H2 database
-    was loaded at the beginning of the test to collect results, now it is loaded at the very end.
-    Thanks to Fred Toussi from HSQLDB for reporting those problems. However the changed
-    do not affect the relative performance.
-</li><li>H2 Console: command line settings are no longer stored in the properties file.
-    They are now only used for the current process, except if they are explicitly saved.
-</li><li>Cache: support for a second level soft-references cache.
-    To enable it, append ;CACHE_TYPE=SOFT_LRU (or SOFT_TQ) to the database URL, or
-    set the system property h2.cacheTypeDefault to "SOFT_LRU" / "SOFT_TQ".
-    Enabling the second level cache reduces performance for
-    small databases, but speeds up large databases. It makes sense to use it
-    if the available memory size is unknown. Thanks a lot to Jan Kotek!
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.TreeSet;
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
@@ -36,6 +37,7 @@ public class TestOptimizations extends TestBase {
     }
 
     public void test() throws Exception {
+        testAutoAnalyze();
         testInAndBetween();
         testNestedIn();
         testNestedInSelectAndLike();
@@ -57,6 +59,24 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testAutoAnalyze() throws SQLException {
+        int auto = SysProperties.ANALYZE_AUTO;
+        if (auto == 0) {
+            return;
+        }
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("create user onlyInsert password ''");
+        stat.execute("grant insert on test to onlyInsert");
+        Connection conn2 = getConnection("optimizations", "onlyInsert", getPassword(""));
+        Statement stat2 = conn2.createStatement();
+        stat2.execute("insert into test select x from system_range(1, " + (auto + 10) + ")");
+        conn.close();
+        conn2.close();
     }
 
     private void testInAndBetween() throws SQLException {

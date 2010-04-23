@@ -9,6 +9,7 @@ package org.h2.command.ddl;
 import org.h2.command.Prepared;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
+import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
@@ -54,17 +55,22 @@ public class Analyze extends DefineCommand {
         if (!(table instanceof RegularTable) || table.isHidden() || session == null) {
             return;
         }
-        if (session.getDatabase().isSysTableLocked()) {
-            return;
+        if (!manual) {
+            if (session.getDatabase().isSysTableLocked()) {
+                return;
+            }
+            if (table.hasSelectTrigger()) {
+                return;
+            }
         }
         if (table.isTemporary() && !table.isGlobalTemporary()
                 && session.findLocalTempTable(table.getName()) == null) {
             return;
         }
-        if (!manual && table.hasSelectTrigger()) {
+        if (table.isLockedExclusively() && !table.isLockedExclusivelyBy(session)) {
             return;
         }
-        if (table.isLockedExclusively() && !table.isLockedExclusivelyBy(session)) {
+        if (!session.getUser().hasRight(table, Right.SELECT)) {
             return;
         }
         Database db = session.getDatabase();

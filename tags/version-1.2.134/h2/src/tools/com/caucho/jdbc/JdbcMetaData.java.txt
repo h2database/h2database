@@ -1,0 +1,15 @@
+Sorry I can not include this file because
+http://ohloh.org says that this may conflict
+with another license.
+
+In the file JdbcMetaData.java in package com.caucho.jdbc
+in method public static JdbcMetaData create(DataSource ds),
+you need to add
+
+    if ("H2".equalsIgnoreCase(name))
+        return new H2MetaData(ds);
+    else
+
+just before
+
+    if ("oracle".equalsIgnoreCase(name))

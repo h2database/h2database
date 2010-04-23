@@ -1123,6 +1123,7 @@ public class Recover extends Tool implements DataHandler {
         // first, copy the lob storage (if there is any)
         // must occur before copying data,
         // otherwise the lob storage may be overwritten
+        boolean deleteLobs = false;
         for (Map.Entry<Integer, String> entry : tableMap.entrySet()) {
             Integer objectId = entry.getKey();
             String name = entry.getValue();
@@ -1133,6 +1134,7 @@ public class Recover extends Tool implements DataHandler {
                     writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
                     if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
                         writer.println("UPDATE " + name + " SET TABLE = " + LobStorage.TABLE_TEMP + ";");
+                        deleteLobs = true;
                     }
                 }
             }
@@ -1156,7 +1158,9 @@ public class Recover extends Tool implements DataHandler {
         writer.println("DROP ALIAS READ_CLOB;");
         writer.println("DROP ALIAS READ_BLOB_DB;");
         writer.println("DROP ALIAS READ_CLOB_DB;");
-        writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " + LobStorage.TABLE_TEMP + ";");
+        if (deleteLobs) {
+            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " + LobStorage.TABLE_TEMP + ";");
+        }
         for (MetaRecord m : schema) {
             String sql = m.getSQL();
             // everything except create

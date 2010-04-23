@@ -870,6 +870,15 @@ public class Session extends SessionWithState implements SessionFactory {
         }
     }
 
+    /**
+     * Get the cancel time.
+     *
+     * @return the time or 0 if not set
+     */
+    public long getCancel() {
+        return cancelAt;
+    }
+
     public Command getCurrentCommand() {
         return currentCommand;
     }

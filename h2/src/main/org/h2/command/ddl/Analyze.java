@@ -73,6 +73,10 @@ public class Analyze extends DefineCommand {
         if (!session.getUser().hasRight(table, Right.SELECT)) {
             return;
         }
+        if (session.getCancel() != 0) {
+            // if the connection is closed and there is something to undo
+            return;
+        }
         Database db = session.getDatabase();
         StatementBuilder buff = new StatementBuilder("SELECT ");
         Column[] columns = table.getColumns();

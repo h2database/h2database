@@ -92,7 +92,13 @@ public class Analyze extends DefineCommand {
             int selectivity = result.currentRow()[j].getInt();
             columns[j].setSelectivity(selectivity);
         }
-        db.update(session, table);
+        if (manual) {
+            db.update(session, table);
+        } else {
+            Session s = db.getSystemSession();
+            db.update(s, table);
+            s.commit(true);
+        }
     }
 
     public void setTop(int top) {

@@ -22,6 +22,7 @@ import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
@@ -1080,6 +1081,10 @@ public abstract class TestBase {
      * @throws AssertionError if the databases don't match
      */
     protected void assertEqualDatabases(Statement stat1, Statement stat2) throws SQLException {
+        if (SysProperties.ANALYZE_AUTO > 0) {
+            stat1.execute("analyze");
+            stat2.execute("analyze");
+        }
         ResultSet rs1 = stat1.executeQuery("SCRIPT NOPASSWORDS");
         ResultSet rs2 = stat2.executeQuery("SCRIPT NOPASSWORDS");
         ArrayList<String> list1 = new ArrayList<String>();

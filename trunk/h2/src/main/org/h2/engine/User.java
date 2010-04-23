@@ -91,19 +91,32 @@ public class User extends RightOwner {
      * @throws SQLException if this user does not have the required rights
      */
     public void checkRight(Table table, int rightMask) {
+        if (!hasRight(table, rightMask)) {
+            throw DbException.get(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
+        }
+    }
+
+    /**
+     * See if this user has the given rights for this database object.
+     *
+     * @param table the database object
+     * @param rightMask the rights required
+     * @return true if the user has the rights
+     */
+    public boolean hasRight(Table table, int rightMask) {
         if (rightMask != Right.SELECT && !systemUser) {
             table.checkWritingAllowed();
         }
         if (admin) {
-            return;
+            return true;
         }
         Role publicRole = database.getPublicRole();
         if (publicRole.isRightGrantedRecursive(table, rightMask)) {
-            return;
+            return true;
         }
         if (table instanceof MetaTable || table instanceof RangeTable) {
             // everybody has access to the metadata information
-            return;
+            return true;
         }
         String tableType = table.getTableType();
         if (Table.VIEW.equals(tableType)) {
@@ -111,19 +124,20 @@ public class User extends RightOwner {
             if (v.getOwner() == this) {
                 // the owner of a view has access:
                 // SELECT * FROM (SELECT * FROM ...)
-                return;
+                return true;
             }
         } else if (tableType == null) {
             // function table
-            return;
+            return true;
         }
-        if (!isRightGrantedRecursive(table, rightMask)) {
-            if (table.isTemporary() && !table.isGlobalTemporary()) {
-                // the owner has all rights on local temporary tables
-                return;
-            }
-            throw DbException.get(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
+        if (table.isTemporary() && !table.isGlobalTemporary()) {
+            // the owner has all rights on local temporary tables
+            return true;
         }
+        if (isRightGrantedRecursive(table, rightMask)) {
+            return true;
+        }
+        return false;
     }
 
     /**

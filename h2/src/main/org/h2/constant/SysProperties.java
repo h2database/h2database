@@ -79,7 +79,7 @@ public class SysProperties {
     public static final int ANALYZE_SAMPLE = getIntSetting("h2.analyzeSample", 10000);
 
     /**
-     * System property <code>h2.analyzeSample</code> (default: 0).<br />
+     * System property <code>h2.analyzeAuto</code> (default: 0).<br />
      * After changing this many rows, ANALYZE is automatically run for a table.
      * Automatically running ANALYZE is disabled if set to 0. If set to 1000,
      * then ANALYZE will run against each user table after about 1000 changes to

@@ -13,6 +13,19 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(84,
+'New version available: 1.2.134 (2010-04-21)', '2010-04-21 12:00:00',
+$$A new version of H2 is available for
+<a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+For details, see the
+<a href="http://www.h2database.com/html/changelog.html">change log</a>.
+<br />
+For future plans, see the
+<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
+$$);
+
 INSERT INTO ITEM VALUES(83,
 'New version available: 1.2.133 (2010-04-10)', '2010-04-10 12:00:00',
 $$A new version of H2 is available for
@@ -145,19 +158,6 @@ $$);
 
 INSERT INTO ITEM VALUES(73,
 'New version available: 1.2.123 (2009-11-08)', '2009-11-08 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(72,
-'New version available: 1.2.122 (2009-10-28)', '2009-10-28 12:00:00',
 $$A new version of H2 is available for
 <a href="http://www.h2database.com">download</a>.
 (You may have to click 'Refresh').

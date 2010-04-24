@@ -36,6 +36,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
+import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -132,7 +133,8 @@ public class MetaTable extends Table {
                     "REMARKS",
                     "LAST_MODIFICATION BIGINT",
                     "ID INT",
-                    "TYPE_NAME"
+                    "TYPE_NAME",
+                    "TABLE_CLASS"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -188,7 +190,8 @@ public class MetaTable extends Table {
                     "SQL",
                     "ID INT",
                     "SORT_TYPE INT",
-                    "CONSTRAINT_NAME"
+                    "CONSTRAINT_NAME",
+                    "INDEX_CLASS"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -652,7 +655,9 @@ public class MetaTable extends Table {
                         // ID
                         "" + table.getId(),
                         // TYPE_NAME
-                        null
+                        null,
+                        // TABLE_CLASS
+                        table.getClass().getName()
                 );
             }
             break;
@@ -753,6 +758,12 @@ public class MetaTable extends Table {
                         }
                     }
                     IndexColumn[] cols = index.getIndexColumns();
+                    String indexClass;
+                    if (index instanceof MultiVersionIndex) {
+                        indexClass = ((MultiVersionIndex) index).getBaseIndex().getClass().getName();
+                    } else {
+                        indexClass = index.getClass().getName();
+                    }
                     for (int k = 0; k < cols.length; k++) {
                         IndexColumn idxCol = cols[k];
                         Column column = idxCol.column;
@@ -765,7 +776,7 @@ public class MetaTable extends Table {
                                 tableName,
                                 // NON_UNIQUE
                                 index.getIndexType().isUnique() ? "FALSE" : "TRUE",
-                                        // INDEX_NAME
+                                // INDEX_NAME
                                 identifier(index.getName()),
                                 // ORDINAL_POSITION
                                 "" + (k+1),
@@ -790,13 +801,15 @@ public class MetaTable extends Table {
                                 // REMARKS
                                 replaceNullWithEmpty(index.getComment()),
                                 // SQL
-                                index.getSQL(),
+                                index.getCreateSQL(),
                                 // ID
                                 "" + index.getId(),
                                 // SORT_TYPE
                                 "" + idxCol.sortType,
                                 // CONSTRAINT_NAME
-                                constraintName
+                                constraintName,
+                                // INDEX_CLASS
+                                indexClass
                             );
                     }
                 }

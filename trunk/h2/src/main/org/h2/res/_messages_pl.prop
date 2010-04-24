@@ -126,7 +126,7 @@
 90102=Nie wspierana opcja kompresji: {0}
 90103=Nie wspierany algorytm kompresji: {0}
 90104=Blad kompresji
-90105=Wyjatek wywoluje funkcje uzytkownika
+90105=Wyjatek wywoluje funkcje uzytkownika: {0}
 90106=Nie mozna obciac {0}
 90107=Nie mozna skasowac {0} poniewaz zalezy od {1}
 90108=#Out of memory.

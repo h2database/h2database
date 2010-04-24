@@ -7,6 +7,7 @@
 package org.h2.engine;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
@@ -371,6 +372,15 @@ public class FunctionAlias extends DbObjectBase {
                     if (returnValue == null) {
                         return ValueNull.INSTANCE;
                     }
+                } catch (InvocationTargetException e) {
+                    StatementBuilder buff = new StatementBuilder(method.getName());
+                    buff.append('(');
+                    for (Object o : params) {
+                        buff.appendExceptFirst(", ");
+                        buff.append(o == null ? "null" : o.toString());
+                    }
+                    buff.append(')');
+                    throw DbException.convertInvocation(e, buff.toString());
                 } catch (Exception e) {
                     throw DbException.convert(e);
                 }

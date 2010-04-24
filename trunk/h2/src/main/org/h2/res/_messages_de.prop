@@ -126,7 +126,7 @@
 90102=Datenkompressions-Option nicht unterstützt: {0}
 90103=Datenkompressions-Algorithmus nicht unterstützt: {0}
 90104=Datenkompressions Fehler
-90105=Fehler beim Aufruf eine benutzerdefinierten Funktion
+90105=Fehler beim Aufruf eine benutzerdefinierten Funktion: {0}
 90106=Kann {0} nicht zurücksetzen per TRUNCATE
 90107=Kann {0} nicht löschen weil {1} davon abhängt
 90108=Nicht genug Hauptspeicher.

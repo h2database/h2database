@@ -126,7 +126,7 @@
 90102=Unsupported compression options: {0}
 90103=Unsupported compression algorithm: {0}
 90104=Compression error
-90105=Exception calling user-defined function
+90105=Exception calling user-defined function: {0}
 90106=Cannot truncate {0}
 90107=Cannot drop {0} because {1} depends on it
 90108=Out of memory.

@@ -1493,7 +1493,7 @@ public class ErrorCode {
      * CALL SYS_PROP(NULL);
      * </pre>
      */
-    public static final int EXCEPTION_IN_FUNCTION = 90105;
+    public static final int EXCEPTION_IN_FUNCTION_1 = 90105;
 
     /**
      * The error with code <code>90106</code> is thrown when

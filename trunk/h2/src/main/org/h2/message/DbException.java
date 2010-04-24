@@ -266,12 +266,7 @@ public class DbException extends RuntimeException {
         } else if (e instanceof SQLException) {
             return new DbException((SQLException) e);
         } else if (e instanceof InvocationTargetException) {
-            InvocationTargetException te = (InvocationTargetException) e;
-            Throwable t = te.getTargetException();
-            if (t instanceof SQLException || t instanceof DbException) {
-                return convert(t);
-            }
-            return get(ErrorCode.EXCEPTION_IN_FUNCTION, t);
+            return convertInvocation((InvocationTargetException) e, null);
         } else if (e instanceof IOException) {
             return get(ErrorCode.IO_EXCEPTION_1, e, e.toString());
         } else if (e instanceof OutOfMemoryError) {
@@ -282,6 +277,15 @@ public class DbException extends RuntimeException {
             throw (Error) e;
         }
         return get(ErrorCode.GENERAL_ERROR_1, e, e.toString());
+    }
+
+    public static DbException convertInvocation(InvocationTargetException te, String message) {
+        Throwable t = te.getTargetException();
+        if (t instanceof SQLException || t instanceof DbException) {
+            return convert(t);
+        }
+        message = message == null ? t.getMessage() : message + ": " + t.getMessage();
+        return get(ErrorCode.EXCEPTION_IN_FUNCTION_1, t, message);
     }
 
     /**

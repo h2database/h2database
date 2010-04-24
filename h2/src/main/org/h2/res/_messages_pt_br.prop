@@ -126,7 +126,7 @@
 90102=Não é suportado as opções de compressão: {0}
 90103=Não é suportado o algorítimo de compressão: {0}
 90104=Erro na compressão
-90105=Exceção na chamada da função definida pelo usuário
+90105=Exceção na chamada da função definida pelo usuário: {0}
 90106=Não pode fazer o truncate {0}
 90107=Não pode apagar {0} por que depende de {1}
 90108=#Out of memory.

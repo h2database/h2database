@@ -1347,7 +1347,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * EXCEPT, EXISTS, FALSE, FOR, FROM, FULL, GROUP, HAVING, INNER,
      * INTERSECT, IS, JOIN, LIKE, LIMIT, MINUS, NATURAL, NOT, NULL, ON,
      * ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP,
-     * TODAY, TRUE, UNION, WHERE
+     * TODAY, TRUE, UNION, UNIQUE, WHERE
      * </pre>
      *
      * @return a list of additional the keywords

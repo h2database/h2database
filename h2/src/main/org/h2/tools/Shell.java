@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
+import org.h2.util.ScriptReader;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -63,6 +65,8 @@ public class Shell extends Tool implements Runnable {
      * <td>The password</td></tr>
      * <tr><td>[-driver &lt;class&gt;]</td>
      * <td>The JDBC driver class to use (not required in most cases)</td></tr>
+     * <tr><td>[-sql "&lt;statements&gt;"]</td>
+     * <td>Execute the SQL statements and exit</td></tr>
      * </table>
      * If special characters don't work as expected, you may need to use
      * -Dfile.encoding=UTF-8 (Mac OS X) or CP850 (Windows).
@@ -110,6 +114,7 @@ public class Shell extends Tool implements Runnable {
         String url = null;
         String user = "";
         String password = "";
+        String sql = null;
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg.equals("-url")) {
@@ -121,6 +126,8 @@ public class Shell extends Tool implements Runnable {
             } else if (arg.equals("-driver")) {
                 String driver = args[++i];
                 Utils.loadUserClass(driver);
+            } else if (arg.equals("-sql")) {
+                sql = args[++i];
             } else if (arg.equals("-help") || arg.equals("-?")) {
                 showUsage();
                 return;
@@ -133,7 +140,18 @@ public class Shell extends Tool implements Runnable {
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
         }
-        promptLoop();
+        if (sql == null) {
+            promptLoop();
+        } else {
+            ScriptReader r = new ScriptReader(new StringReader(sql));
+            while (true) {
+                String s = r.readStatement();
+                if (s == null) {
+                    break;
+                }
+                execute(s);
+            }
+        }
     }
 
     private void showHelp() {

@@ -56,7 +56,9 @@ Please read the <a href="build.html#support">support checklist</a>.
 Usually, bugs get fixes as they are found. There is a release every few weeks.
 Here is the list of known and confirmed issues:
 </p>
-<ul><li>Tomcat and Glassfish 3 set most static fields (final or non-final) to <code>null</code> when
+<ul><li>Apache Harmony: there seems to be a bug in Harmony that affects H2.
+    See <a href="https://issues.apache.org/jira/browse/HARMONY-6505">HARMONY-6505</a>.
+</li><li>Tomcat and Glassfish 3 set most static fields (final or non-final) to <code>null</code> when
     unloading a web application. This can cause a <code>NullPointerException</code> in H2 versions
     1.1.107 and older, and may still not work in newer versions. Please report it if you
     run into this issue. In Tomcat &gt;= 6.0 this behavior can be disabled by setting the

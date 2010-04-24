@@ -234,13 +234,21 @@ public class NetUtils {
             }
         }
         InetAddress bind = null;
+        boolean useLocalhost = false;
         try {
             bind = getBindAddress();
             if (bind == null) {
-                bind = InetAddress.getLocalHost();
+                useLocalhost = true;
             }
         } catch (UnknownHostException e) {
             // ignore
+        }
+        if (useLocalhost) {
+            try {
+                bind = InetAddress.getLocalHost();
+            } catch (UnknownHostException e) {
+                throw DbException.convert(e);
+            }
         }
         String address = bind == null ? "localhost" : getHostAddress(bind);
         if (address.equals("127.0.0.1")) {

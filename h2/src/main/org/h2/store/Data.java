@@ -155,6 +155,9 @@ public class Data {
     /**
      * Calculate the length of String, excluding the bytes required to encode
      * the length.
+     * <p>
+     * For performance reasons the internal representation of a String is
+     * similar to UTF-8, but not exactly UTF-8.
      *
      * @param s the string
      * @param len the length of the string
@@ -184,6 +187,15 @@ public class Data {
         return readString(len);
     }
 
+    /**
+     * Read a String from the byte array.
+     * <p>
+     * For performance reasons the internal representation of a String is
+     * similar to UTF-8, but not exactly UTF-8.
+     *
+     * @param len
+     * @return the String
+     */
     private String readString(int len) {
         byte[] buff = data;
         int p = pos;
@@ -203,7 +215,7 @@ public class Data {
     }
 
     /**
-     * Write a String value.
+     * Write a String.
      * The current position is incremented.
      *
      * @param s the value
@@ -214,6 +226,15 @@ public class Data {
         writeStringWithoutLength(s, len);
     }
 
+    /**
+     * Write a String.
+     * <p>
+     * For performance reasons the internal representation of a String is
+     * similar to UTF-8, but not exactly UTF-8.
+     *
+     * @param s the string
+     * @param len the number of characters to write
+     */
     private void writeStringWithoutLength(String s, int len) {
         int p = pos;
         byte[] buff = data;

@@ -18,7 +18,18 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>
+<ul><li>UNIQUE was not listed as a keyword.
+</li><li>Improved error message when an non-SQL-exception occurred in a user
+    defined function. The method name and parameters are included in the error message.
+</li><li>For some queries, the exception did not include the SQL statement. Example:
+    select x from system_range(1, 2) group by 'a'.
+</li><li>The Shell tool will execute SQL statements passed as using the command line
+    parameter -sql.
+</li><li>If InetAddress.getLocalHost() fails, the database should now throw an exception.
+</li><li>New columns INFORMATION_SCHEMA.INDEXES.INDEX_CLASS and
+    INFORMATION_SCHEMA.TABLES.TABLE_CLASS.
+</li><li>INFORMATION_SCHEMA.INDEXES.SQL now contains the CREATE INDEX statement 
+    instead of just the fully qualified index name.
 </li></ul>
 
 <h2>Version 1.2.134 (2010-04-23)</h2>

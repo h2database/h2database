@@ -545,6 +545,7 @@ rows are lost when the database is closed.
 
 Temporary tables are not persistent. Temporary tables can be global (accessible by all connections)
 or local (only accessible by the current connection). The default is for temporary tables is global.
+Indexes of temporary tables are kept fully in main memory.
 
 This command commits an open transaction.
 ","

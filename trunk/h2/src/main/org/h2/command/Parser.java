@@ -924,9 +924,9 @@ public class Parser {
             Expression[] expr = { };
             command.addRow(expr);
         } else if (readIf("VALUES")) {
+            read("(");
             do {
                 ArrayList<Expression> values = New.arrayList();
-                read("(");
                 if (!readIf(")")) {
                     do {
                         if (readIf("DEFAULT")) {
@@ -937,7 +937,8 @@ public class Parser {
                     } while (readIfMore());
                 }
                 command.addRow(values.toArray(new Expression[values.size()]));
-            } while (readIf(","));
+                // the following condition will allow (..),; and (..);
+            } while (readIf(",") && readIf("("));
         } else {
             command.setQuery(parseSelect());
         }

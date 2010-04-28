@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Commas at the end of INSERT ... VALUES (), (), are now supported.
+<ul><li>The CreateCluster tool now sets the source database in exclusive mode
+    before copying data to the new database.
+</li><li>The H2 Console did not call the CreateCluster tool with the correctly escaped parameters.
+</li><li>Improved PostgreSQL compatibility for ALTER TABLE ALTER COLUMN.
+</li><li>Commas at the end of INSERT ... VALUES (), (), are now supported.
 </li><li>The H2 Console "Start Browser" button now works even when the IP
     address changes while the tool runs (for example, because a wireless connection
     breaks, or when enabling / disabling the network connection).

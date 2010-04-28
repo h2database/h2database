@@ -35,7 +35,7 @@ function quote(x) {
     var q = '';
     for (var i=0; i<x.length; i++) {
         var c = x.charAt(i);
-        if(c == '"' || c == '\\') {
+        if(c == '"' || c == '\\' || c == ',') {
             q += '\\';
         }
         q += c;

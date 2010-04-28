@@ -259,6 +259,7 @@ public class WebServer implements Service {
     }
 
     public String getURL() {
+        updateURL();
         return url;
     }
 

@@ -279,6 +279,13 @@ public class DbException extends RuntimeException {
         return get(ErrorCode.GENERAL_ERROR_1, e, e.toString());
     }
 
+    /**
+     * Convert an InvocationTarget exception to a database exception.
+     *
+     * @param te the root cause
+     * @param message the added message or null
+     * @return the database exception object
+     */
     public static DbException convertInvocation(InvocationTargetException te, String message) {
         Throwable t = te.getTargetException();
         if (t instanceof SQLException || t instanceof DbException) {
@@ -289,11 +296,11 @@ public class DbException extends RuntimeException {
     }
 
     /**
-     * Convert an IO exception to a SQL exception.
+     * Convert an IO exception to a database exception.
      *
      * @param e the root cause
-     * @param message the message
-     * @return the SQL exception object
+     * @param message the message or null
+     * @return the database exception object
      */
     public static DbException convertIOException(IOException e, String message) {
         if (message == null) {

@@ -403,7 +403,7 @@ unless they are quoted (surrounded with double quotes). The list is currently:
 <code>
 CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, DISTINCT, EXCEPT, EXISTS, FALSE,
 FOR, FROM, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, LIMIT, MINUS, NATURAL, NOT, NULL,
-ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION, 
+ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION,
 UNIQUE, WHERE
 </code>
 </p><p>
@@ -1199,8 +1199,8 @@ is selected using a file name prefix. The following file systems are included:
 </li><li><code>nio:</code> file system that uses <code>FileChannel</code> instead of <code>RandomAccessFile</code> (faster in some operating systems).
 </li><li><code>nioMapped:</code> file system that uses memory mapped files (faster in some operating systems).
 </li><li><code>split:</code> file system that splits files in 1 GB files (stackable with other file systems).
-</li><li><code>memFS:</code> in-memory file system (experimental; used for testing).
-</li><li><code>memLZF:</code> compressing in-memory file system (experimental; used for testing).
+</li><li><code>memFS:</code> in-memory file system (slower than mem; experimental; mainly used for testing the database engine itself).
+</li><li><code>memLZF:</code> compressing in-memory file system (slower than memFS but uses less memory; experimental; mainly used for testing the database engine itself).
 </li></ul>
 <p>
 As an example, to use the the <code>nio</code> file system, use the following database URL:

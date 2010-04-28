@@ -1,3 +1,7 @@
+select cast(cast(0.1 as real) as decimal);
+> 0.1;
+select cast(cast(95605327.73 as float) as decimal);
+> 95605327.73;
 select timestampdiff(month, '2003-02-01','2003-05-01');
 > 3;
 select timestampdiff(YEAR,'2002-05-01','2001-01-01');

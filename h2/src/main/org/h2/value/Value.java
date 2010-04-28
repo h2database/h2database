@@ -606,14 +606,14 @@ public abstract class Value {
                 if (Double.isInfinite(d) || Double.isNaN(d)) {
                     throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "" + d);
                 }
-                return ValueDecimal.get(new BigDecimal(d));
+                return ValueDecimal.get(BigDecimal.valueOf(d));
             }
             case FLOAT: {
                 float f = getFloat();
                 if (Float.isInfinite(f) || Float.isNaN(f)) {
                     throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "" + f);
                 }
-                return ValueDecimal.get(new BigDecimal(f));
+                return ValueDecimal.get(new BigDecimal(Float.toString(f)));
             }
             }
             break;

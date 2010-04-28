@@ -4451,17 +4451,31 @@ public class Parser {
                 String newName = readColumnIdentifier();
                 command.setNewColumnName(newName);
                 return command;
+            } else if (readIf("DROP")) {
+                // PostgreSQL compatibility
+                if (readIf("DEFAULT")) {
+                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
+                    command.setTable(table);
+                    command.setOldColumn(column);
+                    command.setType(AlterTableAlterColumn.DEFAULT);
+                    command.setDefaultExpression(null);
+                    return command;
+                }
+                read("NOT");
+                read("NULL");
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
+                command.setTable(table);
+                command.setOldColumn(column);
+                command.setType(AlterTableAlterColumn.NULL);
+                return command;
+            } else if (readIf("TYPE")) {
+                // PostgreSQL compatibility
+                return parseAlterTableAlterColumnType(table, columnName, column);
             } else if (readIf("SET")) {
                 if (readIf("DATA")) {
                     // Derby compatibility
                     read("TYPE");
-                    Column newColumn = parseColumnForTable(columnName, column.isNullable());
-                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
-                    command.setTable(table);
-                    command.setType(AlterTableAlterColumn.CHANGE_TYPE);
-                    command.setOldColumn(column);
-                    command.setNewColumn(newColumn);
-                    return command;
+                    return parseAlterTableAlterColumnType(table, columnName, column);
                 }
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
@@ -4494,16 +4508,20 @@ public class Parser {
                 command.setSelectivity(readExpression());
                 return command;
             } else {
-                Column newColumn = parseColumnForTable(columnName, column.isNullable());
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
-                command.setTable(table);
-                command.setType(AlterTableAlterColumn.CHANGE_TYPE);
-                command.setOldColumn(column);
-                command.setNewColumn(newColumn);
-                return command;
+                return parseAlterTableAlterColumnType(table, columnName, column);
             }
         }
         throw getSyntaxError();
+    }
+
+    private AlterTableAlterColumn parseAlterTableAlterColumnType(Table table, String columnName, Column column) {
+        Column newColumn = parseColumnForTable(columnName, column.isNullable());
+        AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
+        command.setTable(table);
+        command.setType(AlterTableAlterColumn.CHANGE_TYPE);
+        command.setOldColumn(column);
+        command.setNewColumn(newColumn);
+        return command;
     }
 
     private AlterTableAlterColumn parseAlterTableAddColumn(Table table) {

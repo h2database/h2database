@@ -168,10 +168,25 @@ public class Script extends Tool {
      */
     void process(String url, String user, String password, OutputStream o) throws SQLException {
         Connection conn = null;
-        Statement stat = null;
         try {
             org.h2.Driver.load();
             conn = DriverManager.getConnection(url, user, password);
+            process(conn, o);
+        } finally {
+            JdbcUtils.closeSilently(conn);
+        }
+    }
+
+    /**
+     * Backs up a database to a stream. The stream is not closed.
+     * The connection is not closed.
+     *
+     * @param conn the connection
+     * @param o the output stream
+     */
+    void process(Connection conn, OutputStream o) throws SQLException {
+        Statement stat = null;
+        try {
             stat = conn.createStatement();
             PrintWriter writer = new PrintWriter(IOUtils.getWriter(o));
             ResultSet rs = stat.executeQuery("SCRIPT");
@@ -182,7 +197,6 @@ public class Script extends Tool {
             writer.flush();
         } finally {
             JdbcUtils.closeSilently(stat);
-            JdbcUtils.closeSilently(conn);
         }
     }
 

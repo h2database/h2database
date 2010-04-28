@@ -53,6 +53,7 @@ ShutdownHandler {
     private boolean trayIcon;
     private Font font;
     private Button startBrowser;
+    private TextField urlText;
 //## AWT end ##
     private Server web, tcp, pg;
     private boolean isWindows;
@@ -373,14 +374,14 @@ ShutdownHandler {
         label.setFont(font);
         mainPanel.add(label, constraintsLabel);
 
-        TextField text = new TextField();
-        text.setEditable(false);
-        text.setFont(font);
-        text.setText(web.getURL());
+        urlText = new TextField();
+        urlText.setEditable(false);
+        urlText.setFont(font);
+        urlText.setText(web.getURL());
         if (isWindows) {
-            text.setFocusable(false);
+            urlText.setFocusable(false);
         }
-        mainPanel.add(text, constraintsTextField);
+        mainPanel.add(urlText, constraintsTextField);
 
         startBrowser = new Button("Start Browser");
         startBrowser.setFocusable(false);
@@ -405,7 +406,9 @@ ShutdownHandler {
 
     private void startBrowser() {
         if (web != null) {
-            Server.openBrowser(web.getURL());
+            String url = web.getURL();
+            urlText.setText(url);
+            Server.openBrowser(url);
         }
     }
 //## AWT end ##

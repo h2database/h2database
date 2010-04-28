@@ -5,16 +5,31 @@
  * Initial Developer: H2 Group
  */
 
+CREATE TABLE VERSION(ID INT PRIMARY KEY, VERSION VARCHAR, CREATED VARCHAR);
+INSERT INTO VERSION VALUES
+(84, '1.2.134', '2010-04-23'),
+(83, '1.2.133', '2010-04-10'),
+(82, '1.2.132', '2010-03-21'),
+(81, '1.2.131', '2010-03-05'),
+(80, '1.2.130', '2010-02-26'),
+(79, '1.2.129', '2010-02-19'),
+(78, '1.2.128', '2010-01-30'),
+(77, '1.2.127', '2010-01-15'),
+(76, '1.2.126', '2009-12-18'),
+(75, '1.2.125', '2009-12-06'),
+(74, '1.2.124', '2009-11-20'),
+(73, '1.2.123', '2009-11-08'),
+;
+
 CREATE TABLE CHANNEL(TITLE VARCHAR, LINK VARCHAR, DESC VARCHAR,
     LANGUAGE VARCHAR, PUB TIMESTAMP, LAST TIMESTAMP, AUTHOR VARCHAR);
 
 INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
     'http://www.h2database.com/', 'H2 Database Engine', 'en-us', NOW(), NOW(), 'Thomas Mueller');
 
-CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
-
-INSERT INTO ITEM VALUES(84,
-'New version available: 1.2.134 (2010-04-23)', '2010-04-23 12:00:00',
+CREATE VIEW ITEM AS
+SELECT ID, 'New version available: ' || VERSION || ' (' || CREATED || ')' TITLE,
+CAST((CREATED || ' 12:00:00') AS TIMESTAMP) ISSUED,
 $$A new version of H2 is available for
 <a href="http://www.h2database.com">download</a>.
 (You may have to click 'Refresh').
@@ -24,150 +39,7 @@ For details, see the
 <br />
 For future plans, see the
 <a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(83,
-'New version available: 1.2.133 (2010-04-10)', '2010-04-10 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(82,
-'New version available: 1.2.132 (2010-03-21)', '2010-03-21 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(81,
-'New version available: 1.2.131 (2010-03-05)', '2010-03-05 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(80,
-'New version available: 1.2.130 (2010-02-26)', '2010-02-26 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(79,
-'New version available: 1.2.129 (2010-02-19)', '2010-02-19 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(78,
-'New version available: 1.2.128 (2010-01-30)', '2010-01-30 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(77,
-'New version available: 1.2.127 (2010-01-15)', '2010-01-15 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(76,
-'New version available: 1.2.126 (2009-12-18)', '2009-12-18 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(75,
-'New version available: 1.2.125 (2009-12-06)', '2009-12-06 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(74,
-'New version available: 1.2.124 (2009-11-20)', '2009-11-20 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
-
-INSERT INTO ITEM VALUES(73,
-'New version available: 1.2.123 (2009-11-08)', '2009-11-08 12:00:00',
-$$A new version of H2 is available for
-<a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-For details, see the
-<a href="http://www.h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="http://www.h2database.com/html/roadmap.html">roadmap</a>.
-$$);
+$$ AS DESC FROM VERSION;
 
 SELECT 'newsfeed-rss.xml' FILE,
     XMLSTARTDOC() ||
@@ -211,3 +83,48 @@ SELECT 'newsfeed-atom.xml' FILE,
 FROM CHANNEL C, ITEM I
 UNION
 SELECT 'newsletter.txt' FILE, I.DESC CONTENT FROM ITEM I WHERE I.ID = (SELECT MAX(ID) FROM ITEM)
+UNION
+SELECT 'doap-h2.rdf' FILE,
+    XMLSTARTDOC() ||
+$$<rdf:RDF xmlns="http://usefulinc.com/ns/doap#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xml:lang="en">
+<Project rdf:about="http://h2database.com">
+    <name>H2 Database Engine</name>
+    <homepage rdf:resource="http://h2database.com"/>
+    <programming-language>Java</programming-language>
+    <category rdf:resource="http://projects.apache.org/category/database"/>
+    <category rdf:resource="http://projects.apache.org/category/library"/>
+    <category rdf:resource="http://projects.apache.org/category/network-server"/>
+    <license rdf:resource="http://usefulinc.com/doap/licenses/mpl"/>
+    <bug-database rdf:resource="http://code.google.com/p/h2database/issues/list"/>
+    <download-page rdf:resource="http://h2database.com/html/download.html"/>
+    <shortdesc xml:lang="en">H2 Database Engine</shortdesc>
+    <description xml:lang="en">
+    H2 is a relational database management system written in Java.
+    It can be embedded in Java applications or run in the client-server mode.
+    The disk footprint is about 1 MB. The main programming APIs are SQL and JDBC,
+    however the database also supports using the PostgreSQL ODBC driver by acting like a PostgreSQL server.
+    It is possible to create both in-memory tables, as well as disk-based tables.
+    Tables can be persistent or temporary. Index types are hash table and tree for in-memory tables,
+    and b-tree for disk-based tables.
+    All data manipulation operations are transactional. (from Wikipedia)
+    </description>
+    <repository>
+        <SVNRepository>
+            <browse rdf:resource="http://code.google.com/p/h2database/source/browse"/>
+            <location rdf:resource="http://h2database.googlecode.com/svn/trunk"/>
+        </SVNRepository>
+    </repository>
+    <mailing-list rdf:resource="http://groups.google.com/group/h2-database"/>
+$$ ||
+    GROUP_CONCAT(
+        XMLNODE('release', NULL,
+            XMLNODE('Version', NULL,
+                XMLNODE('name', NULL, 'H2 ' || V.VERSION) ||
+                XMLNODE('created', NULL, V.CREATED) ||
+                XMLNODE('revision', NULL, V.VERSION)
+            )
+        )
+        ORDER BY V.ID DESC SEPARATOR '') ||
+'    </Project>
+</rdf:RDF>' CONTENT
+FROM VERSION V

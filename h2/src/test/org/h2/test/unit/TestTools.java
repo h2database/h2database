@@ -589,6 +589,7 @@ public class TestTools extends TestBase {
         assertTrue(rs.next());
         assertFalse(rs.next());
         try {
+            // must fail when the database is in use
             Backup.main("-file", fileName, "-dir", baseDir, "-db", "utils");
             fail();
         } catch (SQLException e) {

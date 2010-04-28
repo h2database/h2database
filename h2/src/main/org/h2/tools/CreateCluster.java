@@ -6,6 +6,7 @@
  */
 package org.h2.tools;
 
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -94,17 +95,17 @@ public class CreateCluster extends Tool {
     }
 
     private void process(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
-        Connection conn = null;
-        Statement stat = null;
+        Connection connSource = null, connTarget = null;
+        Statement statSource = null, statTarget = null;
+        String scriptFile = "backup.sql";
         try {
             org.h2.Driver.load();
-            // use cluster='' so connecting is possible even if the cluster is enabled
-            conn = DriverManager.getConnection(urlSource + ";CLUSTER=''", user, password);
-            conn.close();
+
+            // verify that the database doesn't exist
             boolean exists;
             try {
-                conn = DriverManager.getConnection(urlTarget + ";IFEXISTS=TRUE", user, password);
-                conn.close();
+                connTarget = DriverManager.getConnection(urlTarget + ";IFEXISTS=TRUE", user, password);
+                connTarget.close();
                 exists = true;
             } catch (SQLException e) {
                 // database does not exists - ok
@@ -114,31 +115,45 @@ public class CreateCluster extends Tool {
                 throw new SQLException("Target database must not yet exist. Please delete it first");
             }
 
-            // TODO cluster: need to open the database in exclusive mode,
-            // so that other applications
-            // cannot change the data while it is restoring the second database.
-            // But there is currently no exclusive mode.
+            // use cluster='' so connecting is possible
+            // even if the cluster is enabled
+            connSource = DriverManager.getConnection(urlSource + ";CLUSTER=''", user, password);
+            statSource = connSource.createStatement();
 
-            String scriptFile = "backup.sql";
-            Script sc = new Script();
-            sc.setOut(out);
-            sc.process(urlSource, user, password, scriptFile);
-            RunScript runscript = new RunScript();
-            runscript.setOut(out);
-            runscript.process(urlTarget, user, password, scriptFile, null, false);
-            IOUtils.delete(scriptFile);
+            // enable the exclusive mode, so that other applications
+            // cannot change the data while it is restoring the second database
+            statSource.execute("SET EXCLUSIVE TRUE");
+
+            // backup
+            Script script = new Script();
+            script.setOut(out);
+            OutputStream scriptOut = null;
+            try {
+                scriptOut = IOUtils.openFileOutputStream(scriptFile, false);
+                script.process(connSource, scriptOut);
+            } finally {
+                IOUtils.closeSilently(scriptOut);
+            }
+
+            // restore
+            RunScript runScript = new RunScript();
+            runScript.setOut(out);
+            runScript.process(urlTarget, user, password, scriptFile, null, false);
+
+            connTarget = DriverManager.getConnection(urlTarget, user, password);
+            statTarget = connTarget.createStatement();
 
             // set the cluster to the serverList on both databases
-            conn = DriverManager.getConnection(urlSource, user, password);
-            stat = conn.createStatement();
-            stat.executeUpdate("SET CLUSTER '" + serverList + "'");
-            conn.close();
-            conn = DriverManager.getConnection(urlTarget, user, password);
-            stat = conn.createStatement();
-            stat.executeUpdate("SET CLUSTER '" + serverList + "'");
+            statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
+            statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
+
+            statSource.execute("SET EXCLUSIVE FALSE");
         } finally {
-            JdbcUtils.closeSilently(conn);
-            JdbcUtils.closeSilently(stat);
+            IOUtils.delete(scriptFile);
+            JdbcUtils.closeSilently(statSource);
+            JdbcUtils.closeSilently(statTarget);
+            JdbcUtils.closeSilently(connSource);
+            JdbcUtils.closeSilently(connTarget);
         }
     }
 

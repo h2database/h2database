@@ -1038,7 +1038,11 @@ public class Database implements DataHandler {
             if (systemSession != null) {
                 if (powerOffCount != -1) {
                     for (Table table : getAllTablesAndViews(false)) {
-                        table.close(systemSession);
+                        if (table.isGlobalTemporary()) {
+                            table.removeChildrenAndResources(systemSession);
+                        } else {
+                            table.close(systemSession);
+                        }
                     }
                     for (SchemaObject obj : getAllSchemaObjects(DbObject.SEQUENCE)) {
                         Sequence sequence = (Sequence) obj;

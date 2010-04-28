@@ -6,10 +6,12 @@
  */
 package org.h2.test.db;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 
 /**
@@ -28,6 +30,7 @@ public class TestTempTables extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("tempTables");
+        testDeleteGlobalTempTableWhenClosing();
         Connection c1 = getConnection("tempTables");
         testAlter(c1);
         Connection c2 = getConnection("tempTables");
@@ -37,6 +40,30 @@ public class TestTempTables extends TestBase {
         c1.close();
         c2.close();
         deleteDb("tempTables");
+    }
+
+    private void testDeleteGlobalTempTableWhenClosing() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("tempTables");
+        Connection conn = getConnection("tempTables");
+        Statement stat = conn.createStatement();
+        stat.execute("create global temporary table test(id int, data varchar)");
+        stat.execute("insert into test select x, space(1000) from system_range(1, 1000)");
+        stat.execute("shutdown compact");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // expected
+        }
+        String dbName = baseDir + "/tempTables" + Constants.SUFFIX_PAGE_FILE;
+        long before = new File(dbName).length();
+        assertTrue(before > 0);
+        conn = getConnection("tempTables");
+        conn.close();
+        long after = new File(dbName).length();
+        assertEquals(after, before);
     }
 
     private void testAlter(Connection conn) throws SQLException {

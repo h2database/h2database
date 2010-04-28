@@ -1061,7 +1061,6 @@ can disable it. When the connection is closed, it is automatically disabled.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
-This setting is persistent.
 ","
 SET EXCLUSIVE TRUE
 "

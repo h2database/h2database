@@ -945,7 +945,7 @@ public class WebApp {
                 list.add(s);
             }
             final Connection conn = session.getConnection();
-            if (SysProperties.CONSOLE_STREAM) {
+            if (SysProperties.CONSOLE_STREAM && server.getAllowChunked()) {
                 String page = StringUtils.utf8Decode(server.getFile("result.jsp"));
                 int idx = page.indexOf("${result}");
                 // the first element of the list is the header, the last the footer

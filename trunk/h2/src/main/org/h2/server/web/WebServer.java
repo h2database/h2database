@@ -126,6 +126,8 @@ public class WebServer implements Service {
     private boolean trace;
     private TranslateThread translateThread;
 
+    private boolean allowChunked = true;
+
     /**
      * Read the given file from the file system or from the resources.
      *
@@ -697,6 +699,14 @@ public class WebServer implements Service {
 
     public boolean isDaemon() {
         return isDaemon;
+    }
+
+    void setAllowChunked(boolean allowChunked) {
+        this.allowChunked = allowChunked;
+    }
+
+    boolean getAllowChunked() {
+        return allowChunked;
     }
 
 }

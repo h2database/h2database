@@ -172,6 +172,12 @@ public class SysProperties {
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
 
     /**
+     * System property <code>h2.consoleStream</code> (default: true).<br />
+     * H2 Console: stream query results.
+     */
+    public static final boolean CONSOLE_STREAM = getBooleanSetting("h2.consoleStream", true);
+
+    /**
      * System property <code>h2.defaultEscape</code> (default: \).<br />
      * The default escape character for LIKE comparisons. To select no escape
      * character, use an empty string.

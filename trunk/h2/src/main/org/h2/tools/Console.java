@@ -407,7 +407,9 @@ ShutdownHandler {
     private void startBrowser() {
         if (web != null) {
             String url = web.getURL();
-            urlText.setText(url);
+            if (urlText != null) {
+                urlText.setText(url);
+            }
             Server.openBrowser(url);
         }
     }

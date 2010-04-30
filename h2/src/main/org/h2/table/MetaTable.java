@@ -854,7 +854,6 @@ public class MetaTable extends Table {
                     add(rows, "property." + s, SysProperties.getStringSetting(s, ""));
                 }
             }
-            add(rows, "CLUSTER", database.getCluster());
             add(rows, "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE");
             add(rows, "MODE", database.getMode().getName());
             add(rows, "MULTI_THREADED", database.isMultiThreaded() ? "1" : "0");

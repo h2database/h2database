@@ -11,7 +11,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
@@ -120,34 +119,44 @@ public class CreateCluster extends Tool {
             connSource = DriverManager.getConnection(urlSource + ";CLUSTER=''", user, password);
             statSource = connSource.createStatement();
 
-            // enable the exclusive mode, so that other applications
-            // cannot change the data while it is restoring the second database
-            statSource.execute("SET EXCLUSIVE TRUE");
+            // enable the exclusive mode and close other connections,
+            // so that data can't change while restoring the second database
+            statSource.execute("SET EXCLUSIVE 2");
 
-            // backup
-            Script script = new Script();
-            script.setOut(out);
-            OutputStream scriptOut = null;
             try {
-                scriptOut = IOUtils.openFileOutputStream(scriptFile, false);
-                script.process(connSource, scriptOut);
+
+                // backup
+                Script script = new Script();
+                script.setOut(out);
+                OutputStream scriptOut = null;
+                try {
+                    scriptOut = IOUtils.openFileOutputStream(scriptFile, false);
+                    script.process(connSource, scriptOut);
+                } finally {
+                    IOUtils.closeSilently(scriptOut);
+                }
+
+                // delete the target database and then restore
+                connTarget = DriverManager.getConnection(urlTarget + ";CLUSTER=''", user, password);
+                statTarget = connTarget.createStatement();
+                statTarget.execute("DROP ALL OBJECTS DELETE FILES");
+                connTarget.close();
+
+                RunScript runScript = new RunScript();
+                runScript.setOut(out);
+                runScript.process(urlTarget, user, password, scriptFile, null, false);
+
+                connTarget = DriverManager.getConnection(urlTarget, user, password);
+                statTarget = connTarget.createStatement();
+
+                // set the cluster to the serverList on both databases
+                statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
+                statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
             } finally {
-                IOUtils.closeSilently(scriptOut);
+
+                // switch back to the regular mode
+                statSource.execute("SET EXCLUSIVE FALSE");
             }
-
-            // restore
-            RunScript runScript = new RunScript();
-            runScript.setOut(out);
-            runScript.process(urlTarget, user, password, scriptFile, null, false);
-
-            connTarget = DriverManager.getConnection(urlTarget, user, password);
-            statTarget = connTarget.createStatement();
-
-            // set the cluster to the serverList on both databases
-            statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
-            statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
-
-            statSource.execute("SET EXCLUSIVE FALSE");
         } finally {
             IOUtils.delete(scriptFile);
             JdbcUtils.closeSilently(statSource);

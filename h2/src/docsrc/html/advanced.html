@@ -273,9 +273,9 @@ From this point on, the operations will be executed only on one server until the
 is back up.
 </p><p>
 Clustering can only be used in the server mode (the embedded mode does not support clustering).
-It is possible to restore the cluster without stopping the server, however it is critical that no other
-application is changing the data in the first database while the second database is restored, so
-restoring the cluster is currently a manual process.
+The cluster can be re-created using the <code>CreateCluster</code> tool without stopping
+the remaining server. Applications that are still connected are automatically disconnected,
+however when appending <code>;AUTO_RECONNECT=TRUE</code>, they will recover from that.
 </p><p>
 To initialize the cluster, use the following steps:
 </p>

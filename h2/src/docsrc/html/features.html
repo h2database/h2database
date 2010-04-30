@@ -1106,6 +1106,7 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 The auto-reconnect feature causes the JDBC driver to reconnect to
 the database if the connection is lost. The automatic re-connect only
 occurs when auto-commit is enabled; if auto-commit is disabled, an exception is thrown.
+To enable this mode, append <code>;AUTO_RECONNECT=TRUE</code> to the database URL.
 </p>
 <p>
 Re-connecting will open a new session. After an automatic re-connect,
@@ -1118,7 +1119,7 @@ contains all client side state that is re-created.
 <p>
 Multiple processes can access the same database without having to start the server manually.
 To do that, append <code>;AUTO_SERVER=TRUE</code> to the database URL.
-You can use the same database URL no matter if the database is already open or not.
+You can use the same database URL independent of whether the database is already open or not.
 </p>
 <p>
 When using this mode, the first connection to the database is made in embedded mode,
@@ -1371,7 +1372,7 @@ in <code>TestMultiDimension.java</code>.
 
 <h3>Using Secure Passwords</h3>
 <p>
-Remember that weak passwords can be broken no matter of the encryption and security protocol.
+Remember that weak passwords can be broken regardless of the encryption and security protocols.
 Don't use passwords that can be found in a dictionary. Also appending numbers does not make them
 secure. A way to create good passwords that can be remembered is, take the first
 letters of a sentence, use upper and lower case characters, and creatively include special characters.
@@ -1685,6 +1686,7 @@ The amount of memory used for caching can be changed using the setting
 <code>CACHE_SIZE</code>. This setting can be set in the database connection URL
 (<code>jdbc:h2:~/test;CACHE_SIZE=131072</code>), or it can be changed at runtime using
 <code>SET CACHE_SIZE size</code>.
+The size of the cache, as represented by <code>CACHE_SIZE</code> is measured in KB, with each KB being 1024 bytes.
 This setting has no effect for in-memory databases.
 </p><p>
 Also included is an experimental second level soft reference cache. Rows in this cache are only garbage collected

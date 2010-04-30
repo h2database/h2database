@@ -18,8 +18,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The CreateCluster tool now sets the source database in exclusive mode
+<ul><li>Cluster: after a cluster node failed, the second cluster node can now be re-created
+    and started without having to stop the first cluster node, and without having to stop
+    running applications. To do that, append ;AUTO_RECONNECT=TRUE to the database URL.
+</li><li>SET EXCLUSIVE now supports 0 (disable), 1 (enable), and 2 (enable and close all other connections).
+</li><li>Installing the H2 as a service should now work on Windows 7.
+    The batch files now explicitly set the directory using pushd "%~dp0".
+</li><li>Temporary tables can now be 'cached', that means indexes of temporary tables
+    can be persisted. This enables very large temporary tables (both local and global).
+</li><li>The CreateCluster tool now sets the source database in exclusive mode
     before copying data to the new database.
+</li><li>The H2 Console now stream results one statement / result set at a time (using chunked transfer encoding).
+    To disable, set the system property h2.consoleStream to false.
+    This feature is not supported when using a servlet container.
 </li><li>The H2 Console did not call the CreateCluster tool with the correctly escaped parameters.
 </li><li>Improved PostgreSQL compatibility for ALTER TABLE ALTER COLUMN.
 </li><li>Commas at the end of INSERT ... VALUES (), (), are now supported.

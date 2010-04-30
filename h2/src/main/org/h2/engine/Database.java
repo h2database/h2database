@@ -979,6 +979,23 @@ public class Database implements DataHandler {
         }
     }
 
+    private synchronized void closeAllSessionsException(Session except) {
+        Session[] all = new Session[userSessions.size()];
+        userSessions.toArray(all);
+        for (Session s : all) {
+            if (s != except) {
+                try {
+                    // must roll back, otherwise the session is removed and
+                    // the transaction log that contains its uncommitted operations as well
+                    s.rollback();
+                    s.close();
+                } catch (DbException e) {
+                    traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);
+                }
+            }
+        }
+    }
+
     /**
      * Close the database.
      *
@@ -1007,18 +1024,7 @@ public class Database implements DataHandler {
                 return;
             }
             traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName + " from shutdown hook");
-            Session[] all = new Session[userSessions.size()];
-            userSessions.toArray(all);
-            for (Session s : all) {
-                try {
-                    // must roll back, otherwise the session is removed and
-                    // the transaction log that contains its uncommitted operations as well
-                    s.rollback();
-                    s.close();
-                } catch (DbException e) {
-                    traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);
-                }
-            }
+            closeAllSessionsException(null);
         }
         traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName);
         if (eventListener != null) {
@@ -1968,8 +1974,11 @@ public class Database implements DataHandler {
         return exclusiveSession;
     }
 
-    public void setExclusiveSession(Session session) {
+    public void setExclusiveSession(Session session, boolean closeOthers) {
         this.exclusiveSession = session;
+        if (closeOthers) {
+            closeAllSessionsException(session);
+        }
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {

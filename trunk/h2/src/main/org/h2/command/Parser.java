@@ -3488,40 +3488,7 @@ public class Parser {
 
     private Prepared parseCreate() {
         boolean force = readIf("FORCE");
-        if (readIf("LOCAL")) {
-            read("TEMPORARY");
-            if (readIf("LINKED")) {
-                return parseCreateLinkedTable(true, false, force);
-            }
-            read("TABLE");
-            return parseCreateTable(true, false, false);
-        } else if (readIf("GLOBAL")) {
-            read("TEMPORARY");
-            if (readIf("LINKED")) {
-                return parseCreateLinkedTable(true, true, force);
-            }
-            read("TABLE");
-            return parseCreateTable(true, true, false);
-        } else if (readIf("TEMP") || readIf("TEMPORARY")) {
-            if (readIf("LINKED")) {
-                return parseCreateLinkedTable(true, true, force);
-            }
-            read("TABLE");
-            return parseCreateTable(true, true, false);
-        } else if (readIf("MEMORY")) {
-            read("TABLE");
-            return parseCreateTable(false, false, false);
-        } else if (readIf("LINKED")) {
-            return parseCreateLinkedTable(false, false, force);
-        } else if (readIf("CACHED")) {
-            read("TABLE");
-            return parseCreateTable(false, false, true);
-        } else if (readIf("TABLE")) {
-            int defaultMode;
-            Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_TABLE_TYPE));
-            defaultMode = setting == null ? Table.TYPE_CACHED : setting.getIntValue();
-            return parseCreateTable(false, false, defaultMode == Table.TYPE_CACHED);
-        } else if (readIf("VIEW")) {
+        if (readIf("VIEW")) {
             return parseCreateView(force);
         } else if (readIf("ALIAS")) {
             return parseCreateFunctionAlias(force);
@@ -3545,6 +3512,44 @@ public class Parser {
             return parseCreateUserDataType();
         } else if (readIf("AGGREGATE")) {
             return parseCreateAggregate(force);
+        } else if (readIf("LINKED")) {
+            return parseCreateLinkedTable(false, false, force);
+        }
+        // tables or linked tables
+        boolean memory = false, cached = false;
+        if (readIf("MEMORY")) {
+            memory = true;
+        } else if (readIf("CACHED")) {
+            cached = true;
+        }
+        if (readIf("LOCAL")) {
+            read("TEMPORARY");
+            if (readIf("LINKED")) {
+                return parseCreateLinkedTable(true, false, force);
+            }
+            read("TABLE");
+            return parseCreateTable(true, false, cached);
+        } else if (readIf("GLOBAL")) {
+            read("TEMPORARY");
+            if (readIf("LINKED")) {
+                return parseCreateLinkedTable(true, true, force);
+            }
+            read("TABLE");
+            return parseCreateTable(true, true, cached);
+        } else if (readIf("TEMP") || readIf("TEMPORARY")) {
+            if (readIf("LINKED")) {
+                return parseCreateLinkedTable(true, true, force);
+            }
+            read("TABLE");
+            return parseCreateTable(true, true, cached);
+        } else if (readIf("TABLE")) {
+            if (!cached && !memory) {
+                int defaultMode;
+                Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_TABLE_TYPE));
+                defaultMode = setting == null ? Table.TYPE_CACHED : setting.getIntValue();
+                cached = defaultMode == Table.TYPE_CACHED;
+            }
+            return parseCreateTable(false, false, cached);
         } else {
             boolean hash = false, primaryKey = false, unique = false;
             String indexName = null;
@@ -4067,9 +4072,8 @@ public class Parser {
             return command;
         } else if (readIf("EXCLUSIVE")) {
             readIfEqualOrTo();
-            boolean value = readBooleanSetting();
             Set command = new Set(session, SetTypes.EXCLUSIVE);
-            command.setInt(value ? 1 : 0);
+            command.setExpression(readExpression());
             return command;
         } else if (readIf("IGNORECASE")) {
             readIfEqualOrTo();

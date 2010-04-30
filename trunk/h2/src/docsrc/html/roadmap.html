@@ -214,7 +214,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Run benchmarks with JDK 1.5, JDK 1.6, java -server
 </li><li>Optimizations: faster hash function for strings, byte arrays
 </li><li>DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
-</li><li>H2 Console / large result sets: use 'streaming' instead of building the page in-memory
 </li><li>Benchmark: add a graph to show how databases scale (performance/database size)
 </li><li>Implement a SQLData interface to map your data over to a custom object
 </li><li>In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
@@ -460,6 +459,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 156: Support SELECT ? UNION SELECT ?.
 </li><li>Automatic mixed mode: support a port range list (to avoid firewall problems).
 </li><li>Support the pseudo column rowid, oid, _rowid_.
+</li><li>H2 Console / large result sets: stream early instead of keeping a whole result in-memory
 </li><li>Support TRUNCATE for linked tables.
 </li><li>UNION: evaluate INTERSECT before UNION (like most other database except Oracle).
 </li><li>Delay creating the information schema, and share metadata columns.
@@ -483,6 +483,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Maybe use a different page layout: keep the data at the head of the page, and ignore the tail
     (don't store / read it). This may increase write / read performance depending on the file system.
 </li><li>Indexes of temporary tables are currently kept in-memory. Is this how it should be?
+</li><li>The Shell tool should support the same built-in commands as the H2 Console.
 </li></ul>
 
 <h2>Not Planned</h2>

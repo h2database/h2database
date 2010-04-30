@@ -180,9 +180,9 @@ CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ START WITH long ]
 ","
 Creates a new sequence."
 "Commands (DDL)","CREATE TABLE","
-CREATE [ CACHED | MEMORY | TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
-    TABLE [ IF NOT EXISTS ]
-name { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
+CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
+TABLE [ IF NOT EXISTS ] name
+{ { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
     | { AS select } }
 [ ENGINE tableEngineName ] [ NOT PERSISTENT ]
 ","
@@ -363,9 +363,9 @@ SET DEFAULT_TABLE_TYPE { MEMORY | CACHED }
 ","
 Sets the default table storage type that is used when creating new tables."
 "Commands (Other)","SET EXCLUSIVE","
-SET EXCLUSIVE { TRUE | FALSE }
+SET EXCLUSIVE { 0 | 1 | 2 }
 ","
-Switched the database to exclusive mode and back."
+Switched the database to exclusive mode (1, 2) and back to normal mode (0)."
 "Commands (Other)","SET IGNORECASE","
 SET IGNORECASE { TRUE | FALSE }
 ","

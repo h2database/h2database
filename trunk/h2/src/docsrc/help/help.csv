@@ -524,28 +524,32 @@ CREATE SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","CREATE TABLE","
-CREATE [ CACHED | MEMORY | TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
-    TABLE [ IF NOT EXISTS ]
-name { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
+CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
+TABLE [ IF NOT EXISTS ] name
+{ { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
     | { AS select } }
 [ ENGINE tableEngineName ] [ NOT PERSISTENT ]
 ","
 Creates a new table.
 
-Cached tables (the default) are persistent, and the number of rows is not limited by the main memory.
-
-Memory tables are persistent, but the index data is kept in main memory,
+Cached tables (the default for regular tables) are persistent,
+and the number of rows is not limited by the main memory.
+Memory tables (the default for temporary tables) are persistent,
+but the index data is kept in main memory,
 that means memory tables should not get too large.
+
+Temporary tables are deleted when closing or opening a database.
+Temporary tables can be global (accessible by all connections)
+or local (only accessible by the current connection).
+The default for temporary tables is global.
+Indexes of temporary tables are kept fully in main memory,
+unless the temporary table is created using CREATE CACHED ... TABLE.
 
 The ENGINE option is only required when custom table implementations are used.
 The table engine class must implement the interface org.h2.api.TableEngine.
 
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.
-
-Temporary tables are not persistent. Temporary tables can be global (accessible by all connections)
-or local (only accessible by the current connection). The default is for temporary tables is global.
-Indexes of temporary tables are kept fully in main memory.
 
 This command commits an open transaction.
 ","
@@ -1052,17 +1056,23 @@ SET DEFAULT_TABLE_TYPE MEMORY
 "
 
 "Commands (Other)","SET EXCLUSIVE","
-SET EXCLUSIVE { TRUE | FALSE }
+SET EXCLUSIVE { 0 | 1 | 2 }
 ","
-Switched the database to exclusive mode and back. In exclusive mode, new
-connections are rejected, and operations by other connections are paused until
-the exclusive mode is disabled. Only the connection that set the exclusive mode
-can disable it. When the connection is closed, it is automatically disabled.
+Switched the database to exclusive mode (1, 2) and back to normal mode (0).
+
+In exclusive mode, new connections are rejected, and operations by
+other connections are paused until the exclusive mode is disabled.
+When using the value 1, existing connections stay open.
+When using the value 2, all existing connections are closed
+(and current transactions are rolled back) except the connection
+that executes SET EXCLUSIVE.
+Only the connection that set the exclusive mode can disable it.
+When the connection is closed, it is automatically disabled.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
-SET EXCLUSIVE TRUE
+SET EXCLUSIVE 1
 "
 
 "Commands (Other)","SET IGNORECASE","

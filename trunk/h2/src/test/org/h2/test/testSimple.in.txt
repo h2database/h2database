@@ -1,3 +1,11 @@
+create memory temp table test(name varchar primary key);
+select index_class from information_schema.indexes where table_name = 'TEST';
+> org.h2.index.TreeIndex;
+drop table test;
+create cached temp table test(name varchar primary key);
+select index_class from information_schema.indexes where table_name = 'TEST';
+> org.h2.index.PageBtreeIndex;
+drop table test;
 create table test(id int);
 alter table test alter column id set default 'x';
 select column_default from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';

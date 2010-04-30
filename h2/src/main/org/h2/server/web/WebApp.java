@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -47,7 +48,6 @@ import org.h2.tools.Restore;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.Utils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.Profiler;
@@ -56,6 +56,7 @@ import org.h2.util.SortedProperties;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
+import org.h2.util.Utils;
 
 /**
  * For each connection to a session, an object of this class is created.
@@ -934,10 +935,8 @@ public class WebApp {
     private String query() {
         String sql = attributes.getProperty("sql").trim();
         try {
-            Connection conn = session.getConnection();
-            String result;
             ScriptReader r = new ScriptReader(new StringReader(sql));
-            ArrayList<String> list = New.arrayList();
+            final ArrayList<String> list = New.arrayList();
             while (true) {
                 String s = r.readStatement();
                 if (s == null) {
@@ -945,13 +944,38 @@ public class WebApp {
                 }
                 list.add(s);
             }
+            final Connection conn = session.getConnection();
+            if (SysProperties.CONSOLE_STREAM) {
+                String page = StringUtils.utf8Decode(server.getFile("result.jsp"));
+                int idx = page.indexOf("${result}");
+                // the first element of the list is the header, the last the footer
+                list.add(0, page.substring(0, idx));
+                list.add(page.substring(idx + "${result}".length()));
+                session.put("chunks", new Iterator<String>() {
+                    private int i;
+                    public boolean hasNext() {
+                        return i < list.size();
+                    }
+                    public String next() {
+                        String s = list.get(i++);
+                        if (i == 1 || i == list.size()) {
+                            return s;
+                        }
+                        StringBuilder b = new StringBuilder();
+                        query(conn, s, i - 1, list.size(), b);
+                        return b.toString();
+                    }
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+                return "result.jsp";
+            }
+            String result;
             StringBuilder buff = new StringBuilder();
             for (int i = 0; i < list.size(); i++) {
                 String s = list.get(i);
-                if (!(s.startsWith("@") && s.endsWith("."))) {
-                    buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
-                }
-                buff.append(getResult(conn, i + 1, s, list.size() == 1, false)).append("<br />");
+                query(conn, s, i, list.size(), buff);
             }
             result = buff.toString();
             session.put("result", result);
@@ -959,6 +983,22 @@ public class WebApp {
             session.put("result", getStackTrace(0, e, session.getContents().isH2));
         }
         return "result.jsp";
+    }
+
+    /**
+     * Execute a query and append the result to the buffer.
+     *
+     * @param conn the connection
+     * @param s the statement
+     * @param i the index
+     * @param size the number of statements
+     * @param buff the target buffer
+     */
+    protected void query(Connection conn, String s, int i, int size, StringBuilder buff) {
+        if (!(s.startsWith("@") && s.endsWith("."))) {
+            buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
+        }
+        buff.append(getResult(conn, i + 1, s, size == 1, false)).append("<br />");
     }
 
     private String editResult() {

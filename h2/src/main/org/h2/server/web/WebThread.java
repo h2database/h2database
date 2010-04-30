@@ -13,9 +13,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import org.h2.constant.SysProperties;
 import org.h2.message.TraceSystem;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
@@ -101,6 +103,7 @@ class WebThread extends WebApp implements Runnable {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private boolean process() throws IOException {
         boolean keepAlive = false;
         String head = readHeaderLine();
@@ -135,30 +138,58 @@ class WebThread extends WebApp implements Runnable {
             byte[] bytes;
             if (cache && ifModifiedSince != null && ifModifiedSince.equals(server.getStartDateTime())) {
                 bytes = null;
-                message = "HTTP/1.1 304 Not Modified\n";
+                message = "HTTP/1.1 304 Not Modified\r\n";
             } else {
                 bytes = server.getFile(file);
                 if (bytes == null) {
-                    message = "HTTP/1.0 404 Not Found\n";
+                    message = "HTTP/1.0 404 Not Found\r\n";
                     bytes = StringUtils.utf8Encode("File not found: " + file);
                 } else {
                     if (session != null && file.endsWith(".jsp")) {
                         String page = StringUtils.utf8Decode(bytes);
+                        if (SysProperties.CONSOLE_STREAM) {
+                            Iterator<String> it = (Iterator<String>) session.map.remove("chunks");
+                            if (it != null) {
+                                message = "HTTP/1.1 200 OK\r\n";
+                                message += "Content-Type: " + mimeType + "\r\n";
+                                message += "Cache-Control: no-cache\r\n";
+                                message += "Transfer-Encoding: chunked\r\n";
+                                message += "\r\n";
+                                trace(message);
+                                output.write(message.getBytes());
+                                while (it.hasNext()) {
+                                    String s = it.next();
+                                    s = PageParser.parse(s, session.map);
+                                    if (bytes.length == 0) {
+                                        continue;
+                                    }
+                                    bytes = StringUtils.utf8Encode(s);
+                                    output.write(Integer.toHexString(bytes.length).getBytes());
+                                    output.write("\r\n".getBytes());
+                                    output.write(bytes);
+                                    output.write("\r\n".getBytes());
+                                    output.flush();
+                                }
+                                output.write("0\r\n\r\n".getBytes());
+                                output.flush();
+                                return keepAlive;
+                            }
+                        }
                         page = PageParser.parse(page, session.map);
                         bytes = StringUtils.utf8Encode(page);
                     }
-                    message = "HTTP/1.1 200 OK\n";
-                    message += "Content-Type: " + mimeType + "\n";
+                    message = "HTTP/1.1 200 OK\r\n";
+                    message += "Content-Type: " + mimeType + "\r\n";
                     if (!cache) {
-                        message += "Cache-Control: no-cache\n";
+                        message += "Cache-Control: no-cache\r\n";
                     } else {
-                        message += "Cache-Control: max-age=10\n";
-                        message += "Last-Modified: " + server.getStartDateTime() + "\n";
+                        message += "Cache-Control: max-age=10\r\n";
+                        message += "Last-Modified: " + server.getStartDateTime() + "\r\n";
                     }
-                    message += "Content-Length: " + bytes.length + "\n";
+                    message += "Content-Length: " + bytes.length + "\r\n";
                 }
             }
-            message += "\n";
+            message += "\r\n";
             trace(message);
             output.write(message.getBytes());
             if (bytes != null) {

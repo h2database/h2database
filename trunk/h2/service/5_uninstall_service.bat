@@ -1,5 +1,6 @@
 @echo off
 setlocal
+pushd "%~dp0"
 
 rem Copyright (c) 1999, 2006 Tanuki Software Inc.
 rem
@@ -8,7 +9,7 @@ rem
 
 if "%OS%"=="Windows_NT" goto nt
 echo This script only works with NT-based versions of Windows.
-goto :eof
+goto :end
 
 :nt
 rem
@@ -30,7 +31,7 @@ echo %_REALPATH%%_WRAPPER_BASE%-windows-x86-32.exe
 echo %_REALPATH%%_WRAPPER_BASE%-windows-x86-64.exe
 echo %_REALPATH%%_WRAPPER_BASE%.exe
 pause
-goto :eof
+goto :end
 
 rem
 rem Find the wrapper.conf
@@ -45,6 +46,8 @@ rem Uninstall the Wrapper as an NT service.
 rem
 :startup
 "%_WRAPPER_EXE%" -r %_WRAPPER_CONF%
-if not errorlevel 1 goto :eof
+if not errorlevel 1 goto :end
 pause
 
+:end
+popd

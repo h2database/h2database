@@ -82,6 +82,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     private SessionInterface embedded;
     private DatabaseEventListener eventListener;
     private LobStorage lobStorage;
+    private boolean cluster;
 
     public SessionRemote() {
         // nothing to do
@@ -161,6 +162,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             switchOffAutoCommit.executeUpdate();
             // so we need to switch it on
             autoCommit = true;
+            cluster = true;
         }
     }
 
@@ -292,10 +294,11 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         }
         autoReconnect = Boolean.valueOf(ci.getProperty("AUTO_RECONNECT", "false")).booleanValue();
         // AUTO_SERVER implies AUTO_RECONNECT
-        autoReconnect |= Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
-        if (autoReconnect && serverList != null) {
-            throw DbException.getUnsupportedException("autoReconnect && serverList != null");
+        boolean autoServer = Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
+        if (autoServer && serverList != null) {
+            throw DbException.getUnsupportedException("autoServer && serverList != null");
         }
+        autoReconnect |= autoServer;
         if (autoReconnect) {
             String className = ci.getProperty("DATABASE_EVENT_LISTENER");
             if (className != null) {
@@ -390,7 +393,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
      */
     public void removeServer(IOException e, int i, int count) {
         transferList.remove(i);
-        if (autoReconnect(count)) {
+        if (transferList.size() == 0 && autoReconnect(count)) {
             return;
         }
         checkClosed();
@@ -414,7 +417,10 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         if (!isClosed()) {
             return false;
         }
-        if (!autoReconnect || !autoCommit) {
+        if (!autoReconnect) {
+            return false;
+        }
+        if (!cluster && !autoCommit) {
             return false;
         }
         if (count > SysProperties.MAX_RECONNECT) {
@@ -504,7 +510,14 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             String sql = transfer.readString();
             int errorCode = transfer.readInt();
             String stackTrace = transfer.readString();
-            throw DbException.convert(new JdbcSQLException(message, sql, sqlstate, errorCode, null, stackTrace));
+            JdbcSQLException s = new JdbcSQLException(message, sql, sqlstate, errorCode, null, stackTrace);
+            if (errorCode == ErrorCode.CONNECTION_BROKEN_1) {
+                // allow re-connect
+                IOException e = new IOException(s.toString());
+                e.initCause(s);
+                throw e;
+            }
+            throw DbException.convert(s);
         } else if (status == STATUS_CLOSED) {
             transferList = null;
         } else if (status == STATUS_OK_STATE_CHANGED) {

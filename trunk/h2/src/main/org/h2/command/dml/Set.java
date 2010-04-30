@@ -153,7 +153,19 @@ public class Set extends Prepared {
         case SetTypes.EXCLUSIVE: {
             session.getUser().checkAdmin();
             int value = getIntValue();
-            database.setExclusiveSession(value == 1 ? session : null);
+            switch (value) {
+            case 0:
+                database.setExclusiveSession(null, false);
+                break;
+            case 1:
+                database.setExclusiveSession(session, false);
+                break;
+            case 2:
+                database.setExclusiveSession(session, true);
+                break;
+            default:
+                throw DbException.getInvalidValueException("" + value, "EXCLUSIVE");
+            }
             break;
         }
         case SetTypes.IGNORECASE:

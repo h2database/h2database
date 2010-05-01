@@ -10,11 +10,11 @@ echo Process stopped
 pause
 goto :end
 
+:start
 rem Copyright (c) 1999, 2006 Tanuki Software Inc.
 rem
 rem Java Service Wrapper general NT service install script
 rem
-
 if "%OS%"=="Windows_NT" goto nt
 echo This script only works with NT-based versions of Windows.
 goto :end
@@ -41,18 +41,18 @@ echo %_REALPATH%%_WRAPPER_BASE%.exe
 pause
 goto :end
 
+:conf
 rem
 rem Find the wrapper.conf
 rem
-:conf
 set _WRAPPER_CONF="%~f1"
 if not %_WRAPPER_CONF%=="" goto startup
 set _WRAPPER_CONF="%_REALPATH%wrapper.conf"
 
+:startup
 rem
 rem Install the Wrapper as an NT service.
 rem
-:startup
 "%_WRAPPER_EXE%" -i %_WRAPPER_CONF%
 if not errorlevel 1 goto :end
 pause

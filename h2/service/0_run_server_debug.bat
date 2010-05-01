@@ -47,18 +47,18 @@ echo %_REALPATH%%_WRAPPER_BASE%.exe
 pause
 goto :end
 
+:conf
 rem
 rem Find the wrapper.conf
 rem
-:conf
 set _WRAPPER_CONF="%~f1"
 if not %_WRAPPER_CONF%=="" goto startup
 set _WRAPPER_CONF="%_REALPATH%wrapper.conf"
 
+:startup
 rem
 rem Start the Wrapper
 rem
-:startup
 "%_WRAPPER_EXE%" -c %_WRAPPER_CONF%
 if not errorlevel 1 goto :end
 pause

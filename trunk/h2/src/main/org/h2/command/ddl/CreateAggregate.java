@@ -11,6 +11,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.UserAggregate;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 
 /**
  * This class represents the statement
@@ -18,6 +19,7 @@ import org.h2.message.DbException;
  */
 public class CreateAggregate extends DefineCommand {
 
+    private Schema schema;
     private String name;
     private String javaClassMethod;
     private boolean ifNotExists;
@@ -31,7 +33,7 @@ public class CreateAggregate extends DefineCommand {
         session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
-        if (db.findAggregate(name) != null || db.findFunctionAlias(name) != null) {
+        if (db.findAggregate(name) != null || schema.findFunction(name) != null) {
             if (!ifNotExists) {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
             }
@@ -43,6 +45,10 @@ public class CreateAggregate extends DefineCommand {
         return 0;
     }
 
+    public void setSchema(Schema schema) {
+      this.schema = schema;
+    }
+    
     public void setName(String name) {
         this.name = name;
     }

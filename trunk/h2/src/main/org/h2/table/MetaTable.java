@@ -1061,7 +1061,8 @@ public class MetaTable extends Table {
             break;
         }
         case FUNCTION_ALIASES: {
-            for (FunctionAlias alias : database.getAllFunctionAliases()) {
+            for (SchemaObject aliasAsSchemaObject : database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
+                FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
                     int returnsResult = method.getDataType() == Value.NULL ? DatabaseMetaData.procedureNoResult
                             : DatabaseMetaData.procedureReturnsResult;
@@ -1069,7 +1070,7 @@ public class MetaTable extends Table {
                             // ALIAS_CATALOG
                             catalog,
                             // ALIAS_SCHEMA
-                            Constants.SCHEMA_MAIN,
+                            alias.getSchema().getName(),
                             // ALIAS_NAME
                             identifier(alias.getName()),
                             // JAVA_CLASS
@@ -1119,7 +1120,8 @@ public class MetaTable extends Table {
             break;
         }
         case FUNCTION_COLUMNS: {
-            for (FunctionAlias alias : database.getAllFunctionAliases()) {
+            for (SchemaObject aliasAsSchemaObject : database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
+                FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
                     Class< ? >[] columnList = method.getColumnClasses();
                     for (int k = 0; k < columnList.length; k++) {
@@ -1132,7 +1134,7 @@ public class MetaTable extends Table {
                                 // ALIAS_CATALOG
                                 catalog,
                                 // ALIAS_SCHEMA
-                                Constants.SCHEMA_MAIN,
+                                alias.getSchema().getName(),
                                 // ALIAS_NAME
                                 identifier(alias.getName()),
                                 // JAVA_CLASS

@@ -74,6 +74,7 @@ public class DropDatabase extends DefineCommand {
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTRAINT));
         list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
+        list.addAll(db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS));
         for (SchemaObject obj : list) {
             if (obj.isHidden()) {
                 continue;
@@ -94,7 +95,6 @@ public class DropDatabase extends DefineCommand {
         }
         ArrayList<DbObject> dbObjects = New.arrayList();
         dbObjects.addAll(db.getAllRights());
-        dbObjects.addAll(db.getAllFunctionAliases());
         dbObjects.addAll(db.getAllAggregates());
         dbObjects.addAll(db.getAllUserDataTypes());
         for (DbObject obj : dbObjects) {

@@ -313,7 +313,7 @@ public class Parser {
                 } else if (readIf("CREATE")) {
                     c = parseCreate();
                 } else if (readIf("CALL")) {
-                    c = parserCall();
+                    c = parseCall();
                 } else if (readIf("CHECKPOINT")) {
                     c = parseCheckpoint();
                 } else if (readIf("COMMENT")) {
@@ -420,7 +420,7 @@ public class Parser {
             case 'v':
             case 'V':
                 if (readIf("VALUES")) {
-                    c = parserCall();
+                    c = parseCall();
                 }
                 break;
             case 'w':
@@ -980,6 +980,7 @@ public class Parser {
             }
         } else {
             String tableName = readIdentifierWithSchema(null);
+            Schema schema = getSchema();
             if (readIf("(")) {
                 Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
                 if (equalsToken(tableName, RangeTable.NAME)) {
@@ -989,7 +990,7 @@ public class Parser {
                     read(")");
                     table = new RangeTable(mainSchema, min, max);
                 } else {
-                    Expression func = readFunction(tableName);
+                    Expression func = readFunction(schema, tableName);
                     if (!(func instanceof FunctionCall)) {
                         throw getSyntaxError();
                     }
@@ -1163,8 +1164,9 @@ public class Parser {
             return command;
         } else if (readIf("ALIAS")) {
             boolean ifExists = readIfExists(false);
-            DropFunctionAlias command = new DropFunctionAlias(session);
-            command.setAliasName(readUniqueIdentifier());
+            String aliasName = readIdentifierWithSchema();
+            DropFunctionAlias command = new DropFunctionAlias(session, getSchema());
+            command.setAliasName(aliasName);
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             return command;
@@ -1934,10 +1936,15 @@ public class Parser {
         return orderList;
     }
 
-    private JavaFunction readJavaFunction(String name) {
-        FunctionAlias functionAlias = database.findFunctionAlias(name);
+    private JavaFunction readJavaFunction(Schema schema, String functionName) {
+        FunctionAlias functionAlias = null;
+        if (schema != null) {
+            functionAlias =  schema.findFunction(functionName);
+        } else {
+            functionAlias = findFunctionAlias(session.getCurrentSchemaName(), functionName);
+        }
         if (functionAlias == null) {
-            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
+            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, functionName);
         }
         Expression[] args;
         ArrayList<Expression> argList = New.arrayList();
@@ -1967,7 +1974,10 @@ public class Parser {
         return agg;
     }
 
-    private Expression readFunction(String name) {
+    private Expression readFunction(Schema schema, String name) {
+        if (schema != null) {
+            return readJavaFunction(schema, name);
+        }
         int agg = Aggregate.getAggregateType(name);
         if (agg >= 0) {
             return readAggregate(agg);
@@ -1978,7 +1988,7 @@ public class Parser {
             if (aggregate != null) {
                 return readJavaAggregate(aggregate);
             }
-            return readJavaFunction(name);
+            return readJavaFunction(null, name);
         }
         switch (function.getFunctionType()) {
         case Function.CAST: {
@@ -2145,7 +2155,13 @@ public class Parser {
             return expr;
         }
         String name = readColumnIdentifier();
-        if (readIf(".")) {
+        Schema s = database.findSchema(objectName);
+        if (s != null && readIf("(")) {
+            // only if the token before the dot is a valid schema name,
+            // otherwise the old style Oracle outer join doesn't work:
+            // t.x = t2.x(+)
+            return readFunction(s, name);
+        } else if (readIf(".")) {
             String schema = objectName;
             objectName = name;
             expr = readWildcardOrSequenceValue(schema, objectName);
@@ -2153,7 +2169,15 @@ public class Parser {
                 return expr;
             }
             name = readColumnIdentifier();
-            if (readIf(".")) {
+            if (readIf("(")) {
+                String databaseName = schema;
+                if (!equalsToken(database.getShortName(), databaseName)) {
+                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
+                }
+                schema = objectName;
+                objectName = name;
+                return readFunction(database.getSchema(schema), name);
+            } else if (readIf(".")) {
                 String databaseName = schema;
                 if (!equalsToken(database.getShortName(), databaseName)) {
                     throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
@@ -2239,7 +2263,7 @@ public class Parser {
             if (currentTokenQuoted) {
                 read();
                 if (readIf("(")) {
-                    r = readFunction(name);
+                    r = readFunction(null, name);
                 } else if (readIf(".")) {
                     r = readTermObjectDot(name);
                 } else {
@@ -2264,7 +2288,7 @@ public class Parser {
                         r = readWhen(left);
                     }
                 } else if (readIf("(")) {
-                    r = readFunction(name);
+                    r = readFunction(null, name);
                 } else if (equalsToken("CURRENT_USER", name)) {
                     r = readFunctionWithoutParameters("USER");
                 } else if (equalsToken("CURRENT", name)) {
@@ -3655,7 +3679,7 @@ public class Parser {
         return command;
     }
 
-    private Call parserCall() {
+    private Call parseCall() {
         Call command = new Call(session);
         currentPrepared = command;
         command.setExpression(readExpression());
@@ -3734,11 +3758,12 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
-        String name = readUniqueIdentifier();
+        String name = readIdentifierWithSchema();
         if (isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
         command.setName(name);
+        command.setSchema(getSchema());
         command.setIfNotExists(ifNotExists);
         read("FOR");
         command.setJavaClassMethod(readUniqueIdentifier());
@@ -3849,13 +3874,13 @@ public class Parser {
 
     private CreateFunctionAlias parseCreateFunctionAlias(boolean force) {
         boolean ifNotExists = readIfNoExists();
-        CreateFunctionAlias command = new CreateFunctionAlias(session);
-        command.setForce(force);
-        String name = readUniqueIdentifier();
-        if (isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
-            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
+        String aliasName = readIdentifierWithSchema();
+        if (isKeyword(aliasName) || Function.getFunction(database, aliasName) != null || Aggregate.getAggregateType(aliasName) >= 0) {
+            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
         }
-        command.setAliasName(name);
+        CreateFunctionAlias command = new CreateFunctionAlias(session, getSchema());
+        command.setForce(force);
+        command.setAliasName(aliasName);
         command.setIfNotExists(ifNotExists);
         command.setDeterministic(readIf("DETERMINISTIC"));
         if (readIf("AS")) {
@@ -4357,24 +4382,43 @@ public class Parser {
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
     }
 
+    private FunctionAlias findFunctionAlias(String schema, String aliasName) {
+      FunctionAlias functionAlias = database.getSchema(schema).findFunction(aliasName);
+      if (functionAlias != null) {
+          return functionAlias;
+      }
+      String[] schemaNames = session.getSchemaSearchPath();
+      if (schemaNames != null) {
+          for (String n : schemaNames) {
+              functionAlias = database.getSchema(n).findFunction(aliasName);
+              if (functionAlias != null) {
+                  return functionAlias;
+              }
+          }
+      }
+      return null;
+    }
+
+
     private Sequence findSequence(String schema, String sequenceName) {
         Sequence sequence = database.getSchema(schema).findSequence(sequenceName);
         if (sequence != null) {
             return sequence;
         }
         String[] schemaNames = session.getSchemaSearchPath();
-        for (int i = 0; schemaNames != null && i < schemaNames.length; i++) {
-            Schema s = database.getSchema(schemaNames[i]);
-            sequence = s.findSequence(sequenceName);
-            if (sequence != null) {
-                return sequence;
+        if (schemaNames != null) {
+            for (String n : schemaNames) {
+                sequence = database.getSchema(n).findSequence(sequenceName);
+                if (sequence != null) {
+                    return sequence;
+                }
             }
         }
         return null;
     }
 
     private Sequence readSequence() {
-        // same algorithm than readTableOrView
+        // same algorithm as readTableOrView
         String sequenceName = readIdentifierWithSchema(null);
         if (schemaName != null) {
             return getSchema().getSequence(sequenceName);

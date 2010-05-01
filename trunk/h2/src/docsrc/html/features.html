@@ -1445,8 +1445,9 @@ The settings in the URL override the settings passed as a separate parameter.
 In addition to the built-in functions, this database supports user-defined Java functions.
 In this database, Java functions can be used as stored procedures as well.
 A function must be declared (registered) before it can be used.
-A functions can be defined using source code, or as a reference to
-a compiled class that is available in the classpath.
+A function can be defined using source code, or as a reference to
+a compiled class that is available in the classpath. By default, the 
+function aliases are stored in the current schema.
 </p>
 
 <h3>Referencing a Compiled Method</h3>

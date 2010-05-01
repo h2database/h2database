@@ -25,6 +25,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <h2>Version 1.3.x: Planned Changes</h2>
 <ul><li>Lob storage: enable the system property h2.lobInDatabase by default.
 </li><li>Automatic ANALYZE: set the system property h2.analyzeAuto to 2000.
+</li><li>Enable h2.functionsInSchema.
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -254,7 +255,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
-</li><li>Support a schema name for Java functions
 </li><li>Remember the user defined data type (domain) of a column
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')

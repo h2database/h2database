@@ -261,6 +261,15 @@ public class SysProperties {
     public static final int ESTIMATED_FUNCTION_TABLE_ROWS = getIntSetting("h2.estimatedFunctionTableRows", 1000);
 
     /**
+     * System property <code>h2.functionsInSchema</code> (default:
+     * false).<br />
+     * If set, all functions are stored in a schema. Specially, the SCRIPT statement
+     * will always include the schema name in the CREATE ALIAS statement.
+     * This is not backward compatible with H2 versions 1.2.134 and older.
+     */
+    public static final boolean FUNCTIONS_IN_SCHEMA = getBooleanSetting("h2.functionsInSchema", false);
+
+    /**
      * System property <code>h2.identifiersToUpper</code> (default: true).<br />
      * Unquoted identifiers in SQL statements are case insensitive and converted
      * to uppercase.

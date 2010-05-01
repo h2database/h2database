@@ -51,6 +51,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testSource();
         testDynamicArgumentAndReturn();
         testUUID();
+        testWhiteSpacesInParameters();
+        testSchemaSearchPath();
         testDeterministic();
         testTransactionId();
         testPrecision();
@@ -90,6 +92,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         ResultSet rs;
         stat.execute("create force alias sayHi as 'String test(String name) {\n" +
                 "return \"Hello \" + name;\n}'");
+        rs = stat.executeQuery("SELECT ALIAS_NAME FROM INFORMATION_SCHEMA.FUNCTION_ALIASES");
+        rs.next();
+        assertEquals("SAY" + "HI", rs.getString(1));
         rs = stat.executeQuery("call sayHi('Joe')");
         rs.next();
         assertEquals("Hello Joe", rs.getString(1));
@@ -157,7 +162,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         assertEquals(0, rs.getInt(1));
         stat.execute("drop alias getCount");
-
+        rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE UPPER(ALIAS_NAME) = 'GETCOUNT'");
+        assertEquals(false, rs.next());
         stat.execute("create alias reverse deterministic for \""+getClass().getName()+".reverse\"");
         rs = stat.executeQuery("select reverse(x) from system_range(700, 700)");
         rs.next();
@@ -464,6 +470,58 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(null, rs.getString(1));
         assertFalse(rs.next());
 
+        conn.close();
+    }
+
+    /**
+     * White spaces in javaMethodDescriptors are deleted during
+     * CreateFunctionAlias, and all further processing is normalized.
+     */
+    private void testWhiteSpacesInParameters() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        // with white space
+        stat.execute("CREATE ALIAS PARSE_INT2 FOR \"java.lang.Integer.parseInt(java.lang.String, int)\"");
+        ResultSet rs;
+        rs = stat.executeQuery("CALL PARSE_INT2('473', 10)");
+        rs.next();
+        assertEquals(473, rs.getInt(1));
+        stat.execute("DROP ALIAS PARSE_INT2");
+        // without white space
+        stat.execute("CREATE ALIAS PARSE_INT2 FOR \"java.lang.Integer.parseInt(java.lang.String,int)\"");
+        stat.execute("DROP ALIAS PARSE_INT2");
+    }
+
+    private void testSchemaSearchPath() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("CREATE SCHEMA TEST");
+        stat.execute("SET SCHEMA TEST");
+        stat.execute("CREATE ALIAS PARSE_INT2 FOR \"java.lang.Integer.parseInt(java.lang.String, int)\";");
+        rs = stat.executeQuery("SELECT ALIAS_NAME FROM INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE ALIAS_SCHEMA ='TEST'");
+        rs.next();
+        assertEquals("PARSE_INT2", rs.getString(1));
+        stat.execute("DROP ALIAS PARSE_INT2");
+
+        stat.execute("SET SCHEMA PUBLIC");
+        stat.execute("CREATE ALIAS TEST.PARSE_INT2 FOR \"java.lang.Integer.parseInt(java.lang.String, int)\";");
+        stat.execute("SET SCHEMA_SEARCH_PATH PUBLIC, TEST");
+
+        rs = stat.executeQuery("CALL PARSE_INT2('-FF', 16)");
+        rs.next();
+        assertEquals(-255, rs.getInt(1));
+        rs = stat.executeQuery("SELECT ALIAS_NAME FROM INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE ALIAS_SCHEMA ='TEST'");
+        rs.next();
+        assertEquals("PARSE_INT2", rs.getString(1));
+        rs = stat.executeQuery("CALL TEST.PARSE_INT2('-2147483648', 10)");
+        rs.next();
+        assertEquals(-2147483648, rs.getInt(1));
+        rs = stat.executeQuery("CALL FUNCTIONS.TEST.PARSE_INT2('-2147483648', 10)");
+        rs.next();
+        assertEquals(-2147483648, rs.getInt(1));
         conn.close();
     }
 

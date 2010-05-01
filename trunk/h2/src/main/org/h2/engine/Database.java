@@ -94,7 +94,6 @@ public class Database implements DataHandler {
     private final HashMap<String, Setting> settings = New.hashMap();
     private final HashMap<String, Schema> schemas = New.hashMap();
     private final HashMap<String, Right> rights = New.hashMap();
-    private final HashMap<String, FunctionAlias> functionAliases = New.hashMap();
     private final HashMap<String, UserDataType> userDataTypes = New.hashMap();
     private final HashMap<String, UserAggregate> aggregates = New.hashMap();
     private final HashMap<String, Comment> comments = New.hashMap();
@@ -759,9 +758,6 @@ public class Database implements DataHandler {
         case DbObject.RIGHT:
             result = rights;
             break;
-        case DbObject.FUNCTION_ALIAS:
-            result = functionAliases;
-            break;
         case DbObject.SCHEMA:
             result = schemas;
             break;
@@ -844,16 +840,6 @@ public class Database implements DataHandler {
         }
         String key = Comment.getKey(object);
         return comments.get(key);
-    }
-
-    /**
-     * Get the user defined function if it exists, or null if not.
-     *
-     * @param name the name of the user defined function
-     * @return the function or null
-     */
-    public FunctionAlias findFunctionAlias(String name) {
-        return functionAliases.get(name);
     }
 
     /**
@@ -1217,10 +1203,6 @@ public class Database implements DataHandler {
 
     public ArrayList<Comment> getAllComments() {
         return New.arrayList(comments.values());
-    }
-
-    public ArrayList<FunctionAlias> getAllFunctionAliases() {
-        return New.arrayList(functionAliases.values());
     }
 
     public int getAllowLiterals() {

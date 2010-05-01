@@ -292,8 +292,8 @@ java org.h2.test.TestAll timer
 
 
         int testing;
-        System.setProperty("h2.lobInDatabase", "true");
-        System.setProperty("h2.analyzeAuto", "100");
+        // System.setProperty("h2.lobInDatabase", "true");
+        // System.setProperty("h2.analyzeAuto", "100");
 
 /*
 

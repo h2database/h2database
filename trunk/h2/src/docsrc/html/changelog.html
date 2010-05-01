@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Cluster: after a cluster node failed, the second cluster node can now be re-created
+<ul><li>New system property h2.functionsInSchema (default is false).
+    If enabled, the SCRIPT statement always includes the schema name in the CREATE ALIAS statement
+    (even if the schema is PUBLIC). This is not backward compatible with H2 versions 1.2.134 and older.
+</li><li>Functions: it is no longer required to add a space after a comma in the parameter list.
+    Example: CREATE ALIAS PARSE_INT FOR "java.lang.Integer.parseInt(java.lang.String,int)"
+</li><li>Functions now reside within a schema, similar to sequences.
+    If you do create such functions in schemas other than PUBLIC, then the database
+    can not be opened with older versions of H2.
+</li><li>Cluster: after a cluster node failed, the second cluster node can now be re-created
     and started without having to stop the first cluster node, and without having to stop
     running applications. To do that, append ;AUTO_RECONNECT=TRUE to the database URL.
 </li><li>SET EXCLUSIVE now supports 0 (disable), 1 (enable), and 2 (enable and close all other connections).

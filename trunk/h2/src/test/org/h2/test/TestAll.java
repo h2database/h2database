@@ -295,9 +295,10 @@ java org.h2.test.TestAll timer
         // System.setProperty("h2.lobInDatabase", "true");
         // System.setProperty("h2.analyzeAuto", "100");
 
+        // System.setProperty("h2.pageSize", "64");
+
 /*
 
-// System.setProperty("h2.pageSize", "64");
 test with small freeList pages, page size 64
 
 test services on Windows

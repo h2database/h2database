@@ -124,8 +124,8 @@ public class Schema extends DbObjectBase {
             database.removeSchemaObject(session, obj);
         }
         while (functions != null && functions.size() > 0) {
-          FunctionAlias obj = (FunctionAlias) functions.values().toArray()[0];
-          database.removeSchemaObject(session, obj);
+            FunctionAlias obj = (FunctionAlias) functions.values().toArray()[0];
+            database.removeSchemaObject(session, obj);
         }
         database.removeMeta(session, getId());
         owner = null;
@@ -169,7 +169,7 @@ public class Schema extends DbObjectBase {
             break;
         case DbObject.FUNCTION_ALIAS:
             result = functions;
-            break;            
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -302,7 +302,7 @@ public class Schema extends DbObjectBase {
     public Constant findConstant(String constantName) {
         return constants.get(constantName);
     }
-    
+
     /**
      * Try to find a user defined function with this name. This method returns
      * null if no object with this name exists.
@@ -486,14 +486,14 @@ public class Schema extends DbObjectBase {
     public ArrayList<Table> getAllTablesAndViews() {
         return New.arrayList(tablesAndViews.values());
     }
-    
+
     /**
      * Get all functions.
      *
      * @return a (possible empty) list of all objects
-     */    
+     */
     public ArrayList<FunctionAlias> getAllFunctionAliases() {
-      return New.arrayList(functions.values());
+        return New.arrayList(functions.values());
     }
 
     /**

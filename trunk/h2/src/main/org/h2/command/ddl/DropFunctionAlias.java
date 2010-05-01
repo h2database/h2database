@@ -36,7 +36,7 @@ public class DropFunctionAlias extends SchemaCommand {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, aliasName);
             }
         } else {
-          db.removeSchemaObject(session, functionAlias);
+            db.removeSchemaObject(session, functionAlias);
         }
         return 0;
     }

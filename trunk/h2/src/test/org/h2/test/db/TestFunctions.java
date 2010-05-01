@@ -162,8 +162,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         assertEquals(0, rs.getInt(1));
         stat.execute("drop alias getCount");
-        rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE UPPER(ALIAS_NAME) = 'GETCOUNT'");
-        assertEquals(false, rs.next());
+        rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE UPPER(ALIAS_NAME) = 'GET' || 'COUNT'");
+        assertFalse(rs.next());
         stat.execute("create alias reverse deterministic for \""+getClass().getName()+".reverse\"");
         rs = stat.executeQuery("select reverse(x) from system_range(700, 700)");
         rs.next();
@@ -473,10 +473,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
-    /**
-     * White spaces in javaMethodDescriptors are deleted during
-     * CreateFunctionAlias, and all further processing is normalized.
-     */
     private void testWhiteSpacesInParameters() throws SQLException {
         deleteDb("functions");
         Connection conn = getConnection("functions");

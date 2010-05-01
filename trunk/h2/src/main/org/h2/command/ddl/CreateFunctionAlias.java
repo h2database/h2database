@@ -58,7 +58,7 @@ public class CreateFunctionAlias extends SchemaCommand {
     }
 
     /**
-     * Set the qualified method name after removing whitespaces.
+     * Set the qualified method name after removing whitespace.
      *
      * @param method the qualified method name
      */

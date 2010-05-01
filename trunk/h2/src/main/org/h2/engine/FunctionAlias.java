@@ -52,7 +52,7 @@ public class FunctionAlias extends SchemaObjectBase {
     /**
      * Create a new alias based on a method name.
      *
-     * @param db the database
+     * @param schema the schema
      * @param id the id
      * @param name the name
      * @param javaClassMethod the class and method name
@@ -75,7 +75,7 @@ public class FunctionAlias extends SchemaObjectBase {
     /**
      * Create a new alias based on source code.
      *
-     * @param db the database
+     * @param schema the schema
      * @param id the id
      * @param name the name
      * @param source the source code

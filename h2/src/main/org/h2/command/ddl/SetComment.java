@@ -49,8 +49,7 @@ public class SetComment extends DefineCommand {
             object = db.getSchema(schemaName).getConstraint(objectName);
             break;
         case DbObject.FUNCTION_ALIAS:
-            schemaName = null;
-            object = db.findFunctionAlias(objectName);
+            object = db.getSchema(schemaName).findFunction(objectName);
             errorCode = ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1;
             break;
         case DbObject.INDEX:

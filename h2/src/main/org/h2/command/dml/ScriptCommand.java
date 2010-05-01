@@ -24,7 +24,6 @@ import org.h2.engine.Comment;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
-import org.h2.engine.FunctionAlias;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
@@ -159,11 +158,11 @@ public class ScriptCommand extends ScriptBase {
                 Constant constant = (Constant) obj;
                 add(constant.getCreateSQL(), false);
             }
-            for (FunctionAlias alias : db.getAllFunctionAliases()) {
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 if (drop) {
-                    add(alias.getDropSQL(), false);
+                    add(obj.getDropSQL(), false);
                 }
-                add(alias.getCreateSQL(), false);
+                add(obj.getCreateSQL(), false);
             }
             for (UserAggregate agg : db.getAllAggregates()) {
                 if (drop) {

@@ -17,6 +17,7 @@ import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbObjectBase;
+import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.index.Index;
@@ -43,6 +44,7 @@ public class Schema extends DbObjectBase {
     private HashMap<String, TriggerObject> triggers = New.hashMap();
     private HashMap<String, Constraint> constraints = New.hashMap();
     private HashMap<String, Constant> constants = New.hashMap();
+    private HashMap<String, FunctionAlias> functions = New.hashMap();
 
     /**
      * The set of returned unique names that are not yet stored. It is used to
@@ -121,6 +123,10 @@ public class Schema extends DbObjectBase {
             Constant obj = (Constant) constants.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
+        while (functions != null && functions.size() > 0) {
+          FunctionAlias obj = (FunctionAlias) functions.values().toArray()[0];
+          database.removeSchemaObject(session, obj);
+        }
         database.removeMeta(session, getId());
         owner = null;
         invalidate();
@@ -161,6 +167,9 @@ public class Schema extends DbObjectBase {
         case DbObject.CONSTANT:
             result = constants;
             break;
+        case DbObject.FUNCTION_ALIAS:
+            result = functions;
+            break;            
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -169,6 +178,8 @@ public class Schema extends DbObjectBase {
 
     /**
      * Add an object to this schema.
+     * This method must not be called within CreateSchemaObject;
+     * use Database.addSchemaObject() instead
      *
      * @param obj the object to add
      */
@@ -290,6 +301,17 @@ public class Schema extends DbObjectBase {
      */
     public Constant findConstant(String constantName) {
         return constants.get(constantName);
+    }
+    
+    /**
+     * Try to find a user defined function with this name. This method returns
+     * null if no object with this name exists.
+     *
+     * @param functionAlias the object name
+     * @return the object or null
+     */
+    public FunctionAlias findFunction(String functionAlias) {
+        return functions.get(functionAlias);
     }
 
     /**
@@ -449,7 +471,7 @@ public class Schema extends DbObjectBase {
      * Get all objects of the given type.
      *
      * @param type the object type
-     * @return a  (possible empty) list of all objects
+     * @return a (possible empty) list of all objects
      */
     public ArrayList<SchemaObject> getAll(int type) {
         HashMap<String, SchemaObject> map = getMap(type);
@@ -459,10 +481,19 @@ public class Schema extends DbObjectBase {
     /**
      * Get all tables and views.
      *
-     * @return a  (possible empty) list of all objects
+     * @return a (possible empty) list of all objects
      */
     public ArrayList<Table> getAllTablesAndViews() {
         return New.arrayList(tablesAndViews.values());
+    }
+    
+    /**
+     * Get all functions.
+     *
+     * @return a (possible empty) list of all objects
+     */    
+    public ArrayList<FunctionAlias> getAllFunctionAliases() {
+      return New.arrayList(functions.values());
     }
 
     /**

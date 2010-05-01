@@ -11,12 +11,14 @@ import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
+import org.h2.util.StringUtils;
 
 /**
  * This class represents the statement
  * CREATE ALIAS
  */
-public class CreateFunctionAlias extends DefineCommand {
+public class CreateFunctionAlias extends SchemaCommand {
 
     private String aliasName;
     private String javaClassMethod;
@@ -25,15 +27,15 @@ public class CreateFunctionAlias extends DefineCommand {
     private boolean force;
     private String source;
 
-    public CreateFunctionAlias(Session session) {
-        super(session);
+    public CreateFunctionAlias(Session session, Schema schema) {
+        super(session, schema);
     }
 
     public int update() {
         session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
-        if (db.findFunctionAlias(aliasName) != null) {
+        if (getSchema().findFunction(aliasName) != null) {
             if (!ifNotExists) {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
             }
@@ -41,12 +43,12 @@ public class CreateFunctionAlias extends DefineCommand {
             int id = getObjectId();
             FunctionAlias functionAlias;
             if (javaClassMethod != null) {
-                functionAlias = FunctionAlias.newInstance(db, id, aliasName, javaClassMethod, force);
+                functionAlias = FunctionAlias.newInstance(getSchema(), id, aliasName, javaClassMethod, force);
             } else {
-                functionAlias = FunctionAlias.newInstanceFromSource(db, id, aliasName, source, force);
+                functionAlias = FunctionAlias.newInstanceFromSource(getSchema(), id, aliasName, source, force);
             }
             functionAlias.setDeterministic(deterministic);
-            db.addDatabaseObject(session, functionAlias);
+            db.addSchemaObject(session, functionAlias);
         }
         return 0;
     }
@@ -55,8 +57,13 @@ public class CreateFunctionAlias extends DefineCommand {
         this.aliasName = name;
     }
 
-    public void setJavaClassMethod(String string) {
-        this.javaClassMethod = string;
+    /**
+     * Set the qualified method name after removing whitespaces.
+     *
+     * @param method the qualified method name
+     */
+    public void setJavaClassMethod(String method) {
+        this.javaClassMethod = StringUtils.replaceAll(method, " ", "");
     }
 
     public void setIfNotExists(boolean ifNotExists) {

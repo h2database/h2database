@@ -19,12 +19,14 @@ import org.h2.constant.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.schema.Schema;
+import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Table;
-import org.h2.util.Utils;
 import org.h2.util.New;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -35,7 +37,7 @@ import org.h2.value.ValueNull;
  * @author Thomas Mueller
  * @author Gary Tong
  */
-public class FunctionAlias extends DbObjectBase {
+public class FunctionAlias extends SchemaObjectBase {
 
     private String className;
     private String methodName;
@@ -43,8 +45,8 @@ public class FunctionAlias extends DbObjectBase {
     private JavaMethod[] javaMethods;
     private boolean deterministic;
 
-    private FunctionAlias(Database db, int id, String name) {
-        initDbObjectBase(db, id, name, Trace.FUNCTION);
+    private FunctionAlias(Schema schema, int id, String name) {
+        initSchemaObjectBase(schema, id, name, Trace.FUNCTION);
     }
 
     /**
@@ -57,8 +59,8 @@ public class FunctionAlias extends DbObjectBase {
      * @param force create the object even if the class or method does not exist
      * @return the database object
      */
-    public static FunctionAlias newInstance(Database db, int id, String name, String javaClassMethod, boolean force) {
-        FunctionAlias alias = new FunctionAlias(db, id, name);
+    public static FunctionAlias newInstance(Schema schema, int id, String name, String javaClassMethod, boolean force) {
+        FunctionAlias alias = new FunctionAlias(schema, id, name);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
         if (lastDot < 0) {
@@ -80,8 +82,8 @@ public class FunctionAlias extends DbObjectBase {
      * @param force create the object even if the class or method does not exist
      * @return the database object
      */
-    public static FunctionAlias newInstanceFromSource(Database db, int id, String name, String source, boolean force) {
-        FunctionAlias alias = new FunctionAlias(db, id, name);
+    public static FunctionAlias newInstanceFromSource(Schema schema, int id, String name, String source, boolean force) {
+        FunctionAlias alias = new FunctionAlias(schema, id, name);
         alias.source = source;
         alias.init(force);
         return alias;
@@ -167,7 +169,9 @@ public class FunctionAlias extends DbObjectBase {
         StatementBuilder buff = new StatementBuilder(m.getName());
         buff.append('(');
         for (Class< ? > p : m.getParameterTypes()) {
-            buff.appendExceptFirst(", ");
+            // do not use a space here, because spaces are removed
+            // in CreateFunctionAlias.setJavaClassMethod()
+            buff.appendExceptFirst(",");
             if (p.isArray()) {
                 buff.append(p.getComponentType().getName()).append("[]");
             } else {
@@ -183,6 +187,14 @@ public class FunctionAlias extends DbObjectBase {
 
     public String getDropSQL() {
         return "DROP ALIAS IF EXISTS " + getSQL();
+    }
+
+    public String getSQL() {
+        // TODO can remove this method once FUNCTIONS_IN_SCHEMA is enabled
+        if (SysProperties.FUNCTIONS_IN_SCHEMA || !getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
+            return super.getSQL();
+        }
+        return Parser.quoteIdentifier(getName());
     }
 
     public String getCreateSQL() {

@@ -11,31 +11,32 @@ import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 
 /**
  * This class represents the statement
  * DROP ALIAS
  */
-public class DropFunctionAlias extends DefineCommand {
+public class DropFunctionAlias extends SchemaCommand {
 
     private String aliasName;
     private boolean ifExists;
 
-    public DropFunctionAlias(Session session) {
-        super(session);
+    public DropFunctionAlias(Session session, Schema schema) {
+        super(session, schema);
     }
 
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        FunctionAlias functionAlias = db.findFunctionAlias(aliasName);
+        FunctionAlias functionAlias = getSchema().findFunction(aliasName);
         if (functionAlias == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, aliasName);
             }
         } else {
-            db.removeDatabaseObject(session, functionAlias);
+          db.removeSchemaObject(session, functionAlias);
         }
         return 0;
     }

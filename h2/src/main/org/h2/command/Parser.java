@@ -4383,22 +4383,21 @@ public class Parser {
     }
 
     private FunctionAlias findFunctionAlias(String schema, String aliasName) {
-      FunctionAlias functionAlias = database.getSchema(schema).findFunction(aliasName);
-      if (functionAlias != null) {
-          return functionAlias;
-      }
-      String[] schemaNames = session.getSchemaSearchPath();
-      if (schemaNames != null) {
-          for (String n : schemaNames) {
-              functionAlias = database.getSchema(n).findFunction(aliasName);
-              if (functionAlias != null) {
-                  return functionAlias;
-              }
-          }
-      }
-      return null;
+        FunctionAlias functionAlias = database.getSchema(schema).findFunction(aliasName);
+        if (functionAlias != null) {
+            return functionAlias;
+        }
+        String[] schemaNames = session.getSchemaSearchPath();
+        if (schemaNames != null) {
+            for (String n : schemaNames) {
+                functionAlias = database.getSchema(n).findFunction(aliasName);
+                if (functionAlias != null) {
+                    return functionAlias;
+                }
+            }
+        }
+        return null;
     }
-
 
     private Sequence findSequence(String schema, String sequenceName) {
         Sequence sequence = database.getSchema(schema).findSequence(sequenceName);

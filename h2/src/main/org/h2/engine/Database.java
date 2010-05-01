@@ -1956,6 +1956,12 @@ public class Database implements DataHandler {
         return exclusiveSession;
     }
 
+    /**
+     * Set the session that can exclusively access the database.
+     *
+     * @param session the session
+     * @param closeOthers whether other sessions are closed
+     */
     public void setExclusiveSession(Session session, boolean closeOthers) {
         this.exclusiveSession = session;
         if (closeOthers) {

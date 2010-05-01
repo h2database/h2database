@@ -46,9 +46,9 @@ public class CreateAggregate extends DefineCommand {
     }
 
     public void setSchema(Schema schema) {
-      this.schema = schema;
+        this.schema = schema;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }

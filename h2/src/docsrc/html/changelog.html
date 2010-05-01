@@ -29,6 +29,9 @@ Change Log
 </li><li>Cluster: after a cluster node failed, the second cluster node can now be re-created
     and started without having to stop the first cluster node, and without having to stop
     running applications. To do that, append ;AUTO_RECONNECT=TRUE to the database URL.
+</li><li>Auto-reconnect: if another connection uses the database in exclusive mode 
+    then this connection will try to re-connect until the exclusive mode ends.
+    This is important when using the cluster mode.
 </li><li>SET EXCLUSIVE now supports 0 (disable), 1 (enable), and 2 (enable and close all other connections).
 </li><li>Installing the H2 as a service should now work on Windows 7.
     The batch files now explicitly set the directory using pushd "%~dp0".

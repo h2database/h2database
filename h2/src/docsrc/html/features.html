@@ -1114,6 +1114,10 @@ variables and local temporary tables definitions (excluding data) are re-created
 The contents of the system table <code>INFORMATION_SCHEMA.SESSION_STATE</code>
 contains all client side state that is re-created.
 </p>
+<p>
+If another connection uses the database in exclusive mode (enabled using <code>SET EXCLUSIVE 1</code>
+or <code>SET EXCLUSIVE 2</code>), then this connection will try to re-connect until the exclusive mode ends.
+</p>
 
 <h2 id="auto_mixed_mode">Automatic Mixed Mode</h2>
 <p>

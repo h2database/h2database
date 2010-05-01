@@ -427,7 +427,22 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             return false;
         }
         lastReconnect++;
-        embedded = connectEmbeddedOrServer(false);
+        while (true) {
+            try {
+                embedded = connectEmbeddedOrServer(false);
+                break;
+            } catch (DbException e) {
+                if (e.getErrorCode() != ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE) {
+                    throw e;
+                }
+                // exclusive mode: re-try endlessly
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e2) {
+                    // ignore
+                }
+            }
+        }
         if (embedded == this) {
             // connected to a server somewhere else
             embedded = null;

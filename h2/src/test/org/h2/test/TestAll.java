@@ -301,15 +301,6 @@ java org.h2.test.TestAll timer
 
 test with small freeList pages, page size 64
 
-test services on Windows
-
-exclusive + auto_restart = retry
-
-data store: automatically fast when moving data from two repositories that
-share the same data store, using special input stream classes
-
-h2-schema function
-
 power failure test
 power failure test: MULTI_THREADED=TRUE
 power failure test: larger binaries and additional index.

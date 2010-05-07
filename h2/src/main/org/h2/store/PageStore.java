@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
@@ -35,14 +34,13 @@ import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.Table;
 import org.h2.table.RegularTable;
+import org.h2.table.Table;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
@@ -179,7 +177,7 @@ public class PageStore implements CacheWriter {
     private PageDataIndex metaIndex;
     private IntIntHashMap metaRootPageId = new IntIntHashMap();
     private HashMap<Integer, PageIndex> metaObjects = New.hashMap();
-    private ArrayList<PageIndex> tempIndexes = New.arrayList();
+    private HashMap<Integer, PageIndex> tempObjects;
 
     /**
      * The map of reserved pages, to ensure index head pages
@@ -220,9 +218,8 @@ public class PageStore implements CacheWriter {
         this.accessMode = accessMode;
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
-int test;
-//if (!fileName.endsWith("reopen.h2.db"))
-//trace.setLevel(TraceSystem.DEBUG);
+        // if (!fileName.endsWith("reopen.h2.db"))
+        // trace.setLevel(TraceSystem.DEBUG);
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSizeDefault);
         systemSession = new Session(database, null, 0);
@@ -322,16 +319,19 @@ int test;
     }
 
     private void removeOldTempIndexes() {
-        for (PageIndex index: tempIndexes) {
-            index.truncate(systemSession);
-            index.remove(systemSession);
-        }
-        if (tempIndexes.size() > 0) {
+        if (tempObjects != null) {
+            metaObjects.putAll(tempObjects);
+            for (PageIndex index: tempObjects.values()) {
+                if (index.getTable().isTemporary()) {
+                    index.truncate(systemSession);
+                    index.remove(systemSession);
+                }
+            }
             systemSession.commit(true);
+            tempObjects = null;
         }
         metaObjects.clear();
         metaObjects.put(-1, metaIndex);
-        tempIndexes = null;
     }
 
     private void writeIndexRowCounts() {
@@ -361,23 +361,18 @@ int test;
             database.checkPowerOff();
             writeIndexRowCounts();
 
-int test;
-//            writeBack();
-//            log.checkpoint();
-log.checkpoint();
-writeBack();
+            log.checkpoint();
+            writeBack();
 
             int firstUncommittedSection = getFirstUncommittedSection();
-
 
             log.removeUntil(firstUncommittedSection);
 
             // write back the free list
             writeBack();
 
-int test2;
-// ensure the free list is backed up again
-log.checkpoint();
+            // ensure the free list is backed up again
+            log.checkpoint();
 
 
             byte[] empty = new byte[pageSize];
@@ -424,8 +419,8 @@ log.checkpoint();
             allocatePage(logFirstTrunkPage);
             log.openForWriting(logFirstTrunkPage, true);
 
-// ensure the free list is backed up again
-log.checkpoint();
+            // ensure the free list is backed up again
+            log.checkpoint();
 
         } finally {
             recoveryRunning = false;
@@ -444,22 +439,16 @@ log.checkpoint();
                 break;
             }
         }
-this.checkpoint();
 
-int test;
-log.checkpoint();
+        // TODO can most likely be simplified
+        checkpoint();
+        log.checkpoint();
         writeIndexRowCounts();
-log.checkpoint();
+        log.checkpoint();
         writeBack();
-
-int test3;
-commit(systemSession);
-writeBack();
-log.checkpoint();
-
-
-
-
+        commit(systemSession);
+        writeBack();
+        log.checkpoint();
 
         // truncate the log
         recoveryRunning = true;
@@ -510,29 +499,11 @@ log.checkpoint();
             Page p = getPage(full);
             if (p != null) {
                 trace.debug("move " + p.getPos() + " to " + free);
-                long logSection = log.getLogSectionId(), logPos = log.getLogPos();
                 try {
                     p.moveTo(systemSession, free);
                 } finally {
                     changeCount++;
                 }
-//if (log.getLogSectionId() != logSection || log.getLogPos() != logPos) {
-//                    // commit if an index root page moved
-//int test;
-//// need to write the log first, then the moved
-//// need to write the moved root node,
-//// and then we can commit
-////log.checkpoint();
-//writeBack();
-////                    commit(systemSession);
-//
-//int testForceProblem;
-//log.checkpoint();
-//writeBack();
-//log.checkpoint();
-//writeBack();
-//
-//                }
             } else {
                 freePage(full);
             }
@@ -1129,33 +1100,18 @@ log.checkpoint();
                 setReadOnly = true;
             }
         }
-
-// remove temp tables
-//        PageDataIndex systemTable = (PageDataIndex) metaObjects.get(0);
-//        isNew = systemTable == null;
-//        for (Iterator<PageIndex> it = metaObjects.values().iterator(); it.hasNext();) {
-//            Index openIndex = it.next();
-//            if (openIndex.getTable().isTemporary()) {
-//                openIndex.truncate(systemSession);
-//                openIndex.remove(systemSession);
-//                removeMetaIndex(openIndex, systemSession);
-//                it.remove();
-//            } else {
-//                openIndex.close(systemSession);
-//            }
-//        }
-
         PageDataIndex systemTable = (PageDataIndex) metaObjects.get(0);
         isNew = systemTable == null;
-        for (Iterator<PageIndex> it = metaObjects.values().iterator(); it.hasNext();) {
-            PageIndex openIndex = it.next();
-            if (openIndex.getTable().isTemporary()) {
-                tempIndexes.add(openIndex);
-//                System.out.println("temp: " + openIndex);
+        for (PageIndex index : metaObjects.values()) {
+            if (index.getTable().isTemporary()) {
+                // temporary indexes are removed after opening
+                if (tempObjects == null) {
+                    tempObjects = New.hashMap();
+                }
+                tempObjects.put(index.getId(), index);
             } else {
-                openIndex.close(systemSession);
+                index.close(systemSession);
             }
-            int test;
         }
 
         allocatePage(PAGE_ID_META_ROOT);
@@ -1167,13 +1123,9 @@ log.checkpoint();
         // clear the cache because it contains pages with closed indexes
         cache.clear();
         freeLists.clear();
+
         metaObjects.clear();
         metaObjects.put(-1, metaIndex);
-
-int test;
-        for (PageIndex index : tempIndexes) {
-            metaObjects.put(index.getId(), index);
-        }
 
         if (setReadOnly) {
             database.setReadOnly(true);
@@ -1356,17 +1308,12 @@ int test;
         PageIndex index = metaObjects.get(id);
         int rootPageId = index.getRootPageId();
         index.getTable().removeIndex(index);
-
-int test;
-//        if (index instanceof PageBtreeIndex) {
         if (index instanceof PageBtreeIndex || index instanceof PageDelegateIndex) {
             if (index.isTemporary()) {
                 systemSession.removeLocalTempTableIndex(index);
             } else {
                 index.getSchema().remove(index);
             }
-//        } else if (index instanceof PageDelegateIndex) {
-//            index.getSchema().remove(index);
         }
         index.remove(systemSession);
         metaObjects.remove(id);

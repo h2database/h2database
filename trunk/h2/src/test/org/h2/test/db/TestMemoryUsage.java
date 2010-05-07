@@ -33,6 +33,10 @@ public class TestMemoryUsage extends TestBase {
     }
 
     public void test() throws SQLException {
+        if (getBaseDir().indexOf(':') >= 0) {
+            // can't test in-memory databases
+            return;
+        }
         testCreateDropLoop();
         testCreateIndex();
         testClob();

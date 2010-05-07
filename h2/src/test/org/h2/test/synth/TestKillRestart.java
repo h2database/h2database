@@ -26,6 +26,9 @@ public class TestKillRestart extends TestBase {
         if (config.networked) {
             return;
         }
+        if (getBaseDir().indexOf(':') > 0) {
+            return;
+        }
         deleteDb("killRestart");
         String url = getURL("killRestart", true);
         // String url = getURL(

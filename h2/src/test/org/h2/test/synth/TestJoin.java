@@ -42,10 +42,7 @@ public class TestJoin extends TestBase {
     }
 
     public void test() throws Exception {
-        String old = baseDir;
-        baseDir = TestBase.getTestDir("join");
         testJoin();
-        baseDir = old;
     }
 
     private void testJoin() throws Exception {

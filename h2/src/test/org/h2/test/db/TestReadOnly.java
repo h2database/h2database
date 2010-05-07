@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.store.FileLister;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 
 /**
@@ -128,10 +129,10 @@ public class TestReadOnly extends TestBase {
     }
 
     private void setReadOnly() {
-        ArrayList<String> list = FileLister.getDatabaseFiles(TestBase.baseDir, "readonly", true);
+        FileSystem fs = FileSystem.getInstance(getBaseDir());
+        ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(), "readonly", true);
         for (String fileName : list) {
-            File file = new File(fileName);
-            file.setReadOnly();
+            fs.setReadOnly(fileName);
         }
     }
 

@@ -6,8 +6,9 @@
  */
 package org.h2.test.server;
 
-import java.io.FileWriter;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -30,17 +31,21 @@ public class TestInit extends TestBase {
 
     public void test() throws Exception {
 
-        // Create two scripts that we will run via "INIT"
-        IOUtils.createDirs(baseDir + "/test-init-1.sql");
-        FileWriter fw = new FileWriter(baseDir + "/test-init-1.sql");
+        String init1 = getBaseDir() + "/test-init-1.sql";
+        String init2 = getBaseDir() + "/test-init-2.sql";
 
-        PrintWriter writer = new PrintWriter(fw);
+        // Create two scripts that we will run via "INIT"
+        IOUtils.createDirs(init1);
+
+        Writer w = new OutputStreamWriter(IOUtils.openFileOutputStream(init1, false));
+
+        PrintWriter writer = new PrintWriter(w);
         writer.println("create table test(id int identity, name varchar);");
         writer.println("insert into test(name) values('cat');");
         writer.close();
 
-        fw = new FileWriter(baseDir + "/test-init-2.sql");
-        writer = new PrintWriter(fw);
+        w = new OutputStreamWriter(IOUtils.openFileOutputStream(init2, false));
+        writer = new PrintWriter(w);
         writer.println("insert into test(name) values('dog');");
         writer.close();
 
@@ -48,8 +53,8 @@ public class TestInit extends TestBase {
         deleteDb("initDb");
         Connection conn = getConnection("initDb;" +
                 "INIT=" +
-                "RUNSCRIPT FROM '" + baseDir + "/test-init-1.sql'\\;" +
-                "RUNSCRIPT FROM '" + baseDir + "/test-init-2.sql'");
+                "RUNSCRIPT FROM '" + init1 + "'\\;" +
+                "RUNSCRIPT FROM '" + init2 + "'");
 
         Statement stat = conn.createStatement();
 
@@ -67,8 +72,8 @@ public class TestInit extends TestBase {
         conn.close();
         deleteDb("initDb");
 
-        IOUtils.delete(baseDir + "/test-init-1.sql");
-        IOUtils.delete(baseDir + "/test-init-2.sql");
+        IOUtils.delete(init1);
+        IOUtils.delete(init2);
     }
 
 }

@@ -54,14 +54,15 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("create table test(id int not null, data clob) as select 1, space(4100)");
         // the primary key for SYSTEM_LOB_STREAM used to be named like this
         stat.execute("create primary key primary_key_e on test(id)");
-        stat.execute("script to '" + baseDir + "/backup.sql'");
+        stat.execute("script to '" + getBaseDir() + "/backup.sql'");
         conn.close();
         deleteDb("runscript");
         conn = getConnection("runscript");
         stat = conn.createStatement();
-        stat.execute("runscript from '" + baseDir + "/backup.sql'");
+        stat.execute("runscript from '" + getBaseDir() + "/backup.sql'");
         conn.close();
         deleteDb("runscriptRestore");
+        IOUtils.delete(getBaseDir() + "/backup.sql");
     }
 
     private void test(boolean password) throws SQLException {
@@ -88,7 +89,7 @@ public class TestRunscript extends TestBase implements Trigger {
         stat1.execute("grant select, insert on testSchema.parent to testRole");
         stat1.execute("grant testRole to testUser");
 
-        String sql = "script to '" + baseDir + "/backup.2.sql'";
+        String sql = "script to '" + getBaseDir() + "/backup.2.sql'";
         if (password) {
             sql += " CIPHER AES PASSWORD 't1e2s3t4'";
         }
@@ -97,7 +98,7 @@ public class TestRunscript extends TestBase implements Trigger {
         deleteDb("runscriptRestore");
         conn2 = getConnection("runscriptRestore");
         stat2 = conn2.createStatement();
-        sql = "runscript from '" + baseDir + "/backup.2.sql'";
+        sql = "runscript from '" + getBaseDir() + "/backup.2.sql'";
         if (password) {
             sql += " CIPHER AES PASSWORD 'wrongPassword'";
         }
@@ -109,20 +110,20 @@ public class TestRunscript extends TestBase implements Trigger {
                 assertKnownException(e);
             }
         }
-        sql = "runscript from '" + baseDir + "/backup.2.sql'";
+        sql = "runscript from '" + getBaseDir() + "/backup.2.sql'";
         if (password) {
             sql += " CIPHER AES PASSWORD 't1e2s3t4'";
         }
         stat2.execute(sql);
-        stat2.execute("script to '" + baseDir + "/backup.3.sql'");
+        stat2.execute("script to '" + getBaseDir() + "/backup.3.sql'");
 
         assertEqualDatabases(stat1, stat2);
 
         conn1.close();
         conn2.close();
         deleteDb("runscriptRestore");
-        IOUtils.delete(baseDir + "/backup.2.sql");
-        IOUtils.delete(baseDir + "/backup.3.sql");
+        IOUtils.delete(getBaseDir() + "/backup.2.sql");
+        IOUtils.delete(getBaseDir() + "/backup.3.sql");
 
     }
 

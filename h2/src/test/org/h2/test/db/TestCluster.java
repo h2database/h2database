@@ -17,6 +17,7 @@ import org.h2.test.TestBase;
 import org.h2.tools.CreateCluster;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 
 /**
@@ -56,14 +57,14 @@ public class TestCluster extends TestBase {
         int len = 10;
 
         // initialize the database
-        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", baseDir + "/node1").start();
+        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
         conn = DriverManager.getConnection(url1, user, password);
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar) as " +
                 "select x, 'Data' || x from system_range(0, " + (len - 1) + ")");
 
         // start the second server
-        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2 , "-baseDir", baseDir + "/node2").start();
+        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
 
         // copy the database and initialize the cluster
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2, "-user", user, "-password", password, "-serverList",
@@ -87,7 +88,7 @@ public class TestCluster extends TestBase {
         check(connApp, len, "''");
 
         // re-create the cluster
-        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", baseDir + "/node2").start();
+        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", getBaseDir() + "/node2").start();
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2, "-user", user, "-password", password, "-serverList",
                 serverList);
 
@@ -135,8 +136,8 @@ public class TestCluster extends TestBase {
                 serverList);
 
         // start both servers
-        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", baseDir + "/node1").start();
-        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", baseDir + "/node2").start();
+        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
+        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", getBaseDir() + "/node2").start();
 
         // try to connect in standalone mode - should fail
         try {
@@ -169,12 +170,12 @@ public class TestCluster extends TestBase {
         n1.stop();
 
         // re-create the cluster
-        DeleteDbFiles.main("-dir", baseDir + "/node2", "-quiet");
+        DeleteDbFiles.main("-dir", getBaseDir() + "/node2", "-quiet");
         CreateCluster.main("-urlSource", urlNode1, "-urlTarget",
                 urlNode2, "-user", user, "-password", password, "-serverList",
                 serverList);
-        n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", baseDir + "/node1").start();
-        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", baseDir + "/node2").start();
+        n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
+        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", getBaseDir() + "/node2").start();
 
         conn = DriverManager.getConnection("jdbc:h2:tcp://" + serverList + "/test", user, password);
         stat = conn.createStatement();
@@ -186,13 +187,13 @@ public class TestCluster extends TestBase {
         conn.close();
         n2.stop();
 
-        n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", baseDir + "/node1").start();
+        n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:"+port1+"/test;CLUSTER=''", user, password);
         check(conn, len, "''");
         conn.close();
         n1.stop();
 
-        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", baseDir + "/node2").start();
+        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", getBaseDir() + "/node2").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:" + port2 + "/test;CLUSTER=''", user, password);
         check(conn, len, "''");
         conn.createStatement().execute("SELECT * FROM A");
@@ -202,8 +203,10 @@ public class TestCluster extends TestBase {
     }
 
     private void deleteFiles() throws SQLException {
-        DeleteDbFiles.main("-dir", baseDir + "/node1", "-quiet");
-        DeleteDbFiles.main("-dir", baseDir + "/node2", "-quiet");
+        DeleteDbFiles.main("-dir", getBaseDir() + "/node1", "-quiet");
+        DeleteDbFiles.main("-dir", getBaseDir() + "/node2", "-quiet");
+        IOUtils.delete(getBaseDir() + "/node1");
+        IOUtils.delete(getBaseDir() + "/node2");
     }
 
     private void check(Connection conn, int len, String expectedCluster) throws SQLException {

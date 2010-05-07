@@ -6,13 +6,13 @@
  */
 package org.h2.test.db;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Temporary table tests.
@@ -57,12 +57,12 @@ public class TestTempTables extends TestBase {
         } catch (SQLException e) {
             // expected
         }
-        String dbName = baseDir + "/tempTables" + Constants.SUFFIX_PAGE_FILE;
-        long before = new File(dbName).length();
+        String dbName = getBaseDir() + "/tempTables" + Constants.SUFFIX_PAGE_FILE;
+        long before = IOUtils.length(dbName);
         assertTrue(before > 0);
         conn = getConnection("tempTables");
         conn.close();
-        long after = new File(dbName).length();
+        long after = IOUtils.length(dbName);
         assertEquals(after, before);
     }
 

@@ -51,7 +51,7 @@ public class TestKill extends TestBase {
                 "java", selfDestruct,
                 "-cp", getClassPath(),
                 "org.h2.test.synth.TestKillProcess", url, user,
-                password, baseDir, "" + accounts };
+                password, getBaseDir(), "" + accounts };
 
         for (int i = 0;; i++) {
             printTime("TestKill " + i);

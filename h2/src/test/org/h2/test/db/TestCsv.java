@@ -68,7 +68,7 @@ public class TestCsv extends TestBase {
 
     private void testSpaceSeparated() throws SQLException {
         deleteDb("csv");
-        File f = new File(baseDir + "/testSpace.csv");
+        File f = new File(getBaseDir() + "/testSpace.csv");
         IOUtils.delete(f.getAbsolutePath());
 
         Connection conn = getConnection("csv");
@@ -76,13 +76,14 @@ public class TestCsv extends TestBase {
         stat.execute("create temporary table test (a int, b int, c int)");
         stat.execute("insert into test values(1,2,3)");
         stat.execute("insert into test values(4,null,5)");
-        stat.execute("call csvwrite('"+baseDir+"/test.tsv','select * from test',null,' ')");
+        stat.execute("call csvwrite('"+getBaseDir()+"/test.tsv','select * from test',null,' ')");
         ResultSet rs1 = stat.executeQuery("select * from test");
         assertResultSetOrdered(rs1, new String[][]{new String[]{"1", "2", "3"}, new String[]{"4", null, "5"}});
-        ResultSet rs2 = stat.executeQuery("select * from csvread('"+baseDir+"/test.tsv',null,null,' ')");
+        ResultSet rs2 = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv',null,null,' ')");
         assertResultSetOrdered(rs2, new String[][]{new String[]{"1", "2", "3"}, new String[]{"4", null, "5"}});
         conn.close();
         IOUtils.delete(f.getAbsolutePath());
+        IOUtils.delete(getBaseDir() + "/test.tsv");
     }
 
     /**
@@ -91,7 +92,7 @@ public class TestCsv extends TestBase {
     private void testNull() throws Exception {
         deleteDb("csv");
 
-        String fileName = baseDir + "/testNull.csv";
+        String fileName = getBaseDir() + "/testNull.csv";
         FileSystem fs = FileSystem.getInstance(fileName);
         fs.delete(fileName);
 
@@ -148,11 +149,11 @@ public class TestCsv extends TestBase {
             list.add(new String[]{a, b});
             prep.execute();
         }
-        stat.execute("CALL CSVWRITE('" + baseDir + "/test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
+        stat.execute("CALL CSVWRITE('" + getBaseDir() + "/test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
         Csv csv = Csv.getInstance();
         csv.setFieldSeparatorRead('|');
         csv.setFieldDelimiter('#');
-        ResultSet rs = csv.read(baseDir + "/test.csv", null, "UTF-8");
+        ResultSet rs = csv.read(getBaseDir() + "/test.csv", null, "UTF-8");
         for (int i = 0; i < len; i++) {
             assertTrue(rs.next());
             String[] pair = list.get(i);
@@ -161,7 +162,7 @@ public class TestCsv extends TestBase {
         }
         assertFalse(rs.next());
         conn.close();
-        IOUtils.delete(baseDir + "/test.csv");
+        IOUtils.delete(getBaseDir() + "/test.csv");
     }
 
     private String randomData(Random random) {
@@ -178,7 +179,7 @@ public class TestCsv extends TestBase {
     }
 
     private void testEmptyFieldDelimiter() throws Exception {
-        String fileName = baseDir + "/test.csv";
+        String fileName = getBaseDir() + "/test.csv";
         IOUtils.delete(fileName);
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
@@ -201,8 +202,8 @@ public class TestCsv extends TestBase {
     }
 
     private void testFieldDelimiter() throws Exception {
-        String fileName = baseDir + "/test.csv";
-        String fileName2 = baseDir + "/test2.csv";
+        String fileName = getBaseDir() + "/test.csv";
+        String fileName2 = getBaseDir() + "/test2.csv";
         FileSystem fs = FileSystem.getInstance(fileName);
         fs.delete(fileName);
         FileObject file = fs.openFileObject(fileName, "rw");
@@ -239,13 +240,13 @@ public class TestCsv extends TestBase {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('" + baseDir + "/test.csv', 'select 1 id, ''Hello'' name', 'utf-8', '|')");
-        ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, 'utf-8', '|')");
+        stat.execute("call csvwrite('" + getBaseDir() + "/test.csv', 'select 1 id, ''Hello'' name', 'utf-8', '|')");
+        ResultSet rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.csv', null, 'utf-8', '|')");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
-        new File(baseDir + "/test.csv").delete();
+        new File(getBaseDir() + "/test.csv").delete();
 
         // PreparedStatement prep = conn.prepareStatement("select * from
         // csvread(?, null, ?, ?)");
@@ -255,29 +256,29 @@ public class TestCsv extends TestBase {
         // rs = prep.executeQuery();
 
         conn.close();
-        IOUtils.delete(baseDir + "/test.csv");
+        IOUtils.delete(getBaseDir() + "/test.csv");
     }
 
     private void testAsTable() throws SQLException {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('" + baseDir + "/test.csv', 'select 1 id, ''Hello'' name')");
-        ResultSet rs = stat.executeQuery("select name from csvread('" + baseDir + "/test.csv')");
+        stat.execute("call csvwrite('" + getBaseDir() + "/test.csv', 'select 1 id, ''Hello'' name')");
+        ResultSet rs = stat.executeQuery("select name from csvread('" + getBaseDir() + "/test.csv')");
         assertTrue(rs.next());
         assertEquals("Hello", rs.getString(1));
         assertFalse(rs.next());
-        rs = stat.executeQuery("call csvread('" + baseDir + "/test.csv')");
+        rs = stat.executeQuery("call csvread('" + getBaseDir() + "/test.csv')");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
-        new File(baseDir + "/test.csv").delete();
+        new File(getBaseDir() + "/test.csv").delete();
         conn.close();
     }
 
     private void testRead() throws Exception {
-        String fileName = baseDir + "/test.csv";
+        String fileName = getBaseDir() + "/test.csv";
         FileSystem fs = FileSystem.getInstance(fileName);
         fs.delete(fileName);
         FileObject file = fs.openFileObject(fileName, "rw");
@@ -334,8 +335,8 @@ public class TestCsv extends TestBase {
         for (int i = 0; i < len; i++) {
             stat.execute("INSERT INTO TEST(NAME) VALUES('Ruebezahl')");
         }
-        Csv.getInstance().write(conn, baseDir + "/testRW.csv", "SELECT * FROM TEST", "UTF8");
-        ResultSet rs = Csv.getInstance().read(baseDir + "/testRW.csv", null, "UTF8");
+        Csv.getInstance().write(conn, getBaseDir() + "/testRW.csv", "SELECT * FROM TEST", "UTF8");
+        ResultSet rs = Csv.getInstance().read(getBaseDir() + "/testRW.csv", null, "UTF8");
         // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
@@ -347,7 +348,7 @@ public class TestCsv extends TestBase {
         assertFalse(rs.next());
         rs.close();
         conn.close();
-        IOUtils.delete(baseDir + "/testRW.csv");
+        IOUtils.delete(getBaseDir() + "/testRW.csv");
     }
 
 }

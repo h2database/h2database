@@ -56,7 +56,7 @@ public class TestStatement extends TestBase {
             return;
         }
         Statement stat = conn.createStatement();
-        String fileName = baseDir + "/statement.trace.db";
+        String fileName = getBaseDir() + "/statement.trace.db";
         stat.execute("DROP TABLE TEST IF EXISTS");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         stat.execute("INSERT INTO TEST VALUES(1)");

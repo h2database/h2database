@@ -46,7 +46,6 @@ public class TestSynth extends TestBase {
      * A PostgreSQL database connection.
      */
     static final int POSTGRESQL = 4;
-    private static final String DIR = "synth";
 
     private DbState dbState = new DbState(this);
     private ArrayList<DbInterface> databases;
@@ -274,9 +273,7 @@ public class TestSynth extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        String old = baseDir;
-        baseDir = TestBase.getTestDir("synth");
-        deleteDb("synth");
+        deleteDb("synth/synth");
         databases = New.arrayList();
 
         // mode = HSQLDB;
@@ -292,7 +289,7 @@ public class TestSynth extends TestBase {
         mode = H2_MEM;
         org.h2.Driver.load();
         addDatabase("org.h2.Driver", "jdbc:h2:mem:synth", "sa", "", true);
-        addDatabase("org.h2.Driver", "jdbc:h2:" + baseDir + "/" + DIR + "/synth", "sa", "", false);
+        addDatabase("org.h2.Driver", "jdbc:h2:" + getBaseDir() + "/synth/synth", "sa", "", false);
 
         // addDatabase("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test",
         // "sa", "");
@@ -319,14 +316,11 @@ public class TestSynth extends TestBase {
         // original (0):
         // System.exit(0);
 
-        baseDir = old;
         return this;
     }
 
     public void testCase(int seed) throws Exception {
-        String old = baseDir;
-        baseDir = TestBase.getTestDir("synth");
-        deleteDb(baseDir, DIR + "/synth");
+        deleteDb("synth/synth");
         try {
             printTime("TestSynth " + seed);
             testRun(seed);
@@ -334,7 +328,6 @@ public class TestSynth extends TestBase {
             TestBase.logError("error", e);
             System.exit(0);
         }
-        baseDir = old;
     }
 
     public void test() throws Exception {

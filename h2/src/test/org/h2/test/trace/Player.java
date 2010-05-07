@@ -22,10 +22,11 @@
 package org.h2.test.trace;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.HashMap;
+import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -101,7 +102,7 @@ public class Player {
 
     private void runFile(String fileName) throws IOException {
         LineNumberReader reader = new LineNumberReader(new BufferedReader(
-                new FileReader(fileName)));
+                new InputStreamReader(IOUtils.openFileInputStream(fileName))));
         while (true) {
             String line = reader.readLine();
             if (line == null) {

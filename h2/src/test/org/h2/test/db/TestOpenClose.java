@@ -70,10 +70,10 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(C CLOB)");
         stat.execute("INSERT INTO TEST VALUES(SPACE(10000))");
-        stat.execute("BACKUP TO '" + baseDir + "/test.zip'");
+        stat.execute("BACKUP TO '" + getBaseDir() + "/test.zip'");
         conn.close();
         deleteDb("openClose");
-        Restore.execute(baseDir + "/test.zip", baseDir, null, true);
+        Restore.execute(getBaseDir() + "/test.zip", getBaseDir(), null, true);
         conn = DriverManager.getConnection(url, "sa", "abc def");
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
@@ -81,7 +81,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         assertEquals(10000, rs.getString(1).length());
         assertFalse(rs.next());
         conn.close();
-        IOUtils.delete(baseDir + "/test.zip");
+        IOUtils.delete(getBaseDir() + "/test.zip");
     }
 
     private void testReconnectFast() throws SQLException {

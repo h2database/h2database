@@ -37,6 +37,7 @@ public class TestBackup extends TestBase {
         testBackupRestoreLob();
         testBackup();
         deleteDb("backup");
+        IOUtils.delete(getBaseDir() + "/backup.zip");
     }
 
     private void testBackupRestoreLob() throws SQLException {
@@ -44,19 +45,19 @@ public class TestBackup extends TestBase {
         Connection conn = getConnection("backup");
         conn.createStatement().execute("create table test(x clob) as select space(10000)");
         conn.close();
-        Backup.execute(getTestDir("") + "/backup.zip", getTestDir(""), "backup", true);
+        Backup.execute(getBaseDir() + "/backup.zip", getBaseDir(), "backup", true);
         deleteDb("backup");
-        Restore.execute(getTestDir("") + "/backup.zip", getTestDir(""), "backup", true);
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "backup", true);
     }
 
     private void testBackupRestoreLobStatement() throws SQLException {
         deleteDb("backup");
         Connection conn = getConnection("backup");
         conn.createStatement().execute("create table test(x clob) as select space(10000)");
-        conn.createStatement().execute("backup to '"+getTestDir("") + "/backup.zip"+"'");
+        conn.createStatement().execute("backup to '" +getBaseDir() + "/backup.zip"+"'");
         conn.close();
         deleteDb("backup");
-        Restore.execute(getTestDir("") + "/backup.zip", getTestDir(""), "backup", true);
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "backup", true);
     }
 
     private void testBackup() throws SQLException {
@@ -77,11 +78,11 @@ public class TestBackup extends TestBase {
         stat2.execute("insert into test values(4, 'fourth (uncommitted)')");
         stat2.execute("insert into testlob values(2, ' ', '00')");
 
-        stat1.execute("backup to '" + baseDir + "/backup.zip'");
+        stat1.execute("backup to '" + getBaseDir() + "/backup.zip'");
         conn2.rollback();
         assertEqualDatabases(stat1, stat2);
 
-        Restore.execute(baseDir + "/backup.zip", baseDir, "restored", true);
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "restored", true);
         conn3 = getConnection("restored");
         stat3 = conn3.createStatement();
         assertEqualDatabases(stat1, stat3);
@@ -90,7 +91,6 @@ public class TestBackup extends TestBase {
         conn2.close();
         conn3.close();
         deleteDb("restored");
-        IOUtils.delete(baseDir + "/backup.zip");
     }
 
 }

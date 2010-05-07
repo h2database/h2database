@@ -42,7 +42,7 @@ public class TestSpaceReuse extends TestBase {
             conn = getConnection("spaceReuse");
             conn.createStatement().execute("delete from t");
             conn.close();
-            now = new File(baseDir + "/spaceReuse.data.db").length();
+            now = new File(getBaseDir() + "/spaceReuse.data.db").length();
             if (first == 0) {
                 first = now;
             }

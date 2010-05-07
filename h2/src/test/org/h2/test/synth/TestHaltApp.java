@@ -28,7 +28,6 @@ public class TestHaltApp extends TestHalt {
      */
     public static void main(String... args) throws Exception {
         SelfDestructor.startCountdown(60);
-        baseDir = TestHalt.DIR;
         TestHaltApp app = new TestHaltApp();
         if (args.length == 0) {
             app.controllerTest();

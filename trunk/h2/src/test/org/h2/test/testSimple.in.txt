@@ -1,3 +1,8 @@
+create table test(a int, b int, unique(a, b));
+insert into test values(1,1), (1,2);
+select count(*) from test where a in(1,2) and b in(1,2);
+> 2;
+drop table test;
 create memory temp table test(name varchar primary key);
 select index_class from information_schema.indexes where table_name = 'TEST';
 > org.h2.index.TreeIndex;

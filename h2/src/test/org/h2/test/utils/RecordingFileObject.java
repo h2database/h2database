@@ -63,8 +63,8 @@ public class RecordingFileObject implements FileObject {
             buff = new byte[len];
             System.arraycopy(b, off, buff, 0, len);
         }
-        fs.log(Recorder.WRITE, name, buff, file.getFilePointer());
         file.write(b, off, len);
+        fs.log(Recorder.WRITE, name, buff, file.getFilePointer());
     }
 
 }

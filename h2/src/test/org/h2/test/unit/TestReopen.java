@@ -6,8 +6,6 @@
  */
 package org.h2.test.unit;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Properties;
@@ -15,11 +13,11 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.utils.Recorder;
 import org.h2.test.utils.RecordingFileSystem;
-import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 
 /**
@@ -31,7 +29,7 @@ public class TestReopen extends TestBase implements Recorder {
     private String testDatabase = "memFS:" + TestBase.BASE_TEST_DIR + "/reopen";
     private long lastCheck;
     private int counter;
-    private int testEvery = 1 << 10;
+    private int testEvery = 1 << 4;
     private HashSet<String> knownErrors = New.hashSet();
     private int max = 103128;
 
@@ -88,6 +86,15 @@ System.out.println(System.currentTimeMillis() - time);
             database.removeSession(null);
             // everything OK - return
             return;
+        } catch (DbException e) {
+            SQLException e2 = DbException.toSQLException(e);
+            int errorCode = e2.getErrorCode();
+            if (errorCode == ErrorCode.WRONG_USER_OR_PASSWORD) {
+                return;
+            } else if (errorCode == ErrorCode.FILE_ENCRYPTION_ERROR_1) {
+                return;
+            }
+            e.printStackTrace(System.out);
         } catch (Exception e) {
             // failed
             int errorCode = 0;

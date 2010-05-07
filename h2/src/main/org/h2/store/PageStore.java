@@ -179,6 +179,7 @@ public class PageStore implements CacheWriter {
     private PageDataIndex metaIndex;
     private IntIntHashMap metaRootPageId = new IntIntHashMap();
     private HashMap<Integer, PageIndex> metaObjects = New.hashMap();
+    private ArrayList<PageIndex> tempIndexes = New.arrayList();
 
     /**
      * The map of reserved pages, to ensure index head pages
@@ -316,7 +317,21 @@ int test;
             log.openForWriting(logFirstTrunkPage, false);
             recoveryRunning = false;
             checkpoint();
+            removeOldTempIndexes();
         }
+    }
+
+    private void removeOldTempIndexes() {
+        for (PageIndex index: tempIndexes) {
+            index.truncate(systemSession);
+            index.remove(systemSession);
+        }
+        if (tempIndexes.size() > 0) {
+            systemSession.commit(true);
+        }
+        metaObjects.clear();
+        metaObjects.put(-1, metaIndex);
+        tempIndexes = null;
     }
 
     private void writeIndexRowCounts() {
@@ -1114,29 +1129,52 @@ log.checkpoint();
                 setReadOnly = true;
             }
         }
+
+// remove temp tables
+//        PageDataIndex systemTable = (PageDataIndex) metaObjects.get(0);
+//        isNew = systemTable == null;
+//        for (Iterator<PageIndex> it = metaObjects.values().iterator(); it.hasNext();) {
+//            Index openIndex = it.next();
+//            if (openIndex.getTable().isTemporary()) {
+//                openIndex.truncate(systemSession);
+//                openIndex.remove(systemSession);
+//                removeMetaIndex(openIndex, systemSession);
+//                it.remove();
+//            } else {
+//                openIndex.close(systemSession);
+//            }
+//        }
+
         PageDataIndex systemTable = (PageDataIndex) metaObjects.get(0);
         isNew = systemTable == null;
         for (Iterator<PageIndex> it = metaObjects.values().iterator(); it.hasNext();) {
-            Index openIndex = it.next();
+            PageIndex openIndex = it.next();
             if (openIndex.getTable().isTemporary()) {
-                openIndex.truncate(systemSession);
-                openIndex.remove(systemSession);
-                removeMetaIndex(openIndex, systemSession);
-                it.remove();
+                tempIndexes.add(openIndex);
+//                System.out.println("temp: " + openIndex);
             } else {
                 openIndex.close(systemSession);
             }
+            int test;
         }
+
         allocatePage(PAGE_ID_META_ROOT);
         writeIndexRowCounts();
         recoveryRunning = false;
         reservedPages = null;
+
         writeBack();
         // clear the cache because it contains pages with closed indexes
         cache.clear();
         freeLists.clear();
         metaObjects.clear();
         metaObjects.put(-1, metaIndex);
+
+int test;
+        for (PageIndex index : tempIndexes) {
+            metaObjects.put(index.getId(), index);
+        }
+
         if (setReadOnly) {
             database.setReadOnly(true);
         }
@@ -1318,14 +1356,17 @@ log.checkpoint();
         PageIndex index = metaObjects.get(id);
         int rootPageId = index.getRootPageId();
         index.getTable().removeIndex(index);
-        if (index instanceof PageBtreeIndex) {
+
+int test;
+//        if (index instanceof PageBtreeIndex) {
+        if (index instanceof PageBtreeIndex || index instanceof PageDelegateIndex) {
             if (index.isTemporary()) {
                 systemSession.removeLocalTempTableIndex(index);
             } else {
                 index.getSchema().remove(index);
             }
-        } else if (index instanceof PageDelegateIndex) {
-            index.getSchema().remove(index);
+//        } else if (index instanceof PageDelegateIndex) {
+//            index.getSchema().remove(index);
         }
         index.remove(systemSession);
         metaObjects.remove(id);

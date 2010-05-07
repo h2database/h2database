@@ -22,9 +22,9 @@ Change Log
 </li><li>Translation: Lubomir Grajciar translated the H2 Console as well as all error message to Slovensky. Thanks a lot!
 </li><li>There was a possible Java level deadlock when opening an uninitialized database and using
     a file system that also opened a database.
-</li><li>When killing the process while the database was writing a checkpoint or while it was closing,
-    the database could become corrupt. A new test case has been implemented to ensure such
-    problems can not occur in the future.
+</li><li>When killing the process while the database was writing a checkpoint, while it was closing,
+    or while running recovery (while removing temporary tables from a previous run), the database could become corrupt. 
+    A new test case has been implemented to ensure such problems can not occur in the future.
 </li><li>File system: new method FileSystem.setReadOnly.
 </li><li>The page size for new databases can now be set in the database URL using ;PAGE_SIZE=512.
     Currently this feature is only used to simplify testing.

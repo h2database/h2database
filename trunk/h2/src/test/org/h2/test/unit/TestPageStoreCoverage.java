@@ -39,11 +39,11 @@ public class TestPageStoreCoverage extends TestBase {
             return;
         }
         deleteDb("pageStore");
-//        testMoveRoot();
-//        testBasic();
-//        testReadOnly();
-//        testIncompleteCreate();
-//        testBackupRestore();
+        testMoveRoot();
+        testBasic();
+        testReadOnly();
+        testIncompleteCreate();
+        testBackupRestore();
         testTrim();
         testLongTransaction();
         testRecoverTemp();

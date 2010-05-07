@@ -27,6 +27,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
 import org.h2.store.fs.FileSystem;
+import org.h2.test.utils.RecordingFileSystem;
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -35,9 +36,9 @@ import org.h2.tools.DeleteDbFiles;
 public abstract class TestBase {
 
     /**
-     * The base directory to write test databases.
+     * The base directory.
      */
-    protected static String baseDir = getTestDir("");
+    public static final String BASE_TEST_DIR = "data";
 
     /**
      * The temporary directory.
@@ -49,7 +50,10 @@ public abstract class TestBase {
      */
     protected static int uniqueId;
 
-    private static final String BASE_TEST_DIR = "data";
+    /**
+     * The base directory to write test databases.
+     */
+    private static String baseDir = getTestDir("");
 
     /**
      * The last time something was printed.
@@ -193,6 +197,27 @@ public abstract class TestBase {
     }
 
     /**
+     * Get the file translated file name.
+     * If a special file system is used, the prefix is prepended.
+     *
+     * @param name the original file name
+     * @return the translated file name
+     */
+    protected String getBaseDir() {
+        if (config != null && config.record) {
+int test;
+//            return "memFS:" + baseDir;
+
+
+            return RecordingFileSystem.PREFIX + "memFS:" + baseDir;
+//return RecordingFileSystem.PREFIX + baseDir;
+
+
+        }
+        return baseDir;
+    }
+
+    /**
      * Get the database URL for the given database name using the current
      * configuration options.
      *
@@ -208,8 +233,10 @@ public abstract class TestBase {
         if (config.memory) {
             name = "mem:" + name;
         } else {
-            if (!name.startsWith("memFS:") && !name.startsWith(baseDir + "/")) {
-                name = baseDir + "/" + name;
+            int idx = name.indexOf(':');
+            if (idx < 0 || idx > 10) {
+                // index > 10 if in options
+                name = getBaseDir() + "/" + name;
             }
         }
         if (config.networked) {
@@ -458,7 +485,7 @@ public abstract class TestBase {
      * @param name the database name
      */
     protected void deleteDb(String name) throws SQLException {
-        deleteDb(baseDir, name);
+        deleteDb(getBaseDir(), name);
     }
 
     /**

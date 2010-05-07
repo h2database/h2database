@@ -201,7 +201,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
     }
 
     public String getDatabasePath() {
-        return baseDir + "/valueMemory";
+        return getBaseDir() + "/valueMemory";
     }
 
     public String getLobCompressionAlgorithm(int type) {

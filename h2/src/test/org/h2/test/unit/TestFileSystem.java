@@ -22,6 +22,7 @@ import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemMemory;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Tests various file system.
@@ -41,9 +42,9 @@ public class TestFileSystem extends TestBase {
         testDatabaseInMemFileSys();
         testDatabaseInJar();
         // set default part size to 1 << 10
-        FileSystem.getInstance("split:10:" + baseDir + "/fs");
-        testFileSystem("split:" + baseDir + "/fs");
-        testFileSystem(baseDir + "/fs");
+        FileSystem.getInstance("split:10:" + getBaseDir() + "/fs");
+        testFileSystem("split:" + getBaseDir() + "/fs");
+        testFileSystem(getBaseDir() + "/fs");
         testFileSystem(FileSystemMemory.PREFIX);
         FileSystemDatabase fs = FileSystemDatabase.register("jdbc:h2:mem:fs");
         // testFileSystem("jdbc:h2:mem:fs;TRACE_LEVEL_FILE=3");
@@ -51,29 +52,35 @@ public class TestFileSystem extends TestBase {
         testFileSystem(FileSystemMemory.PREFIX_LZF);
         testUserHome();
         fs.unregister();
+        IOUtils.delete(getBaseDir() + "/fs");
     }
 
     private void testDatabaseInMemFileSys() throws SQLException {
         org.h2.Driver.load();
         deleteDb("fsMem");
-        String url = "jdbc:h2:" + baseDir + "/fsMem";
+        String url = "jdbc:h2:" + getBaseDir() + "/fsMem";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         conn.createStatement().execute("CREATE TABLE TEST AS SELECT * FROM DUAL");
-        conn.createStatement().execute("BACKUP TO '" + baseDir + "/fsMem.zip'");
+        conn.createStatement().execute("BACKUP TO '" + getBaseDir() + "/fsMem.zip'");
         conn.close();
-        org.h2.tools.Restore.main("-file", baseDir + "/fsMem.zip", "-dir", "memFS:");
+        org.h2.tools.Restore.main("-file", getBaseDir() + "/fsMem.zip", "-dir", "memFS:");
         conn = DriverManager.getConnection("jdbc:h2:memFS:fsMem", "sa", "sa");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.close();
         conn.close();
+        deleteDb("fsMem");
+        IOUtils.delete(getBaseDir() + "/fsMem.zip");
     }
 
     private void testDatabaseInJar() throws SQLException {
+        if (getBaseDir().indexOf(':') > 0) {
+            return;
+        }
         if (config.networked) {
             return;
         }
         org.h2.Driver.load();
-        String url = "jdbc:h2:" + baseDir + "/fsJar";
+        String url = "jdbc:h2:" + getBaseDir() + "/fsJar";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar, b blob, c clob)");
@@ -86,18 +93,18 @@ public class TestFileSystem extends TestBase {
         conn.close();
         conn = DriverManager.getConnection(url, "sa", "sa");
         stat = conn.createStatement();
-        stat.execute("backup to '" + baseDir + "/fsJar.zip'");
+        stat.execute("backup to '" + getBaseDir() + "/fsJar.zip'");
         conn.close();
 
         deleteDb("fsJar");
-        FileSystem fs = FileSystem.getInstance("zip:" + baseDir + "/fsJar.zip");
-        for (String f : fs.listFiles("zip:" + baseDir + "/fsJar.zip")) {
+        FileSystem fs = FileSystem.getInstance("zip:" + getBaseDir() + "/fsJar.zip");
+        for (String f : fs.listFiles("zip:" + getBaseDir() + "/fsJar.zip")) {
             assertTrue(fs.isAbsolute(f));
             assertTrue(!fs.isDirectory(f));
             assertTrue(fs.length(f) > 0);
             assertTrue(f.endsWith(fs.getFileName(f)));
         }
-        String urlJar = "jdbc:h2:zip:" + baseDir + "/fsJar.zip!/fsJar";
+        String urlJar = "jdbc:h2:zip:" + getBaseDir() + "/fsJar.zip!/fsJar";
         conn = DriverManager.getConnection(urlJar, "sa", "sa");
         stat = conn.createStatement();
         rs = stat.executeQuery("select * from test");
@@ -112,6 +119,7 @@ public class TestFileSystem extends TestBase {
         assertEquals(s1, s2);
         assertFalse(rs.next());
         conn.close();
+        IOUtils.delete(getBaseDir() + "/fsJar.zip");
     }
 
     private void testUserHome() {
@@ -176,7 +184,7 @@ public class TestFileSystem extends TestBase {
         assertTrue(fs.tryDelete(fsBase + "/test2"));
         fs.delete(fsBase + "/test");
 
-        if (!fsBase.startsWith(FileSystemMemory.PREFIX) && !fsBase.startsWith(FileSystemMemory.PREFIX_LZF)) {
+        if (fsBase.indexOf(FileSystemMemory.PREFIX) < 0 && fsBase.indexOf(FileSystemMemory.PREFIX_LZF) < 0) {
             fs.createDirs(fsBase + "/testDir/test");
             assertTrue(fs.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith("jdbc:")) {
@@ -189,7 +197,8 @@ public class TestFileSystem extends TestBase {
     private void testRandomAccess(String fsBase) throws Exception {
         FileSystem fs = FileSystem.getInstance(fsBase);
         String s = fs.createTempFile(fsBase + "/temp", ".tmp", false, false);
-        File file = new File(baseDir + "/temp");
+        File file = new File(TestBase.BASE_TEST_DIR + "/temp");
+        file.getParentFile().mkdirs();
         file.delete();
         RandomAccessFile ra = new RandomAccessFile(file, "rw");
         fs.delete(s);
@@ -266,6 +275,8 @@ public class TestFileSystem extends TestBase {
         }
         f.close();
         ra.close();
+        file.delete();
+        fs.delete(s);
     }
 
     private void testTempFile(String fsBase) throws Exception {
@@ -286,7 +297,7 @@ public class TestFileSystem extends TestBase {
         assertEquals(-1, in.read());
         in.close();
         out.close();
+        fs.delete(s);
     }
-
 
 }

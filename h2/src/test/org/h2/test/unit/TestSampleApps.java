@@ -34,14 +34,17 @@ public class TestSampleApps extends TestBase {
     }
 
     public void test() throws Exception {
+        if (!getBaseDir().startsWith(TestBase.BASE_TEST_DIR)) {
+            return;
+        }
         deleteDb("optimizations");
         InputStream in = getClass().getClassLoader().getResourceAsStream("org/h2/samples/optimizations.sql");
-        new File(baseDir).mkdirs();
-        FileOutputStream out = new FileOutputStream(baseDir + "/optimizations.sql");
+        new File(getBaseDir()).mkdirs();
+        FileOutputStream out = new FileOutputStream(getBaseDir() + "/optimizations.sql");
         IOUtils.copyAndClose(in, out);
-        String url = "jdbc:h2:" + baseDir + "/optimizations";
+        String url = "jdbc:h2:" + getBaseDir() + "/optimizations";
         testApp("", org.h2.tools.RunScript.class, "-url", url, "-user", "sa", "-password", "sa", "-script",
-                baseDir + "/optimizations.sql", "-checkResults");
+                getBaseDir() + "/optimizations.sql", "-checkResults");
         deleteDb("optimizations");
         testApp("Compacting...\nDone.", org.h2.samples.Compact.class);
         testApp("NAME: Bob Meier\n" + "EMAIL: bob.meier@abcde.abc\n"
@@ -65,6 +68,7 @@ public class TestSampleApps extends TestBase {
                 org.h2.tools.ChangeFileEncryption.class);
         testApp("Deletes all files belonging to a database.*",
                 org.h2.tools.DeleteDbFiles.class, "-help");
+        IOUtils.delete(getBaseDir() + "/optimizations.sql");
     }
 
     private void testApp(String expected, Class< ? > clazz, String... args) throws Exception {

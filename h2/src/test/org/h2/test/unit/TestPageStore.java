@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Test the page store.
@@ -57,6 +58,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+        deleteDb("pageStore");
     }
 
     private void testCheckpoint() throws SQLException {
@@ -73,7 +75,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         stat.execute("select nextval('SEQ') from system_range(1, 100000)");
         long after = System.currentTimeMillis();
         // it's hard to test - basically it shouldn't checkpoint too often
-        assertTrue(after - before < 10000);
+        if (after - before > 10000) {
+            fail("Checkpoint took " + (after - before) + " ms");
+        }
         stat.execute("drop table test");
         stat.execute("drop sequence seq");
         conn.close();
@@ -317,7 +321,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         Connection conn;
         deleteDb("pageStore");
         String url;
-        url = "jdbc:h2:" + baseDir + "/pageStore";
+        url = "jdbc:h2:" + getBaseDir() + "/pageStore";
         conn = DriverManager.getConnection(url);
         conn.createStatement().execute("create table test(id int) as select 1");
         conn.close();
@@ -396,8 +400,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             conn.close();
             conn = DriverManager.getConnection(url);
             stat = conn.createStatement();
-            stat.execute("script to '" + baseDir + "/pageStore.sql'");
+            stat.execute("script to '" + getBaseDir() + "/pageStore.sql'");
             conn.close();
+            IOUtils.delete(getBaseDir() + "/pageStore.sql");
         } catch (Exception e) {
             try {
                 stat.execute("shutdown immediately");

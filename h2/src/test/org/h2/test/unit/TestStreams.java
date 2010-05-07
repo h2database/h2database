@@ -16,6 +16,7 @@ import java.util.Random;
 import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Tests the LZF stream.
@@ -52,7 +53,8 @@ public class TestStreams extends TestBase {
     }
 
     private void testLZFStreamClose() throws IOException {
-        String fileName = getTestDir("") + "/temp";
+        String fileName = getBaseDir() + "/temp";
+        IOUtils.createDirs(fileName);
         LZFOutputStream out = new LZFOutputStream(new FileOutputStream(fileName));
         out.write("Hello".getBytes());
         out.close();
@@ -61,6 +63,7 @@ public class TestStreams extends TestBase {
         assertEquals(5, in.read(buff));
         in.read();
         in.close();
+        IOUtils.delete(getBaseDir() + "/temp");
     }
 
     private void testLZFStreams() throws IOException {

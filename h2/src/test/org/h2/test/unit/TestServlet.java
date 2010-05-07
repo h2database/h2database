@@ -193,7 +193,7 @@ public class TestServlet extends TestBase {
         stat1.execute("CREATE TABLE T(ID INT)");
 
         String u2 = url.substring(url.indexOf("servlet"));
-        u2 = "jdbc:h2:tcp://localhost:8888/" + baseDir + "/" + u2;
+        u2 = "jdbc:h2:tcp://localhost:8888/" + getBaseDir() + "/" + u2;
         Connection conn2 = DriverManager.getConnection(
                 u2, getUser(), getPassword());
         Statement stat2 = conn2.createStatement();
@@ -213,7 +213,7 @@ public class TestServlet extends TestBase {
 
         // listener must be stopped
         try {
-            DriverManager.getConnection("jdbc:h2:tcp://localhost:8888/" + baseDir + "/servlet", getUser(), getPassword());
+            DriverManager.getConnection("jdbc:h2:tcp://localhost:8888/" + getBaseDir() + "/servlet", getUser(), getPassword());
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
@@ -226,6 +226,8 @@ public class TestServlet extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
+
+        deleteDb("servlet");
 
     }
 

@@ -18,7 +18,6 @@ import org.h2.test.TestBase;
  */
 public class TestFileLock extends TestBase implements Runnable {
 
-    private static final String FILE = baseDir + "/test.lock";
     private static volatile int locks;
     private static volatile boolean stop;
     private TestBase base;
@@ -34,6 +33,10 @@ public class TestFileLock extends TestBase implements Runnable {
         this.allowSockets = allowSockets;
     }
 
+    private String getFile() {
+        return getBaseDir() + "/test.lock";
+    }
+
     /**
      * Run just this test.
      *
@@ -44,6 +47,9 @@ public class TestFileLock extends TestBase implements Runnable {
     }
 
     public void test() throws Exception {
+        if (!getFile().startsWith(TestBase.BASE_TEST_DIR)) {
+            return;
+        }
         testFutureModificationDate();
         testSimple();
         test(false);
@@ -51,18 +57,18 @@ public class TestFileLock extends TestBase implements Runnable {
     }
 
     private void testFutureModificationDate() throws Exception {
-        File f = new File(FILE);
+        File f = new File(getFile());
         f.delete();
         f.createNewFile();
         f.setLastModified(System.currentTimeMillis() + 10000);
-        FileLock lock = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
+        FileLock lock = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
         lock.lock(FileLock.LOCK_FILE);
         lock.unlock();
     }
 
     private void testSimple() {
-        FileLock lock1 = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
-        FileLock lock2 = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
+        FileLock lock1 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
+        FileLock lock2 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
         lock1.lock(FileLock.LOCK_FILE);
         try {
             lock2.lock(FileLock.LOCK_FILE);
@@ -71,7 +77,7 @@ public class TestFileLock extends TestBase implements Runnable {
             // expected
         }
         lock1.unlock();
-        lock2 = new FileLock(new TraceSystem(null), FILE, Constants.LOCK_SLEEP);
+        lock2 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
         lock2.lock(FileLock.LOCK_FILE);
         lock2.unlock();
     }
@@ -80,7 +86,7 @@ public class TestFileLock extends TestBase implements Runnable {
         int threadCount = getSize(3, 5);
         wait = getSize(20, 200);
         Thread[] threads = new Thread[threadCount];
-        new File(FILE).delete();
+        new File(getFile()).delete();
         for (int i = 0; i < threadCount; i++) {
             threads[i] = new Thread(new TestFileLock(this, allowSocketsLock));
             threads[i].start();
@@ -99,7 +105,7 @@ public class TestFileLock extends TestBase implements Runnable {
     public void run() {
         FileLock lock = null;
         while (!stop) {
-            lock = new FileLock(new TraceSystem(null), FILE, 100);
+            lock = new FileLock(new TraceSystem(null), getFile(), 100);
             try {
                 lock.lock(allowSockets ? FileLock.LOCK_SOCKET : FileLock.LOCK_FILE);
                 base.trace(lock + " locked");

@@ -165,8 +165,10 @@ public class Database implements DataHandler {
     private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
     private LobStorage lobStorage;
+    private int pageSize = SysProperties.PAGE_SIZE;
 
-    public Database(String name, ConnectionInfo ci, String cipher) {
+    public Database(ConnectionInfo ci, String cipher) {
+        String name = ci.getName();
         this.compareMode = CompareMode.getInstance(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
@@ -179,6 +181,7 @@ public class Database implements DataHandler {
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.cacheSize = ci.getProperty("CACHE_SIZE", SysProperties.CACHE_SIZE_DEFAULT);
+        this.pageSize = ci.getProperty("PAGE_SIZE", SysProperties.PAGE_SIZE);
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }
@@ -1922,6 +1925,9 @@ public class Database implements DataHandler {
         if (eventListener != null) {
             eventListener.opened();
         }
+        if (writer != null) {
+            writer.startThread();
+        }
     }
 
     public void setMode(Mode mode) {
@@ -2026,6 +2032,9 @@ public class Database implements DataHandler {
     public PageStore getPageStore() {
         if (pageStore == null) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
+            if (pageSize != SysProperties.PAGE_SIZE) {
+                pageStore.setPageSize(pageSize);
+            }
             pageStore.open();
         }
         return pageStore;

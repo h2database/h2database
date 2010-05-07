@@ -79,7 +79,7 @@ public class ConnectionInfo implements Cloneable {
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
                 "INIT", "PASSWORD", "RECOVER", "USER", "AUTO_SERVER",
-                "AUTO_RECONNECT", "OPEN_NEW" };
+                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE" };
         for (String key : connectionTime) {
             if (SysProperties.CHECK && set.contains(key)) {
                 DbException.throwInternalError(key);

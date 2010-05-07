@@ -24,6 +24,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import org.h2.api.AggregateFunction;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
@@ -61,6 +62,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         deleteDb("functions");
+        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, false);
     }
 
     private void testGreatest() throws SQLException {
@@ -254,7 +256,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     private void testFileRead() throws Exception {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        String fileName = baseDir + "/test.txt";
+        String fileName = getBaseDir() + "/test.txt";
         Properties prop = System.getProperties();
         OutputStream out = IOUtils.openFileOutputStream(fileName, false);
         prop.store(out, "");
@@ -273,8 +275,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         InputStreamReader r = new InputStreamReader(IOUtils.openFileInputStream(fileName));
         String ps2 = IOUtils.readStringAndClose(r, -1);
         assertEquals(ps, ps2);
-        IOUtils.delete(fileName);
         conn.close();
+        IOUtils.delete(fileName);
     }
 
     /**
@@ -487,6 +489,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         // without white space
         stat.execute("CREATE ALIAS PARSE_INT2 FOR \"java.lang.Integer.parseInt(java.lang.String,int)\"");
         stat.execute("DROP ALIAS PARSE_INT2");
+        conn.close();
     }
 
     private void testSchemaSearchPath() throws SQLException {

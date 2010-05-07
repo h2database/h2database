@@ -14,6 +14,7 @@ import org.h2.store.fs.FileSystemMemory;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 
 /**
@@ -57,7 +58,8 @@ public class TestRandomSQL extends TestBase {
         if (name.startsWith(FileSystemMemory.PREFIX)) {
             DeleteDbFiles.execute("memFS:/", name, true);
         } else {
-            DeleteDbFiles.execute(baseDir + "/dataRandomSQL", null, true);
+            DeleteDbFiles.execute(getBaseDir() + "/dataRandomSQL", null, true);
+            IOUtils.delete(getBaseDir() + "/dataRandomSQL");
         }
     }
 

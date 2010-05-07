@@ -77,6 +77,7 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
+        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, false);
     }
 
     private void testTempFilesDeleted() throws Exception {
@@ -145,10 +146,10 @@ public class TestLob extends TestBase {
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("create table test(data clob) as select space(100000) from dual");
-        assertEquals(1, IOUtils.listFiles(baseDir + "/lob.lobs.db").length);
+        assertEquals(1, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
         stat.execute("delete from test");
         conn.close();
-        assertEquals(0, IOUtils.listFiles(baseDir + "/lob.lobs.db").length);
+        assertEquals(0, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
     }
 
     private void testLobServerMemory() throws SQLException {
@@ -172,18 +173,18 @@ public class TestLob extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
         stat.execute("INSERT INTO TEST SELECT X, SPACE(10000) FROM SYSTEM_RANGE(1, 10)");
-        ArrayList<String> list = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(), "lob", true);
         stat.execute("UPDATE TEST SET DATA = SPACE(5000)");
         collectAndWait();
         stat.execute("CHECKPOINT");
-        ArrayList<String> list2 = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        ArrayList<String> list2 = FileLister.getDatabaseFiles(getBaseDir(), "lob", true);
         if (list2.size() >= list.size() + 5) {
             fail("Expected not many more files, got " + list2.size() + " was " + list.size());
         }
         stat.execute("DELETE FROM TEST");
         collectAndWait();
         stat.execute("CHECKPOINT");
-        ArrayList<String> list3 = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        ArrayList<String> list3 = FileLister.getDatabaseFiles(getBaseDir(), "lob", true);
         if (list3.size() >= list.size()) {
             fail("Expected less files, got " + list2.size() + " was " + list.size());
         }
@@ -573,7 +574,7 @@ public class TestLob extends TestBase {
         trace("time: " + time + " compress: " + compress);
         conn.close();
         if (!config.memory && SysProperties.LOB_IN_DATABASE) {
-            long length = new File(baseDir + "/lob.h2.db").length();
+            long length = new File(getBaseDir() + "/lob.h2.db").length();
             trace("len: " + length + " compress: " + compress);
         }
     }

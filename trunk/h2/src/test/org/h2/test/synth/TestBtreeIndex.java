@@ -62,13 +62,11 @@ public class TestBtreeIndex extends TestBase {
         } finally {
             conn.close();
         }
+        deleteDb("index");
     }
 
     public void testCase(int seed) throws SQLException {
-        String old = baseDir;
-        baseDir = TestBase.getTestDir("index");
         testOne(seed);
-        baseDir = old;
     }
 
     private void testOne(int seed) throws SQLException {
@@ -96,7 +94,7 @@ public class TestBtreeIndex extends TestBase {
             }
         }
         String prefix = buff.toString().substring(0, prefixLength);
-        DeleteDbFiles.execute(baseDir, null, true);
+        DeleteDbFiles.execute(getBaseDir() + "/index", null, true);
         Connection conn = getConnection("index");
         try {
             Statement stat = conn.createStatement();
@@ -181,6 +179,7 @@ public class TestBtreeIndex extends TestBase {
         } finally {
             conn.close();
         }
+        deleteDb("index");
     }
 
     private void printError(int seed, String message) {

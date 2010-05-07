@@ -79,6 +79,7 @@ public class TestMultiThreadedKernel extends TestBase {
         if (exception != null) {
             throw exception;
         }
+        deleteDb("multiThreadedKernel");
     }
 
 }

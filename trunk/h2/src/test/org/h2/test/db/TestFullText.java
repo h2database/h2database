@@ -70,7 +70,7 @@ public class TestFullText extends TestBase {
         }
         String prefix = lucene ? "FTL" : "FT";
         deleteDb("fullTextTransaction");
-        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullTextTransaction", false);
+        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullTextTransaction", false);
         Connection conn = getConnection("fullTextTransaction");
         Statement stat = conn.createStatement();
         String className = lucene ? "FullTextLucene" : "FullText";
@@ -94,6 +94,7 @@ public class TestFullText extends TestBase {
         FullText.dropAll(conn);
         conn.close();
         deleteDb("fullTextTransaction");
+        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullTextTransaction", false);
     }
 
     private void testMultiThreaded() throws Exception {
@@ -192,7 +193,7 @@ public class TestFullText extends TestBase {
 
     private void testCreateDrop() throws SQLException {
         deleteDb("fullText");
-        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText", false);
+        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullText", false);
         Connection conn = getConnection("fullText");
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
@@ -203,13 +204,13 @@ public class TestFullText extends TestBase {
         }
         conn.close();
         deleteDb("fullText");
-        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText", false);
+        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullText", false);
     }
 
     private void testReopen(boolean lucene) throws SQLException {
         String prefix = lucene ? "FTL" : "FT";
         deleteDb("fullTextReopen");
-        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullTextReopen", false);
+        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullTextReopen", false);
         Connection conn = getConnection("fullTextReopen");
         Statement stat = conn.createStatement();
         String className = lucene ? "FullTextLucene" : "FullText";
@@ -235,11 +236,12 @@ public class TestFullText extends TestBase {
         stat = conn.createStatement();
         stat.execute("INSERT INTO TEST VALUES(3, 'Hello')");
         conn.close();
+        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullTextReopen", false);
     }
 
     private void testPerformance(boolean lucene) throws SQLException {
         deleteDb("fullText");
-        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText", false);
+        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullText", false);
         Connection conn = getConnection("fullText");
         String prefix = lucene ? "FTL" : "FT";
         Statement stat = conn.createStatement();
@@ -279,6 +281,9 @@ public class TestFullText extends TestBase {
     }
 
     private void test(boolean lucene, String dataType) throws SQLException {
+        if (lucene && getBaseDir().indexOf(':') > 0) {
+            return;
+        }
         deleteDb("fullText");
         Connection conn = getConnection("fullText");
         String prefix = lucene ? "FTL_" : "FT_";

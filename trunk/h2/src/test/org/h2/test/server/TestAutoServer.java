@@ -55,7 +55,7 @@ public class TestAutoServer extends TestBase {
         int i = ITERATIONS;
         for (; i > 0; i--) {
             Thread.sleep(100);
-            SortedProperties prop = SortedProperties.loadProperties(baseDir + "/autoServer.lock.db");
+            SortedProperties prop = SortedProperties.loadProperties(getBaseDir() + "/autoServer.lock.db");
             String key = prop.getProperty("id");
             String server = prop.getProperty("server");
             if (server != null) {
@@ -124,7 +124,7 @@ public class TestAutoServer extends TestBase {
 
         // Now test insert
         statAutoServer2.execute("INSERT INTO T (ID) VALUES('abc')");
-
+        statAutoServer2.execute("drop table t");
         connAutoServer2.close();
 
         // this will also close the linked connection from statAutoServer1

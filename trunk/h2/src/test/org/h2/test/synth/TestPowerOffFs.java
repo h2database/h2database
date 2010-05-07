@@ -13,14 +13,14 @@ import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
-import org.h2.test.utils.FileSystemDebug;
+import org.h2.test.utils.DebugFileSystem;
 
 /**
  * Tests that use the debug file system to simulate power failure.
  */
 public class TestPowerOffFs extends TestBase {
 
-    private FileSystemDebug fs;
+    private DebugFileSystem fs;
 
     /**
      * Run just this test.
@@ -32,8 +32,8 @@ public class TestPowerOffFs extends TestBase {
     }
 
     public void test() throws Exception {
-        FileSystemDebug.register();
-        fs = (FileSystemDebug) FileSystem.getInstance("debug:/");
+        DebugFileSystem.register();
+        fs = (DebugFileSystem) FileSystem.getInstance("debug:/");
         test(Integer.MAX_VALUE);
         System.out.println(Integer.MAX_VALUE - fs.getPowerOffCount());
         System.out.println("done");

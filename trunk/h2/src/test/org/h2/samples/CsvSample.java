@@ -13,6 +13,7 @@ import java.sql.Types;
 
 import org.h2.tools.Csv;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.IOUtils;
 
 /**
  * This sample application shows how to use the CSV tool
@@ -31,6 +32,7 @@ public class CsvSample {
     public static void main(String... args) throws SQLException {
         CsvSample.write();
         CsvSample.read();
+        IOUtils.delete("data/test.csv");
     }
 
     /**

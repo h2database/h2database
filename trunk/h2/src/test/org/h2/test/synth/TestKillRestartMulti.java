@@ -40,6 +40,9 @@ public class TestKillRestartMulti extends TestBase {
         if (config.networked) {
             return;
         }
+        if (getBaseDir().indexOf(':') > 0) {
+            return;
+        }
         deleteDb("killRestartMulti");
         url = getURL("killRestartMulti", true);
         user = getUser();
@@ -86,9 +89,9 @@ public class TestKillRestartMulti extends TestBase {
                     fail("Failed: " + s);
                 }
             }
-            String backup = baseDir + "/killRestartMulti-" + System.currentTimeMillis() + ".zip";
+            String backup = getBaseDir() + "/killRestartMulti-" + System.currentTimeMillis() + ".zip";
             try {
-                Backup.execute(backup, baseDir, "killRestartMulti", true);
+                Backup.execute(backup, getBaseDir(), "killRestartMulti", true);
                 Connection conn = null;
                 for (int j = 0;; j++) {
                     try {

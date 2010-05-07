@@ -220,7 +220,7 @@ public class TestRights extends TestBase {
         executeSuccess("ALTER USER TEST SET PASSWORD 'def'");
         executeSuccess("CREATE USER TEST2 PASSWORD 'def' ADMIN");
         executeSuccess("ALTER USER TEST ADMIN FALSE");
-        executeSuccess("SCRIPT TO '" + baseDir + "/rights.sql' CIPHER XTEA PASSWORD 'test'");
+        executeSuccess("SCRIPT TO '" + getBaseDir() + "/rights.sql' CIPHER XTEA PASSWORD 'test'");
         conn.close();
 
         try {
@@ -288,7 +288,7 @@ public class TestRights extends TestBase {
         conn.close();
         conn = getConnection("rights");
         conn.close();
-        IOUtils.delete(baseDir + "/rights.sql");
+        IOUtils.delete(getBaseDir() + "/rights.sql");
     }
 
     private void testTableType(Connection conn, String type) throws SQLException {

@@ -54,7 +54,7 @@ public class TestMulti extends TestBase {
     }
 
     Connection getConnection() throws SQLException {
-        final String url = "jdbc:h2:" + baseDir + "/openClose;LOCK_MODE=3;DB_CLOSE_DELAY=-1";
+        final String url = "jdbc:h2:" + getBaseDir() + "/openClose;LOCK_MODE=3;DB_CLOSE_DELAY=-1";
         Connection conn = DriverManager.getConnection(url, "sa", "");
         return conn;
     }

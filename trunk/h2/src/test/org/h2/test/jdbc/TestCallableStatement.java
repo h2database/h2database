@@ -30,7 +30,7 @@ public class TestCallableStatement extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("callableStatement");
-        Connection conn = getConnection("preparedStatement");
+        Connection conn = getConnection("callableStatement");
         testPrepare(conn);
         conn.close();
         deleteDb("callableStatement");

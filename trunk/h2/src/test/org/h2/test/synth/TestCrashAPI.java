@@ -129,7 +129,7 @@ public class TestCrashAPI extends TestBase {
 
     private void deleteDb() {
         try {
-            deleteDb(baseDir + "/" + DIR, null);
+            deleteDb(getBaseDir() + "/" + DIR, null);
         } catch (Exception e) {
             // ignore
         }
@@ -166,7 +166,7 @@ public class TestCrashAPI extends TestBase {
 
         Connection conn = null;
         String fileName = "temp/backup/db-" + uniqueId++ + ".zip";
-        Backup.execute(fileName, baseDir + "/" + DIR, dbName, true);
+        Backup.execute(fileName, getBaseDir() + "/" + DIR, dbName, true);
         // close databases earlier
         System.gc();
         try {
@@ -470,7 +470,6 @@ public class TestCrashAPI extends TestBase {
         if (config.mvcc || config.networked) {
             return this;
         }
-        baseDir = TestBase.getTestDir("crash");
         startServerIfRequired();
         TestScript script = new TestScript();
         ArrayList<String> add = script.getAllStatements(config);
@@ -482,13 +481,10 @@ public class TestCrashAPI extends TestBase {
 
     public void testCase(int i) throws SQLException {
         int old = SysProperties.getMaxQueryTimeout();
-        String oldBaseDir = baseDir;
         try {
             System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + 10000);
-            baseDir = TestBase.getTestDir("crash");
             testOne(i);
         } finally {
-            baseDir = oldBaseDir;
             System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + old);
         }
     }

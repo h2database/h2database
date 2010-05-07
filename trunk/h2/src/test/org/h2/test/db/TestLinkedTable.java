@@ -609,7 +609,7 @@ public class TestLinkedTable extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         conn.close();
 
-        File[] files = new File(baseDir).listFiles();
+        File[] files = new File(getBaseDir()).listFiles();
         for (File file : files) {
             if ((file.getName().startsWith("testLinkedTableInReadOnlyDb")) && (!file.getName().endsWith(".trace.db"))) {
                 boolean isReadOnly = file.setReadOnly();

@@ -4222,6 +4222,10 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("PAGE_SIZE")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("RECOVER")) {
             readIfEqualOrTo();
             read();

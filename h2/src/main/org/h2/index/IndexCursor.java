@@ -77,14 +77,18 @@ public class IndexCursor implements Cursor {
             Column column = condition.getColumn();
             if (condition.getCompareType() == Comparison.IN_LIST) {
                 if (start == null && end == null) {
-                    this.inColumn = column;
-                    inList = condition.getCurrentValueList(s);
-                    inListIndex = 0;
+                    if (canUseIndexForIn(column)) {
+                        this.inColumn = column;
+                        inList = condition.getCurrentValueList(s);
+                        inListIndex = 0;
+                    }
                 }
             } else if (condition.getCompareType() == Comparison.IN_QUERY) {
                 if (start == null && end == null) {
-                    this.inColumn = column;
-                    inResult = condition.getCurrentResult(s);
+                    if (canUseIndexForIn(column)) {
+                        this.inColumn = column;
+                        inResult = condition.getCurrentResult(s);
+                    }
                 }
             } else {
                 Value v = condition.getCurrentValue(s);
@@ -126,6 +130,19 @@ public class IndexCursor implements Cursor {
         if (!alwaysFalse) {
             cursor = index.find(s, start, end);
         }
+    }
+
+    private boolean canUseIndexForIn(Column column) {
+        if (inColumn != null) {
+            // only one IN(..) condition can be used at the same time
+            return false;
+        }
+        // The first column of the index must match this column,
+        // or it must be a VIEW indexe (where the column is null).
+        // Multiple IN conditions with views are not supported, see
+        // IndexCondition.getMask.
+        IndexColumn idxCol = indexColumns[0];
+        return idxCol == null || idxCol.column == column;
     }
 
     private SearchRow getSearchRow(SearchRow row, int id, Value v, boolean max) {

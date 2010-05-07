@@ -256,11 +256,13 @@ To use the MVCC feature, append <code>;MVCC=TRUE</code> to the database URL:
 jdbc:h2:~/test;MVCC=TRUE
 </pre>
 <p>
-The MVCC feature is not fully tested yet.
+MVCC is disabled by default. The MVCC feature is not fully tested yet.
 The limitations of the MVCC mode are: it can not be used at the same time as
 <code>MULTI_THREADED=TRUE</code>;
 the complete undo log must fit in memory when using multi-version concurrency
 (the setting <code>MAX_MEMORY_UNDO</code> has no effect).
+It is not possible to enable or disable this setting while the database is already open.
+The setting must be specified in the first connection (the one that opens the database).
 </p>
 
 <h2 id="clustering">Clustering / High Availability</h2>

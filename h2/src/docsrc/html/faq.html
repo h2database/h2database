@@ -205,7 +205,7 @@ This is not a bug. According the the JDBC specification, the method
 <code>ResultSetMetaData.getColumnName()</code> should return the name of the column
 and not the alias name. If you need the alias name, use
 <a href="http://java.sun.com/javase/6/docs/api/java/sql/ResultSetMetaData.html#getColumnLabel(int)"><code>ResultSetMetaData.getColumnLabel()</code></a>.
-Other database don't work like this (they don't follow the JDBC specification).
+Some other database don't work like this yet (they don't follow the JDBC specification).
 If you need compatibility with those databases, use the <a href="features.html#compatibility">Compatibility Mode</a>,
 or set the system property <a href="../javadoc/org/h2/constant/SysProperties.html#h2.aliasColumnName"><code>h2.aliasColumnName</code></a>.
 </p>

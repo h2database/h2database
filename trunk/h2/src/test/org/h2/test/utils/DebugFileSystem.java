@@ -16,14 +16,14 @@ import org.h2.store.fs.FileSystem;
 /**
  * A debugging file system that logs all operations.
  */
-public class FileSystemDebug extends FileSystem {
+public class DebugFileSystem extends FileSystem {
 
     /**
      * The prefix used for a debugging file system.
      */
     static final String PREFIX = "debug:";
 
-    private static final FileSystemDebug INSTANCE = new FileSystemDebug();
+    private static final DebugFileSystem INSTANCE = new DebugFileSystem();
 
     private static final IOException POWER_OFF = new IOException("Simulated power failure");
 
@@ -155,6 +155,12 @@ public class FileSystemDebug extends FileSystem {
         return FileSystem.getInstance(fileName).isReadOnly(fileName);
     }
 
+    public boolean setReadOnly(String fileName) {
+        fileName = translateFileName(fileName);
+        trace("setReadOnly", fileName);
+        return FileSystem.getInstance(fileName).setReadOnly(fileName);
+    }
+
     public long length(String fileName) {
         fileName = translateFileName(fileName);
         trace("length", fileName);
@@ -186,7 +192,7 @@ public class FileSystemDebug extends FileSystem {
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
         trace("openFileObject", fileName, mode);
-        return new FileObjectDebug(this, FileSystem.getInstance(fileName).openFileObject(fileName, mode));
+        return new DebugFileObject(this, FileSystem.getInstance(fileName).openFileObject(fileName, mode));
     }
 
     public OutputStream openFileOutputStream(String fileName, boolean append) {
@@ -199,7 +205,7 @@ public class FileSystemDebug extends FileSystem {
         oldName = translateFileName(oldName);
         newName = translateFileName(newName);
         trace("rename", oldName, newName);
-        FileSystem.getInstance(oldName).copy(oldName, newName);
+        FileSystem.getInstance(oldName).rename(oldName, newName);
     }
 
     public boolean tryDelete(String fileName) {

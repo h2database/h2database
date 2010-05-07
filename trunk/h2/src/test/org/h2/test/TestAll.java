@@ -9,6 +9,7 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.Driver;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.bench.TestPerformance;
@@ -122,10 +123,12 @@ import org.h2.test.unit.TestNetUtils;
 import org.h2.test.unit.TestOldVersion;
 import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPageStore;
+import org.h2.test.unit.TestPageStoreCoverage;
 import org.h2.test.unit.TestPattern;
 import org.h2.test.unit.TestPgServer;
 import org.h2.test.unit.TestReader;
 import org.h2.test.unit.TestRecovery;
+import org.h2.test.unit.TestReopen;
 import org.h2.test.unit.TestSampleApps;
 import org.h2.test.unit.TestScriptReader;
 import org.h2.test.unit.TestSecurity;
@@ -138,6 +141,7 @@ import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.test.utils.OutputCatcher;
+import org.h2.test.utils.RecordingFileSystem;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.test.db.TestConnectionInfo;
 import org.h2.tools.DeleteDbFiles;
@@ -228,6 +232,11 @@ java org.h2.test.TestAll timer
     public boolean diskResult;
 
     /**
+     * Test using the recording file system.
+     */
+    public boolean record;
+
+    /**
      * If the transaction log should be kept small (that is, the log should be
      * switched early).
      */
@@ -291,20 +300,32 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 
-        int testing;
-        // System.setProperty("h2.lobInDatabase", "true");
-        // System.setProperty("h2.analyzeAuto", "100");
+        int testingRecovery;
+        System.setProperty("h2.delayWrongPasswordMin", "0");
+        System.setProperty("h2.check2", "false");
 
+        System.setProperty("h2.lobInDatabase", "true");
+        System.setProperty("h2.analyzeAuto", "100");
+
+        int testingRecovery2;
+        RecordingFileSystem.register();
         // System.setProperty("h2.pageSize", "64");
-
 /*
 
+
+logFlush (& sync?) before writeBack
+no commit in compact; logFlush - writeBack - switchLog
+
+special file system with update log
 test with small freeList pages, page size 64
 
 power failure test
 power failure test: MULTI_THREADED=TRUE
 power failure test: larger binaries and additional index.
 power failure test with randomly generating / dropping indexes and tables.
+
+lob in db: check for memory leaks (temp table with blob, then crash;
+crash while truncating a table with a blob)
 
 drop table test;
 create table test(id identity, name varchar(100) default space(100));
@@ -398,6 +419,16 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      * Run the tests with a number of different settings.
      */
     private void runTests() throws SQLException {
+int test;
+//this.record=true;
+if(record) {
+    System.setProperty("h2.delayWrongPasswordMin", "0");
+    RecordingFileSystem.register();
+    TestReopen reopen = new TestReopen();
+    RecordingFileSystem.setRecorder(reopen);
+}
+
+
         jdk14 = true;
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
@@ -557,7 +588,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestCrashAPI().runTest(this);
         new TestFuzzOptimizations().runTest(this);
         new TestRandomSQL().runTest(this);
-
         new TestKillRestart().runTest(this);
         new TestKillRestartMulti().runTest(this);
         new TestMultiThreaded().runTest(this);
@@ -587,6 +617,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);
         new TestPageStore().runTest(this);
+        new TestPageStoreCoverage().runTest(this);
         new TestPattern().runTest(this);
         new TestPgServer().runTest(this);
         new TestReader().runTest(this);
@@ -626,7 +657,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     void beforeTest() throws SQLException {
         Driver.load();
-        DeleteDbFiles.execute(TestBase.baseDir, null, true);
+        FileSystemDisk.getInstance().deleteRecursive(TestBase.BASE_TEST_DIR, false);
+        DeleteDbFiles.execute(TestBase.BASE_TEST_DIR, null, true);
         FileSystemDisk.getInstance().deleteRecursive("trace.db", false);
         if (networked) {
             String[] args = ssl ? new String[] { "-tcpSSL", "true", "-tcpPort", "9192" } : new String[] { "-tcpPort",
@@ -646,7 +678,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         if (networked && server != null) {
             server.stop();
         }
-        DeleteDbFiles.execute(TestBase.baseDir, null, true);
+        FileSystemDisk.getInstance().deleteRecursive(TestBase.BASE_TEST_DIR, false);
     }
 
     private void printSystem() {

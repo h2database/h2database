@@ -32,6 +32,7 @@ public class WriterThread implements Runnable {
     private volatile WeakReference<Database> databaseRef;
 
     private int writeDelay;
+    private Thread thread;
     private volatile boolean stop;
 
     private WriterThread(Database database, int writeDelay) {
@@ -59,10 +60,9 @@ public class WriterThread implements Runnable {
     public static WriterThread create(Database database, int writeDelay) {
         try {
             WriterThread writer = new WriterThread(database, writeDelay);
-            Thread thread = new Thread(writer);
-            thread.setName("H2 Log Writer " + database.getShortName());
-            thread.setDaemon(true);
-            thread.start();
+            writer.thread = new Thread(writer);
+            writer.thread.setName("H2 Log Writer " + database.getShortName());
+            writer.thread.setDaemon(true);
             return writer;
         } catch (AccessControlException e) {
             // // Google App Engine does not allow threads
@@ -111,6 +111,15 @@ public class WriterThread implements Runnable {
      */
     public void stopThread() {
         stop = true;
+    }
+
+    /**
+     * Start the thread. This method is called after opening the database
+     * (to avoid deadlocks)
+     */
+    public void startThread() {
+        thread.start();
+        this.thread = null;
     }
 
 }

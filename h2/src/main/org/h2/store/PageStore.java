@@ -35,6 +35,7 @@ import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
@@ -150,7 +151,7 @@ public class PageStore implements CacheWriter {
     private String fileName;
     private FileStore file;
     private String accessMode;
-    private int pageSize;
+    private int pageSize = SysProperties.PAGE_SIZE;
     private int pageSizeShift;
     private long writeCountBase, writeCount, readCount;
     private int logKey, logFirstTrunkPage, logFirstDataPage;
@@ -218,8 +219,9 @@ public class PageStore implements CacheWriter {
         this.accessMode = accessMode;
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
-        // int test;
-        // trace.setLevel(TraceSystem.DEBUG);
+int test;
+//if (!fileName.endsWith("reopen.h2.db"))
+//trace.setLevel(TraceSystem.DEBUG);
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSizeDefault);
         systemSession = new Session(database, null, 0);
@@ -253,7 +255,11 @@ public class PageStore implements CacheWriter {
         try {
             metaRootPageId.put(META_TABLE_ID, PAGE_ID_META_ROOT);
             if (IOUtils.exists(fileName)) {
-                if (IOUtils.length(fileName) < MIN_PAGE_COUNT * PAGE_SIZE_MIN) {
+                long length = IOUtils.length(fileName);
+                if (length < MIN_PAGE_COUNT * PAGE_SIZE_MIN) {
+                    if (database.isReadOnly()) {
+                        throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName + " length: " + length);
+                    }
                     // the database was not fully created
                     openNew();
                 } else {
@@ -269,7 +275,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void openNew() {
-        setPageSize(SysProperties.PAGE_SIZE);
+        setPageSize(pageSize);
         freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
         file = database.openFile(fileName, accessMode, false);
         recoveryRunning = true;
@@ -292,7 +298,10 @@ public class PageStore implements CacheWriter {
         fileLength = file.length();
         pageCount = (int) (fileLength / pageSize);
         if (pageCount < MIN_PAGE_COUNT) {
-            close();
+            if (database.isReadOnly()) {
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName + " pageCount: " + pageCount);
+            }
+            IOUtils.delete(fileName);
             openNew();
             return;
         }
@@ -336,12 +345,26 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             database.checkPowerOff();
             writeIndexRowCounts();
-            writeBack();
-            log.checkpoint();
+
+int test;
+//            writeBack();
+//            log.checkpoint();
+log.checkpoint();
+writeBack();
+
             int firstUncommittedSection = getFirstUncommittedSection();
+
+
             log.removeUntil(firstUncommittedSection);
+
             // write back the free list
             writeBack();
+
+int test2;
+// ensure the free list is backed up again
+log.checkpoint();
+
+
             byte[] empty = new byte[pageSize];
             for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
                 if (isUsed(i)) {
@@ -385,6 +408,10 @@ public class PageStore implements CacheWriter {
             logFirstTrunkPage = lastUsed + 1;
             allocatePage(logFirstTrunkPage);
             log.openForWriting(logFirstTrunkPage, true);
+
+// ensure the free list is backed up again
+log.checkpoint();
+
         } finally {
             recoveryRunning = false;
         }
@@ -402,8 +429,23 @@ public class PageStore implements CacheWriter {
                 break;
             }
         }
+this.checkpoint();
+
+int test;
+log.checkpoint();
         writeIndexRowCounts();
+log.checkpoint();
         writeBack();
+
+int test3;
+commit(systemSession);
+writeBack();
+log.checkpoint();
+
+
+
+
+
         // truncate the log
         recoveryRunning = true;
         try {
@@ -459,9 +501,23 @@ public class PageStore implements CacheWriter {
                 } finally {
                     changeCount++;
                 }
-                if (log.getLogSectionId() == logSection || log.getLogPos() != logPos) {
-                    commit(systemSession);
-                }
+//if (log.getLogSectionId() != logSection || log.getLogPos() != logPos) {
+//                    // commit if an index root page moved
+//int test;
+//// need to write the log first, then the moved
+//// need to write the moved root node,
+//// and then we can commit
+////log.checkpoint();
+//writeBack();
+////                    commit(systemSession);
+//
+//int testForceProblem;
+//log.checkpoint();
+//writeBack();
+//log.checkpoint();
+//writeBack();
+//
+//                }
             } else {
                 freePage(full);
             }
@@ -613,9 +669,9 @@ public class PageStore implements CacheWriter {
      *
      * @param size the page size
      */
-    private void setPageSize(int size) {
+    public void setPageSize(int size) {
         if (size < PAGE_SIZE_MIN || size > PAGE_SIZE_MAX) {
-            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName + " pageSize: " + size);
         }
         boolean good = false;
         int shift = 0;
@@ -663,6 +719,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void writeVariableHeader() {
+        trace.debug("writeVariableHeader");
         file.sync();
         Data page = createData();
         page.writeInt(0);
@@ -1292,7 +1349,7 @@ public class PageStore implements CacheWriter {
         String[] ops = StringUtils.arraySplit(options, ',', false);
         Index meta;
         if (trace.isDebugEnabled()) {
-            trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
+            trace.debug("addMeta id=" + id + " type=" + type + " root=" + rootPageId + " parent=" + parent + " columns=" + columnList);
         }
         if (redo && rootPageId != 0) {
             // ensure the page is empty, but not used by regular data

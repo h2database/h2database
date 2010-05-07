@@ -247,6 +247,12 @@ public class FileSystemDisk extends FileSystem {
         return f.exists() && !canWriteInternal(f);
     }
 
+    public boolean setReadOnly(String fileName) {
+        fileName = translateFileName(fileName);
+        File f = new File(fileName);
+        return f.setReadOnly();
+    }
+
     public String normalize(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);

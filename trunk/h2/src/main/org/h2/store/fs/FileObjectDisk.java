@@ -9,7 +9,6 @@ package org.h2.store.fs;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-
 import org.h2.constant.SysProperties;
 import org.h2.util.IOUtils;
 

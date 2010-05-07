@@ -36,6 +36,20 @@ public class FileSystemSplit extends FileSystem {
         return getFileSystem(fileName).canWrite(fileName);
     }
 
+    public boolean setReadOnly(String fileName) {
+        fileName = translateFileName(fileName);
+        boolean result = false;
+        for (int i = 0;; i++) {
+            String f = getFileName(fileName, i);
+            if (getFileSystem(f).exists(f)) {
+                result = getFileSystem(f).setReadOnly(f);
+            } else {
+                break;
+            }
+        }
+        return result;
+    }
+
     public void copy(String original, String copy) {
         original = translateFileName(original);
         copy = translateFileName(copy);

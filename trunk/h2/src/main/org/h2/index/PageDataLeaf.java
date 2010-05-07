@@ -305,10 +305,6 @@ public class PageDataLeaf extends PageData {
      * @return the row
      */
     Row getRowAt(int at) {
-int test;
-if (rows == null || rows.length == 0) {
-    System.out.println("stop " + getPos());
-}
         Row r = rows[at];
         if (r == null) {
             if (firstOverflowPageId == 0) {
@@ -376,10 +372,6 @@ if (rows == null || rows.length == 0) {
             return null;
         }
         PageDataNode next = (PageDataNode) index.getPage(parentPageId, -1);
-int test;
-if (next == null || keys == null) {
-    System.out.println("stop " + getPos());
-}
         return next.getNextPage(keys[entryCount - 1]);
     }
 

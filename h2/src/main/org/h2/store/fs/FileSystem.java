@@ -291,6 +291,13 @@ public abstract class FileSystem {
     public abstract InputStream openFileInputStream(String fileName) throws IOException;
 
     /**
+     * Disable the ability to write.
+     *
+     * @return true if the call was successful
+     */
+    public abstract boolean setReadOnly(String fileName);
+
+    /**
      * Get the next temporary file name part (the part in the middle).
      *
      * @param newRandom if the random part of the filename should change

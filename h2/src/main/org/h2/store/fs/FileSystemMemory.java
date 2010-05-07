@@ -33,7 +33,7 @@ public class FileSystemMemory extends FileSystem {
     public static final String PREFIX_LZF = "memLZF:";
 
     private static final FileSystemMemory INSTANCE = new FileSystemMemory();
-    private static final TreeMap<String, FileObjectMemory> MEMORY_FILES = new TreeMap<String, FileObjectMemory>();
+    private static final TreeMap<String, FileObjectMemoryData> MEMORY_FILES = new TreeMap<String, FileObjectMemoryData>();
 
     private FileSystemMemory() {
         // don't allow construction
@@ -51,7 +51,7 @@ public class FileSystemMemory extends FileSystem {
         oldName = normalize(oldName);
         newName = normalize(newName);
         synchronized (MEMORY_FILES) {
-            FileObjectMemory f = getMemoryFile(oldName);
+            FileObjectMemoryData f = getMemoryFile(oldName);
             f.setName(newName);
             MEMORY_FILES.remove(oldName);
             MEMORY_FILES.put(newName, f);
@@ -119,7 +119,11 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public boolean isReadOnly(String fileName) {
-        return false;
+        return !getMemoryFile(fileName).canWrite();
+    }
+
+    public boolean setReadOnly(String fileName) {
+        return getMemoryFile(fileName).setReadOnly();
     }
 
     public String normalize(String fileName) {
@@ -191,33 +195,32 @@ public class FileSystemMemory extends FileSystem {
 
     public OutputStream openFileOutputStream(String fileName, boolean append) {
         try {
-            FileObjectMemory obj = getMemoryFile(fileName);
-            obj.seek(0);
-            return new FileObjectOutputStream(obj, append);
+            FileObjectMemoryData obj = getMemoryFile(fileName);
+            FileObjectMemory m = new FileObjectMemory(obj);
+            return new FileObjectOutputStream(m, append);
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }
     }
 
     public InputStream openFileInputStream(String fileName) {
-        FileObjectMemory obj = getMemoryFile(fileName);
-        obj.seek(0);
-        return new FileObjectInputStream(obj);
+        FileObjectMemoryData obj = getMemoryFile(fileName);
+        FileObjectMemory m = new FileObjectMemory(obj);
+        return new FileObjectInputStream(m);
     }
 
     public FileObject openFileObject(String fileName, String mode) {
-        FileObjectMemory obj = getMemoryFile(fileName);
-        obj.seek(0);
-        return obj;
+        FileObjectMemoryData obj = getMemoryFile(fileName);
+        return new FileObjectMemory(obj);
     }
 
-    private FileObjectMemory getMemoryFile(String fileName) {
+    private FileObjectMemoryData getMemoryFile(String fileName) {
         fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
-            FileObjectMemory m = MEMORY_FILES.get(fileName);
+            FileObjectMemoryData m = MEMORY_FILES.get(fileName);
             if (m == null) {
                 boolean compress = fileName.startsWith(PREFIX_LZF);
-                m = new FileObjectMemory(fileName, compress);
+                m = new FileObjectMemoryData(fileName, compress);
                 MEMORY_FILES.put(fileName, m);
             }
             return m;

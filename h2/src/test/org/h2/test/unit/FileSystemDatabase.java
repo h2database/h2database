@@ -320,6 +320,10 @@ public class FileSystemDatabase extends FileSystem {
         return false;
     }
 
+    public boolean setReadOnly(String fileName) {
+        return false;
+    }
+
     public synchronized long length(String fileName) {
         try {
             long id = getId(fileName, false);

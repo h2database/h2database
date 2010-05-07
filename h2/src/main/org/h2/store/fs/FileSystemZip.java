@@ -140,6 +140,10 @@ public class FileSystemZip extends FileSystem {
         return true;
     }
 
+    public boolean setReadOnly(String fileName) {
+        return true;
+    }
+
     public long length(String fileName) {
         try {
             ZipFile file = openZipFile(fileName);

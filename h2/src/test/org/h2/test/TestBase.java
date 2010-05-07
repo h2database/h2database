@@ -205,14 +205,7 @@ public abstract class TestBase {
      */
     protected String getBaseDir() {
         if (config != null && config.record) {
-int test;
-//            return "memFS:" + baseDir;
-
-
             return RecordingFileSystem.PREFIX + "memFS:" + baseDir;
-//return RecordingFileSystem.PREFIX + baseDir;
-
-
         }
         return baseDir;
     }

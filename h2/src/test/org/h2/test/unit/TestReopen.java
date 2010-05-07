@@ -13,12 +13,14 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.utils.Recorder;
 import org.h2.test.utils.RecordingFileSystem;
 import org.h2.util.New;
+import org.h2.util.Profiler;
 
 /**
  * A test that calls another test, and after each write operation to the
@@ -28,10 +30,11 @@ public class TestReopen extends TestBase implements Recorder {
 
     private String testDatabase = "memFS:" + TestBase.BASE_TEST_DIR + "/reopen";
     private long lastCheck;
-    private int counter;
-    private int testEvery = 1 << 4;
+    private int writeCount = Integer.parseInt(System.getProperty("reopenOffset", "0"));
+    private int testEvery = 1 << Integer.parseInt(System.getProperty("reopenShift", "8"));
+    private int verifyCount;
     private HashSet<String> knownErrors = New.hashSet();
-    private int max = 103128;
+    private volatile boolean testing;
 
     /**
      * Run just this test.
@@ -48,41 +51,59 @@ public class TestReopen extends TestBase implements Recorder {
         RecordingFileSystem.setRecorder(this);
         config.record = true;
 
-long time = System.currentTimeMillis();
-//        Profiler p = new Profiler();
-//        p.startCollecting();
+        long time = System.currentTimeMillis();
+        Profiler p = new Profiler();
+        p.startCollecting();
         new TestPageStoreCoverage().init(config).test();
-//        System.out.println(p.getTop(3));
-System.out.println(System.currentTimeMillis() - time);
-        System.out.println("counter: " + counter);
+        System.out.println(p.getTop(3));
+        System.out.println(System.currentTimeMillis() - time);
+        System.out.println("counter: " + writeCount);
     }
 
-    public synchronized void log(int op, String fileName, byte[] data, long x) {
-        if (op != Recorder.WRITE) {
+    public void log(int op, String fileName, byte[] data, long x) {
+        if (op != Recorder.WRITE && op != Recorder.SET_LENGTH) {
             return;
         }
         if (!fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
             return;
         }
-        counter++;
-        if ((counter & 1023) == 0) {
+        if (testing) {
+            // avoid deadlocks
+            return;
+        }
+        testing = true;
+        try {
+            logDb(fileName);
+        } finally {
+            testing = false;
+        }
+    }
+
+    private synchronized void logDb(String fileName) {
+        writeCount++;
+        if ((writeCount & 1023) == 0) {
             long now = System.currentTimeMillis();
             if (now > lastCheck + 5000) {
-                System.out.println("    at " + counter + " of " + max + " " + (100. / max * counter));
-//new Exception("currentPosition").printStackTrace(System.out);
+                System.out.println("+ write #" + writeCount + " verify #" + verifyCount);
                 lastCheck = now;
             }
         }
-        if ((counter & (testEvery - 1)) != 0) {
+        if ((writeCount & (testEvery - 1)) != 0) {
             return;
         }
         FileSystem.getInstance(fileName).copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
         try {
+            verifyCount++;
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
-            ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase + ";FILE_LOCK=NO", p);
+            String userName =  getUser();
+            p.setProperty("user", userName);
+            p.setProperty("password", getPassword());
+            ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase + ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0", p);
             Database database = new Database(ci, null);
             // close the database
+            Session session = database.getSystemSession();
+            session.prepare("shutdown immediately").update();
             database.removeSession(null);
             // everything OK - return
             return;
@@ -108,7 +129,7 @@ System.out.println(System.currentTimeMillis() - time);
             }
             e.printStackTrace(System.out);
         }
-        System.out.println("begin ------------------------------ " + counter);
+        System.out.println("begin ------------------------------ " + writeCount);
         testDatabase += "X";
         FileSystem.getInstance(fileName).copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
         try {
@@ -135,11 +156,11 @@ System.out.println(System.currentTimeMillis() - time);
             }
             String s = buff.toString();
             if (!knownErrors.contains(s)) {
-                System.out.println(counter + " code: " + errorCode + " " + e.toString());
+                System.out.println(writeCount + " code: " + errorCode + " " + e.toString());
                 e.printStackTrace(System.out);
                 knownErrors.add(s);
             } else {
-                System.out.println(counter + " code: " + errorCode);
+                System.out.println(writeCount + " code: " + errorCode);
             }
         }
     }

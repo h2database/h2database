@@ -9,7 +9,6 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.Driver;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.bench.TestPerformance;
@@ -298,26 +297,11 @@ java org.h2.test.TestAll timer
         test.printSystem();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
-
-
-        int testingRecovery;
-        System.setProperty("h2.delayWrongPasswordMin", "0");
-        System.setProperty("h2.check2", "false");
-
-        System.setProperty("h2.lobInDatabase", "true");
-        System.setProperty("h2.analyzeAuto", "100");
-
-        int testingRecovery2;
-        RecordingFileSystem.register();
-        // System.setProperty("h2.pageSize", "64");
 /*
 
-
-logFlush (& sync?) before writeBack
-no commit in compact; logFlush - writeBack - switchLog
-
-special file system with update log
 test with small freeList pages, page size 64
+
+comparative sql tests
 
 power failure test
 power failure test: MULTI_THREADED=TRUE
@@ -344,7 +328,18 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
 */
         if (args.length > 0) {
-            if ("crash".equals(args[0])) {
+            if ("reopen".equals(args[0])) {
+                System.setProperty("h2.delayWrongPasswordMin", "0");
+                System.setProperty("h2.check2", "false");
+                System.setProperty("h2.lobInDatabase", "true");
+                System.setProperty("h2.analyzeAuto", "100");
+                // System.setProperty("h2.pageSize", "64");
+                RecordingFileSystem.register();
+                test.record = true;
+                TestReopen reopen = new TestReopen();
+                RecordingFileSystem.setRecorder(reopen);
+                test.runTests();
+            } else if ("crash".equals(args[0])) {
                 test.endless = true;
                 new TestCrashAPI().runTest(test);
             } else if ("synth".equals(args[0])) {
@@ -419,16 +414,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      * Run the tests with a number of different settings.
      */
     private void runTests() throws SQLException {
-int test;
-//this.record=true;
-if(record) {
-    System.setProperty("h2.delayWrongPasswordMin", "0");
-    RecordingFileSystem.register();
-    TestReopen reopen = new TestReopen();
-    RecordingFileSystem.setRecorder(reopen);
-}
-
-
         jdk14 = true;
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
@@ -673,7 +658,7 @@ if(record) {
         }
     }
 
-    private void afterTest() throws SQLException {
+    private void afterTest() {
         FileSystemDisk.getInstance().deleteRecursive("trace.db", false);
         if (networked && server != null) {
             server.stop();

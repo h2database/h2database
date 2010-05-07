@@ -268,6 +268,10 @@ public class PageLog {
                             store.writePage(pageId, data);
                             undo.set(pageId);
                             undoAll.set(pageId);
+                        } else {
+                            if (trace.isDebugEnabled()) {
+                                trace.debug("log undo skip " + pageId);
+                            }
                         }
                     }
                 } else if (x == ADD) {
@@ -292,11 +296,15 @@ public class PageLog {
                     int sessionId = in.readVarInt();
                     int tableId = in.readVarInt();
                     long key = in.readVarLong();
-                    if (stage == RECOVERY_STAGE_UNDO && tableId == -1) {
-                        // immediately commit,
-                        // because the pages may be re-used
-                        setLastCommitForSession(sessionId, logId, pos);
-                    }
+int todo;
+// can not commit immediately
+// because the index root may have started to be moved,
+// without arriving at the destination yet
+//                    if (stage == RECOVERY_STAGE_UNDO && tableId == -1) {
+//                        // immediately commit,
+//                        // because the pages may be re-used
+//                        setLastCommitForSession(sessionId, logId, pos);
+//                    }
                     if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {

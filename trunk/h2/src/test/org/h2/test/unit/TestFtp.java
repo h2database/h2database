@@ -12,6 +12,7 @@ import org.h2.dev.ftp.server.FtpEventListener;
 import org.h2.dev.ftp.server.FtpServer;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
+import org.h2.util.IOUtils;
 
 /**
  * Tests the FTP server tool.
@@ -30,7 +31,11 @@ public class TestFtp extends TestBase implements FtpEventListener {
     }
 
     public void test() throws Exception {
-        test(baseDir);
+        if (getBaseDir().indexOf(':') > 0) {
+            return;
+        }
+        test(getBaseDir());
+        IOUtils.delete(getBaseDir() + "/test");
     }
 
     private void test(String dir) throws Exception {

@@ -11,9 +11,11 @@ import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
+import org.h2.util.IOUtils;
 
 /**
  * Tests database recovery.
@@ -34,8 +36,8 @@ public class TestRecovery extends TestBase {
     }
 
     private void testRunScript() throws SQLException {
-        DeleteDbFiles.execute(baseDir, "recovery", true);
-        DeleteDbFiles.execute(baseDir, "recovery2", true);
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        DeleteDbFiles.execute(getBaseDir(), "recovery2", true);
         org.h2.Driver.load();
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
@@ -53,7 +55,7 @@ public class TestRecovery extends TestBase {
         Recover rec = new Recover();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         rec.setOut(new PrintStream(buff));
-        rec.runTool("-dir", baseDir, "-db", "recovery", "-trace");
+        rec.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
         String out = new String(buff.toByteArray());
         assertTrue(out.indexOf("Created file") >= 0);
 
@@ -61,7 +63,7 @@ public class TestRecovery extends TestBase {
         Statement stat2 = conn2.createStatement();
         String name = "recovery.h2.sql";
 
-        stat2.execute("runscript from '" + baseDir + "/" + name + "'");
+        stat2.execute("runscript from '" + getBaseDir() + "/" + name + "'");
         stat2.execute("select * from test");
         stat2.execute("drop user diff");
         conn2.close();
@@ -75,7 +77,13 @@ public class TestRecovery extends TestBase {
         conn.close();
         conn2.close();
 
-        Recover.execute(baseDir, "recovery");
+        Recover.execute(getBaseDir(), "recovery");
+
+        deleteDb("recovery");
+        deleteDb("recovery2");
+        IOUtils.delete(getBaseDir() + "/recovery.h2.sql");
+        String dir = getBaseDir() + "/recovery.lobs.db";
+        FileSystem.getInstance(dir).deleteRecursive(dir, false);
 
     }
 

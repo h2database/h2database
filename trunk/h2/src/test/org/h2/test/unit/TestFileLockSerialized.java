@@ -6,7 +6,6 @@
  */
 package org.h2.test.unit;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
@@ -18,6 +17,7 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.SortedProperties;
 
@@ -68,11 +68,12 @@ public class TestFileLockSerialized extends TestBase {
         testKillWriter();
         println("testConcurrentReadWrite");
         testConcurrentReadWrite();
+        deleteDb("fileLockSerialized");
     }
 
     private void testSequenceFlush() throws Exception {
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         ResultSet rs;
         Connection conn1 = DriverManager.getConnection(url);
         Statement stat1 = conn1.createStatement();
@@ -92,7 +93,7 @@ public class TestFileLockSerialized extends TestBase {
     private void testThreeMostlyReaders(final boolean write) throws Exception {
         boolean longRun = false;
         deleteDb("fileLockSerialized");
-        final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
 
         Connection conn = DriverManager.getConnection(url);
         conn.createStatement().execute("create table test(id int) as select 1");
@@ -145,7 +146,7 @@ public class TestFileLockSerialized extends TestBase {
 
     private void testTwoReaders() throws Exception {
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         Connection conn1 = DriverManager.getConnection(url);
         conn1.createStatement().execute("create table test(id int)");
         Connection conn2 = DriverManager.getConnection(url);
@@ -159,7 +160,7 @@ public class TestFileLockSerialized extends TestBase {
 
     private void testTwoWriters() throws Exception {
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         final String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         final boolean[] stop = { false };
         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
@@ -197,14 +198,14 @@ public class TestFileLockSerialized extends TestBase {
 
     private void testPendingWrite() throws Exception {
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
 
         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         Thread.sleep(100);
-        String propFile = baseDir + "/fileLockSerialized.lock.db";
+        String propFile = getBaseDir() + "/fileLockSerialized.lock.db";
         SortedProperties p = SortedProperties.loadProperties(propFile);
         p.setProperty("changePending", "true");
         p.setProperty("modificationDataId", "1000");
@@ -221,7 +222,7 @@ public class TestFileLockSerialized extends TestBase {
 
     private void testKillWriter() throws Exception {
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
 
         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
@@ -252,7 +253,7 @@ public class TestFileLockSerialized extends TestBase {
     private void testConcurrentReadWrite() throws Exception {
         deleteDb("fileLockSerialized");
 
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         // ;TRACE_LEVEL_SYSTEM_OUT=3
         // String readUrl = writeUrl + ";ACCESS_MODE_DATA=R";
@@ -326,7 +327,7 @@ public class TestFileLockSerialized extends TestBase {
     private void testAutoIncrement(final int waitTime, int howManyThreads, int runTime) throws Exception {
         println("testAutoIncrement waitTime: " + waitTime + " howManyThreads: " + howManyThreads + " runTime: " + runTime);
         deleteDb("fileLockSerialized");
-        final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
+        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
                 "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
         Connection conn = DriverManager.getConnection(url);
@@ -393,7 +394,7 @@ public class TestFileLockSerialized extends TestBase {
     private void testConcurrentUpdates(final int waitTime, int howManyThreads, int runTime) throws Exception {
         println("testConcurrentUpdates waitTime: " + waitTime + " howManyThreads: " + howManyThreads + " runTime: " + runTime);
         deleteDb("fileLockSerialized");
-        final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
+        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
                 "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
         Connection conn = DriverManager.getConnection(url);
@@ -464,7 +465,7 @@ public class TestFileLockSerialized extends TestBase {
     private void testCheckpointInUpdateRaceCondition() throws Exception {
         boolean longRun = false;
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
 
         Connection conn = DriverManager.getConnection(url);
         conn.createStatement().execute("create table test(id int)");
@@ -484,7 +485,7 @@ public class TestFileLockSerialized extends TestBase {
     private void testCache() throws Exception {
         deleteDb("fileLockSerialized");
 
-        String urlShared = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
+        String urlShared = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
 
         Connection connShared1 = DriverManager.getConnection(urlShared);
         Statement statement1   = connShared1.createStatement();
@@ -515,7 +516,7 @@ public class TestFileLockSerialized extends TestBase {
     private void testWrongDatabaseInstanceOnReconnect() throws Exception {
         deleteDb("fileLockSerialized");
 
-        String urlShared = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
+        String urlShared = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
         String urlForNew = urlShared + ";OPEN_NEW=TRUE";
 
         Connection connShared1 = DriverManager.getConnection(urlShared);
@@ -535,7 +536,7 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
         int cacheSizeKb = withCache ? 5000 : 0;
 
-        final String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;CACHE_SIZE=" + cacheSizeKb;
+        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;CACHE_SIZE=" + cacheSizeKb;
         final boolean[] importFinished = { false };
         final Exception[] ex = { null };
         final Thread importUpdate = new Thread() {
@@ -599,17 +600,20 @@ public class TestFileLockSerialized extends TestBase {
 
         // without serialized
         String url;
-        url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
+        url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         Connection conn = DriverManager.getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
         stat.execute("insert into test values(0)");
         conn.close();
-        List<String> filesWithoutSerialized = Arrays.asList(new File(baseDir).list());
+
+        FileSystem fs = FileSystem.getInstance(getBaseDir());
+
+        List<String> filesWithoutSerialized = Arrays.asList(fs.listFiles(getBaseDir()));
         deleteDb("fileLockSerialized");
 
         // with serialized
-        url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
+        url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
         conn = DriverManager.getConnection(url);
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
@@ -617,7 +621,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        List<String> filesWithSerialized = Arrays.asList(new File(baseDir).list());
+        List<String> filesWithSerialized = Arrays.asList(fs.listFiles(getBaseDir()));
         if (filesWithoutSerialized.size() !=  filesWithSerialized.size()) {
             for (int i = 0; i < filesWithoutSerialized.size(); i++) {
                 if (!filesWithSerialized.contains(filesWithoutSerialized.get(i))) {

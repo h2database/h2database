@@ -30,6 +30,9 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         if (config.codeCoverage || config.networked) {
             return;
         }
+        if (getBaseDir().indexOf(':') > 0) {
+            return;
+        }
         deleteDb("exit");
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = { "java", selfDestruct,
@@ -88,11 +91,11 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         String url = "";
         switch (action) {
         case OPEN_WITH_CLOSE_ON_EXIT:
-            url = "jdbc:h2:" + baseDir + "/exit;database_event_listener='" + getClass().getName()
+            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + getClass().getName()
                     + "';db_close_on_exit=true";
             break;
         case OPEN_WITHOUT_CLOSE_ON_EXIT:
-            url = "jdbc:h2:" + baseDir + "/exit;database_event_listener='" + getClass().getName()
+            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + getClass().getName()
                     + "';db_close_on_exit=false";
             break;
         default:
@@ -124,7 +127,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
     }
 
     private static File getClosedFile() {
-        return new File(baseDir + "/closed.txt");
+        return new File(TestBase.BASE_TEST_DIR + "/closed.txt");
     }
 
     public void setProgress(int state, String name, int x, int max) {

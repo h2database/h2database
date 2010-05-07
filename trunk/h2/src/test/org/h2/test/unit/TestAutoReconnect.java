@@ -61,13 +61,13 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
     private void testReconnect() throws Exception {
         deleteDb("autoReconnect");
         if (autoServer) {
-            url = "jdbc:h2:" + baseDir + "/autoReconnect;" +
+            url = "jdbc:h2:" + getBaseDir() + "/autoReconnect;" +
                 "FILE_LOCK=SOCKET;" +
                 "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
             restart();
         } else {
             server = Server.createTcpServer("-tcpPort", "8181").start();
-            url = "jdbc:h2:tcp://localhost:8181/" + baseDir + "/autoReconnect;" +
+            url = "jdbc:h2:tcp://localhost:8181/" + getBaseDir() + "/autoReconnect;" +
                 "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE";
         }
 

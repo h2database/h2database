@@ -53,7 +53,7 @@ public class Engine {
             if (ifExists && !Database.exists(name)) {
                 throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, name);
             }
-            database = new Database(name, ci, cipher);
+            database = new Database(ci, cipher);
             opened = true;
             if (database.getAllUsers().size() == 0) {
                 // users is the last thing we add, so if no user is around,
@@ -66,9 +66,14 @@ public class Engine {
             if (!ci.isUnnamedInMemory()) {
                 DATABASES.put(name, database);
             }
-            database.opened();
         }
         synchronized (database) {
+            if (opened) {
+                // start the thread when already synchronizing on the database
+                // otherwise a deadlock can occur when the writer thread
+                // opens a new database (as in recovery testing)
+                database.opened();
+            }
             if (database.isClosing()) {
                 return null;
             }

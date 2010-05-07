@@ -57,6 +57,8 @@ Features
     Auto-Reconnect</a><br />
 <a href="#auto_mixed_mode">
     Automatic Mixed Mode</a><br />
+<a href="#page_size">
+    Page Size</a><br />
 <a href="#trace_options">
     Using the Trace Options</a><br />
 <a href="#other_logging">
@@ -575,6 +577,12 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;;AUTO_SERVER=TRUE<br />
         jdbc:h2:~/test;AUTO_SERVER=TRUE
+    </td>
+</tr>
+<tr>
+    <td><a href="#page_size">Page size</a></td>
+    <td class="notranslate">
+        jdbc:h2:&lt;url&gt;;PAGE_SIZE=512<br />
     </td>
 </tr>
 <tr>
@@ -1159,6 +1167,14 @@ DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 // Application 2:
 DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 </pre>
+
+<h2 id="page_size">Page Size</h2>
+<p>
+The page size for new databases is 2 KB (2048), unless the system property
+<code>h2.pageSize</code> is set to a different value, or the page size is set
+explicitly in the database URL using <code>PAGE_SIZE=</code>. The page size of
+existing databases can not be changed.
+</p>
 
 <h2 id="trace_options">Using the Trace Options</h2>
 <p>

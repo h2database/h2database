@@ -43,7 +43,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Full outer joins.
 </li><li>Support nested outer joins (see todo.txt).
-</li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
@@ -60,8 +59,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA).
 </li><li>Test performance again with SQL Server, Oracle, DB2.
-</li><li>Test with dbmonster: http://dbmonster.kernelpanic.pl
-</li><li>Test with dbcopy: http://dbcopyplugin.sourceforge.net
 </li><li>Test with Spatial DB in a box / JTS: http://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification.
 </li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control).
 </li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after.
@@ -76,8 +73,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 </li><li>Access rights: finer grained access control (grant access for specific functions).
-</li><li>Suggestion: include Jetty as Servlet Container (like LAMP).
-</li><li>Trace shipping to server.
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
 </li><li>Web server classloader: override findResource / getResourceFrom.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant.
@@ -110,7 +105,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Custom class loader to reload functions on demand.
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master.
 </li><li>Test http://mysql-je.sourceforge.net/
-</li><li>EXE file: maybe use http://jsmooth.sourceforge.net
 </li><li>Performance: automatically build in-memory indexes if the whole table is in memory.
 </li><li>H2 Console: the webclient could support more features like phpMyAdmin.
 </li><li>Use Janino to convert Java to C++.
@@ -134,21 +128,17 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>File system that writes to two file systems (replication, replicating file system).
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle).
-</li><li>JAMon (proxy jdbc driver).
 </li><li>Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?).
 </li><li>Console: autocomplete Ctrl+Space inserts template.
 </li><li>Option to encrypt .trace.db file.
 </li><li>Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
 </li><li>Functions with unknown return or parameter data types: serialize / deserialize.
-</li><li>Test if idle TCP connections are closed, and how to disable that.
-</li><li>Try using a factory for Row, Value[] (faster?), http://javolution.org/ (alternative ObjectArray / IntArray).
 </li><li>Auto-Update feature for database, .jar file.
 </li><li>ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp.
 </li><li>Partial indexing (see PostgreSQL).
 </li><li>Add GUI to build a custom version (embedded, fulltext,...) using build flags.
 </li><li>http://rubyforge.org/projects/hypersonic/
 </li><li>Add comparator (x === y) : (x = y or (x is null and y is null)).
-</li><li>Try to create trace file even for read only databases.
 </li><li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app).
 </li><li>Count on a column that can not be null could be optimized to COUNT(*).
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility).
@@ -165,16 +155,12 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Use JDK 1.4 file locking for the database file and for the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Pure SQL triggers (example: update parent table if the child table is changed).
 </li><li>Add H2 to Gem (Ruby install system).
-</li><li>API for functions / user tables.
 </li><li>Order conditions inside AND / OR to optimize the performance.
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
 </li><li>Support linked JCR tables
-</li><li>Make sure H2 is supported by Execute Query: http://executequery.org/
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 </li><li>Native fulltext search: min word length; store word positions
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
-</li><li>Test Dezign for Databases: http://www.datanamic.com
-</li><li>Fast library for parsing / formatting: http://javolution.org/
 </li><li>Updatable Views (simple cases first)
 </li><li>Improve create index performance
 </li><li>Implement more JDBC 4.0 features
@@ -182,26 +168,22 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
 </li><li>Support updatable views with join on primary keys (to extend a table)
 </li><li>Public interface for functions (not public static)
-</li><li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
 </li><li>Support reading the transaction log.
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
-</li><li>Updatable result set on table without primary key or unique index
-</li><li>Use LinkedList instead of ArrayList where applicable
+</li><li>Updatable result set on table without primary key or unique index.
+</li><li>Use LinkedList instead of ArrayList where applicable.
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
-</li><li>Support % operator (modulo)
+</li><li>Support % operator (modulo).
 </li><li>Support JMX: create an MBean for each database and server (support JConsole).
     See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html
     http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ManagementFactory.html#getPlatformMBeanServer()
     http://java.sun.com/j2se/1.5.0/docs/guide/management/agent.html
-</li><li>Support nested transactions
-</li><li>Add a benchmark for big databases, and one for many users
-</li><li>Compression in the result set (repeating values in the same column) over TCP/IP
-</li><li>Support curtimestamp (like curtime, curdate)
-</li><li>Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
-</li><li>Support Sequoia (Continuent.org)
-</li><li>Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
-</li><li>Pluggable ThreadPool, (AvalonDB / deebee / Paul Hammant)
+</li><li>Support nested transactions.
+</li><li>Add a benchmark for big databases, and one for many users.
+</li><li>Compression in the result set (repeating values in the same column) over TCP/IP.
+</li><li>Support curtimestamp (like curtime, curdate).
+</li><li>Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options.
 </li><li>Release locks (shared or exclusive) on demand
 </li><li>Support OUTER UNION
 </li><li>Support parameterized views (similar to CSVREAD, but using just SQL for the definition)
@@ -230,7 +212,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility: add a role DBA (like ADMIN).
 </li><li>Better support multiple processors for in-memory databases.
 </li><li>Support N'text'
-</li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
 </li><li>Support compatibility for jdbc:hsqldb:res:
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
@@ -330,7 +311,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Auto-server: add option to define the IP address range or list.
 </li><li>Index creation using deterministic functions.
 </li><li>Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
-</li><li>ANALYZE: use a bloom filter for each indexed column to estimate count of distinct values.
 </li><li>ANALYZE: for unique indexes that allow null, count the number of null.
 </li><li>AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
 </li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and buggy.

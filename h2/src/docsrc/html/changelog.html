@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New system property h2.functionsInSchema (default is false).
+<ul><li>Translation: Lubomir Grajciar translated the H2 Console as well as all error message to Slovensky. Thanks a lot!
+</li><li>There was a possible Java level deadlock when opening an uninitialized database.
+</li><li>When killing the process while the database was writing a checkpoint or while it was closing,
+    the database could become corrupt. A new test case has been implemented to ensure such
+    problems can not occur in the future.
+</li><li>File system: new method FileSystem.setReadOnly.
+</li><li>The page size for new databases can now be set in the database URL using ;PAGE_SIZE=512.
+    Currently this feature is only used to simplify testing.
+</li><li>New system property h2.functionsInSchema (default is false).
     If enabled, the SCRIPT statement always includes the schema name in the CREATE ALIAS statement
     (even if the schema is PUBLIC). This is not backward compatible with H2 versions 1.2.134 and older.
 </li><li>Functions: it is no longer required to add a space after a comma in the parameter list.
@@ -29,7 +37,7 @@ Change Log
 </li><li>Cluster: after a cluster node failed, the second cluster node can now be re-created
     and started without having to stop the first cluster node, and without having to stop
     running applications. To do that, append ;AUTO_RECONNECT=TRUE to the database URL.
-</li><li>Auto-reconnect: if another connection uses the database in exclusive mode 
+</li><li>Auto-reconnect: if another connection uses the database in exclusive mode
     then this connection will try to re-connect until the exclusive mode ends.
     This is important when using the cluster mode.
 </li><li>SET EXCLUSIVE now supports 0 (disable), 1 (enable), and 2 (enable and close all other connections).

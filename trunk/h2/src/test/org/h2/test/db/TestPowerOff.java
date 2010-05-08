@@ -44,10 +44,12 @@ public class TestPowerOff extends TestBase {
         }
         if (config.big || config.googleAppEngine) {
             dir = getBaseDir();
+            url = dbName;
         } else {
             dir = "memFS:";
+            url = "memFS:/" + dbName;
         }
-        url = dir + "/" + dbName + ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
+        url += ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
         testSummaryCrash();
         testCrash();
         testShutdown();

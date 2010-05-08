@@ -297,6 +297,8 @@ java org.h2.test.TestAll timer
         test.printSystem();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
+        
+        // System.setProperty("h2.syncMethod", "");
 /*
 
 test with small freeList pages, page size 64
@@ -659,11 +661,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void afterTest() {
-        FileSystemDisk.getInstance().deleteRecursive("trace.db", false);
+        FileSystemDisk.getInstance().deleteRecursive("trace.db", true);
         if (networked && server != null) {
             server.stop();
         }
-        FileSystemDisk.getInstance().deleteRecursive(TestBase.BASE_TEST_DIR, false);
+        FileSystemDisk.getInstance().deleteRecursive(TestBase.BASE_TEST_DIR, true);
     }
 
     private void printSystem() {

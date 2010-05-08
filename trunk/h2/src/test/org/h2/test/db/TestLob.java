@@ -77,12 +77,12 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
-        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, false);
+        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
     }
 
     private void testTempFilesDeleted() throws Exception {
         String[] list;
-        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, false);
+        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
         IOUtils.mkdirs(new File(TEMP_DIR));
         list = IOUtils.listFiles(TEMP_DIR);
         if (list.length > 0) {

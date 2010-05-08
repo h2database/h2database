@@ -62,7 +62,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         deleteDb("functions");
-        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, false);
+        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
     }
 
     private void testGreatest() throws SQLException {

@@ -297,13 +297,15 @@ java org.h2.test.TestAll timer
         test.printSystem();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
-        
+
         // System.setProperty("h2.syncMethod", "");
 /*
 
 test with small freeList pages, page size 64
 
 comparative sql tests
+
+ValueDecimal.getMemory() is slow
 
 power failure test
 power failure test: MULTI_THREADED=TRUE

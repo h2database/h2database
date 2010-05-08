@@ -197,11 +197,10 @@ public abstract class TestBase {
     }
 
     /**
-     * Get the file translated file name.
+     * Get the base directory for tests.
      * If a special file system is used, the prefix is prepended.
      *
-     * @param name the original file name
-     * @return the translated file name
+     * @return the directory, possibly including file system prefix
      */
     protected String getBaseDir() {
         if (config != null && config.record) {

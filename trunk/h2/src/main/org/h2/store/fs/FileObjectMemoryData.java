@@ -17,7 +17,7 @@ import org.h2.util.MathUtils;
  * This class contains the data of an in-memory random access file.
  * Data compression using the LZF algorithm is supported as well.
  */
-public class FileObjectMemoryData {
+class FileObjectMemoryData {
 
     private static final int CACHE_SIZE = 8;
     private static final int BLOCK_SIZE_SHIFT = 10;
@@ -148,6 +148,9 @@ public class FileObjectMemoryData {
         }
     }
 
+    /**
+     * Update the last modified time.
+     */
     void touch() throws IOException {
         if (isReadOnly) {
             throw new IOException("Read only");
@@ -155,10 +158,20 @@ public class FileObjectMemoryData {
         lastModified = System.currentTimeMillis();
     }
 
+    /**
+     * Get the file length.
+     *
+     * @return the length
+     */
     long length() {
         return length;
     }
 
+    /**
+     * Change the file length.
+     *
+     * @param newLength the new length
+     */
     void setFileLength(long newLength) {
         if (newLength < length) {
             changeLength(newLength);
@@ -193,6 +206,16 @@ public class FileObjectMemoryData {
         }
     }
 
+    /**
+     * Read or write.
+     *
+     * @param pos the position
+     * @param b the byte array
+     * @param off the offset within the byte array
+     * @param len the number of bytes
+     * @param write true for writing
+     * @return the new position
+     */
     long readWrite(long pos, byte[] b, int off, int len, boolean write) throws IOException {
         long end = pos + len;
         if (end > length) {
@@ -226,27 +249,48 @@ public class FileObjectMemoryData {
         return pos;
     }
 
-    public void sync() {
-        // nothing to do
-    }
-
-    public void setName(String name) {
+    /**
+     * Set the file name.
+     *
+     * @param name the name
+     */
+    void setName(String name) {
         this.name = name;
     }
 
-    public String getName() {
+    /**
+     * Get the file name
+     *
+     * @return the name
+     */
+    String getName() {
         return name;
     }
 
-    public long getLastModified() {
+    /**
+     * Get the last modified time.
+     *
+     * @return the time
+     */
+    long getLastModified() {
         return lastModified;
     }
 
-    public boolean canWrite() {
+    /**
+     * Check whether writing is allowed.
+     *
+     * @return true if it is
+     */
+    boolean canWrite() {
         return !isReadOnly;
     }
 
-    public boolean setReadOnly() {
+    /**
+     * Set the read-only flag.
+     *
+     * @return true
+     */
+    boolean setReadOnly() {
         isReadOnly = true;
         return true;
     }

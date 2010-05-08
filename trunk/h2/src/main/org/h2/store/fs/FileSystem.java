@@ -293,6 +293,7 @@ public abstract class FileSystem {
     /**
      * Disable the ability to write.
      *
+     * @param fileName the file name
      * @return true if the call was successful
      */
     public abstract boolean setReadOnly(String fileName);

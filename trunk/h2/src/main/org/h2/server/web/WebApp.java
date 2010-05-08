@@ -962,7 +962,7 @@ public class WebApp {
                             return s;
                         }
                         StringBuilder b = new StringBuilder();
-                        query(conn, s, i - 1, list.size(), b);
+                        query(conn, s, i - 1, list.size() - 2, b);
                         return b.toString();
                     }
                     public void remove() {

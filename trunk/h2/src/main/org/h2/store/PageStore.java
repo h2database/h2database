@@ -299,6 +299,7 @@ public class PageStore implements CacheWriter {
             if (database.isReadOnly()) {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName + " pageCount: " + pageCount);
             }
+            file.close();
             IOUtils.delete(fileName);
             openNew();
             return;

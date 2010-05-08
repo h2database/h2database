@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Queries using multiple IN(..) conditions on the same table could cause repeated rows in the result set.
+<ul><li>Temporary files were not deleted when using large transactions, disabling autocommit,
+	and closing the session without committing.
+<li>Queries using multiple IN(..) conditions on the same table could cause repeated rows in the result set.
 </li><li>Translation: Lubomir Grajciar translated the H2 Console as well as all error message to Slovensky. Thanks a lot!
 </li><li>There was a possible Java level deadlock when opening an uninitialized database and using
     a file system that also opened a database.

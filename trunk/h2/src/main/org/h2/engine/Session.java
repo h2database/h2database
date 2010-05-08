@@ -555,6 +555,7 @@ public class Session extends SessionWithState implements SessionFactory {
             try {
                 database.checkPowerOff();
                 cleanTempTables(true);
+                undoLog.clear();
                 database.removeSession(this);
             } finally {
                 closed = true;

@@ -138,7 +138,7 @@ public class IndexCursor implements Cursor {
             return false;
         }
         // The first column of the index must match this column,
-        // or it must be a VIEW indexe (where the column is null).
+        // or it must be a VIEW index (where the column is null).
         // Multiple IN conditions with views are not supported, see
         // IndexCondition.getMask.
         IndexColumn idxCol = indexColumns[0];

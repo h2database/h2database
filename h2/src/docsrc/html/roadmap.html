@@ -49,6 +49,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Test very large databases and LOBs (up to 256 GB).
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
+</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
 </li><li>Add a migration guide (list differences between databases).
@@ -71,7 +72,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
 </li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
     ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
-</li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 </li><li>Access rights: finer grained access control (grant access for specific functions).
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
 </li><li>Web server classloader: override findResource / getResourceFrom.
@@ -467,6 +467,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Maybe use PhantomReference instead of finalize.
 </li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
 </li><li>Database file name suffix: should only have one dot by default. Example: .h2db
+</li><li>Issue 196: Function based indexes
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -206,11 +206,25 @@ public class RecordingFileSystem extends FileSystem {
         this.trace = trace;
     }
 
-    public void log(int op, String fileName) {
+    /**
+     * Log the operation.
+     *
+     * @param op the operation
+     * @param fileName the file name
+     */
+    void log(int op, String fileName) {
         log(op, fileName, null, 0);
     }
 
-    public void log(int op, String fileName, byte[] data, long x) {
+    /**
+     * Log the operation.
+     *
+     * @param op the operation
+     * @param fileName the file name
+     * @param data the data or null
+     * @param x the value or 0
+     */
+    void log(int op, String fileName, byte[] data, long x) {
         if (recorder != null) {
             recorder.log(op, fileName, data, x);
         }

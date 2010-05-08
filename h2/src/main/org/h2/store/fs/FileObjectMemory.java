@@ -54,7 +54,7 @@ public class FileObjectMemory implements FileObject {
     }
 
     public void sync() {
-        data.sync();
+        // do nothing
     }
 
     public void setName(String name) {
@@ -67,14 +67,6 @@ public class FileObjectMemory implements FileObject {
 
     public long getLastModified() {
         return data.getLastModified();
-    }
-
-    boolean canWrite() {
-        return data.canWrite();
-    }
-
-    boolean setReadOnly() {
-        return data.setReadOnly();
     }
 
 }

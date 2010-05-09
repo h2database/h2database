@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testPreparedSubquery2();
         testPreparedSubquery();
         testCompareDoubleWithIntColumn();
         testDeleteIndexOutOfBounds();
@@ -79,7 +80,40 @@ public class TestCases extends TestBase {
         testCollation();
         deleteDb("cases");
     }
+    
+    private void testPreparedSubquery2() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar(255))");
+        stat.execute("insert into test values(1, 'Hello')");
+        stat.execute("insert into test values(2, 'World')");
 
+        PreparedStatement ps = conn.prepareStatement("select name from test where id in (select id from test where name = ?)");
+        ps.setString(1, "Hello");
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            if (!rs.getString("name").equals("Hello")) {
+                fail("'" + rs.getString("name") + "' must be 'Hello'");                
+            }
+        } else {
+            fail("Must have a result!");
+        }
+        rs.close();
+
+        ps.setString(1, "World");
+        rs = ps.executeQuery();
+        if (rs.next()) {
+            if (!rs.getString("name").equals("World")) {
+                fail("'" + rs.getString("name") + "' must be 'World'");                
+            }
+        } else {
+            fail("Must have a result!");
+        }
+        rs.close();
+        conn.close();
+    }
+    
     private void testPreparedSubquery() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");

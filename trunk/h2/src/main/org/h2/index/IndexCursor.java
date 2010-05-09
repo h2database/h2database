@@ -67,6 +67,7 @@ public class IndexCursor implements Cursor {
         alwaysFalse = false;
         start = end = null;
         inList = null;
+        inColumn = null;
         inResult = null;
         inResultTested = new HashSet<Value>();
         for (IndexCondition condition : indexConditions) {

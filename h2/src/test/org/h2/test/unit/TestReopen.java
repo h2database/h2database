@@ -19,6 +19,7 @@ import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.utils.Recorder;
 import org.h2.test.utils.RecordingFileSystem;
+import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.Profiler;
 
@@ -28,6 +29,7 @@ import org.h2.util.Profiler;
  */
 public class TestReopen extends TestBase implements Recorder {
 
+    private static final int MAX_FILE_SIZE = 8 * 1024 * 1024;
     private String testDatabase = "memFS:" + TestBase.BASE_TEST_DIR + "/reopen";
     private long lastCheck;
     private int writeCount = Integer.parseInt(System.getProperty("reopenOffset", "0"));
@@ -89,6 +91,10 @@ public class TestReopen extends TestBase implements Recorder {
             }
         }
         if ((writeCount & (testEvery - 1)) != 0) {
+            return;
+        }
+        if (IOUtils.length(fileName) > MAX_FILE_SIZE) {
+            // System.out.println(fileName + " " + IOUtils.length(fileName));
             return;
         }
         FileSystem.getInstance(fileName).copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);

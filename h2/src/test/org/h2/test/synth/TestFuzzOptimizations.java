@@ -7,12 +7,17 @@
 package org.h2.test.synth;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.test.db.Db;
 import org.h2.test.db.Db.Prepared;
+import org.h2.util.New;
 
 /**
  * This test executes random SQL statements to test if optimizations are working
@@ -34,10 +39,114 @@ public class TestFuzzOptimizations extends TestBase {
     public void test() throws Exception {
         deleteDb("optimizations");
         conn = getConnection("optimizations");
+        testIn();
         testGroupSorted();
         testInSelect();
         conn.close();
         deleteDb("optimizations");
+    }
+
+    /*
+        drop table test0;
+        drop table test1;
+        create table test0(a int, b int, c int);
+        create index idx_1 on test0(a);
+        create index idx_2 on test0(b, a);
+        create table test1(a int, b int, c int);
+        insert into test0 select x / 100, mod(x / 10, 10), mod(x, 10) from system_range(0, 999);
+        update test0 set a = null where a = 9;
+        update test0 set b = null where b = 9;
+        update test0 set c = null where c = 9;
+        insert into test1 select * from test0;
+
+        select * from test0 where
+        b in(null, 0) and a in(2, null, null)
+        order by 1, 2, 3;
+
+        select * from test1 where
+        b in(null, 0) and a in(2, null, null)
+        order by 1, 2, 3;
+     */
+    private void testIn() throws SQLException {
+        Db db = new Db(conn);
+        db.execute("create table test0(a int, b int, c int)");
+        db.execute("create index idx_1 on test0(a)");
+        db.execute("create index idx_2 on test0(b, a)");
+        db.execute("create table test1(a int, b int, c int)");
+        db.execute("insert into test0 select x / 100, mod(x / 10, 10), mod(x, 10) from system_range(0, 999)");
+        db.execute("update test0 set a = null where a = 9");
+        db.execute("update test0 set b = null where b = 9");
+        db.execute("update test0 set c = null where c = 9");
+        db.execute("insert into test1 select * from test0");
+        Random seedGenerator = new Random();
+        String[] columns = new String[] { "a", "b", "c" };
+        String[] values = new String[] { null, "0", "0", "1", "2", "10", "?" };
+        String[] compares = new String[] { "in", "not in", "=", "=", ">", "<", ">=", "<=", "<>" };
+        int size = getSize(1000, 10000);
+        for (int i = 0; i < size; i++) {
+            long seed = seedGenerator.nextLong();
+            println("seed: " + seed);
+            Random random = new Random(seed);
+            int comp = 1 + random.nextInt(4);
+            StringBuilder buff = new StringBuilder();
+            ArrayList<String> params = New.arrayList();
+            for (int j = 0; j < comp; j++) {
+                if (j > 0) {
+                    buff.append(random.nextBoolean() ? " and " : " or ");
+                }
+                String column = columns[random.nextInt(columns.length)];
+                String compare = compares[random.nextInt(compares.length)];
+                buff.append(column).append(' ').append(compare);
+                if (compare.endsWith("in")) {
+                    buff.append("(");
+                    int len = 1+random.nextInt(3);
+                    for (int k = 0; k < len; k++) {
+                        if (k > 0) {
+                            buff.append(", ");
+                        }
+                        String value = values[random.nextInt(values.length)];
+                        buff.append(value);
+                        if ("?".equals(value)) {
+                            value = values[random.nextInt(values.length - 1)];
+                            params.add(value);
+                        }
+                    }
+                    buff.append(")");
+                } else {
+                    String value = values[random.nextInt(values.length)];
+                    buff.append(value);
+                    if ("?".equals(value)) {
+                        value = values[random.nextInt(values.length - 1)];
+                        params.add(value);
+                    }
+                }
+            }
+            String condition = buff.toString();
+         //   System.out.println(condition + " " + params);
+            PreparedStatement prep0 = conn.prepareStatement(
+                    "select * from test0 where " + condition
+                    + " order by 1, 2, 3");
+            PreparedStatement prep1 = conn.prepareStatement(
+                    "select * from test1 where " + condition
+                    + " order by 1, 2, 3");
+            for (int j = 0; j < params.size(); j++) {
+                prep0.setString(j + 1, params.get(j));
+                prep1.setString(j + 1, params.get(j));
+            }
+            ResultSet rs0 = prep0.executeQuery();
+            ResultSet rs1 = prep1.executeQuery();
+            assertEquals("seed: " + seed + " " + condition, rs0, rs1);
+            if (params.size() > 0) {
+                for (int j = 0; j < params.size(); j++) {
+                    String value = values[random.nextInt(values.length - 1)];
+                    params.set(j, value);
+                    prep0.setString(j + 1, value);
+                    prep1.setString(j + 1, value);
+                }
+                assertEquals("seed: " + seed + " " + condition, rs0, rs1);
+            }
+        }
+        db.execute("drop table test0, test1");
     }
 
     private void testInSelect() {
@@ -61,7 +170,7 @@ public class TestFuzzOptimizations extends TestBase {
                 "IN(SELECT " + value + " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
             List<Map<String, Object>> a = db.prepare(sql1).set(x).query();
             List<Map<String, Object>> b = db.prepare(sql2).set(x).query();
-            assertTrue(a.equals(b));
+            assertTrue("seed: " + seed, a.equals(b));
         }
         db.execute("DROP TABLE TEST");
     }

@@ -257,6 +257,9 @@ public class CreateTable extends SchemaCommand {
 
     public void setPersistData(boolean persistData) {
         data.persistData = persistData;
+        if (!persistData) {
+            data.persistIndexes = false;
+        }
     }
 
     public void setSortedInsertMode(boolean sortedInsertMode) {

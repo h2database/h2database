@@ -158,7 +158,10 @@ public class Profiler implements Runnable {
         stopCollecting();
         StringBuilder buff = new StringBuilder();
         buff.append("Profiler: top ").append(count).append(" stack trace(s) of ").append(time).
-            append(" ms [build-").append(Constants.BUILD_ID).append("]\n");
+            append(" ms [build-").append(Constants.BUILD_ID).append("]:\n");
+        if (counts.size() == 0) {
+            buff.append("(none)");
+        }
         for (int x = 0, min = 0;;) {
             int highest = 0;
             Map.Entry<String, Integer> best = null;

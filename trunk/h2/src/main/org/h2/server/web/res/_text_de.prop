@@ -134,6 +134,7 @@ tools.sourceFileName=Quell-Dateiname
 tools.sourceScriptFileName=Dateiname des Scripts (Quelle)
 tools.targetDatabaseName=Ziel-Datenbankname
 tools.targetDatabaseURL=Ziel-Datenbank URL
+tools.targetDirectory=Ziel-Verzeichnis
 tools.targetFileName=Ziel-Dateiname
 tools.targetScriptFileName=Dateiname des Scripts (Ziel)
 tools.traceFileName=Name der Trace Datei

@@ -12,7 +12,9 @@ Initial Developer: H2 Group
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
     <script type="text/javascript">
         if(self != top) {
-            top.location = "login.jsp";
+            if (self.name == 'h2result' || self.name == 'h2query' || self.name == 'h2menu') {
+                top.location = "login.jsp";
+            }
         }
     </script>
 </head>

@@ -134,6 +134,7 @@ tools.sourceFileName=ソースファイル名
 tools.sourceScriptFileName=ソーススクリプトファイル名
 tools.targetDatabaseName=ターゲットデータベース名
 tools.targetDatabaseURL=ターゲットデータベースURL
+tools.targetDirectory=ターゲットディレクトリ
 tools.targetFileName=ターゲットファイル名
 tools.targetScriptFileName=ターゲットスクリプトファイル名
 tools.traceFileName=トレースファイル名

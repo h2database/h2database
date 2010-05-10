@@ -108,7 +108,7 @@ function update() {
         <tr><td>
         ${text.tools.sourceFileName}:&nbsp;</td><td><input id="optionRestore.0" name="file" onkeyup="update()" onchange="update()" value="~/backup.zip" size="50" />
         </td></tr><tr><td>
-        ${text.tools.sourceDirectory}:&nbsp;</td><td><input id="optionRestore.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
+        ${text.tools.targetDirectory}:&nbsp;</td><td><input id="optionRestore.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
         </td></tr><tr><td>
         ${text.tools.targetDatabaseName}:&nbsp;</td><td><input id="optionRestore.2" name="db" onkeyup="update()" onchange="update()" value="" size="50" />
         </td></tr>

@@ -599,15 +599,16 @@ public abstract class TestBase {
     /**
      * Check if two values are equal, and if not throw an exception.
      *
+     * @param message the message to use if the check fails
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
      */
-    protected void assertEquals(String expected, String actual) {
+    protected void assertEquals(String message, String expected, String actual) {
         if (expected == null && actual == null) {
             return;
         } else if (expected == null || actual == null) {
-            fail("Expected: " + expected + " Actual: " + actual);
+            fail("Expected: " + expected + " Actual: " + actual + " " + message);
         }
         if (!expected.equals(actual)) {
             for (int i = 0; i < expected.length(); i++) {
@@ -625,8 +626,41 @@ public abstract class TestBase {
             if (bl > 4000) {
                 actual = actual.substring(0, 4000);
             }
-            fail("Expected: " + expected + " (" + al + ") actual: " + actual + " (" + bl + ")");
+            fail("Expected: " + expected + " (" + al + ") actual: " + actual + " (" + bl + ") " + message);
         }
+    }
+
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    protected void assertEquals(String expected, String actual) {
+        assertEquals("", expected, actual);
+    }
+
+    /**
+     * Check if two result sets are equal, and if not throw an exception.
+     *
+     * @param message the message to use if the check fails
+     * @param rs0 the first result set
+     * @param rs1 the second result set
+     * @throws AssertionError if the values are not equal
+     */
+    protected void assertEquals(String message, ResultSet rs0, ResultSet rs1) throws SQLException {
+        ResultSetMetaData meta = rs0.getMetaData();
+        int columns = meta.getColumnCount();
+        assertEquals(columns, rs1.getMetaData().getColumnCount());
+        while (rs0.next()) {
+            assertTrue(message, rs1.next());
+            for (int i = 0; i < columns; i++) {
+                assertEquals(message, rs0.getString(i + 1), rs1.getString(i + 1));
+           }
+        }
+        assertFalse(message, rs0.next());
+        assertFalse(message, rs1.next());
     }
 
     /**

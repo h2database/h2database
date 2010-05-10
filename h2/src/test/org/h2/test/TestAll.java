@@ -301,11 +301,14 @@ java org.h2.test.TestAll timer
         // System.setProperty("h2.syncMethod", "");
 /*
 
-test with small freeList pages, page size 64
+change or remove documentation for FILE_LOCK=NO
 
 comparative sql tests
 
-ValueDecimal.getMemory() is slow
+reopen org.h2.test.unit.TestPageStore
+-Xmx1500m -D reopenOffset=3 -D reopenShift=1
+
+test with small freeList pages, page size 64
 
 power failure test
 power failure test: MULTI_THREADED=TRUE

@@ -80,7 +80,7 @@ public class TestCases extends TestBase {
         testCollation();
         deleteDb("cases");
     }
-    
+
     private void testPreparedSubquery2() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -94,7 +94,7 @@ public class TestCases extends TestBase {
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
             if (!rs.getString("name").equals("Hello")) {
-                fail("'" + rs.getString("name") + "' must be 'Hello'");                
+                fail("'" + rs.getString("name") + "' must be 'Hello'");
             }
         } else {
             fail("Must have a result!");
@@ -105,7 +105,7 @@ public class TestCases extends TestBase {
         rs = ps.executeQuery();
         if (rs.next()) {
             if (!rs.getString("name").equals("World")) {
-                fail("'" + rs.getString("name") + "' must be 'World'");                
+                fail("'" + rs.getString("name") + "' must be 'World'");
             }
         } else {
             fail("Must have a result!");
@@ -113,7 +113,7 @@ public class TestCases extends TestBase {
         rs.close();
         conn.close();
     }
-    
+
     private void testPreparedSubquery() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");

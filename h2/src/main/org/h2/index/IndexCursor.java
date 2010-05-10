@@ -142,7 +142,7 @@ public class IndexCursor implements Cursor {
         // or it must be a VIEW index (where the column is null).
         // Multiple IN conditions with views are not supported, see
         // IndexCondition.getMask.
-        IndexColumn idxCol = indexColumns[0];
+        IndexColumn idxCol = index.getIndexColumns()[0];
         return idxCol == null || idxCol.column == column;
     }
 
@@ -203,17 +203,22 @@ public class IndexCursor implements Cursor {
 
     private void nextCursor() {
         if (inList != null) {
-            if (inListIndex < inList.length) {
+            while (inListIndex < inList.length) {
                 Value v = inList[inListIndex++];
-                find(v);
+                if (v != ValueNull.INSTANCE) {
+                    find(v);
+                    break;
+                }
             }
         } else if (inResult != null) {
             while (inResult.next()) {
                 Value v = inResult.currentRow()[0];
-                v = inColumn.convert(v);
-                if (inResultTested.add(v)) {
-                    find(v);
-                    break;
+                if (v != ValueNull.INSTANCE) {
+                    v = inColumn.convert(v);
+                    if (inResultTested.add(v)) {
+                        find(v);
+                        break;
+                    }
                 }
             }
         }

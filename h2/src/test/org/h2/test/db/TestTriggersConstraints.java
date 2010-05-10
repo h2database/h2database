@@ -16,6 +16,7 @@ import java.util.HashSet;
 
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
+import org.h2.tools.TriggerAdapter;
 
 /**
  * Tests for trigger and constraints.
@@ -36,12 +37,39 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     public void test() throws SQLException {
         deleteDb("trigger");
+        testTriggerAdapter();
         testViewTrigger();
         testTriggerBeforeSelect();
         testTriggerAlterTable();
         testTriggers();
         testConstraints();
         deleteDb("trigger");
+    }
+
+    private void testTriggerAdapter() throws SQLException {
+        Connection conn;
+        Statement stat;
+        conn = getConnection("trigger");
+        stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id int)");
+        stat.execute("create table message(name varchar)");
+        stat.execute("create trigger test_insert after insert, update, delete on test " +
+                "for each row call \"" + TestTriggerAdapter.class.getName() + "\"");
+        stat.execute("insert into test values(1)");
+        stat.execute("update test set id = 2");
+        stat.execute("delete from test");
+        ResultSet rs;
+        rs = stat.executeQuery("select * from message");
+        assertTrue(rs.next());
+        assertEquals("+1;", rs.getString(1));
+        assertTrue(rs.next());
+        assertEquals("-1;+2;", rs.getString(1));
+        assertTrue(rs.next());
+        assertEquals("-2;", rs.getString(1));
+        assertFalse(rs.next());
+        stat.execute("drop table test, message");
+        conn.close();
     }
 
     private void testViewTrigger() throws SQLException {
@@ -66,6 +94,24 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("drop view test_view");
         stat.execute("drop table test");
         conn.close();
+    }
+
+    /**
+     * A test trigger adapter implementation.
+     */
+    public static class TestTriggerAdapter extends TriggerAdapter {
+
+        public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
+            StringBuilder buff = new StringBuilder();
+            if (oldRow != null) {
+                buff.append("-").append(oldRow.getString("id")).append(';');
+            }
+            if (newRow != null) {
+                buff.append("+").append(newRow.getString("id")).append(';');
+            }
+            conn.createStatement().execute("insert into message values('" + buff.toString() + "')");
+        }
+
     }
 
     /**

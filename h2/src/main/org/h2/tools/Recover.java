@@ -18,7 +18,6 @@ import java.io.Reader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
@@ -427,14 +426,12 @@ public class Recover extends Tool implements DataHandler {
             writer.println("-- firstTrunkPage: " + logFirstTrunkPage +
                     " firstDataPage: " + logFirstDataPage);
 
-            int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
             PrintWriter devNull = new PrintWriter(new OutputStream() {
                 public void write(int b) {
                     // ignore
                 }
             });
             dumpPageStore(devNull, pageCount);
-            Arrays.fill(pageTypeCount, 0);
             stat = new Stats();
             schema.clear();
             objectIdSet = New.hashSet();
@@ -448,8 +445,8 @@ public class Recover extends Tool implements DataHandler {
             writer.println("---- Statistics ----------");
             writer.println("-- page count: " + pageCount + " free: " + stat.free);
             writer.println("-- page data head: " + stat.pageDataHead + " empty: " + stat.pageDataEmpty + " rows: " + stat.pageDataRows);
-            for (int i = 0; i < pageTypeCount.length; i++) {
-                int count = pageTypeCount[i];
+            for (int i = 0; i < stat.pageTypeCount.length; i++) {
+                int count = stat.pageTypeCount[i];
                 if (count > 0) {
                     writer.println("-- page count type: " + i + " " + (100 * count / pageCount) + "% count: " + count);
                 }

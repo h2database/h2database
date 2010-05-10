@@ -134,6 +134,7 @@ tools.sourceFileName=#Source file name
 tools.sourceScriptFileName=#Source script file name
 tools.targetDatabaseName=#Target database name
 tools.targetDatabaseURL=#Target database URL
+tools.targetDirectory=#Target directory
 tools.targetFileName=#Target file name
 tools.targetScriptFileName=#Target script file name
 tools.traceFileName=#Trace file name

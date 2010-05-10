@@ -134,6 +134,7 @@ tools.sourceFileName=Kaynak dosya adı
 tools.sourceScriptFileName=Kaynak betik dosya adı
 tools.targetDatabaseName=Hedef veritabanının adı
 tools.targetDatabaseURL=Hedef veritabanının  URL'u
+tools.targetDirectory=Hedef dizelge
 tools.targetFileName=Hedef dosya adı
 tools.targetScriptFileName=Hedef betik dosya adı
 tools.traceFileName=Trace dosya adı

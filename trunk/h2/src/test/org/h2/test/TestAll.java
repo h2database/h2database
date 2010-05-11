@@ -298,25 +298,24 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
+        // System.setProperty("h2.lobInDatabase", "true");
+        // System.setProperty("h2.analyzeAuto", "100");
+
         // System.setProperty("h2.syncMethod", "");
 /*
 
-change or remove documentation for FILE_LOCK=NO
+h2.selectForUpdateMvcc:
+Implement (sum, count) and test (join, ...)
 
-comparative sql tests
+recovery tests with small freeList pages, page size 64
 
 reopen org.h2.test.unit.TestPageStore
 -Xmx1500m -D reopenOffset=3 -D reopenShift=1
-
-test with small freeList pages, page size 64
 
 power failure test
 power failure test: MULTI_THREADED=TRUE
 power failure test: larger binaries and additional index.
 power failure test with randomly generating / dropping indexes and tables.
-
-lob in db: check for memory leaks (temp table with blob, then crash;
-crash while truncating a table with a blob)
 
 drop table test;
 create table test(id identity, name varchar(100) default space(100));

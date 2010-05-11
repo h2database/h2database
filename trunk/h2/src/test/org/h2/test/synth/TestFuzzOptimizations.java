@@ -53,7 +53,9 @@ public class TestFuzzOptimizations extends TestBase {
         create index idx_1 on test0(a);
         create index idx_2 on test0(b, a);
         create table test1(a int, b int, c int);
-        insert into test0 select x / 100, mod(x / 10, 10), mod(x, 10) from system_range(0, 999);
+        insert into test0 select x / 100,
+            mod(x / 10, 10), mod(x, 10)
+            from system_range(0, 999);
         update test0 set a = null where a = 9;
         update test0 set b = null where b = 9;
         update test0 set c = null where c = 9;
@@ -80,49 +82,16 @@ public class TestFuzzOptimizations extends TestBase {
         db.execute("insert into test1 select * from test0");
         Random seedGenerator = new Random();
         String[] columns = new String[] { "a", "b", "c" };
-        String[] values = new String[] { null, "0", "0", "1", "2", "10", "?" };
-        String[] compares = new String[] { "in", "not in", "=", "=", ">", "<", ">=", "<=", "<>" };
+        String[] values = new String[] { null, "0", "0", "1", "2", "10", "a", "?" };
+        String[] compares = new String[] { "in(", "not in(", "=", "=", ">", "<", ">=", "<=", "<>", "in(select", "not in(select" };
         int size = getSize(1000, 10000);
         for (int i = 0; i < size; i++) {
             long seed = seedGenerator.nextLong();
             println("seed: " + seed);
             Random random = new Random(seed);
-            int comp = 1 + random.nextInt(4);
-            StringBuilder buff = new StringBuilder();
             ArrayList<String> params = New.arrayList();
-            for (int j = 0; j < comp; j++) {
-                if (j > 0) {
-                    buff.append(random.nextBoolean() ? " and " : " or ");
-                }
-                String column = columns[random.nextInt(columns.length)];
-                String compare = compares[random.nextInt(compares.length)];
-                buff.append(column).append(' ').append(compare);
-                if (compare.endsWith("in")) {
-                    buff.append("(");
-                    int len = 1+random.nextInt(3);
-                    for (int k = 0; k < len; k++) {
-                        if (k > 0) {
-                            buff.append(", ");
-                        }
-                        String value = values[random.nextInt(values.length)];
-                        buff.append(value);
-                        if ("?".equals(value)) {
-                            value = values[random.nextInt(values.length - 1)];
-                            params.add(value);
-                        }
-                    }
-                    buff.append(")");
-                } else {
-                    String value = values[random.nextInt(values.length)];
-                    buff.append(value);
-                    if ("?".equals(value)) {
-                        value = values[random.nextInt(values.length - 1)];
-                        params.add(value);
-                    }
-                }
-            }
-            String condition = buff.toString();
-         //   System.out.println(condition + " " + params);
+            String condition = getRandomCondition(random, params, columns, compares, values);
+            //   System.out.println(condition + " " + params);
             PreparedStatement prep0 = conn.prepareStatement(
                     "select * from test0 where " + condition
                     + " order by 1, 2, 3");
@@ -138,7 +107,7 @@ public class TestFuzzOptimizations extends TestBase {
             assertEquals("seed: " + seed + " " + condition, rs0, rs1);
             if (params.size() > 0) {
                 for (int j = 0; j < params.size(); j++) {
-                    String value = values[random.nextInt(values.length - 1)];
+                    String value = values[random.nextInt(values.length - 2)];
                     params.set(j, value);
                     prep0.setString(j + 1, value);
                     prep1.setString(j + 1, value);
@@ -147,6 +116,49 @@ public class TestFuzzOptimizations extends TestBase {
             }
         }
         db.execute("drop table test0, test1");
+    }
+
+    private String getRandomCondition(Random random, ArrayList<String> params,
+            String[] columns, String[] compares, String[] values) {
+        int comp = 1 + random.nextInt(4);
+        StringBuilder buff = new StringBuilder();
+        for (int j = 0; j < comp; j++) {
+            if (j > 0) {
+                buff.append(random.nextBoolean() ? " and " : " or ");
+            }
+            String column = columns[random.nextInt(columns.length)];
+            String compare = compares[random.nextInt(compares.length)];
+            buff.append(column).append(' ').append(compare);
+            if (compare.endsWith("in(")) {
+                int len = 1+random.nextInt(3);
+                for (int k = 0; k < len; k++) {
+                    if (k > 0) {
+                        buff.append(", ");
+                    }
+                    String value = values[random.nextInt(values.length)];
+                    buff.append(value);
+                    if ("?".equals(value)) {
+                        value = values[random.nextInt(values.length - 2)];
+                        params.add(value);
+                    }
+                }
+                buff.append(")");
+            } else if (compare.endsWith("(select")) {
+                String col = columns[random.nextInt(columns.length)];
+                buff.append(" ").append(col).append(" from test1 where ");
+                String condition = getRandomCondition(random, params, columns, compares, values);
+                buff.append(condition);
+                buff.append(")");
+            } else {
+                String value = values[random.nextInt(values.length)];
+                buff.append(value);
+                if ("?".equals(value)) {
+                    value = values[random.nextInt(values.length - 2)];
+                    params.add(value);
+                }
+            }
+        }
+        return buff.toString();
     }
 
     private void testInSelect() {

@@ -151,8 +151,8 @@ than reliability. Those dangerous features are:
 <ul><li>Using the transaction isolation level <code>READ_UNCOMMITTED</code>
     (<code>LOCK_MODE 0</code>) while at the same time using multiple
     connections.
-</li><li>Disabling database file protection using <code>FILE_LOCK=NO</code>
-    in the database URL.
+</li><li>Disabling database file protection using (setting <code>FILE_LOCK</code> to
+    <code>NO</code> in the database URL).
 </li><li>Disabling referential integrity using <code>SET REFERENTIAL_INTEGRITY FALSE</code>.
 </li></ul>
 <p>

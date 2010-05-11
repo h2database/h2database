@@ -657,7 +657,7 @@ public abstract class TestBase {
             assertTrue(message, rs1.next());
             for (int i = 0; i < columns; i++) {
                 assertEquals(message, rs0.getString(i + 1), rs1.getString(i + 1));
-           }
+            }
         }
         assertFalse(message, rs0.next());
         assertFalse(message, rs1.next());

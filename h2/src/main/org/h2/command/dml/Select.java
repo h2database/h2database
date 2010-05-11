@@ -73,7 +73,7 @@ public class Select extends Query {
     private HashMap<Expression, Object> currentGroup;
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
-    private boolean isForUpdate;
+    private boolean isForUpdate, isForUpdateMvcc;
     private double cost;
     private boolean isQuickAggregateQuery, isDistinctQuery;
     private boolean isPrepared, checkInit;
@@ -492,6 +492,9 @@ public class Select extends Query {
                     Expression expr = expressions.get(i);
                     row[i] = expr.getValue(session);
                 }
+                if (isForUpdateMvcc) {
+                    topTableFilter.lockRow();
+                }
                 result.addRow(row);
                 rowNumber++;
                 if ((sort == null || sortUsingIndex) && limitRows != 0 && result.getRowCount() >= limitRows) {
@@ -539,7 +542,8 @@ public class Select extends Query {
         }
         topTableFilter.startQuery(session);
         topTableFilter.reset();
-        topTableFilter.lock(session, isForUpdate, isForUpdate);
+        boolean exclusive = isForUpdate && !isForUpdateMvcc;
+        topTableFilter.lock(session, exclusive, exclusive);
         if (isQuickAggregateQuery) {
             queryQuick(columnCount, result);
         } else if (isGroupQuery) {
@@ -962,6 +966,9 @@ public class Select extends Query {
 
     public void setForUpdate(boolean b) {
         this.isForUpdate = b;
+        if (SysProperties.SELECT_FOR_UPDATE_MVCC && session.getDatabase().isMultiVersion()) {
+            isForUpdateMvcc = b;
+        }
     }
 
     public void mapColumns(ColumnResolver resolver, int level) {

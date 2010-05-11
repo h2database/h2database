@@ -527,6 +527,12 @@ public class SysProperties {
     public static boolean runFinalize = getBooleanSetting("h2.runFinalize", true);
 
     /**
+     * System property <code>h2.selectForUpdateMvcc</code> (default: false).<br />
+     * If set, SELECT .. FOR UPDATE queries lock the rows when using MVCC.
+     */
+    public static final boolean SELECT_FOR_UPDATE_MVCC = getBooleanSetting("h2.selectForUpdateMvcc", false);
+
+    /**
      * System property <code>h2.serverCachedObjects</code> (default: 64).<br />
      * TCP Server: number of cached objects per session.
      */

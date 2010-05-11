@@ -500,8 +500,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 <tr>
     <td><a href="#database_file_locking">File locking methods</a></td>
     <td class="notranslate">
-        jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br />
-        jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO<br />
+        jdbc:h2:&lt;url&gt;;FILE_LOCK={FILE|SOCKET|NO}<br />
         jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET<br />
     </td>
 </tr>
@@ -684,14 +683,18 @@ the database terminates, this lock file is deleted.
 The following file locking methods are implemented:
 </p>
 <ul>
-<li>The default method is 'file' and uses a watchdog thread to
+<li>The default method is <code>FILE</code> and uses a watchdog thread to
 protect the database file. The watchdog reads the lock file each second.
-</li><li>The second method is 'socket' and opens a server socket. The socket method does
-not require reading the lock file every second. The socket method should only be used
-if the database files are only accessed by one (and always the same) computer.
+</li><li>The second method is <code>SOCKET</code> and opens a server socket.
+The socket method does not require reading the lock file every second.
+The socket method should only be used if the database files
+are only accessed by one (and always the same) computer.
 </li><li>It is also possible to open the database without file locking;
 in this case it is up to the application to protect the database files.
-</li></ul>
+Failing to do so will result in a corrupted database.
+Using the method <code>NO</code> forces the database to not create a lock file at all.
+Please note that this is unsafe as another process is able to open the same database,
+possibly leading to data corruption.</li></ul>
 <p>
 To open the database with a different file locking method, use the parameter
 <code>FILE_LOCK</code>.
@@ -699,14 +702,6 @@ The following code opens the database with the 'socket' locking method:
 </p>
 <pre>
 String url = "jdbc:h2:~/test;FILE_LOCK=SOCKET";
-</pre>
-<p>
-The following code forces the database to not create a lock file at all. Please note that
-this is unsafe as another process is able to open the same database, possibly leading to
-data corruption:
-</p>
-<pre>
-String url = "jdbc:h2:~/test;FILE_LOCK=NO";
 </pre>
 <p>
 For more information about the algorithms, see

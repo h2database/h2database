@@ -718,14 +718,16 @@ public class TableFilter implements ColumnResolver {
         return false;
     }
 
-    public void lockRow() {
+    public void lockRow(ArrayList<Row> rows) {
         if (state == FOUND) {
-            Row row = get();
+            rows.add(get());
+        }
+    }
+
+    public void lockRows(ArrayList<Row> forUpdateRows) {
+        for (Row row : forUpdateRows) {
             table.removeRow(session, row);
             table.addRow(session, row);
-            if (join != null) {
-                join.lockRow();
-            }
         }
     }
 

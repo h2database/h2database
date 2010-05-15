@@ -61,23 +61,11 @@ public class TestMvcc1 extends TestBase {
         if (!config.mvcc) {
             return;
         }
-        // TODO Prio 1: row level locking for update / delete (as PostgreSQL)
         // TODO Prio 1: document: exclusive table lock still used when altering
         //     tables, adding indexes, select ... for update; table level locks are
         //     checked
-        // TODO Prio 1: free up disk space (for deleted rows and old versions of
-        //     updated rows) on commit
-        // TODO Prio 1: ScanIndex: never remove uncommitted data from cache
-        //     (lost sessionId)
-        // TODO Prio 1: test with Hibernate
         // TODO Prio 2: if MVCC is used, rows of transactions need to fit in
         //     memory
-        // TODO Prio 2: write the log only when committed; remove restriction at
-        //     Record.canRemove
-        // TODO Prio 2: getRowCount: different row count for different indexes
-        //     (MultiVersionIndex)
-        // TODO Prio 2: getRowCount: different row count for different sessions:
-        //     TableLink (use different connections?)
         // TODO Prio 2: getFirst / getLast in MultiVersionIndex
         // TODO Prio 2: snapshot isolation (currently read-committed, not
         //     repeatable read)

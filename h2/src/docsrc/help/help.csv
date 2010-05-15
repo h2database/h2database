@@ -25,7 +25,10 @@ Multiple set operators (UNION/INTERSECT/MINUS/EXPECT) are evaluated
 from left to right. For compatibility with other databases and future versions
 of H2 please use parentheses.
 
-If FOR UPDATE is specified, the tables are locked for writing.
+If FOR UPDATE is specified, the tables are locked for writing. When using
+MVCC, only the selected rows are locked as in an UPDATE statement.
+In this case, aggregate, GROUP BY, DISTINCT queries or joins 
+are not allowed in this case.
 ","
 SELECT * FROM TEST;
 SELECT * FROM TEST ORDER BY NAME;
@@ -3387,7 +3390,8 @@ ROWNUM()
 Returns the number of the current row.
 This method returns an int.
 This function is supported for SELECT statements, as well as for DELETE and UPDATE.
-The first row has the row number 1, and is calculated before ordering and grouping the result set.
+The first row has the row number 1, and is calculated before ordering and grouping the result set,
+but after evaluating index conditions (even when the  index conditions are specified in an outer query).
 To get the row number after ordering and grouping, use a subquery.
 ","
 SELECT ROWNUM(), * FROM TEST;

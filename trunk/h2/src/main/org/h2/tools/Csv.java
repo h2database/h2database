@@ -700,4 +700,13 @@ public class Csv implements SimpleRowSource {
         this.nullString = nullString;
     }
 
+    /**
+     * Get the current null string.
+     *
+     * @return the null string.
+     */
+    public String getNullString() {
+        return nullString;
+    }
+
 }

@@ -84,7 +84,7 @@ public class TestFuzzOptimizations extends TestBase {
         String[] columns = new String[] { "a", "b", "c" };
         String[] values = new String[] { null, "0", "0", "1", "2", "10", "a", "?" };
         String[] compares = new String[] { "in(", "not in(", "=", "=", ">", "<", ">=", "<=", "<>", "in(select", "not in(select" };
-        int size = getSize(1000, 10000);
+        int size = getSize(500, 5000);
         for (int i = 0; i < size; i++) {
             long seed = seedGenerator.nextLong();
             println("seed: " + seed);

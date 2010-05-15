@@ -28,6 +28,7 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
@@ -484,6 +485,10 @@ public class Select extends Query {
         }
         int rowNumber = 0;
         setCurrentRowNumber(0);
+        ArrayList<Row> forUpdateRows = null;
+        if (isForUpdateMvcc) {
+            forUpdateRows = New.arrayList();
+        }
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
@@ -493,7 +498,7 @@ public class Select extends Query {
                     row[i] = expr.getValue(session);
                 }
                 if (isForUpdateMvcc) {
-                    topTableFilter.lockRow();
+                    topTableFilter.lockRow(forUpdateRows);
                 }
                 result.addRow(row);
                 rowNumber++;
@@ -504,6 +509,9 @@ public class Select extends Query {
                     break;
                 }
             }
+        }
+        if (isForUpdateMvcc) {
+            topTableFilter.lockRows(forUpdateRows);
         }
     }
 
@@ -544,6 +552,19 @@ public class Select extends Query {
         topTableFilter.reset();
         boolean exclusive = isForUpdate && !isForUpdateMvcc;
         topTableFilter.lock(session, exclusive, exclusive);
+        if (isForUpdateMvcc) {
+            if (isGroupQuery) {
+                throw DbException.getUnsupportedException("FOR UPDATE && GROUP");
+            } else if (distinct) {
+                throw DbException.getUnsupportedException("FOR UPDATE && DISTINCT");
+            } else if (isQuickAggregateQuery) {
+                throw DbException.getUnsupportedException("FOR UPDATE && AGGREGATE");
+            } else if (topTableFilter.getJoin() != null) {
+                throw DbException.getUnsupportedException("FOR UPDATE && JOIN");
+            } else if (topTableFilter.getJoin() != null) {
+                throw DbException.getUnsupportedException("FOR UPDATE && JOIN");
+            }
+        }
         if (isQuickAggregateQuery) {
             queryQuick(columnCount, result);
         } else if (isGroupQuery) {

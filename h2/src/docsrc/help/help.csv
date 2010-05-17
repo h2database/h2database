@@ -3202,6 +3202,8 @@ The default charset is the default value for this system, and the default field 
 is a comma. Missing unquoted values as well as data that matches nullString is
 parsed as NULL. All columns of type VARCHAR.
 
+The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
+
 This function can be used like a table: SELECT * FROM CSVREAD(...).
 Instead of a file, an URL may be used, for example
 jar:file:///c:/temp/example.zip!/org/example/nested.zip.

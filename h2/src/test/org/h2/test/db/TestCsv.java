@@ -6,8 +6,11 @@
  */
 package org.h2.test.db;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,6 +27,7 @@ import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * CSVREAD and CSVWRITE tests.
@@ -40,10 +44,14 @@ public class TestCsv extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.traceTest = true;
+        test.test();
     }
 
     public void test() throws Exception {
+        testPseudoBom();
+        testWriteRead();
         testColumnNames();
         testSpaceSeparated();
         testNull();
@@ -51,10 +59,25 @@ public class TestCsv extends TestBase {
         testEmptyFieldDelimiter();
         testFieldDelimiter();
         testAsTable();
-        testWriteRead();
         testRead();
         testPipe();
         deleteDb("csv");
+    }
+
+    private void testPseudoBom() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        // UTF-8 "BOM" / marker
+        out.write(Utils.convertStringToBytes("efbbbf"));
+        out.write("\"ID\", \"NAME\"\n1, Hello".getBytes("UTF-8"));
+        byte[] buff = out.toByteArray();
+        Reader r = new InputStreamReader(new ByteArrayInputStream(buff), "UTF-8");
+        ResultSet rs = Csv.getInstance().read(r, null);
+        assertEquals("ID", rs.getMetaData().getColumnLabel(1));
+        assertEquals("NAME", rs.getMetaData().getColumnLabel(2));
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        assertFalse(rs.next());
     }
 
     private void testColumnNames() throws Exception {
@@ -325,18 +348,29 @@ public class TestCsv extends TestBase {
     }
 
     private void testWriteRead() throws SQLException {
-
         deleteDb("csv");
-
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
+        // int len = 100000;
         int len = 100;
         for (int i = 0; i < len; i++) {
             stat.execute("INSERT INTO TEST(NAME) VALUES('Ruebezahl')");
         }
-        Csv.getInstance().write(conn, getBaseDir() + "/testRW.csv", "SELECT * FROM TEST", "UTF8");
-        ResultSet rs = Csv.getInstance().read(getBaseDir() + "/testRW.csv", null, "UTF8");
+        long time;
+        time = System.currentTimeMillis();
+        Csv.getInstance().write(conn, getBaseDir() + "/testRW.csv", "SELECT X ID, 'Ruebezahl' NAME FROM SYSTEM_RANGE(1, " + len + ")", "UTF8");
+        trace("write: " + (System.currentTimeMillis() - time));
+        ResultSet rs;
+        time = System.currentTimeMillis();
+        for (int i = 0; i < 30; i++) {
+            rs = Csv.getInstance().read(getBaseDir() + "/testRW.csv", null, "UTF8");
+            while (rs.next()) {
+                // ignore
+            }
+        }
+        trace("read: " + (System.currentTimeMillis() - time));
+        rs = Csv.getInstance().read(getBaseDir() + "/testRW.csv", null, "UTF8");
         // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());

@@ -53,6 +53,7 @@ import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.IOUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
@@ -1574,6 +1575,10 @@ public class Database implements DataHandler {
     }
 
     public synchronized void setCacheSize(int kb) {
+        if (starting) {
+            int max = MathUtils.convertLongToInt(Utils.getMemoryMax()) / 2;
+            kb = Math.min(kb, max);
+        }
         cacheSize = kb;
         if (pageStore != null) {
             pageStore.getCache().setMaxSize(kb);

@@ -1705,6 +1705,14 @@ The amount of memory used for caching can be changed using the setting
 <code>SET CACHE_SIZE size</code>.
 The size of the cache, as represented by <code>CACHE_SIZE</code> is measured in KB, with each KB being 1024 bytes.
 This setting has no effect for in-memory databases.
+For persistent databases, the setting is stored in the database and re-used when the database is opened
+the next time. However, when opening an existing database, the cache size is set to at most
+half the amount of memory available for the virtual machine (Runtime.getRuntime().maxMemory()),
+even if the cache size setting stored in the database is larger; however the setting stored in the database
+is kept. Setting the cache size in the database URL or explicitly using <code>SET CACHE_SIZE</code>
+overrides this value (even if larger than the physical memory).
+To get the current used maximum cache size, use the query
+<code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'info.CACHE_MAX_SIZE'</code>
 </p><p>
 Also included is an experimental second level soft reference cache. Rows in this cache are only garbage collected
 on low memory. By default the second level cache is disabled. To enable it,

@@ -22,11 +22,23 @@ public class CacheLRU implements Cache {
 
     private final CacheWriter writer;
     private final CacheObject head = new CacheHead();
-    private final int len;
     private final int mask;
-    private int maxSize;
     private CacheObject[] values;
     private int recordCount;
+
+    /**
+     * The number of cache buckets.
+     */
+    private final int len;
+
+    /**
+     * The maximum memory, in words (4 bytes each).
+     */
+    private int maxSize;
+
+    /**
+     * The current memory used in this cache, in words (4 bytes each).
+     */
     private int sizeMemory;
 
     private CacheLRU(CacheWriter writer, int maxKb) {
@@ -303,12 +315,12 @@ public class CacheLRU implements Cache {
         removeOldIfRequired();
     }
 
-    public int  getMaxSize() {
-        return maxSize;
+    public int getMaxSize() {
+        return maxSize * 4 / 1024;
     }
 
     public int getSize() {
-        return sizeMemory;
+        return sizeMemory * 4 / 1024;
     }
 
 }

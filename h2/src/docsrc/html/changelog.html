@@ -18,8 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New system property h2.selectForUpdateMvcc, the default is false (the feature is disabled).
+<ul><li>The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
+    This is for compatibility with Microsoft Excel.
+</li><li>When opening an existing database, the cache size is set to at most
+    half the amount of memory available for the virtual machine 
+    (Runtime.getRuntime().maxMemory()), even if the cache size setting stored in the database
+    is larger. Setting the cache size in the database URL or explicitly using SET CACHE_SIZE 
+    overrides this value (even if larger than the physical memory).
+</li><li>INFORMATION_SCHEMA.SETTINGS: the cache size is now returned in KB.
+</li><li>New system property h2.selectForUpdateMvcc, the default is false (the feature is disabled).
     When enabled, SELECT ... FOR UPDATE only locks the selected rows in the MVCC mode.
+    Aggregate or GROUP BY queries are not allowed in this case.
 </li><li>Profiler: improved message if there was no stack trace.
 </li><li>The H2 Console can now be used within another application, in a frame or iframe. Issue 197.
 </li><li>Recover tool: the statistics section now includes page type counts again.

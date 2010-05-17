@@ -354,6 +354,7 @@ public class Utils {
 
     /**
      * Get the used memory in KB.
+     * This method possibly calls System.gc().
      *
      * @return the used memory
      */
@@ -366,14 +367,25 @@ public class Utils {
 
     /**
      * Get the free memory in KB.
+     * This method possibly calls System.gc().
      *
-     * @return the used memory
+     * @return the free memory
      */
     public static int getMemoryFree() {
         collectGarbage();
         Runtime rt = Runtime.getRuntime();
         long mem = rt.freeMemory();
         return (int) (mem >> 10);
+    }
+
+    /**
+     * Get the maximum memory in KB.
+     *
+     * @return the maximum memory
+     */
+    public static long getMemoryMax() {
+        long max = Runtime.getRuntime().maxMemory();
+        return max / 1024;
     }
 
     private static synchronized void collectGarbage() {

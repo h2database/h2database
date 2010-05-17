@@ -71,21 +71,21 @@ public interface Cache {
     /**
      * Set the maximum memory to be used by this cache.
      *
-     * @param size in number of double words (4 bytes)
+     * @param size the maximum size in KB
      */
     void setMaxSize(int size);
 
     /**
-     * Get the maximum size in words (4 bytes).
+     * Get the maximum size in KB.
      *
-     * @return the maximum size in number of double words (4 bytes)
+     * @return the maximum size in KB
      */
     int getMaxSize();
 
     /**
-     * Get the used size in words (4 bytes).
+     * Get the used size in KB.
      *
-     * @return the current size in number of double words (4 bytes)
+     * @return the current size in KB
      */
     int getSize();
 

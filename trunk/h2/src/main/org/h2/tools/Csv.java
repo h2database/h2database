@@ -8,6 +8,7 @@ package org.h2.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +32,9 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 
 /**
- * A facility to read from and write to CSV (comma separated values) files.
+ * A facility to read from and write to CSV (comma separated values) files. When
+ * reading, the BOM (the byte-order-mark) character 0xfeff at the beginning of
+ * the file is ignored.
  *
  * @author Thomas Mueller, Sylvain Cuaz
  */
@@ -305,6 +308,16 @@ public class Csv implements SimpleRowSource {
                 close();
                 throw e;
             }
+        }
+        if (!input.markSupported()) {
+            input = new BufferedReader(input);
+        }
+        input.mark(1);
+        int bom = input.read();
+        if (bom != 0xfeff) {
+            // Microsoft Excel compatibility
+            // ignore pseudo-BOM
+            input.reset();
         }
         inputBuffer = new char[Constants.IO_BUFFER_SIZE * 2];
         if (columnNames == null) {

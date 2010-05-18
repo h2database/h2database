@@ -230,6 +230,7 @@ public class TestCrashAPI extends TestBase {
     }
 
     private void testOne(int seed) throws SQLException {
+    	long start = System.currentTimeMillis();
         printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;
@@ -238,6 +239,11 @@ public class TestCrashAPI extends TestBase {
         Connection c1 = getConnection(seed, true);
         Connection conn = null;
         for (int i = 0; i < 2000; i++) {
+        	long time = System.currentTimeMillis() - start;
+        	if (time > 30000) {
+        		// at most 30 seconds per test
+        		break;
+        	}
             // if(i % 10 == 0) {
             // for(int j=0; j<objects.size(); j++) {
             // System.out.print(objects.get(j));

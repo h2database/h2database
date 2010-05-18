@@ -27,7 +27,7 @@ of H2 please use parentheses.
 
 If FOR UPDATE is specified, the tables are locked for writing. When using
 MVCC, only the selected rows are locked as in an UPDATE statement.
-In this case, aggregate, GROUP BY, DISTINCT queries or joins 
+In this case, aggregate, GROUP BY, DISTINCT queries or joins
 are not allowed in this case.
 ","
 SELECT * FROM TEST;
@@ -1772,7 +1772,9 @@ create a single quote inside a string.
 "Other Grammar","Summand","
 factor [ { { + | - } factor } [...] ]
 ","
-A value or a numeric sum.
+A value or a numeric sum. 
+
+Please note the text concatenation operator is ||.
 ","
 ID + 20
 "

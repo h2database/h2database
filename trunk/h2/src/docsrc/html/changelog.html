@@ -18,12 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
+<ul><li>The source code is now switched to Java 6 (JDK 1.6) by default.
+	Java 5 (JDK 1.5) is still supported, and the jar file is still compiled for Java 5.
+</li><li>The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
     This is for compatibility with Microsoft Excel.
 </li><li>When opening an existing database, the cache size is set to at most
-    half the amount of memory available for the virtual machine 
+    half the amount of memory available for the virtual machine
     (Runtime.getRuntime().maxMemory()), even if the cache size setting stored in the database
-    is larger. Setting the cache size in the database URL or explicitly using SET CACHE_SIZE 
+    is larger. Setting the cache size in the database URL or explicitly using SET CACHE_SIZE
     overrides this value (even if larger than the physical memory).
 </li><li>INFORMATION_SCHEMA.SETTINGS: the cache size is now returned in KB.
 </li><li>New system property h2.selectForUpdateMvcc, the default is false (the feature is disabled).

@@ -432,11 +432,11 @@ public abstract class Value {
      * @return the result
      */
     public Value add(Value v) {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("+");
     }
 
     public int getSignum() {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("SIGNUM");
     }
 
     /**
@@ -445,7 +445,7 @@ public abstract class Value {
      * @return the negative
      */
     public Value negate() {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("NEG");
     }
 
     /**
@@ -455,7 +455,7 @@ public abstract class Value {
      * @return the result
      */
     public Value subtract(Value v) {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("-");
     }
 
     /**
@@ -465,7 +465,7 @@ public abstract class Value {
      * @return the result
      */
     public Value divide(Value v) {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("/");
     }
 
     /**
@@ -475,7 +475,7 @@ public abstract class Value {
      * @return the result
      */
     public Value multiply(Value v) {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("*");
     }
 
     /**
@@ -973,11 +973,11 @@ public abstract class Value {
     /**
      * Throw the exception that the feature is not support for the given data type.
      *
-     * @return the exception
+     * @return never returns normally
      * @throws the exception
      */
-    protected DbException throwUnsupportedExceptionForType() {
-        throw DbException.getUnsupportedException(DataType.getDataType(getType()).name);
+    protected DbException throwUnsupportedExceptionForType(String op) {
+        throw DbException.getUnsupportedException(DataType.getDataType(getType()).name + " " + op);
     }
 
     /**

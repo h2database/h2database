@@ -93,7 +93,7 @@ public class ValueArray extends Value {
     }
 
     public void set(PreparedStatement prep, int parameterIndex) {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("PreparedStatement.set");
     }
 
     public String getSQL() {

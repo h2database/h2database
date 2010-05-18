@@ -114,7 +114,7 @@ public class ValueResultSet extends Value {
     }
 
     protected int compareSecure(Value v, CompareMode mode) {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("<=>");
     }
 
     public boolean equals(Object other) {
@@ -134,7 +134,7 @@ public class ValueResultSet extends Value {
     }
 
     public void set(PreparedStatement prep, int parameterIndex) {
-        throw throwUnsupportedExceptionForType();
+        throw throwUnsupportedExceptionForType("PreparedStatement.set");
     }
 
     public String getSQL() {

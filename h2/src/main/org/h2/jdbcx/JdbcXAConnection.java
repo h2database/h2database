@@ -32,9 +32,9 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 import javax.sql.StatementEventListener;
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
 /**
  * This class provides support for distributed transactions.
@@ -398,22 +398,22 @@ implements XAConnection, XAResource
      *
      * @param listener the new statement event listener
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void addStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * [Not supported] Remove a statement event listener.
      *
      * @param listener the statement event listener
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void removeStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * INTERNAL

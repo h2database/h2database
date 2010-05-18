@@ -48,11 +48,11 @@ import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 import java.sql.RowId;
 import java.sql.NClob;
 import java.sql.SQLXML;
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
 /**
  * Represents a prepared statement.
@@ -1258,11 +1258,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * [Not supported] Sets the value of a parameter as a row id.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void setRowId(int parameterIndex, RowId x) throws SQLException {
         throw unsupported("rowId");
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * Sets the value of a parameter.
@@ -1271,7 +1271,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void setNString(int parameterIndex, String x) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1283,7 +1283,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * Sets the value of a parameter as a character stream.
@@ -1295,7 +1295,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param length the number of bytes
      * @throws SQLException if this object is closed
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void setNCharacterStream(int parameterIndex, Reader x, long length)
             throws SQLException {
         try {
@@ -1314,7 +1314,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * Sets the value of a parameter as a character stream.
@@ -1325,12 +1325,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void setNCharacterStream(int parameterIndex, Reader x)
             throws SQLException {
         setNCharacterStream(parameterIndex, x, -1);
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1339,7 +1339,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void setNClob(int parameterIndex, NClob x) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1357,7 +1357,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1368,7 +1368,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void setNClob(int parameterIndex, Reader x) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1385,7 +1385,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1448,7 +1448,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void setNClob(int parameterIndex, Reader x, long length)
             throws SQLException {
         try {
@@ -1470,11 +1470,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * [Not supported] Sets the value of a parameter as a SQLXML object.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public void setSQLXML(int parameterIndex, SQLXML x) throws SQLException {
         throw unsupported("SQLXML");
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * INTERNAL

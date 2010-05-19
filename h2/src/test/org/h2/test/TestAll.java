@@ -304,9 +304,6 @@ java org.h2.test.TestAll timer
         // System.setProperty("h2.syncMethod", "");
 /*
 
-h2.selectForUpdateMvcc:
-Implement (sum, count) and test (join, ...)
-
 recovery tests with small freeList pages, page size 64
 
 reopen org.h2.test.unit.TestPageStore

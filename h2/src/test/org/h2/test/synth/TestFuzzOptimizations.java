@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
 import org.h2.test.TestBase;
 import org.h2.test.db.Db;
 import org.h2.test.db.Db.Prepared;
@@ -84,7 +85,7 @@ public class TestFuzzOptimizations extends TestBase {
         String[] columns = new String[] { "a", "b", "c" };
         String[] values = new String[] { null, "0", "0", "1", "2", "10", "a", "?" };
         String[] compares = new String[] { "in(", "not in(", "=", "=", ">", "<", ">=", "<=", "<>", "in(select", "not in(select" };
-        int size = getSize(500, 5000);
+        int size = getSize(100, 1000);
         for (int i = 0; i < size; i++) {
             long seed = seedGenerator.nextLong();
             println("seed: " + seed);

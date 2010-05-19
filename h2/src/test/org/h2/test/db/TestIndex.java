@@ -57,7 +57,9 @@ public class TestIndex extends TestBase {
         testWideIndex(1200);
         testWideIndex(2400);
         if (config.big) {
-            for (int i = 0; i < 2000; i++) {
+        	Random r = new Random();
+            for (int j = 0; j < 10; j++) {
+            	int i = r.nextInt(3000);
                 if ((i % 100) == 0) {
                     println("width: " + i);
                 }
@@ -148,15 +150,18 @@ public class TestIndex extends TestBase {
         boolean reopen = !config.memory;
         Random rand = new Random(1);
         reconnect();
+        stat.execute("drop all objects");
         stat.execute("CREATE TABLE TEST(ID identity)");
         int len = getSize(100, 1000);
         for (int i = 0; i < len; i++) {
             switch (rand.nextInt(4)) {
             case 0:
-                if (reopen) {
-                    trace("reconnect");
-                    reconnect();
-                }
+            	if (rand.nextInt(10) == 0) {
+	                if (reopen) {
+	                    trace("reconnect");
+	                    reconnect();
+	                }
+            	}
                 break;
             case 1:
                 trace("insert");
@@ -179,7 +184,7 @@ public class TestIndex extends TestBase {
         reconnect();
         stat.execute("create table testA(id int primary key, name varchar)");
         stat.execute("create table testB(id int primary key hash, name varchar)");
-        int len = getSize(1000, 10000);
+        int len = getSize(300, 3000);
         stat.execute("insert into testA select x, 'Hello' from system_range(1, " + len + ")");
         stat.execute("insert into testB select x, 'Hello' from system_range(1, " + len + ")");
         Random rand = new Random(1);
@@ -269,6 +274,7 @@ public class TestIndex extends TestBase {
 
     private void testWideIndex(int length) throws SQLException {
         reconnect();
+        stat.execute("drop all objects");
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
         for (int i = 0; i < 100; i++) {
@@ -289,7 +295,7 @@ public class TestIndex extends TestBase {
                 assertEquals("" + id, name.trim());
             }
         }
-        stat.execute("DROP TABLE TEST");
+        stat.execute("drop all objects");
     }
 
     private void testLike() throws SQLException {
@@ -315,7 +321,7 @@ public class TestIndex extends TestBase {
 
     private void testLargeIndex() throws SQLException {
         random.setSeed(10);
-        for (int i = 1; i < 100; i += getSize(1000, 3)) {
+        for (int i = 1; i < 100; i += getSize(1000, 7)) {
             stat.execute("DROP TABLE IF EXISTS TEST");
             stat.execute("CREATE TABLE TEST(NAME VARCHAR(" + i + "))");
             stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");

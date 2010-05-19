@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The source code is now switched to Java 6 (JDK 1.6) by default.
+<ul><li>H2 Console: when the settings were not stored yet (for example when running for the first time),
+	the last recently used settings were not stored. A workaround was to create the file 
+	".h2.server.properties" manually in the current user home directory, with the contents:
+	webAllowOthers=false, webPort=8082, webSSL=false,
+	0=Generic H2 (Embedded)|org.h2.Driver|jdbc\:h2\:~/test|sa
+	(where a comma is a newline).
+</li><li>The source code is now switched to Java 6 (JDK 1.6) by default.
 	Java 5 (JDK 1.5) is still supported, and the jar file is still compiled for Java 5.
 </li><li>The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
     This is for compatibility with Microsoft Excel.

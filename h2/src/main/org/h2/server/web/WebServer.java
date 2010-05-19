@@ -548,9 +548,9 @@ public class WebServer implements Service {
             if (prop == null) {
                 Properties old = loadProperties();
                 prop = new SortedProperties();
-                prop.setProperty("webPort", old.getProperty("webPort"));
-                prop.setProperty("webAllowOthers", old.getProperty("webAllowOthers"));
-                prop.setProperty("webSSL", old.getProperty("webSSL"));
+                prop.setProperty("webPort", "" + SortedProperties.getIntProperty(old, "webPort", port));
+                prop.setProperty("webAllowOthers", "" + SortedProperties.getBooleanProperty(old, "webAllowOthers", ssl));
+                prop.setProperty("webSSL", "" + SortedProperties.getBooleanProperty(old, "webSSL", allowOthers));
             }
             ArrayList<ConnectionInfo> settings = getSettings();
             int len = settings.size();

@@ -565,13 +565,14 @@ CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER | INSTEAD OF }
 { INSERT | UPDATE | DELETE | SELECT | ROLLBACK } [,...] ON tableName [ FOR EACH ROW ]
 [ QUEUE int ] [ NOWAIT ] CALL triggeredClassName
 ","
-Creates a new trigger. The trigger class must be public. Nested and inner
-classes are not supported.  The class must be available in the classpath of the
+Creates a new trigger. The trigger class must be public. Inner classes are not supported.
+The class must be available in the classpath of the
 database engine (when using the server mode, it must be in the classpath of the server).
 
 'BEFORE' triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;
 but before other constraints have been checked.
+If there are multiple triggers, the order in which they are called is undefined.
 
 Only row based 'AFTER' trigger can be called on rollback.
 Exceptions that occur within such triggers are ignored.

@@ -50,7 +50,7 @@ import org.h2.util.New;
  * A test that calls random methods with random parameters from JDBC objects.
  * This is sometimes called 'Fuzz Testing'.
  */
-public class TestCrashAPI extends TestBase {
+public class TestCrashAPI extends TestBase implements Runnable {
 
     private static final boolean RECOVER_ALL = false;
 
@@ -66,6 +66,10 @@ public class TestCrashAPI extends TestBase {
     private ArrayList<String> statements = New.arrayList();
     private int openCount;
     private long callCount;
+    private volatile long maxWait = 5 * 60;
+    private volatile boolean stopped;
+    private volatile boolean running;
+    private Thread mainThread;
 
     /**
      * Run just this test.
@@ -74,6 +78,25 @@ public class TestCrashAPI extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
+    }
+    
+    @SuppressWarnings("deprecation")
+	public void run() {
+    	while (--maxWait > 0) {
+    		try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// ignore
+			}
+    	}
+    	if (maxWait == 0) {
+            println("stopping...");
+            stopped = true;
+    		objects.clear();
+			if (running) {
+				mainThread.stop(new SQLException("stop"));
+			}
+    	}
     }
 
     private void recoverAll() throws SQLException {
@@ -111,7 +134,7 @@ public class TestCrashAPI extends TestBase {
         }
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
         if (RECOVER_ALL) {
             recoverAll();
             return;
@@ -120,10 +143,21 @@ public class TestCrashAPI extends TestBase {
             return;
         }
         int len = getSize(2, 6);
-        for (int i = 0; i < len; i++) {
-            int seed = MathUtils.randomInt(Integer.MAX_VALUE);
-            testCase(seed);
-            deleteDb();
+        Thread t = new Thread(this);
+        try {
+        	mainThread = Thread.currentThread();
+            t.start();
+        	running = true;
+	        for (int i = 0; i < len && !stopped; i++) {
+	            int seed = MathUtils.randomInt(Integer.MAX_VALUE);
+	            testCase(seed);
+	            deleteDb();
+	        }
+        } finally {
+    		running = false;
+        	deleteDb();
+            maxWait = -1;
+            t.join();
         }
     }
 
@@ -196,7 +230,7 @@ public class TestCrashAPI extends TestBase {
             }
         }
         stat.execute("SCRIPT NOPASSWORDS NOSETTINGS");
-        for (int i = first; i < end && i < statements.size(); i++) {
+        for (int i = first; i < end && i < statements.size() && !stopped; i++) {
             try {
                 stat.execute("SELECT * FROM TEST WHERE ID=1");
             } catch (Throwable t) {
@@ -230,7 +264,6 @@ public class TestCrashAPI extends TestBase {
     }
 
     private void testOne(int seed) throws SQLException {
-    	long start = System.currentTimeMillis();
         printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;
@@ -238,12 +271,7 @@ public class TestCrashAPI extends TestBase {
         random.setSeed(seed);
         Connection c1 = getConnection(seed, true);
         Connection conn = null;
-        for (int i = 0; i < 2000; i++) {
-        	long time = System.currentTimeMillis() - start;
-        	if (time > 30000) {
-        		// at most 30 seconds per test
-        		break;
-        	}
+        for (int i = 0; i < 2000 && !stopped; i++) {
             // if(i % 10 == 0) {
             // for(int j=0; j<objects.size(); j++) {
             // System.out.print(objects.get(j));
@@ -253,11 +281,11 @@ public class TestCrashAPI extends TestBase {
             // Thread.sleep(1);
             // }
 
-            if (objects.size() == 0) {
+            if (objects.size() == 0 && !stopped) {
                 try {
                     conn = getConnection(seed, false);
                 } catch (SQLException e) {
-                    if (e.getSQLState().equals("08004")) {
+                    if ("08004".equals(e.getSQLState())) {
                         // Wrong user/password [08004]
                         try {
                             c1.createStatement().execute("SET PASSWORD ''");
@@ -270,7 +298,7 @@ public class TestCrashAPI extends TestBase {
                         } catch (Throwable t) {
                             printIfBad(seed, -i, -1, t);
                         }
-                    } else if (e.getSQLState().equals("90098")) {
+                    } else if ("90098".equals(e.getSQLState())) {
                         // The database has been closed
                         break;
                     } else {

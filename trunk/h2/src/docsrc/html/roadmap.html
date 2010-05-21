@@ -472,8 +472,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     the disk space usage; this space is not re-used). See TestDiskSpaceLeak.java
 </li><li>ROWNUM: Oracle compatibility when used within a subquery. Issue 198.
 </li><li>Allow to access the database over HTTP (possibly using port 80) and a servlet in a REST way.
-</li><li>CSV tool: support UTF-8 marker ("BOM") (files starting with the byte sequence EF BB BF).
-    See also http://en.wikipedia.org/wiki/Byte_order_mark#cite_note-utf-8-bom-3
+</li><li>ODBC: encrypted databases are not supported because the ;CIPHER= can not be set.
+</li><li>Support CLOB and BLOB update, specially conn.createBlob().setBinaryStream(1);
 </li></ul>
 
 <h2>Not Planned</h2>

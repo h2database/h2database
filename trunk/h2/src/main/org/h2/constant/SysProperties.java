@@ -434,6 +434,12 @@ public class SysProperties {
     public static final boolean OPTIMIZE_IN_LIST = getBooleanSetting("h2.optimizeInList", true);
 
     /**
+     * System property <code>h2.optimizeIsNull</code> (default: false).<br />
+     * Use an index for condition of the form columnName IS NULL.
+     */
+    public static final boolean OPTIMIZE_IS_NULL = getBooleanSetting("h2.optimizeIsNull", true);
+
+    /**
      * System property <code>h2.optimizeOr</code> (default: false).<br />
      * Convert (C=? OR C=?) to (C IN(?, ?)).
      */

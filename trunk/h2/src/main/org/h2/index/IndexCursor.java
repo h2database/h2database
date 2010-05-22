@@ -8,6 +8,8 @@ package org.h2.index;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.message.DbException;
@@ -117,10 +119,12 @@ public class IndexCursor implements Cursor {
                     inList = null;
                     inResult = null;
                 }
-                if (isStart && isEnd) {
-                    if (v == ValueNull.INSTANCE) {
-                        // join on a column=NULL is always false
-                        alwaysFalse = true;
+                if (!SysProperties.OPTIMIZE_IS_NULL) {
+                    if (isStart && isEnd) {
+                        if (v == ValueNull.INSTANCE) {
+                            // join on a column=NULL is always false
+                            alwaysFalse = true;
+                        }
                     }
                 }
             }
@@ -166,7 +170,24 @@ public class IndexCursor implements Cursor {
         } else if (b == null) {
             return a;
         }
+        if (SysProperties.OPTIMIZE_IS_NULL) {
+            // IS NULL must be checked later
+            if (a == ValueNull.INSTANCE) {
+                return b;
+            } else if (b == ValueNull.INSTANCE) {
+                return a;
+            }
+        }
         int comp = a.compareTo(b, table.getDatabase().getCompareMode());
+        if (comp == 0) {
+            return a;
+        }
+        if (SysProperties.OPTIMIZE_IS_NULL) {
+            if (a == ValueNull.INSTANCE || b == ValueNull.INSTANCE) {
+                // column IS NULL AND column <op> <not null> is always false
+                return null;
+            }
+        }
         if (!bigger) {
             comp = -comp;
         }

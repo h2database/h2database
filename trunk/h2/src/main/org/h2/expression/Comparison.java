@@ -283,15 +283,23 @@ public class Comparison extends Condition {
     }
 
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (right == null) {
-            return;
-        }
         ExpressionColumn l = null;
         if (left instanceof ExpressionColumn) {
             l = (ExpressionColumn) left;
             if (filter != l.getTableFilter()) {
                 l = null;
             }
+        }
+        if (right == null) {
+            if (l != null) {
+                switch (compareType) {
+                case IS_NULL:
+                    if (SysProperties.OPTIMIZE_IS_NULL) {
+                        filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL, l, ValueExpression.getNull()));
+                    }
+                }
+            }
+            return;
         }
         ExpressionColumn r = null;
         if (right instanceof ExpressionColumn) {

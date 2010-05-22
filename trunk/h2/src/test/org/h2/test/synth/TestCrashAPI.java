@@ -79,24 +79,24 @@ public class TestCrashAPI extends TestBase implements Runnable {
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
-    
+
     @SuppressWarnings("deprecation")
-	public void run() {
-    	while (--maxWait > 0) {
-    		try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// ignore
-			}
-    	}
-    	if (maxWait == 0) {
+    public void run() {
+        while (--maxWait > 0) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+        if (maxWait == 0) {
             println("stopping...");
             stopped = true;
-    		objects.clear();
-			if (running) {
-				mainThread.stop(new SQLException("stop"));
-			}
-    	}
+            objects.clear();
+            if (running) {
+                mainThread.stop(new SQLException("stop"));
+            }
+        }
     }
 
     private void recoverAll() throws SQLException {
@@ -145,17 +145,17 @@ public class TestCrashAPI extends TestBase implements Runnable {
         int len = getSize(2, 6);
         Thread t = new Thread(this);
         try {
-        	mainThread = Thread.currentThread();
+            mainThread = Thread.currentThread();
             t.start();
-        	running = true;
-	        for (int i = 0; i < len && !stopped; i++) {
-	            int seed = MathUtils.randomInt(Integer.MAX_VALUE);
-	            testCase(seed);
-	            deleteDb();
-	        }
+            running = true;
+            for (int i = 0; i < len && !stopped; i++) {
+                int seed = MathUtils.randomInt(Integer.MAX_VALUE);
+                testCase(seed);
+                deleteDb();
+            }
         } finally {
-    		running = false;
-        	deleteDb();
+            running = false;
+            deleteDb();
             maxWait = -1;
             t.join();
         }

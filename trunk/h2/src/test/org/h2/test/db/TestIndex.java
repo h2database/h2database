@@ -57,9 +57,9 @@ public class TestIndex extends TestBase {
         testWideIndex(1200);
         testWideIndex(2400);
         if (config.big) {
-        	Random r = new Random();
+            Random r = new Random();
             for (int j = 0; j < 10; j++) {
-            	int i = r.nextInt(3000);
+                int i = r.nextInt(3000);
                 if ((i % 100) == 0) {
                     println("width: " + i);
                 }
@@ -156,12 +156,12 @@ public class TestIndex extends TestBase {
         for (int i = 0; i < len; i++) {
             switch (rand.nextInt(4)) {
             case 0:
-            	if (rand.nextInt(10) == 0) {
-	                if (reopen) {
-	                    trace("reconnect");
-	                    reconnect();
-	                }
-            	}
+                if (rand.nextInt(10) == 0) {
+                    if (reopen) {
+                        trace("reconnect");
+                        reconnect();
+                    }
+                }
                 break;
             case 1:
                 trace("insert");

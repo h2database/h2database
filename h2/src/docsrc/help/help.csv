@@ -1773,7 +1773,7 @@ create a single quote inside a string.
 "Other Grammar","Summand","
 factor [ { { + | - } factor } [...] ]
 ","
-A value or a numeric sum. 
+A value or a numeric sum.
 
 Please note the text concatenation operator is ||.
 ","

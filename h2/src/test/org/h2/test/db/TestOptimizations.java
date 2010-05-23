@@ -37,6 +37,7 @@ public class TestOptimizations extends TestBase {
     }
 
     public void test() throws Exception {
+        testSortIndex();
         testAutoAnalyze();
         testInAndBetween();
         testNestedIn();
@@ -59,6 +60,28 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testSortIndex() throws SQLException {
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table test if exists");
+        stat.execute("create table test(id int)");
+        stat.execute("create index idx_id_desc on test(id desc)");
+        stat.execute("create index idx_id_asc on test(id)");
+        ResultSet rs;
+        
+        rs = stat.executeQuery("explain select * from test where id > 10 order by id");
+        rs.next();
+        assertTrue(rs.getString(1).indexOf("IDX_ID_ASC") >= 0);
+        
+        rs = stat.executeQuery("explain select * from test where id < 10 order by id desc");
+        rs.next();
+        assertTrue(rs.getString(1).indexOf("IDX_ID_DESC") >= 0);
+        
+        rs.next();
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testAutoAnalyze() throws SQLException {

@@ -776,13 +776,32 @@ public class Select extends Query {
         }
         if (sort != null && !isQuickAggregateQuery && !isGroupQuery) {
             Index index = getSortIndex();
-            Index current = topTableFilter.getIndex();
-            if (index != null && (current.getIndexType().isScan() || current == index)) {
-                topTableFilter.setIndex(index);
-                if (!topTableFilter.hasInComparisons()) {
-                    // in(select ...) and in(1,2,3) my return the key is another order
-                    sortUsingIndex = true;
-                }
+            if (index != null) {
+            	Index current = topTableFilter.getIndex();
+            	if (current.getIndexType().isScan() || current == index) {
+            		topTableFilter.setIndex(index);
+            		if (!topTableFilter.hasInComparisons()) {
+            			// in(select ...) and in(1,2,3) my return the key is another order
+            			sortUsingIndex = true;
+            		}
+            	} else if (index.getIndexColumns().length >= current.getIndexColumns().length) {
+            		IndexColumn[] ic = index.getIndexColumns();
+            		IndexColumn[] cic = current.getIndexColumns();
+            		boolean swapIndex = false;
+            		for (int i = 0; i < cic.length; i++) {
+            			if (ic[i].column != cic[i].column) {
+            				swapIndex = false;
+            				break;
+            			}
+            			if (ic[i].sortType != cic[i].sortType) {
+            				swapIndex = true;
+            			}
+            		}
+            		if (swapIndex) {
+            			topTableFilter.setIndex(index);
+            			sortUsingIndex = true;
+            		}
+            	}
             }
         }
         if (!isQuickAggregateQuery && isGroupQuery && getGroupByExpressionCount() > 0) {

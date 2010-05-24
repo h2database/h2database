@@ -57,8 +57,8 @@ public class TableFilter implements ColumnResolver {
     private final ArrayList<IndexCondition> indexConditions = New.arrayList();
 
     /**
-     * Additional conditions that can't be used for index lookup,
-     * but for row filter for this table (ID=ID, NAME LIKE '%X%')
+     * Additional conditions that can't be used for index lookup, but for row
+     * filter for this table (ID=ID, NAME LIKE '%X%')
      */
     private Expression filterCondition;
 
@@ -121,7 +121,8 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Get the best plan item (index, cost) to use use for the current join order.
+     * Get the best plan item (index, cost) to use use for the current join
+     * order.
      *
      * @param s the session
      * @param level 1 for the first table in a join, 2 for the second, and so on
@@ -320,7 +321,8 @@ public class TableFilter implements ColumnResolver {
 
     private void checkTimeout() {
         session.checkCanceled();
-        // System.out.println(this.alias+ " " + table.getName() + ": " + scanCount);
+        // System.out.println(this.alias+ " " + table.getName() + ": " +
+        // scanCount);
     }
 
     private boolean isOk(Expression condition) {
@@ -491,7 +493,8 @@ public class TableFilter implements ColumnResolver {
         if (isJoin) {
             buff.append(" ON ");
             if (joinCondition == null) {
-                // need to have a ON expression, otherwise the nesting is unclear
+                // need to have a ON expression, otherwise the nesting is
+                // unclear
                 buff.append("1=1");
             } else {
                 buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
@@ -718,12 +721,22 @@ public class TableFilter implements ColumnResolver {
         return false;
     }
 
+    /**
+     * Add the current row to the array, if there is a current row.
+     *
+     * @param rows the rows to lock
+     */
     public void lockRow(ArrayList<Row> rows) {
         if (state == FOUND) {
             rows.add(get());
         }
     }
 
+    /**
+     * Lock the given rows.
+     *
+     * @param forUpdateRows the rows to lock
+     */
     public void lockRows(ArrayList<Row> forUpdateRows) {
         for (Row row : forUpdateRows) {
             table.removeRow(session, row);

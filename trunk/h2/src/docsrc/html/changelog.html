@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Conditions of the form columnName IS NULL now use an index. To disable this feature,
+<ul><li>-
+</li></ul>
+
+<h2>Next Version (unreleased)</h2>
+<ul><li>When using ORDER BY and there are both ascending and descending indexes, the database used
+    the first index even when the second one could be used for sorting.
+</li><li>Conditions of the form columnName IS NULL now use an index. To disable this feature,
     set the system property h2.optimizeIsNull to false.
 </li><li>H2 Console: when the settings were not stored yet (for example when running for the first time),
     the last recently used settings were not stored. A workaround was to create the file
@@ -682,22 +688,6 @@ Change Log
     included a file entry for the LOB directory. This caused the
     restore to fail.
 </li><li>Data types: LONG is now an alias for BIGINT.
-</li></ul>
-
-<h2>Version 1.1.114 (2009-06-01)</h2>
-<ul><li>ResultSetMetaData.getColumnClassName returned the wrong
-    class for CLOB and BLOB columns.
-</li><li>Fulltext search: data is no longer deleted and
-    re-inserted if the indexed columns didn't change.
-</li><li>In some situations, an ArrayIndexOutOfBoundsException was thrown when adding rows.
-    This was caused by a bug in the b-tree code.
-</li><li>Microsoft Windows Vista: when using the the installer, Vista wrote
-    "This program may not have installed correctly." This message should no longer appear
-    (in the h2.nsi file, the line 'RequestExecutionLevel highest' was added).
-</li><li>The Recover tool did not always work when the database contains
-    referential integrity constraints.
-</li><li>Java 1.5 is now required to run H2. If required, Retrotranslator can be used
-    to create a Java 1.4 version (http://retrotranslator.sourceforge.net/).
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

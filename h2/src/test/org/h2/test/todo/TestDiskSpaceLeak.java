@@ -21,6 +21,11 @@ import org.h2.util.JdbcUtils;
  */
 public class TestDiskSpaceLeak {
 
+    /**
+     * Run just this test.
+     *
+     * @param args ignored
+     */
     public static void main(String... args) throws Exception {
         System.setProperty("h2.lobInDatabase", "true");
         DeleteDbFiles.execute("data", null, true);

@@ -595,7 +595,9 @@ public class Database implements DataHandler {
         addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
         addDefaultSetting(systemSession, SetTypes.CREATE_BUILD, null, Constants.BUILD_ID);
-        getLobStorage().init();
+        if (SysProperties.LOB_IN_DATABASE) {
+            getLobStorage().init();
+        }
         systemSession.commit(true);
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
         afterWriting();
@@ -2251,13 +2253,10 @@ public class Database implements DataHandler {
     }
 
     public Connection getLobConnection() {
-        if (SysProperties.LOB_IN_DATABASE) {
-            String url = Constants.CONN_URL_INTERNAL;
-            JdbcConnection conn = new JdbcConnection(systemSession, systemUser.getName(), url);
-            conn.setTraceLevel(TraceSystem.OFF);
-            return conn;
-        }
-        return null;
+        String url = Constants.CONN_URL_INTERNAL;
+        JdbcConnection conn = new JdbcConnection(systemSession, systemUser.getName(), url);
+        conn.setTraceLevel(TraceSystem.OFF);
+        return conn;
     }
 
 }

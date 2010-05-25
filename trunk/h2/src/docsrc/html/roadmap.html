@@ -231,6 +231,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 146: Support merge join.
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Cluster: hot deploy (adding a node at runtime)
+</li><li>Compact databases without having to close the database (vacuum).
 </li><li>Support COSH, SINH, and TANH functions
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
@@ -474,6 +475,15 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Allow to access the database over HTTP (possibly using port 80) and a servlet in a REST way.
 </li><li>ODBC: encrypted databases are not supported because the ;CIPHER= can not be set.
 </li><li>Support CLOB and BLOB update, specially conn.createBlob().setBinaryStream(1);
+</li><li>Triggers: support user defined execution order. Oracle: 
+    CREATE OR REPLACE TRIGGER TRI_TEST_2 BEFORE INSERT
+    ON TEST FOR EACH ROW FOLLOWS TRI_TEST_1.
+    MS SQL Server: sp_settriggerorder.
+    SQL specifies that multiple triggers should be fired in time-of-creation order. 
+    PostgreSQL uses name order, which was judged to be more convenient. 
+    Derby: triggers are fired in the order in which they were created.
+</li><li>PostgreSQL compatibility: combine "users" and "roles". See:
+    http://www.postgresql.org/docs/8.1/interactive/user-manag.html
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -443,6 +443,7 @@ Auto-creating new database can be disabled, see
 <p>
 H2 currently supports three server: a web server (for the H2 Console),
 a TCP server (for client/server connections) and an PG server (for PostgreSQL clients).
+Please note that only the web server supports browser connections.
 The servers can be started in different ways, one is using the <code>Server</code> tool.
 </p>
 
@@ -473,6 +474,8 @@ To remotely connect to a database using the TCP server, use the following driver
 </li></ul>
 <p>
 For details about the database URL, see also in Features.
+Please note that you can't connection with a web browser to this URL. 
+You can only connect using a H2 client (over JDBC).
 </p>
 
 <h3>Starting the TCP Server within an Application</h3>

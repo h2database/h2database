@@ -64,7 +64,7 @@ import org.h2.message.DbException;
  */
 public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
 
-    private static final int DEFAULT_TIMEOUT = 5 * 60;
+    private static final int DEFAULT_TIMEOUT = 30;
 
     private final ConnectionPoolDataSource dataSource;
     private final Stack<PooledConnection> recycledConnections = new Stack<PooledConnection>();

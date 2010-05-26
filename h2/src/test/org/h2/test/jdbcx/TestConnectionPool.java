@@ -45,11 +45,11 @@ public class TestConnectionPool extends TestBase {
         String url = getURL("connectionPool", true), user = getUser(), password = getPassword();
         JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
 
-        assertEquals(5 * 60, man.getLoginTimeout());
+        assertEquals(30, man.getLoginTimeout());
         man.setLoginTimeout(1);
         assertEquals(1, man.getLoginTimeout());
         man.setLoginTimeout(0);
-        assertEquals(5 * 60, man.getLoginTimeout());
+        assertEquals(30, man.getLoginTimeout());
         assertEquals(10, man.getMaxConnections());
 
         PrintWriter old = man.getLogWriter();

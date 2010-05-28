@@ -47,6 +47,7 @@ public class Set extends Prepared {
 
     public boolean isTransactional() {
         switch (type) {
+        case SetTypes.CLUSTER:
         case SetTypes.VARIABLE:
         case SetTypes.QUERY_TIMEOUT:
         case SetTypes.LOCK_TIMEOUT:
@@ -81,9 +82,17 @@ public class Set extends Prepared {
             addOrUpdateSetting(name, null, getIntValue());
             break;
         case SetTypes.CLUSTER: {
-            session.getUser().checkAdmin();
-            database.setCluster(StringUtils.quoteStringSQL(stringValue));
-            addOrUpdateSetting(name, StringUtils.quoteStringSQL(stringValue), 0);
+            String value = StringUtils.quoteStringSQL(stringValue);
+            if (!value.equals(database.getCluster()) && !value.equals("''")) {
+                // anybody can disable the cluster
+                // (if he can't access a cluster node)
+                session.getUser().checkAdmin();
+            }
+            database.setCluster(value);
+            // use the system session so that the current transaction
+            // (if any) is not committed
+            addOrUpdateSetting(database.getSystemSession(), name, value, 0);
+            database.getSystemSession().commit(true);
             break;
         }
         case SetTypes.COLLATION: {
@@ -352,6 +361,10 @@ public class Set extends Prepared {
     }
 
     private void addOrUpdateSetting(String name, String s, int v) {
+        addOrUpdateSetting(session, name, s, v);
+    }
+
+    private void addOrUpdateSetting(Session session, String name, String s, int v) {
         Database database = session.getDatabase();
         if (database.isReadOnly()) {
             return;

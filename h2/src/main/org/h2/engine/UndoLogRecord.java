@@ -13,6 +13,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
+import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.value.Value;
 
@@ -68,7 +69,15 @@ public class UndoLogRecord {
      * @return if it can be stored
      */
     boolean canStore() {
-        return table.getUniqueIndex() != null;
+        if (table.getUniqueIndex() != null) {
+            return true;
+        }
+        if (SysProperties.LARGE_TRANSACTIONS) {
+            if (table instanceof RegularTable) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -127,15 +136,6 @@ public class UndoLogRecord {
     }
 
     /**
-     * Go to the right position in the file.
-     *
-     * @param file the file
-     */
-    void seek(FileStore file) {
-        file.seek(((long) filePos) * Constants.FILE_BLOCK_SIZE);
-    }
-
-    /**
      * Save the row in the file using a buffer.
      *
      * @param buff the buffer
@@ -146,6 +146,9 @@ public class UndoLogRecord {
         buff.writeInt(0);
         buff.writeInt(operation);
         buff.writeByte(row.isDeleted() ? (byte) 1 : (byte) 0);
+        if (SysProperties.LARGE_TRANSACTIONS) {
+            int table;
+        }
         buff.writeLong(row.getKey());
         buff.writeInt(row.getSessionId());
         buff.writeInt(row.getColumnCount());
@@ -167,10 +170,11 @@ public class UndoLogRecord {
      *
      * @param buff the buffer
      * @param file the source file
+     * @param log the log
      */
-    void load(Data buff, FileStore file) {
+    void load(Data buff, FileStore file, UndoLog log) {
         int min = Constants.FILE_BLOCK_SIZE;
-        seek(file);
+        log.seek(filePos);
         buff.reset();
         file.readFully(buff.getBytes(), 0, min);
         int len = buff.readInt() * Constants.FILE_BLOCK_SIZE;
@@ -185,6 +189,9 @@ public class UndoLogRecord {
             }
         }
         boolean deleted = buff.readByte() == 1;
+        if (SysProperties.LARGE_TRANSACTIONS) {
+            int table;
+        }
         long key = buff.readLong();
         int sessionId = buff.readInt();
         int columnCount = buff.readInt();
@@ -206,6 +213,15 @@ public class UndoLogRecord {
      */
     public Table getTable() {
         return table;
+    }
+
+    /**
+     * Get the position in the file.
+     *
+     * @return the file position
+     */
+    public long getFilePos() {
+        return filePos;
     }
 
     /**

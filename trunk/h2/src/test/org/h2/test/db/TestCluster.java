@@ -62,6 +62,8 @@ public class TestCluster extends TestBase {
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar) as " +
                 "select x, 'Data' || x from system_range(0, " + (len - 1) + ")");
+        stat.execute("create user test password 'test'");
+        stat.execute("grant all on test to test");
 
         // start the second server
         Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
@@ -83,9 +85,18 @@ public class TestCluster extends TestBase {
         Connection connApp = DriverManager.getConnection(urlCluster + ";AUTO_RECONNECT=TRUE", user, password);
         check(connApp, len, "'" + serverList + "'");
 
+        // delete the rows, but don't commit
+        connApp.setAutoCommit(false);
+        connApp.createStatement().execute("delete from test");
+
         // stop server 2, and test if only one server is available
         n2.stop();
+
+        // rollback the transaction
+        connApp.createStatement().executeQuery("select count(*) from test");
+        connApp.rollback();
         check(connApp, len, "''");
+        connApp.setAutoCommit(true);
 
         // re-create the cluster
         n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", getBaseDir() + "/node2").start();
@@ -93,6 +104,11 @@ public class TestCluster extends TestBase {
                 serverList);
 
         // test the cluster connection
+        check(connApp, len, "'" + serverList + "'");
+
+        // test a non-admin user
+        String user2 = "test", password2 = getPassword("test");
+        connApp = DriverManager.getConnection(urlCluster, user2, password2);
         check(connApp, len, "'" + serverList + "'");
 
         n1.stop();

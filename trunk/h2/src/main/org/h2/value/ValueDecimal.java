@@ -134,7 +134,7 @@ public class ValueDecimal extends Value {
 
     public long getPrecision() {
         if (precision == 0) {
-            precision = value.precision();
+            precision = MathUtils.precision(value);
         }
         return precision;
     }
@@ -211,7 +211,7 @@ public class ValueDecimal extends Value {
     }
 
     public int getMemory() {
-        return value.precision() * 3 + 120;
+        return MathUtils.precision(value) * 3 + 120;
     }
 
 }

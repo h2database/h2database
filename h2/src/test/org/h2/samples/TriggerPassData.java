@@ -55,7 +55,6 @@ public class TriggerPassData implements Trigger {
     public void init(Connection conn, String schemaName,
             String triggerName, String tableName, boolean before,
             int type) throws SQLException {
-        System.out.println(getPrefix(conn) + triggerName);
         TRIGGERS.put(getPrefix(conn) + triggerName, this);
     }
 

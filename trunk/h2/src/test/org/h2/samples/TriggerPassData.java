@@ -8,18 +8,22 @@ package org.h2.samples;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.h2.api.Trigger;
 
 /**
- * This sample application shows how to pass data to a trigger.
+ * This sample application shows how to pass data to a trigger. Trigger data can
+ * be persisted by storing it in the database.
  */
 public class TriggerPassData implements Trigger {
 
     private static final Map<String, TriggerPassData> TRIGGERS =
-        new HashMap<String, TriggerPassData>();
+        Collections.synchronizedMap(new HashMap<String, TriggerPassData>());
     private String triggerData;
 
     /**
@@ -31,7 +35,7 @@ public class TriggerPassData implements Trigger {
     public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection(
-                "jdbc:h2:mem:", "sa", "");
+                "jdbc:h2:mem:test", "sa", "");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("CREATE ALIAS TRIGGER_SET FOR \"" +
@@ -50,8 +54,9 @@ public class TriggerPassData implements Trigger {
 
     public void init(Connection conn, String schemaName,
             String triggerName, String tableName, boolean before,
-            int type) {
-        TRIGGERS.put(triggerName, this);
+            int type) throws SQLException {
+        System.out.println(getPrefix(conn) + triggerName);
+        TRIGGERS.put(getPrefix(conn) + triggerName, this);
     }
 
     public void fire(Connection conn, Object[] old, Object[] row) {
@@ -69,11 +74,19 @@ public class TriggerPassData implements Trigger {
     /**
      * Call this method to change a specific trigger.
      *
+     * @param conn the connection
      * @param trigger the trigger name
      * @param data the data
      */
-    public static void setTriggerData(String trigger, String data) {
-        TRIGGERS.get(trigger).triggerData = data;
+    public static void setTriggerData(Connection conn, String trigger, String data) throws SQLException {
+        TRIGGERS.get(getPrefix(conn) + trigger).triggerData = data;
+    }
+
+    private static String getPrefix(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("call ifnull(database_path() || '_', '') || database() || '_'");
+        rs.next();
+        return rs.getString(1);
     }
 
 }

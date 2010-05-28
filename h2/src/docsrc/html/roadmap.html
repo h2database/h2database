@@ -31,7 +31,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Priority 1</h2>
 <ul><li>Bugfixes
-</li><li>Support very large transactions. Reduce memory usage of undo log.
+</li><li>Support very large transactions. Reduce memory usage of undo log (TestUndoLogMemory).
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Optimization: result set caching (like MySQL); option to disable
 </li><li>Server side cursors
@@ -39,8 +39,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Priority 2</h2>
 <ul><li>Improve test code coverage.
-</li><li>Test multi-threaded in-memory db access
-</li><li>Option to shutdown all the running servers (on the same VM).
+</li><li>Test multi-threaded in-memory db access.
 </li><li>Full outer joins.
 </li><li>Support nested outer joins (see todo.txt).
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
@@ -475,15 +474,20 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Allow to access the database over HTTP (possibly using port 80) and a servlet in a REST way.
 </li><li>ODBC: encrypted databases are not supported because the ;CIPHER= can not be set.
 </li><li>Support CLOB and BLOB update, specially conn.createBlob().setBinaryStream(1);
-</li><li>Triggers: support user defined execution order. Oracle: 
-    CREATE OR REPLACE TRIGGER TRI_TEST_2 BEFORE INSERT
-    ON TEST FOR EACH ROW FOLLOWS TRI_TEST_1.
-    MS SQL Server: sp_settriggerorder.
-    SQL specifies that multiple triggers should be fired in time-of-creation order. 
-    PostgreSQL uses name order, which was judged to be more convenient. 
+</li><li>Triggers: support user defined execution order. Oracle:
+    CREATE OR REPLACE TRIGGER TEST_2 BEFORE INSERT
+    ON TEST FOR EACH ROW FOLLOWS TEST_1.
+    SQL specifies that multiple triggers should be fired in time-of-creation order.
+    PostgreSQL uses name order, which was judged to be more convenient.
     Derby: triggers are fired in the order in which they were created.
 </li><li>PostgreSQL compatibility: combine "users" and "roles". See:
     http://www.postgresql.org/docs/8.1/interactive/user-manag.html
+</li><li>Support NULL with a type: @meta CALL CAST(NULL AS INT) should return INT.
+    See the ValueExpression.java (currently it returns the type of the value;
+    it could have it's own type/precision/scale optionally, for example when created from CAST,
+    which is implemented in Function.java).
+</li><li>Improve documentation of system properties: only list the property names, default values, and description.
+</li><li>Support running totals / cumulative sum using SUM(..) OVER(..).
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -308,9 +308,9 @@ public class ErrorCode {
     public static final int UNKNOWN_DATA_TYPE_1 = 50004;
 
     /**
-     * The error with code <code>50100</code> is thrown when
-     * calling an unsupported JDBC method. See the stack trace
-     * for details.
+     * The error with code <code>50100</code> is thrown when calling an
+     * unsupported JDBC method or database feature. See the stack trace for
+     * details.
      */
     public static final int FEATURE_NOT_SUPPORTED_1 = 50100;
 

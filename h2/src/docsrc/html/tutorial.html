@@ -474,7 +474,7 @@ To remotely connect to a database using the TCP server, use the following driver
 </li></ul>
 <p>
 For details about the database URL, see also in Features.
-Please note that you can't connection with a web browser to this URL. 
+Please note that you can't connection with a web browser to this URL.
 You can only connect using a H2 client (over JDBC).
 </p>
 
@@ -551,6 +551,9 @@ To enable it, change the following setting in persistence.xml:
 </pre>
 <p>
 In old versions of Glassfish, the property name is <code>toplink.platform.class.name</code>.
+</p>
+<p>
+To use H2 within Glassfish, copy the h2*.jar to the directory <code>glassfish/glassfish/lib</code>.
 </p>
 
 <h2 id="using_eclipselink">Using EclipseLink</h2>
@@ -687,6 +690,27 @@ The CSV file support can be used inside the database using the functions
 or it can be used outside the database as a standalone tool.
 </p>
 
+<h3>Reading a CSV File from Within a Database</h3>
+<p>
+A CSV file can be read using the function <code>CSVREAD</code>. Example:
+</p>
+<pre>
+SELECT * FROM CSVREAD('test.csv');
+</pre>
+
+<h3>Importing Data from a CSV File</h3>
+<p>
+A fast way to load or import data (sometimes called 'bulk load') from a CSV file is
+to combine table creation with import.
+Optionally, the column names and data types can be set when creating the table.
+Another option is to use <code>INSERT INTO ... SELECT</code>.
+</p>
+<pre>
+CREATE TABLE TEST AS SELECT * FROM CSVREAD('test.csv');
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
+    AS SELECT * FROM CSVREAD('test.csv');
+</pre>
+
 <h3>Writing a CSV File from Within a Database</h3>
 <p>
 The built-in function <code>CSVWRITE</code> can be used to create a CSV file from a query.
@@ -696,14 +720,6 @@ Example:
 CREATE TABLE TEST(ID INT, NAME VARCHAR);
 INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');
 CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');
-</pre>
-
-<h3>Reading a CSV File from Within a Database</h3>
-<p>
-A CSV file can be read using the function <code>CSVREAD</code>. Example:
-</p>
-<pre>
-SELECT * FROM CSVREAD('test.csv');
 </pre>
 
 <h3>Writing a CSV File from a Java Application</h3>

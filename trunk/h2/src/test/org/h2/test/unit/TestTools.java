@@ -664,14 +664,14 @@ public class TestTools extends TestBase {
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         try {
-            Server.shutdownTcpServer("tcp://localhost:9192", "", true);
+            Server.shutdownTcpServer("tcp://localhost:9192", "", true, false);
             fail("shouldn't work and should throw an exception");
         } catch (SQLException e) {
             assertKnownException(e);
         }
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         // conn.close();
-        Server.shutdownTcpServer("tcp://localhost:9192", "abc", true);
+        Server.shutdownTcpServer("tcp://localhost:9192", "abc", true, false);
         // check that the database is closed
         deleteDb("test");
         try {

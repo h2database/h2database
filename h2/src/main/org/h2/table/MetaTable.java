@@ -1736,12 +1736,12 @@ public class MetaTable extends Table {
     }
 
     public ArrayList<Index> getIndexes() {
+        ArrayList<Index> list = New.arrayList();
         if (metaIndex == null) {
-            return null;
+            return list;
         }
-        ArrayList<Index>list = New.arrayList();
         list.add(new MetaIndex(this, IndexColumn.wrap(columns), true));
-        // TODO fixed scan index
+        // TODO re-use the index
         list.add(metaIndex);
         return list;
     }
@@ -1770,6 +1770,10 @@ public class MetaTable extends Table {
 
     public boolean isDeterministic() {
         return true;
+    }
+
+    public boolean canReference() {
+        return false;
     }
 
 }

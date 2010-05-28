@@ -199,4 +199,8 @@ public class FunctionTable extends Table {
         return function.isDeterministic();
     }
 
+    public boolean canReference() {
+        return false;
+    }
+
 }

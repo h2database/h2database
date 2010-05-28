@@ -168,4 +168,8 @@ public class RangeTable extends Table {
         return true;
     }
 
+    public boolean canReference() {
+        return false;
+    }
+
 }

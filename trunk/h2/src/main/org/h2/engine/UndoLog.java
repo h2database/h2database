@@ -18,12 +18,12 @@ import org.h2.util.New;
  */
 public class UndoLog {
     private Database database;
-    // TODO undo log entry: a chain would probably be faster
-    //  and use less memory than an array
+    private ArrayList<Long> storedEntriesPos = New.arrayList();
     private ArrayList<UndoLogRecord> records = New.arrayList();
     private FileStore file;
     private Data rowBuff;
     private int memoryUndo;
+    private int storedEntries;
 
     /**
      * Create a new undo log for the given session.
@@ -40,6 +40,9 @@ public class UndoLog {
      * @return the number of rows
      */
     public int size() {
+        if (SysProperties.LARGE_TRANSACTIONS) {
+            return storedEntries + records.size();
+        }
         if (SysProperties.CHECK && memoryUndo > records.size()) {
             DbException.throwInternalError();
         }
@@ -52,6 +55,8 @@ public class UndoLog {
      */
     public void clear() {
         records.clear();
+        storedEntries = 0;
+        storedEntriesPos.clear();
         memoryUndo = 0;
         if (file != null) {
             file.closeAndDeleteSilently();
@@ -67,6 +72,19 @@ public class UndoLog {
      */
     public UndoLogRecord getLast() {
         int i = records.size() - 1;
+        if (SysProperties.LARGE_TRANSACTIONS) {
+            if (i <= 0 && storedEntries > 0) {
+                int last = storedEntriesPos.size() - 1;
+                long pos = storedEntriesPos.get(last);
+                storedEntriesPos.remove(last);
+                long end = file.length();
+                while (pos < end) {
+                    int test;
+//                    UndoLogRecord e = new UndoLogRecord(null, 0, null);
+
+                }
+            }
+        }
         UndoLogRecord entry = records.get(i);
         if (entry.isStored()) {
             int start = Math.max(0, i - database.getMaxMemoryUndo() / 2);
@@ -74,7 +92,7 @@ public class UndoLog {
             for (int j = start; j <= i; j++) {
                 UndoLogRecord e = records.get(j);
                 if (e.isStored()) {
-                    e.load(rowBuff, file);
+                    e.load(rowBuff, file, this);
                     memoryUndo++;
                     if (first == null) {
                         first = e;
@@ -85,9 +103,18 @@ public class UndoLog {
                 UndoLogRecord e = records.get(k);
                 e.invalidatePos();
             }
-            first.seek(file);
+            seek(first.getFilePos());
         }
         return entry;
+    }
+
+    /**
+     * Go to the right position in the file.
+     *
+     * @param file the file
+     */
+    void seek(long filePos) {
+        file.seek(filePos * Constants.FILE_BLOCK_SIZE);
     }
 
     /**

@@ -760,7 +760,7 @@ public class ValueLob extends Value {
 
     public int getMemory() {
         if (small != null) {
-            return small.length + 32;
+            return small.length + 64;
         }
         return 128;
     }

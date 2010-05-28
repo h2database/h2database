@@ -256,6 +256,15 @@ public abstract class Table extends SchemaObjectBase {
     public abstract boolean canGetRowCount();
 
     /**
+     * Check if this table can be referenced.
+     *
+     * @return true if it can
+     */
+    public boolean canReference() {
+        return true;
+    }
+
+    /**
      * Check if this table can be dropped.
      *
      * @return true if it can

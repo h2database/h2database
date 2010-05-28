@@ -201,7 +201,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         // TODO server: maybe use one single properties file?
         if (tcpShutdown) {
             out.println("Shutting down TCP Server at " + tcpShutdownServer);
-            shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce);
+            shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce, false);
         }
         if (webStart) {
             web = createWebServer(args);
@@ -236,7 +236,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     }
 
     /**
-     * Shutdown a TCP server. If force is set to false, the server will not
+     * Shutdown one or all TCP server. If force is set to false, the server will not
      * allow new connections, but not kill existing connections, instead it will
      * stop if the last connection is closed. If force is set to true, existing
      * connections are killed. After calling the method with force=false, it is
@@ -244,17 +244,18 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * not allowed. Example:
      *
      * <pre>
-     * Server.shutdownTcpServer(&quot;tcp://localhost:9094&quot;, password, true);
+     * Server.shutdownTcpServer(
+     *     &quot;tcp://localhost:9094&quot;, password, true, false);
      * </pre>
      *
      * @param url example: tcp://localhost:9094
      * @param password the password to use ("" for no password)
      * @param force the shutdown (don't wait)
-     * @throws ClassNotFoundException
-     * @throws SQLException
+     * @param all whether all TCP servers that are running in the JVM
+     *                  should be stopped
      */
-    public static void shutdownTcpServer(String url, String password, boolean force) throws SQLException {
-        TcpServer.shutdown(url, password, force);
+    public static void shutdownTcpServer(String url, String password, boolean force, boolean all) throws SQLException {
+        TcpServer.shutdown(url, password, force, all);
     }
 
     /**

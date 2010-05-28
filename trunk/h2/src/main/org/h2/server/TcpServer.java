@@ -287,11 +287,19 @@ public class TcpServer implements Service {
      * Stop a running server. This method is called via reflection from the
      * STOP_SERVER function.
      *
-     * @param port the port where the server runs
-     * @param password the password
+     * @param port the port where the server runs, or 0 for all running servers
+     * @param password the password (or null)
      * @param shutdownMode the shutdown mode, SHUTDOWN_NORMAL or SHUTDOWN_FORCE.
      */
     public static void stopServer(int port, String password, int shutdownMode) {
+        if (port == 0) {
+            for (int p : SERVERS.keySet().toArray(new Integer[0])) {
+                if (p != 0) {
+                    stopServer(p, password, shutdownMode);
+                }
+            }
+            return;
+        }
         TcpServer server = SERVERS.get(port);
         if (server == null) {
             return;
@@ -374,8 +382,10 @@ public class TcpServer implements Service {
      * @param url the database URL
      * @param password the password
      * @param force if the server should be stopped immediately
+     * @param all whether all TCP servers that are running in the JVM should be
+     *            stopped
      */
-    public static synchronized void shutdown(String url, String password, boolean force) throws SQLException {
+    public static synchronized void shutdown(String url, String password, boolean force, boolean all) throws SQLException {
         try {
             int port = Constants.DEFAULT_TCP_PORT;
             int idx = url.indexOf(':', "jdbc:h2:".length());
@@ -399,7 +409,7 @@ public class TcpServer implements Service {
                 try {
                     conn = DriverManager.getConnection("jdbc:h2:" + url + "/" + db, "sa", password);
                     prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
-                    prep.setInt(1, port);
+                    prep.setInt(1, all ? 0 : port);
                     prep.setString(2, password);
                     prep.setInt(3, force ? SHUTDOWN_FORCE : SHUTDOWN_NORMAL);
                     try {

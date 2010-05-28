@@ -1934,15 +1934,26 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (visitor.getType() == ExpressionVisitor.DETERMINISTIC && !info.deterministic) {
-            return false;
-        }
         for (Expression e : args) {
             if (e != null && !e.isEverything(visitor)) {
                 return false;
             }
         }
-        return true;
+        switch (visitor.getType()) {
+        case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.READONLY:
+            return info.deterministic;
+        case ExpressionVisitor.EVALUATABLE:
+        case ExpressionVisitor.GET_DEPENDENCIES:
+        case ExpressionVisitor.INDEPENDENT:
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
+            return true;
+        default:
+            throw DbException.throwInternalError("type=" + visitor.getType());
+        }
     }
 
     public int getCost() {

@@ -18,12 +18,26 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>JdbcConnectionPool: the default connection timeout is now 30 seconds (it used to be 5 minutes).
+<ul><li>Cluster: an open transaction was committed when a cluster node was stopped
+    (because disabling the cluster executes SET CLUSTER '', which committed the transaction).
+    Transaction are no longer committed when calling SET CLUSTER. Issue 199.
+</li><li>Cluster: non-admin users couldn't connect to the cluster and couldn't disable the cluster. Issue 201.
+</li><li>Cluster: NEXTVAL('sequence') was only called on one cluster node,
+    therefore sequence values could get out of sync.
+</li><li>Version 1.2.136 could not be converted to Java 1.4
+    (because the Retrotranslator doesn't support BigDecimal.precision).
+    A workaround has been implemented.
+</li><li>The error code of IO exceptions in CSV functions was incorrect.
+</li><li>The TriggerPassData example now uses a prefix (the database name).
+</li><li>The wrong exception was thrown when trying to reference a table that doesn't support references
+    such as a table in the information schema.
+</li><li>Server.shutdownTcpServer can now stop all TCP servers on this JVM.
+</li><li>JdbcConnectionPool: the default connection timeout is now 30 seconds (it used to be 5 minutes).
 </li><li>LOB storage: LOBs added with "h2.lobInDatabase" enabled couldn't
     be read later with this option disabled.
 </li></ul>
 
-<h2>Next Version (unreleased)</h2>
+<h2>Version 1.2.136 (2010-05-24)</h2>
 <ul><li>When using ORDER BY and there are both ascending and descending indexes, the database used
     the first index even when the second one could be used for sorting.
 </li><li>Conditions of the form columnName IS NULL now use an index. To disable this feature,

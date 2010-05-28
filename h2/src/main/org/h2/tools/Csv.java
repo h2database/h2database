@@ -24,6 +24,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -577,11 +579,12 @@ public class Csv implements SimpleRowSource {
     }
 
     private SQLException convertException(String message, Exception e) {
-        SQLException s = new SQLException(message, "CSV");
-        //## Java 1.4 begin ##
-        s.initCause(e);
-        //## Java 1.4 end ##
-        return s;
+        return DbException.get(ErrorCode.IO_EXCEPTION_1, e, message).getSQLException();
+//        SQLException s = new SQLException(message, "CSV");
+//        //## Java 1.4 begin ##
+//        s.initCause(e);
+//        //## Java 1.4 end ##
+//        return s;
     }
 
     /**

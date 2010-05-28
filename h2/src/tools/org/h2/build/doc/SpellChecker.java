@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.StringTokenizer;
 
 import org.h2.build.BuildBase;
+import org.h2.util.StringUtils;
 
 /**
  * The spell checker makes sure that each word used in the source code
@@ -173,6 +174,9 @@ public class SpellChecker {
     private String removeLinks(String fileName, String text) {
         StringBuilder buff = new StringBuilder(text.length());
         int pos = 0, last = 0;
+        if (fileName.endsWith(".properties")) {
+            text = StringUtils.replaceAll(text, "\\:", ":");
+        }
         while (true) {
             pos = text.indexOf("http://", pos);
             if (pos < 0) {

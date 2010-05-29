@@ -13,6 +13,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ParameterMetaData;
@@ -998,7 +999,8 @@ public class WebApp {
         if (!(s.startsWith("@") && s.endsWith("."))) {
             buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
         }
-        buff.append(getResult(conn, i + 1, s, size == 1, false)).append("<br />");
+        boolean forceEdit = s.startsWith("@edit");
+        buff.append(getResult(conn, i + 1, s, size == 1, forceEdit)).append("<br />");
     }
 
     private String editResult() {
@@ -1671,16 +1673,44 @@ public class WebApp {
         return false;
     }
 
-    private void unescapeData(String d, ResultSet rs, int columnIndex) throws SQLException {
-        if (d.equals("null")) {
+    private void unescapeData(String x, ResultSet rs, int columnIndex) throws SQLException {
+        if (x.equals("null")) {
             rs.updateNull(columnIndex);
-        } else if (d.startsWith("=+")) {
+            return;
+        } else if (x.startsWith("=+")) {
             // don't update
-        } else if (d.startsWith("= ")) {
-            d = d.substring(2);
-            rs.updateString(columnIndex, d);
-        } else {
-            rs.updateString(columnIndex, d);
+            return;
+        } else if (x.startsWith("= ")) {
+            x = x.substring(2);
+        }
+        ResultSetMetaData meta = rs.getMetaData();
+        int type = meta.getColumnType(columnIndex);
+        if (session.getContents().isH2) {
+            rs.updateString(columnIndex, x);
+            return;
+        }
+        switch (type) {
+        case Types.BIGINT:
+            rs.updateLong(columnIndex, Long.decode(x));
+            break;
+        case Types.DECIMAL:
+            rs.updateBigDecimal(columnIndex, new BigDecimal(x));
+            break;
+        case Types.DOUBLE:
+        case Types.FLOAT:
+            rs.updateDouble(columnIndex, Double.parseDouble(x));
+            break;
+        case Types.REAL:
+            rs.updateFloat(columnIndex, Float.parseFloat(x));
+            break;
+        case Types.INTEGER:
+            rs.updateInt(columnIndex, Integer.decode(x));
+            break;
+        case Types.TINYINT:
+            rs.updateShort(columnIndex, Short.decode(x));
+            break;
+        default:
+            rs.updateString(columnIndex, x);
         }
     }
 

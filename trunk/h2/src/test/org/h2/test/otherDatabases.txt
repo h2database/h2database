@@ -1,8 +1,21 @@
 MySQL
 --------------------------------------------------------------------------------------------------------
+Start:
+sudo mysqld_safe
+
+Stop:
+sudo mysqladmin shutdown
+
+Configuration:
+sudo mysql
+create database test;
+create user 'sa'@'localhost' identified by 'sa';
+use test;
+grant all on * to 'sa'@'localhost' with grant option;
+
 'TRADITIONAL' is default; ANSI mode can be set using:
 SET GLOBAL sql_mode='ANSI';
-SELECT @@global.sql_mode
+SELECT @@global.sql_mode;
 
 Non-standard escape mechanism:
 select 'Joe''s', 'Joe\'s';
@@ -14,16 +27,6 @@ insert into test values(1);
 insert into test values(null);
 -- 2 rows even in ANSI mode (correct is 1 row):
 select * from test where id=id and 1=1;
-
-Configuration:
-create database test;
-create user 'sa'@'localhost' identified by 'sa';
-use test;
-grant all on * to 'sa'@'localhost' with grant option;
-
-Start and Stop:
-sudo mysqld_safe
-sudo mysqladmin shutdown
 
 
 MS SQL Server 2005

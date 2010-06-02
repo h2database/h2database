@@ -297,6 +297,7 @@ java org.h2.test.TestAll timer
         test.printSystem();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
+        System.setProperty("h2.largeTransactions", "true");
 
         // System.setProperty("h2.lobInDatabase", "true");
         // System.setProperty("h2.analyzeAuto", "100");

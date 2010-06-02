@@ -27,6 +27,67 @@ TableFilter,
             join.mapAndAddFilter(on);
         }
     }
+    
+    
+drop table base; 
+drop table a; 
+drop table b; 
+create table a( pk integer, val varchar(255) );
+create table b( pk integer, val varchar(255) );
+create table base( pk integer, deleted integer );
+insert into base values ( 1,  0 ); 
+insert into base values ( 2,  1 ); 
+insert into base values ( 3,  0 ); 
+insert into a values  ( 1, 'a' ); 
+insert into b values ( 2, 'a' ); 
+insert into b values ( 3, 'a' ); 
+
+select a.pk, a_base.pk, b.pk, b_base.pk from a inner join base a_base 
+on a.pk = a_base.pk left outer join
+( b inner join base b_base on b.pk = b_base.pk and b_base.deleted = 0 ) ;
+-- H2:
+-- 1    1   2   null
+-- 1    1   3   3
+-- PostgreSQL: ERROR: syntax error at end of input 42601/0
+-- MySQL: You have an error in your SQL syntax; 
+--       check the manual that corresponds to your MySQL server version 
+--       for the right syntax to use near '' at line 3
+-- Derby: Syntax error: Encountered "<EOF>" at line 3, column 71. 42X01/30000
+-- HSQLDB: Unexpected token B, requires SELECT in statement
+
+select a.pk, a_base.pk, b.pk, b_base.pk  from a inner join base a_base 
+on a.pk = a_base.pk left outer join
+( b inner join base b_base on b.pk = b_base.pk and b_base.deleted = 0 ) 
+on a.pk = b.pk;
+-- H2, MySQL, PostgreSQL, Derby:
+-- 1    1   null    null
+-- HSQLDB: Unexpected token B, requires SELECT in statement
+
+select a.pk, a_base.pk, b.pk, b_base.pk  from a inner join base a_base 
+on a.pk = a_base.pk left outer join
+( b inner join base b_base on b.pk = b_base.pk and b_base.deleted = 0 ) 
+on 1=1;
+-- H2:
+-- 1    1   2   null
+-- 1    1   3   3
+-- PostgreSQL, MySQL, Derby:
+-- 1    1   3   3
+-- HSQLDB: Unexpected token B, requires SELECT in statement
+
+select a.pk, a_base.pk, bpk, bbasepk  from a inner join base a_base 
+on a.pk = a_base.pk left outer join
+( select b.pk bpk, b_base.pk bbasepk from b inner join base b_base on b.pk = b_base.pk and b_base.deleted = 0 ) x
+on 1=1;
+-- PostgreSQL, MySQL, Derby, H2:
+-- 1    1   3   3
+
+
+drop table test;
+create table test(id int primary key);
+@loop 3 insert into test values(?);
+select * from test a left outer join (test b inner join test c on b.id = c.id - 2) on a.id = b.id + 1;
+select * from test a left outer join (select b.id, c.id from test b inner join test c on b.id = c.id - 2) on a.id = b.id + 1;
+    
 
 Auto Upgrade
 -----------------

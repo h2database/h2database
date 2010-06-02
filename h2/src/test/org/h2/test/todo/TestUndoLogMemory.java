@@ -21,6 +21,8 @@ public class TestUndoLogMemory {
      * @param args ignored
      */
     public static void main(String... args) throws Exception {
+        System.setProperty("h2.largeTransactions", "true");
+        
         // -Xmx1m -XX:+HeapDumpOnOutOfMemoryError
         DeleteDbFiles.execute("data", "test", true);
         Connection conn = DriverManager.getConnection("jdbc:h2:data/test");
@@ -33,20 +35,21 @@ public class TestUndoLogMemory {
         stat.execute("create table test(id int)");
         stat.execute("insert into test select x from system_range(1, 100000)");
 
-        // stat.execute("create table test(id int primary key)");
+        stat.execute("drop table test");
+        stat.execute("create table test(id int primary key)");
 
         // INSERT problem
-        // stat.execute(
-        //     "insert into test select x from system_range(1, 400000)");
+        stat.execute(
+            "insert into test select x from system_range(1, 400000)");
+        stat.execute("delete from test");
 
         // DELETE problem
-        // stat.execute(
-        //    "insert into test select x from system_range(1, 50000)");
-        // stat.execute(
-        //     "insert into test select x from system_range(50001, 100000)");
-        // stat.execute(
-        //     "insert into test select x from system_range(100001, 150000)");
-
+        stat.execute(
+            "insert into test select x from system_range(1, 50000)");
+        stat.execute(
+             "insert into test select x from system_range(50001, 100000)");
+        stat.execute(
+            "insert into test select x from system_range(100001, 150000)");
         stat.execute("delete from test");
 
         conn.close();

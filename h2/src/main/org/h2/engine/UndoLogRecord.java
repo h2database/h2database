@@ -13,7 +13,6 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
-import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.value.Value;
 
@@ -69,13 +68,12 @@ public class UndoLogRecord {
      * @return if it can be stored
      */
     boolean canStore() {
-        if (table.getUniqueIndex() != null) {
+        if (SysProperties.LARGE_TRANSACTIONS) {
+            // actually the method is not called in this case
             return true;
         }
-        if (SysProperties.LARGE_TRANSACTIONS) {
-            if (table instanceof RegularTable) {
-                return true;
-            }
+        if (table.getUniqueIndex() != null) {
+            return true;
         }
         return false;
     }
@@ -136,18 +134,18 @@ public class UndoLogRecord {
     }
 
     /**
-     * Save the row in the file using a buffer.
+     * Append the row to the buffer.
      *
      * @param buff the buffer
-     * @param file the file
+     * @param log the undo log
      */
-    void save(Data buff, FileStore file) {
-        buff.reset();
+    void append(Data buff, UndoLog log) {
+        int p = buff.length();
         buff.writeInt(0);
         buff.writeInt(operation);
         buff.writeByte(row.isDeleted() ? (byte) 1 : (byte) 0);
         if (SysProperties.LARGE_TRANSACTIONS) {
-            int table;
+            buff.writeInt(log.getTableId(table));
         }
         buff.writeLong(row.getKey());
         buff.writeInt(row.getSessionId());
@@ -158,11 +156,32 @@ public class UndoLogRecord {
             buff.writeValue(v);
         }
         buff.fillAligned();
-        buff.setInt(0, buff.length() / Constants.FILE_BLOCK_SIZE);
+        buff.setInt(p, buff.length() / Constants.FILE_BLOCK_SIZE);
+    }
+    
+    /**
+     * Save the row in the file using a buffer.
+     *
+     * @param buff the buffer
+     * @param file the file
+     * @param log the undo log
+     */
+    void save(Data buff, FileStore file, UndoLog log) {
+        buff.reset();
+        append(buff, log);
         filePos = (int) (file.getFilePointer() / Constants.FILE_BLOCK_SIZE);
         file.write(buff.getBytes(), 0, buff.length());
         row = null;
         state = STORED;
+    }
+    
+    static UndoLogRecord loadFromBuffer(Data buff, UndoLog log) {
+        UndoLogRecord rec = new UndoLogRecord(null, (short) 0, null);
+        int pos = buff.length();
+        int len = buff.readInt() * Constants.FILE_BLOCK_SIZE;
+        rec.load(buff, log);
+        buff.setPos(pos + len);
+        return rec;
     }
 
     /**
@@ -182,6 +201,10 @@ public class UndoLogRecord {
         if (len - min > 0) {
             file.readFully(buff.getBytes(), min, len - min);
         }
+        load(buff, log);
+    }
+    
+    private void load(Data buff, UndoLog log) {
         int op = buff.readInt();
         if (SysProperties.CHECK) {
             if (operation != op) {
@@ -190,7 +213,7 @@ public class UndoLogRecord {
         }
         boolean deleted = buff.readByte() == 1;
         if (SysProperties.LARGE_TRANSACTIONS) {
-            int table;
+            table = log.getTable(buff.readInt());
         }
         long key = buff.readLong();
         int sessionId = buff.readInt();

@@ -7,10 +7,12 @@
 package org.h2.engine;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
+import org.h2.table.Table;
 import org.h2.util.New;
 
 /**
@@ -24,6 +26,7 @@ public class UndoLog {
     private Data rowBuff;
     private int memoryUndo;
     private int storedEntries;
+    private HashMap<Integer, Table> tables;
 
     /**
      * Create a new undo log for the given session.
@@ -73,16 +76,22 @@ public class UndoLog {
     public UndoLogRecord getLast() {
         int i = records.size() - 1;
         if (SysProperties.LARGE_TRANSACTIONS) {
+            int test;
             if (i <= 0 && storedEntries > 0) {
                 int last = storedEntriesPos.size() - 1;
                 long pos = storedEntriesPos.get(last);
                 storedEntriesPos.remove(last);
                 long end = file.length();
-                while (pos < end) {
-                    int test;
-//                    UndoLogRecord e = new UndoLogRecord(null, 0, null);
-
+                int bufferLength = (int) (end - pos);
+                Data buff = Data.create(database, bufferLength);
+                seek(pos);
+                file.readFully(buff.getBytes(), 0, bufferLength);
+                while (buff.length() < bufferLength) {
+                    UndoLogRecord e = UndoLogRecord.loadFromBuffer(buff, this);
+                    records.add(e);
+                    memoryUndo++;
                 }
+                file.setLength(pos);
             }
         }
         UndoLogRecord entry = records.get(i);
@@ -144,6 +153,26 @@ public class UndoLog {
             memoryUndo++;
         }
         if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent() && !database.isMultiVersion()) {
+            if (SysProperties.LARGE_TRANSACTIONS) {
+                int todo;
+                if (file == null) {
+                    String fileName = database.createTempFile();
+                    file = database.openFile(fileName, "rw", false);
+                    file.setLength(FileStore.HEADER_LENGTH);
+                }
+                Data buff = Data.create(database, SysProperties.PAGE_SIZE);
+                for (int i = 0; i < records.size(); i++) {
+                    UndoLogRecord r = records.get(i);
+                    buff.checkCapacity(SysProperties.PAGE_SIZE);
+                    r.append(buff, this);
+                }
+                storedEntriesPos.add(file.getFilePointer());
+                file.write(buff.getBytes(), 0, buff.length());
+                memoryUndo = 0;
+                records.clear();
+                file.autoDelete();
+                return;
+            }
             if (file == null) {
                 String fileName = database.createTempFile();
                 file = database.openFile(fileName, "rw", false);
@@ -163,9 +192,24 @@ public class UndoLog {
 
     private void saveIfPossible(UndoLogRecord r, Data buff) {
         if (!r.isStored() && r.canStore()) {
-            r.save(buff, file);
+            r.save(buff, file, this);
             memoryUndo--;
         }
+    }
+
+    int getTableId(Table table) {
+        int id = table.getId();
+        if (tables == null) {
+            tables = New.hashMap();
+        }
+        if (tables.get(id) == null) {
+            tables.put(id, table);
+        }
+        return id;
+    }
+    
+    Table getTable(int id) {
+        return tables.get(id);
     }
 
 }

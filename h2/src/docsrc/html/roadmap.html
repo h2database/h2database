@@ -27,6 +27,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Set h2.analyzeAuto to 2000 (automatic ANALYZE).
 </li><li>Enable h2.functionsInSchema (allow to store functions in a schema).
 </li><li>Enable h2.selectForUpdateMvcc (MVCC and SELECT FOR UPDATE).
+</li><li>Enable h2.largeTransactions (support for very large transactions).
+    Change documentation for MAX_MEMORY_UNDO in help.csv, because
+    now changes to tables without a primary key can be buffered to disk.
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -38,10 +41,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li></ul>
 
 <h2>Priority 2</h2>
-<ul><li>Improve test code coverage.
+<ul><li>Support nested outer joins (see todo.txt, issues 145, 177, 203).
+</li><li>Improve test code coverage.
 </li><li>Test multi-threaded in-memory db access.
 </li><li>Full outer joins.
-</li><li>Support nested outer joins (see todo.txt).
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.

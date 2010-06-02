@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: editing result sets is now also working for database other than H2, 
+<ul><li>Experimental feature to support very large transactions (except when using MVCC).
+    To enable, set the system property h2.largeTransactions to true.
+    If enabled, changes to tables without a primary key can be buffered to disk.
+    The plan is to enable this feature by default in version 1.3.x.
+</li><li>H2 Console: editing result sets is now also working for database other than H2, 
     if they do support updateable result sets. The query must be prefixed with "@edit".
     Only limited testing has been done on this feature,
     some data types may not work (please provide feedback if you find issues).

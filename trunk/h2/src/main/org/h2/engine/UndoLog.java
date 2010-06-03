@@ -76,23 +76,25 @@ public class UndoLog {
     public UndoLogRecord getLast() {
         int i = records.size() - 1;
         if (SysProperties.LARGE_TRANSACTIONS) {
-            int test;
-            if (i <= 0 && storedEntries > 0) {
+            if (i < 0 && storedEntries > 0) {
                 int last = storedEntriesPos.size() - 1;
                 long pos = storedEntriesPos.get(last);
                 storedEntriesPos.remove(last);
                 long end = file.length();
                 int bufferLength = (int) (end - pos);
                 Data buff = Data.create(database, bufferLength);
-                seek(pos);
+                file.seek(pos);
                 file.readFully(buff.getBytes(), 0, bufferLength);
                 while (buff.length() < bufferLength) {
                     UndoLogRecord e = UndoLogRecord.loadFromBuffer(buff, this);
                     records.add(e);
                     memoryUndo++;
                 }
+                storedEntries -= records.size();
                 file.setLength(pos);
+                file.seek(pos);
             }
+            i = records.size() - 1;
         }
         UndoLogRecord entry = records.get(i);
         if (entry.isStored()) {
@@ -149,12 +151,9 @@ public class UndoLog {
      */
     public void add(UndoLogRecord entry) {
         records.add(entry);
-        if (!entry.isStored()) {
+        if (SysProperties.LARGE_TRANSACTIONS) {
             memoryUndo++;
-        }
-        if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent() && !database.isMultiVersion()) {
-            if (SysProperties.LARGE_TRANSACTIONS) {
-                int todo;
+            if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent() && !database.isMultiVersion()) {
                 if (file == null) {
                     String fileName = database.createTempFile();
                     file = database.openFile(fileName, "rw", false);
@@ -165,28 +164,38 @@ public class UndoLog {
                     UndoLogRecord r = records.get(i);
                     buff.checkCapacity(SysProperties.PAGE_SIZE);
                     r.append(buff, this);
+                    if (i == records.size() - 1 || buff.length() > Constants.UNDO_BLOCK_SIZE) {
+                        storedEntriesPos.add(file.getFilePointer());
+                        file.write(buff.getBytes(), 0, buff.length());
+                        buff.reset();
+                    }
                 }
-                storedEntriesPos.add(file.getFilePointer());
-                file.write(buff.getBytes(), 0, buff.length());
+                storedEntries += records.size();
                 memoryUndo = 0;
                 records.clear();
                 file.autoDelete();
                 return;
             }
-            if (file == null) {
-                String fileName = database.createTempFile();
-                file = database.openFile(fileName, "rw", false);
-                file.seek(FileStore.HEADER_LENGTH);
-                rowBuff = Data.create(database, SysProperties.PAGE_SIZE);
-                Data buff = rowBuff;
-                for (int i = 0; i < records.size(); i++) {
-                    UndoLogRecord r = records.get(i);
-                    saveIfPossible(r, buff);
-                }
-            } else {
-                saveIfPossible(entry, rowBuff);
+        } else {
+            if (!entry.isStored()) {
+                memoryUndo++;
             }
-            file.autoDelete();
+            if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent() && !database.isMultiVersion()) {
+                if (file == null) {
+                    String fileName = database.createTempFile();
+                    file = database.openFile(fileName, "rw", false);
+                    file.seek(FileStore.HEADER_LENGTH);
+                    rowBuff = Data.create(database, SysProperties.PAGE_SIZE);
+                    Data buff = rowBuff;
+                    for (int i = 0; i < records.size(); i++) {
+                        UndoLogRecord r = records.get(i);
+                        saveIfPossible(r, buff);
+                    }
+                } else {
+                    saveIfPossible(entry, rowBuff);
+                }
+                file.autoDelete();
+            }
         }
     }
 
@@ -202,9 +211,9 @@ public class UndoLog {
         if (tables == null) {
             tables = New.hashMap();
         }
-        if (tables.get(id) == null) {
-            tables.put(id, table);
-        }
+        // need to overwrite the old entry, because the old object
+        // might be deleted in the meantime
+        tables.put(id, table);
         return id;
     }
     

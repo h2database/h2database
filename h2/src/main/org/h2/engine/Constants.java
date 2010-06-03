@@ -294,6 +294,11 @@ public class Constants {
      * The delay that is to be used if throttle has been enabled.
      */
     public static final int THROTTLE_DELAY = 50;
+    
+    /**
+     * The maximum size of an undo log block.
+     */
+    public static final int UNDO_BLOCK_SIZE = 1024 * 1024;
 
     /**
      * The database URL format in simplified Backus-Naur form.

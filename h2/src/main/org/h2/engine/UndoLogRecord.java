@@ -156,7 +156,7 @@ public class UndoLogRecord {
             buff.writeValue(v);
         }
         buff.fillAligned();
-        buff.setInt(p, buff.length() / Constants.FILE_BLOCK_SIZE);
+        buff.setInt(p, (buff.length() - p) / Constants.FILE_BLOCK_SIZE);
     }
     
     /**
@@ -201,16 +201,17 @@ public class UndoLogRecord {
         if (len - min > 0) {
             file.readFully(buff.getBytes(), min, len - min);
         }
+        int oldOp = operation;
         load(buff, log);
+        if (SysProperties.CHECK) {
+            if (operation != oldOp) {
+                DbException.throwInternalError("operation=" + operation + " op=" + oldOp);
+            }
+        }
     }
     
     private void load(Data buff, UndoLog log) {
-        int op = buff.readInt();
-        if (SysProperties.CHECK) {
-            if (operation != op) {
-                DbException.throwInternalError("operation=" + operation + " op=" + op);
-            }
-        }
+        operation = (short) buff.readInt();
         boolean deleted = buff.readByte() == 1;
         if (SysProperties.LARGE_TRANSACTIONS) {
             table = log.getTable(buff.readInt());

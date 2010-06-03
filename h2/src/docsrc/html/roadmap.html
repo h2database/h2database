@@ -30,6 +30,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Enable h2.largeTransactions (support for very large transactions).
     Change documentation for MAX_MEMORY_UNDO in help.csv, because
     now changes to tables without a primary key can be buffered to disk.
+    Later, change MAX_MEMORY_UNDO to reflect number of bytes instead of record
+    (also remove Constants.UNDO_BLOCK_SIZE).
+    Later, change undo log file format (fillAligned no longer required; var int).
 </li></ul>
 
 <h2>Priority 1</h2>

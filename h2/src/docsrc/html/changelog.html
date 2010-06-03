@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Experimental feature to support very large transactions (except when using MVCC).
+<ul><li>Statements with a nested query and a condition that was always NULL threw an
+    IndexOutOfBoundsException. Example: select * from (select null as x) where x=1
+</li><li>Experimental feature to support very large transactions (except when using MVCC).
     To enable, set the system property h2.largeTransactions to true.
     If enabled, changes to tables without a primary key can be buffered to disk.
     The plan is to enable this feature by default in version 1.3.x.

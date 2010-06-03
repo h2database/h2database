@@ -1,4 +1,9 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from (select null as x) where x=1;
+> X
+> -
+> rows: 0
+
 create table test(a int primary key, b int references(a));
 > ok
 

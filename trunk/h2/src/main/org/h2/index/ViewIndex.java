@@ -154,12 +154,8 @@ public class ViewIndex extends BaseIndex {
         for (int i = 0; originalParameters != null && i < originalParameters.size(); i++) {
             Parameter orig = originalParameters.get(i);
             int idx = orig.getIndex();
-            // the parameter may have been optimized away
-            if (idx < paramList.size()) {
-                Parameter param = paramList.get(idx);
-                Value value = orig.getValue(session);
-                param.setValue(value);
-            }
+            Value value = orig.getValue(session);
+            setParameter(paramList, idx, value);
         }
         int len;
         if (first != null) {
@@ -175,21 +171,31 @@ public class ViewIndex extends BaseIndex {
             if (first != null) {
                 Value v = first.getValue(i);
                 if (v != null) {
-                    Parameter param = paramList.get(idx++);
-                    param.setValue(v);
+                    int x = idx++;
+                    setParameter(paramList, x, v);
                 }
             }
             // for equality, only one parameter is used (first == last)
             if (last != null && indexMasks[i] != IndexCondition.EQUALITY) {
                 Value v = last.getValue(i);
                 if (v != null) {
-                    Parameter param = paramList.get(idx++);
-                    param.setValue(v);
+                    int x = idx++;
+                    setParameter(paramList, x, v);
                 }
             }
         }
         ResultInterface result = query.query(0);
         return new ViewCursor(table, result);
+    }
+    
+    private void setParameter(ArrayList<Parameter> paramList, int x, Value v) {
+        if (x >= paramList.size()) {
+            // the parameter may be optimized away as in
+            // select * from (select null as x) where x=1;
+            return;
+        }
+        Parameter param = paramList.get(x);
+        param.setValue(v);
     }
 
     private Query getQuery(Session session, int[] masks) {

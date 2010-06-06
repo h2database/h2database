@@ -158,7 +158,7 @@ public class UndoLogRecord {
         buff.fillAligned();
         buff.setInt(p, (buff.length() - p) / Constants.FILE_BLOCK_SIZE);
     }
-    
+
     /**
      * Save the row in the file using a buffer.
      *
@@ -174,7 +174,14 @@ public class UndoLogRecord {
         row = null;
         state = STORED;
     }
-    
+
+    /**
+     * Load an undo log record row using a buffer.
+     *
+     * @param buff the buffer
+     * @param log the log
+     * @return the undo log record
+     */
     static UndoLogRecord loadFromBuffer(Data buff, UndoLog log) {
         UndoLogRecord rec = new UndoLogRecord(null, (short) 0, null);
         int pos = buff.length();
@@ -209,7 +216,7 @@ public class UndoLogRecord {
             }
         }
     }
-    
+
     private void load(Data buff, UndoLog log) {
         operation = (short) buff.readInt();
         boolean deleted = buff.readByte() == 1;

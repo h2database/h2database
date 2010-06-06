@@ -206,6 +206,13 @@ public class UndoLog {
         }
     }
 
+    /**
+     * Get the table id for this undo log. If the table is not registered yet,
+     * this is done as well.
+     *
+     * @param table the table
+     * @return the id
+     */
     int getTableId(Table table) {
         int id = table.getId();
         if (tables == null) {
@@ -216,7 +223,14 @@ public class UndoLog {
         tables.put(id, table);
         return id;
     }
-    
+
+    /**
+     * Get the table for this id. The table must be registered for this undo log
+     * first by calling getTableId.
+     *
+     * @param id the table id
+     * @return the table object
+     */
     Table getTable(int id) {
         return tables.get(id);
     }

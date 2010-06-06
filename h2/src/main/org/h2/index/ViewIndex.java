@@ -187,7 +187,7 @@ public class ViewIndex extends BaseIndex {
         ResultInterface result = query.query(0);
         return new ViewCursor(table, result);
     }
-    
+
     private void setParameter(ArrayList<Parameter> paramList, int x, Value v) {
         if (x >= paramList.size()) {
             // the parameter may be optimized away as in

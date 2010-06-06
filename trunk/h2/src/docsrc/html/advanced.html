@@ -767,9 +767,12 @@ The <code>Recover</code> tool creates a SQL script from database file. It also p
 
 <h2 id="file_locking_protocols">File Locking Protocols</h2>
 <p>
-Whenever a database is opened, a lock file is created to signal other processes
-that the database is in use. If the database is closed, or if the process that opened
-the database terminates, this lock file is deleted.
+Multiple concurrent connections to the same database are supported, however a database file
+can only be open for reading and writing (in embedded mode) by one process at the same time.
+Otherwise, the processes would overwrite each others data and corrupt the database file.
+To protect against this problem, whenever a database is opened, a lock file is created 
+to signal other processes that the database is in use. If the database is closed, or if the process that opened
+the database stops normally, this lock file is deleted.
 </p><p>
 In special cases (if the process did not terminate normally, for example because
 there was a power failure), the lock file is not deleted by the process that created it.

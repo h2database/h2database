@@ -494,6 +494,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     which is implemented in Function.java).
 </li><li>Improve documentation of system properties: only list the property names, default values, and description.
 </li><li>Support running totals / cumulative sum using SUM(..) OVER(..).
+</li><li>Improve object memory size calculation. Use constants for known VMs, or use reflection to call java.lang.instrument.Instrumentation.getObjectSize(Object objectToSize)
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -14,12 +14,12 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 136;
+    public static final int BUILD_ID = 137;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 135;
+    public static final int BUILD_ID_STABLE = 136;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to
@@ -32,12 +32,12 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2010-05-24";
+    public static final String BUILD_DATE = "2010-06-06";
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE_STABLE = "2010-05-08";
+    public static final String BUILD_DATE_STABLE = "2010-05-24";
 
     /**
      * The TCP protocol version number. This protocol is used by the TCP
@@ -294,7 +294,7 @@ public class Constants {
      * The delay that is to be used if throttle has been enabled.
      */
     public static final int THROTTLE_DELAY = 50;
-    
+
     /**
      * The maximum size of an undo log block.
      */

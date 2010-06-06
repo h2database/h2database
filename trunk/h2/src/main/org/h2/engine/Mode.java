@@ -52,7 +52,7 @@ public class Mode {
 
     /**
      * Creating indexes in the CREATE TABLE statement is allowed using
-     * <code>INDEX(..)</code> or <code>KEY(..)</code>. 
+     * <code>INDEX(..)</code> or <code>KEY(..)</code>.
      * Example: <code>create table test(id int primary key, name varchar(255),
      * key idx_name(name));</code>
      */

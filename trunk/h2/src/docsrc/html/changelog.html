@@ -18,14 +18,18 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.137 (2010-06-06)</h2>
 <ul><li>Statements with a nested query and a condition that was always NULL threw an
     IndexOutOfBoundsException. Example: select * from (select null as x) where x=1
 </li><li>Experimental feature to support very large transactions (except when using MVCC).
     To enable, set the system property h2.largeTransactions to true.
     If enabled, changes to tables without a primary key can be buffered to disk.
     The plan is to enable this feature by default in version 1.3.x.
-</li><li>H2 Console: editing result sets is now also working for database other than H2, 
-    if they do support updateable result sets. The query must be prefixed with "@edit".
+</li><li>H2 Console: editing result sets is now also working for database other than H2,
+    if they do support updatable result sets. Add "@edit" before the query.
     Only limited testing has been done on this feature,
     some data types may not work (please provide feedback if you find issues).
 </li><li>Cluster: an open transaction was committed when a cluster node was stopped
@@ -688,32 +692,6 @@ Change Log
 </li><li>To enable the new page store mechanism, append ;PAGE_STORE=TRUE to the database URL.
     or set the system property h2.pageStore to true.
     This mechanism is still experimental, and the file format will change, but it is quite stable now.
-</li></ul>
-
-<h2>Version 1.1.115 (2009-06-21)</h2>
-<ul><li>The new storage mechanism is now alpha quality. To try it out, set the system property
-    "h2.pageStore" to "true" (java -Dh2.pageStore=true). There are still bugs to be found and fixed,
-    for example inserting many rows references a lot of main memory. Performance is currently
-    about the same as with the regular storage mechanism, but the database file size is smaller.
-    The file format is not stable yet.
-</li><li>ALTER TABLE could throw an exception "object already exists" in some cases.
-</li><li>Views: in some situations, an ArrayIndexOutOfBoundsException
-    was thrown when using the same view concurrently.
-</li><li>java.util.UUID is now supported in PreparedStatement.setObject and user defined Java functions.
-    ResultSet.getObject() returns a java.util.UUID when using the UUID data type.
-</li><li>H2 Console: the language was reset to the browser language when disconnecting.
-</li><li>H2 Console: improved Polish translation.
-</li><li>Server-less multi-connection mode: more bugs are fixed.
-</li><li>The download page now included the SHA1 checksums.
-</li><li>Shell tool: the file encoding workaround is now documented
-    if you run java org.h2.tools.Shell -?.
-</li><li>The RunScript tool and SQL statement did not work with the compression method LZF.
-</li><li>Fulltext search: searching for NULL or an empty string threw an exception.
-</li><li>Lucene fulltext search: FTL_DROP_ALL did not drop the triggers.
-</li><li>Backup: if the database contained CLOB or BLOB data, the backup
-    included a file entry for the LOB directory. This caused the
-    restore to fail.
-</li><li>Data types: LONG is now an alias for BIGINT.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

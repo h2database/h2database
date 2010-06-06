@@ -1179,7 +1179,7 @@ SET MAX_MEMORY_ROWS 1000
 "Commands (Other)","SET MAX_MEMORY_UNDO","
 SET MAX_MEMORY_UNDO int
 ","
-The maximum number of undo records per a session that are kept in-memory. 
+The maximum number of undo records per a session that are kept in-memory.
 If a transaction is larger, the records are buffered to disk.
 The default value is 50000.
 Changes to tables without a primary key can not be buffered to disk.

@@ -334,6 +334,7 @@ ALTER USER SA SET PASSWORD 'rioyxlgt'
 ALTER VIEW viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
+This command is used for views created using CREATE FORCE VIEW.
 This command commits an open transaction.
 ","
 ALTER VIEW ADDRESS_VIEW RECOMPILE
@@ -713,6 +714,7 @@ DROP TABLE [ IF EXISTS ] tableName [,...]
 ","
 Drops an existing table, or a list of existing tables.
 This command commits an open transaction.
+This will also drop all views that depend on this table.
 ","
 DROP TABLE TEST
 "
@@ -743,6 +745,7 @@ DROP VIEW [ IF EXISTS ] viewName
 ","
 Drops a view.
 This command commits an open transaction.
+This will also drop all views that depend on this view.
 ","
 DROP VIEW TEST_VIEW
 "

@@ -1069,7 +1069,9 @@ or the SQL statement <code>SET MODE MySQL</code>.
     and <code>NULL</code> is inserted,
     then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.
     Usually, this operation is not allowed and an exception is thrown.
-</li><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed.
+</li><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
+    <code>INDEX(..)</code> or <code>KEY(..)</code>. 
+    Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
 </li><li>Meta data calls return identifiers in lower case.
 </li><li>When converting a floating point number to an integer, the fractional
     digits are not truncated, but the value is rounded.

@@ -316,7 +316,7 @@ public class MathUtils {
         if (!usePrecisionWorkaround) {
             try {
                 return x.precision();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 // NoSuchMethodError
                 usePrecisionWorkaround = true;
             }

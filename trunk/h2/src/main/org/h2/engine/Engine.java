@@ -195,11 +195,13 @@ public class Engine {
         }
         String clusterDb = database.getCluster();
         if (!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
-            if (!StringUtils.equals(clusterSession, clusterDb)) {
-                if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
-                    throw DbException.get(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
+            if (!Constants.CLUSTERING_ENABLED.equals(clusterSession)) {
+                if (!StringUtils.equals(clusterSession, clusterDb)) {
+                    if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
+                        throw DbException.get(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
+                    }
+                    throw DbException.get(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
                 }
-                throw DbException.get(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
             }
         }
     }

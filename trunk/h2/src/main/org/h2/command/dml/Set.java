@@ -10,6 +10,7 @@ import java.text.Collator;
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -82,8 +83,13 @@ public class Set extends Prepared {
             addOrUpdateSetting(name, null, getIntValue());
             break;
         case SetTypes.CLUSTER: {
+            if (Constants.CLUSTERING_ENABLED.equals(stringValue)) {
+                // this value is used when connecting
+                // ignore, as the cluster setting is checked later
+                break;
+            }
             String value = StringUtils.quoteStringSQL(stringValue);
-            if (!value.equals(database.getCluster()) && !value.equals("''")) {
+            if (!value.equals(database.getCluster()) && !value.equals(Constants.CLUSTERING_DISABLED)) {
                 // anybody can disable the cluster
                 // (if he can't access a cluster node)
                 session.getUser().checkAdmin();

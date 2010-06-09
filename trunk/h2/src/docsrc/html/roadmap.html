@@ -37,7 +37,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Priority 1</h2>
 <ul><li>Bugfixes
-</li><li>Support very large transactions. Reduce memory usage of undo log (TestUndoLogMemory).
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Optimization: result set caching (like MySQL); option to disable
 </li><li>Server side cursors
@@ -71,6 +70,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Implement, test, document XAConnection and so on.
 </li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption).
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2.
+</li><li>Drop with invalidate views (so that source code is not lost). Check what other databases do exactly.
+</li><li>Drop with restrict (currently cascade is the default).
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
 </li><li>Make DDL (Data Definition) operations transactional.
 </li><li>RANK() and DENSE_RANK(), Partition using OVER().
@@ -94,7 +95,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Implement missing JDBC API (CallableStatement,...).
 </li><li>Compression of the cache.
 </li><li>Include SMPT (mail) client (alert on cluster failure, low disk space,...).
-</li><li>Drop with restrict (currently cascade is the default).
 </li><li>JSON parser and functions.
 </li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?).
 </li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare).

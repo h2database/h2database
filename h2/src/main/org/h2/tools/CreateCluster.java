@@ -11,6 +11,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
@@ -100,15 +102,19 @@ public class CreateCluster extends Tool {
         try {
             org.h2.Driver.load();
 
-            // verify that the database doesn't exist
-            boolean exists;
+            // verify that the database doesn't exist,
+            // or if it exists (an old cluster instance), it is deleted
+            boolean exists = true;
             try {
-                connTarget = DriverManager.getConnection(urlTarget + ";IFEXISTS=TRUE", user, password);
-                connTarget.close();
-                exists = true;
-            } catch (SQLException e) {
-                // database does not exists - ok
+                connTarget = DriverManager.getConnection(urlTarget + ";IFEXISTS=TRUE;CLUSTER=" + Constants.CLUSTERING_ENABLED, user, password);
+                connTarget.createStatement().execute("DROP ALL OBJECTS DELETE FILES");
                 exists = false;
+                connTarget.close();
+            } catch (SQLException e) {
+                if (e.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_1) {
+                    // database does not exists yet - ok
+                    exists = false;
+                }
             }
             if (exists) {
                 throw new SQLException("Target database must not yet exist. Please delete it first");

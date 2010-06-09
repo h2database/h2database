@@ -153,7 +153,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         }
     }
 
-    private void switchOffAutoCommitIfCluster() {
+    private void checkClusterDisableAutoCommit(String serverList) {
         if (autoCommit && transferList.size() > 1) {
             if (switchOffAutoCommit == null) {
                 switchOffAutoCommit = prepareCommand("SET AUTOCOMMIT FALSE", Integer.MAX_VALUE);
@@ -162,6 +162,8 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             switchOffAutoCommit.executeUpdate();
             // so we need to switch it on
             autoCommit = true;
+            CommandInterface c = prepareCommand("SET CLUSTER " + serverList, Integer.MAX_VALUE);
+            c.executeUpdate();
             cluster = true;
         }
     }
@@ -290,7 +292,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         String serverList = null;
         if (server.indexOf(',') >= 0) {
             serverList = StringUtils.quoteStringSQL(server);
-            ci.setProperty("CLUSTER", serverList);
+            ci.setProperty("CLUSTER", Constants.CLUSTERING_ENABLED);
         }
         autoReconnect = Boolean.valueOf(ci.getProperty("AUTO_RECONNECT", "false")).booleanValue();
         // AUTO_SERVER implies AUTO_RECONNECT
@@ -332,7 +334,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             if (switchOffCluster) {
                 switchOffCluster();
             }
-            switchOffAutoCommitIfCluster();
+            checkClusterDisableAutoCommit(serverList);
         } catch (DbException e) {
             traceSystem.close();
             throw e;

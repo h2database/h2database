@@ -82,6 +82,12 @@ public class Constants {
     public static final String CLUSTERING_DISABLED = "''";
 
     /**
+     * The value of the cluster setting if clustering is enabled (the actual
+     * value is checked later).
+     */
+    public static final String CLUSTERING_ENABLED = "TRUE";
+
+    /**
      * The database URL used when calling a function if only the column list
      * should be returned.
      */

@@ -1,6 +1,24 @@
 Nested Outer Joins
 -----------------
 Example:
+
+drop table a, b, c;
+create table a(x int primary key);
+insert into a values(0), (1);
+create table b(x int primary key);
+insert into b values(0);
+create table c(x int primary key);
+select * from a left outer join b on a.x = b.x inner join c on b.x = c.x;
+select * from a left outer join b on a.x = b.x left outer join c on b.x = c.x;
+select * from a left outer join (b inner join c on b.x = c.x) on a.x = b.x;
+select a.x, b_x, c_x from a left outer join (select b.x b_x, c.x c_x from b inner join c on b.x = c.x) on a.x = b_x;
+
+drop table test;
+create table test(id int primary key);
+insert into test values(0), (1), (2);
+select * from test a left outer join (test b inner join test c on b.id = c.id - 2) on a.id = b.id + 1;
+select a.id, b_id, c_id from test a left outer join (select b.id b_id, c.id c_id from test b inner join test c on b.id = c.id - 2) on a.id = b_id + 1;
+
 create table a(x int);
 create table b(x int);
 create table c(x int, y int);
@@ -80,14 +98,6 @@ on a.pk = a_base.pk left outer join
 on 1=1;
 -- PostgreSQL, MySQL, Derby, H2:
 -- 1    1   3   3
-
-
-drop table test;
-create table test(id int primary key);
-@loop 3 insert into test values(?);
-select * from test a left outer join (test b inner join test c on b.id = c.id - 2) on a.id = b.id + 1;
-select * from test a left outer join (select b.id, c.id from test b inner join test c on b.id = c.id - 2) on a.id = b.id + 1;
-
 
 Auto Upgrade
 -----------------

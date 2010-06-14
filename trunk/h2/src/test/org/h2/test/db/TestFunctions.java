@@ -48,6 +48,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testFunctionInSchema();
         testGreatest();
         testSource();
         testDynamicArgumentAndReturn();
@@ -63,6 +64,24 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFileRead();
         deleteDb("functions");
         FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
+    }
+    
+    private void testFunctionInSchema() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create schema schema2");
+        stat.execute("create alias schema2.func as 'int x() { return 1; }'");
+        stat.execute("create view test as select schema2.func()");
+        ResultSet rs;
+        rs = stat.executeQuery("select * from information_schema.views");
+        rs.next();
+        assertTrue(rs.getString("VIEW_DEFINITION").indexOf("SCHEMA2.FUNC") >= 0);
+
+        stat.execute("drop view test");
+        stat.execute("drop schema schema2");
+
+        conn.close();
     }
 
     private void testGreatest() throws SQLException {

@@ -2969,7 +2969,7 @@ DATEADD('MONTH', 1, DATE '2001-01-31')
 "Functions (Time and Date)","DATEDIFF","
 { DATEDIFF | TIMESTAMPDIFF } (unitString, aTimestamp, bTimestamp)
 ","
-Returns the difference between two timestamps.
+Returns the the number of crossed unit boundaries between two timestamps.
 This method returns a long.
 The string indicates the unit.
 The same units as in the EXTRACT function are supported.

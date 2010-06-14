@@ -50,9 +50,9 @@ Hi,
 
 This looks like a corrupt database. A workarounds is: use the tool org.h2.tools.Recover to create the SQL script file, and then re-create the database using this script. Does it work when you do this?
 
-As far as I see, you are using version 1.2.128. An important corruption problem was fixed in version 1.2.135 (see the change log). Known causes for corrupt databases are:
+An important corruption problem was fixed in version 1.2.135 (see the change log). Known causes for corrupt databases are:
 
-- If the database was used with a version older than 1.2.135, and the process was killed while the database was closing or writing a checkpoint.
+- If the database was created or used with a version older than 1.2.135, and the process was killed while the database was closing or writing a checkpoint.
 
 - Using the transaction isolation level READ_UNCOMMITTED (LOCK_MODE 0) while at the same time using multiple connections.
 

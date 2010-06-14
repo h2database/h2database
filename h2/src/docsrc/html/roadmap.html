@@ -33,6 +33,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     Later, change MAX_MEMORY_UNDO to reflect number of bytes instead of record
     (also remove Constants.UNDO_BLOCK_SIZE).
     Later, change undo log file format (fillAligned no longer required; var int).
+</li><li>Enable h2.nestedJoins (nested joins and right outer joins).
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -46,6 +47,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <ul><li>Support nested outer joins (see todo.txt, issues 145, 177, 203).
 </li><li>Improve test code coverage.
 </li><li>Test multi-threaded in-memory db access.
+</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208
 </li><li>Full outer joins.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
@@ -53,7 +55,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Test very large databases and LOBs (up to 256 GB).
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
-</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
 </li><li>Add a migration guide (list differences between databases).
@@ -179,6 +180,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Updatable result set on table without primary key or unique index.
 </li><li>Use LinkedList instead of ArrayList where applicable.
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
+</li><li>Support data type INTERVAL
 </li><li>Support % operator (modulo).
 </li><li>Support JMX: create an MBean for each database and server (support JConsole).
     See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html
@@ -224,7 +226,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
 </li><li>Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
-</li><li>Support data type INTERVAL
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Sequence: PostgreSQL compatibility (rename, create) http://www.postgresql.org/docs/8.2/static/sql-altersequence.html
 </li><li>DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
@@ -495,6 +496,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve documentation of system properties: only list the property names, default values, and description.
 </li><li>Support running totals / cumulative sum using SUM(..) OVER(..).
 </li><li>Improve object memory size calculation. Use constants for known VMs, or use reflection to call java.lang.instrument.Instrumentation.getObjectSize(Object objectToSize)
+</li><li>Triggers: NOT NULL checks should be done after running triggers (Oracle behavior, maybe others).
+</li><li>Log long running transactions (similar to long running statements).
 </li></ul>
 
 <h2>Not Planned</h2>

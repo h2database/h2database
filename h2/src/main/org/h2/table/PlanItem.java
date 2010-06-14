@@ -21,6 +21,7 @@ public class PlanItem {
 
     private Index index;
     private PlanItem joinPlan;
+    private PlanItem nestedJoinPlan;
 
     void setIndex(Index index) {
         this.index = index;
@@ -33,9 +34,17 @@ public class PlanItem {
     PlanItem getJoinPlan() {
         return joinPlan;
     }
+    
+    PlanItem getNestedJoinPlan() {
+        return nestedJoinPlan;
+    }
 
     void setJoinPlan(PlanItem joinPlan) {
         this.joinPlan = joinPlan;
+    }
+
+    void setNestedJoinPlan(PlanItem nestedJoinPlan) {
+        this.nestedJoinPlan = nestedJoinPlan;
     }
 
 }

@@ -38,6 +38,7 @@ import org.h2.test.db.TestMultiConn;
 import org.h2.test.db.TestMultiDimension;
 import org.h2.test.db.TestMultiThread;
 import org.h2.test.db.TestMultiThreadedKernel;
+import org.h2.test.db.TestNestedJoins;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
 import org.h2.test.db.TestOutOfMemory;
@@ -302,6 +303,7 @@ java org.h2.test.TestAll timer
         // System.setProperty("h2.largeTransactions", "true");
         // System.setProperty("h2.lobInDatabase", "true");
         // System.setProperty("h2.analyzeAuto", "100");
+        // System.setProperty("h2.nestedJoins", "true");
 
         int speedup;
         // System.setProperty("h2.syncMethod", "");
@@ -516,6 +518,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMultiDimension().runTest(this);
         new TestMultiThread().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
+        new TestNestedJoins().runTest(this);
         new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
         new TestOutOfMemory().runTest(this);

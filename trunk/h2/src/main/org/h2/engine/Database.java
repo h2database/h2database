@@ -478,9 +478,9 @@ public class Database implements DataHandler {
             }
         }
         if (n == null || n.length() == 0) {
-            n = "UNNAMED";
+            n = "unnamed";
         }
-        return StringUtils.toUpperEnglish(n);
+        return SysProperties.DATABASE_TO_UPPER ? StringUtils.toUpperEnglish(n) : n;
     }
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {

@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Experimental feature to support nested joins.
+<ul><li>Experimental feature to support case sensitive catalog names 
+    and database names using the DATABASE() method.
+    To use this feature, set the system property h2.databaseToUpper to false.
+    The plan is to set the property to false by default in version 1.3.x.
+    Issue 204 - thanks to Sylvain Cuaz (ILM Informatique) for the patch.
+</li><li>Experimental feature to support nested joins.
     To enable, set the system property h2.nestedJoins to true.
     If enabled, nested joins and right outer joins should work as expected (issues 145, 177, and 203).
     The plan is to enable this feature by default in version 1.3.x.

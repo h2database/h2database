@@ -187,6 +187,14 @@ public class SysProperties {
     public static final boolean CONSOLE_STREAM = getBooleanSetting("h2.consoleStream", true);
 
     /**
+     * System property <code>h2.databaseToUpper</code> (default: true).<br />
+     * Database short names are converted to uppercase for the DATABASE()
+     * function, and in the CATALOG column of all database meta data methods.
+     * Setting this to "false" is experimental.
+     */
+    public static final boolean DATABASE_TO_UPPER = getBooleanSetting("h2.databaseToUpper", true);
+
+    /**
      * System property <code>h2.defaultEscape</code> (default: \).<br />
      * The default escape character for LIKE comparisons. To select no escape
      * character, use an empty string.
@@ -284,7 +292,6 @@ public class SysProperties {
      * to uppercase.
      */
     public static final boolean IDENTIFIERS_TO_UPPER = getBooleanSetting("h2.identifiersToUpper", true);
-
     /**
      * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
      * Buffer size for large result sets. Set this value to 0 to disable the

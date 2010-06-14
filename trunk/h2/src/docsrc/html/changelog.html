@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Version 1.2.137 could still not be converted to Java 1.4
+<ul><li>Experimental feature to support nested joins.
+    To enable, set the system property h2.nestedJoins to true.
+    If enabled, nested joins and right outer joins should work as expected (issues 145, 177, and 203).
+    The plan is to enable this feature by default in version 1.3.x.
+</li><li>New sample application: CachedPreparedStatements.
+</li><li>When creating functions within a schema, those functions could not be used
+    in views, nested queries, and constraints. Fixed.
+</li><li>The benchmarks have been run using recent database versions.
+</li><li>Version 1.2.137 could still not be converted to Java 1.4
     (because the Retrotranslator doesn't support BigDecimal.precision).
 </li><li>Cluster: non-admin users could not connect when one of the cluster node was stopped. Issue 206.
 </li></ul>

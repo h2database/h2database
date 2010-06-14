@@ -232,7 +232,7 @@ public class Optimizer {
         TableFilter[] f2 = bestPlan.getFilters();
         topFilter = f2[0];
         for (int i = 0; i < f2.length - 1; i++) {
-            f2[i].addJoin(f2[i + 1], false, null);
+            f2[i].addJoin(f2[i + 1], false, false, null);
         }
         for (TableFilter f : f2) {
             PlanItem item = bestPlan.getItem(f);

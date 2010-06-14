@@ -1229,7 +1229,7 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                newTop.addJoin(top, true, on);
+                newTop.addJoin(top, true, fromOuter, on);
                 top = newTop;
                 last = newTop;
             } else if (readIf("LEFT")) {
@@ -1241,10 +1241,10 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, true, on);
+                top.addJoin(join, true, fromOuter, on);
                 last = join;
             } else if (readIf("FULL")) {
-                throw this.getSyntaxError();
+                throw getSyntaxError();
             } else if (readIf("INNER")) {
                 read("JOIN");
                 TableFilter join = readTableFilter(fromOuter);
@@ -1253,7 +1253,11 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, fromOuter, on);
+                if (SysProperties.NESTED_JOINS) {
+                    top.addJoin(join, false, fromOuter, on);
+                } else {
+                    top.addJoin(join, fromOuter, fromOuter, on);
+                }
                 last = join;
             } else if (readIf("JOIN")) {
                 TableFilter join = readTableFilter(fromOuter);
@@ -1262,12 +1266,20 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, fromOuter, on);
+                if (SysProperties.NESTED_JOINS) {
+                    top.addJoin(join, false, fromOuter, on);
+                } else {
+                    top.addJoin(join, fromOuter, fromOuter, on);
+                }
                 last = join;
             } else if (readIf("CROSS")) {
                 read("JOIN");
                 TableFilter join = readTableFilter(fromOuter);
-                top.addJoin(join, fromOuter, null);
+                if (SysProperties.NESTED_JOINS) {
+                    top.addJoin(join, false, fromOuter, null);
+                } else {
+                    top.addJoin(join, fromOuter, fromOuter, null);
+                }
                 last = join;
             } else if (readIf("NATURAL")) {
                 read("JOIN");
@@ -1296,7 +1308,11 @@ public class Parser {
                         }
                     }
                 }
-                top.addJoin(join, fromOuter, on);
+                if (SysProperties.NESTED_JOINS) {
+                    top.addJoin(join, false, fromOuter, on);
+                } else {
+                    top.addJoin(join, fromOuter, fromOuter, on);
+                }
                 last = join;
             } else {
                 break;
@@ -1543,6 +1559,12 @@ public class Parser {
         command.addTableFilter(top, true);
         boolean isOuter = false;
         while (true) {
+            for (TableFilter n = top.getNestedJoin(); n != null; n = n.getNestedJoin()) {
+                command.addTableFilter(n, false);
+                for (TableFilter j = n.getJoin(); j != null; j = j.getJoin()) {
+                    command.addTableFilter(j, false);
+                }
+            }
             TableFilter join = top.getJoin();
             if (join == null) {
                 break;
@@ -1810,7 +1832,7 @@ public class Parser {
                                 int idx = filters.indexOf(rightFilter);
                                 if (idx >= 0) {
                                     filters.remove(idx);
-                                    leftFilter.addJoin(rightFilter, true, r);
+                                    leftFilter.addJoin(rightFilter, true, false, r);
                                 } else {
                                     rightFilter.mapAndAddFilter(r);
                                 }

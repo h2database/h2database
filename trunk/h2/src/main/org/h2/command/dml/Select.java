@@ -845,9 +845,15 @@ public class Select extends Query {
         optimizer.optimize();
         topTableFilter = optimizer.getTopFilter();
         double planCost = optimizer.getCost();
+        
+        setEvaluatableRecursive(topTableFilter);
 
-        TableFilter f = topTableFilter;
-        while (f != null) {
+        topTableFilter.prepare();
+        return planCost;
+    }
+    
+    private void setEvaluatableRecursive(TableFilter f) {
+        for (; f != null; f = f.getJoin()) {
             f.setEvaluatable(f, true);
             if (condition != null) {
                 condition.setEvaluatable(f, true);
@@ -879,10 +885,11 @@ public class Select extends Query {
             for (Expression e : expressions) {
                 e.setEvaluatable(f, true);
             }
-            f = f.getJoin();
+            TableFilter n = f.getNestedJoin();
+            if (n != null) {
+                setEvaluatableRecursive(n);
+            }
         }
-        topTableFilter.prepare();
-        return planCost;
     }
 
     public String getPlanSQL() {

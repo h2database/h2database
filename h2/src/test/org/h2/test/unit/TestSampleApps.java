@@ -51,6 +51,8 @@ public class TestSampleApps extends TestBase {
                 + "PHONE: +41123456789\n\n" + "NAME: John Jones\n" + "EMAIL: john.jones@abcde.abc\n"
                 + "PHONE: +41976543210\n",
                 org.h2.samples.CsvSample.class);
+        testApp("",
+                org.h2.samples.CachedPreparedStatements.class);        
         testApp("2 is prime\n3 is prime\n5 is prime\n7 is prime\n11 is prime\n13 is prime\n17 is prime\n19 is prime\n30\n20\n0/0\n0/1\n1/0\n1/1",
                 org.h2.samples.Function.class);
         // Not compatible with PostgreSQL JDBC driver (throws a NullPointerException)

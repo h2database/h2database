@@ -41,92 +41,81 @@ Please note this is mostly a single connection benchmark run on one computer.
 <h3>Embedded</h3>
 <table border="1" class="bar">
 <tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>Derby</th></tr>
-<tr><td>Simple: Init</td><td>ms</td><td>547</td><td>532</td><td>2594</td></tr>
-<tr><td>Simple: Query (random)</td><td>ms</td><td>250</td><td>391</td><td>1515</td></tr>
-<tr><td>Simple: Query (sequential)</td><td>ms</td><td>188</td><td>313</td><td>1406</td></tr>
-<tr><td>Simple: Update (random)</td><td>ms</td><td>812</td><td>1750</td><td>17704</td></tr>
-<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>203</td><td>250</td><td>8843</td></tr>
-<tr><td>Simple: Memory Usage</td><td>MB</td><td>7</td><td>11</td><td>11</td></tr>
-<tr><td>BenchA: Init</td><td>ms</td><td>578</td><td>719</td><td>3328</td></tr>
-<tr><td>BenchA: Transactions</td><td>ms</td><td>3047</td><td>2406</td><td>12907</td></tr>
-<tr><td>BenchA: Memory Usage</td><td>MB</td><td>10</td><td>15</td><td>10</td></tr>
-<tr><td>BenchB: Init</td><td>ms</td><td>2141</td><td>2406</td><td>11562</td></tr>
-<tr><td>BenchB: Transactions</td><td>ms</td><td>1125</td><td>1375</td><td>3625</td></tr>
-<tr><td>BenchB: Memory Usage</td><td>MB</td><td>9</td><td>11</td><td>8</td></tr>
-<tr><td>BenchC: Init</td><td>ms</td><td>688</td><td>594</td><td>4500</td></tr>
-<tr><td>BenchC: Transactions</td><td>ms</td><td>1906</td><td>64062</td><td>6047</td></tr>
-<tr><td>BenchC: Memory Usage</td><td>MB</td><td>11</td><td>17</td><td>11</td></tr>
+<tr><td>Simple: Init</td><td>ms</td><td>241</td><td>431</td><td>1027</td></tr>
+<tr><td>Simple: Query (random)</td><td>ms</td><td>193</td><td>267</td><td>748</td></tr>
+<tr><td>Simple: Query (sequential)</td><td>ms</td><td>89</td><td>179</td><td>658</td></tr>
+<tr><td>Simple: Update (random)</td><td>ms</td><td>406</td><td>772</td><td>12175</td></tr>
+<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>155</td><td>266</td><td>6281</td></tr>
+<tr><td>Simple: Memory Usage</td><td>MB</td><td>7</td><td>13</td><td>16</td></tr>
+<tr><td>BenchA: Init</td><td>ms</td><td>200</td><td>251</td><td>1075</td></tr>
+<tr><td>BenchA: Transactions</td><td>ms</td><td>1071</td><td>1458</td><td>8142</td></tr>
+<tr><td>BenchA: Memory Usage</td><td>MB</td><td>8</td><td>14</td><td>12</td></tr>
+<tr><td>BenchB: Init</td><td>ms</td><td>787</td><td>1584</td><td>4163</td></tr>
+<tr><td>BenchB: Transactions</td><td>ms</td><td>465</td><td>875</td><td>2744</td></tr>
+<tr><td>BenchB: Memory Usage</td><td>MB</td><td>17</td><td>13</td><td>10</td></tr>
+<tr><td>BenchC: Init</td><td>ms</td><td>348</td><td>225</td><td>922</td></tr>
+<tr><td>BenchC: Transactions</td><td>ms</td><td>1382</td><td>865</td><td>3527</td></tr>
+<tr><td>BenchC: Memory Usage</td><td>MB</td><td>12</td><td>20</td><td>11</td></tr>
 <tr><td>Executed statements</td><td>#</td><td>322929</td><td>322929</td><td>322929</td></tr>
-<tr><td>Total time</td><td>ms</td><td>11485</td><td>74798</td><td>74031</td></tr>
-<tr><td>Statements per second</td><td>#</td><td>28117</td><td>4317</td><td>4362</td></tr>
+<tr><td>Total time</td><td>ms</td><td>5337</td><td>7173</td><td>41462</td></tr>
+<tr><td>Statements per second</td><td>#</td><td>60507</td><td>45020</td><td>7788</td></tr>
 </table>
 
 <h3>Client-Server</h3>
 <table border="1" class="bar">
 <tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>Derby</th><th>PostgreSQL</th><th>MySQL</th></tr>
-<tr><td>Simple: Init</td><td>ms</td><td>2782</td><td>2656</td><td>5625</td><td>4563</td><td>3484</td></tr>
-<tr><td>Simple: Query (random)</td><td>ms</td><td>3093</td><td>2703</td><td>6688</td><td>4812</td><td>3860</td></tr>
-<tr><td>Simple: Query (sequential)</td><td>ms</td><td>2969</td><td>2594</td><td>6437</td><td>4719</td><td>3625</td></tr>
-<tr><td>Simple: Update (random)</td><td>ms</td><td>2969</td><td>3531</td><td>18250</td><td>5953</td><td>5125</td></tr>
-<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>1047</td><td>1250</td><td>6875</td><td>2485</td><td>2390</td></tr>
-<tr><td>Simple: Memory Usage</td><td>MB</td><td>7</td><td>11</td><td>14</td><td>0</td><td>0</td></tr>
-<tr><td>BenchA: Init</td><td>ms</td><td>2250</td><td>2453</td><td>6031</td><td>4328</td><td>3625</td></tr>
-<tr><td>BenchA: Transactions</td><td>ms</td><td>10250</td><td>9016</td><td>21484</td><td>15609</td><td>11172</td></tr>
-<tr><td>BenchA: Memory Usage</td><td>MB</td><td>10</td><td>15</td><td>10</td><td>0</td><td>1</td></tr>
-<tr><td>BenchB: Init</td><td>ms</td><td>9500</td><td>10672</td><td>22609</td><td>19609</td><td>13406</td></tr>
-<tr><td>BenchB: Transactions</td><td>ms</td><td>2734</td><td>2656</td><td>3875</td><td>4688</td><td>2531</td></tr>
-<tr><td>BenchB: Memory Usage</td><td>MB</td><td>10</td><td>11</td><td>11</td><td>1</td><td>1</td></tr>
-<tr><td>BenchC: Init</td><td>ms</td><td>1860</td><td>1484</td><td>6890</td><td>2219</td><td>3438</td></tr>
-<tr><td>BenchC: Transactions</td><td>ms</td><td>9046</td><td>63266</td><td>18641</td><td>11703</td><td>7421</td></tr>
-<tr><td>BenchC: Memory Usage</td><td>MB</td><td>12</td><td>17</td><td>13</td><td>0</td><td>1</td></tr>
+<tr><td>Simple: Init</td><td>ms</td><td>1715</td><td>2096</td><td>3008</td><td>3093</td><td>3084</td></tr>
+<tr><td>Simple: Query (random)</td><td>ms</td><td>2615</td><td>2119</td><td>4450</td><td>3201</td><td>3313</td></tr>
+<tr><td>Simple: Query (sequential)</td><td>ms</td><td>2531</td><td>1944</td><td>4019</td><td>3163</td><td>3295</td></tr>
+<tr><td>Simple: Update (random)</td><td>ms</td><td>1862</td><td>2486</td><td>13929</td><td>4404</td><td>4391</td></tr>
+<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>778</td><td>1118</td><td>7032</td><td>1682</td><td>1882</td></tr>
+<tr><td>Simple: Memory Usage</td><td>MB</td><td>8</td><td>14</td><td>18</td><td>1</td><td>2</td></tr>
+<tr><td>BenchA: Init</td><td>ms</td><td>1264</td><td>1686</td><td>2734</td><td>2867</td><td>3225</td></tr>
+<tr><td>BenchA: Transactions</td><td>ms</td><td>5998</td><td>6829</td><td>14323</td><td>11491</td><td>10571</td></tr>
+<tr><td>BenchA: Memory Usage</td><td>MB</td><td>9</td><td>18</td><td>14</td><td>1</td><td>2</td></tr>
+<tr><td>BenchB: Init</td><td>ms</td><td>5571</td><td>7553</td><td>11636</td><td>12226</td><td>12553</td></tr>
+<tr><td>BenchB: Transactions</td><td>ms</td><td>1931</td><td>3417</td><td>3435</td><td>2407</td><td>2149</td></tr>
+<tr><td>BenchB: Memory Usage</td><td>MB</td><td>18</td><td>16</td><td>13</td><td>2</td><td>2</td></tr>
+<tr><td>BenchC: Init</td><td>ms</td><td>1333</td><td>968</td><td>1769</td><td>1693</td><td>2645</td></tr>
+<tr><td>BenchC: Transactions</td><td>ms</td><td>6508</td><td>4330</td><td>7910</td><td>7564</td><td>6108</td></tr>
+<tr><td>BenchC: Memory Usage</td><td>MB</td><td>12</td><td>21</td><td>14</td><td>2</td><td>2</td></tr>
 <tr><td>Executed statements</td><td>#</td><td>322929</td><td>322929</td><td>322929</td><td>322929</td><td>322929</td></tr>
-<tr><td>Total time</td><td>ms</td><td>48500</td><td>102281</td><td>123405</td><td>80688</td><td>60077</td></tr>
-<tr><td>Statements per second</td><td>#</td><td>6658</td><td>3157</td><td>2616</td><td>4002</td><td>5375</td></tr>
+<tr><td>Total time</td><td>ms</td><td>32106</td><td>34546</td><td>74245</td><td>53791</td><td>53216</td></tr>
+<tr><td>Statements per second</td><td>#</td><td>10058</td><td>9347</td><td>4349</td><td>6003</td><td>6068</td></tr></table>
 </table>
 
 <h3>Benchmark Results and Comments</h3>
 
 <h4>H2</h4>
 <p>
-Version 1.1.114 (2009-06-01) was used for the test.
-For simpler operations, the performance of H2 is about the same as for HSQLDB.
-For more complex queries, the query optimizer is very important.
-However H2 is not very fast in every case, certain kind of queries may still be slow.
-One situation where is H2 is slow is large result sets, because they are buffered to
+Version 1.2.137 (2010-06-06) was used for the test.
+For most operations, the performance of H2 is about the same as for HSQLDB.
+One situation where H2 is slow is large result sets, because they are buffered to
 disk if more than a certain number of records are returned.
-The advantage of buffering is, there is no limit on the result set size.
-The open/close time is almost fixed, because of the file locking protocol: the engine waits
-some time after opening a database to ensure the database files are not opened by another process.
+The advantage of buffering is: there is no limit on the result set size.
+The database open/close time is fixed.
 </p>
 
 <h4>HSQLDB</h4>
 <p>
-Version 1.8.0.10 was used for the test.
-Cached tables are used in this test (hsqldb.default_table_type=cached),
+Version 2.0.0 was used for the test.
+Cached tables are used in this test (<code>hsqldb.default_table_type=cached</code>),
 and the write delay is 1 second (<code>SET WRITE_DELAY 1</code>).
-HSQLDB is fast when using simple operations.
-HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer.
-One query where HSQLDB is slow is a two-table join:
+Older versions of HSQLDB (pre 2.0) where very slow in the last test (BenchC: Transactions).
 </p>
-<pre>
-SELECT COUNT(DISTINCT S_I_ID) FROM ORDER_LINE, STOCK
-WHERE OL_W_ID=? AND OL_D_ID=? AND OL_O_ID&lt;? AND OL_O_ID&gt;=?
-AND S_W_ID=? AND S_I_ID=OL_I_ID AND S_QUANTITY&lt;?
-</pre>
 <p>
-The PolePosition benchmark also shows that the query optimizer does not do a very good job for some queries.
-Another disadvantage of HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases.
+A disadvantage of HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases.
 The reason is, a backup of the whole data is made whenever the database is opened or closed.
 </p>
 
 <h4>Derby</h4>
 <p>
-Version 10.4.2.0 was used for the test. Derby is clearly the slowest embedded database in this test.
+Version 10.6.1.0 was used for the test. Derby is clearly the slowest embedded database in this test.
 This seems to be a structural problem, because all operations are really slow.
 It will be hard for the developers of Derby to improve the performance to a reasonable level.
 A few problems have been identified: leaving autocommit on is a problem for Derby.
 If it is switched off during the whole test, the results are about 20% better for Derby.
-Derby does not call FileDescriptor.sync() or FileChannel.force(..) on each commit.
+Derby does not call <code>FileDescriptor.sync() / FileChannel.force(..)</code> on each commit.
 Derby supports a testing mode (system property <code>derby.system.durability=test</code>)
 where durability is disabled. According to the documentation, this setting should be used for testing only,
 as the database may not recover after a crash. Enabling this setting improves performance
@@ -136,26 +125,25 @@ than half as fast as H2 in default mode.
 
 <h4>PostgreSQL</h4>
 <p>
-Version 8.3.7 was used for the test.
+Version 8.4.4 was used for the test.
 The following options where changed in <code>postgresql.conf:
 fsync = off, commit_delay = 1000</code>.
-PostgreSQL is run in server mode. It looks like the base performance is slower than
-MySQL, the reason could be the network layer.
+PostgreSQL is run in server mode.
 The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
 </p>
 
 <h4>MySQL</h4>
 <p>
-Version 5.1.34-community was used for the test.
+Version 5.1.47-community was used for the test.
 MySQL was run with the InnoDB backend.
 The setting <code>innodb_flush_log_at_trx_commit</code>
-(found in the <code>my.ini</code> file) was set to 0. Otherwise (and by default), MySQL is really slow
+(found in the <code>my.ini / my.cnf</code> file) was set to 0. Otherwise (and by default), MySQL is slow
 (around 140 statements per second in this test) because it tries to flush the data to disk for each commit.
 For small transactions (when autocommit is on) this is really slow.
 But many use cases use small or relatively small transactions.
 Too bad this setting is not listed in the configuration wizard,
 and it always overwritten when using the wizard.
-You need to change this setting manually in the file <code>my.ini</code>, and then restart the service.
+You need to change this setting manually in the file <code>my.ini / my.cnf</code>, and then restart the service.
 The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
 </p>
 
@@ -178,7 +166,7 @@ SQLite was not tested because the JDBC driver doesn't support transactions.
 
 <h4>How to Run</h4>
 <p>
-This test was executed as follows:
+This test was as follows:
 </p>
 <pre>
 build benchmark
@@ -215,8 +203,8 @@ For the Java databases, both embedded and server modes are tested.
 
 <h4>Test Platform</h4>
 <p>
-This test is run on Windows XP with the virus scanner switched off.
-The VM used is Sun JDK 1.5.
+This test is run on Mac OS X 10.6. No virus scanner was used, and disk indexing was turned off.
+The VM used is Sun JDK 1.6.
 </p>
 
 <h4>Multiple Runs</h4>

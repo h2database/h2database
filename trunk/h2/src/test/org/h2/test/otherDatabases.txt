@@ -1,12 +1,17 @@
 MySQL
 --------------------------------------------------------------------------------------------------------
 Start:
-sudo mysqld_safe
+sudo mysqld_safe --default-storage-engine=innodb
 
 Stop:
 sudo mysqladmin shutdown
 
 Configuration:
+sudo cp /usr/local/mysql/support-files/my-medium.cnf /etc/my.cnf
+sudo pico /etc/my.cnf
+innodb_flush_log_at_trx_commit = 0
+
+Initialization:
 sudo mysql
 create database test;
 create user 'sa'@'localhost' identified by 'sa';
@@ -41,6 +46,13 @@ PostgreSQL
 
 Non-standard escape mechanism:
 select 'Joe''s', 'Joe\'s';
+
+Configuration:
+Mac OS:
+/Library/PostgreSQL/8.4/data/postgresql.conf
+fsync = off
+commit_delay = 1000
+
 
 HSQLDB
 --------------------------------------------------------------------------------------------------------

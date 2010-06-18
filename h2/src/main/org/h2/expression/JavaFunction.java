@@ -84,7 +84,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder();
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
-        if (SysProperties.FUNCTIONS_IN_SCHEMA || 
+        if (SysProperties.FUNCTIONS_IN_SCHEMA ||
                 !functionAlias.getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
             buff.append(Parser.quoteIdentifier(functionAlias.getSchema().getName())).append('.');
         }

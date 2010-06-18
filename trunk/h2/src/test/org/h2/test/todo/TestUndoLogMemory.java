@@ -25,12 +25,10 @@ public class TestUndoLogMemory {
     public static void main(String... args) throws Exception {
         System.setProperty("h2.largeTransactions", "true");
 
-        int todoLargeRows;
-
         new TestUndoLogMemory().test(10, "null");
         new TestUndoLogMemory().test(100, "space(100000)");
-//        new TestUndoLogMemory().test(100000, "null");
-//        new TestUndoLogMemory().test(1000, "space(100000)");
+        // new TestUndoLogMemory().test(100000, "null");
+        // new TestUndoLogMemory().test(1000, "space(100000)");
 
     }
 

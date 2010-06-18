@@ -112,7 +112,7 @@ public class TestCluster extends TestBase {
         check(connApp, len, "'" + serverList + "'");
 
         n1.stop();
-        
+
         // test non-admin cluster connection if only one server runs
         Connection connApp2 = DriverManager.getConnection(urlCluster + ";AUTO_RECONNECT=TRUE", user2, password2);
         check(connApp2, len, "''");
@@ -121,7 +121,7 @@ public class TestCluster extends TestBase {
         connApp2 = DriverManager.getConnection(urlCluster + ";AUTO_RECONNECT=TRUE", user2, password2);
         check(connApp2, len, "''");
         connApp2.close();
-        
+
         n2.stop();
         deleteFiles();
     }

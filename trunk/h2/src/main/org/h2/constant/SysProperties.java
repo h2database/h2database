@@ -392,7 +392,7 @@ public class SysProperties {
      * The minimum write delay that causes commits to be delayed.
      */
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
-    
+
     /**
      * System property <code>h2.nestedJoins</code> (default: false).<br />
      * Whether nested joins should be supported.

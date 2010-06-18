@@ -1241,8 +1241,19 @@ public class Function extends Expression implements FunctionCall {
         return ts;
     }
 
+    /**
+     * Calculate the number of crossed unit boundaries between two timestamps.
+     * This method is supported for MS SQL Server compatibility. 
+     * <pre>
+     * DATEDIFF(YEAR, '2004-12-31', '2005-01-01') = 1
+     * </pre>
+     * 
+     * @param part the part
+     * @param d1 the first date
+     * @param d2 the second date
+     * @return the number of crossed boundaries
+     */
     private static long datediff(String part, Timestamp d1, Timestamp d2) {
-        // diff (yy, 31.12.2004, 1.1.2005) = 1
         int field = getDatePart(part);
         Calendar calendar = Calendar.getInstance();
         long t1 = d1.getTime(), t2 = d2.getTime();

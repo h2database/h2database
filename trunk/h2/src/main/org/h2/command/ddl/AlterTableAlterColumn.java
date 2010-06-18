@@ -369,7 +369,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
     /**
      * Check that all views are still valid.
      *
-     * @param the list of SQL statements to re-create views that depend on this table
+     * @return the list of SQL statements to re-create views that depend on this
+     *         table
      */
     private List<String> checkViews(SchemaObject sourceTable, SchemaObject newTable) {
         List<String> viewSql = new ArrayList<String>();

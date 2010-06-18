@@ -249,7 +249,8 @@ public class PrepareTranslation {
                 } else if ("p".equals(tag) || "li".equals(tag) || "a".equals(tag) || "td".equals(tag)
                         || "th".equals(tag) || "h1".equals(tag) || "h2".equals(tag) || "h3".equals(tag)
                         || "h4".equals(tag) || "body".equals(tag) || "b".equals(tag) || "code".equals(tag)
-                        || "form".equals(tag) || "span".equals(tag) || "em".equals(tag) || "div".equals(tag)) {
+                        || "form".equals(tag) || "span".equals(tag) || "em".equals(tag) || "div".equals(tag)
+                        || "label".equals(tag)) {
                     if (buff.length() == 0) {
                         nextKey = documentName + "_" + (1000 + id++) + "_" + tag;
                         template.append(getSpace(s, true));

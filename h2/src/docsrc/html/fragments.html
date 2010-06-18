@@ -15,7 +15,7 @@ Initial Developer: H2 Group
 <table class="nav" onmousemove="return mouseMove(event)"><tr class="nav"><td class="nav" valign="top">
 <div id = "searchMenu" style="width: 180px; overflow: hidden;">
 <div class="menu">
-<img src="images/h2-logo.png" alt="H2 Logo"  onclick="document.location='main.html'" width="136" height="74"/>
+<img src="images/h2-logo.png" alt="H2 database logo"  onclick="document.location='main.html'" width="136" height="74"/>
 </div>
 
 <form action="submit" onsubmit="return goFirst();">
@@ -31,7 +31,7 @@ translate -->
     </tr>
     <tr class="search">
         <td class="search" colspan="2">
-        <b>Search:</b>
+        <b><label for="search">Search:</label></b>
         </td>
     </tr>
     <tr class="search">
@@ -41,8 +41,12 @@ translate -->
         </td>
     </tr>
     <tr class="search" style="display:none;" >
-        <td class="search" style="width: 1%; vertical-align: middle;"><input id = "highlight" type="checkbox" checked="checked" onclick="highlightCurrent(this.checked, search.value)" /></td>
-        <td class="search" style="width: 99%; padding: 0px; vertical-align: middle;">Highlight keyword(s)</td>
+        <td class="search" style="width: 1%; vertical-align: middle;">
+            <input id = "highlight" type="checkbox" checked="checked" onclick="highlightCurrent(this.checked, search.value)" />
+        </td>
+        <td class="search" style="width: 99%; padding: 0px; vertical-align: middle;">
+            <label for="highlight">Highlight keyword(s)</label>
+        </td>
     </tr>
     <tr class="search">
         <td class="search" colspan="2">
@@ -71,7 +75,7 @@ translate -->
 <a href="functions.html">Functions</a><br />
 <a href="datatypes.html">Data Types</a><br />
 <a href="../javadoc/index.html">Javadoc</a><br />
-<a href="../h2.pdf">PDF (1 MB)</a><br />
+<a href="../h2.pdf" onclick="return openInNewWindow(this)">PDF (1 MB)</a><br />
 <br />
 <b>Support</b><br />
 <a href="faq.html">FAQ</a><br />

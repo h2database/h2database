@@ -441,6 +441,8 @@ Creates a new data type (domain). The check condition must evaluate to true or
 to NULL (to prevent NULL, use NOT NULL). In the condition, the term VALUE refers
 to the value being tested.
 
+Domains are usable within the whole database. They can not be created in a specific schema.
+
 This command commits an open transaction.
 ","
 CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
@@ -607,11 +609,16 @@ CREATE USER GUEST PASSWORD 'abc'
 "
 
 "Commands (DDL)","CREATE VIEW","
-CREATE [ FORCE ] VIEW [ IF NOT EXISTS ] newViewName
+CREATE [ OR REPLACE ] [ FORCE ] VIEW [ IF NOT EXISTS ] newViewName
 [ ( columnName [,...] ) ] AS select
 ","
 Creates a new view. If the force option is used, then the view is created even
 if the underlying table(s) don't exist.
+
+If the OR REPLACE clause is used an existing view will be replaced, and any
+dependent views will not need to be recreated. If dependent views will become
+invalid as a result of the change an error will be generated, but this error
+can be ignored if the FORCE clause is also used.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
@@ -741,11 +748,11 @@ DROP USER TOM
 "
 
 "Commands (DDL)","DROP VIEW","
-DROP VIEW [ IF EXISTS ] viewName
+DROP VIEW [ IF EXISTS ] viewName [RESTRICT | CASCADE ]
 ","
-Drops a view.
+Drops a view, and all dependent views if the CASCADE clause is used.
+The command will fail if dependent views exist and the RESTRICT clause is used. This is the default.
 This command commits an open transaction.
-This will also drop all views that depend on this view.
 ","
 DROP VIEW TEST_VIEW
 "

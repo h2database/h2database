@@ -5,6 +5,12 @@
  * Initial Developer: H2 Group
  */
 
+function openInNewWindow(t) {
+    var w = window.open(t.getAttribute('href'), '_blank');
+    w.focus();
+    return false;
+}
+
 function loadFrameset() {
     var a = location.search.split('&');
     var page = decodeURIComponent(a[0].substr(1));
@@ -144,16 +150,19 @@ function doHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag) {
 var drag = false;
 var dragSize = 0;
 var dragStart = 0;
+
 function mouseDown(e) {
     dragStart = e.clientX || e.pageX;
     dragSize = parseInt(document.getElementById('searchMenu').style.width);
     drag = true;
     return false;
 }
+
 function mouseUp(e) {
     drag = false;
     return false;
 }
+
 function mouseMove(e) {
     if (drag) {
         var e = e || window.event;

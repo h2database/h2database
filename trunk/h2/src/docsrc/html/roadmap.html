@@ -34,6 +34,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     (also remove Constants.UNDO_BLOCK_SIZE).
     Later, change undo log file format (fillAligned no longer required; var int).
 </li><li>Enable h2.nestedJoins (nested joins and right outer joins).
+</li><li>Enable h2.optimizeOr (convert OR conditions to IN(..) if possible).
 </li><li>Disable h2.databaseToUpper (database short names are converted to uppercase).
 </li></ul>
 
@@ -45,8 +46,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li></ul>
 
 <h2>Priority 2</h2>
-<ul><li>Support nested outer joins (see todo.txt, issues 145, 177, 203).
-</li><li>Improve test code coverage.
+<ul><li>Improve test code coverage.
 </li><li>Test multi-threaded in-memory db access.
 </li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208
 </li><li>Full outer joins.
@@ -499,6 +499,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve object memory size calculation. Use constants for known VMs, or use reflection to call java.lang.instrument.Instrumentation.getObjectSize(Object objectToSize)
 </li><li>Triggers: NOT NULL checks should be done after running triggers (Oracle behavior, maybe others).
 </li><li>Log long running transactions (similar to long running statements).
+</li><li>Support schema specific domains.
+</li><li>Some combinations of nested join with right outer join are not supported.
 </li></ul>
 
 <h2>Not Planned</h2>

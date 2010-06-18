@@ -81,7 +81,7 @@ Please note this is mostly a single connection benchmark run on one computer.
 <tr><td>BenchC: Memory Usage</td><td>MB</td><td>12</td><td>21</td><td>14</td><td>2</td><td>2</td></tr>
 <tr><td>Executed statements</td><td>#</td><td>322929</td><td>322929</td><td>322929</td><td>322929</td><td>322929</td></tr>
 <tr><td>Total time</td><td>ms</td><td>32106</td><td>34546</td><td>74245</td><td>53791</td><td>53216</td></tr>
-<tr><td>Statements per second</td><td>#</td><td>10058</td><td>9347</td><td>4349</td><td>6003</td><td>6068</td></tr></table>
+<tr><td>Statements per second</td><td>#</td><td>10058</td><td>9347</td><td>4349</td><td>6003</td><td>6068</td></tr>
 </table>
 
 <h3>Benchmark Results and Comments</h3>
@@ -115,7 +115,9 @@ This seems to be a structural problem, because all operations are really slow.
 It will be hard for the developers of Derby to improve the performance to a reasonable level.
 A few problems have been identified: leaving autocommit on is a problem for Derby.
 If it is switched off during the whole test, the results are about 20% better for Derby.
-Derby does not call <code>FileDescriptor.sync() / FileChannel.force(..)</code> on each commit.
+Derby calls <code>FileChannel.force(false)</code>, but only twice per log file (not on each commit).
+Disabling this call improves performance for Derby by about 2%.
+Unlike H2, Derby does not call <code>FileDescriptor.sync()</code> on each checkpoint.
 Derby supports a testing mode (system property <code>derby.system.durability=test</code>)
 where durability is disabled. According to the documentation, this setting should be used for testing only,
 as the database may not recover after a crash. Enabling this setting improves performance
@@ -203,7 +205,7 @@ For the Java databases, both embedded and server modes are tested.
 
 <h4>Test Platform</h4>
 <p>
-This test is run on Mac OS X 10.6. No virus scanner was used, and disk indexing was turned off.
+This test is run on Mac OS X 10.6. No virus scanner was used, and disk indexing was disabled.
 The VM used is Sun JDK 1.6.
 </p>
 

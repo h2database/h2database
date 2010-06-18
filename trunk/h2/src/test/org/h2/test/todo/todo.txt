@@ -1,86 +1,14 @@
-Nested Outer Joins
+TIMESTAMPDIFF
 -----------------
-Example:
+Test cases:
+select timestampdiff(year, '2000-01-01', '2001-01-01');
+select timestampdiff(year, '2000-03-01', '2001-03-01');
+select timestampdiff(day, '2000-03-01', '2001-03-01');
+select timestampdiff(year, '2000-02-29', '2001-02-28');
+select timestampdiff(day, '2000-02-29', '2001-02-28');
+select timestampdiff(month, '2000-02-29', '2001-02-28');
+select timestampadd(year, 1, '2000-02-29');
 
-create table a(x int);
-create table b(x int);
-create table c(x int, y int);
-insert into a values(1);
-insert into a values(2);
-insert into b values(3);
-insert into c values(1, 3);
-insert into c values(4, 5);
-select * from a left outer join (b left outer join c on b.x = c.y) on a.x = c.x;
-explain select * from a left outer join (b left outer join c on b.x = c.y) on a.x = c.x;
-drop table a;
-drop table b;
-drop table c;
-
-The following doesn't work correctly:
-TableFilter,
-    private void mapAndAddFilter(Expression on) throws SQLException {
-        on.mapColumns(this, 0);
-        if (join == null || on.isEverything(ExpressionVisitor.RESOLVED)) {
-            addFilterCondition(on, true);
-            on.createIndexConditions(session, this);
-        }
-        if (join != null) {
-            join.mapAndAddFilter(on);
-        }
-    }
-
-
-drop table base;
-drop table a;
-drop table b;
-create table a( pk integer, val varchar(255) );
-create table b( pk integer, val varchar(255) );
-create table base( pk integer, deleted integer );
-insert into base values ( 1,  0 );
-insert into base values ( 2,  1 );
-insert into base values ( 3,  0 );
-insert into a values  ( 1, 'a' );
-insert into b values ( 2, 'a' );
-insert into b values ( 3, 'a' );
-
-select a.pk, a_base.pk, b.pk, b_base.pk from a inner join base a_base
-on a.pk = a_base.pk left outer join
-( b inner join base b_base on b.pk = b_base.pk and b_base.deleted = 0 ) ;
--- H2:
--- 1    1   2   null
--- 1    1   3   3
--- PostgreSQL: ERROR: syntax error at end of input 42601/0
--- MySQL: You have an error in your SQL syntax;
---       check the manual that corresponds to your MySQL server version
---       for the right syntax to use near '' at line 3
--- Derby: Syntax error: Encountered "<EOF>" at line 3, column 71. 42X01/30000
--- HSQLDB: Unexpected token B, requires SELECT in statement
-
-select a.pk, a_base.pk, b.pk, b_base.pk  from a inner join base a_base
-on a.pk = a_base.pk left outer join
-( b inner join base b_base on b.pk = b_base.pk and b_base.deleted = 0 )
-on a.pk = b.pk;
--- H2, MySQL, PostgreSQL, Derby:
--- 1    1   null    null
--- HSQLDB: Unexpected token B, requires SELECT in statement
-
-select a.pk, a_base.pk, b.pk, b_base.pk  from a inner join base a_base
-on a.pk = a_base.pk left outer join
-( b inner join base b_base on b.pk = b_base.pk and b_base.deleted = 0 )
-on 1=1;
--- H2:
--- 1    1   2   null
--- 1    1   3   3
--- PostgreSQL, MySQL, Derby:
--- 1    1   3   3
--- HSQLDB: Unexpected token B, requires SELECT in statement
-
-select a.pk, a_base.pk, b_pk, b_base_pk  from a inner join base a_base
-on a.pk = a_base.pk left outer join
-( select b.pk b_pk, b_base.pk b_base_pk from b inner join base b_base on b.pk = b_base.pk and b_base.deleted = 0 ) x
-on 1=1;
--- PostgreSQL, MySQL, Derby, H2:
--- 1    1   3   3
 
 Auto Upgrade
 -----------------

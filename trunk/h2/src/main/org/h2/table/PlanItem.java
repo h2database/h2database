@@ -34,7 +34,7 @@ public class PlanItem {
     PlanItem getJoinPlan() {
         return joinPlan;
     }
-    
+
     PlanItem getNestedJoinPlan() {
         return nestedJoinPlan;
     }

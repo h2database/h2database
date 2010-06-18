@@ -22,10 +22,10 @@ public class CachedPreparedStatements {
 
     private Connection conn;
     private Statement stat;
-    private Map<String, PreparedStatement> prepared = 
+    private Map<String, PreparedStatement> prepared =
         Collections.synchronizedMap(
                 new HashMap<String, PreparedStatement>());
-    
+
     /**
      * This method is called when executing this sample application from the
      * command line.
@@ -48,10 +48,10 @@ public class CachedPreparedStatements {
         prep.setInt(1, 1);
         prep.setString(2, "Hello");
         prep.execute();
-        conn.close();    
+        conn.close();
     }
 
-    private PreparedStatement prepare(String sql) 
+    private PreparedStatement prepare(String sql)
             throws SQLException {
         PreparedStatement prep = prepared.get(sql);
         if (prep == null) {

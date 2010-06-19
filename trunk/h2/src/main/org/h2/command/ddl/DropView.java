@@ -24,7 +24,7 @@ public class DropView extends SchemaCommand {
 
     private String viewName;
     private boolean ifExists;
-    private int dropAction = ConstraintReferential.RESTRICT;
+    private int dropAction = ConstraintReferential.CASCADE;
 
     public DropView(Session session, Schema schema) {
         super(session, schema);

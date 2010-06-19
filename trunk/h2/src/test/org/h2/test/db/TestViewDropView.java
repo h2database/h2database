@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 import java.sql.Connection;
@@ -51,19 +52,29 @@ public class TestViewDropView extends TestBase {
         createTestData();
 
         try {
-            stat.execute("drop view v1"); // Should fail because have dependencies
+            // Should fail because have dependencies
+            stat.execute("drop view v1");
+            if (SysProperties.DROP_RESTRICT) {
+                fail();
+            }
         } catch (SQLException e) {
-            assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
+            if (!SysProperties.DROP_RESTRICT) {
+                assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
+            }
         }
 
-        checkViewRemainsValid();
+        if (SysProperties.DROP_RESTRICT) {
+            checkViewRemainsValid();
+        }
     }
 
     private void testDropViewRestrict() throws SQLException {
         createTestData();
 
         try {
-            stat.execute("drop view v1 restrict"); // Should fail because have dependencies
+            // Should fail because have dependencies
+            stat.execute("drop view v1 restrict");
+            fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
         }
@@ -144,6 +155,7 @@ public class TestViewDropView extends TestBase {
     }
 
     private void createTestData() throws SQLException {
+        stat.execute("drop all objects");
         stat.execute("create table test(a int, b int, c int)");
         stat.execute("insert into test(a, b, c) values (1, 2, 3)");
         stat.execute("create view v1 as select a as b, b as a from test");

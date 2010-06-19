@@ -37,6 +37,8 @@ Change Log
 </li><li>Cluster: non-admin users could not connect when one of the cluster node was stopped. Issue 206.
 </li><li>DROP VIEW now supports the CASCADE and RESTRICT clauses (patch from Kerry Sainsbury)
 </li><li>CREATE VIEW now supports the OR REPLACE clause (patch from Kerry Sainsbury)
+</li><li>Build tool: ability to only run one test using the -Dtest=className setting.
+     eg: build -Dtest=org.h2.test.db.TestViewDropView test (patch from Kerry Sainsbury)    
 </li></ul>
 
 <h2>Version 1.2.137 (2010-06-06)</h2>

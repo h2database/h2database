@@ -270,6 +270,15 @@ public class SysProperties {
     public static final int DELAY_WRONG_PASSWORD_MAX = getIntSetting("h2.delayWrongPasswordMax", 4000);
 
     /**
+     * System property <code>h2.dropRestrict</code> (default: false).<br />
+     * Whether the default action for DROP TABLE and DROP VIEW is RESTRICT. For
+     * most databases, the default action is RESTRICT, but for compatibility
+     * with older versions of H2 the default action is currently CASCADE. This will
+     * change in a future version of H2.
+     */
+    public static final boolean DROP_RESTRICT = getBooleanSetting("h2.dropRestrict", false);
+
+    /**
      * System property <code>h2.estimatedFunctionTableRows</code> (default:
      * 1000).<br />
      * The estimated number of rows in a function table (for example, CSVREAD or

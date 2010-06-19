@@ -35,6 +35,8 @@ Change Log
 </li><li>Version 1.2.137 could still not be converted to Java 1.4
     (because the Retrotranslator doesn't support BigDecimal.precision).
 </li><li>Cluster: non-admin users could not connect when one of the cluster node was stopped. Issue 206.
+</li><li>DROP VIEW now supports the CASCADE and RESTRICT clauses (patch from Kerry Sainsbury)
+</li><li>CREATE VIEW now supports the OR REPLACE clause (patch from Kerry Sainsbury)
 </li></ul>
 
 <h2>Version 1.2.137 (2010-06-06)</h2>
@@ -383,7 +385,7 @@ Change Log
     This could cause the server-less multi-connection mode to fail.
 </li><li>Result sets larger than 2 GB threw an exception "Negative seek offset". Fixed.
 </li><li>If the system property h2.check was set to false, an ArrayIndexOutOfBoundsException could occur.
-</li><li>Alter table is now supported even if a table has views defined.
+</li><li>Alter table is now supported even if a table has views defined. (Patch from Kerry Sainsbury).
 </li><li>Fulltext search: exceptions within the fulltext search package had the wrong SQL state.
 </li><li>The Lucene fulltext search ignored transaction rollback. Fixed using a trigger on rollback.
 </li><li>Trigger can now be called on rollback.

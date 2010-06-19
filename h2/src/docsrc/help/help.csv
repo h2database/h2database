@@ -748,7 +748,7 @@ DROP USER TOM
 "
 
 "Commands (DDL)","DROP VIEW","
-DROP VIEW [ IF EXISTS ] viewName [RESTRICT | CASCADE ]
+DROP VIEW [ IF EXISTS ] viewName [ RESTRICT | CASCADE ]
 ","
 Drops a view, and all dependent views if the CASCADE clause is used.
 The command will fail if dependent views exist and the RESTRICT clause is used. This is the default.

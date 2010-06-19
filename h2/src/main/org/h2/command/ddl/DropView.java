@@ -7,11 +7,14 @@
 package org.h2.command.ddl;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constraint.ConstraintReferential;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
+import org.h2.table.TableView;
 
 /**
  * This class represents the statement
@@ -21,6 +24,7 @@ public class DropView extends SchemaCommand {
 
     private String viewName;
     private boolean ifExists;
+    private int dropAction = ConstraintReferential.RESTRICT;
 
     public DropView(Session session, Schema schema) {
         super(session, schema);
@@ -28,6 +32,10 @@ public class DropView extends SchemaCommand {
 
     public void setIfExists(boolean b) {
         ifExists = b;
+    }
+
+    public void setDropAction(int dropAction) {
+        this.dropAction = dropAction;
     }
 
     public void setViewName(String viewName) {
@@ -46,6 +54,15 @@ public class DropView extends SchemaCommand {
                 throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
             session.getUser().checkRight(view, Right.ALL);
+
+            if (dropAction == ConstraintReferential.RESTRICT) {
+                for (DbObject child : view.getChildren()) {
+                    if (child instanceof TableView) {
+                        throw DbException.get(ErrorCode.CANNOT_DROP_2, viewName, child.getName());
+                    }
+                }
+            }
+
             view.lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, view);
         }

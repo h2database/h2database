@@ -60,6 +60,7 @@ import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestView;
 import org.h2.test.db.TestViewAlterTable;
+import org.h2.test.db.TestViewDropView;
 import org.h2.test.jaqu.AliasMapTest;
 import org.h2.test.jaqu.SamplesTest;
 import org.h2.test.jaqu.UpdateTest;
@@ -538,6 +539,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
         new TestViewAlterTable().runTest(this);
+        new TestViewDropView().runTest(this);
 
         // jaqu
         new AliasMapTest().runTest(this);

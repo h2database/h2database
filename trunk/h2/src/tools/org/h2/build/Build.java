@@ -543,7 +543,7 @@ public class Build extends BuildBase {
     public void test() {
         downloadTest();
         compile();
-        String testClass=System.getProperty("test", "org.h2.test.TestAll");
+        String testClass = System.getProperty("test", "org.h2.test.TestAll");
         java(testClass, null);
     }
 

@@ -253,7 +253,7 @@ DROP USER [ IF EXISTS ] userName
 ","
 Drops a user."
 "Commands (DDL)","DROP VIEW","
-DROP VIEW [ IF EXISTS ] viewName [RESTRICT | CASCADE ]
+DROP VIEW [ IF EXISTS ] viewName [ RESTRICT | CASCADE ]
 ","
 Drops a view, and all dependent views if the CASCADE clause is used."
 "Commands (DDL)","TRUNCATE TABLE","

@@ -1154,6 +1154,10 @@ public class Parser {
             command.setViewName(viewName);
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
+            Integer dropAction = parseCascadeOrRestrict();
+            if (dropAction != null) {
+                command.setDropAction(dropAction);
+            }
             return command;
         } else if (readIf("ROLE")) {
             boolean ifExists = readIfExists(false);
@@ -3533,9 +3537,15 @@ public class Parser {
     }
 
     private Prepared parseCreate() {
+        boolean orReplace = false;
+        if (readIf("OR")) {
+           read("REPLACE");
+           orReplace = true;
+        }
+
         boolean force = readIf("FORCE");
         if (readIf("VIEW")) {
-            return parseCreateView(force);
+            return parseCreateView(force, orReplace);
         } else if (readIf("ALIAS")) {
             return parseCreateFunctionAlias(force);
         } else if (readIf("SEQUENCE")) {
@@ -3951,7 +3961,7 @@ public class Parser {
         return query;
     }
 
-    private CreateView parseCreateView(boolean force) {
+    private CreateView parseCreateView(boolean force, boolean orReplace) {
         boolean ifNotExists = readIfNoExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
@@ -3959,6 +3969,8 @@ public class Parser {
         command.setViewName(viewName);
         command.setIfNotExists(ifNotExists);
         command.setComment(readCommentIf());
+        command.setOrReplace(orReplace);
+        command.setForce(force);
         if (readIf("(")) {
             String[] cols = parseColumnList();
             command.setColumnNames(cols);
@@ -4613,11 +4625,11 @@ public class Parser {
     }
 
     private int parseAction() {
-        if (readIf("CASCADE")) {
-            return ConstraintReferential.CASCADE;
-        } else if (readIf("RESTRICT")) {
-            return ConstraintReferential.RESTRICT;
-        } else if (readIf("NO")) {
+        Integer result = parseCascadeOrRestrict();
+        if (result != null) {
+            return result;
+        }
+        if (readIf("NO")) {
             read("ACTION");
             return ConstraintReferential.RESTRICT;
         } else {
@@ -4627,6 +4639,16 @@ public class Parser {
             }
             read("DEFAULT");
             return ConstraintReferential.SET_DEFAULT;
+        }
+    }
+
+    private Integer parseCascadeOrRestrict() {
+        if (readIf("CASCADE")) {
+            return ConstraintReferential.CASCADE;
+        } else if (readIf("RESTRICT")) {
+            return ConstraintReferential.RESTRICT;
+        } else {
+            return null;
         }
     }
 

@@ -152,11 +152,31 @@ public class TableView extends Table {
     }
 
     public String getDropSQL() {
-        return "DROP VIEW IF EXISTS " + getSQL();
+       return getDropSQL(false);
+    }
+
+    public String getDropSQL(boolean cascade) {
+        StatementBuilder buff = new StatementBuilder("DROP VIEW IF EXISTS ");
+        buff.append(getSQL());
+        if (cascade) {
+            buff.append(" CASCADE");
+        }
+        return buff.toString();
     }
 
     public String getCreateSQL() {
-        StatementBuilder buff = new StatementBuilder("CREATE FORCE VIEW ");
+        return getCreateSQL(false, true);
+    }
+
+    public String getCreateSQL(boolean orReplace, boolean force) {
+        StatementBuilder buff = new StatementBuilder("CREATE ");
+        if (orReplace) {
+            buff.append("OR REPLACE ");
+        }
+        if (force) {
+            buff.append("FORCE ");
+        }
+        buff.append("VIEW ");
         buff.append(getSQL());
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));

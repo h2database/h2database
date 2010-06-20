@@ -35,9 +35,15 @@ public class Build extends BuildBase {
      * Run the benchmarks.
      */
     public void benchmark() {
+        compile();
+
+        // this will download an old version of HSQLDB;
+        // to use a more recent version, download it manually
+        // and add it to the 'ext' directory as 'hsqldb.jar'.
         download("ext/hsqldb-1.8.0.10.jar",
                 "http://repo1.maven.org/maven2/hsqldb/hsqldb/1.8.0.10/hsqldb-1.8.0.10.jar",
                 "7e9978fdb754bce5fcd5161133e7734ecb683036");
+
         download("ext/derby-10.6.1.0.jar",
                 "http://repo1.maven.org/maven2/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0.jar",
                 "01137cd636b0e3c22f0d273478adb58aa30e984a");

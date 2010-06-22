@@ -325,7 +325,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueLob && compareSecure((Value) other, null) == 0;
+        return other instanceof ValueLobDb && compareSecure((Value) other, null) == 0;
     }
 
     public boolean isFileBased() {

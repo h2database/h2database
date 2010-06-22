@@ -5,12 +5,6 @@
  * Initial Developer: H2 Group
  */
 
-function openInNewWindow(t) {
-    var w = window.open(t.getAttribute('href'), '_blank');
-    w.focus();
-    return false;
-}
-
 function loadFrameset() {
     var a = location.search.split('&');
     var page = decodeURIComponent(a[0].substr(1));

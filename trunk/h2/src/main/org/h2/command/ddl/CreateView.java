@@ -175,7 +175,7 @@ public class CreateView extends SchemaCommand {
         String createSql;
         String createForceSql;
 
-        private DependentView(TableView view) {
+        DependentView(TableView view) {
             this.viewName = view.getName();
             this.createSql = view.getCreateSQL(true, false);
             this.createForceSql = view.getCreateSQL(true, true);

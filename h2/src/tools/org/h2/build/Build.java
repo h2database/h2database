@@ -35,15 +35,9 @@ public class Build extends BuildBase {
      * Run the benchmarks.
      */
     public void benchmark() {
-        compile();
-
-        // this will download an old version of HSQLDB;
-        // to use a more recent version, download it manually
-        // and add it to the 'ext' directory as 'hsqldb.jar'.
-        download("ext/hsqldb-1.8.0.10.jar",
-                "http://repo1.maven.org/maven2/hsqldb/hsqldb/1.8.0.10/hsqldb-1.8.0.10.jar",
-                "7e9978fdb754bce5fcd5161133e7734ecb683036");
-
+        download("ext/hsqldb-2.0.0.jar",
+                "http://repo1.maven.org/maven2/org/hsqldb/hsqldb/2.0.0/hsqldb-2.0.0.jar",
+                "c9d525ce1a464185e6b01c7de872127a06092673");
         download("ext/derby-10.6.1.0.jar",
                 "http://repo1.maven.org/maven2/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0.jar",
                 "01137cd636b0e3c22f0d273478adb58aa30e984a");
@@ -59,9 +53,12 @@ public class Build extends BuildBase {
         download("ext/mysql-connector-java-5.1.6.jar",
                 "http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.6/mysql-connector-java-5.1.6.jar",
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
+
+        compile();
+
         String cp = "temp" + File.pathSeparator + "bin/h2" + getJarSuffix() + File.pathSeparator +
         "ext/hsqldb.jar" + File.pathSeparator +
-        "ext/hsqldb-1.8.0.10.jar" + File.pathSeparator +
+        "ext/hsqldb-2.0.0.jar" + File.pathSeparator +
         "ext/derby-10.6.1.0.jar" + File.pathSeparator +
         "ext/derbyclient-10.6.1.0.jar" + File.pathSeparator +
         "ext/derbynet-10.6.1.0.jar" + File.pathSeparator +

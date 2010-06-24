@@ -194,19 +194,6 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td class="compareN">No</td>
 <td class="compareN">No</td>
 </tr><tr>
-<td>Transaction Isolation</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Cost Based Optimizer</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
 </tr><tr>
 <td>Explain Plan</td>
 <td class="compareY">Yes</td>
@@ -225,7 +212,7 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td>Encrypted Database</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareN">No</td>
 </tr><tr>
@@ -253,7 +240,7 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td>User-Defined Datatypes</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
@@ -264,24 +251,24 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td class="compareN">Many</td>
 <td class="compareN">Many</td>
 </tr><tr>
-<td>Table Level Locking</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
 <td>Row Level Locking</td>
 <td class="compareY">Yes *9</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes *9</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
 <td>Multi Version Concurrency</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
+</tr><tr>
+<td>Multi-Threaded Statement Processing</td>
+<td class="compareN">No *11</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
@@ -295,7 +282,7 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td>Updatable Result Sets</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes *7</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
@@ -323,7 +310,7 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td>Information Schema</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No *8</td>
-<td class="compareN">No *8</td>
+<td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
@@ -344,14 +331,14 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td>Custom Aggregate Functions</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
 <td>Footprint (jar/dll size)</td>
 <td>~1 MB *5</td>
 <td>~2 MB</td>
-<td>~700 KB</td>
+<td>~1 MB</td>
 <td>~4 MB</td>
 <td>~6 MB</td>
 </tr>
@@ -365,7 +352,10 @@ encrypted using AES-128 and XTEA encryption algorithms
 *6 PostgreSQL supports functional indexes.<br />
 *7 Derby only supports updatable result sets if the query is not sorted.<br />
 *8 Derby and HSQLDB don't support standard compliant information schema tables.<br />
-*9 H2 supports row level locks when using multi version concurrency.
+*9 When using MVCC (multi version concurrency).<br />
+*10 Derby and HSQLDB 
+    <a href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation#Electronic_codebook_.28ECB.29">don't hide hide data patterns well</a>.<br />
+*11 The MULTI_THREADED option is not enabled by default, and not yet supported when using MVCC.
 </p>
 
 <h3>Derby and HSQLDB</h3>

@@ -1243,11 +1243,11 @@ public class Function extends Expression implements FunctionCall {
 
     /**
      * Calculate the number of crossed unit boundaries between two timestamps.
-     * This method is supported for MS SQL Server compatibility. 
+     * This method is supported for MS SQL Server compatibility.
      * <pre>
      * DATEDIFF(YEAR, '2004-12-31', '2005-01-01') = 1
      * </pre>
-     * 
+     *
      * @param part the part
      * @param d1 the first date
      * @param d2 the second date

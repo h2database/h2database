@@ -246,6 +246,9 @@ public class ExpressionColumn extends Expression {
             // or if this columns belongs to a 'higher level' query and is
             // therefore just a parameter
             if (SysProperties.NESTED_JOINS) {
+                if (visitor.getQueryLevel() < this.queryLevel) {
+                    return true;
+                }
                 if (getTableFilter() == null) {
                     return false;
                 }

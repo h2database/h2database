@@ -305,6 +305,8 @@ java org.h2.test.TestAll timer
         // System.setProperty("h2.lobInDatabase", "true");
         // System.setProperty("h2.analyzeAuto", "100");
         // System.setProperty("h2.nestedJoins", "true");
+        // System.setProperty("h2.optimizeOr", "true");
+        // System.setProperty("h2.dropRestrict", "true");
 
         int speedup;
         // System.setProperty("h2.syncMethod", "");

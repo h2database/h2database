@@ -370,6 +370,9 @@ public class ConstraintReferential extends Constraint {
             int refIdx = refCol.getColumnId();
             Column col = columns[i].column;
             Value v = col.convert(oldRow.getValue(refIdx));
+            if (v == ValueNull.INSTANCE) {
+                return;
+            }
             check.setValue(col.getColumnId(), v);
         }
         // exclude the row only for self-referencing constraints

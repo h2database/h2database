@@ -1,3 +1,7 @@
+create table a(id int) as select null;
+create table b(id int references a(id)) as select null;
+delete from a;
+drop table a, b;
 create table test(a int, b int) as select 2, 0;
 create index idx on test(b, a);
 select count(*) from test where a in(2, 10) and b in(0, null);

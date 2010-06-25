@@ -27,7 +27,7 @@ import org.h2.util.ScriptReader;
  */
 public class TestNestedJoins extends TestBase {
 
-    ArrayList<Statement> dbs = New.arrayList();
+    private ArrayList<Statement> dbs = New.arrayList();
 
     /**
      * Run just this test.
@@ -67,7 +67,9 @@ public class TestNestedJoins extends TestBase {
         // deleteDerby();
         // try {
         //     Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        //     Connection c2 = DriverManager.getConnection("jdbc:derby:" + getBaseDir() + "/derby/test;create=true", "sa", "sa");
+        //     Connection c2 = DriverManager.getConnection(
+        //         "jdbc:derby:" + getBaseDir() +
+        //         "/derby/test;create=true", "sa", "sa");
         //     dbs.add(c2.createStatement());
         // } catch (Exception e) {
         //     // database not installed - ok
@@ -333,8 +335,10 @@ public class TestNestedJoins extends TestBase {
         insert into b values(3);
         insert into c values(1, 3);
         insert into c values(4, 5);
-        explain select * from a left outer join (b left outer join c on b.x = c.y) on a.x = c.x;
-        select * from a left outer join (b left outer join c on b.x = c.y) on a.x = c.x;
+        explain select * from a left outer join
+        (b left outer join c on b.x = c.y) on a.x = c.x;
+        select * from a left outer join
+        (b left outer join c on b.x = c.y) on a.x = c.x;
          */
         stat.execute("create table a(x int)");
         stat.execute("create table b(x int)");

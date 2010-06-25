@@ -137,11 +137,12 @@ public class TestViewDropView extends TestBase {
     private void testCreateOrReplaceForceViewWithNowInvalidDependentViews() throws SQLException {
         createTestData();
 
-        // v2 and v3 need more than just "c", but we want to force the creation of v1 anyway
+        // v2 and v3 need more than just "c",
+        // but we want to force the creation of v1 anyway
         stat.execute("create or replace force view v1 as select c from test");
 
         try {
-            // now v2 and v3 are broken, but they still exist -- if there is any value to that...?
+            // now v2 and v3 are broken, but they still exist
             ResultSet rs = stat.executeQuery("select b from v2");
             assertTrue(rs.next());
             assertEquals(1, rs.getInt(1));

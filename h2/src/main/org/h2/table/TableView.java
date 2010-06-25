@@ -152,22 +152,8 @@ public class TableView extends Table {
     }
 
     public String getDropSQL() {
-       return getDropSQL(false);
-    }
-
-    /**
-     * Build a SQL statement to drop this object.
-     *
-     * @param cascade if true, then include the CASCADE clause in the DROP VIEW statement
-     *
-     * @return the SQL statement
-     */
-    public String getDropSQL(boolean cascade) {
         StatementBuilder buff = new StatementBuilder("DROP VIEW IF EXISTS ");
         buff.append(getSQL());
-        if (cascade) {
-            buff.append(" CASCADE");
-        }
         return buff.toString();
     }
 
@@ -176,11 +162,11 @@ public class TableView extends Table {
     }
 
     /**
-     * Generate "CREATE" SQL for the view
+     * Generate "CREATE" SQL statement for the view.
      *
-     * @param orReplace if true, then include the OR REPLACE clause in the SQL
-     * @param force if true, then include the FORCE clause in the SQL
-     * @return the SQL
+     * @param orReplace if true, then include the OR REPLACE clause
+     * @param force if true, then include the FORCE clause
+     * @return the SQL statement
      */
     public String getCreateSQL(boolean orReplace, boolean force) {
         StatementBuilder buff = new StatementBuilder("CREATE ");
@@ -402,20 +388,4 @@ public class TableView extends Table {
         return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC);
     }
 
-    /**
-     * Indicate if this view makes use of the given schema
-     *
-     * @param schema the name to check for
-     * @return true of the view uses the given schema.
-     */
-    public boolean usesSchema(Schema schema) {
-        boolean result = false;
-        for (Table table : tables) {
-            if (table.getSchema().equals(schema)) {
-                result = true;
-                break;
-            }
-        }
-        return result;
-    }
 }

@@ -37,6 +37,7 @@ public class RangeTable extends Table {
      * @param schema the schema (always the main schema)
      * @param min the start expression
      * @param max the end expression
+     * @param noColumns whether this table has no columns
      */
     public RangeTable(Schema schema, Expression min, Expression max, boolean noColumns) {
         super(schema, 0, NAME, true, true);

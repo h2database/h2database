@@ -1,4 +1,37 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table a(x int, y int);
+> ok
+
+create unique index a_xy on a(x, y);
+> ok
+
+create table b(x int, y int, foreign key(x, y) references a(x, y));
+> ok
+
+insert into a values(null, null), (null, 0), (0, null), (0, 0);
+> update count: 4
+
+insert into b values(null, null), (null, 0), (0, null), (0, 0);
+> update count: 4
+
+delete from a where x is null and y is null;
+> update count: 1
+
+delete from a where x is null and y = 0;
+> update count: 1
+
+delete from a where x = 0 and y is null;
+> update count: 1
+
+delete from a where x = 0 and y = 0;
+> exception
+
+drop table b;
+> ok
+
+drop table a;
+> ok
+
 select * from (select null as x) where x=1;
 > X
 > -

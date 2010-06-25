@@ -176,7 +176,7 @@ public class TableFilter implements ColumnResolver {
         if (nestedJoin != null) {
             setEvaluatable(nestedJoin);
             item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, level));
-            int todoNestJoinCostWrong;
+            int todoCheckCost;
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getNestedJoinPlan().cost;
@@ -387,6 +387,9 @@ public class TableFilter implements ColumnResolver {
         return false;
     }
 
+    /**
+     * Set the state of this and all nested tables to the NULL row.
+     */
     protected void setNullRow() {
         state = NULL_ROW;
         current = table.getNullRow();
@@ -486,6 +489,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @param filter the joined table filter
      * @param outer if this is an outer join
+     * @param nested if this is a nested join
      * @param on the join condition
      */
     public void addJoin(TableFilter filter, boolean outer, boolean nested, final Expression on) {
@@ -575,7 +579,8 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Whether this is indirectly an outer joined table (nested within an inner join).
+     * Whether this is indirectly an outer joined table (nested within an inner
+     * join).
      *
      * @return true if it is
      */
@@ -903,6 +908,11 @@ public class TableFilter implements ColumnResolver {
         return nestedJoin;
     }
 
+    /**
+     * Visit this and all joined or nested table filters.
+     *
+     * @param visitor the visitor
+     */
     public void visit(TableFilterVisitor visitor) {
         TableFilter f = this;
         do {
@@ -915,12 +925,21 @@ public class TableFilter implements ColumnResolver {
         } while (f != null);
     }
 
-    public static interface TableFilterVisitor {
-        public void accept(TableFilter f);
-    }
-
     public boolean isEvaluatable() {
         return evaluatable;
+    }
+
+    /**
+     * A visitor for table filters.
+     */
+    public static interface TableFilterVisitor {
+
+        /**
+         * This method is called for each nested or joined table filter.
+         *
+         * @param f the filter
+         */
+        public void accept(TableFilter f);
     }
 
 }

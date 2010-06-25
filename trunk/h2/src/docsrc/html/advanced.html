@@ -226,7 +226,7 @@ to write to a table (update or delete a row), an exclusive lock is required. To 
 exclusive lock, other connection must not have any locks on the object. After the
 connection commits, all locks are released.
 This database keeps all locks in memory.
-When releasing a lock, one of the waiting connections is picked at random.
+When a lock is released, and multiple connections are waiting for it, one of them is picked at random.
 </p>
 
 <h3>Lock Timeout</h3>

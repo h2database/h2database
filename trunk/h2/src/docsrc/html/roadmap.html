@@ -60,7 +60,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
 </li><li>Add a migration guide (list differences between databases).
-</li><li>Migrate database tool (also from other database engines).
+</li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
+    DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer.
 </li><li>Rebuild index functionality to shrink index size and improve performance.

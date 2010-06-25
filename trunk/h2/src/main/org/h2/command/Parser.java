@@ -3558,8 +3558,8 @@ public class Parser {
     private Prepared parseCreate() {
         boolean orReplace = false;
         if (readIf("OR")) {
-           read("REPLACE");
-           orReplace = true;
+            read("REPLACE");
+            orReplace = true;
         }
 
         boolean force = readIf("FORCE");

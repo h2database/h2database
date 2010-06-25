@@ -34,10 +34,10 @@ import org.h2.value.Value;
  */
 public class TableFilter implements ColumnResolver {
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
+    protected Session session;
     private final Table table;
     private final Select select;
     private String alias;
-    private Session session;
     private Index index;
     private int scanCount;
     private boolean evaluatable;
@@ -78,9 +78,14 @@ public class TableFilter implements ColumnResolver {
     private TableFilter join;
 
     /**
-     * Whether this table is an outer join.
+     * Whether this is an outer join.
      */
     private boolean joinOuter;
+
+    /**
+     * Whether this is a direct or indirect (nested) outer join
+     */
+    protected boolean joinOuterIndirect;
 
     /**
      * The nested joined table (if there is one).
@@ -505,6 +510,13 @@ public class TableFilter implements ColumnResolver {
             }
             nestedJoin = filter;
             filter.joinOuter = outer;
+            if (outer) {
+                visit(new TableFilterVisitor() {
+                    public void accept(TableFilter f) {
+                        f.joinOuterIndirect = true;
+                    }
+                });
+            }
             if (on != null) {
                 filter.mapAndAddFilter(on);
             }
@@ -540,6 +552,10 @@ public class TableFilter implements ColumnResolver {
         on.mapColumns(this, 0);
         addFilterCondition(on, true);
         on.createIndexConditions(session, this);
+        if (nestedJoin != null) {
+            on.mapColumns(nestedJoin, 0);
+            on.createIndexConditions(session, nestedJoin);
+        }
         if (join != null) {
             join.mapAndAddFilter(on);
         }
@@ -550,12 +566,21 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Check if this is an outer joined table.
+     * Whether this is an outer joined table.
      *
      * @return true if it is
      */
     public boolean isJoinOuter() {
         return joinOuter;
+    }
+
+    /**
+     * Whether this is indirectly an outer joined table (nested within an inner join).
+     *
+     * @return true if it is
+     */
+    public boolean isJoinOuterIndirect() {
+        return joinOuterIndirect;
     }
 
     /**
@@ -583,7 +608,7 @@ public class TableFilter implements ColumnResolver {
             } while (n != null);
             buff.append(") ON ");
             if (joinCondition == null) {
-                // need to have a ON expression, 
+                // need to have a ON expression,
                 // otherwise the nesting is unclear
                 buff.append("1=1");
             } else {
@@ -731,7 +756,7 @@ public class TableFilter implements ColumnResolver {
      * @param b the new flag
      */
     public void setEvaluatable(TableFilter filter, boolean b) {
-        setEvaluatable(b);
+        filter.setEvaluatable(b);
         if (filterCondition != null) {
             filterCondition.setEvaluatable(filter, b);
         }

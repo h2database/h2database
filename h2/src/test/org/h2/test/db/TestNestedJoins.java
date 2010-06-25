@@ -37,7 +37,7 @@ public class TestNestedJoins extends TestBase {
     public static void main(String... a) throws Exception {
         System.setProperty("h2.nestedJoins", "true");
         TestBase test = TestBase.createCaller().init();
-        test.config.traceTest = true;
+        // test.config.traceTest = true;
         test.test();
     }
 
@@ -62,17 +62,15 @@ public class TestNestedJoins extends TestBase {
         } catch (Exception e) {
             // database not installed - ok
         }
+
         // Derby doesn't work currently
-        deleteDerby();
-        try {
-            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-            Connection c2 = DriverManager.getConnection("jdbc:derby:" + getBaseDir() + "/derby/test;create=true", "sa", "sa");
-            dbs.add(c2.createStatement());
-        } catch (Exception e) {
-            // database not installed - ok
-        }
-        // if (dbs.size() == 0) {
-        //      return;
+        // deleteDerby();
+        // try {
+        //     Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+        //     Connection c2 = DriverManager.getConnection("jdbc:derby:" + getBaseDir() + "/derby/test;create=true", "sa", "sa");
+        //     dbs.add(c2.createStatement());
+        // } catch (Exception e) {
+        //     // database not installed - ok
         // }
         String shortest = null;
         Throwable shortestEx = null;
@@ -121,12 +119,11 @@ public class TestNestedJoins extends TestBase {
                 execute(sql);
             } catch (Throwable e) {
                 if (e instanceof SQLException) {
-                    SQLException se = (SQLException) e;
                     trace(sql);
-                    int todoFail;
-int test;
-                    System.out.println(se);
-                    System.out.println("  " + sql);
+                    fail(sql);
+                    // SQLException se = (SQLException) e;
+                    // System.out.println(se);
+                    // System.out.println("  " + sql);
                 }
                 if (e != null) {
                     if (shortest == null || sql.length() < shortest.length()) {
@@ -244,6 +241,18 @@ int test;
         String sql;
 
         /*
+        create table test(id int primary key);
+        explain select * from test a left outer join (test c) on a.id = c.id;
+        -- expected: uses the primary key index
+        */
+        stat.execute("create table test(id int primary key)");
+        rs = stat.executeQuery("explain select * from test a left outer join (test c) on a.id = c.id");
+        assertTrue(rs.next());
+        sql = rs.getString(1);
+        assertTrue(sql.indexOf("PRIMARY_KEY") >= 0);
+        stat.execute("drop table test");
+
+        /*
         create table t1(a int, b int);
         create table t2(a int, b int);
         create table t3(a int, b int);
@@ -315,6 +324,18 @@ int test;
         assertFalse(rs.next());
         stat.execute("drop table a, b, c");
 
+        /*
+        drop table a, b, c;
+        create table a(x int);
+        create table b(x int);
+        create table c(x int, y int);
+        insert into a values(1), (2);
+        insert into b values(3);
+        insert into c values(1, 3);
+        insert into c values(4, 5);
+        explain select * from a left outer join (b left outer join c on b.x = c.y) on a.x = c.x;
+        select * from a left outer join (b left outer join c on b.x = c.y) on a.x = c.x;
+         */
         stat.execute("create table a(x int)");
         stat.execute("create table b(x int)");
         stat.execute("create table c(x int, y int)");
@@ -490,7 +511,6 @@ int test;
         r.setSkipRemarks(true);
         sql = r.readStatement();
         sql = sql.replaceAll("\\n", " ");
-        // sql = sql.replaceAll("\\/\\*.*\\*\\/", "");
         while (sql.indexOf("  ") >= 0) {
             sql = sql.replaceAll("  ", " ");
         }

@@ -866,7 +866,12 @@ public class Select extends Query {
             if (on != null) {
                 if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
                     if (SysProperties.NESTED_JOINS) {
-                        int testCanSupport;
+                        f.removeJoinCondition();
+                        // need to check that all added are bound to a table
+                        on = on.optimize(session);
+                        if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
+                            addCondition(on);
+                        }
                     } else {
                         if (f.isJoinOuter()) {
                             // this will check if all columns exist - it may or may not throw an exception
@@ -874,11 +879,11 @@ public class Select extends Query {
                             // it is not supported even if the columns exist
                             throw DbException.get(ErrorCode.UNSUPPORTED_OUTER_JOIN_CONDITION_1, on.getSQL());
                         }
+                        f.removeJoinCondition();
+                        // need to check that all added are bound to a table
+                        on = on.optimize(session);
+                        addCondition(on);
                     }
-                    f.removeJoinCondition();
-                    // need to check that all added are bound to a table
-                    on = on.optimize(session);
-                    addCondition(on);
                 }
             }
             on = f.getFilterCondition();

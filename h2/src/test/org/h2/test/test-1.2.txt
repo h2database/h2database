@@ -885,9 +885,6 @@ select * from ((test d1 inner join test d2 on d1.id = d2.id) inner join test d3 
 > -- -- -- --
 > rows: 0
 
-select * from dual a left join dual b on b.x=(select max(x) from dual);
-> exception
-
 drop table test;
 > ok
 

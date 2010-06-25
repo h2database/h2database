@@ -38,9 +38,9 @@ public class RangeTable extends Table {
      * @param min the start expression
      * @param max the end expression
      */
-    public RangeTable(Schema schema, Expression min, Expression max) {
+    public RangeTable(Schema schema, Expression min, Expression max, boolean noColumns) {
         super(schema, 0, NAME, true, true);
-        Column[] cols = { new Column("X", Value.LONG) };
+        Column[] cols = noColumns ? new Column[0] : new Column[] { new Column("X", Value.LONG) };
         this.min = min;
         this.max = max;
         setColumns(cols);

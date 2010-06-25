@@ -40,6 +40,7 @@ public class TableFilter implements ColumnResolver {
     private Session session;
     private Index index;
     private int scanCount;
+    private boolean evaluatable;
 
     /**
      * Indicates that this filter is used in the plan.
@@ -70,22 +71,22 @@ public class TableFilter implements ColumnResolver {
     private SearchRow currentSearchRow;
     private Row current;
     private int state;
-    
+
     /**
      * The joined table (if there is one).
      */
     private TableFilter join;
-    
+
     /**
      * Whether this table is an outer join.
      */
     private boolean joinOuter;
-    
+
     /**
      * The nested joined table (if there is one).
      */
     private TableFilter nestedJoin;
-    
+
     private ArrayList<Column> naturalJoinColumns;
     private boolean foundOne;
     private Expression fullCondition;
@@ -186,6 +187,10 @@ public class TableFilter implements ColumnResolver {
     }
 
     private void setEvaluatable(TableFilter join) {
+        if (SysProperties.NESTED_JOINS) {
+            setEvaluatable(true);
+            return;
+        }
         // this table filter is now evaluatable - in all sub-joins
         do {
             Expression e = join.getJoinCondition();
@@ -306,25 +311,8 @@ public class TableFilter implements ColumnResolver {
         } else {
             // state == FOUND || NULL_ROW
             // the last row was ok - try next row of the join
-            if (nestedJoin != null) {
-                if (join == null) {
-                    if (nestedJoin.next()) {
-                        return true;
-                    }
-                } else {
-                    while (true) {
-                        if (nestedJoin.next()) {
-                            if (join.next()) {
-                                return true;
-                            }
-                            join.reset();
-                        }
-                    }
-                }
-            } else {
-                if (join != null && join.next()) {
-                    return true;
-                }
+            if (join != null && join.next()) {
+                return true;
             }
         }
         while (true) {
@@ -334,6 +322,10 @@ public class TableFilter implements ColumnResolver {
             }
             if (cursor.isAlwaysFalse()) {
                 state = AFTER_LAST;
+            } else if (nestedJoin != null) {
+                if (state == BEFORE_FIRST) {
+                    state = FOUND;
+                }
             } else {
                 if ((++scanCount & 4095) == 0) {
                     checkTimeout();
@@ -346,18 +338,22 @@ public class TableFilter implements ColumnResolver {
                     state = AFTER_LAST;
                 }
             }
+            if (nestedJoin != null && state == FOUND) {
+                if (!nestedJoin.next()) {
+                    state = AFTER_LAST;
+                    if (joinOuter && !foundOne) {
+                        // possibly null row
+                    } else {
+                        continue;
+                    }
+                }
+            }
             // if no more rows found, try the null row (for outer joins only)
             if (state == AFTER_LAST) {
                 if (joinOuter && !foundOne) {
                     setNullRow();
                 } else {
                     break;
-                }
-            }
-            if (state == FOUND && nestedJoin != null) {
-                nestedJoin.reset();
-                if (!nestedJoin.next()) {
-                    continue;
                 }
             }
             if (!isOk(filterCondition)) {
@@ -385,14 +381,17 @@ public class TableFilter implements ColumnResolver {
         state = AFTER_LAST;
         return false;
     }
-    
-    private void setNullRow() {
+
+    protected void setNullRow() {
         state = NULL_ROW;
         current = table.getNullRow();
         currentSearchRow = current;
         if (nestedJoin != null) {
-            int todoRecurse;
-            nestedJoin.setNullRow();
+            nestedJoin.visit(new TableFilterVisitor() {
+                public void accept(TableFilter f) {
+                    f.setNullRow();
+                }
+            });
         }
     }
 
@@ -484,9 +483,21 @@ public class TableFilter implements ColumnResolver {
      * @param outer if this is an outer join
      * @param on the join condition
      */
-    public void addJoin(TableFilter filter, boolean outer, boolean nested, Expression on) {
+    public void addJoin(TableFilter filter, boolean outer, boolean nested, final Expression on) {
         if (on != null) {
             on.mapColumns(this, 0);
+            if (SysProperties.NESTED_JOINS) {
+                visit(new TableFilterVisitor() {
+                    public void accept(TableFilter f) {
+                        on.mapColumns(f, 0);
+                    }
+                });
+                filter.visit(new TableFilterVisitor() {
+                    public void accept(TableFilter f) {
+                        on.mapColumns(f, 0);
+                    }
+                });
+            }
         }
         if (nested && SysProperties.NESTED_JOINS) {
             if (nestedJoin != null) {
@@ -529,9 +540,6 @@ public class TableFilter implements ColumnResolver {
         on.mapColumns(this, 0);
         addFilterCondition(on, true);
         on.createIndexConditions(session, this);
-        if (nestedJoin != null) {
-            nestedJoin.mapAndAddFilter(on);
-        }
         if (join != null) {
             join.mapAndAddFilter(on);
         }
@@ -566,7 +574,22 @@ public class TableFilter implements ColumnResolver {
             }
         }
         if (nestedJoin != null) {
-            buff.append("(");
+            buff.append("(\n");
+            TableFilter n = nestedJoin;
+            do {
+                buff.append(n.getPlanSQL(n != nestedJoin));
+                buff.append("\n");
+                n = (TableFilter) n.getJoin();
+            } while (n != null);
+            buff.append(") ON ");
+            if (joinCondition == null) {
+                // need to have a ON expression, 
+                // otherwise the nesting is unclear
+                buff.append("1=1");
+            } else {
+                buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+            }
+            return buff.toString();
         }
         buff.append(table.getSQL());
         if (alias != null) {
@@ -585,11 +608,6 @@ public class TableFilter implements ColumnResolver {
             }
             String plan = StringUtils.quoteRemarkSQL(planBuff.toString());
             buff.append(plan).append(" */");
-        }
-        if (nestedJoin != null) {
-            buff.append('\n');
-            buff.append(nestedJoin.getPlanSQL(true));
-            buff.append(")");
         }
         if (isJoin) {
             buff.append(" ON ");
@@ -713,6 +731,7 @@ public class TableFilter implements ColumnResolver {
      * @param b the new flag
      */
     public void setEvaluatable(TableFilter filter, boolean b) {
+        setEvaluatable(b);
         if (filterCondition != null) {
             filterCondition.setEvaluatable(filter, b);
         }
@@ -725,6 +744,10 @@ public class TableFilter implements ColumnResolver {
         if (join != null) {
             join.setEvaluatable(filter, b);
         }
+    }
+
+    public void setEvaluatable(boolean evaluatable) {
+        this.evaluatable = evaluatable;
     }
 
     public String getSchemaName() {
@@ -853,6 +876,26 @@ public class TableFilter implements ColumnResolver {
 
     public TableFilter getNestedJoin() {
         return nestedJoin;
+    }
+
+    public void visit(TableFilterVisitor visitor) {
+        TableFilter f = this;
+        do {
+            visitor.accept(f);
+            TableFilter n = f.nestedJoin;
+            if (n != null) {
+                n.visit(visitor);
+            }
+            f = (TableFilter) f.join;
+        } while (f != null);
+    }
+
+    public static interface TableFilterVisitor {
+        public void accept(TableFilter f);
+    }
+
+    public boolean isEvaluatable() {
+        return evaluatable;
     }
 
 }

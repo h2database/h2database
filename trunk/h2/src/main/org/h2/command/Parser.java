@@ -124,6 +124,7 @@ import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
+import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.util.Utils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -969,8 +970,17 @@ public class Parser {
                 alias = session.getNextSystemIdentifier(sqlCommand);
                 table = TableView.createTempView(s, session.getUser(), alias, query, currentSelect);
             } else {
-                TableFilter top = readTableFilter(fromOuter);
-                top = readJoin(top, currentSelect, fromOuter);
+                TableFilter top;
+                if (SysProperties.NESTED_JOINS) {
+                    String joinTable = Constants.PREFIX_JOIN + parseIndex;
+                    top = new TableFilter(session, getDualTable(true), joinTable, rightsChecked, currentSelect);
+                    TableFilter n = readTableFilter(false);
+                    n = readJoin(n, currentSelect, false);
+                    top.addJoin(n, false, true, null);
+                } else {
+                    top = readTableFilter(fromOuter);
+                    top = readJoin(top, currentSelect, fromOuter);
+                }
                 read(")");
                 alias = readFromAlias(null);
                 if (alias != null) {
@@ -988,7 +998,7 @@ public class Parser {
                     read(",");
                     Expression max = readExpression();
                     read(")");
-                    table = new RangeTable(mainSchema, min, max);
+                    table = new RangeTable(mainSchema, min, max, false);
                 } else {
                     Expression func = readFunction(schema, tableName);
                     if (!(func instanceof FunctionCall)) {
@@ -997,7 +1007,7 @@ public class Parser {
                     table = new FunctionTable(mainSchema, session, func, (FunctionCall) func);
                 }
             } else if (equalsToken("DUAL", tableName)) {
-                table = getDualTable();
+                table = getDualTable(false);
             } else {
                 table = readTableOrView(tableName);
             }
@@ -1233,7 +1243,14 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                newTop.addJoin(top, true, fromOuter, on);
+                if (SysProperties.NESTED_JOINS) {
+                    String joinTable = Constants.PREFIX_JOIN + parseIndex;
+                    TableFilter nt = new TableFilter(session, getDualTable(true), joinTable, rightsChecked, currentSelect);
+                    nt.addJoin(top, false, true, null);
+                    newTop.addJoin(nt, true, false, on);
+                } else {
+                    newTop.addJoin(top, true, false, on);
+                }
                 top = newTop;
                 last = newTop;
             } else if (readIf("LEFT")) {
@@ -1245,7 +1262,7 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, true, fromOuter, on);
+                top.addJoin(join, true, false, on);
                 last = join;
             } else if (readIf("FULL")) {
                 throw getSyntaxError();
@@ -1258,9 +1275,9 @@ public class Parser {
                     on = readExpression();
                 }
                 if (SysProperties.NESTED_JOINS) {
-                    top.addJoin(join, false, fromOuter, on);
+                    top.addJoin(join, false, false, on);
                 } else {
-                    top.addJoin(join, fromOuter, fromOuter, on);
+                    top.addJoin(join, fromOuter, false, on);
                 }
                 last = join;
             } else if (readIf("JOIN")) {
@@ -1271,18 +1288,18 @@ public class Parser {
                     on = readExpression();
                 }
                 if (SysProperties.NESTED_JOINS) {
-                    top.addJoin(join, false, fromOuter, on);
+                    top.addJoin(join, false, false, on);
                 } else {
-                    top.addJoin(join, fromOuter, fromOuter, on);
+                    top.addJoin(join, fromOuter, false, on);
                 }
                 last = join;
             } else if (readIf("CROSS")) {
                 read("JOIN");
                 TableFilter join = readTableFilter(fromOuter);
                 if (SysProperties.NESTED_JOINS) {
-                    top.addJoin(join, false, fromOuter, null);
+                    top.addJoin(join, false, false, null);
                 } else {
-                    top.addJoin(join, fromOuter, fromOuter, null);
+                    top.addJoin(join, fromOuter, false, null);
                 }
                 last = join;
             } else if (readIf("NATURAL")) {
@@ -1313,9 +1330,9 @@ public class Parser {
                     }
                 }
                 if (SysProperties.NESTED_JOINS) {
-                    top.addJoin(join, false, fromOuter, on);
+                    top.addJoin(join, false, false, on);
                 } else {
-                    top.addJoin(join, fromOuter, fromOuter, on);
+                    top.addJoin(join, fromOuter, false, on);
                 }
                 last = join;
             } else {
@@ -1558,16 +1575,18 @@ public class Parser {
         } while (readIf(","));
     }
 
-    private void parseJoinTableFilter(TableFilter top, Select command) {
+    private void parseJoinTableFilter(TableFilter top, final Select command) {
         top = readJoin(top, command, top.isJoinOuter());
         command.addTableFilter(top, true);
         boolean isOuter = false;
         while (true) {
-            for (TableFilter n = top.getNestedJoin(); n != null; n = n.getNestedJoin()) {
-                command.addTableFilter(n, false);
-                for (TableFilter j = n.getJoin(); j != null; j = j.getJoin()) {
-                    command.addTableFilter(j, false);
-                }
+            TableFilter n = top.getNestedJoin();
+            if (n != null) {
+                n.visit(new TableFilterVisitor() {
+                    public void accept(TableFilter f) {
+                        command.addTableFilter(f, false);
+                    }
+                });
             }
             TableFilter join = top.getJoin();
             if (join == null) {
@@ -1652,7 +1671,7 @@ public class Parser {
             if (!readIf("FROM")) {
                 // select without FROM: convert to SELECT ... FROM
                 // SYSTEM_RANGE(1,1)
-                Table dual = getDualTable();
+                Table dual = getDualTable(false);
                 TableFilter filter = new TableFilter(session, dual, null, rightsChecked, currentSelect);
                 command.addTableFilter(filter, true);
             } else {
@@ -1688,10 +1707,10 @@ public class Parser {
         return command;
     }
 
-    private Table getDualTable() {
+    private Table getDualTable(boolean noColumns) {
         Schema main = database.findSchema(Constants.SCHEMA_MAIN);
         Expression one = ValueExpression.get(ValueLong.get(1));
-        return new RangeTable(main, one, one);
+        return new RangeTable(main, one, one, noColumns);
     }
 
     private void setSQL(Prepared command, String start, int startIndex) {

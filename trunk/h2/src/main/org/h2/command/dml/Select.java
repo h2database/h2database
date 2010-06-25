@@ -845,27 +845,35 @@ public class Select extends Query {
         optimizer.optimize();
         topTableFilter = optimizer.getTopFilter();
         double planCost = optimizer.getCost();
-        
+
         setEvaluatableRecursive(topTableFilter);
 
         topTableFilter.prepare();
         return planCost;
     }
-    
+
     private void setEvaluatableRecursive(TableFilter f) {
         for (; f != null; f = f.getJoin()) {
             f.setEvaluatable(f, true);
             if (condition != null) {
                 condition.setEvaluatable(f, true);
             }
+            TableFilter n = f.getNestedJoin();
+            if (n != null) {
+                setEvaluatableRecursive(n);
+            }
             Expression on = f.getJoinCondition();
             if (on != null) {
                 if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
-                    if (f.isJoinOuter()) {
-                        // this will check if all columns exist - it may or may not throw an exception
-                        on = on.optimize(session);
-                        // it is not supported even if the columns exist
-                        throw DbException.get(ErrorCode.UNSUPPORTED_OUTER_JOIN_CONDITION_1, on.getSQL());
+                    if (SysProperties.NESTED_JOINS) {
+                        int testCanSupport;
+                    } else {
+                        if (f.isJoinOuter()) {
+                            // this will check if all columns exist - it may or may not throw an exception
+                            on = on.optimize(session);
+                            // it is not supported even if the columns exist
+                            throw DbException.get(ErrorCode.UNSUPPORTED_OUTER_JOIN_CONDITION_1, on.getSQL());
+                        }
                     }
                     f.removeJoinCondition();
                     // need to check that all added are bound to a table
@@ -884,10 +892,6 @@ public class Select extends Query {
             // the result columns are evaluatable
             for (Expression e : expressions) {
                 e.setEvaluatable(f, true);
-            }
-            TableFilter n = f.getNestedJoin();
-            if (n != null) {
-                setEvaluatableRecursive(n);
             }
         }
     }

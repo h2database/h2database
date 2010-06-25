@@ -223,6 +223,11 @@ public class Constants {
     public static final String PREFIX_INDEX = "INDEX_";
 
     /**
+     * The name prefix used for synthetic nested join tables.
+     */
+    public static final String PREFIX_JOIN = "SYSTEM_JOIN_";
+
+    /**
      * The name prefix used for primary key constraints that are not explicitly
      * named.
      */

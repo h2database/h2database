@@ -11,6 +11,7 @@ import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectListColumnResolver;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
@@ -244,6 +245,12 @@ public class ExpressionColumn extends Expression {
             // if the current value is known (evaluatable set)
             // or if this columns belongs to a 'higher level' query and is
             // therefore just a parameter
+            if (SysProperties.NESTED_JOINS) {
+                if (getTableFilter() == null) {
+                    return false;
+                }
+                return getTableFilter().isEvaluatable();
+            }
             return evaluatable || visitor.getQueryLevel() < this.queryLevel;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             visitor.addDataModificationId(column.getTable().getMaxDataModificationId());

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.util.New;
 
 /**
@@ -33,20 +34,21 @@ public class Plan {
     public Plan(TableFilter[] filters, int count, Expression condition) {
         this.filters = new TableFilter[count];
         System.arraycopy(filters, 0, this.filters, 0, count);
-        ArrayList<Expression> allCond = New.arrayList();
-        ArrayList<TableFilter> all = New.arrayList();
+        final ArrayList<Expression> allCond = New.arrayList();
+        final ArrayList<TableFilter> all = New.arrayList();
         if (condition != null) {
             allCond.add(condition);
         }
         for (int i = 0; i < count; i++) {
             TableFilter f = filters[i];
-            do {
-                all.add(f);
-                if (f.getJoinCondition() != null) {
-                    allCond.add(f.getJoinCondition());
+            f.visit(new TableFilterVisitor() {
+                public void accept(TableFilter f) {
+                    all.add(f);
+                    if (f.getJoinCondition() != null) {
+                        allCond.add(f.getJoinCondition());
+                    }
                 }
-                f = f.getJoin();
-            } while(f != null);
+            });
         }
         allConditions = new Expression[allCond.size()];
         allCond.toArray(allConditions);
@@ -126,6 +128,7 @@ public class Plan {
     }
 
     private void setEvaluatable(TableFilter filter, boolean b) {
+        filter.setEvaluatable(filter, b);
         for (Expression e : allConditions) {
             e.setEvaluatable(filter, b);
         }

@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.138 (2010-06-27)</h2>
 <ul><li>Referential integrity: it was not allowed to delete a row with NULL in the parent table,
     if there was a row with NULL in the child table.
 </li><li>Experimental feature to support case sensitive catalog names
@@ -681,38 +685,6 @@ Change Log
 </li><li>Parsing SQL script files is now faster.
 </li><li>CSV reading is now faster.
 </li><li>SimpleResultSet.newInstance(SimpleRowSource rs) did not work.
-</li></ul>
-
-<h2>Version 1.1.116 (2009-07-18)</h2>
-<ul><li>Server-less multi-connection mode: more bugs are fixed.
-</li><li>The built-in help (INFORMATION_SCHEMA.HELP) is smaller, shrinking the jar file size a bit.
-</li><li>H2 Console: column of tables of non-default schemas are now also listed,
-    except for schemas starting with 'INFO'.
-</li><li>ALTER TABLE: removing an auto-increment or identity column didn't remove the sequence.
-</li><li>Creating indexes is now a bit faster.
-</li><li>PG Server: new system property h2.pgClientEncoding to explicitly set the encoding
-    for clients that don't send the encoding (the default encoding is UTF-8).
-    Thanks a lot to Sergi Vladykin for the patch!
-</li><li>PG Server: improved compatibility by using the type ids of the PostgreSQL driver.
-    Thanks a lot to Sergi Vladykin for the patch!
-</li><li>H2 Console: Oracle system tables are no longer listed, improving performance.
-</li><li>Result sets are now read-only except if the statement or prepared statement was created
-    with the concurrency ResultSet.CONCUR_UPDATABLE. This change is required because the old behavior
-    (all result set are updatable) violated the JDBC spec. For backward compatibility, use the
-    system property h2.defaultResultSetConcurrency.
-</li><li>New system property h2.defaultResultSetConcurrency to change the default result set concurrency.
-</li><li>JDBC: using an invalid result set type or concurrency now throws an exception.
-</li><li>If a pooled connection was not closed but garbage collected, a NullPointerException could occur.
-</li><li>Fulltext search: a NullPointerException was thrown when updating a value that
-    was NULL previously.
-</li><li>The Recover tool did not work with .data.db files of the wrong size.
-</li><li>Triggers: if there was an exception when initializing a trigger, this exception could be hidden,
-    and in some cases (specially when using the Lucene fulltext index mechanism) a NullPointerException was
-    thrown later on. Now the exception that occurred on init is thrown when changing data.
-</li><li>The soft-references cache (CACHE_TYPE=SOFT_LRU) could throw a NullPointerException.
-</li><li>To enable the new page store mechanism, append ;PAGE_STORE=TRUE to the database URL.
-    or set the system property h2.pageStore to true.
-    This mechanism is still experimental, and the file format will change, but it is quite stable now.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -14,12 +14,12 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 137;
+    public static final int BUILD_ID = 138;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 136;
+    public static final int BUILD_ID_STABLE = 137;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to
@@ -32,12 +32,12 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2010-06-06";
+    public static final String BUILD_DATE = "2010-06-27";
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE_STABLE = "2010-05-24";
+    public static final String BUILD_DATE_STABLE = "2010-06-06";
 
     /**
      * The TCP protocol version number. This protocol is used by the TCP

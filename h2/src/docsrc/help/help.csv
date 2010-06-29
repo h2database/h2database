@@ -71,7 +71,8 @@ DELETE FROM TEST WHERE ID=2
 "Commands (DML)","BACKUP","
 BACKUP TO fileNameString
 ","
-Backs up the database files to a .zip file. Objects are not locked.
+Backs up the database files to a .zip file. Objects are not locked, but
+the backup is transactionally consistent because the transaction log is also copied.
 Admin rights are required to execute this command.
 ","
 BACKUP TO 'backup.zip'

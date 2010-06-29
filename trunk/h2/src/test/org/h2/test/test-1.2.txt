@@ -1,4 +1,18 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select 1, 2 from (select * from dual) union all select 3, 4 from dual;
+> 1 2
+> - -
+> 1 2
+> 3 4
+> rows: 2
+
+select 3 from (select * from dual) union all select 2 from dual;
+> 3
+> -
+> 2
+> 3
+> rows: 2
+
 create table a(x int, y int);
 > ok
 

@@ -327,6 +327,9 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                     Transfer trans = initTransfer(ci, databaseName, servers[i]);
                     transferList.add(trans);
                 } catch (IOException e) {
+                    if (len == 1) {
+                        throw DbException.convert(e);
+                    }
                     switchOffCluster = true;
                 }
             }

@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>The wrong exception was thrown when trying to connect to a server if the server was not running.
+</li><li>UNION queries where the first query contains a nested query were parsed incorrectly.
+    Example: "select 1 from (select 2 from dual) union select 3 from dual" was parsed as
+    "select 1 from ((select 2 from dual) union select 3 from dual)". Fixed.
 </li></ul>
 
 <h2>Version 1.2.138 (2010-06-27)</h2>

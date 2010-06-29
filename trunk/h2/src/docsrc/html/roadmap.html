@@ -92,6 +92,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Recursive Queries (see details).
 </li><li>Eclipse plugin.
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait].
+    See also MS SQL Server "Query Notification".
 </li><li>Fulltext search Lucene: analyzer configuration.
 </li><li>Fulltext search (native): reader / tokenizer / filter.
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files.
@@ -249,7 +250,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Remember the user defined data type (domain) of a column
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
-</li><li>MVCC: support transactionally consistent backups using SCRIPT
+</li><li>MVCC: support transactionally consistent backups using SCRIPT.
 </li><li>Improve time to open large databases (see mail 'init time for distributed setup')
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
@@ -465,7 +466,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimizer: WHERE X=? AND Y IN(?), it always uses the index on Y. Should be cost based.
 </li><li>Support ALTER SCHEMA name RENAME TO newName (rename schema).
 </li><li>Make the cache scan resistant (currently a small cache is faster than a large cache for large table scans).
-</li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available
+</li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available.
 </li><li>Issue 179: Related subqueries in HAVING clause
 </li><li>IBM DB2 compatibility: NOT NULL WITH DEFAULT. Similar to MySQL Mode.convertInsertNullToZero.
 </li><li>Creating primary key: always create a constraint.
@@ -484,6 +485,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Allow to access the database over HTTP (possibly using port 80) and a servlet in a REST way.
 </li><li>ODBC: encrypted databases are not supported because the ;CIPHER= can not be set.
 </li><li>Support CLOB and BLOB update, specially conn.createBlob().setBinaryStream(1);
+</li><li>Optimizer: index usage when both ascending and descending indexes are available. Issue 178.
 </li><li>Triggers: support user defined execution order. Oracle:
     CREATE OR REPLACE TRIGGER TEST_2 BEFORE INSERT
     ON TEST FOR EACH ROW FOLLOWS TEST_1.
@@ -502,8 +504,11 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Triggers: NOT NULL checks should be done after running triggers (Oracle behavior, maybe others).
 </li><li>Log long running transactions (similar to long running statements).
 </li><li>Support schema specific domains.
+</li><li>Parameter data type is data type of other operand. Issue 205.
 </li><li>Some combinations of nested join with right outer join are not supported.
 </li><li>DatabaseEventListener.openConnection(id) and closeConnection(id).
+</li><li>Compatibility for data type CHAR (Derby, HSQLDB). Issue 212.
+</li><li>Compatibility with MySQL TIMESTAMPDIFF. Issue 209.
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -41,7 +41,7 @@ public class MultiDimension implements Comparator<long[]> {
      * Convert the multi-dimensional value into a one-dimensional (scalar) value.
      * This is done by interleaving the bits of the values.
      * Each values must be bigger or equal to 0. The maximum value
-     * is dependent on the number of dimensions. For two keys, it is 32 bit,
+     * depends on the number of dimensions. For two keys, it is 32 bit,
      * for 3: 21 bit, 4: 16 bit, 5: 12 bit, 6: 10 bit, 7: 9 bit, 8: 8 bit.
      *
      * @param values the multi-dimensional value
@@ -51,11 +51,11 @@ public class MultiDimension implements Comparator<long[]> {
         int dimensions = values.length;
         int bitsPerValue = 64 / dimensions;
         // for 2 keys: 0x800000; 3: 0x
-        long max = 1L << bitsPerValue;
+        long max = getMaxValue(dimensions);
         long x = 0;
         for (int i = 0; i < dimensions; i++) {
             long k = values[i];
-            if (k < 0 || k > max) {
+            if (k < 0 || k >= max) {
                 throw new IllegalArgumentException("value out of range; value=" + values[i] + " min=0 max=" + max);
             }
             for (int b = 0; b < bitsPerValue; b++) {
@@ -69,6 +69,21 @@ public class MultiDimension implements Comparator<long[]> {
             }
         }
         return x;
+    }
+
+    /**
+     * Get the maximum value for the given dimension count
+     * @param dimensions the number of dimensions
+     *
+     * @return the maximum value
+     */
+    public static long getMaxValue(int dimensions) {
+        if (dimensions < 2 || dimensions > 64) {
+            throw new IllegalArgumentException("dimensions: " + dimensions);
+        }
+        int bitsPerValue = 64 / dimensions;
+        // for 2 keys: 0x800000; 3: 0x
+        return 1L << bitsPerValue;
     }
 
     /**
@@ -87,7 +102,6 @@ public class MultiDimension implements Comparator<long[]> {
         }
         return value;
     }
-
 
 //    public static int get(long z, int d) {
 //        int n = 0;
@@ -149,7 +163,7 @@ public class MultiDimension implements Comparator<long[]> {
      * Gets a list of ranges to be searched for a multi-dimensional range query
      * where min &lt;= value &lt;= max. In most cases, the ranges will be larger
      * than required in order to combine smaller ranges into one. Usually, about
-     * double as much points will be included in the resulting range.
+     * double as many points will be included in the resulting range.
      *
      * @param min the minimum value
      * @param max the maximum value

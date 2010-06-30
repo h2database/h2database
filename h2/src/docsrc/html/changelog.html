@@ -52,6 +52,8 @@ Change Log
 <h2>Version 1.2.137 (2010-06-06)</h2>
 <ul><li>Statements with a nested query and a condition that was always NULL threw an
     IndexOutOfBoundsException. Example: select * from (select null as x) where x=1
+</li><li>The changes that were made to support large transactions also fixed a bug
+    with large transactions (when the undo log file size is larger than 2 GB).
 </li><li>Experimental feature to support very large transactions (except when using MVCC).
     To enable, set the system property h2.largeTransactions to true.
     If enabled, changes to tables without a primary key can be buffered to disk.

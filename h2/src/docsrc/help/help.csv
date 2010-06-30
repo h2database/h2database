@@ -152,8 +152,9 @@ script (including insert statements) is written to this file, and a result set
 without the insert statements is returned. When using encryption, only DEFLATE
 and LZF are supported (LZF is faster but uses more space).
 
-This command locks objects while it is running. The password must be in
-single quotes; it is case sensitive and can contain spaces.
+The password must be in single quotes; it is case sensitive and can contain spaces.
+
+This command locks objects while it is running.
 ","
 SCRIPT NODATA
 "

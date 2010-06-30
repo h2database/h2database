@@ -250,7 +250,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Remember the user defined data type (domain) of a column
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
-</li><li>MVCC: support transactionally consistent backups using SCRIPT.
 </li><li>Improve time to open large databases (see mail 'init time for distributed setup')
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
@@ -342,8 +341,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>CSV: currently # is a line comment and can start at any field. Make it optional.
 </li><li>Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62
 </li><li>Add database creation date and time to the database.
-</li><li>Support ASSERTIONS.
-</li><li>Support multi-threaded kernel with multi-version concurrency.
+</li><li>Support ASSERTION.
+</li><li>MVCC: support multi-threaded kernel with multi-version concurrency.
 </li><li>MySQL compatibility: support comparing 1='a'
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
@@ -509,6 +508,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>DatabaseEventListener.openConnection(id) and closeConnection(id).
 </li><li>Compatibility for data type CHAR (Derby, HSQLDB). Issue 212.
 </li><li>Compatibility with MySQL TIMESTAMPDIFF. Issue 209.
+</li><li>Optimizer: use a histogram of the data, specially for non-normal distributions.
+</li><li>Trigger: allow declaring as source code (like functions).
+</li><li>User defined aggregate: allow declaring as source code (like functions).
 </li></ul>
 
 <h2>Not Planned</h2>

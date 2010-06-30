@@ -113,6 +113,8 @@ function convert() {
             s = s.substring(end + 1);
         }
         idx = 0;
+        s = s.replace(/\t/g, " ");
+        s = s.replace(/ +/g, " ");
         while (true) {
             var start = s.indexOf("at org.h2.", idx);
             if (start < 0) {

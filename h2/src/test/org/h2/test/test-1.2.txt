@@ -1,4 +1,16 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int);
+> ok
+
+create view x as select * from test;
+> ok
+
+drop table test restrict;
+> exception
+
+drop table test cascade;
+> ok
+
 select 1, 2 from (select * from dual) union all select 3, 4 from dual;
 > 1 2
 > - -

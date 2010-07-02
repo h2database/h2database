@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -24,7 +25,7 @@ public class DropView extends SchemaCommand {
 
     private String viewName;
     private boolean ifExists;
-    private int dropAction = ConstraintReferential.CASCADE;
+    private int dropAction = SysProperties.DROP_RESTRICT ? ConstraintReferential.RESTRICT : ConstraintReferential.CASCADE;
 
     public DropView(Session session, Schema schema) {
         super(session, schema);

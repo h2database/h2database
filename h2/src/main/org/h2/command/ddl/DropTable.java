@@ -6,13 +6,18 @@
  */
 package org.h2.command.ddl;
 
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
+import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
+import org.h2.table.TableView;
+import org.h2.util.StatementBuilder;
 
 /**
  * This class represents the statement
@@ -25,6 +30,7 @@ public class DropTable extends SchemaCommand {
     private Table table;
     private DropTable next;
     private int dropTableId;
+    private int dropAction = SysProperties.DROP_RESTRICT ? ConstraintReferential.RESTRICT : ConstraintReferential.CASCADE;
 
     public DropTable(Session session, Schema schema) {
         super(session, schema);
@@ -66,6 +72,17 @@ public class DropTable extends SchemaCommand {
             if (!table.canDrop()) {
                 throw DbException.get(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
+            if (dropAction == ConstraintReferential.RESTRICT) {
+                ArrayList<TableView> views = table.getViews();
+                if (views != null && views.size() > 0) {
+                    StatementBuilder buff = new StatementBuilder();
+                    for (TableView v : views) {
+                        buff.appendExceptFirst(", ");
+                        buff.append(v.getName());
+                    }
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, tableName, buff.toString());
+                }
+            }
             table.lock(session, true, true);
         }
         if (next != null) {
@@ -94,6 +111,13 @@ public class DropTable extends SchemaCommand {
         prepareDrop();
         executeDrop();
         return 0;
+    }
+
+    public void setDropAction(int dropAction) {
+        this.dropAction = dropAction;
+        if (next != null) {
+            next.setDropAction(dropAction);
+        }
     }
 
 }

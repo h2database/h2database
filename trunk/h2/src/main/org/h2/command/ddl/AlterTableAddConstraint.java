@@ -96,7 +96,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
      * @return the update count
      */
     public int tryUpdate() {
-        session.commit(true);
+        if (!transactional) {
+            session.commit(true);
+        }
         Database db = session.getDatabase();
         Table table = getSchema().getTableOrView(session, tableName);
         if (getSchema().findConstraint(session, constraintName) != null) {

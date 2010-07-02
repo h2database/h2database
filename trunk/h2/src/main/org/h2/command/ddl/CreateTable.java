@@ -7,7 +7,6 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
-import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
@@ -30,7 +29,7 @@ import org.h2.value.DataType;
 public class CreateTable extends SchemaCommand {
 
     private CreateTableData data = new CreateTableData();
-    private ArrayList<Prepared> constraintCommands = New.arrayList();
+    private ArrayList<DefineCommand> constraintCommands = New.arrayList();
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean onCommitDrop;
@@ -72,7 +71,7 @@ public class CreateTable extends SchemaCommand {
      *
      * @param command the statement to add
      */
-    public void addConstraintCommand(Prepared command) {
+    public void addConstraintCommand(DefineCommand command) {
         if (command instanceof CreateIndex) {
             constraintCommands.add(command);
         } else {
@@ -94,7 +93,9 @@ public class CreateTable extends SchemaCommand {
     }
 
     public int update() {
-        session.commit(true);
+        if (!transactional) {
+            session.commit(true);
+        }
         Database db = session.getDatabase();
         if (!db.isPersistent()) {
             data.persistIndexes = false;
@@ -156,7 +157,8 @@ public class CreateTable extends SchemaCommand {
             for (Sequence sequence : sequences) {
                 table.addSequence(sequence);
             }
-            for (Prepared command : constraintCommands) {
+            for (DefineCommand command : constraintCommands) {
+                command.setTransactional(transactional);
                 command.update();
             }
             if (asQuery != null) {
@@ -177,7 +179,9 @@ public class CreateTable extends SchemaCommand {
         } catch (DbException e) {
             db.checkPowerOff();
             db.removeSchemaObject(session, table);
-            session.commit(true);
+            if (!transactional) {
+                session.commit(true);
+            }
             throw e;
         }
         return 0;

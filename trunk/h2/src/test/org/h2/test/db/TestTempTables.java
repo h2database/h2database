@@ -30,6 +30,7 @@ public class TestTempTables extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("tempTables");
+        testTransactionalTemp();
         testDeleteGlobalTempTableWhenClosing();
         Connection c1 = getConnection("tempTables");
         testAlter(c1);
@@ -40,6 +41,27 @@ public class TestTempTables extends TestBase {
         c1.close();
         c2.close();
         deleteDb("tempTables");
+    }
+
+    private void testTransactionalTemp() throws SQLException {
+        deleteDb("tempTables");
+        Connection conn = getConnection("tempTables");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("create table test(id int primary key)");
+        stat.execute("insert into test values(1)");
+        stat.execute("commit");
+        stat.execute("insert into test values(2)");
+        stat.execute("create local temporary table temp(id int primary key) transactional");
+        stat.execute("insert into temp values(3)");
+        stat.execute("rollback");
+        rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        stat.execute("drop table test");
+        stat.execute("drop table temp");
+        conn.close();
     }
 
     private void testDeleteGlobalTempTableWhenClosing() throws SQLException {

@@ -16,6 +16,8 @@ import org.h2.result.ResultInterface;
  */
 public abstract class DefineCommand extends Prepared {
 
+    protected boolean transactional;
+
     /**
      * Create a new command for the given session.
      *
@@ -25,16 +27,20 @@ public abstract class DefineCommand extends Prepared {
         super(session);
     }
 
-    public boolean isTransactional() {
-        return false;
-    }
-
     public boolean isReadOnly() {
         return false;
     }
 
     public ResultInterface queryMeta() {
         return null;
+    }
+
+    public void setTransactional(boolean transactional) {
+        this.transactional = transactional;
+    }
+
+    public boolean isTransactional() {
+        return transactional;
     }
 
 }

@@ -421,6 +421,10 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    public ArrayList<TableView> getViews() {
+        return views;
+    }
+
     public void removeChildrenAndResources(Session session) {
         while (views != null && views.size() > 0) {
             TableView view = views.get(0);

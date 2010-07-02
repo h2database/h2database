@@ -243,7 +243,7 @@ public class ConnectionInfo implements Cloneable {
      * Split the password property into file password and user password if
      * necessary, and convert them to the internal hash format.
      */
-    public void convertPasswords() {
+    private void convertPasswords() {
         char[] password = removePassword();
         SHA256 sha = new SHA256();
         if (getProperty("CIPHER", null) != null) {

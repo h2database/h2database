@@ -37,6 +37,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Enable h2.optimizeOr (convert OR conditions to IN(..) if possible).
 </li><li>Disable h2.databaseToUpper (database short names are converted to uppercase).
 </li><li>Enable h2.dropRestrict (default action for DROP is RESTRICT).
+    Change documentation.
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -49,11 +50,12 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <h2>Priority 2</h2>
 <ul><li>Improve test code coverage.
 </li><li>Test multi-threaded in-memory db access.
-</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208
+</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208.
 </li><li>Full outer joins.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
+</li><li>Compatibility: automatically load functions from a script depending on the mode - see FunctionsMySQL.java, issue 211.
 </li><li>Test very large databases and LOBs (up to 256 GB).
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
@@ -75,7 +77,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption).
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2.
 </li><li>Drop with invalidate views (so that source code is not lost). Check what other databases do exactly.
-</li><li>Drop with restrict (currently cascade is the default).
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
 </li><li>Make DDL (Data Definition) operations transactional.
 </li><li>RANK() and DENSE_RANK(), Partition using OVER().
@@ -511,6 +512,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimizer: use a histogram of the data, specially for non-normal distributions.
 </li><li>Trigger: allow declaring as source code (like functions).
 </li><li>User defined aggregate: allow declaring as source code (like functions).
+</li><li>The error "table not found" is sometimes caused by using the wrong database.
+    Add "(this database is empty)" to the exception message if applicable.
 </li></ul>
 
 <h2>Not Planned</h2>

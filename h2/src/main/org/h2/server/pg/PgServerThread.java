@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.jdbc.JdbcConnection;
@@ -155,10 +156,13 @@ public class PgServerThread implements Runnable {
                     } else if ("database".equals(param)) {
                         this.databaseName = value;
                     } else if ("client_encoding".equals(param)) {
+                        // UTF8
                         clientEncoding = value;
                     } else if ("DateStyle".equals(param)) {
                         dateStyle = value;
                     }
+                    // extra_float_digits 2
+                    // geqo on (Genetic Query Optimization)
                     server.trace(" param " + param + "=" + value);
                 }
                 sendAuthenticationCleartextPassword();
@@ -169,7 +173,12 @@ public class PgServerThread implements Runnable {
             server.trace("PasswordMessage");
             String password = readString();
             try {
-                ConnectionInfo ci = new ConnectionInfo(databaseName);
+                Properties info = new Properties();
+                info.put("MODE", "PostgreSQL");
+                info.put("USER", userName);
+                info.put("PASSWORD", password);
+                String url = "jdbc:h2:" + databaseName;
+                ConnectionInfo ci = new ConnectionInfo(url, info);
                 String baseDir = server.getBaseDir();
                 if (baseDir == null) {
                     baseDir = SysProperties.getBaseDir();
@@ -180,11 +189,6 @@ public class PgServerThread implements Runnable {
                 if (server.getIfExists()) {
                     ci.setProperty("IFEXISTS", "TRUE");
                 }
-                ci.setProperty("MODE", "PostgreSQL");
-                ci.setOriginalURL("jdbc:h2:" + databaseName + ";MODE=PostgreSQL");
-                ci.setUserName(userName);
-                ci.setProperty("PASSWORD", password);
-                ci.convertPasswords();
                 conn = new JdbcConnection(ci, false);
                 // can not do this because when called inside
                 // DriverManager.getConnection, a deadlock occurs

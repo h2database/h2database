@@ -524,22 +524,23 @@ By default, only connections from localhost are allowed. To allow remote connect
 After installing the driver, a new Data Source must be added. In Windows,
 run <code>odbcad32.exe</code> to open the Data Source Administrator. Then click on 'Add...'
 and select the PostgreSQL Unicode driver. Then click 'Finish'.
-You will be able to change the connection properties:
+You will be able to change the connection properties.
+The property column represents the property key in the <code>odbc.ini</code> file
+(which may be different from the GUI). 
 </p>
 <table>
 <tr><th>Property</th><th>Example</th><th>Remarks</th></tr>
 <tr><td>Data Source</td><td>H2 Test</td><td>The name of the ODBC Data Source</td></tr>
-<tr><td>Database</td><td>test</td>
+<tr><td>Database</td><td>~/test;ifexists=true</td>
     <td>
-        The database name. Only simple names are supported at this time; <br />
-        relative or absolute path are not supported in the database name. <br />
+        The database name. This can include connections settings.<br />
         By default, the database is stored in the current working directory <br />
         where the Server is started except when the -baseDir setting is used. <br />
         The name must be at least 3 characters.
     </td></tr>
-<tr><td>Server</td><td>localhost</td><td>The server name or IP address.<br />By default, only remote connections are allowed</td></tr>
-<tr><td>User Name</td><td>sa</td><td>The database user name.</td></tr>
-<tr><td>SSL Mode</td><td>disabled</td><td>At this time, SSL is not supported.</td></tr>
+<tr><td>Servername</td><td>localhost</td><td>The server name or IP address.<br />By default, only remote connections are allowed</td></tr>
+<tr><td>Username</td><td>sa</td><td>The database user name.</td></tr>
+<tr><td>SSL</td><td>false (disabled)</td><td>At this time, SSL is not supported.</td></tr>
 <tr><td>Port</td><td>5435</td><td>The port where the PG Server is listening.</td></tr>
 <tr><td>Password</td><td>sa</td><td>The database password.</td></tr>
 </table>

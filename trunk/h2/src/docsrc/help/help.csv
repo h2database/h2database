@@ -537,7 +537,7 @@ CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
 { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
     | { AS select } }
-[ ENGINE tableEngineName ] [ NOT PERSISTENT ]
+[ ENGINE tableEngineName ] [ TRANSACTIONAL ] [ NOT PERSISTENT ]
 ","
 Creates a new table.
 
@@ -560,7 +560,8 @@ The table engine class must implement the interface org.h2.api.TableEngine.
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.
 
-This command commits an open transaction.
+This command commits an open transaction, except when using
+TRANSACTIONAL (only supported for temporary tables).
 ","
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "
@@ -719,11 +720,12 @@ DROP SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","DROP TABLE","
-DROP TABLE [ IF EXISTS ] tableName [,...]
+DROP TABLE [ IF EXISTS ] tableName [,...] [ CASCADE | RESTRICT ]
 ","
-Drops an existing table, or a list of existing tables.
+Drops an existing table, or a list of tables.
+All dependent views are dropped as well if the CASCADE clause is used (the default).
+The command will fail if dependent views exist and the RESTRICT clause is used.
 This command commits an open transaction.
-This will also drop all views that depend on this table.
 ","
 DROP TABLE TEST
 "
@@ -752,8 +754,9 @@ DROP USER TOM
 "Commands (DDL)","DROP VIEW","
 DROP VIEW [ IF EXISTS ] viewName [ RESTRICT | CASCADE ]
 ","
-Drops a view, and all dependent views if the CASCADE clause is used.
-The command will fail if dependent views exist and the RESTRICT clause is used. This is the default.
+Drops an existing view.
+All dependent views are dropped as well if the CASCADE clause is used (the default).
+The command will fail if dependent views exist and the RESTRICT clause is used.
 This command commits an open transaction.
 ","
 DROP VIEW TEST_VIEW

@@ -34,6 +34,8 @@ Tutorial
     Using TopLink and Glassfish</a><br />
 <a href="#using_eclipselink">
     Using EclipseLink</a><br />
+<a href="#using_activemq">
+    Using Apache ActiveMQ</a><br />
 <a href="#web_applications">
     Using Databases in Web Applications</a><br />
 <a href="#csv">
@@ -565,6 +567,19 @@ To use H2 within Glassfish, copy the h2*.jar to the directory <code>glassfish/gl
 To use H2 in EclipseLink, use the platform class <code>org.eclipse.persistence.platform.database.H2Platform</code>.
 If this platform is not available in your version of EclipseLink, you can use the OraclePlatform instead in many case.
 See also <a href="http://wiki.eclipse.org/EclipseLink/Development/Incubator/Extensions/H2Platform">H2Platform</a>.
+</p>
+
+<h2 id="using_activemq">Using Apache ActiveMQ</h2>
+<p>
+When using H2 as the backend database for Apache ActiveMQ, please use the <code>TransactDatabaseLocker</code>
+instead of the default locking mechanism. Otherwise the database file will grow without bounds. The problem is that the
+default locking mechanism uses an uncommitted <code>UPDATE</code> transaction, which keeps the transaction log
+from shrinking (causes the database file to grow). Instead of using an <code>UPDATE</code> statement, the <code>TransactDatabaseLocker</code> uses
+<code>SELECT ... FOR UPDATE</code> which is not problematic. 
+To use it, change the ApacheMQ configuration element <code>&lt;jdbcPersistenceAdapter&gt;</code> element,  property 
+<code>databaseLocker="org.apache.activemq.store.jdbc.adapter.TransactDatabaseLocker"</code>.
+However, using the MVCC mode will again result in the same problem. Therefore, please do not use the MVCC mode in this case. 
+Another (more dangerous) solution is to set <code>useDatabaseLock</code> to false.
 </p>
 
 <h2 id="web_applications">Using Databases in Web Applications</h2>

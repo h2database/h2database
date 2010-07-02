@@ -36,6 +36,7 @@ import org.h2.command.ddl.CreateUser;
 import org.h2.command.ddl.CreateUserDataType;
 import org.h2.command.ddl.CreateView;
 import org.h2.command.ddl.DeallocateProcedure;
+import org.h2.command.ddl.DefineCommand;
 import org.h2.command.ddl.DropAggregate;
 import org.h2.command.ddl.DropConstant;
 import org.h2.command.ddl.DropDatabase;
@@ -1112,7 +1113,10 @@ public class Parser {
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             if (readIf("CASCADE")) {
+                command.setDropAction(ConstraintReferential.CASCADE);
                 readIf("CONSTRAINTS");
+            } else if (readIf("RESTRICT")) {
+                command.setDropAction(ConstraintReferential.RESTRICT);
             }
             return command;
         } else if (readIf("INDEX")) {
@@ -4669,7 +4673,7 @@ public class Parser {
         }
     }
 
-    private Prepared parseAlterTableAddConstraintIf(String tableName, Schema schema) {
+    private DefineCommand parseAlterTableAddConstraintIf(String tableName, Schema schema) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
         if (readIf("CONSTRAINT")) {
@@ -4848,7 +4852,7 @@ public class Parser {
             read("(");
             if (!readIf(")")) {
                 do {
-                    Prepared c = parseAlterTableAddConstraintIf(tableName, schema);
+                    DefineCommand c = parseAlterTableAddConstraintIf(tableName, schema);
                     if (c != null) {
                         command.addConstraintCommand(c);
                     } else {
@@ -4942,6 +4946,9 @@ public class Parser {
                 } else {
                     read("LOGGED");
                 }
+            }
+            if (readIf("TRANSACTIONAL")) {
+                command.setTransactional(true);
             }
         } else if (!persistIndexes && readIf("NOT")) {
             read("PERSISTENT");

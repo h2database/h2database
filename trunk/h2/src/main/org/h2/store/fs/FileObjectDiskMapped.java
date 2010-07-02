@@ -17,10 +17,10 @@ import org.h2.util.IOUtils;
 
 /**
  * FileObject which is using NIO MappedByteBuffer mapped to memory from file.
+ * The file size is limited to 2 GB.
  */
 public class FileObjectDiskMapped implements FileObject {
 
-    // TODO support files over 2 GB by using multiple buffers
     private static final long GC_TIMEOUT_MS = 10000;
     private final String name;
     private final MapMode mode;
@@ -82,22 +82,26 @@ public class FileObjectDiskMapped implements FileObject {
      * was created.
      */
     private void reMap() throws IOException {
-        if (file.length() > Integer.MAX_VALUE) {
-            throw new IOException("File over 2GB is not supported yet");
-        }
         int oldPos = 0;
         if (mapped != null) {
             oldPos = mapped.position();
             mapped.force();
             unMap();
         }
-
+        long length = file.length();
+        checkFileLength(length);
         // maps new MappedByteBuffer, old one is disposed during GC
-        mapped = file.getChannel().map(mode, 0, file.length());
+        mapped = file.getChannel().map(mode, 0, length);
         if (SysProperties.NIO_LOAD_MAPPED) {
             mapped.load();
         }
         mapped.position(oldPos);
+    }
+
+    private void checkFileLength(long length) throws IOException {
+        if (length > Integer.MAX_VALUE) {
+            throw new IOException("File over 2GB is not supported yet when using this file system");
+        }
     }
 
     public void close() throws IOException {
@@ -122,11 +126,13 @@ public class FileObjectDiskMapped implements FileObject {
         mapped.get(b, off, len);
     }
 
-    public void seek(long pos) {
+    public void seek(long pos) throws IOException {
+        checkFileLength(pos);
         mapped.position((int) pos);
     }
 
     public void setFileLength(long newLength) throws IOException {
+        checkFileLength(newLength);
         IOUtils.setLength(file, newLength);
         reMap();
     }

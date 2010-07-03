@@ -1231,17 +1231,17 @@ The file can be found at <a href="http://h2database.com/h2mig_pagestore_addon.ja
 If this file is in the classpath, every connect to an older database will result in a conversion process.
 </p>
 <p>
-The conversion itself is done via 'script to' and 'runscript from'. After the conversion process, the files will be
+The conversion itself is done internally via <code>'script to'</code> and <code>'runscript from'</code>. After the conversion process, the files will be
 renamed from
 <ul>
-<li>dbName.data.db to dbName.data.db.backup
-</li><li>dbName.index.db to dbName.index.db.backup
+<li><code>dbName.data.db</code> to <code>dbName.data.db.backup</code>
+</li><li><code>dbName.index.db</code> to <code>dbName.index.db.backup</code>
 </li></ul>
 by default. Also, the temporary script will be written to the database directory instead of a temporary directory.
 Both defaults can be customized via
 <ul>
-<li>org.h2.upgrade.DbUpgradeNonPageStoreToCurrent.setDeleteOldDb(boolean)
-</li><li>org.h2.upgrade.DbUpgradeNonPageStoreToCurrent.setScriptInTmpDir(boolean)
+<li><code>org.h2.upgrade.DbUpgradeNonPageStoreToCurrent.setDeleteOldDb(boolean)</code>
+</li><li><code>org.h2.upgrade.DbUpgradeNonPageStoreToCurrent.setScriptInTmpDir(boolean)</code>
 </li></ul>
 prior opening a database connection.
 </p>

@@ -16,6 +16,10 @@ import org.h2.result.ResultInterface;
  */
 public abstract class DefineCommand extends Prepared {
 
+    /**
+     * The transactional behavior. The default is disabled, meaning the command
+     * commits an open transaction.
+     */
     protected boolean transactional;
 
     /**

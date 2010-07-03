@@ -184,7 +184,7 @@ CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
 { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
     | { AS select } }
-[ ENGINE tableEngineName ] [ NOT PERSISTENT ]
+[ ENGINE tableEngineName ] [ TRANSACTIONAL ] [ NOT PERSISTENT ]
 ","
 Creates a new table."
 "Commands (DDL)","CREATE TRIGGER","
@@ -241,9 +241,9 @@ DROP SEQUENCE [ IF EXISTS ] sequenceName
 ","
 Drops a sequence."
 "Commands (DDL)","DROP TABLE","
-DROP TABLE [ IF EXISTS ] tableName [,...]
+DROP TABLE [ IF EXISTS ] tableName [,...] [ CASCADE | RESTRICT ]
 ","
-Drops an existing table, or a list of existing tables."
+Drops an existing table, or a list of tables."
 "Commands (DDL)","DROP TRIGGER","
 DROP TRIGGER [ IF EXISTS ] triggerName
 ","
@@ -255,7 +255,7 @@ Drops a user."
 "Commands (DDL)","DROP VIEW","
 DROP VIEW [ IF EXISTS ] viewName [ RESTRICT | CASCADE ]
 ","
-Drops a view, and all dependent views if the CASCADE clause is used."
+Drops an existing view."
 "Commands (DDL)","TRUNCATE TABLE","
 TRUNCATE TABLE tableName
 ","

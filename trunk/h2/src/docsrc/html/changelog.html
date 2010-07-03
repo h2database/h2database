@@ -18,12 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The MultiDimension tools was extended with a few helper methods.
+<ul><li>Automatic database upgrade from non page store is now possible. If the file
+    h2mig_pagestore_addon.jar is found, the database will be converted to the current
+    page store format automatically. The file can be found in this zip:
+    <a href="http://h2database.com/h2mig_pagestore_addon.jar">http://h2database.com/h2mig_pagestore_addon.jar</a>
+</li><li>The MultiDimension tools was extended with a few helper methods.
     The API was unified a bit.
 </li><li>ODBC: additional connection settings can now be added to the database name. 
     Example: ~/test;cipher=xtea. Therefore, encrypted databases are supported.
 </li><li>Local temporary tables can now be created without having to commit a transaction
-    using CREATE LOCAL TEMPORARY TABLE TEMP(ID INT PRIMARY KEY) TRANSACTIONAL. 
+    using CREATE LOCAL TEMPORARY TABLE TEMP(ID INT PRIMARY KEY) TRANSACTIONAL.
 </li><li>New system property h2.dropRestrict (default false) to change the
     default action for DROP TABLE and DROP VIEW (false for CASCADE, true for RESTRICT).
     The plan is to enable this property by default in version 1.3.x.

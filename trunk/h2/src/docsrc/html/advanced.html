@@ -68,6 +68,8 @@ Advanced
     Setting the Server Bind Address</a><br />
 <a href="#file_system">
     Pluggable File System</a><br />
+<a href="#database_upgrade">
+    Database Upgrade</a><br />
 <a href="#limits_limitations">
     Limits and Limitations</a><br />
 <a href="#glossary_links">
@@ -526,7 +528,7 @@ run <code>odbcad32.exe</code> to open the Data Source Administrator. Then click 
 and select the PostgreSQL Unicode driver. Then click 'Finish'.
 You will be able to change the connection properties.
 The property column represents the property key in the <code>odbc.ini</code> file
-(which may be different from the GUI). 
+(which may be different from the GUI).
 </p>
 <table>
 <tr><th>Property</th><th>Example</th><th>Remarks</th></tr>
@@ -1219,6 +1221,29 @@ As an example, to use the the <code>nio</code> file system, use the following da
 <p>
 To register a new file system, extend the classes <code>org.h2.store.fs.FileSystem, FileObject</code>,
 and call the method <code>FileSystem.register</code> before using it.
+</p>
+
+<h2 id="database_upgrade">Database Upgrade</h2>
+<p>
+In version 1.2, H2 introduced a new file store implementation which is incompatible to the one used in versions &lt; 1.2.
+To automatically convert databases to the new file store, it is necessary to include an additional jar file.
+The file can be found at <a href="http://h2database.com/h2mig_pagestore_addon.jar">http://h2database.com/h2mig_pagestore_addon.jar</a> .
+If this file is in the classpath, every connect to an older database will result in a conversion process.
+</p>
+<p>
+The conversion itself is done via 'script to' and 'runscript from'. After the conversion process, the files will be
+renamed from
+<ul>
+<li>dbName.data.db to dbName.data.db.backup
+</li><li>dbName.index.db to dbName.index.db.backup
+</li></ul>
+by default. Also, the temporary script will be written to the database directory instead of a temporary directory.
+Both defaults can be customized via
+<ul>
+<li>org.h2.upgrade.DbUpgradeNonPageStoreToCurrent.setDeleteOldDb(boolean)
+</li><li>org.h2.upgrade.DbUpgradeNonPageStoreToCurrent.setScriptInTmpDir(boolean)
+</li></ul>
+prior opening a database connection.
 </p>
 
 <h2 id="limits_limitations">Limits and Limitations</h2>

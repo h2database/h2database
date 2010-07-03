@@ -575,10 +575,10 @@ When using H2 as the backend database for Apache ActiveMQ, please use the <code>
 instead of the default locking mechanism. Otherwise the database file will grow without bounds. The problem is that the
 default locking mechanism uses an uncommitted <code>UPDATE</code> transaction, which keeps the transaction log
 from shrinking (causes the database file to grow). Instead of using an <code>UPDATE</code> statement, the <code>TransactDatabaseLocker</code> uses
-<code>SELECT ... FOR UPDATE</code> which is not problematic. 
-To use it, change the ApacheMQ configuration element <code>&lt;jdbcPersistenceAdapter&gt;</code> element,  property 
+<code>SELECT ... FOR UPDATE</code> which is not problematic.
+To use it, change the ApacheMQ configuration element <code>&lt;jdbcPersistenceAdapter&gt;</code> element,  property
 <code>databaseLocker="org.apache.activemq.store.jdbc.adapter.TransactDatabaseLocker"</code>.
-However, using the MVCC mode will again result in the same problem. Therefore, please do not use the MVCC mode in this case. 
+However, using the MVCC mode will again result in the same problem. Therefore, please do not use the MVCC mode in this case.
 Another (more dangerous) solution is to set <code>useDatabaseLock</code> to false.
 </p>
 

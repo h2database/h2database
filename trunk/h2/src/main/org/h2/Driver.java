@@ -16,6 +16,7 @@ import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
+import org.h2.upgrade.DbUpgrade;
 
 /**
  * The database driver. An application should not use this class directly. The
@@ -55,6 +56,9 @@ public class Driver implements java.sql.Driver {
             if (!acceptsURL(url)) {
                 return null;
             }
+            // Upgrade the database if needed and conversion classes are found
+            DbUpgrade.upgrade(url, info);
+
             return new JdbcConnection(url, info);
         } catch (Exception e) {
             throw DbException.toSQLException(e);

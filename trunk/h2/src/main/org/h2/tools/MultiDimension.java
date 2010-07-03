@@ -38,8 +38,8 @@ public class MultiDimension implements Comparator<long[]> {
     }
 
     /**
-     * Normalize a value so that it is between the minimum and maximum value for
-     * the given number of dimensions.
+     * Normalize a value so that it is between the minimum and maximum for the
+     * given number of dimensions.
      *
      * @param dimensions the number of dimensions
      * @param value the value (must be in the range min..max)
@@ -257,7 +257,7 @@ public class MultiDimension implements Comparator<long[]> {
             }
             if (searched > 2 * total || list.size() < 100) {
                 break;
-             }
+            }
         }
     }
 

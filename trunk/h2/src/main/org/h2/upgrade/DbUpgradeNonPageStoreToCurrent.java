@@ -54,7 +54,7 @@ public class DbUpgradeNonPageStoreToCurrent {
 
     private void init() throws SQLException {
         try {
-            String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1_to_v1_2.engine.Constants.START_URL");
+            String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
             oldUrl = url;
             oldUrl = oldUrl.replaceAll(org.h2.engine.Constants.START_URL, oldStartUrlPrefix);
             oldUrl = oldUrl.replaceAll(";IGNORE_UNKNOWN_SETTINGS=TRUE", "");
@@ -62,7 +62,7 @@ public class DbUpgradeNonPageStoreToCurrent {
             oldUrl = oldUrl.replaceAll(";IFEXISTS=TRUE", "");
             oldUrl = oldUrl.replaceAll(";IFEXISTS=FALSE", "");
             oldUrl += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
-            Object ci = Utils.newInstance("org.h2.upgrade.v1_1_to_v1_2.engine.ConnectionInfo", oldUrl, info);
+            Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", oldUrl, info);
             boolean isRemote = (Boolean) Utils.callMethod("isRemote", ci);
             boolean isPersistent = (Boolean) Utils.callMethod("isPersistent", ci);
             String dbName = (String) Utils.callMethod("getName", ci);
@@ -120,7 +120,7 @@ public class DbUpgradeNonPageStoreToCurrent {
 //            "' to '" + newFile.getPath() + "' via '" + scriptFile.getPath()
 //            + "'");
 
-            Utils.callStaticMethod("org.h2.upgrade.v1_1_to_v1_2.Driver.load");
+            Utils.callStaticMethod("org.h2.upgrade.v1_1.Driver.load");
             Connection connection = DriverManager.getConnection(oldUrl, info);
             Statement stmt = connection.createStatement();
             stmt.execute("script to '" + scriptFile + "'");

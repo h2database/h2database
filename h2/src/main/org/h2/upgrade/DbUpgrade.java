@@ -25,7 +25,7 @@ public class DbUpgrade {
 
     static {
         // static initialize block
-        nonPageStoreToCurrentEnabled = Utils.isClassPresent("org.h2.upgrade.v1_1_to_v1_2.Driver");
+        nonPageStoreToCurrentEnabled = Utils.isClassPresent("org.h2.upgrade.v1_1.Driver");
         runningConversions = Collections.synchronizedMap(new Hashtable<String, DbUpgradeNonPageStoreToCurrent>(1));
     }
 

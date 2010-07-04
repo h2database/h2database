@@ -24,7 +24,8 @@ Change Log
     <a href="http://h2database.com/h2mig_pagestore_addon.jar">http://h2database.com/h2mig_pagestore_addon.jar</a>
 </li><li>The MultiDimension tools was extended with a few helper methods.
     The API was unified a bit.
-</li><li>ODBC: additional connection settings can now be added to the database name. 
+</li><li>ODBC: MS Access could not link to a table with a name containing '_'.
+</li><li>ODBC: additional connection settings can now be added to the database name.
     Example: ~/test;cipher=xtea. Therefore, encrypted databases are supported.
 </li><li>Local temporary tables can now be created without having to commit a transaction
     using CREATE LOCAL TEMPORARY TABLE TEMP(ID INT PRIMARY KEY) TRANSACTIONAL.
@@ -36,6 +37,7 @@ Change Log
 </li><li>UNION queries where the first query contains a nested query were parsed incorrectly.
     Example: "select 1 from (select 2 from dual) union select 3 from dual" was parsed as
     "select 1 from ((select 2 from dual) union select 3 from dual)". Fixed.
+</li><li>Support ALTER SCHEMA name RENAME TO newName (rename schema). (patch from Kerry Sainsbury)
 </li></ul>
 
 <h2>Version 1.2.138 (2010-06-27)</h2>
@@ -59,7 +61,6 @@ Change Log
 </li><li>Cluster: non-admin users could not connect when one of the cluster node was stopped. Issue 206.
 </li><li>DROP VIEW now supports the CASCADE and RESTRICT clauses (patch from Kerry Sainsbury)
 </li><li>CREATE VIEW now supports the OR REPLACE clause (patch from Kerry Sainsbury)
-</li><li>Support ALTER SCHEMA name RENAME TO newName (rename schema). (patch from Kerry Sainsbury)
 </li><li>Build tool: ability to only run one test using the -Dtest=className setting.
     eg: build -Dtest=org.h2.test.db.TestViewDropView test (patch from Kerry Sainsbury).
 </li></ul>

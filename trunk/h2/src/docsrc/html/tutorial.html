@@ -36,6 +36,8 @@ Tutorial
     Using EclipseLink</a><br />
 <a href="#using_activemq">
     Using Apache ActiveMQ</a><br />
+<a href="#using_netbeans">
+    Using H2 within NetBeans</a><br />
 <a href="#web_applications">
     Using Databases in Web Applications</a><br />
 <a href="#csv">
@@ -580,6 +582,12 @@ To use it, change the ApacheMQ configuration element <code>&lt;jdbcPersistenceAd
 <code>databaseLocker="org.apache.activemq.store.jdbc.adapter.TransactDatabaseLocker"</code>.
 However, using the MVCC mode will again result in the same problem. Therefore, please do not use the MVCC mode in this case.
 Another (more dangerous) solution is to set <code>useDatabaseLock</code> to false.
+</p>
+
+<h2 id="using_netbeans">Using H2 within NetBeans</h2>
+<p>
+The project <a href="">H2 Database Engine Support For NetBeans</a> 
+allows you to start and stop the H2 server from within the IDE.
 </p>
 
 <h2 id="web_applications">Using Databases in Web Applications</h2>

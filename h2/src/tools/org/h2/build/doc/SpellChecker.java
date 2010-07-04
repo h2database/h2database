@@ -27,7 +27,7 @@ public class SpellChecker {
     private static final String[] SUFFIX = { "html", "java", "sql", "txt", "xml", "jsp", "css", "bat",
             "csv", "xml", "js", "Driver", "properties", "task", "MF", "sh", "" };
     private static final String[] IGNORE = { "dev", "nsi", "gif", "png", "odg", "ico", "sxd", "zip",
-            "bz2", "rc", "layout", "res", "dll", "jar", "svg", "prefs", "prop" };
+            "bz2", "rc", "layout", "res", "dll", "jar", "svg", "prefs", "prop", "iml" };
     private static final String DELIMITERS = " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
     private static final String PREFIX_IGNORE = "abc";
     private static final String[] IGNORE_FILES = {"mainWeb.html", "pg_catalog.sql"};

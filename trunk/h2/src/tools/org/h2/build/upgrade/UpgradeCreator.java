@@ -12,37 +12,43 @@ import org.h2.build.BuildBase;
 /**
  * Creates the v 1.1 upgrade sources
  */
-public class UpgradeCreator {    
-    
+public class UpgradeCreator {
+
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     *
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
-            System.out.println("Usage: java -cp . org.h2.build.upgrade.UpgradeCreator <srcdir> <destdir>");
-            System.exit(1);            
+            System.out.println("Usage: java -cp . org.h2.build.upgrade.UpgradeCreator <srcDir> <destDir>");
+            System.exit(1);
         }
         File srcDir = new File(args[0]);
         if (!srcDir.exists()) {
             System.out.println("Source dir does not exist");
-            System.exit(1);            
+            System.exit(1);
         }
         File destDir = new File(args[1]);
         if (destDir.exists()) {
             System.out.println("Destination dir already exists");
-            System.exit(1);            
+            System.exit(1);
         }
         destDir.mkdirs();
         convert(srcDir, srcDir, destDir);
     }
-    
+
     private static void convert(File file, File srcDir, File destDir) throws Exception {
         String pathInDestDir = file.getCanonicalPath().substring(srcDir.getCanonicalPath().length());
-        
-        pathInDestDir = pathInDestDir.replaceAll("org" + File.separator + "h2", 
-                "org" + File.separator + 
-                "h2" + File.separator + 
-                "upgrade" + File.separator + 
+
+        pathInDestDir = pathInDestDir.replaceAll("org" + File.separator + "h2",
+                "org" + File.separator +
+                "h2" + File.separator +
+                "upgrade" + File.separator +
                 "v1_1");
         File fileInDestDir = new File(destDir, pathInDestDir);
-//        System.out.println(fileInDestDir.getAbsoluteFile());
+        // System.out.println(fileInDestDir.getAbsoluteFile());
         if (file.isDirectory()) {
             fileInDestDir.mkdirs();
             File[] files = file.listFiles();
@@ -60,10 +66,10 @@ public class UpgradeCreator {
                 contentString = contentString.replaceAll("org/h2/", "org/h2/upgrade/v1_1/");
             }
             content = contentString.getBytes();
-            BuildBase.writeFile(fileInDestDir, content);            
+            BuildBase.writeFile(fileInDestDir, content);
         }
     }
-    
+
     private static String replaceInJavaFile(File file, String content) {
         content = content.replaceAll("import org\\.h2", "import org.h2.upgrade.v1_1");
         content = content.replaceAll("import static org\\.h2", "import static org.h2.upgrade.v1_1");
@@ -84,9 +90,9 @@ public class UpgradeCreator {
         if (file.getName().equals("SessionRemote.java")) {
             content = content.replaceAll("org\\.h2\\.engine\\.SessionFactoryEmbedded", "org.h2.upgrade.v1_1.engine.SessionFactoryEmbedded");
         }
-        
+
         return content;
-    }    
-    
+    }
+
 }
 

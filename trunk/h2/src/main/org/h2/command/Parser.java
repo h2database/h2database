@@ -2373,6 +2373,9 @@ public class Parser {
                     r = ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
                 } else if (equalsToken("E", name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
                     String text = currentValue.getString();
+                    // the PostgreSQL ODBC driver uses
+                    // LIKE E'PROJECT\\_DATA' instead of LIKE 'PROJECT\_DATA'
+                    text = StringUtils.replaceAll(text, "\\\\", "\\");
                     read();
                     r = ValueExpression.get(ValueString.get(text));
                 } else {
@@ -2476,11 +2479,21 @@ public class Parser {
         }
         if (readIf("::")) {
             // PostgreSQL compatibility
-            Column col = parseColumn(null);
-            Function function = Function.getFunction(database, "CAST");
-            function.setDataType(col);
-            function.setParameter(0, r);
-            r = function;
+            if (readIf("REGCLASS")) {
+                FunctionAlias f = findFunctionAlias(Constants.SCHEMA_MAIN, "PG_GET_OID");
+                if (f == null) {
+                    throw getSyntaxError();
+                }
+                Expression[] args = { r };
+                JavaFunction func = new JavaFunction(f, args);
+                r = func;
+            } else {
+                Column col = parseColumn(null);
+                Function function = Function.getFunction(database, "CAST");
+                function.setDataType(col);
+                function.setParameter(0, r);
+                r = function;
+            }
         }
         return r;
     }
@@ -4089,7 +4102,6 @@ public class Parser {
         command.setNewName(newName);
         return command;
     }
-
 
     private AlterSequence parseAlterSequence() {
         String sequenceName = readIdentifierWithSchema();

@@ -295,6 +295,27 @@ public class PgServer implements Service {
     }
 
     /**
+     * Get the OID of an object.
+     * This method is called by the database.
+     *
+     * @param conn the connection
+     * @param tableName the table name
+     * @return the oid
+     */
+    public static int getOid(Connection conn, String tableName) throws SQLException {
+        if (tableName.startsWith("\"") && tableName.endsWith("\"")) {
+            tableName = tableName.substring(1, tableName.length() - 1);
+        }
+        PreparedStatement prep = conn.prepareStatement("select oid from pg_class where relname = ?");
+        prep.setString(1, tableName);
+        ResultSet rs = prep.executeQuery();
+        if (!rs.next()) {
+            return 0;
+        }
+        return rs.getInt(1);
+    }
+
+    /**
      * Get the name of this encoding code.
      * This method is called by the database.
      *

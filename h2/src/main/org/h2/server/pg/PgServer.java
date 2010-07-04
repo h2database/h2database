@@ -306,7 +306,7 @@ public class PgServer implements Service {
         if (tableName.startsWith("\"") && tableName.endsWith("\"")) {
             tableName = tableName.substring(1, tableName.length() - 1);
         }
-        PreparedStatement prep = conn.prepareStatement("select oid from pg_class where relname = ?");
+        PreparedStatement prep = conn.prepareStatement("select oid from pg_class where relName = ?");
         prep.setString(1, tableName);
         ResultSet rs = prep.executeQuery();
         if (!rs.next()) {

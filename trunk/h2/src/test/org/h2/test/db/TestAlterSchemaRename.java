@@ -46,20 +46,15 @@ public class TestAlterSchemaRename extends TestBase {
 
     private void testSimpleRename() throws SQLException {
         stat.execute("create schema s1");
-
         stat.execute("create table s1.tab(val int)");
         stat.execute("insert into s1.tab(val) values (3)");
-
         ResultSet rs = stat.executeQuery("select * from s1.tab");
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
-
         stat.execute("alter schema s1 rename to s2");
-
         rs = stat.executeQuery("select * from s2.tab");
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
-
         stat.execute("drop schema s2");
     }
 
@@ -67,77 +62,61 @@ public class TestAlterSchemaRename extends TestBase {
     private void testRenameToExistingSchema() throws SQLException {
         stat.execute("create schema s1");
         stat.execute("create schema s2");
-
         try {
             stat.execute("alter schema s1 rename to s2");
             fail("Exception should be thrown");
         } catch (SQLException e) {
             assertEquals(ErrorCode.SCHEMA_ALREADY_EXISTS_1, e.getErrorCode());
         }
-
         stat.execute("drop schema s1");
         stat.execute("drop schema s2");
     }
 
-    
-    private void testCrossSchemaViews() throws SQLException {
 
+    private void testCrossSchemaViews() throws SQLException {
         stat.execute("create schema s1");
         stat.execute("create schema s2");
-
         stat.execute("create table s1.tab(val int)");
         stat.execute("insert into s1.tab(val) values (3)");
-
         stat.execute("create view s1.v1 as select * from s1.tab");
         stat.execute("create view s2.v1 as select val * 2 from s1.tab");
-
         stat.execute("alter schema s2 rename to s2_new");
-
         ResultSet rs = stat.executeQuery("select * from s1.v1");
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
-
         rs = stat.executeQuery("select * from s2_new.v1");
         assertTrue(rs.next());
         assertEquals(6, rs.getInt(1));
-
         if (!config.memory) {
             conn.close();
             conn = getConnection("alter");
             stat = conn.createStatement();
             stat.executeQuery("select * from s2_new.v1");
         }
-
         stat.execute("drop schema s1");
         stat.execute("drop schema s2_new");
     }
 
-
-    // Check that aliases in the schema got moved
-
+    /**
+     * Check that aliases in the schema got moved
+     */
     private void testAlias() throws SQLException {
         stat.execute("create schema s1");
-
         stat.execute("CREATE ALIAS S1.REVERSE AS $$ " +
                 "String reverse(String s) {" +
                 "   return new StringBuilder(s).reverse().toString();" +
                 "} $$;");
-
         stat.execute("alter schema s1 rename to s2");
-
         ResultSet rs = stat.executeQuery("CALL S2.REVERSE('1234')");
         assertTrue(rs.next());
         assertEquals("4321", rs.getString(1));
-
         if (!config.memory) {
             conn.close();
             conn = getConnection("alter");
             stat = conn.createStatement();
             stat.executeQuery("CALL S2.REVERSE('1234')");
         }
-
         stat.execute("drop schema s2");
     }
-
 
 }

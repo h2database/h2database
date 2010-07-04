@@ -474,7 +474,6 @@ public class Schema extends DbObjectBase {
      */
     public ArrayList<SchemaObject> getAll() {
         ArrayList<SchemaObject> all = New.arrayList();
-
         all.addAll(getMap(DbObject.TABLE_OR_VIEW).values());
         all.addAll(getMap(DbObject.SEQUENCE).values());
         all.addAll(getMap(DbObject.INDEX).values());
@@ -482,7 +481,6 @@ public class Schema extends DbObjectBase {
         all.addAll(getMap(DbObject.CONSTRAINT).values());
         all.addAll(getMap(DbObject.CONSTANT).values());
         all.addAll(getMap(DbObject.FUNCTION_ALIAS).values());
-
         return all;
     }
 

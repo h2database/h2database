@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
+import org.h2.command.ddl.AlterSchemaRename;
 import org.h2.command.ddl.AlterTableAddConstraint;
 import org.h2.command.ddl.AlterTableAlterColumn;
 import org.h2.command.ddl.AlterTableDropConstraint;
@@ -588,7 +589,7 @@ public class Parser {
         return command;
     }
 
-    private Schema getSchema() {
+    private Schema getSchema(String schemaName) {
         if (schemaName == null) {
             return null;
         }
@@ -602,6 +603,11 @@ public class Parser {
             }
         }
         return schema;
+    }
+
+
+    private Schema getSchema() {
+        return getSchema(schemaName);
     }
 
     private Column readTableColumn(TableFilter filter) {
@@ -4029,6 +4035,8 @@ public class Parser {
             return parseAlterUser();
         } else if (readIf("INDEX")) {
             return parseAlterIndex();
+        } else if (readIf("SCHEMA")) {
+            return parseAlterSchema();
         } else if (readIf("SEQUENCE")) {
             return parseAlterSequence();
         } else if (readIf("VIEW")) {
@@ -4068,6 +4076,20 @@ public class Parser {
         read("RECOMPILE");
         return command;
     }
+
+    private AlterSchemaRename parseAlterSchema() {
+        String schemaName = readIdentifierWithSchema();
+        Schema old = getSchema();
+        AlterSchemaRename command = new AlterSchemaRename(session);
+        command.setOldSchema(getSchema(schemaName));
+        read("RENAME");
+        read("TO");
+        String newName = readIdentifierWithSchema(old.getName());
+        checkSchema(old);
+        command.setNewName(newName);
+        return command;
+    }
+
 
     private AlterSequence parseAlterSequence() {
         String sequenceName = readIdentifierWithSchema();

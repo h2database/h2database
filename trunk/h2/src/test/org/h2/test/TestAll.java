@@ -13,6 +13,7 @@ import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
+import org.h2.test.db.TestAlterSchemaRename;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
 import org.h2.test.db.TestBigDb;
@@ -494,6 +495,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestScriptSimple().runTest(this);
         new TestScript().runTest(this);
         new TestAlter().runTest(this);
+        new TestAlterSchemaRename().runTest(this);
         new TestAutoRecompile().runTest(this);
         new TestBackup().runTest(this);
         new TestBigDb().runTest(this);

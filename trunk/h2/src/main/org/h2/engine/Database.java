@@ -1227,6 +1227,20 @@ public class Database implements DataHandler {
     }
 
     /**
+      * Get all schema objects.
+      *
+      * @return all objects of all types
+      */
+     public ArrayList<SchemaObject> getAllSchemaObjects() {
+         initMetaTables();
+         ArrayList<SchemaObject> list = New.arrayList();
+         for (Schema schema : schemas.values()) {
+             list.addAll(schema.getAll());
+         }
+         return list;
+     }
+
+    /**
      * Get all schema objects of the given type.
      *
      * @param type the object type

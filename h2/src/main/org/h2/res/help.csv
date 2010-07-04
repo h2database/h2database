@@ -65,6 +65,10 @@ Lists the schemas, tables, or the columns of a table."
 ALTER INDEX indexName RENAME TO newIndexName
 ","
 Renames an index."
+"Commands (DDL)","ALTER SCHEMA RENAME","
+ALTER SCHEMA schema RENAME TO newSchemaName
+","
+Renames a schema."
 "Commands (DDL)","ALTER SEQUENCE","
 ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 ","

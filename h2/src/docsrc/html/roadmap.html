@@ -380,7 +380,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve SQL documentation, see http://www.w3schools.com/sql/
 </li><li>MySQL compatibility: DatabaseMetaData.stores*() methods should return the same values. Test with SquirrelSQL.
 </li><li>MS SQL Server compatibility: support DATEPART syntax.
-</li><li>Oracle compatibility: support CREATE OR REPLACE VIEW syntax.
 </li><li>Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See http://code.google.com/p/h2database/issues/detail?id=83
 </li><li>Support INTERVAL data type (see Oracle and others).
 </li><li>Combine Server and Console tool (only keep Server).
@@ -464,7 +463,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>User defined functions: allow to store the bytecode (of just the class, or the jar file of the extension) in the database.
 </li><li>Compatibility: ResultSet.getObject() on a CLOB (TEXT) should return String for PostgreSQL and MySQL.
 </li><li>Optimizer: WHERE X=? AND Y IN(?), it always uses the index on Y. Should be cost based.
-</li><li>Support ALTER SCHEMA name RENAME TO newName (rename schema).
 </li><li>Make the cache scan resistant (currently a small cache is faster than a large cache for large table scans).
 </li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available.
 </li><li>Issue 179: Related subqueries in HAVING clause

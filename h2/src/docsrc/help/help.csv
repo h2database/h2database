@@ -177,6 +177,15 @@ This command commits an open transaction.
 ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
 
+"Commands (DDL)","ALTER SCHEMA RENAME","
+ALTER SCHEMA schema RENAME TO newSchemaName
+","
+Renames a schema.
+This command commits an open transaction.
+","
+ALTER SCHEMA TEST RENAME TO PRODUCTION
+"
+
 "Commands (DDL)","ALTER SEQUENCE","
 ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 ","

@@ -209,6 +209,14 @@ public class TestTools extends TestBase {
     }
 
     private void testWrongServer() throws Exception {
+        try {
+            // try to connect when the server is not running
+            Connection conn = getConnection("jdbc:h2:tcp://localhost:9001/test");
+            conn.close();
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
+        }
         final ServerSocket serverSocket = new ServerSocket(9001);
         Thread thread = new Thread() {
             public void run() {
@@ -224,6 +232,7 @@ public class TestTools extends TestBase {
             }
         };
         thread.start();
+        Thread.sleep(100);
         try {
             Connection conn = getConnection("jdbc:h2:tcp://localhost:9001/test");
             conn.close();

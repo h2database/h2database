@@ -319,7 +319,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         String[] servers = StringUtils.arraySplit(server, ',', true);
         int len = servers.length;
         transferList.clear();
-        // TODO cluster: support at most 2 connections
+        // TODO cluster: support more than 2 connections
         boolean switchOffCluster = false;
         try {
             for (int i = 0; i < len; i++) {
@@ -328,7 +328,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                     transferList.add(trans);
                 } catch (IOException e) {
                     if (len == 1) {
-                        throw DbException.convert(e);
+                        throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, e, e.getMessage());
                     }
                     switchOffCluster = true;
                 }

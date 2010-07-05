@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileSystem;
 import org.h2.util.Utils;
 
 /**
@@ -66,6 +67,17 @@ public class DbUpgradeNonPageStoreToCurrent {
             boolean isRemote = (Boolean) Utils.callMethod("isRemote", ci);
             boolean isPersistent = (Boolean) Utils.callMethod("isPersistent", ci);
             String dbName = (String) Utils.callMethod("getName", ci);
+            // remove stackable file systems
+            int colon = dbName.indexOf(':');
+            while (colon != -1) {
+                String fileSystemPrefix = dbName.substring(colon);
+                FileSystem fs = FileSystem.getInstance(fileSystemPrefix);
+                if (fs == null) {
+                    break;
+                }
+                dbName = dbName.substring(colon+1); 
+                colon = dbName.indexOf(':');
+            }
             if (!isRemote && isPersistent) {
                 String oldDataName = dbName + ".data.db";
                 String oldIndexName = dbName + ".index.db";

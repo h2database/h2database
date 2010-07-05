@@ -304,6 +304,7 @@ implements XAConnection, XAResource
         }
         try {
             physicalConn.rollback();
+            physicalConn.setAutoCommit(true);
         } catch (SQLException e) {
             throw convertException(e);
         }
@@ -384,6 +385,7 @@ implements XAConnection, XAResource
                 stat = physicalConn.createStatement();
                 stat.execute("COMMIT TRANSACTION TX_" + currentTransactionId);
             }
+            physicalConn.setAutoCommit(true);
         } catch (SQLException e) {
             throw convertException(e);
         } finally {

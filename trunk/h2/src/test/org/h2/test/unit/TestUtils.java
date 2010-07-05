@@ -35,12 +35,12 @@ public class TestUtils extends TestBase {
         long currentTimeMillis2 = (Long) Utils.callStaticMethod("java.lang.System.currentTimeMillis");
         assertTrue(currentTimeMillis1 <= currentTimeMillis2);
         // New Instance with Integer parameter (Autoboxing)
-        StringBuilder instance = (StringBuilder) Utils.newInstance("java.lang.StringBuilder", new Integer(10));
+        Object instance = Utils.newInstance("java.lang.StringBuilder", 10);
         // New Instance with int parameter
-        instance = (StringBuilder) Utils.newInstance("java.lang.StringBuilder", 10);
+        instance = Utils.newInstance("java.lang.StringBuilder", 10);
         // Instance methods
-        Utils.callMethod("append", instance, "abc");
-        int length = (Integer) Utils.callMethod("length", instance);
+        Utils.callMethod(instance, "append", "abc");
+        int length = (Integer) Utils.callMethod(instance, "length");
         assertEquals(3, length);
         // Static fields
         String pathSeparator = (String) Utils.getStaticField("java.io.File.pathSeparator");
@@ -51,7 +51,9 @@ public class TestUtils extends TestBase {
         // Class present?
         assertFalse(Utils.isClassPresent("abc"));
         assertTrue(Utils.isClassPresent(getClass().getName()));
-
+        Utils.callStaticMethod("java.lang.String.valueOf", "a");
+        Utils.callStaticMethod("java.awt.AWTKeyStroke.getAWTKeyStroke",
+                'x', java.awt.event.InputEvent.SHIFT_DOWN_MASK);
     }
 
 }

@@ -261,9 +261,7 @@ ShutdownHandler {
     private boolean createTrayIcon() {
         try {
             // SystemTray.isSupported();
-            Boolean supported = (Boolean) Class.forName("java.awt.SystemTray").
-                getMethod("isSupported").
-                invoke(null);
+            boolean supported = (Boolean) Utils.callStaticMethod("java.awt.SystemTray.isSupported");
             if (!supported) {
                 return false;
             }
@@ -285,14 +283,11 @@ ShutdownHandler {
             menuConsole.add(itemExit);
 
             // SystemTray tray = SystemTray.getSystemTray();
-            Object tray = Class.forName("java.awt.SystemTray").
-                getMethod("getSystemTray").
-                invoke(null);
+            Object tray = Utils.callStaticMethod("java.awt.SystemTray.getSystemTray");
 
             // Dimension d = tray.getTrayIconSize();
-            Dimension d = (Dimension) Class.forName("java.awt.SystemTray").
-                getMethod("getTrayIconSize").
-                invoke(tray);
+            Dimension d = (Dimension) Utils.callMethod(tray, "getTrayIconSize");
+
             String iconFile;
             if (d.width >= 24 && d.height >= 24) {
                 iconFile = "/org/h2/res/h2-24.png";
@@ -302,20 +297,15 @@ ShutdownHandler {
                 iconFile = "/org/h2/res/h2.png";
             }
             Image icon = loadImage(iconFile);
-            // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
-            Object ti = Class.forName("java.awt.TrayIcon").
-                getConstructor(Image.class, String.class, PopupMenu.class).
-                newInstance(icon, "H2 Database Engine", menuConsole);
 
-            // trayIcon.addMouseListener(this);
-            ti.getClass().
-                getMethod("addMouseListener", MouseListener.class).
-                invoke(ti, this);
+            // TrayIcon ti = new TrayIcon(image, "H2 Database Engine", menuConsole);
+            Object ti = Utils.newInstance("java.awt.TrayIcon", icon, "H2 Database Engine", menuConsole);
 
-            // tray.add(icon);
-            tray.getClass().
-                getMethod("add", Class.forName("java.awt.TrayIcon")).
-                invoke(tray, ti);
+            // ti.addMouseListener(this);
+            Utils.callMethod(ti, "addMouseListener", this);
+
+            // tray.add(ti);
+            Utils.callMethod(tray, "add", ti);
 
             this.trayIcon = true;
 

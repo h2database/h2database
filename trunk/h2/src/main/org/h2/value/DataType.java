@@ -768,6 +768,9 @@ public class DataType {
         if (x == null) {
             return Value.NULL;
         }
+        if (x.isPrimitive()) {
+            x = Utils.getNonPrimitiveClass(x);
+        }
         if (ResultSet.class.isAssignableFrom(x)) {
             return Value.RESULT_SET;
         } else if (Value.ValueBlob.class.isAssignableFrom(x)) {
@@ -778,21 +781,21 @@ public class DataType {
             return Value.STRING;
         } else if (BigDecimal.class.isAssignableFrom(x)) {
             return Value.DECIMAL;
-        } else if (Boolean.class.isAssignableFrom(x) || boolean.class.isAssignableFrom(x)) {
+        } else if (Boolean.class == x) {
             return Value.BOOLEAN;
-        } else if (Byte.class.isAssignableFrom(x) || byte.class.isAssignableFrom(x)) {
+        } else if (Byte.class == x) {
             return Value.BYTE;
-        } else if (Short.class.isAssignableFrom(x) || short.class.isAssignableFrom(x)) {
+        } else if (Short.class == x) {
             return Value.SHORT;
-        } else if (Integer.class.isAssignableFrom(x) || int.class.isAssignableFrom(x)) {
+        } else if (Integer.class == x) {
             return Value.INT;
-        } else if (Character.class.isAssignableFrom(x) || char.class.isAssignableFrom(x)) {
+        } else if (Character.class == x) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "char (not supported)");
-        } else if (Long.class.isAssignableFrom(x) || long.class.isAssignableFrom(x)) {
+        } else if (Long.class == x) {
             return Value.LONG;
-        } else if (Float.class.isAssignableFrom(x) || float.class.isAssignableFrom(x)) {
+        } else if (Float.class == x) {
             return Value.FLOAT;
-        } else if (Double.class.isAssignableFrom(x) || double.class.isAssignableFrom(x)) {
+        } else if (Double.class == x) {
             return Value.DOUBLE;
         } else if (byte[].class.isAssignableFrom(x)) {
             return Value.BYTES;

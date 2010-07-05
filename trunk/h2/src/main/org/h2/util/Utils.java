@@ -13,9 +13,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -548,106 +548,95 @@ public class Utils {
     }
 
     /**
-     * Calls a static method via reflection. The order in which the method is
-     * searched:
-     * - With object arguments, eg. doSomething(Integer)
-     * - With primitive arguments, eg. doSomething(int)
+     * Calls a static method via reflection. This will try to use the method
+     * where the most parameter classes match exactly (this algorithm is simpler
+     * than the one in the Java specification, but works well for most cases).
      *
-     * @param classAndMethod a string with the entire class and method name,
-     *        eg. "java.lang.System.gc"
+     * @param classAndMethod a string with the entire class and method name, eg.
+     *            "java.lang.System.gc"
      * @param params the method parameters
-     * @throws ClassNotFoundException if the class was not found
-     * @throws NoSuchMethodException if the class doesn't contain the method
-     * @throws InvocationTargetException if an exception occurred in the called
-     *         method
-     * @throws IllegalAccessException if the reflection call is not allowed
-     * @throws IllegalArgumentException if the reflection call arguments are
-     *         wrong
-     * @return Return value from this call
+     * @return the return value from this call
      */
-    public static Object callStaticMethod(String classAndMethod, Object ... params) throws ClassNotFoundException,
-    NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+    public static Object callStaticMethod(String classAndMethod, Object... params) throws Exception {
         int lastDot = classAndMethod.lastIndexOf('.');
         String className = classAndMethod.substring(0, lastDot);
         String methodName = classAndMethod.substring(lastDot + 1);
-        Class< ? >[] paramTypes = getParameterTypesObjects(params);
-
-        Class< ? > c = Class.forName(className);
-        Method m;
-        try {
-            m = c.getMethod(methodName, paramTypes);
-        } catch (NoSuchMethodException e) {
-            paramTypes = getParameterTypesPrimitives(params);
-            m = c.getMethod(methodName, paramTypes);
-        }
-        return m.invoke(null, params);
+        return classMethodInternal(methodName, Class.forName(className), null, params);
     }
 
     /**
-     * Calls an instance method via reflection. The order in which the method is
-     * searched:
-     * - With object arguments, eg. doSomething(Integer)
-     * - With primitive arguments, eg. doSomething(int)
+     * Calls an instance method via reflection. This will try to use the method
+     * where the most parameter classes match exactly (this algorithm is simpler
+     * than the one in the Java specification, but works well for most cases).
      *
-     * @param methodName a string with the method name
      * @param instance the instance on which the call is done
+     * @param methodName a string with the method name
      * @param params the method parameters
-     * @throws ClassNotFoundException if the class was not found
-     * @throws NoSuchMethodException if the class doesn't contain the method
-     * @throws IllegalArgumentException if the reflection call arguments are
-     *         wrong
-     * @throws IllegalAccessException if the reflection call is not allowed
-     * @throws InvocationTargetException if an exception occurred in the called
-     *         method
-     * @return Return value from this call
+     * @return the return value from this call
      */
-    public static Object callMethod(String methodName, Object instance, Object ... params) throws ClassNotFoundException,
-    NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-        Class< ? >[] paramTypes = getParameterTypesObjects(params);
+    public static Object callMethod(Object instance, String methodName, Object... params) throws Exception {
+        return classMethodInternal(methodName, instance.getClass(), instance, params);
+    }
 
-        Class< ? > c = instance.getClass();
-        Method m;
-        try {
-            m = c.getMethod(methodName, paramTypes);
-        } catch (NoSuchMethodException e) {
-            paramTypes = getParameterTypesPrimitives(params);
-            m = c.getMethod(methodName, paramTypes);
+    private static Object classMethodInternal(String methodName, Class<?> clazz, Object instance, Object... params) throws Exception {
+        Method best = null;
+        int bestMatch = 0;
+        boolean isStatic = instance == null;
+        for (Method m : clazz.getMethods()) {
+            if (Modifier.isStatic(m.getModifiers()) == isStatic && m.getName().equals(methodName)) {
+                int p = match(m.getParameterTypes(), params);
+                if (p > bestMatch) {
+                    bestMatch = p;
+                    best = m;
+                }
+            }
         }
-        return m.invoke(instance, params);
+        if (best == null) {
+            throw new NoSuchMethodException(methodName);
+        }
+        return best.invoke(instance, params);
     }
 
     /**
-     *  Creates a new instance. The order in which the constructor is searched:
-     * - With object arguments, eg. SomeClass(Integer)
-     * - With primitive arguments, eg. SomeClass(int)
+     * Creates a new instance. This will try to use the constructor where the
+     * most parameter classes match exactly (this algorithm is simpler than the
+     * one in the Java specification, but works well for most cases).
      *
      * @param className a string with the entire class, eg. "java.lang.Integer"
      * @param params the constructor parameters
-     * @throws ClassNotFoundException if the class was not found
-     * @throws NoSuchMethodException if the class doesn't contain the
-     *         constructor
-     * @throws IllegalArgumentException if the reflection call arguments are
-     *         wrong
-     * @throws InstantiationException if it is not possible to instantiate the
-     *         object
-     * @throws IllegalAccessException if the reflection call is not allowed
-     * @throws InvocationTargetException if an exception occurred in the called
-     *         method
      * @return the newly created object
      */
-    public static Object newInstance(String className, Object ... params) throws ClassNotFoundException, NoSuchMethodException,
-    IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        Class< ? > c = Class.forName(className);
-        Class< ? >[] paramTypes = getParameterTypesObjects(params);
-        Constructor< ? > constructor;
-        try {
-            constructor = c.getConstructor(paramTypes);
-        } catch (NoSuchMethodException e) {
-            paramTypes = getParameterTypesPrimitives(params);
-            constructor = c.getConstructor(paramTypes);
+    public static Object newInstance(String className, Object... params) throws Exception {
+        Constructor<?> best = null;
+        int bestMatch = 0;
+        for (Constructor<?> c : Class.forName(className).getConstructors()) {
+            int p = match(c.getParameterTypes(), params);
+            if (p > bestMatch) {
+                bestMatch = p;
+                best = c;
+            }
         }
+        if (best == null) {
+            throw new NoSuchMethodException(className);
+        }
+        return best.newInstance(params);
+    }
 
-        return constructor.newInstance(params);
+    private static int match(Class<?>[] params, Object[] values) {
+        if (params.length == values.length) {
+            int points = 1;
+            for (int i=0; i<params.length; i++) {
+                Class<?> pc = getNonPrimitiveClass(params[i]);
+                Class<?> vc = values[i].getClass();
+                if (pc == vc) {
+                    points++;
+                } else if (!pc.isAssignableFrom(vc)) {
+                    return 0;
+                }
+            }
+            return points;
+        }
+        return 0;
     }
 
     /**
@@ -655,18 +644,12 @@ public class Utils {
      *
      * @param classAndField a string with the entire class and field name
      * @return the field value
-     * @throws ClassNotFoundException if the class was not found
-     * @throws IllegalAccessException if it is not allowed to access the class
-     * @throws NoSuchFieldException if the field was not found
      */
-    public static Object getStaticField(String classAndField) throws ClassNotFoundException, IllegalAccessException, NoSuchFieldException {
+    public static Object getStaticField(String classAndField) throws Exception {
         int lastDot = classAndField.lastIndexOf('.');
         String className = classAndField.substring(0, lastDot);
         String fieldName = classAndField.substring(lastDot + 1);
-
-        Class< ? > c = Class.forName(className);
-        Field f = c.getField(fieldName);
-        return f.get(null);
+        return Class.forName(className).getField(fieldName).get(null);
     }
 
     /**
@@ -675,22 +658,17 @@ public class Utils {
      * @param instance the instance on which the call is done
      * @param fieldName the field name
      * @return the field value
-     * @throws ClassNotFoundException if the class was not found
-     * @throws IllegalAccessException if it is not allowed to access the class
-     * @throws NoSuchFieldException if the field was not found
      */
-    public static Object getField(Object instance, String fieldName) throws ClassNotFoundException, IllegalAccessException, NoSuchFieldException {
-        Class< ? > c = instance.getClass();
-        Field f = c.getField(fieldName);
-        return f.get(instance);
+    public static Object getField(Object instance, String fieldName) throws Exception {
+        return instance.getClass().getField(fieldName).get(instance);
     }
 
     /**
-     * Returns true if the class is present in the current vm
+     * Returns true if the class is present in the current class loader.
      *
      * @param fullyQualifiedClassName a string with the entire class name, eg.
      *        "java.lang.System"
-     * @return true if the class is present in the current vm
+     * @return true if the class is present
      */
     public static boolean isClassPresent(String fullyQualifiedClassName) {
         try {
@@ -701,49 +679,33 @@ public class Utils {
         }
     }
 
-    private static Class< ? >[] getParameterTypesObjects(Object... params) {
-        Class< ? >[] paramTypes = new Class[params.length];
-        for (int i = 0; i < params.length; i++) {
-            paramTypes[i] = params[i].getClass();
-        }
-        return paramTypes;
-    }
-
-    private static Class< ? >[] getParameterTypesPrimitives(Object... params) {
-        Class< ? >[] paramTypes = new Class[params.length];
-        for (int i = 0; i < params.length; i++) {
-            paramTypes[i] = getPrimitiveIfPossible(params[i].getClass());
-        }
-        return paramTypes;
-    }
-
-    private static Class< ? > getPrimitiveIfPossible(Class< ? > clazz) {
-        if (clazz == Boolean.class) {
-            return boolean.class;
-        }
-        if (clazz == Byte.class) {
-            return byte.class;
-        }
-        if (clazz == Character.class) {
-            return char.class;
-        }
-        if (clazz == Double.class) {
-            return double.class;
-        }
-        if (clazz == Float.class) {
-            return float.class;
-        }
-        if (clazz == Integer.class) {
-            return int.class;
-        }
-        if (clazz == Long.class) {
-            return long.class;
-        }
-        if (clazz == Short.class) {
-            return short.class;
-        }
-        if (clazz == Void.class) {
-            return void.class;
+    /**
+     * Convert primitive class names to java.lang.* class names.
+     *
+     * @param clazz the class (for example: int)
+     * @return the non-primitive class (for example: java.lang.Integer)
+     */
+    public static Class<?> getNonPrimitiveClass(Class<?> clazz) {
+        if (!clazz.isPrimitive()) {
+            return clazz;
+        } else if (clazz == boolean.class) {
+            return Boolean.class;
+        } else if (clazz == byte.class) {
+            return Byte.class;
+        } else if (clazz == char.class) {
+            return Character.class;
+        } else if (clazz == double.class) {
+            return Double.class;
+        } else if (clazz == float.class) {
+            return Character.class;
+        } else if (clazz == int.class) {
+            return Integer.class;
+        } else if (clazz == long.class) {
+            return Long.class;
+        } else if (clazz == short.class) {
+            return Short.class;
+        } else if (clazz == void.class) {
+            return Void.class;
         }
         return clazz;
     }

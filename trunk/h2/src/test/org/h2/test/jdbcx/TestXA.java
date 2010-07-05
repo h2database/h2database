@@ -38,6 +38,7 @@ public class TestXA extends TestBase {
     public void test() throws Exception {
         testXAAutoCommit();
         deleteDb("xa");
+        testMixedXaNormal();
         testXA(true);
         deleteDb(DB_NAME1);
         deleteDb(DB_NAME2);
@@ -45,6 +46,33 @@ public class TestXA extends TestBase {
         deleteDb("xa");
         deleteDb(DB_NAME1);
         deleteDb(DB_NAME2);
+    }
+
+    private void testMixedXaNormal() throws Exception {
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL("jdbc:h2:mem:test");
+        ds.setUser("sa");
+        ds.setPassword("");
+        XAConnection xa = ds.getXAConnection();
+        Connection c = xa.getConnection();
+        assertTrue(c.getAutoCommit());
+        MyXid xid = new MyXid();
+        XAResource res = xa.getXAResource();
+
+        res.start(xid, XAResource.TMNOFLAGS);
+        assertTrue(!c.getAutoCommit());
+        res.end(xid, XAResource.TMSUCCESS);
+        res.commit(xid, true);
+        assertTrue(c.getAutoCommit());
+
+        res.start(xid, XAResource.TMNOFLAGS);
+        assertTrue(!c.getAutoCommit());
+        res.end(xid, XAResource.TMFAIL);
+        res.rollback(xid);
+        assertTrue(c.getAutoCommit());
+
+        c.close();
+        xa.close();
     }
 
     /**

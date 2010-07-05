@@ -78,7 +78,7 @@ public class DbUpgradeNonPageStoreToCurrent {
                 mustBeConverted = oldDataFile.exists() && !newFile.exists();
             }
         } catch (Exception e) {
-            DbException.toSQLException(e);
+            throw DbException.toSQLException(e);
         }
     }
 

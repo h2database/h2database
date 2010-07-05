@@ -434,7 +434,9 @@ public class PageStore implements CacheWriter {
             maxMove = Integer.MAX_VALUE;
         }
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x--, j++) {
-            compact(x);
+            synchronized (database) {
+                compact(x);
+            }
             long now = System.currentTimeMillis();
             if (now > start + maxCompactTime) {
                 break;
@@ -523,74 +525,73 @@ public class PageStore implements CacheWriter {
             if (p != null) {
                 return p;
             }
-        }
-        Data data = createData();
-        readPage(pageId, data);
-        int type = data.readByte();
-        if (type == Page.TYPE_EMPTY) {
-            return null;
-        }
-        data.readShortInt();
-        data.readInt();
-        if (!checksumTest(data.getBytes(), pageId, pageSize)) {
-            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
-        }
-        Page p;
-        switch (type & ~Page.FLAG_LAST) {
-        case Page.TYPE_FREE_LIST:
-            p = PageFreeList.read(this, data, pageId);
-            break;
-        case Page.TYPE_DATA_LEAF: {
-            int indexId = data.readVarInt();
-            PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
-            if (index == null) {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+            Data data = createData();
+            readPage(pageId, data);
+            int type = data.readByte();
+            if (type == Page.TYPE_EMPTY) {
+                return null;
             }
-            p = PageDataLeaf.read(index, data, pageId);
-            break;
-        }
-        case Page.TYPE_DATA_NODE: {
-            int indexId = data.readVarInt();
-            PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
-            if (index == null) {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+            data.readShortInt();
+            data.readInt();
+            if (!checksumTest(data.getBytes(), pageId, pageSize)) {
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
             }
-            p = PageDataNode.read(index, data, pageId);
-            break;
-        }
-        case Page.TYPE_DATA_OVERFLOW: {
-            p = PageDataOverflow.read(this, data, pageId);
-            break;
-        }
-        case Page.TYPE_BTREE_LEAF: {
-            int indexId = data.readVarInt();
-            PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
-            if (index == null) {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+            switch (type & ~Page.FLAG_LAST) {
+            case Page.TYPE_FREE_LIST:
+                p = PageFreeList.read(this, data, pageId);
+                break;
+            case Page.TYPE_DATA_LEAF: {
+                int indexId = data.readVarInt();
+                PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
+                if (index == null) {
+                    throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                }
+                p = PageDataLeaf.read(index, data, pageId);
+                break;
             }
-            p = PageBtreeLeaf.read(index, data, pageId);
-            break;
-        }
-        case Page.TYPE_BTREE_NODE: {
-            int indexId = data.readVarInt();
-            PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
-            if (index == null) {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+            case Page.TYPE_DATA_NODE: {
+                int indexId = data.readVarInt();
+                PageDataIndex index = (PageDataIndex) metaObjects.get(indexId);
+                if (index == null) {
+                    throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                }
+                p = PageDataNode.read(index, data, pageId);
+                break;
             }
-            p = PageBtreeNode.read(index, data, pageId);
-            break;
+            case Page.TYPE_DATA_OVERFLOW: {
+                p = PageDataOverflow.read(this, data, pageId);
+                break;
+            }
+            case Page.TYPE_BTREE_LEAF: {
+                int indexId = data.readVarInt();
+                PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
+                if (index == null) {
+                    throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                }
+                p = PageBtreeLeaf.read(index, data, pageId);
+                break;
+            }
+            case Page.TYPE_BTREE_NODE: {
+                int indexId = data.readVarInt();
+                PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
+                if (index == null) {
+                    throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                }
+                p = PageBtreeNode.read(index, data, pageId);
+                break;
+            }
+            case Page.TYPE_STREAM_TRUNK:
+                p = PageStreamTrunk.read(this, data, pageId);
+                break;
+            case Page.TYPE_STREAM_DATA:
+                p = PageStreamData.read(this, data, pageId);
+                break;
+            default:
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "page=" + pageId + " type=" + type);
+            }
+            cache.put(p);
+            return p;
         }
-        case Page.TYPE_STREAM_TRUNK:
-            p = PageStreamTrunk.read(this, data, pageId);
-            break;
-        case Page.TYPE_STREAM_DATA:
-            p = PageStreamData.read(this, data, pageId);
-            break;
-        default:
-            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "page=" + pageId + " type=" + type);
-        }
-        cache.put(p);
-        return p;
     }
 
     private int getFirstUncommittedSection() {
@@ -729,15 +730,17 @@ public class PageStore implements CacheWriter {
      */
     public void close() {
         trace.debug("close");
-        if (log != null) {
-            log.close();
-            log = null;
-        }
-        if (file != null) {
-            try {
-                file.close();
-            } finally {
-                file = null;
+        synchronized (database) {
+            if (log != null) {
+                log.close();
+                log = null;
+            }
+            if (file != null) {
+                try {
+                    file.close();
+                } finally {
+                    file = null;
+                }
             }
         }
     }
@@ -845,22 +848,24 @@ public class PageStore implements CacheWriter {
                 return list;
             }
         }
-        int p = PAGE_ID_FREE_LIST_ROOT + i * freeListPagesPerList;
-        while (p >= pageCount) {
-            increaseFileSize(INCREMENT_PAGES);
+        synchronized (database) {
+            int p = PAGE_ID_FREE_LIST_ROOT + i * freeListPagesPerList;
+            while (p >= pageCount) {
+                increaseFileSize(INCREMENT_PAGES);
+            }
+            if (p < pageCount) {
+                list = (PageFreeList) getPage(p);
+            }
+            if (list == null) {
+                list = PageFreeList.create(this, p);
+                cache.put(list);
+            }
+            while (freeLists.size() <= i) {
+                freeLists.add(null);
+            }
+            freeLists.set(i, list);
+            return list;
         }
-        if (p < pageCount) {
-            list = (PageFreeList) getPage(p);
-        }
-        if (list == null) {
-            list = PageFreeList.create(this, p);
-            cache.put(list);
-        }
-        while (freeLists.size() <= i) {
-            freeLists.add(null);
-        }
-        freeLists.set(i, list);
-        return list;
     }
 
     private void freePage(int pageId) {

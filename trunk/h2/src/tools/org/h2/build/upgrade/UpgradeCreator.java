@@ -20,6 +20,8 @@ public class UpgradeCreator {
      *
      * @param args the command line parameters
      */
+    private static String[] TEXTFILE_EXTENSIONS = { ".java", ".xml", ".bat", ".sh", ".txt", ".html", ".csv" };
+    
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
             System.out.println("Usage: java -cp . org.h2.build.upgrade.UpgradeCreator <srcDir> <destDir>");
@@ -58,41 +60,35 @@ public class UpgradeCreator {
         } else {
             byte[] content = BuildBase.readFile(file);
             String contentString = new String(content);
-            if (file.getName().endsWith(".java")) {
-                contentString = replaceInJavaFile(file, contentString);
-            }
-            if (file.getName().equals("build.sh") || file.getName().equals("build.bat") || file.getName().equals("build.xml")) {
-                contentString = contentString.replaceAll("org\\.h2\\.build", "org.h2.upgrade.v1_1.build");
-                contentString = contentString.replaceAll("org/h2/", "org/h2/upgrade/v1_1/");
+            if (isTextFile(file)) {
+                contentString = replace(file, contentString);
             }
             content = contentString.getBytes();
             BuildBase.writeFile(fileInDestDir, content);
         }
     }
 
-    private static String replaceInJavaFile(File file, String content) {
-        content = content.replaceAll("import org\\.h2", "import org.h2.upgrade.v1_1");
-        content = content.replaceAll("import static org\\.h2", "import static org.h2.upgrade.v1_1");
-        content = content.replaceAll("package org\\.h2", "package org.h2.upgrade.v1_1");
-        content = content.replaceAll("org\\.h2\\.samples", "org.h2.upgrade.v1_1.samples");
-        content = content.replaceAll("org\\.h2\\.tools", "org.h2.upgrade.v1_1.tools");
-        content = content.replaceAll("org\\.h2\\.mode", "org.h2.upgrade.v1_1.mode");
-        content = content.replaceAll("org\\.h2\\.Driver\\.load\\(\\)", "org.h2.upgrade.v1_1.Driver.load()");
-        content = content.replaceAll("org\\.h2\\.Driver\\.unload\\(\\)", "org.h2.upgrade.v1_1.Driver.unload()");
-
+    private static String replace(File file, String content) {
+        content = content.replaceAll("org\\.h2", "org.h2.upgrade.v1_1");
+        content = content.replaceAll("org/h2/", "org/h2/upgrade/v1_1/");
+        content = content.replaceAll("jdbc:h2:", "jdbc:h2v1_1:");
+        
         if (file.getName().equals("ConnectionInfo.java")) {
             content = content.replaceAll("boolean isPersistent\\(\\) \\{", "public boolean isPersistent() {");
             content = content.replaceAll("String getName\\(\\) throws SQLException \\{", "public String getName() throws SQLException {");
-        }
-        if (file.getName().equals("Constants.java")) {
-            content = content.replaceAll("public static final String START_URL = \"jdbc:h2:\";", "public static final String START_URL = \"jdbc:h2v1_1:\";");
-        }
-        if (file.getName().equals("SessionRemote.java")) {
-            content = content.replaceAll("org\\.h2\\.engine\\.SessionFactoryEmbedded", "org.h2.upgrade.v1_1.engine.SessionFactoryEmbedded");
         }
 
         return content;
     }
 
+    private static boolean isTextFile(File file) {
+        for (String extension : TEXTFILE_EXTENSIONS) {
+            if (file.getName().toLowerCase().endsWith(extension)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
 }
 

@@ -1058,11 +1058,12 @@ public class ErrorCode {
     public static final int DUPLICATE_PROPERTY_1 = 90066;
 
     /**
-     * The error with code <code>90067</code> is thrown when
-     * the connection to the database is lost. A possible reason
-     * is that the database connection has been closed due to a shutdown,
-     * or that the server is stopped. Other causes could be:
-     * the server is not an H2 server, or the network connection is broken.
+     * The error with code <code>90067</code> is thrown when the client could
+     * not connect to the database, or if the connection was lost. Possible
+     * reasons are: the database server is not running on the given port, the
+     * connection was closed due to a shutdown, or the server was stopped. Other
+     * possible causes are: the server is not an H2 server, or the network
+     * connection is broken.
      */
     public static final int CONNECTION_BROKEN_1 = 90067;
 

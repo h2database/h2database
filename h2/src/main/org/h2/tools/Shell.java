@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.StringReader;
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -24,13 +23,13 @@ import java.util.ArrayList;
 import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
-import org.h2.util.ScriptReader;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
+import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
 import org.h2.util.Tool;
+import org.h2.util.Utils;
 
 /**
  * Interactive command line tool to access a database using JDBC.
@@ -414,11 +413,9 @@ public class Shell extends Tool implements Runnable {
 
     private String readPassword() throws IOException {
         try {
-            Method getConsole = System.class.getMethod("console");
-            Object console = getConsole.invoke(null);
-            Method readPassword = console.getClass().getMethod("readPassword");
+            Object console = Utils.callStaticMethod("java.lang.System.console");
             print("Password  ");
-            char[] password = (char[]) readPassword.invoke(console);
+            char[] password = (char[]) Utils.callMethod(console, "readPassword");
             return password == null ? null : new String(password);
         } catch (Exception e) {
             // ignore, use the default solution

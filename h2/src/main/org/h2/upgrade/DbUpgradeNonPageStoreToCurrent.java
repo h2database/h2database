@@ -64,9 +64,9 @@ public class DbUpgradeNonPageStoreToCurrent {
             oldUrl = oldUrl.replaceAll(";IFEXISTS=FALSE", "");
             oldUrl += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
             Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", oldUrl, info);
-            boolean isRemote = (Boolean) Utils.callMethod("isRemote", ci);
-            boolean isPersistent = (Boolean) Utils.callMethod("isPersistent", ci);
-            String dbName = (String) Utils.callMethod("getName", ci);
+            boolean isRemote = (Boolean) Utils.callMethod(ci, "isRemote");
+            boolean isPersistent = (Boolean) Utils.callMethod(ci, "isPersistent");
+            String dbName = (String) Utils.callMethod(ci, "getName");
             // remove stackable file systems
             int colon = dbName.indexOf(':');
             while (colon != -1) {

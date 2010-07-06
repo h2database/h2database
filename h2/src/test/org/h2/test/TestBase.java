@@ -278,7 +278,10 @@ public abstract class TestBase {
             url += ";CACHE_TYPE=" + config.cacheType;
         }
         if (config.diskResult && admin) {
-            url += ";MAX_MEMORY_ROWS=100;CACHE_SIZE=0";
+            url += ";MAX_MEMORY_ROWS=100";
+            if (url.indexOf("CACHE_SIZE=") < 0) {
+                url += ";CACHE_SIZE=0";
+            }
         }
         if (config.cipher != null) {
             url += ";CIPHER=" + config.cipher;

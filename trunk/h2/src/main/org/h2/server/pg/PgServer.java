@@ -46,6 +46,11 @@ public class PgServer implements Service {
      */
     public static final int PG_TYPE_VARCHAR = 1043;
 
+    /**
+     * The integer array type (for the column pg_index.indkey).
+     */
+    public static final int PG_TYPE_INT2VECTOR = 22;
+
     private static final int PG_TYPE_BOOL = 16;
     private static final int PG_TYPE_BYTEA = 17;
     private static final int PG_TYPE_BPCHAR = 1042;
@@ -269,7 +274,7 @@ public class PgServer implements Service {
             if (rs.next()) {
                 return rs.getString(1);
             }
-            return null;
+            return "";
         }
         PreparedStatement prep = conn.prepareStatement("select column_name from information_schema.indexes where id=? and ordinal_position=?");
         prep.setInt(1, indexId);
@@ -278,7 +283,7 @@ public class PgServer implements Service {
         if (rs.next()) {
             return rs.getString(1);
         }
-        return null;
+        return "";
     }
 
     /**

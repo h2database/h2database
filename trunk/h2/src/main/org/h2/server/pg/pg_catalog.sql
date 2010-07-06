@@ -72,6 +72,15 @@ merge into pg_catalog.pg_type values(
     0,
     -1
 );
+merge into pg_catalog.pg_type values(
+    22,
+    'int2vector',
+    (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog'),
+    -1,
+    'c',
+    0,
+    -1
+);
 
 create view pg_catalog.pg_class -- (oid, relname, relnamespace, relkind, relam, reltuples, relpages, relhasrules, relhasoids)
 as
@@ -134,10 +143,10 @@ select
     t.id attrelid,
     c.column_name attname,
     pg_convertType(data_type) atttypid,
-    -1 attlen,
+    case when numeric_precision > 255 then -1 else numeric_precision end attlen,
     c.ordinal_position attnum,
     -1 atttypmod,
-    false attnotnull,
+    case c.is_nullable when 'YES' then false else true end attnotnull,
     false attisdropped,
     false atthasdef
 from information_schema.tables t, information_schema.columns c
@@ -149,10 +158,10 @@ select
     i.id attrelid,
     c.column_name attname,
     pg_convertType(data_type) atttypid,
-    -1 attlen,
+    case when numeric_precision > 255 then -1 else numeric_precision end attlen,
     c.ordinal_position attnum,
     -1 atttypmod,
-    false attnotnull,
+    case c.is_nullable when 'YES' then false else true end attnotnull,
     false attisdropped,
     false atthasdef
 from information_schema.tables t, information_schema.indexes i, information_schema.columns c
@@ -171,11 +180,13 @@ select
     not non_unique indisunique,
     primary_key indisprimary,
     cast('' as varchar_ignorecase) indexprs,
-    cast(0 as array) indkey
+    cast(1 as array) indkey
 from information_schema.indexes i, information_schema.tables t
 where i.table_schema = t.table_schema
 and i.table_name = t.table_name
-and i.ordinal_position = 1;
+and i.ordinal_position = 1
+-- workaround for MS Access problem opening tables with primary key
+and 1=0;
 
 drop alias if exists pg_get_indexdef;
 create alias pg_get_indexdef for "org.h2.server.pg.PgServer.getIndexColumn";

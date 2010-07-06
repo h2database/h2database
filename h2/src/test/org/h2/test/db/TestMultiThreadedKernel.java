@@ -102,18 +102,14 @@ public class TestMultiThreadedKernel extends TestBase {
                         + "as select x, space(3000) from system_range(1, " + count + ")");
             }
             final Random random = new Random(i);
-            final int x = i;
             Thread t = new Thread() {
                 public void run() {
                     try {
                         PreparedStatement prep = conn.prepareStatement(
                                 "select * from test where id = ?");
-                        Statement stat = conn.createStatement();
                         while (!stopped[0]) {
                             prep.setInt(1, random.nextInt(count));
                             prep.execute();
-                            stat.execute("create table test" + x + "(id int)");
-                            stat.execute("drop table test" + x);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

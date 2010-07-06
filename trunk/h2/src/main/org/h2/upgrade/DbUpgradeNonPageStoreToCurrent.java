@@ -160,6 +160,7 @@ public class DbUpgradeNonPageStoreToCurrent {
             if (deleteOldDb) {
                 backupDataFile.delete();
                 backupIndexFile.delete();
+                FileSystem.getInstance(backupLobsDir.getAbsolutePath()).deleteRecursive(backupLobsDir.getAbsolutePath(), false);
             }
 
 //            outputStream.println("H2 Migration of '" + oldFile.getPath() +

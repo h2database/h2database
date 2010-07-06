@@ -21,7 +21,13 @@ public class UpgradeCreator {
      * @param args the command line parameters
      */
     private static String[] TEXT_FILE_EXTENSIONS = { ".java", ".xml", ".bat", ".sh", ".txt", ".html", ".csv" };
-    
+
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     *
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
             System.out.println("Usage: java -cp . org.h2.build.upgrade.UpgradeCreator <srcDir> <destDir>");
@@ -72,7 +78,7 @@ public class UpgradeCreator {
         content = content.replaceAll("org\\.h2", "org.h2.upgrade.v1_1");
         content = content.replaceAll("org/h2/", "org/h2/upgrade/v1_1/");
         content = content.replaceAll("jdbc:h2:", "jdbc:h2v1_1:");
-        
+
         if (file.getName().equals("ConnectionInfo.java")) {
             content = content.replaceAll("boolean isPersistent\\(\\) \\{", "public boolean isPersistent() {");
             content = content.replaceAll("String getName\\(\\) throws SQLException \\{", "public String getName() throws SQLException {");
@@ -89,6 +95,6 @@ public class UpgradeCreator {
         }
         return false;
     }
-    
+
 }
 

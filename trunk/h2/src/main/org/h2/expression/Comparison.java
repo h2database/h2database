@@ -14,6 +14,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -451,13 +452,13 @@ public class Comparison extends Condition {
                 // a=b OR a=c
                 Database db = session.getDatabase();
                 if (rc && r2c && l.equals(l2)) {
-                    return new ConditionIn(db, left, Arrays.asList(right, other.right));
+                    return new ConditionIn(db, left, New.arrayList(Arrays.asList(right, other.right)));
                 } else if (rc && l2c && l.equals(r2)) {
-                    return new ConditionIn(db, left, Arrays.asList(right, other.left));
+                    return new ConditionIn(db, left, New.arrayList(Arrays.asList(right, other.left)));
                 } else if (lc && r2c && r.equals(l2)) {
-                    return new ConditionIn(db, right, Arrays.asList(left, other.right));
+                    return new ConditionIn(db, right, New.arrayList(Arrays.asList(left, other.right)));
                 } else if (lc && l2c && r.equals(r2)) {
-                    return new ConditionIn(db, right, Arrays.asList(left, other.left));
+                    return new ConditionIn(db, right, New.arrayList(Arrays.asList(left, other.left)));
                 }
             }
         }

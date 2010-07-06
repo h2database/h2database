@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.Properties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
+import org.h2.store.fs.FileSystemDisk;
 import org.h2.util.Utils;
 
 /**
@@ -30,12 +31,15 @@ public class DbUpgradeNonPageStoreToCurrent {
 
     private boolean mustBeConverted;
     private String newName;
+    private String newUrl;
     private String oldUrl;
     private File oldDataFile;
     private File oldIndexFile;
+    private File oldLobsDir;
     private File newFile;
     private File backupDataFile;
     private File backupIndexFile;
+    private File backupLobsDir;
 
     private boolean successful;
 
@@ -55,6 +59,9 @@ public class DbUpgradeNonPageStoreToCurrent {
 
     private void init() throws SQLException {
         try {
+            newUrl = url;
+            newUrl = newUrl.replaceAll(";UNDO_LOG=\\d", "");
+            newUrl += ";UNDO_LOG=0";
             String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
             oldUrl = url;
             oldUrl = oldUrl.replaceAll(org.h2.engine.Constants.START_URL, oldStartUrlPrefix);
@@ -70,9 +77,9 @@ public class DbUpgradeNonPageStoreToCurrent {
             // remove stackable file systems
             int colon = dbName.indexOf(':');
             while (colon != -1) {
-                String fileSystemPrefix = dbName.substring(colon);
+                String fileSystemPrefix = dbName.substring(0, colon+1);
                 FileSystem fs = FileSystem.getInstance(fileSystemPrefix);
-                if (fs == null) {
+                if (fs == null || fs instanceof FileSystemDisk) {
                     break;
                 }
                 dbName = dbName.substring(colon+1); 
@@ -81,12 +88,15 @@ public class DbUpgradeNonPageStoreToCurrent {
             if (!isRemote && isPersistent) {
                 String oldDataName = dbName + ".data.db";
                 String oldIndexName = dbName + ".index.db";
+                String oldLobsName = dbName + ".lobs.db";
                 newName = dbName + ".h2.db";
                 oldDataFile = new File(oldDataName).getAbsoluteFile();
                 oldIndexFile = new File(oldIndexName).getAbsoluteFile();
+                oldLobsDir = new File(oldLobsName).getAbsoluteFile();
                 newFile = new File(newName).getAbsoluteFile();
                 backupDataFile = new File(oldDataFile.getAbsolutePath() + ".backup");
                 backupIndexFile = new File(oldIndexFile.getAbsolutePath() + ".backup");
+                backupLobsDir = new File(oldLobsDir.getAbsolutePath() + ".backup");
                 mustBeConverted = oldDataFile.exists() && !newFile.exists();
             }
         } catch (Exception e) {
@@ -98,24 +108,20 @@ public class DbUpgradeNonPageStoreToCurrent {
     /**
      * Returns if a database must be converted by this class.
      *
-     * @param url The connection string
-     * @param info The connection properties
      * @return if the conversion classes were found and the database must be
      *         converted
      * @throws SQLException
      */
-    public boolean mustBeConverted(String url, Properties info) throws SQLException {
+    public boolean mustBeConverted() throws SQLException {
         return mustBeConverted;
     }
 
     /**
      * Converts the database from 1.1 (non page store) to current (page store).
      *
-     * @param url The connection string
-     * @param info The connection properties
      * @throws SQLException
      */
-    public void upgrade(String url, Properties info) throws SQLException {
+    public void upgrade() throws SQLException {
         successful = true;
         if (!mustBeConverted) {
             return;
@@ -141,10 +147,13 @@ public class DbUpgradeNonPageStoreToCurrent {
 
             oldDataFile.renameTo(backupDataFile);
             oldIndexFile.renameTo(backupIndexFile);
+            oldLobsDir.renameTo(backupLobsDir);
 
-            connection = DriverManager.getConnection(url, info);
+            connection = DriverManager.getConnection(newUrl, info);
             stmt = connection.createStatement();
             stmt.execute("runscript from '" + scriptFile + "'");
+            stmt.execute("analyze");
+            stmt.execute("shutdown compact");
             stmt.close();
             connection.close();
 
@@ -162,6 +171,9 @@ public class DbUpgradeNonPageStoreToCurrent {
             }
             if (backupIndexFile.exists()) {
                 backupIndexFile.renameTo(oldIndexFile);
+            }
+            if (backupLobsDir.exists()) {
+                backupLobsDir.renameTo(oldLobsDir);
             }
             newFile.delete();
 //            errorStream.println("H2 Migration of '" + oldFile.getPath() +

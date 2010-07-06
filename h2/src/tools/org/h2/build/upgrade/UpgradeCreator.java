@@ -20,7 +20,7 @@ public class UpgradeCreator {
      *
      * @param args the command line parameters
      */
-    private static String[] TEXTFILE_EXTENSIONS = { ".java", ".xml", ".bat", ".sh", ".txt", ".html", ".csv" };
+    private static String[] TEXT_FILE_EXTENSIONS = { ".java", ".xml", ".bat", ".sh", ".txt", ".html", ".csv" };
     
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
@@ -82,7 +82,7 @@ public class UpgradeCreator {
     }
 
     private static boolean isTextFile(File file) {
-        for (String extension : TEXTFILE_EXTENSIONS) {
+        for (String extension : TEXT_FILE_EXTENSIONS) {
             if (file.getName().toLowerCase().endsWith(extension)) {
                 return true;
             }

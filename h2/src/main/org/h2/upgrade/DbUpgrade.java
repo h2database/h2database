@@ -52,7 +52,7 @@ public class DbUpgrade {
         try {
             DbUpgradeNonPageStoreToCurrent instance = new DbUpgradeNonPageStoreToCurrent(url, info);
             runningConversions.put(url, instance);
-            instance.upgrade(url, info);
+            instance.upgrade();
         } finally {
             runningConversions.remove(url);
         }

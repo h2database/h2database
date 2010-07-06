@@ -108,10 +108,11 @@ public class TestPgServer extends TestBase {
         assertEquals("NAME", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
         rs = dbMeta.getIndexInfo(null, null, "TEST", false, false);
-        rs.next();
-        assertEquals("TEST", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TEST", rs.getString("TABLE_NAME"));
+        // index info is currently disabled
+        // rs.next();
+        // assertEquals("TEST", rs.getString("TABLE_NAME"));
+        // rs.next();
+        // assertEquals("TEST", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
         rs = stat.executeQuery("select version(), pg_postmaster_start_time(), current_schema()");
         rs.next();

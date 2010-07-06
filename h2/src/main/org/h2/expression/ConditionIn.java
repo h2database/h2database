@@ -6,7 +6,7 @@
  */
 package org.h2.expression;
 
-import java.util.List;
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -25,7 +25,7 @@ public class ConditionIn extends Condition {
 
     private final Database database;
     private Expression left;
-    private final List<Expression> valueList;
+    private final ArrayList<Expression> valueList;
     private int queryLevel;
 
     /**
@@ -35,7 +35,7 @@ public class ConditionIn extends Condition {
      * @param left the expression before IN
      * @param values the value list (at least one element)
      */
-    public ConditionIn(Database database, Expression left, List<Expression> values) {
+    public ConditionIn(Database database, Expression left, ArrayList<Expression> values) {
         this.database = database;
         this.left = left;
         this.valueList = values;

@@ -559,6 +559,7 @@ At this time, only a subset of the PostgreSQL network protocol is implemented.
 Also, there may be compatibility problems on the SQL level, with the catalog, or with text encoding.
 Problems are fixed as they are found.
 Currently, statements can not be canceled when using the PG protocol.
+Also, H2 does not provide index meta over ODBC.
 </p>
 <p>
 PostgreSQL ODBC Driver Setup requires a database password; that means it
@@ -573,6 +574,12 @@ This may be a problem if an attacker can listen to the data transferred between 
 and the server, because the password is readable to the attacker.
 Also, it is currently not possible to use encrypted SSL connections.
 Therefore the ODBC driver should not be used where security is important.
+</p>
+
+<h3>Using Microsoft Access</h3>
+<p>
+When using Microsoft Access to edit data in a linked H2 table, you may need to enable the following option:
+Tools - Options - Edit/Find - ODBC fields.
 </p>
 
 <h2 id="microsoft_dot_net">Using H2 in Microsoft .NET</h2>

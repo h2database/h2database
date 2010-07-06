@@ -184,7 +184,7 @@ public class MathUtils {
      */
     static void warn(String s, Throwable t) {
         // not a fatal problem, but maybe reduced security
-        System.out.println("RandomUtils warning: " + s);
+        System.out.println("Warning: " + s);
         if (t != null) {
             t.printStackTrace();
         }

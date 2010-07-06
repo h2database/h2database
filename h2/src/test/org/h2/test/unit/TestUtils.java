@@ -11,7 +11,7 @@ import org.h2.test.TestBase;
 import org.h2.util.Utils;
 
 /**
- * Tests reflection utils.
+ * Tests reflection utilities.
  */
 public class TestUtils extends TestBase {
 
@@ -34,12 +34,13 @@ public class TestUtils extends TestBase {
         long currentTimeMillis1 = System.currentTimeMillis();
         long currentTimeMillis2 = (Long) Utils.callStaticMethod("java.lang.System.currentTimeMillis");
         assertTrue(currentTimeMillis1 <= currentTimeMillis2);
-        // New Instance with Integer parameter (Autoboxing)
-        Object instance = Utils.newInstance("java.lang.StringBuilder", 10);
+        // New Instance
+        Object instance = Utils.newInstance("java.lang.StringBuilder");
         // New Instance with int parameter
         instance = Utils.newInstance("java.lang.StringBuilder", 10);
         // Instance methods
-        Utils.callMethod(instance, "append", "abc");
+        instance = Utils.newInstance("java.lang.StringBuilder", "abc");
+        // Instance methods
         int length = (Integer) Utils.callMethod(instance, "length");
         assertEquals(3, length);
         // Static fields

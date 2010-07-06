@@ -18,12 +18,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Automatic database upgrade from non page store is now possible. If the file
-    h2mig_pagestore_addon.jar is found, the database will be converted to the current
+<ul><li>Conditions with many OR operations could throw an UnsupportedOperationException.
+</li><li>XA connection: after transaction commit or rollback, 
+    the physical connection is set into autocommit mode.
+</li><li>MULTI_THREADED did not work correctly and could throw the exception
+    "try to add a record twice" for larger databases because cache access was not correctly synchronized.    
+</li><li>Automatic database upgrade from non page store is now possible. If the 
+    classes from the h2mig_pagestore_addon.jar file are in the classpath, the database will be converted to the current
     page store format automatically. The file can be found here:
     <a href="http://h2database.com/h2mig_pagestore_addon.jar">http://h2database.com/h2mig_pagestore_addon.jar</a>
 </li><li>The MultiDimension tools was extended with a few helper methods.
     The API was unified a bit.
+</li><li>ODBC: MS Access could not link to a table with unique index or primary key.
+    To solve this problem, index meta data is currently disabled for ODBC.
 </li><li>ODBC: MS Access could not link to a table with a name containing '_'.
 </li><li>ODBC: additional connection settings can now be added to the database name.
     Example: ~/test;cipher=xtea. Therefore, encrypted databases are supported.

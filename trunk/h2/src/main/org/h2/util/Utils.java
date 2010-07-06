@@ -697,7 +697,7 @@ public class Utils {
         } else if (clazz == double.class) {
             return Double.class;
         } else if (clazz == float.class) {
-            return Character.class;
+            return Float.class;
         } else if (clazz == int.class) {
             return Integer.class;
         } else if (clazz == long.class) {

@@ -38,11 +38,12 @@ public class TestUtils extends TestBase {
         Object instance = Utils.newInstance("java.lang.StringBuilder");
         // New Instance with int parameter
         instance = Utils.newInstance("java.lang.StringBuilder", 10);
+        // StringBuilder.append or length don't work on JDK 5 due to
+        // http://bugs.sun.com/view_bug.do?bug_id=4283544
+        instance = Utils.newInstance("java.lang.Integer", 10);
         // Instance methods
-        instance = Utils.newInstance("java.lang.StringBuilder", "abc");
-        // Instance methods
-        int length = (Integer) Utils.callMethod(instance, "length");
-        assertEquals(3, length);
+        long x = (Long) Utils.callMethod(instance, "longValue");
+        assertEquals(10, x);
         // Static fields
         String pathSeparator = (String) Utils.getStaticField("java.io.File.pathSeparator");
         assertEquals(File.pathSeparator, pathSeparator);

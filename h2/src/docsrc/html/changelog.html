@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Conditions with many OR operations could throw an UnsupportedOperationException.
+<ul><li>Conditions with many OR operations could throw an UnsupportedOperationException if
+    h2.optimizeOr was enabled.
 </li><li>XA connection: after transaction commit or rollback, 
     the physical connection is set into autocommit mode.
 </li><li>MULTI_THREADED did not work correctly and could throw the exception

@@ -145,7 +145,7 @@ public class RunScript extends Tool {
     }
 
     /**
-     * Executes the SQL commands in a script file against a database.
+     * Executes the SQL commands read from the reader against a database.
      *
      * @param conn the connection to a database
      * @param reader the reader

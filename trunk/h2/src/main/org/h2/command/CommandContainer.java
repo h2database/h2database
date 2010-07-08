@@ -45,7 +45,7 @@ public class CommandContainer extends Command {
             String sql = prepared.getSQL();
             ArrayList<Parameter> oldParams = prepared.getParameters();
             Parser parser = new Parser(session);
-            prepared = parser.parseOnly(sql);
+            prepared = parser.parse(sql);
             long mod = prepared.getModificationMetaId();
             prepared.setModificationMetaId(0);
             ArrayList<Parameter> newParams = prepared.getParameters();
@@ -88,6 +88,10 @@ public class CommandContainer extends Command {
 
     public ResultInterface queryMeta() {
         return prepared.queryMeta();
+    }
+
+    public boolean isCacheable() {
+        return prepared.isCacheable();
     }
 
 }

@@ -1167,4 +1167,9 @@ public class Select extends Query {
         return isEverything(ExpressionVisitor.READONLY);
     }
 
+
+    public boolean isCacheable() {
+        return !isForUpdate;
+    }
+
 }

@@ -31,6 +31,7 @@ import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorage;
 import org.h2.table.Table;
 import org.h2.util.New;
+import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -100,6 +101,8 @@ public class Session extends SessionWithState implements SessionFactory {
     private int modificationId;
     private int modificationIdState;
     private int objectId;
+    private int queryCacheSize = SysProperties.QUERY_CACHE_SIZE;
+    private SmallLRUCache<String, Command> queryCache;
 
     public Session() {
         // to create a new session using the factory
@@ -416,8 +419,25 @@ public class Session extends SessionWithState implements SessionFactory {
         if (closed) {
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "session closed");
         }
+        Command command;
+        if (queryCacheSize > 0) {
+            if (queryCache == null) {
+                queryCache = SmallLRUCache.newInstance(queryCacheSize);
+            } else {
+                command = queryCache.get(sql);
+                if (command != null) {
+                    return command;
+                }
+            }
+        }
         Parser parser = new Parser(this);
-        return parser.prepareCommand(sql);
+        command = parser.prepareCommand(sql);
+        if (queryCache != null) {
+            if (command.isCacheable()) {
+                queryCache.put(sql, command);
+            }
+        }
+        return command;
     }
 
     public Database getDatabase() {

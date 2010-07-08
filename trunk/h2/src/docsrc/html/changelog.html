@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Conditions with many OR operations could throw an UnsupportedOperationException if
+<ul><li>New experimental query cache.
+    The cache is only used if the SQL statement and all parameters match. 
+    Each session has it's own cache with the given size.
+    Only the last returned result per query is cached. 
+    Only SELECT statements are cached (excluding UNION and FOR UPDATE statements).
+    This works for both statements and prepared statement.
+    To enable, set the system property h2.commandCacheSize to a value larger than 0.
+    There is currently no plan to enable this option by default in future versions.
+</li><li>Conditions with many OR operations could throw an UnsupportedOperationException if
     h2.optimizeOr was enabled.
 </li><li>XA connection: after transaction commit or rollback, 
     the physical connection is set into autocommit mode.
@@ -32,6 +40,9 @@ Change Log
     The API was unified a bit.
 </li><li>ODBC: MS Access could not link to a table with unique index or primary key.
     To solve this problem, index meta data is currently disabled for ODBC.
+    When using the new H2 version to access a database over ODBC, the PostgreSQL catalog
+    is automatically upgraded. Using a database with an upgraded PostgreSQL catalog
+    with an older version of H2 is still possible, but not over ODBC.
 </li><li>ODBC: MS Access could not link to a table with a name containing '_'.
 </li><li>ODBC: additional connection settings can now be added to the database name.
     Example: ~/test;cipher=xtea. Therefore, encrypted databases are supported.

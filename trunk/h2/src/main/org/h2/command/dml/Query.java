@@ -55,6 +55,7 @@ public abstract class Query extends Prepared {
     private long lastEvaluated;
     private LocalResult lastResult;
     private Value[] lastParameters;
+    private boolean cacheableChecked, cacheable;
 
     public Query(Session session) {
         super(session);
@@ -180,8 +181,15 @@ public abstract class Query extends Prepared {
         return true;
     }
 
-    private boolean sameResultAsLast(Session s, Value[] params, Value[] lastParams, long lastEval)
-            {
+    private boolean sameResultAsLast(Session s, Value[] params, Value[] lastParams, long lastEval) {
+        if (!cacheableChecked) {
+            long max = getMaxDataModificationId();
+            cacheable = max != Long.MAX_VALUE;
+            cacheableChecked = true;
+        }
+        if (!cacheable) {
+            return false;
+        }
         Database db = s.getDatabase();
         for (int i = 0; i < params.length; i++) {
             if (!db.areEqual(lastParams[i], params[i])) {

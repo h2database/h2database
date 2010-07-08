@@ -261,4 +261,9 @@ public abstract class Command implements CommandInterface {
     public String toString() {
         return TraceObject.toString(sql, getParameters());
     }
+
+    public boolean isCacheable() {
+        return false;
+    }
+
 }

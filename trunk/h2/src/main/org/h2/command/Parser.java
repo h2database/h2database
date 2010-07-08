@@ -205,16 +205,6 @@ public class Parser {
     }
 
     /**
-     * Parse the statement, but don't prepare it for execution.
-     *
-     * @param sql the SQL statement to parse
-     * @return the prepared object
-     */
-    public Prepared parseOnly(String sql) {
-        return parse(sql);
-    }
-
-    /**
      * Parse a statement or a list of statements, and prepare it for execution.
      *
      * @param sql the SQL statement to parse
@@ -222,8 +212,7 @@ public class Parser {
      */
     public Command prepareCommand(String sql) {
         try {
-            Prepared p = parse(sql);
-            p.prepare();
+            Prepared p = prepare(sql);
             Command c = new CommandContainer(this, sql, p);
             p.setCommand(c);
             if (isToken(";")) {
@@ -246,7 +235,13 @@ public class Parser {
         }
     }
 
-    private Prepared parse(String sql) {
+    /**
+     * Parse the statement, but don't prepare it for execution.
+     *
+     * @param sql the SQL statement to parse
+     * @return the prepared object
+     */
+    Prepared parse(String sql) {
         Prepared p;
         try {
             // first, try the fast variant

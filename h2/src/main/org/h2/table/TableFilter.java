@@ -34,7 +34,14 @@ import org.h2.value.Value;
  */
 public class TableFilter implements ColumnResolver {
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
+
     protected Session session;
+
+    /**
+     * Whether this is a direct or indirect (nested) outer join
+     */
+    protected boolean joinOuterIndirect;
+
     private final Table table;
     private final Select select;
     private String alias;
@@ -81,11 +88,6 @@ public class TableFilter implements ColumnResolver {
      * Whether this is an outer join.
      */
     private boolean joinOuter;
-
-    /**
-     * Whether this is a direct or indirect (nested) outer join
-     */
-    protected boolean joinOuterIndirect;
 
     /**
      * The nested joined table (if there is one).

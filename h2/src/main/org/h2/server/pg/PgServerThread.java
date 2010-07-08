@@ -589,7 +589,6 @@ public class PgServerThread implements Runnable {
     private void initDb() throws SQLException {
         Statement stat = null;
         ResultSet rs = null;
-        Reader r = null;
         try {
             synchronized (server) {
                 // better would be: set the database to exclusive mode
@@ -597,30 +596,21 @@ public class PgServerThread implements Runnable {
                 boolean tableFound = rs.next();
                 stat = conn.createStatement();
                 if (!tableFound) {
-                    try {
-                        r = new InputStreamReader(new ByteArrayInputStream(Utils
-                                .getResource("/org/h2/server/pg/pg_catalog.sql")));
-                    } catch (IOException e) {
-                        throw DbException.convertIOException(e, "Can not read pg_catalog resource");
+                    installPgCatalog(stat);
+                }
+                rs = stat.executeQuery("SELECT * FROM PG_CATALOG.PG_VERSION");
+                if (!rs.next() || rs.getInt(1) < 2) {
+                    // installation incomplete, or old version
+                    installPgCatalog(stat);
+                } else {
+                    // version 2 or newer: check the read version
+                    int versionRead = rs.getInt(2);
+                    if (versionRead > 2) {
+                        throw DbException.throwInternalError("Incompatible PG_VERSION");
                     }
-                    ScriptReader reader = new ScriptReader(r);
-                    while (true) {
-                        String sql = reader.readStatement();
-                        if (sql == null) {
-                            break;
-                        }
-                        stat.execute(sql);
-                    }
-                    reader.close();
                 }
             }
-
-            rs = stat.executeQuery("SELECT VERSION FROM PG_CATALOG.PG_VERSION");
-            if (!rs.next() || rs.getInt(1) != 1) {
-                throw DbException.throwInternalError("Invalid PG_VERSION");
-            }
             stat.execute("set search_path = PUBLIC, pg_catalog");
-
             HashSet<Integer> typeSet = server.getTypeSet();
             if (typeSet.size() == 0) {
                 rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
@@ -631,6 +621,26 @@ public class PgServerThread implements Runnable {
         } finally {
             JdbcUtils.closeSilently(stat);
             JdbcUtils.closeSilently(rs);
+        }
+    }
+
+    private void installPgCatalog(Statement stat) throws SQLException {
+        Reader r = null;
+        try {
+            r = new InputStreamReader(new ByteArrayInputStream(Utils
+                    .getResource("/org/h2/server/pg/pg_catalog.sql")));
+            ScriptReader reader = new ScriptReader(r);
+            while (true) {
+                String sql = reader.readStatement();
+                if (sql == null) {
+                    break;
+                }
+                stat.execute(sql);
+            }
+            reader.close();
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, "Can not read pg_catalog resource");
+        } finally {
             IOUtils.closeSilently(r);
         }
     }

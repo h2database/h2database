@@ -14,7 +14,7 @@ create alias pg_convertType deterministic for "org.h2.server.pg.PgServer.convert
 drop alias if exists pg_get_oid;
 create alias pg_get_oid deterministic for "org.h2.server.pg.PgServer.getOid";
 
-create table pg_catalog.pg_version as select 1 as version;
+create table pg_catalog.pg_version as select 2 as version, 2 as version_read;
 
 create view pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
 as

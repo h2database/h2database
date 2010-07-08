@@ -410,4 +410,8 @@ public abstract class Prepared {
         return e.addSQL(buff.toString());
     }
 
+    public boolean isCacheable() {
+        return false;
+    }
+
 }

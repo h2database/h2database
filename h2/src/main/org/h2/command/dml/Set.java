@@ -350,6 +350,9 @@ public class Set extends Prepared {
         }
         // the meta data information has changed
         database.getNextModificationDataId();
+        // query caches might be affected as well, for example
+        // when changing the compatibility mode
+        database.getNextModificationMetaId();
         return 0;
     }
 

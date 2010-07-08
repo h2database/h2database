@@ -1747,6 +1747,14 @@ public class MetaTable extends Table {
     }
 
     public long getMaxDataModificationId() {
+        switch (type) {
+        case SETTINGS:
+        case IN_DOUBT:
+        case SESSIONS:
+        case LOCKS:
+        case SESSION_STATE:
+            return Long.MAX_VALUE;
+        }
         return database.getModificationDataId();
     }
 

@@ -181,6 +181,16 @@ public class SysProperties {
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
 
     /**
+     * System property <code>h2.commandCacheSize</code> (default: 0).<br />
+     * The size of the query cache. Each session has it's own cache with the
+     * given size. The cache is only used if the SQL statement and all
+     * parameters match. Only the last returned result per query is cached. Only
+     * SELECT statements are cached (excluding UNION and FOR UPDATE statements).
+     * This works for both statements and prepared statement.
+     */
+    public static final int QUERY_CACHE_SIZE = getIntSetting("h2.queryCacheSize", 0);
+
+    /**
      * System property <code>h2.consoleStream</code> (default: true).<br />
      * H2 Console: stream query results.
      */

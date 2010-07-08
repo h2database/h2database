@@ -44,6 +44,7 @@ import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
 import org.h2.test.db.TestOutOfMemory;
 import org.h2.test.db.TestPowerOff;
+import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
 import org.h2.test.db.TestRights;
 import org.h2.test.db.TestRunscript;
@@ -308,7 +309,8 @@ java org.h2.test.TestAll timer
         // System.setProperty("h2.analyzeAuto", "100");
         // System.setProperty("h2.nestedJoins", "true");
         // System.setProperty("h2.optimizeOr", "true");
-        // System.setProperty("h2.dropRestrict", "true");
+        // System.setProperty("h2.queryCacheSize", "100");
+         // System.setProperty("h2.dropRestrict", "true");
 
         int speedup;
         // System.setProperty("h2.syncMethod", "");
@@ -529,6 +531,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestOptimizations().runTest(this);
         new TestOutOfMemory().runTest(this);
         new TestPowerOff().runTest(this);
+        new TestQueryCache().runTest(this);
         new TestReadOnly().runTest(this);
         new TestRights().runTest(this);
         new TestRunscript().runTest(this);

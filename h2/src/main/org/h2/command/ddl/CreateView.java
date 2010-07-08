@@ -167,9 +167,11 @@ public class CreateView extends SchemaCommand {
         }
     }
 
-    // Class that holds a snapshot of dependent view information.
-    // We can't just work with TableViews directly because they become invalid
-    // when we drop the parent view.
+    /**
+     * Class that holds a snapshot of dependent view information. We can't just
+     * work with TableViews directly because they become invalid when we drop
+     * the parent view.
+     */
     private class DependentView {
         String viewName;
         String createSql;

@@ -20,7 +20,7 @@ public class UpgradeCreator {
      *
      * @param args the command line parameters
      */
-    private static String[] TEXT_FILE_EXTENSIONS = { ".java", ".xml", ".bat", ".sh", ".txt", ".html", ".csv" };
+    private static final String[] TEXT_FILE_EXTENSIONS = { ".java", ".xml", ".bat", ".sh", ".txt", ".html", ".csv" };
 
     /**
      * This method is called when executing this application from the command

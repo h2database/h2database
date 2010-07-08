@@ -104,7 +104,7 @@ public class TestNestedJoins extends TestBase {
             }
         }
         Random random = new Random(1);
-        for (int i=0; i<10000; i++) {
+        for (int i = 0; i < 10000; i++) {
             StringBuilder buff = new StringBuilder();
             int t = 1 + random.nextInt(9);
             buff.append("select ");
@@ -223,7 +223,7 @@ public class TestNestedJoins extends TestBase {
         ArrayList<String> list = New.arrayList();
         while (rs.next()) {
             StringBuilder buff = new StringBuilder();
-            for (int i=0; i<rs.getMetaData().getColumnCount(); i++) {
+            for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {
                 if (i > 0) {
                     buff.append(" ");
                 }

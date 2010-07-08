@@ -15,7 +15,6 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -625,7 +624,7 @@ public class Utils {
     private static int match(Class<?>[] params, Object[] values) {
         if (params.length == values.length) {
             int points = 1;
-            for (int i=0; i<params.length; i++) {
+            for (int i = 0; i < params.length; i++) {
                 Class<?> pc = getNonPrimitiveClass(params[i]);
                 Class<?> vc = values[i].getClass();
                 if (pc == vc) {

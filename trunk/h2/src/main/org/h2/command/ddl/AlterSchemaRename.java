@@ -28,8 +28,8 @@ public class AlterSchemaRename extends DefineCommand {
         super(session);
     }
 
-    public void setOldSchema(Schema Schema) {
-        oldSchema = Schema;
+    public void setOldSchema(Schema schema) {
+        oldSchema = schema;
     }
 
     public void setNewName(String name) {

@@ -37,7 +37,7 @@ public class DbUpgrade {
      * @param info The connection Properties
      * @throws SQLException
      */
-    public synchronized static void upgrade(String url, Properties info) throws SQLException {
+    public static synchronized void upgrade(String url, Properties info) throws SQLException {
         if (nonPageStoreToCurrentEnabled) {
             upgradeFromNonPageStore(url, info);
         }

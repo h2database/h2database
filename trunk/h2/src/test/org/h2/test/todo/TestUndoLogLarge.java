@@ -38,7 +38,7 @@ public class TestUndoLogLarge {
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test(name) values(space(1024*1024))");
         long time = System.currentTimeMillis();
-        for (int i=0; i<2500; i++) {
+        for (int i = 0; i < 2500; i++) {
             prep.execute();
             long now = System.currentTimeMillis();
             if (now > time + 5000) {

@@ -23,8 +23,8 @@ import org.h2.util.Utils;
  */
 public class DbUpgradeNonPageStoreToCurrent {
 
-    private static boolean scriptInTmpDir = false;
-    private static boolean deleteOldDb = false;
+    private static boolean scriptInTmpDir;
+    private static boolean deleteOldDb;
 
     private String url;
     private Properties info;
@@ -82,7 +82,7 @@ public class DbUpgradeNonPageStoreToCurrent {
                 if (fs == null || fs instanceof FileSystemDisk) {
                     break;
                 }
-                dbName = dbName.substring(colon+1); 
+                dbName = dbName.substring(colon+1);
                 colon = dbName.indexOf(':');
             }
             if (!isRemote && isPersistent) {

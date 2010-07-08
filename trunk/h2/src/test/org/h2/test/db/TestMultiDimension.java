@@ -52,12 +52,12 @@ public class TestMultiDimension extends TestBase {
         assertEquals(5, m.interleave(3, 0));
         assertEquals(5, m.interleave(new int[]{3, 0}));
         assertEquals(10, m.interleave(0, 3));
-        assertEquals(10, m.interleave(new int[]{0, 3}));
-        long v = ((long) Integer.MAX_VALUE | ((long) Integer.MAX_VALUE << 31L));
+        assertEquals(10, m.interleave(new int[] { 0, 3 }));
+        long v = (long) Integer.MAX_VALUE | ((long) Integer.MAX_VALUE << 31L);
         assertEquals(v, m.interleave(Integer.MAX_VALUE, Integer.MAX_VALUE));
-        assertEquals(v, m.interleave(new int[] {Integer.MAX_VALUE, Integer.MAX_VALUE }));
+        assertEquals(v, m.interleave(new int[] { Integer.MAX_VALUE, Integer.MAX_VALUE }));
         Random random = new Random(1);
-        for (int i=0; i<1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             int x = random.nextInt(Integer.MAX_VALUE), y = random.nextInt(Integer.MAX_VALUE);
             v = m.interleave(new int[] {x, y});
             long v2 = m.interleave(x, y);

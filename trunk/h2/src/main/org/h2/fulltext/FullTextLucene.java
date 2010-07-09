@@ -285,6 +285,11 @@ public class FullTextLucene extends FullText {
         if (path == null) {
             throw throwException("Fulltext search for in-memory databases is not supported.");
         }
+        int index = path.lastIndexOf(':');
+        // position 1 means a windows drive letter is used, ignore that
+        if (index > 1) {
+            path = path.substring(index + 1);
+        }
         rs.close();
         return path;
     }

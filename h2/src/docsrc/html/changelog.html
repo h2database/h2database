@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New experimental query cache.
+<ul><li>Memory mapped file system: improved error messages if there is a problem.
+</li><li>The Lucene fulltext search did not work well
+    when using special file systems such as split or nioMapped.
+</li><li>Some file system operations did not work with stacked file systems
+	(for example split and nioMapped). This also affected the DeleteDbFiles tool.
+</li><li>New experimental query cache.
     The cache is only used if the SQL statement and all parameters match. 
     Each session has it's own cache with the given size.
     Only the last returned result per query is cached. 

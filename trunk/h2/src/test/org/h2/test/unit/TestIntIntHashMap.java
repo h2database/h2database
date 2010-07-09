@@ -28,6 +28,13 @@ public class TestIntIntHashMap extends TestBase {
     }
 
     public void test() {
+        IntIntHashMap map = new IntIntHashMap();
+        map.put(1, 1);
+        map.put(1, 2);
+        assertEquals(1, map.size());
+        map.put(0, 1);
+        map.put(0, 2);
+        assertEquals(2, map.size());
         rand.setSeed(10);
         test(true);
         test(false);

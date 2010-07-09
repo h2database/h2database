@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
+import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
 import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
@@ -27,6 +28,7 @@ class AggregateData {
     private final int aggregateType;
     private final int dataType;
     private long count;
+    private IntIntHashMap distinctHashes;
     private ValueHashMap<AggregateData> distinctValues;
     private Value value;
     private double sum, vpn;
@@ -47,15 +49,17 @@ class AggregateData {
     void add(Database database, boolean distinct, Value v) {
         if (aggregateType == Aggregate.SELECTIVITY) {
             count++;
-            if (distinctValues == null) {
-                distinctValues = ValueHashMap.newInstance();
+            if (distinctHashes == null) {
+                distinctHashes = new IntIntHashMap();
             }
-            int size = distinctValues.size();
+            int size = distinctHashes.size();
             if (size > Constants.SELECTIVITY_DISTINCT_COUNT) {
-                distinctValues = ValueHashMap.newInstance();
+                distinctHashes = new IntIntHashMap();
                 sum += size;
             }
-            distinctValues.put(v, this);
+            int hash = v.hashCode();
+            // the value -1 is not supported
+            distinctHashes.put(hash, 1);
             return;
         }
         if (aggregateType == Aggregate.COUNT_ALL) {
@@ -168,7 +172,7 @@ class AggregateData {
             if (count == 0) {
                 s = 0;
             } else {
-                sum += distinctValues.size();
+                sum += distinctHashes.size();
                 sum = 100 * sum / count;
                 s = (int) sum;
                 s = s <= 0 ? 1 : s > 100 ? 100 : s;

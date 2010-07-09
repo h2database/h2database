@@ -6,10 +6,12 @@
  */
 package org.h2.store.fs;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.nio.BufferUnderflowException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import org.h2.constant.SysProperties;
@@ -57,6 +59,8 @@ public class FileObjectDiskMapped implements FileObject {
                     clearMethod.invoke(cleaner);
                 } catch (Throwable e) {
                     useSystemGc = true;
+                } finally {
+                    mapped = null;
                 }
             } else {
                 useSystemGc = true;
@@ -90,12 +94,18 @@ public class FileObjectDiskMapped implements FileObject {
         }
         long length = file.length();
         checkFileLength(length);
-        // maps new MappedByteBuffer, old one is disposed during GC
+        // maps new MappedByteBuffer; the old one is disposed during GC
         mapped = file.getChannel().map(mode, 0, length);
+        int limit = mapped.limit();
+        int capacity = mapped.capacity();
+        if (limit < length || capacity < length) {
+            throw new IOException("Unable to map: length=" + limit + " capacity=" + capacity + " length=" + length);
+        }
         if (SysProperties.NIO_LOAD_MAPPED) {
             mapped.load();
         }
-        mapped.position(oldPos);
+        int pos = Math.min(oldPos, (int) length);
+        mapped.position(pos);
     }
 
     private void checkFileLength(long length) throws IOException {
@@ -122,8 +132,14 @@ public class FileObjectDiskMapped implements FileObject {
         return file.length();
     }
 
-    public void readFully(byte[] b, int off, int len) {
-        mapped.get(b, off, len);
+    public void readFully(byte[] b, int off, int len) throws EOFException {
+        try {
+            mapped.get(b, off, len);
+        } catch (BufferUnderflowException e) {
+            EOFException e2 = new EOFException("EOF");
+            e2.initCause(e);
+            throw e2;
+        }
     }
 
     public void seek(long pos) throws IOException {

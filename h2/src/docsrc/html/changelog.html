@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Memory mapped file system: improved error messages if there is a problem.
+<ul><li>There was a bug in the internal IntIntHashMap. There were now known side effects however.
+</li><li>ANALYZE now uses less memory.
+</li><li>Memory mapped file system: improved error messages if there is a problem.
 </li><li>The Lucene fulltext search did not work well
     when using special file systems such as split or nioMapped.
 </li><li>Some file system operations did not work with stacked file systems

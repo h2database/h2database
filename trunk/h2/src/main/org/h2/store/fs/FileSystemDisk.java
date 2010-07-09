@@ -376,6 +376,7 @@ public class FileSystemDisk extends FileSystem {
 
     public boolean fileStartsWith(String fileName, String prefix) {
         fileName = translateFileName(fileName);
+        prefix = translateFileName(prefix);
         if (IS_FILE_SYSTEM_CASE_INSENSITIVE) {
             fileName = StringUtils.toUpperEnglish(fileName);
             prefix = StringUtils.toUpperEnglish(prefix);

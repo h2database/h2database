@@ -206,6 +206,7 @@ public abstract class TestBase {
         if (config != null && config.record) {
             return RecordingFileSystem.PREFIX + "memFS:" + baseDir;
         }
+        // return "split:nioMapped:" + baseDir;
         return baseDir;
     }
 

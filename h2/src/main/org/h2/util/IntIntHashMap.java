@@ -42,6 +42,7 @@ public class IntIntHashMap extends HashBase {
         if (key == 0) {
             zeroKey = true;
             zeroValue = value;
+            return;
         }
         try {
             checkSizePut();

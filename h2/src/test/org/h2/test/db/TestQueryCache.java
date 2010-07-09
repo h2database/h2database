@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 /**
@@ -22,7 +23,7 @@ public class TestQueryCache extends TestBase {
     }
 
     public void test() throws Exception {
-        if (Integer.parseInt(System.getProperty("h2.queryCacheSize")) <= 0) {
+        if (SysProperties.QUERY_CACHE_SIZE <= 0) {
             return;
         }
         deleteDb("queryCache");

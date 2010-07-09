@@ -6,7 +6,6 @@
  */
 package org.h2.test.unit;
 
-import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -19,6 +18,7 @@ import java.util.List;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 
 /**
@@ -209,7 +209,7 @@ public class TestFileLockSerialized extends TestBase {
         SortedProperties p = SortedProperties.loadProperties(propFile);
         p.setProperty("changePending", "true");
         p.setProperty("modificationDataId", "1000");
-        OutputStream out = new FileOutputStream(propFile, false);
+        OutputStream out = IOUtils.openFileOutputStream(propFile, false);
         try {
             p.store(out, "test");
         } finally {

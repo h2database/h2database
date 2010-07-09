@@ -11,12 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
-
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcStatement;
-import org.h2.store.fs.FileObject;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Tests for the Statement implementation.
@@ -65,14 +63,13 @@ public class TestStatement extends TestBase {
         } catch (SQLException e) {
             // ignore
         }
-        FileObject trace = FileSystem.getInstance(fileName).openFileObject(fileName, "r");
-        long lengthBefore = trace.length();
+        long lengthBefore = IOUtils.length(fileName);
         try {
             stat.execute("ERROR");
         } catch (SQLException e) {
             // ignore
         }
-        long error = trace.length();
+        long error = IOUtils.length(fileName);
         assertSmaller(lengthBefore, error);
         lengthBefore = error;
         try {
@@ -80,7 +77,7 @@ public class TestStatement extends TestBase {
         } catch (SQLException e) {
             // ignore
         }
-        error = trace.length();
+        error = IOUtils.length(fileName);
         assertEquals(lengthBefore, error);
         stat.execute("DROP TABLE TEST IF EXISTS");
     }

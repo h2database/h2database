@@ -8,11 +8,10 @@ package org.h2.test.unit;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Random;
-
 import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.test.TestBase;
@@ -55,10 +54,12 @@ public class TestStreams extends TestBase {
     private void testLZFStreamClose() throws IOException {
         String fileName = getBaseDir() + "/temp";
         IOUtils.createDirs(fileName);
-        LZFOutputStream out = new LZFOutputStream(new FileOutputStream(fileName));
+        OutputStream fo = IOUtils.openFileOutputStream(fileName, false);
+        LZFOutputStream out = new LZFOutputStream(fo);
         out.write("Hello".getBytes());
         out.close();
-        LZFInputStream in = new LZFInputStream(new FileInputStream(fileName));
+        InputStream fi = IOUtils.openFileInputStream(fileName);
+        LZFInputStream in = new LZFInputStream(fi);
         byte[] buff = new byte[100];
         assertEquals(5, in.read(buff));
         in.read();

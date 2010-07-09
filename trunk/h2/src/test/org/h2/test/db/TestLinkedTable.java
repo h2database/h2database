@@ -6,7 +6,6 @@
  */
 package org.h2.test.db;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -17,7 +16,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import org.h2.constant.SysProperties;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Tests the linked table feature (CREATE LINKED TABLE).
@@ -609,12 +610,14 @@ public class TestLinkedTable extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         conn.close();
 
-        File[] files = new File(getBaseDir()).listFiles();
-        for (File file : files) {
-            if ((file.getName().startsWith("testLinkedTableInReadOnlyDb")) && (!file.getName().endsWith(".trace.db"))) {
-                boolean isReadOnly = file.setReadOnly();
+        String[] files = IOUtils.listFiles(getBaseDir());
+        for (String file : files) {
+            String name = IOUtils.getFileName(file);
+            if ((name.startsWith("testLinkedTableInReadOnlyDb")) && (!name.endsWith(".trace.db"))) {
+                FileSystem.getInstance(file).setReadOnly(file);
+                boolean isReadOnly = FileSystem.getInstance(file).isReadOnly(file);
                 if (!isReadOnly) {
-                    fail("File " + file.getAbsolutePath() + " is not read only. Can't test it.");
+                    fail("File " + file + " is not read only. Can't test it.");
                 }
             }
         }

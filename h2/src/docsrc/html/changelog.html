@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.139 (2010-07-10)</h2>
 <ul><li>There was a bug in the internal IntIntHashMap. There were now known side effects however.
 </li><li>ANALYZE now uses less memory.
 </li><li>Memory mapped file system: improved error messages if there is a problem.
@@ -706,33 +710,6 @@ Change Log
     To enable, set the system property h2.optimizeInList to true before loading the H2 JDBC driver.
     If enabled, this overrides h2.optimizeIn and h2.optimizeInJoin. Unlike now, this optimization
     will also speed up updates and deletes.
-</li></ul>
-
-<h2>Version 1.1.117 (2009-08-09)</h2>
-<ul><li>New committer: Sam Van Oort has been contributing to H2 since quite some time
-    in many ways (on the mailing list, documentation, and in the form of patches).
-    He is now a committer.
-</li><li>JaQu: the order of the fields in the database no longer needs to match the order in the database.
-</li><li>Issue 103: MVCC: the setting MAX_MEMORY_UNDO can currently not be supported when using
-    multi-version concurrency, that means the complete undo log must fit in memory.
-</li><li>LIKE: the escape mechanism can now be disable using ESCAPE ''.
-    The default escape character can be changed using the system property h2.defaultEscape.
-    The default is still '\' (as in MySQL and PostgreSQL).
-</li><li>Views using functions were not re-evaluated when necessary.
-</li><li>Improved MySQL compatibility for SHOW COLUMNS.
-</li><li>Improved PostgreSQL compatibility for timestamp literals with timezone.
-</li><li>Sergi Vladykin translated the error messages to Russian. Thanks a lot!
-</li><li>Support for Java 6 DatabaseMetaData.getTables, getColumns, getProcedures, and getProcedureColumns.
-</li><li>Issue 101: Rollback of a large transaction (more than 100000 rows) could fail.
-</li><li>Various bugfixes and improvements in the page store mechanism (still experimental).
-</li><li>The functions LENGTH, OCTET_LENGTH, and BIT_LENGTH now return BIGINT.
-</li><li>Data types CLOB and BLOB: the maximum precision was Integer.MAX_VALUE, it is now Long.MAX_VALUE.
-</li><li>Multi-threaded kernel: creating and dropping temporary database objects
-    and the potentially free pages list was not correctly synchronized. Thanks a lot
-    to Eric Faulhaber for the test case and patch!
-</li><li>Parsing SQL script files is now faster.
-</li><li>CSV reading is now faster.
-</li><li>SimpleResultSet.newInstance(SimpleRowSource rs) did not work.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

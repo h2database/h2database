@@ -184,7 +184,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>4 COLUMN_NAME (String) column name </li>
      * <li>5 DATA_TYPE (short) data type (see java.sql.Types) </li>
      * <li>6 TYPE_NAME (String) data type name ("INTEGER", "VARCHAR",...) </li>
-     * <li>7 COLUMN_SIZE (int) precision </li>
+     * <li>7 COLUMN_SIZE (int) precision
+     *         (values larger than 2 GB are returned as 2 GB)</li>
      * <li>8 BUFFER_LENGTH (int) unused </li>
      * <li>9 DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR) </li>
      * <li>10 NUM_PREC_RADIX (int) radix (always 10) </li>
@@ -865,6 +866,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </li><li>3 DATA_TYPE (short) SQL data type, see also java.sql.Types
      * </li><li>4 TYPE_NAME (String) type name
      * </li><li>5 COLUMN_SIZE (int) precision
+     *         (values larger than 2 GB are returned as 2 GB)
      * </li><li>6 BUFFER_LENGTH (int) unused
      * </li><li>7 DECIMAL_DIGITS (short) scale
      * </li><li>8 PSEUDO_COLUMN (short) (always bestRowNotPseudo)
@@ -931,6 +933,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </li><li>3 DATA_TYPE (int) SQL data type - see also java.sql.Types
      * </li><li>4 TYPE_NAME (String) data type name
      * </li><li>5 COLUMN_SIZE (int) precision
+     *         (values larger than 2 GB are returned as 2 GB)
      * </li><li>6 BUFFER_LENGTH (int) length (bytes)
      * </li><li>7 DECIMAL_DIGITS (int) scale
      * </li><li>8 PSEUDO_COLUMN (int) is this column a pseudo column

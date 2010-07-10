@@ -354,17 +354,21 @@ if opening the database took more than a few seconds.
 <p>
 The <code>ConvertTraceFile</code> tool generates SQL statement statistics at the end of the SQL script file.
 The format used is similar to the profiling data generated when using <code>java -Xrunhprof</code>.
+For this to work, the trace level needs to be 2 or higher (<code>TRACE_LEVEL_FILE=2</code>).
+The easiest way to set the trace level is to append the setting to the database URL, for example:
+<code>jdbc:h2:~/test;TRACE_LEVEL_FILE=2</code> or <code>jdbc:h2:tcp://localhost/~/test;TRACE_LEVEL_FILE=2</code>.
 As an example, execute the the following script using the H2 Console:
 </p>
 <pre>
-SET TRACE_LEVEL_FILE 3;
+SET TRACE_LEVEL_FILE 2;
 DROP TABLE IF EXISTS TEST;
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
 @LOOP 1000 INSERT INTO TEST VALUES(?, ?);
 SET TRACE_LEVEL_FILE 0;
 </pre>
 <p>
-Now convert the <code>.trace.db</code> file using the <code>ConvertTraceFile</code> tool:
+After running the test case, convert the <code>.trace.db</code> file using the <code>ConvertTraceFile</code> tool.
+The trace file is located in the same directory as the database file.
 </p>
 <pre>
 java -cp h2*.jar org.h2.tools.ConvertTraceFile

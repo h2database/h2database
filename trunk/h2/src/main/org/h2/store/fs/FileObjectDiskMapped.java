@@ -29,6 +29,12 @@ public class FileObjectDiskMapped implements FileObject {
     private RandomAccessFile file;
     private MappedByteBuffer mapped;
 
+    /**
+     * The position within the file. Can't use the position of the mapped buffer
+     * because it doesn't support seeking past the end of the file.
+     */
+    private int pos;
+
     FileObjectDiskMapped(String fileName, String mode) throws IOException {
         if ("r".equals(mode)) {
             this.mode = MapMode.READ_ONLY;
@@ -88,12 +94,12 @@ public class FileObjectDiskMapped implements FileObject {
     private void reMap() throws IOException {
         int oldPos = 0;
         if (mapped != null) {
-            oldPos = mapped.position();
+            oldPos = pos;
             mapped.force();
             unMap();
         }
         long length = file.length();
-        checkFileLength(length);
+        checkFileSizeLimit(length);
         // maps new MappedByteBuffer; the old one is disposed during GC
         mapped = file.getChannel().map(mode, 0, length);
         int limit = mapped.limit();
@@ -104,11 +110,10 @@ public class FileObjectDiskMapped implements FileObject {
         if (SysProperties.NIO_LOAD_MAPPED) {
             mapped.load();
         }
-        int pos = Math.min(oldPos, (int) length);
-        mapped.position(pos);
+        this.pos = Math.min(oldPos, (int) length);
     }
 
-    private void checkFileLength(long length) throws IOException {
+    private void checkFileSizeLimit(long length) throws IOException {
         if (length > Integer.MAX_VALUE) {
             throw new IOException("File over 2GB is not supported yet when using this file system");
         }
@@ -121,7 +126,7 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     public long getFilePointer() {
-        return mapped.position();
+        return pos;
     }
 
     public String getName() {
@@ -134,7 +139,12 @@ public class FileObjectDiskMapped implements FileObject {
 
     public void readFully(byte[] b, int off, int len) throws EOFException {
         try {
+            mapped.position(pos);
             mapped.get(b, off, len);
+        } catch (IllegalArgumentException e) {
+            EOFException e2 = new EOFException("EOF");
+            e2.initCause(e);
+            throw e2;
         } catch (BufferUnderflowException e) {
             EOFException e2 = new EOFException("EOF");
             e2.initCause(e);
@@ -143,26 +153,27 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     public void seek(long pos) throws IOException {
-        checkFileLength(pos);
-        mapped.position((int) pos);
+        checkFileSizeLimit(pos);
+        this.pos = (int) pos;
     }
 
     public void setFileLength(long newLength) throws IOException {
-        checkFileLength(newLength);
+        checkFileSizeLimit(newLength);
         IOUtils.setLength(file, newLength);
         reMap();
     }
 
     public void sync() throws IOException {
-        file.getFD().sync();
         mapped.force();
+        file.getFD().sync();
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
         // check if need to expand file
-        if (mapped.capacity() < mapped.position() + len) {
-            setFileLength(mapped.position() + len);
+        if (mapped.capacity() < pos + len) {
+            setFileLength(pos + len);
         }
+        mapped.position(pos);
         mapped.put(b, off, len);
     }
 

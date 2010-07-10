@@ -43,6 +43,7 @@ public class TestFileSystem extends TestBase {
         testDatabaseInJar();
         // set default part size to 1 << 10
         FileSystem.getInstance("split:10:" + getBaseDir() + "/fs");
+        testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");
         testFileSystem("split:" + getBaseDir() + "/fs");
         testFileSystem(getBaseDir() + "/fs");
         testFileSystem(FileSystemMemory.PREFIX);
@@ -151,6 +152,12 @@ public class TestFileSystem extends TestBase {
         Random random = new Random(1);
         random.nextBytes(buffer);
         fo.write(buffer, 0, 10000);
+        fo.seek(20000);
+        try {
+            fo.readFully(buffer, 0, 1);
+        } catch (EOFException e) {
+            // expected
+        }
         fo.close();
         long lastMod = fs.getLastModified(fsBase + "/test");
         if (lastMod < time - 1999) {

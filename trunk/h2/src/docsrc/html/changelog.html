@@ -23,6 +23,7 @@ Change Log
 </li><li>Memory mapped file system: improved error messages if there is a problem.
 </li><li>The Lucene fulltext search did not work well
     when using special file systems such as split or nioMapped.
+</li><li>The memory mapped file system (nioMapped: file prefix) couldn't seek past the file length.
 </li><li>Some file system operations did not work with stacked file systems
 	(for example split and nioMapped). This also affected the DeleteDbFiles tool.
 </li><li>New experimental query cache.

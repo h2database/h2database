@@ -468,6 +468,15 @@ To uninstall the service, double click on <code>5_uninstall_service.bat</code>.
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
 </p>
 
+<h3>Additional JDBC drivers</h3>
+<p>
+To use other databases (for example MySQL), the location of the JDBC drivers of those databases need to be
+added to the environment variables <code>H2DRIVERS</code>  or <code>CLASSPATH</code> before
+installing the service. Multiple drivers can be set; each entry needs to be separated with a <code>;</code>
+(Windows) or <code>:</code>  (other operating systems). Spaces in the path names are supported. 
+The settings must not be quoted. 
+</p>
+
 <h2 id="odbc_driver">ODBC Driver</h2>
 <p>
 This database does not come with its own ODBC driver at this time,

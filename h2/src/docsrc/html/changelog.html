@@ -25,22 +25,22 @@ Change Log
     when using special file systems such as split or nioMapped.
 </li><li>The memory mapped file system (nioMapped: file prefix) couldn't seek past the file length.
 </li><li>Some file system operations did not work with stacked file systems
-	(for example split and nioMapped). This also affected the DeleteDbFiles tool.
+    (for example split and nioMapped). This also affected the DeleteDbFiles tool.
 </li><li>New experimental query cache.
-    The cache is only used if the SQL statement and all parameters match. 
+    The cache is only used if the SQL statement and all parameters match.
     Each session has it's own cache with the given size.
-    Only the last returned result per query is cached. 
+    Only the last returned result per query is cached.
     Only SELECT statements are cached (excluding UNION and FOR UPDATE statements).
     This works for both statements and prepared statement.
     To enable, set the system property h2.commandCacheSize to a value larger than 0.
     There is currently no plan to enable this option by default in future versions.
 </li><li>Conditions with many OR operations could throw an UnsupportedOperationException if
     h2.optimizeOr was enabled.
-</li><li>XA connection: after transaction commit or rollback, 
+</li><li>XA connection: after transaction commit or rollback,
     the physical connection is set into autocommit mode.
 </li><li>MULTI_THREADED did not work correctly and could throw the exception
-    "try to add a record twice" for larger databases because cache access was not correctly synchronized.    
-</li><li>Automatic database upgrade from non page store is now possible. If the 
+    "try to add a record twice" for larger databases because cache access was not correctly synchronized.
+</li><li>Automatic database upgrade from non page store is now possible. If the
     classes from the h2mig_pagestore_addon.jar file are in the classpath, the database will be converted to the current
     page store format automatically. The file can be found here:
     <a href="http://h2database.com/h2mig_pagestore_addon.jar">http://h2database.com/h2mig_pagestore_addon.jar</a>

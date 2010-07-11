@@ -17,7 +17,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
-
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemMemory;
@@ -35,7 +34,9 @@ public class TestFileSystem extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.traceTest = true;
+        test.test();
     }
 
     public void test() throws Exception {
@@ -43,6 +44,7 @@ public class TestFileSystem extends TestBase {
         testDatabaseInJar();
         // set default part size to 1 << 10
         FileSystem.getInstance("split:10:" + getBaseDir() + "/fs");
+        testFileSystem("nioMapped:" + getBaseDir() + "/fs");
         testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");
         testFileSystem("split:" + getBaseDir() + "/fs");
         testFileSystem(getBaseDir() + "/fs");
@@ -168,7 +170,6 @@ public class TestFileSystem extends TestBase {
         String[] list = fs.listFiles(fsBase);
         assertEquals(1, list.length);
         assertTrue(list[0].endsWith("test"));
-
         fs.copy(fsBase + "/test", fsBase + "/test3");
         fs.rename(fsBase + "/test3", fsBase + "/test2");
         assertTrue(!fs.exists(fsBase + "/test3"));
@@ -190,7 +191,6 @@ public class TestFileSystem extends TestBase {
 
         assertTrue(fs.tryDelete(fsBase + "/test2"));
         fs.delete(fsBase + "/test");
-
         if (fsBase.indexOf(FileSystemMemory.PREFIX) < 0 && fsBase.indexOf(FileSystemMemory.PREFIX_LZF) < 0) {
             fs.createDirs(fsBase + "/testDir/test");
             assertTrue(fs.isDirectory(fsBase + "/testDir"));

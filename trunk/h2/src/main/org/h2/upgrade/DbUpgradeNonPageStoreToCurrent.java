@@ -69,6 +69,7 @@ public class DbUpgradeNonPageStoreToCurrent {
             oldUrl = oldUrl.replaceAll(";IGNORE_UNKNOWN_SETTINGS=FALSE", "");
             oldUrl = oldUrl.replaceAll(";IFEXISTS=TRUE", "");
             oldUrl = oldUrl.replaceAll(";IFEXISTS=FALSE", "");
+            oldUrl = oldUrl.replaceAll(";PAGE_STORE=TRUE", "");
             oldUrl += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
             Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", oldUrl, info);
             boolean isRemote = (Boolean) Utils.callMethod(ci, "isRemote");

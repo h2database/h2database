@@ -65,7 +65,7 @@ public class CreateIndex extends SchemaCommand {
         int id = getObjectId(true, false);
         if (indexName == null) {
             if (primaryKey) {
-                indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY);
+                indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY + "AUTO_");
             } else {
                 indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_INDEX);
             }

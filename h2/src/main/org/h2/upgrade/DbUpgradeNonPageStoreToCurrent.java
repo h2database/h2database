@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.UUID;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemDisk;
@@ -140,9 +141,10 @@ public class DbUpgradeNonPageStoreToCurrent {
 //            + "'");
 
             Utils.callStaticMethod("org.h2.upgrade.v1_1.Driver.load");
+            String uuid = UUID.randomUUID().toString();
             Connection connection = DriverManager.getConnection(oldUrl, info);
             Statement stmt = connection.createStatement();
-            stmt.execute("script to '" + scriptFile + "'");
+            stmt.execute("script to '" + scriptFile + "' CIPHER AES PASSWORD '" + uuid + "' --hide--");
             stmt.close();
             connection.close();
 
@@ -152,7 +154,7 @@ public class DbUpgradeNonPageStoreToCurrent {
 
             connection = DriverManager.getConnection(newUrl, info);
             stmt = connection.createStatement();
-            stmt.execute("runscript from '" + scriptFile + "'");
+            stmt.execute("runscript from '" + scriptFile + "' CIPHER AES PASSWORD '" + uuid + "' --hide--");
             stmt.execute("analyze");
             stmt.execute("shutdown compact");
             stmt.close();

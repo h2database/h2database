@@ -56,8 +56,18 @@ public class Driver implements java.sql.Driver {
             if (!acceptsURL(url)) {
                 return null;
             }
-            // Upgrade the database if needed and conversion classes are found
-            DbUpgrade.upgrade(url, info);
+            boolean noUpgrade = url.contains(";NO_UPGRADE=TRUE");
+            url = url.replaceAll(";NO_UPGRADE=TRUE", "");
+            if (DbUpgrade.areV1_1ClassesPresent()) {
+                if (noUpgrade) {
+                    Connection connection = DbUpgrade.connectWithOldVersion(url, info);
+                    if (connection != null) {
+                        return connection;
+                    }
+                } else {
+                    DbUpgrade.upgrade(url, info);
+                }
+            }
 
             return new JdbcConnection(url, info);
         } catch (Exception e) {

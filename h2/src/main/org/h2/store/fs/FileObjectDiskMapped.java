@@ -47,42 +47,41 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     private void unMap() throws IOException {
-        if (mapped != null) {
-            // first write all data
-            mapped.force();
+        if (mapped == null) {
+            return;
+        }
+        // first write all data
+        mapped.force();
 
-            // need to dispose old direct buffer, see bug
-            // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
+        // need to dispose old direct buffer, see bug
+        // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
 
-            boolean useSystemGc;
-            if (SysProperties.NIO_CLEANER_HACK) {
-                try {
-                    useSystemGc = false;
-                    Method cleanerMethod = mapped.getClass().getMethod("cleaner");
-                    cleanerMethod.setAccessible(true);
-                    Object cleaner = cleanerMethod.invoke(mapped);
-                    Method clearMethod = cleaner.getClass().getMethod("clear");
-                    clearMethod.invoke(cleaner);
-                } catch (Throwable e) {
-                    useSystemGc = true;
-                } finally {
-                    mapped = null;
-                }
-            } else {
-                useSystemGc = true;
-            }
-            if (useSystemGc) {
-                WeakReference<MappedByteBuffer> bufferWeakRef = new WeakReference<MappedByteBuffer>(mapped);
+        boolean useSystemGc = true;
+        if (SysProperties.NIO_CLEANER_HACK) {
+            try {
+                Method cleanerMethod = mapped.getClass().getMethod("cleaner");
+                cleanerMethod.setAccessible(true);
+                Object cleaner = cleanerMethod.invoke(mapped);
+                Method clearMethod = cleaner.getClass().getMethod("clear");
+                clearMethod.invoke(cleaner);
+                useSystemGc = false;
+            } catch (Throwable e) {
+                // useSystemGc is already true
+            } finally {
                 mapped = null;
-                long start = System.currentTimeMillis();
-                while (bufferWeakRef.get() != null) {
-                    if (System.currentTimeMillis() - start > GC_TIMEOUT_MS) {
-                        throw new IOException("Timeout (" + GC_TIMEOUT_MS
-                                + " ms) reached while trying to GC mapped buffer");
-                    }
-                    System.gc();
-                    Thread.yield();
+            }
+        }
+        if (useSystemGc) {
+            WeakReference<MappedByteBuffer> bufferWeakRef = new WeakReference<MappedByteBuffer>(mapped);
+            mapped = null;
+            long start = System.currentTimeMillis();
+            while (bufferWeakRef.get() != null) {
+                if (System.currentTimeMillis() - start > GC_TIMEOUT_MS) {
+                    throw new IOException("Timeout (" + GC_TIMEOUT_MS
+                            + " ms) reached while trying to GC mapped buffer");
                 }
+                System.gc();
+                Thread.yield();
             }
         }
     }
@@ -95,7 +94,6 @@ public class FileObjectDiskMapped implements FileObject {
         int oldPos = 0;
         if (mapped != null) {
             oldPos = pos;
-            mapped.force();
             unMap();
         }
         long length = file.length();
@@ -141,6 +139,7 @@ public class FileObjectDiskMapped implements FileObject {
         try {
             mapped.position(pos);
             mapped.get(b, off, len);
+            pos += len;
         } catch (IllegalArgumentException e) {
             EOFException e2 = new EOFException("EOF");
             e2.initCause(e);
@@ -159,8 +158,11 @@ public class FileObjectDiskMapped implements FileObject {
 
     public void setFileLength(long newLength) throws IOException {
         checkFileSizeLimit(newLength);
+        int oldPos = pos;
+        unMap();
         IOUtils.setLength(file, newLength);
         reMap();
+        pos = (int) Math.min(newLength, oldPos);
     }
 
     public void sync() throws IOException {
@@ -175,6 +177,7 @@ public class FileObjectDiskMapped implements FileObject {
         }
         mapped.position(pos);
         mapped.put(b, off, len);
+        pos += len;
     }
 
 }

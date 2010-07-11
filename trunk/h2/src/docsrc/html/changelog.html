@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>Memory mapped files: There was a bug in version 1.2.139 so that memory mapped files
+	could only be used together with split, for example: split:nioMapped: - the problem is now solved.
+	It is still a good idea to use split:nioMapped: to work around the 2 GB limitation of memory mapped files.
+</li><li>Memory mapped files: the system property h2.nioCleanerHack is now disabled by default
+	because it was not always working as expected. Now System.gc() is used in a loop until the 
+	buffer is garbage collected. This of course is also not a nice solution, but the only one known to work.
+	See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
 </li></ul>
 
 <h2>Version 1.2.139 (2010-07-10)</h2>

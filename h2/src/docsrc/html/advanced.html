@@ -1282,8 +1282,8 @@ files of 1 GB by default. An example database URL is:
 <code>jdbc:h2:split:~/test</code>.
 </li><li>The maximum number of rows per table is 2'147'483'648.
 </li><li>Main memory requirements: The larger the database, the more main memory is required.
-    With the default storage mechanism, the minimum main memory required for a 12 GB database is around 240 MB.
-    With the page store (experimental), the minimum main memory required is much lower, around 1 MB for each 8 GB database file size.
+    With the version 1.1 storage mechanism, the minimum main memory required for a 12 GB database was around 240 MB.
+    With the current page store, the minimum main memory required is much lower, around 1 MB for each 8 GB database file size.
 </li><li>Limit on the complexity of SQL statements.
 Statements of the following form will result in a stack overflow exception:
 <pre>

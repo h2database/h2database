@@ -13,7 +13,7 @@ import org.h2.constant.SysProperties;
 import org.h2.util.IOUtils;
 
 /**
- * This class is extends a java.io.RandomAccessFile.
+ * This class extends a java.io.RandomAccessFile.
  */
 public class FileObjectDisk extends RandomAccessFile implements FileObject {
 

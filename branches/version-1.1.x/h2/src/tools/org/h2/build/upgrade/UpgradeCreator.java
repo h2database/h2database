@@ -44,10 +44,10 @@ public class UpgradeCreator {
     private static void convert(File file, File srcDir, File destDir) throws Exception {
         String pathInDestDir = file.getCanonicalPath().substring(srcDir.getCanonicalPath().length());
 
-        pathInDestDir = pathInDestDir.replaceAll("org" + File.separator + "h2",
-                "org" + File.separator +
-                "h2" + File.separator +
-                "upgrade" + File.separator +
+        pathInDestDir = pathInDestDir.replaceAll("org" + getFsRegexEscaped() + "h2",
+                "org" + getFsRegexEscaped() +
+                "h2" + getFsRegexEscaped() +
+                "upgrade" + getFsRegexEscaped() +
                 "v1_1");
         File fileInDestDir = new File(destDir, pathInDestDir);
         // System.out.println(fileInDestDir.getAbsoluteFile());
@@ -90,5 +90,11 @@ public class UpgradeCreator {
         return false;
     }
 
+    private static String getFsRegexEscaped() {
+        String result = File.separator;
+        if (result.equals("\\")) {
+            result = "\\\\";
+        }
+        return result;
+    }
 }
-

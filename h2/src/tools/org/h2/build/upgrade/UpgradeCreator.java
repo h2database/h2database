@@ -8,6 +8,7 @@ package org.h2.build.upgrade;
 
 import java.io.File;
 import org.h2.build.BuildBase;
+import org.h2.util.StringUtils;
 
 /**
  * Creates the v 1.1 upgrade sources
@@ -44,10 +45,10 @@ public class UpgradeCreator {
     private static void convert(File file, File srcDir, File destDir) throws Exception {
         String pathInDestDir = file.getCanonicalPath().substring(srcDir.getCanonicalPath().length());
 
-        pathInDestDir = pathInDestDir.replaceAll("org" + getFsRegexEscaped() + "h2",
-                "org" + getFsRegexEscaped() +
-                "h2" + getFsRegexEscaped() +
-                "upgrade" + getFsRegexEscaped() +
+        pathInDestDir = StringUtils.replaceAll(pathInDestDir, "org" + File.separator + "h2",
+                "org" + File.separator +
+                "h2" + File.separator +
+                "upgrade" + File.separator +
                 "v1_1");
         File fileInDestDir = new File(destDir, pathInDestDir);
         // System.out.println(fileInDestDir.getAbsoluteFile());
@@ -69,13 +70,13 @@ public class UpgradeCreator {
     }
 
     private static String replace(File file, String content) {
-        content = content.replaceAll("org\\.h2", "org.h2.upgrade.v1_1");
-        content = content.replaceAll("org/h2/", "org/h2/upgrade/v1_1/");
-        content = content.replaceAll("jdbc:h2:", "jdbc:h2v1_1:");
+        content = StringUtils.replaceAll(content, "org.h2", "org.h2.upgrade.v1_1");
+        content = StringUtils.replaceAll(content, "org/h2/", "org/h2/upgrade/v1_1/");
+        content = StringUtils.replaceAll(content, "jdbc:h2:", "jdbc:h2v1_1:");
 
         if (file.getName().equals("ConnectionInfo.java")) {
-            content = content.replaceAll("boolean isPersistent\\(\\) \\{", "public boolean isPersistent() {");
-            content = content.replaceAll("String getName\\(\\) throws SQLException \\{", "public String getName() throws SQLException {");
+            content = StringUtils.replaceAll(content, "boolean isPersistent() {", "public boolean isPersistent() {");
+            content = StringUtils.replaceAll(content, "String getName() throws SQLException {", "public String getName() throws SQLException {");
         }
 
         return content;
@@ -90,11 +91,4 @@ public class UpgradeCreator {
         return false;
     }
 
-    private static String getFsRegexEscaped() {
-        String result = File.separator;
-        if (result.equals("\\")) {
-            result = "\\\\";
-        }
-        return result;
-    }
 }

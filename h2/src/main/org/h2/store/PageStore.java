@@ -205,6 +205,8 @@ public class PageStore implements CacheWriter {
 
     private long logSizeBase;
 
+    private HashMap<String, Integer> statistics;
+
     /**
      * Create a new page store object.
      *
@@ -223,6 +225,31 @@ public class PageStore implements CacheWriter {
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSizeDefault);
         systemSession = new Session(database, null, 0);
+    }
+
+    /**
+     * Start collecting statistics.
+     */
+    public void statisticsStart() {
+        statistics = New.hashMap();
+    }
+
+    /**
+     * Stop collecting statistics.
+     *
+     * @return the statistics
+     */
+    public HashMap<String, Integer> statisticsEnd() {
+        HashMap<String, Integer> result = statistics;
+        statistics = null;
+        return result;
+    }
+
+    private void statisticsIncrement(String key) {
+        if (statistics != null) {
+            Integer old = statistics.get(key);
+            statistics.put(key, old == null ? 1 : old + 1);
+        }
     }
 
     /**
@@ -546,6 +573,9 @@ public class PageStore implements CacheWriter {
                 if (index == null) {
                     throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
                 }
+                if (statistics != null) {
+                    statisticsIncrement(index.getTable().getName() + "." + index.getName() + " read");
+                }
                 p = PageDataLeaf.read(index, data, pageId);
                 break;
             }
@@ -555,11 +585,17 @@ public class PageStore implements CacheWriter {
                 if (index == null) {
                     throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
                 }
+                if (statistics != null) {
+                    statisticsIncrement(index.getTable().getName() + "." + index.getName() + " read");
+                }
                 p = PageDataNode.read(index, data, pageId);
                 break;
             }
             case Page.TYPE_DATA_OVERFLOW: {
                 p = PageDataOverflow.read(this, data, pageId);
+                if (statistics != null) {
+                    statisticsIncrement("overflow read");
+                }
                 break;
             }
             case Page.TYPE_BTREE_LEAF: {
@@ -567,6 +603,9 @@ public class PageStore implements CacheWriter {
                 PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
                 if (index == null) {
                     throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                }
+                if (statistics != null) {
+                    statisticsIncrement(index.getTable().getName() + "." + index.getName() + " read");
                 }
                 p = PageBtreeLeaf.read(index, data, pageId);
                 break;
@@ -576,6 +615,9 @@ public class PageStore implements CacheWriter {
                 PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
                 if (index == null) {
                     throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "index not found " + indexId);
+                }
+                if (statistics != null) {
+                    statisticsIncrement(index.getTable().getName() + "." + index.getName() + " read");
                 }
                 p = PageBtreeNode.read(index, data, pageId);
                 break;

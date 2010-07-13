@@ -35,7 +35,13 @@ public class TestOldVersion extends TestBase {
         URL[] urls = { new URL("file:ext/h2-1.2.127.jar") };
         ClassLoader cl = new URLClassLoader(urls, null);
         // cl = getClass().getClassLoader();
-        Class< ? > driverClass = cl.loadClass("org.h2.Driver");
+        Class< ? > driverClass;
+        try {
+        	driverClass = cl.loadClass("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+        	println("not found: ext/h2-1.2.127.jar - test skipped");
+        	return;
+        }
         Method m = driverClass.getMethod("load");
         Driver driver = (Driver) m.invoke(null);
         Connection conn = driver.connect("jdbc:h2:mem:", null);

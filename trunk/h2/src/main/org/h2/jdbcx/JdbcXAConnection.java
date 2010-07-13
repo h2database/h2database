@@ -22,7 +22,6 @@ import javax.transaction.xa.Xid;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.util.Utils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -436,9 +435,9 @@ implements XAConnection, XAResource
         buff.append("\"f:").
             append(xid.getFormatId()).
             append(",bq:").
-            append(Utils.convertBytesToString(xid.getBranchQualifier())).
+            append(StringUtils.convertBytesToString(xid.getBranchQualifier())).
             append(",gx:").
-            append(Utils.convertBytesToString(xid.getGlobalTransactionId())).
+            append(StringUtils.convertBytesToString(xid.getGlobalTransactionId())).
             append(",c:").
             append(xid.getClass().getName()).
             append("\"");

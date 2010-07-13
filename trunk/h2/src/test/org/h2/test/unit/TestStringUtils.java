@@ -15,7 +15,6 @@ import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * Tests string utility methods.
@@ -41,18 +40,18 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testHex() {
-        assertEquals("face", Utils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, Utils.convertStringToBytes("face"));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, Utils.convertStringToBytes("fAcE"));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, Utils.convertStringToBytes("FaCe"));
+        assertEquals("face", StringUtils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertStringToBytes("face"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertStringToBytes("fAcE"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertStringToBytes("FaCe"));
         try {
-            Utils.convertStringToBytes("120");
+            StringUtils.convertStringToBytes("120");
             fail();
         } catch (DbException e) {
             assertKnownException(DbException.toSQLException(e));
         }
         try {
-            Utils.convertStringToBytes("fast");
+            StringUtils.convertStringToBytes("fast");
             fail();
         } catch (DbException e) {
             assertKnownException(DbException.toSQLException(e));

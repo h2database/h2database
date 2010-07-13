@@ -159,9 +159,9 @@ public class User extends RightOwner {
         }
         if (password) {
             buff.append(" SALT '").
-                append(Utils.convertBytesToString(salt)).
+                append(StringUtils.convertBytesToString(salt)).
                 append("' HASH '").
-                append(Utils.convertBytesToString(passwordHash)).
+                append(StringUtils.convertBytesToString(passwordHash)).
                 append('\'');
         } else {
             buff.append(" PASSWORD ''");

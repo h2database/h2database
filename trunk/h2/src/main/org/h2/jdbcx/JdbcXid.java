@@ -11,7 +11,7 @@ import javax.transaction.xa.Xid;
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.Utils;
+import org.h2.util.StringUtils;
 
 /**
  * An object of this class represents a transaction id.
@@ -37,8 +37,8 @@ implements Xid
                 throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
             }
             formatId = Integer.parseInt(tokenizer.nextToken());
-            branchQualifier = Utils.convertStringToBytes(tokenizer.nextToken());
-            globalTransactionId = Utils.convertStringToBytes(tokenizer.nextToken());
+            branchQualifier = StringUtils.convertStringToBytes(tokenizer.nextToken());
+            globalTransactionId = StringUtils.convertStringToBytes(tokenizer.nextToken());
         } catch (RuntimeException e) {
             throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
         }
@@ -52,9 +52,9 @@ implements Xid
         buff.append('_').
             append(formatId).
             append('_').
-            append(Utils.convertBytesToString(branchQualifier)).
+            append(StringUtils.convertBytesToString(branchQualifier)).
             append('_').
-            append(Utils.convertBytesToString(globalTransactionId));
+            append(StringUtils.convertBytesToString(globalTransactionId));
         return buff.toString();
     }
 

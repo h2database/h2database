@@ -366,7 +366,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             // ignore
         }
         if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
-            sessionId = Utils.convertBytesToString(MathUtils.secureRandomBytes(32));
+            sessionId = StringUtils.convertBytesToString(MathUtils.secureRandomBytes(32));
             synchronized (this) {
                 for (Transfer transfer : transferList) {
                     try {

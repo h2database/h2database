@@ -25,7 +25,6 @@ import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * This is the base class for all value classes.
@@ -751,9 +750,9 @@ public abstract class Value {
             case TIMESTAMP:
                 return ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(s.trim()));
             case BYTES:
-                return ValueBytes.getNoCopy(Utils.convertStringToBytes(s.trim()));
+                return ValueBytes.getNoCopy(StringUtils.convertStringToBytes(s.trim()));
             case JAVA_OBJECT:
-                return ValueJavaObject.getNoCopy(Utils.convertStringToBytes(s.trim()));
+                return ValueJavaObject.getNoCopy(StringUtils.convertStringToBytes(s.trim()));
             case STRING:
                 return ValueString.get(s);
             case STRING_IGNORECASE:
@@ -767,7 +766,7 @@ public abstract class Value {
             case CLOB:
                 return LobStorage.createSmallLob(CLOB, StringUtils.utf8Encode(s));
             case BLOB:
-                return LobStorage.createSmallLob(BLOB, Utils.convertStringToBytes(s.trim()));
+                return LobStorage.createSmallLob(BLOB, StringUtils.convertStringToBytes(s.trim()));
             case ARRAY:
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {

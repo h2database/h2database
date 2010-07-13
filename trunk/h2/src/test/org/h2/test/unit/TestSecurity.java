@@ -10,6 +10,7 @@ import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
 import org.h2.test.TestBase;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -42,7 +43,7 @@ public class TestSecurity extends TestBase {
         if (data.length > 0) {
             assertEquals(0, data[0]);
         }
-        return Utils.convertBytesToString(result);
+        return StringUtils.convertBytesToString(result);
     }
 
     private void testOneSHA(SHA256 sha) {
@@ -69,7 +70,7 @@ public class TestSecurity extends TestBase {
 
     private void checkSHA256(String message, String expected) {
         SHA256 sha = new SHA256();
-        String hash = Utils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
+        String hash = StringUtils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
         assertEquals(expected, hash);
     }
 
@@ -84,7 +85,7 @@ public class TestSecurity extends TestBase {
 
     private void testAES() {
         BlockCipher test = CipherFactory.getBlockCipher("AES");
-        test.setKey(Utils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
+        test.setKey(StringUtils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
 
         byte[] in = new byte[128];
         byte[] enc = new byte[128];

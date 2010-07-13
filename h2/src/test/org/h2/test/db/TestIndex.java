@@ -38,6 +38,7 @@ public class TestIndex extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("index");
+        testErrorMessage();
         testNonUniqueHashIndex();
         testRenamePrimaryKey();
         testRandomized();
@@ -87,6 +88,38 @@ public class TestIndex extends TestBase {
 
         conn.close();
         deleteDb("index");
+    }
+
+    private void testErrorMessage() throws SQLException {
+        reconnect();
+        stat.execute("create table test(id int primary key, name varchar)");
+        testErrorMessage("PRIMARY KEY ON PUBLIC.TEST(ID)");
+        stat.execute("create table test(id int, name varchar primary key)");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME)");
+        stat.execute("create table test(id int, name varchar, primary key(id, name))");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(ID, NAME)");
+        stat.execute("create table test(id int, name varchar, primary key(name, id))");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME, ID)");
+        stat.execute("create table test(id int, name int primary key)");
+        testErrorMessage("PRIMARY KEY ON PUBLIC.TEST(NAME)");
+        stat.execute("create table test(id int, name int, unique(name))");
+        testErrorMessage("CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME)");
+        stat.execute("create table test(id int, name int, constraint abc unique(name, id))");
+        testErrorMessage("ABC_INDEX_2 ON PUBLIC.TEST(NAME, ID)");
+    }
+
+    private void testErrorMessage(String expected) throws SQLException {
+        try {
+            stat.execute("INSERT INTO TEST VALUES(1, 1)");
+            stat.execute("INSERT INTO TEST VALUES(1, 1)");
+            fail();
+        } catch (SQLException e) {
+            String m = e.getMessage();
+            int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
+            String s = m.substring(start + 1, end);
+            assertEquals(expected, s);
+        }
+        stat.execute("drop table test");
     }
 
     private void testNonUniqueHashIndex() throws SQLException {

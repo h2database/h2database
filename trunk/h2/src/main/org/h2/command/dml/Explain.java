@@ -6,12 +6,16 @@
  */
 package org.h2.command.dml;
 
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Map.Entry;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
@@ -52,14 +56,37 @@ public class Explain extends Prepared {
         Expression[] expressions = { expr };
         result = new LocalResult(session, expressions, 1);
         if (maxrows >= 0) {
+            String plan;
             if (executeCommand) {
+                PageStore store = session.getDatabase().getPageStore();
+                store.statisticsStart();
                 if (command.isQuery()) {
                     command.query(maxrows);
                 } else {
                     command.update();
                 }
+                plan = command.getPlanSQL();
+                Map<String, Integer> statistics = store.statisticsEnd();
+                if (statistics != null) {
+                    int total = 0;
+                    for (Entry<String, Integer> e : statistics.entrySet()) {
+                        total += e.getValue();
+                    }
+                    if (total > 0) {
+                        statistics = new TreeMap<String, Integer>(statistics);
+                        StringBuilder buff = new StringBuilder();
+                        buff.append("total: ").append(total).append('\n');
+                        for (Entry<String, Integer> e : statistics.entrySet()) {
+                            int value = e.getValue();
+                            int percent = (int) (100L * value / total);
+                            buff.append(e.getKey()).append(": ").append(value).append(" (").append(percent).append("%)\n");
+                        }
+                        plan += "\n/*\n" + buff.toString() + "*/";
+                    }
+                }
+            } else {
+                plan = command.getPlanSQL();
             }
-            String plan = command.getPlanSQL();
             add(plan);
         }
         result.done();

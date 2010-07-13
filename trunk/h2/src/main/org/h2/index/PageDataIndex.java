@@ -129,7 +129,7 @@ public class PageDataIndex extends PageIndex {
                     throw e;
                 }
                 if (!retry) {
-                    throw super.getDuplicateKeyException();
+                    throw getNewDuplicateKeyException();
                 }
                 if (add == 0) {
                     // in the first re-try add a small random number,
@@ -144,6 +144,11 @@ public class PageDataIndex extends PageIndex {
             }
         }
         lastKey = Math.max(lastKey, row.getKey() + 1);
+    }
+
+    public DbException getNewDuplicateKeyException() {
+        String sql = "PRIMARY KEY ON " + table.getSQL() + "(" + indexColumns[mainIndexColumn].getSQL() + ")";
+        return DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
     }
 
     private void addTry(Session session, Row row) {

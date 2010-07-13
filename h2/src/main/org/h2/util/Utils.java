@@ -46,8 +46,6 @@ public class Utils {
 
     private static final int GC_DELAY = 50;
     private static final int MAX_GC = 8;
-    private static final char[] HEX = "0123456789abcdef".toCharArray();
-
     private static long lastGC;
 
     private static final boolean ALLOW_ALL_CLASSES;
@@ -138,38 +136,6 @@ public class Utils {
     }
 
     /**
-     * Convert a hex encoded string to a byte array.
-     *
-     * @param s the hex encoded string
-     * @return the byte array
-     */
-    public static byte[] convertStringToBytes(String s) {
-        int len = s.length();
-        if (len % 2 != 0) {
-            throw DbException.get(ErrorCode.HEX_STRING_ODD_1, s);
-        }
-        len /= 2;
-        byte[] buff = new byte[len];
-        for (int i = 0; i < len; i++) {
-            buff[i] = (byte) ((getHexDigit(s, i + i) << 4) | getHexDigit(s, i + i + 1));
-        }
-        return buff;
-    }
-
-    private static int getHexDigit(String s, int i) {
-        char c = s.charAt(i);
-        if (c >= '0' && c <= '9') {
-            return c - '0';
-        } else if (c >= 'a' && c <= 'f') {
-            return c - 'a' + 0xa;
-        } else if (c >= 'A' && c <= 'F') {
-            return c - 'A' + 0xa;
-        } else {
-            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
-        }
-    }
-
-    /**
      * Calculate the hash code of the given byte array.
      *
      * @param value the byte array
@@ -193,34 +159,6 @@ public class Utils {
             }
         }
         return h;
-    }
-
-    /**
-     * Convert a byte array to a hex encoded string.
-     *
-     * @param value the byte array
-     * @return the hex encoded string
-     */
-    public static String convertBytesToString(byte[] value) {
-        return convertBytesToString(value, value.length);
-    }
-
-    /**
-     * Convert a byte array to a hex encoded string.
-     *
-     * @param value the byte array
-     * @param len the number of bytes to encode
-     * @return the hex encoded string
-     */
-    public static String convertBytesToString(byte[] value, int len) {
-        char[] buff = new char[len + len];
-        char[] hex = HEX;
-        for (int i = 0; i < len; i++) {
-            int c = value[i] & 0xff;
-            buff[i + i] = hex[c >> 4];
-            buff[i + i + 1] = hex[c & 0xf];
-        }
-        return new String(buff);
     }
 
     /**

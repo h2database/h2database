@@ -51,6 +51,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
@@ -1027,9 +1028,9 @@ public class Recover extends Tool implements DataHandler {
                             byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
                             StringBuilder buff = new StringBuilder();
                             buff.append("SALT '").
-                                append(Utils.convertBytesToString(salt)).
+                                append(StringUtils.convertBytesToString(salt)).
                                 append("' HASH '").
-                                append(Utils.convertBytesToString(passwordHash)).
+                                append(StringUtils.convertBytesToString(passwordHash)).
                                 append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(), saltIndex, replacement.length);

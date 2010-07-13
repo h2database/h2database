@@ -31,6 +31,7 @@ import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -157,7 +158,7 @@ public class WebServer implements Service {
 
     private String generateSessionId() {
         byte[] buff = MathUtils.secureRandomBytes(16);
-        return Utils.convertBytesToString(buff);
+        return StringUtils.convertBytesToString(buff);
     }
 
     /**

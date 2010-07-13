@@ -538,7 +538,7 @@ public class ValueLob extends Value {
             } else {
                 buff = IOUtils.readBytesAndClose(getInputStream(), len);
             }
-            return Utils.convertBytesToString(buff);
+            return StringUtils.convertBytesToString(buff);
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }
@@ -632,7 +632,7 @@ public class ValueLob extends Value {
             return StringUtils.quoteStringSQL(s);
         }
         byte[] buff = getBytes();
-        s = Utils.convertBytesToString(buff);
+        s = StringUtils.convertBytesToString(buff);
         return "X'" + s + "'";
     }
 

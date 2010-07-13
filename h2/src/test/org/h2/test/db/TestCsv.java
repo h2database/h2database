@@ -27,7 +27,6 @@ import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * CSVREAD and CSVWRITE tests.
@@ -67,7 +66,7 @@ public class TestCsv extends TestBase {
     private void testPseudoBom() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // UTF-8 "BOM" / marker
-        out.write(Utils.convertStringToBytes("ef" + "bb" + "bf"));
+        out.write(StringUtils.convertStringToBytes("ef" + "bb" + "bf"));
         out.write("\"ID\", \"NAME\"\n1, Hello".getBytes("UTF-8"));
         byte[] buff = out.toByteArray();
         Reader r = new InputStreamReader(new ByteArrayInputStream(buff), "UTF-8");

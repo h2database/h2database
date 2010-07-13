@@ -127,7 +127,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.table.TableFilter.TableFilterVisitor;
-import org.h2.util.Utils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -2321,7 +2320,7 @@ public class Parser {
                 read();
                 if (equalsToken("X", name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
                     read();
-                    byte[] buffer = Utils.convertStringToBytes(currentValue.getString());
+                    byte[] buffer = StringUtils.convertStringToBytes(currentValue.getString());
                     r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
                 } else if (readIf(".")) {
                     r = readTermObjectDot(name);

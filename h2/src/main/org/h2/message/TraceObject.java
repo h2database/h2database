@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import org.h2.constant.SysProperties;
 import org.h2.expression.ParameterInterface;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -326,7 +325,7 @@ public class TraceObject {
         if (x == null) {
             return "null";
         }
-        return "org.h2.util.Utils.convertStringToBytes(\"" + Utils.convertBytesToString(x) + "\")";
+        return "org.h2.util.Utils.convertStringToBytes(\"" + StringUtils.convertBytesToString(x) + "\")";
     }
 
     /**

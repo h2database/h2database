@@ -12,7 +12,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.Utils;
+import org.h2.util.StringUtils;
 
 /**
  * The file system is a storage abstraction.
@@ -308,7 +308,7 @@ public abstract class FileSystem {
         if (newRandom || tempRandom == null) {
             byte[] prefix = new byte[8];
             MathUtils.randomBytes(prefix);
-            tempRandom = Utils.convertBytesToString(prefix) + ".";
+            tempRandom = StringUtils.convertBytesToString(prefix) + ".";
         }
         return tempRandom + tempSequence++;
     }

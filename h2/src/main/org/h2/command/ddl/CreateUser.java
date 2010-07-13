@@ -13,7 +13,7 @@ import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
-import org.h2.util.Utils;
+import org.h2.util.StringUtils;
 
 /**
  * This class represents the statement
@@ -50,7 +50,7 @@ public class CreateUser extends DefineCommand {
     }
 
     private byte[] getByteArray(Expression e) {
-        return Utils.convertStringToBytes(e.optimize(session).getValue(session).getString());
+        return StringUtils.convertStringToBytes(e.optimize(session).getValue(session).getString());
     }
 
     public int update() {

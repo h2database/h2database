@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -82,7 +83,7 @@ public class ValueBytes extends Value {
     }
 
     public String getString() {
-        return Utils.convertBytesToString(value);
+        return StringUtils.convertBytesToString(value);
     }
 
     public long getPrecision() {

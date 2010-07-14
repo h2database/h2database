@@ -325,7 +325,7 @@ public class TraceObject {
         if (x == null) {
             return "null";
         }
-        return "org.h2.util.Utils.convertStringToBytes(\"" + StringUtils.convertBytesToString(x) + "\")";
+        return "org.h2.util.StringUtils.convertStringToBytes(\"" + StringUtils.convertBytesToString(x) + "\")";
     }
 
     /**

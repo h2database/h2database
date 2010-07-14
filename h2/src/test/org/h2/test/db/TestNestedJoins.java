@@ -520,4 +520,5 @@ public class TestNestedJoins extends TestBase {
         }
         return sql;
     }
+
 }

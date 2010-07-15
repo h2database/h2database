@@ -3086,8 +3086,8 @@ inner join test2 on test1.id=test2.id left
 outer join test3 on test2.id=test3.id
 where test3.id is null;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST1 /* PUBLIC.TEST1.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.PRIMARY_KEY_4C: ID = TEST1.ID AND ID = TEST1.ID */ ON 1=1 /* WHERE TEST1.ID = TEST2.ID */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID AND ID = NULL */ ON TEST2.ID = TEST3.ID WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST1 /* PUBLIC.TEST1.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.PRIMARY_KEY_4C: ID = TEST1.ID AND ID = TEST1.ID */ ON 1=1 /* WHERE TEST1.ID = TEST2.ID */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID AND ID IS NULL */ ON TEST2.ID = TEST3.ID WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 > rows: 1
 
 insert into test1 select x from system_range(2, 1000);
@@ -3106,8 +3106,8 @@ inner join test2 on test1.id=test2.id
 left outer join test3 on test2.id=test3.id
 where test3.id is null;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID AND ID = NULL */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID AND ID IS NULL */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 > rows: 1
 
 SELECT TEST1.ID, TEST2.ID, TEST3.ID
@@ -3282,8 +3282,8 @@ call /* remark * / * /* ** // end */ 1;
 > rows: 1
 
 call (select x from dual where x is null);
-> SELECT X FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX: X = NULL */ /* scanCount: 1 */ WHERE X IS NULL
-> ------------------------------------------------------------------------------------------------------
+> SELECT X FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX: X IS NULL */ /* scanCount: 1 */ WHERE X IS NULL
+> -------------------------------------------------------------------------------------------------------
 > null
 > rows: 1
 
@@ -6062,8 +6062,8 @@ SELECT * FROM V_UNION WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_UNION WHERE ID=1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1): ID = 1 */ WHERE ID = 1
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ WHERE CHILDREN.ID IS ?1) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ WHERE CHILDREN.ID IS ?1): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_EXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
@@ -6077,8 +6077,8 @@ SELECT * FROM V_EXCEPT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_EXCEPT WHERE ID=1;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ WHERE CHILDREN.ID IS ?1) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_INTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
@@ -6091,8 +6091,8 @@ SELECT * FROM V_INTERSECT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_INTERSECT WHERE ID=1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE ID = ?1) INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID = ?1 ++/ WHERE CLASSES.ID = ?1): ID = 1 */ WHERE ID = 1
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ WHERE ID IS ?1) INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID IS ?1 ++/ WHERE CLASSES.ID IS ?1): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 DROP VIEW V_UNION;

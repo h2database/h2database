@@ -1778,14 +1778,23 @@ public class Parser {
                 Expression b = readConcat();
                 r = new CompareLike(database.getCompareMode(), r, b, null, true);
             } else if (readIf("IS")) {
-                int type;
                 if (readIf("NOT")) {
-                    type = Comparison.IS_NOT_NULL;
+                    if (readIf("NULL")) {
+                        r = new Comparison(session, Comparison.IS_NOT_NULL, r, null);
+                    } else if (readIf("DISTINCT")) {
+                        read("FROM");
+                        r = new Comparison(session, Comparison.EQUAL_NULL_SAFE, r, readConcat());
+                    } else {
+                        r = new Comparison(session, Comparison.NOT_EQUAL_NULL_SAFE, r, readConcat());
+                    }
+                } else if (readIf("NULL")) {
+                    r = new Comparison(session, Comparison.IS_NULL, r, null);
+                } else if (readIf("DISTINCT")) {
+                    read("FROM");
+                    r = new Comparison(session, Comparison.NOT_EQUAL_NULL_SAFE, r, readConcat());
                 } else {
-                    type = Comparison.IS_NULL;
+                    r = new Comparison(session, Comparison.EQUAL_NULL_SAFE, r, readConcat());
                 }
-                read("NULL");
-                r = new Comparison(session, type, r, null);
             } else if (readIf("IN")) {
                 read("(");
                 if (readIf(")")) {

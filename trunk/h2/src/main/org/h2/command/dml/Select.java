@@ -1065,7 +1065,7 @@ public class Select extends Query {
             comp = new Comparison(session, comparisonType, col, param);
         } else {
             // add the parameters, so they can be set later
-            comp = new Comparison(session, Comparison.EQUAL, param, param);
+            comp = new Comparison(session, Comparison.EQUAL_NULL_SAFE, param, param);
         }
         comp = comp.optimize(session);
         boolean addToCondition = true;

@@ -8,12 +8,14 @@ package org.h2.build;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
@@ -169,6 +171,9 @@ public class BuildBase {
             for (String a : args) {
                 if ("-quiet".equals(a)) {
                     quiet = true;
+                } else if (a.startsWith("-")) {
+                    runShell();
+                    return;
                 } else if (a.startsWith("-D")) {
                     String value;
                     String key = a.substring(2);
@@ -181,20 +186,54 @@ public class BuildBase {
                     }
                     System.setProperty(key, value);
                 } else {
-                    Method m = null;
-                    try {
-                        m = getClass().getMethod(a);
-                    } catch (Exception e) {
-                        sysOut.println("Unknown target: " + a);
-                        projectHelp();
+                    if (!runTarget(a)) {
                         break;
                     }
-                    println("Target: " + a);
-                    invoke(m, this, new Object[0]);
                 }
             }
         }
         println("Done in " + (System.currentTimeMillis() - time) + " ms");
+    }
+
+    private boolean runTarget(String target) {
+        Method m = null;
+        try {
+            m = getClass().getMethod(target);
+        } catch (Exception e) {
+            sysOut.println("Unknown target: " + target);
+            projectHelp();
+            return false;
+        }
+        println("Target: " + target);
+        invoke(m, this, new Object[0]);
+        return true;
+    }
+
+    private void runShell() {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String last = "", line;
+        System.out.println("Shell mode. Type the target, then [Enter]. Just [Enter] repeats the last target.");
+        while (true) {
+            System.out.print("build> ");
+            try {
+                line = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (line.length() == 0) {
+                line = last;
+            } else if (line.equals("exit") || line.equals("quit")) {
+                break;
+            }
+            long time = System.currentTimeMillis();
+            try {
+                runTarget(line);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            println("Done in " + (System.currentTimeMillis() - time) + " ms");
+            last = line;
+        }
     }
 
     private Object invoke(Method m, Object instance, Object[] args) {

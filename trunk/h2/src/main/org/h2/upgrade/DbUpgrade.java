@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
-import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemDisk;
@@ -26,23 +25,28 @@ import org.h2.util.Utils;
  */
 public class DbUpgrade {
 
-    private static boolean v1_1ClassesPresent;
+    private static boolean v1dot1ClassesPresent;
 
     private static Map<String, DbUpgradeNonPageStoreToCurrent> runningConversions;
 
     static {
         // static initialize block
-        v1_1ClassesPresent = Utils.isClassPresent("org.h2.upgrade.v1_1.Driver");
+        v1dot1ClassesPresent = Utils.isClassPresent("org.h2.upgrade.v1_1.Driver");
         runningConversions = Collections.synchronizedMap(new Hashtable<String, DbUpgradeNonPageStoreToCurrent>(1));
     }
-    
-    public static boolean areV1_1ClassesPresent() {
-        return v1_1ClassesPresent;
+
+    /**
+     * Check if the H2 version 1.1 driver is in in the classpath.
+     *
+     * @return true if it is
+     */
+    public static boolean areV1dot1ClassesPresent() {
+        return v1dot1ClassesPresent;
     }
-    
+
     /**
      * Connects to an old 1.1 database
-     * 
+     *
      * @param url The connection string
      * @param info The connection properties
      * @return the connection via the upgrade classes
@@ -93,7 +97,7 @@ public class DbUpgrade {
      * @throws SQLException
      */
     public static synchronized void upgrade(String url, Properties info) throws SQLException {
-        if (v1_1ClassesPresent) {
+        if (v1dot1ClassesPresent) {
             upgradeFromNonPageStore(url, info);
         }
     }

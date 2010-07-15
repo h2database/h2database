@@ -519,6 +519,7 @@ Boolean value or condition."
 "Other Grammar","Condition Right Hand Side","
 compare { { { ALL | ANY | SOME } ( select ) } | operand }
     | IS [ NOT ] NULL
+    | IS [ NOT ] [ DISTINCT FROM ] operand
     | BETWEEN operand AND operand
     | IN ( { select | expression [,...] } )
     | [ NOT ] LIKE operand [ ESCAPE string ]

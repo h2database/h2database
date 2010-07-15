@@ -171,6 +171,9 @@ public class IndexCondition {
         case Comparison.EQUAL:
             buff.append(" = ");
             break;
+        case Comparison.EQUAL_NULL_SAFE:
+            buff.append(" IS ");
+            break;
         case Comparison.BIGGER_EQUAL:
             buff.append(" >= ");
             break;
@@ -216,6 +219,7 @@ public class IndexCondition {
         case Comparison.FALSE:
             return ALWAYS_FALSE;
         case Comparison.EQUAL:
+        case Comparison.EQUAL_NULL_SAFE:
             return EQUALITY;
         case Comparison.IN_LIST:
         case Comparison.IN_QUERY:
@@ -262,6 +266,7 @@ public class IndexCondition {
     public boolean isStart() {
         switch (compareType) {
         case Comparison.EQUAL:
+        case Comparison.EQUAL_NULL_SAFE:
         case Comparison.BIGGER_EQUAL:
         case Comparison.BIGGER:
             return true;
@@ -279,6 +284,7 @@ public class IndexCondition {
     public boolean isEnd() {
         switch (compareType) {
         case Comparison.EQUAL:
+        case Comparison.EQUAL_NULL_SAFE:
         case Comparison.SMALLER_EQUAL:
         case Comparison.SMALLER:
             return true;

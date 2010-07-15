@@ -1550,12 +1550,16 @@ ID<>2
 "Other Grammar","Condition Right Hand Side","
 compare { { { ALL | ANY | SOME } ( select ) } | operand }
     | IS [ NOT ] NULL
+    | IS [ NOT ] [ DISTINCT FROM ] operand
     | BETWEEN operand AND operand
     | IN ( { select | expression [,...] } )
     | [ NOT ] LIKE operand [ ESCAPE string ]
     | [ NOT ] REGEXP operand
 ","
 The right hand side of a condition.
+
+The conditions IS [ NOT ] and IS [ NOT ] DISTINCT FROM are NULL-safe, meaning
+NULL is considered the same as NULL, and the condition never evaluates to NULL.
 
 When comparing with LIKE, the wildcards characters are _ (any one character)
 and % (any characters). The database uses an index when comparing with LIKE

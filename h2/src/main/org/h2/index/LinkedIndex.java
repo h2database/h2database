@@ -91,8 +91,13 @@ public class LinkedIndex extends BaseIndex {
                 buff.appendOnlyFirst(" WHERE ");
                 buff.appendExceptFirst(" AND ");
                 Column col = table.getColumn(i);
-                buff.append(col.getSQL()).append(">=");
-                addParameter(buff, col);
+                buff.append(col.getSQL());
+                if (v == ValueNull.INSTANCE) {
+                    buff.append(" IS NULL");
+                } else {
+                    buff.append(">=");
+                    addParameter(buff, col);
+                }
             }
         }
         for (int i = 0; last != null && i < last.getColumnCount(); i++) {
@@ -101,8 +106,13 @@ public class LinkedIndex extends BaseIndex {
                 buff.appendOnlyFirst(" WHERE ");
                 buff.appendExceptFirst(" AND ");
                 Column col = table.getColumn(i);
-                buff.append(col.getSQL()).append("<=");
-                addParameter(buff, col);
+                buff.append(col.getSQL());
+                if (v == ValueNull.INSTANCE) {
+                    buff.append(" IS NULL");
+                } else {
+                    buff.append("<=");
+                    addParameter(buff, col);
+                }
             }
         }
         String sql = buff.toString();
@@ -112,14 +122,14 @@ public class LinkedIndex extends BaseIndex {
                 int j = 0;
                 for (int i = 0; first != null && i < first.getColumnCount(); i++) {
                     Value v = first.getValue(i);
-                    if (v != null) {
+                    if (v != null && v != ValueNull.INSTANCE) {
                         v.set(prep, j + 1);
                         j++;
                     }
                 }
                 for (int i = 0; last != null && i < last.getColumnCount(); i++) {
                     Value v = last.getValue(i);
-                    if (v != null) {
+                    if (v != null && v != ValueNull.INSTANCE) {
                         v.set(prep, j + 1);
                         j++;
                     }

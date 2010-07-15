@@ -25,9 +25,21 @@ import org.h2.value.ValueNull;
 public class Comparison extends Condition {
 
     /**
+     * This is a flag meaning the comparison is null safe (meaning never returns
+     * NULL even if one operand is NULL). Only EQUAL and NOT_EQUAL are supported
+     * currently.
+     */
+    public static final int NULL_SAFE = 16;
+
+    /**
      * The comparison type meaning = as in ID=1.
      */
     public static final int EQUAL = 0;
+
+    /**
+     * The comparison type meaning ID IS 1 (ID IS NOT DISTINCT FROM 1).
+     */
+    public static final int EQUAL_NULL_SAFE = EQUAL | NULL_SAFE;
 
     /**
      * The comparison type meaning &gt;= as in ID&gt;=1.
@@ -53,6 +65,11 @@ public class Comparison extends Condition {
      * The comparison type meaning &lt;&gt; as in ID&lt;&gt;1.
      */
     public static final int NOT_EQUAL = 5;
+
+    /**
+     * The comparison type meaning ID IS NOT 1 (ID IS DISTINCT FROM 1).
+     */
+    public static final int NOT_EQUAL_NULL_SAFE = NOT_EQUAL | NULL_SAFE;
 
     /**
      * The comparison type meaning IS NULL as in NAME IS NULL.
@@ -100,6 +117,9 @@ public class Comparison extends Condition {
         case EQUAL:
             sql = left.getSQL() + " = " + right.getSQL();
             break;
+        case EQUAL_NULL_SAFE:
+            sql = left.getSQL() + " IS " + right.getSQL();
+            break;
         case BIGGER_EQUAL:
             sql = left.getSQL() + " >= " + right.getSQL();
             break;
@@ -114,6 +134,9 @@ public class Comparison extends Condition {
             break;
         case NOT_EQUAL:
             sql = left.getSQL() + " <> " + right.getSQL();
+            break;
+        case NOT_EQUAL_NULL_SAFE:
+            sql = left.getSQL() + " IS NOT " + right.getSQL();
             break;
         case IS_NULL:
             sql = left.getSQL() + " IS NULL";
@@ -143,7 +166,9 @@ public class Comparison extends Condition {
                 if (right.isConstant()) {
                     Value r = right.getValue(session);
                     if (r == ValueNull.INSTANCE) {
-                        return ValueExpression.getNull();
+                        if ((compareType & NULL_SAFE) == 0) {
+                            return ValueExpression.getNull();
+                        }
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(((ExpressionColumn) left).getColumn());
@@ -161,7 +186,9 @@ public class Comparison extends Condition {
             if (left == ValueExpression.getNull() || right == ValueExpression.getNull()) {
                 // TODO NULL handling: maybe issue a warning when comparing with
                 // a NULL constants
-                return ValueExpression.getNull();
+                if ((compareType & NULL_SAFE) == 0) {
+                    return ValueExpression.getNull();
+                }
             }
             if (left.isConstant() && right.isConstant()) {
                 return ValueExpression.get(getValue(session));
@@ -187,11 +214,15 @@ public class Comparison extends Condition {
             return ValueBoolean.get(result);
         }
         if (l == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
+            if ((compareType & NULL_SAFE) == 0) {
+                return ValueNull.INSTANCE;
+            }
         }
         Value r = right.getValue(session);
         if (r == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
+            if ((compareType & NULL_SAFE) == 0) {
+                return ValueNull.INSTANCE;
+            }
         }
         int dataType = Value.getHigherOrder(left.getType(), right.getType());
         l = l.convertTo(dataType);
@@ -214,9 +245,11 @@ public class Comparison extends Condition {
         boolean result;
         switch (compareType) {
         case EQUAL:
+        case EQUAL_NULL_SAFE:
             result = database.areEqual(l, r);
             break;
         case NOT_EQUAL:
+        case NOT_EQUAL_NULL_SAFE:
             result = !database.areEqual(l, r);
             break;
         case BIGGER_EQUAL:
@@ -240,7 +273,9 @@ public class Comparison extends Condition {
     private int getReversedCompareType(int type) {
         switch (compareType) {
         case EQUAL:
+        case EQUAL_NULL_SAFE:
         case NOT_EQUAL:
+        case NOT_EQUAL_NULL_SAFE:
             return type;
         case BIGGER_EQUAL:
             return SMALLER_EQUAL;
@@ -259,8 +294,12 @@ public class Comparison extends Condition {
         switch (compareType) {
         case EQUAL:
             return NOT_EQUAL;
+        case EQUAL_NULL_SAFE:
+            return NOT_EQUAL_NULL_SAFE;
         case NOT_EQUAL:
             return EQUAL;
+        case NOT_EQUAL_NULL_SAFE:
+            return EQUAL_NULL_SAFE;
         case BIGGER_EQUAL:
             return SMALLER;
         case BIGGER:
@@ -296,7 +335,7 @@ public class Comparison extends Condition {
                 switch (compareType) {
                 case IS_NULL:
                     if (SysProperties.OPTIMIZE_IS_NULL) {
-                        filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL, l, ValueExpression.getNull()));
+                        filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
                     }
                 }
             }
@@ -336,9 +375,11 @@ public class Comparison extends Condition {
         boolean addIndex;
         switch (compareType) {
         case NOT_EQUAL:
+        case NOT_EQUAL_NULL_SAFE:
             addIndex = false;
             break;
         case EQUAL:
+        case EQUAL_NULL_SAFE:
         case BIGGER:
         case BIGGER_EQUAL:
         case SMALLER_EQUAL:

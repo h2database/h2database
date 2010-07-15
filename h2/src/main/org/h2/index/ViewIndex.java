@@ -123,7 +123,7 @@ public class ViewIndex extends BaseIndex {
                 int nextParamIndex = q.getParameters().size() + view.getParameterOffset();
                 if ((mask & IndexCondition.EQUALITY) != 0) {
                     Parameter param = new Parameter(nextParamIndex);
-                    q.addGlobalCondition(param, idx, Comparison.EQUAL);
+                    q.addGlobalCondition(param, idx, Comparison.EQUAL_NULL_SAFE);
                 } else {
                     if ((mask & IndexCondition.START) != 0) {
                         Parameter param = new Parameter(nextParamIndex);
@@ -226,7 +226,7 @@ public class ViewIndex extends BaseIndex {
             int mask = masks[idx];
             if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
                 Parameter param = new Parameter(firstIndexParam + i);
-                q.addGlobalCondition(param, idx, Comparison.EQUAL);
+                q.addGlobalCondition(param, idx, Comparison.EQUAL_NULL_SAFE);
                 i++;
             } else {
                 if ((mask & IndexCondition.START) == IndexCondition.START) {

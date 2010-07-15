@@ -18,19 +18,24 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Primary key violations threw a strange exception message when using a single column INT or BIGINT key.
+<ul><li>The build tool now supports (minimalistic) shell mode, started using ./build.sh -
+</li><li>IS NULL comparison with nested queries and linked tables did not work.
+    Example: select * from (select x from test) where x is null.
+</li><li>Support for null-safe equals. This includes the ANSI SQL standard syntax
+    A IS [NOT] DISTINCT FROM B as well as the shorter A IS [NOT] B.
+</li><li>Primary key violations threw a strange exception message when using a single column INT or BIGINT key.
 </li><li>EXPLAIN ANALYZE now also lists the number of pages read from the file.
 </li><li>Memory mapped files: There was a bug in version 1.2.139 so that memory mapped files
-	could only be used together with split, for example: split:nioMapped: - the problem is now solved.
-	It is still a good idea to use split:nioMapped: to work around the 2 GB limitation of memory mapped files.
+    could only be used together with split, for example: split:nioMapped: - the problem is now solved.
+    It is still a good idea to use split:nioMapped: to work around the 2 GB limitation of memory mapped files.
 </li><li>Memory mapped files: the system property h2.nioCleanerHack is now disabled by default
-	because it was not always working as expected. Now System.gc() is used in a loop until the 
-	buffer is garbage collected. This of course is also not a nice solution, but the only one known to work.
-	See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
+    because it was not always working as expected. Now System.gc() is used in a loop until the
+    buffer is garbage collected. This of course is also not a nice solution, but the only one known to work.
+    See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
 </li><li>If an old 1.1 database file version is found on connect, it is now possible to let the old h2
-  classes (v 1.2.128) connect to the database. The automatic upgrade .jar file must be present, and the url
-  must contain NO_UPGRADE=TRUE
-  </li><li>The automatic upgrade temporary script file is now encrypted.
+    classes (v 1.2.128) connect to the database. The automatic upgrade .jar file must be present, and the url
+    must contain NO_UPGRADE=TRUE
+</li><li>The automatic upgrade temporary script file is now encrypted.
 </li></ul>
 
 <h2>Version 1.2.139 (2010-07-10)</h2>

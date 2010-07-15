@@ -58,7 +58,7 @@ public class Driver implements java.sql.Driver {
             }
             boolean noUpgrade = url.contains(";NO_UPGRADE=TRUE");
             url = url.replaceAll(";NO_UPGRADE=TRUE", "");
-            if (DbUpgrade.areV1_1ClassesPresent()) {
+            if (DbUpgrade.areV1dot1ClassesPresent()) {
                 if (noUpgrade) {
                     Connection connection = DbUpgrade.connectWithOldVersion(url, info);
                     if (connection != null) {

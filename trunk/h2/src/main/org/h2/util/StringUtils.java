@@ -700,16 +700,20 @@ public class StringUtils {
      * @return the string with the before string replaced
      */
     public static String replaceAll(String s, String before, String after) {
-        StringBuilder buff = new StringBuilder(s.length());
+        int next = s.indexOf(before);
+        if (next < 0) {
+            return s;
+        }
+        StringBuilder buff = new StringBuilder(s.length() - before.length() + after.length());
         int index = 0;
         while (true) {
-            int next = s.indexOf(before, index);
+            buff.append(s.substring(index, next)).append(after);
+            index = next + before.length();
+            next = s.indexOf(before, index);
             if (next < 0) {
                 buff.append(s.substring(index));
                 break;
             }
-            buff.append(s.substring(index, next)).append(after);
-            index = next + before.length();
         }
         return buff.toString();
     }
@@ -751,21 +755,8 @@ public class StringUtils {
      * @return the resulting string
      */
     public static String quoteRemarkSQL(String sql) {
-        while (true) {
-            int idx = sql.indexOf("*/");
-            if (idx < 0) {
-                break;
-            }
-            sql = sql.substring(0, idx) + "++/" + sql.substring(idx + 2);
-        }
-        while (true) {
-            int idx = sql.indexOf("/*");
-            if (idx < 0) {
-                break;
-            }
-            sql = sql.substring(0, idx) + "/++" + sql.substring(idx + 2);
-        }
-        return sql;
+        sql = replaceAll(sql, "*/", "++/");
+        return replaceAll(sql, "/*", "/++");
     }
 
     /**

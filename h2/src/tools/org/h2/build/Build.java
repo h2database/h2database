@@ -358,6 +358,7 @@ public class Build extends BuildBase {
             exclude("*.sh").
             exclude("*.txt");
         files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
+        files.add(new File("temp/org/h2/tools/CompressTool.class"));
         jar("bin/h2small" + getJarSuffix(), files, "temp");
     }
 

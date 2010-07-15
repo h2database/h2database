@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The build tool now supports (minimalistic) shell mode, started using ./build.sh -
+<ul><li>The "small jar" distribution did not include the CompressTool, 
+    which was required for some operations. Fixed.
+</li><li>The build tool now supports (minimalistic) shell mode, started using ./build.sh -
 </li><li>IS NULL comparison with nested queries and linked tables did not work.
     Example: select * from (select x from test) where x is null.
 </li><li>Support for null-safe equals. This includes the ANSI SQL standard syntax

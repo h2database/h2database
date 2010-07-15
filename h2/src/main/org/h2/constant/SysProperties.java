@@ -427,8 +427,9 @@ public class SysProperties {
 
     /**
      * System property <code>h2.nioCleanerHack</code> (default: false).<br />
-     * If enabled, use the reflection hack to un-map the mapped file if possible. If disabled,
-     * System.gc() is called in a loop until the object is garbage collected. See also
+     * If enabled, use the reflection hack to un-map the mapped file if
+     * possible. If disabled, System.gc() is called in a loop until the object
+     * is garbage collected. See also
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
      */
     public static final boolean NIO_CLEANER_HACK = getBooleanSetting("h2.nioCleanerHack", false);

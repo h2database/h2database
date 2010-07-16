@@ -3,6 +3,21 @@
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
+ *
+ * According to a mail from Alan Tucker to Chris H Miller from IBM,
+ * the algorithm is in the public domain:
+ *
+ * Date: 2010-07-15 15:57
+ * Subject: Re: Applied Combinatorics Code
+ *
+ * Chris,
+ * The combinatorics algorithms in my textbook are all not under patent
+ * or copyright. They are as much in the public domain as the solution to any
+ * common question in an undergraduate mathematics course, e.g., in my
+ * combinatorics course, the solution to the problem of how many arrangements
+ * there are of the letters in the word MATHEMATICS. I appreciate your due
+ * diligence.
+ * -Alan
  */
 package org.h2.util;
 

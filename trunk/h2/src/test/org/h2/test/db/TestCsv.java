@@ -208,7 +208,7 @@ public class TestCsv extends TestBase {
         stat.execute("call csvwrite('"+fileName+"', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
         InputStreamReader reader = new InputStreamReader(IOUtils.openFileInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
-        text = StringUtils.replaceAll(text, "\n", " ");
+        text = StringUtils.replaceAll(text, "\n", " ", false);
         assertEquals("ID|NAME 1|Hello", text);
         ResultSet rs = stat.executeQuery("select * from csvread('" + fileName + "', null, null, '|', '')");
         ResultSetMetaData meta = rs.getMetaData();

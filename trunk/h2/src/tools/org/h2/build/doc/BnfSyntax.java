@@ -30,7 +30,7 @@ public class BnfSyntax implements BnfVisitor {
      * @return the HTML
      */
     public String getHtml(Bnf bnf, String syntaxLines) {
-        syntaxLines = StringUtils.replaceAll(syntaxLines, "\n    ", "\n");
+        syntaxLines = StringUtils.replaceAll(syntaxLines, "\n    ", "\n", false);
         StringTokenizer tokenizer = bnf.getTokenizer(syntaxLines);
         StringBuilder buff = new StringBuilder();
         while (tokenizer.hasMoreTokens()) {
@@ -43,7 +43,7 @@ public class BnfSyntax implements BnfVisitor {
         }
         String s = buff.toString();
         // ensure it works within XHTML comments
-        s = StringUtils.replaceAll(s, "--", "&#45;-");
+        s = StringUtils.replaceAll(s, "--", "&#45;-", false);
         return s;
     }
 

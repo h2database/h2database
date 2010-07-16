@@ -129,16 +129,16 @@ public class PrepareTranslation {
                 map.put(k.toString(), prop.get(k));
             }
             String html = PageParser.parse(template, map);
-            html = StringUtils.replaceAll(html, "lang=\"" + MAIN_LANGUAGE + "\"", "lang=\"" + language + "\"");
+            html = StringUtils.replaceAll(html, "lang=\"" + MAIN_LANGUAGE + "\"", "lang=\"" + language + "\"", false);
             for (String n : fileNames) {
                 if ("frame".equals(n)) {
                     // don't translate 'frame.html' to 'frame_ja.html',
                     // otherwise we can't switch back to English
                     continue;
                 }
-                html = StringUtils.replaceAll(html, n + ".html\"", n + "_" + language + ".html\"");
+                html = StringUtils.replaceAll(html, n + ".html\"", n + "_" + language + ".html\"", false);
             }
-            html = StringUtils.replaceAll(html, "_" + MAIN_LANGUAGE + ".html\"", ".html\"");
+            html = StringUtils.replaceAll(html, "_" + MAIN_LANGUAGE + ".html\"", ".html\"", false);
             String target;
             if (language.equals(MAIN_LANGUAGE)) {
                 target = targetDir + "/" + name + ".html";
@@ -376,7 +376,7 @@ public class PrepareTranslation {
         text = text.replace('\r', ' ');
         text = text.replace('\n', ' ');
         while (true) {
-            String s = StringUtils.replaceAll(text, "  ", " ");
+            String s = StringUtils.replaceAll(text, "  ", " ", false);
             if (s.equals(text)) {
                 break;
             }

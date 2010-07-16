@@ -34,12 +34,12 @@ public class BnfRailroad implements BnfVisitor {
     public String getHtml(Bnf bnf, String syntaxLines) {
         syntaxVisitor = new BnfSyntax();
         this.config = bnf;
-        syntaxLines = StringUtils.replaceAll(syntaxLines, "\n    ", " ");
+        syntaxLines = StringUtils.replaceAll(syntaxLines, "\n    ", " ", false);
         String[] syntaxList = StringUtils.arraySplit(syntaxLines, '\n', true);
         StringBuilder buff = new StringBuilder();
         for (String s : syntaxList) {
             bnf.visit(this, s);
-            html = StringUtils.replaceAll(html, "</code></td><td class=\"d\"><code class=\"c\">", " ");
+            html = StringUtils.replaceAll(html, "</code></td><td class=\"d\"><code class=\"c\">", " ", false);
             if (buff.length() > 0) {
                 buff.append("<br />");
             }

@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.util.Locale;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
@@ -17,6 +18,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.upgrade.DbUpgrade;
+import org.h2.util.StringUtils;
 
 /**
  * The database driver. An application should not use this class directly. The
@@ -56,8 +58,8 @@ public class Driver implements java.sql.Driver {
             if (!acceptsURL(url)) {
                 return null;
             }
-            boolean noUpgrade = url.contains(";NO_UPGRADE=TRUE");
-            url = url.replaceAll(";NO_UPGRADE=TRUE", "");
+            boolean noUpgrade = url.toUpperCase(Locale.ENGLISH).contains(";NO_UPGRADE=TRUE");
+            url = StringUtils.replaceAll(url, ";NO_UPGRADE=TRUE", "", true);
             if (DbUpgrade.areV1dot1ClassesPresent()) {
                 if (noUpgrade) {
                     Connection connection = DbUpgrade.connectWithOldVersion(url, info);

@@ -16,6 +16,7 @@ import java.util.UUID;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemDisk;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -61,16 +62,17 @@ public class DbUpgradeNonPageStoreToCurrent {
     private void init() throws SQLException {
         try {
             newUrl = url;
-            newUrl = newUrl.replaceAll(";UNDO_LOG=\\d", "");
+            newUrl = StringUtils.replaceAll(newUrl, ";UNDO_LOG=1", "", true);
+            newUrl = StringUtils.replaceAll(newUrl, ";UNDO_LOG=0", "", true);
             newUrl += ";UNDO_LOG=0";
             String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
             oldUrl = url;
-            oldUrl = oldUrl.replaceAll(org.h2.engine.Constants.START_URL, oldStartUrlPrefix);
-            oldUrl = oldUrl.replaceAll(";IGNORE_UNKNOWN_SETTINGS=TRUE", "");
-            oldUrl = oldUrl.replaceAll(";IGNORE_UNKNOWN_SETTINGS=FALSE", "");
-            oldUrl = oldUrl.replaceAll(";IFEXISTS=TRUE", "");
-            oldUrl = oldUrl.replaceAll(";IFEXISTS=FALSE", "");
-            oldUrl = oldUrl.replaceAll(";PAGE_STORE=TRUE", "");
+            oldUrl = StringUtils.replaceAll(oldUrl, org.h2.engine.Constants.START_URL, oldStartUrlPrefix, false);
+            oldUrl = StringUtils.replaceAll(oldUrl, ";IGNORE_UNKNOWN_SETTINGS=TRUE", "", true);
+            oldUrl = StringUtils.replaceAll(oldUrl, ";IGNORE_UNKNOWN_SETTINGS=FALSE", "", true);
+            oldUrl = StringUtils.replaceAll(oldUrl, ";IFEXISTS=TRUE", "", true);
+            oldUrl = StringUtils.replaceAll(oldUrl, ";IFEXISTS=FALSE", "", true);
+            oldUrl = StringUtils.replaceAll(oldUrl, ";PAGE_STORE=TRUE", "", true);
             oldUrl += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
             Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", oldUrl, info);
             boolean isRemote = (Boolean) Utils.callMethod(ci, "isRemote");

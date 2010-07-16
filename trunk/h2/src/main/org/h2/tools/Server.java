@@ -473,7 +473,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 if (browser.indexOf("%url") >= 0) {
                     String[] args = StringUtils.arraySplit(browser, ',', false);
                     for (int i = 0; i < args.length; i++) {
-                        args[i] = StringUtils.replaceAll(args[i], "%url", url);
+                        args[i] = StringUtils.replaceAll(args[i], "%url", url, false);
                     }
                     rt.exec(args);
                 } else if (osName.indexOf("windows") >= 0) {

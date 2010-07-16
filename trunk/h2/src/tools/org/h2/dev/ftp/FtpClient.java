@@ -447,7 +447,7 @@ public class FtpClient {
         for (int i = 0; i < files.length; i++) {
             String s = list[i];
             while (true) {
-                String s2 = StringUtils.replaceAll(s, "  ", " ");
+                String s2 = StringUtils.replaceAll(s, "  ", " ", false);
                 if (s2.equals(s)) {
                     break;
                 }

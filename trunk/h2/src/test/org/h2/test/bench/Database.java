@@ -247,7 +247,7 @@ class Database {
             String key = (String) k;
             if (key.startsWith(databaseType + ".")) {
                 String pattern = key.substring(databaseType.length() + 1);
-                pattern = StringUtils.replaceAll(pattern, "_", " ");
+                pattern = StringUtils.replaceAll(pattern, "_", " ", false);
                 pattern = StringUtils.toUpperEnglish(pattern);
                 String replacement = prop.getProperty(key);
                 replace.add(new String[]{pattern, replacement});
@@ -270,7 +270,7 @@ class Database {
         for (String[] pair : replace) {
             String pattern = pair[0];
             String replacement = pair[1];
-            sql = StringUtils.replaceAll(sql, pattern, replacement);
+            sql = StringUtils.replaceAll(sql, pattern, replacement, false);
         }
         return sql;
     }

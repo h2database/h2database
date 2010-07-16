@@ -46,6 +46,7 @@ import org.h2.test.db.TestOutOfMemory;
 import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
+import org.h2.test.db.TestRecursiveQueries;
 import org.h2.test.db.TestRights;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
@@ -534,6 +535,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestPowerOff().runTest(this);
         new TestQueryCache().runTest(this);
         new TestReadOnly().runTest(this);
+        new TestRecursiveQueries().runTest(this);
         new TestRights().runTest(this);
         new TestRunscript().runTest(this);
         new TestSQLInjection().runTest(this);

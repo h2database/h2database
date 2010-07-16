@@ -1391,6 +1391,8 @@ public class Parser {
             command.setCommand(parseInsert());
         } else if (readIf("MERGE")) {
             command.setCommand(parseMerge());
+        } else if (readIf("WITH")) {
+            command.setCommand(parserWith());
         } else {
             throw getSyntaxError();
         }
@@ -3968,6 +3970,7 @@ public class Parser {
     }
 
     private Query parserWith() {
+        readIf("RECURSIVE");
         String tempViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
         Table recursiveTable;
@@ -3977,8 +3980,20 @@ public class Parser {
         for (String c : cols) {
             columns.add(new Column(c, Value.STRING));
         }
+        Table old = session.findLocalTempTable(tempViewName);
+        if (old != null) {
+            if (!(old instanceof TableView)) {
+                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, tempViewName);
+            }
+            TableView tv = (TableView) old;
+            if (!tv.isTableExpression()) {
+                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, tempViewName);
+            }
+            session.removeLocalTempTable(old);
+        }
         CreateTableData data = new CreateTableData();
         data.id = database.allocateObjectId();
+        data.columns = columns;
         data.tableName = tempViewName;
         data.temporary = true;
         data.persistData = true;
@@ -3987,21 +4002,26 @@ public class Parser {
         data.session = session;
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
-        String querySQL = StringUtils.fromCacheOrNew(sqlCommand.substring(parseIndex));
-        read("AS");
-        Query withQuery = parseSelect();
-        withQuery.prepare();
-        session.removeLocalTempTable(recursiveTable);
+        String querySQL;
+        try {
+            read("AS");
+            read("(");
+            Query withQuery = parseSelect();
+            read(")");
+            withQuery.prepare();
+            querySQL = StringUtils.fromCacheOrNew(withQuery.getPlanSQL());
+        } finally {
+            session.removeLocalTempTable(recursiveTable);
+        }
         int id = database.allocateObjectId();
         TableView view = new TableView(schema, id, tempViewName, querySQL, null, cols, session, true);
+        view.setTableExpression(true);
         view.setTemporary(true);
-        // view.setOnCommitDrop(true);
         session.addLocalTempTable(view);
-        Query query = parseSelect();
-        query.prepare();
-        query.setPrepareAlways(true);
-        // session.removeLocalTempTable(view);
-        return query;
+        view.setOnCommitDrop(true);
+        Query q = parseSelect();
+        q.setPrepareAlways(true);
+        return q;
     }
 
     private CreateView parseCreateView(boolean force, boolean orReplace) {

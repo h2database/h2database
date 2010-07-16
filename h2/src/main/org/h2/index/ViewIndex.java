@@ -8,11 +8,14 @@ package org.h2.index;
 
 import java.util.ArrayList;
 import org.h2.command.dml.Query;
+import org.h2.command.dml.SelectUnion;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -57,8 +60,10 @@ public class ViewIndex extends BaseIndex {
         this.indexMasks = masks;
         this.createSession = session;
         columns = new Column[0];
-        query = getQuery(session, masks);
-        planSQL =  query.getPlanSQL();
+        if (!recursive) {
+            query = getQuery(session, masks);
+            planSQL =  query.getPlanSQL();
+        }
     }
 
     public Session getSession() {
@@ -98,6 +103,9 @@ public class ViewIndex extends BaseIndex {
     }
 
     public double getCost(Session session, int[] masks) {
+        if (recursive) {
+            return 1000;
+        }
         IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
         CostElement cachedCost = costCache.get(masksArray);
         if (cachedCost != null) {
@@ -135,9 +143,6 @@ public class ViewIndex extends BaseIndex {
                     }
                 }
             }
-            if (recursive) {
-                return 10;
-            }
             String sql = q.getPlanSQL();
             q = (Query) session.prepare(sql, true);
         }
@@ -150,6 +155,45 @@ public class ViewIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) {
+        if (recursive) {
+            if (view.getRecursiveResult() != null) {
+                ResultInterface r = view.getRecursiveResult();
+                r.reset();
+                return new ViewCursor(table, r);
+            }
+            if (query == null) {
+                query = (Query) createSession.prepare(querySQL, true);
+                planSQL =  query.getPlanSQL();
+            }
+            if (!(query instanceof SelectUnion)) {
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_2, "recursive queries without UNION ALL");
+            }
+            SelectUnion union = (SelectUnion) query;
+            if (union.getUnionType() != SelectUnion.UNION_ALL) {
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_2, "recursive queries without UNION ALL");
+            }
+            Query left = union.getLeft();
+            ResultInterface r = left.query(0);
+            LocalResult result = union.getEmptyResult();
+            while (r.next()) {
+                result.addRow(r.currentRow());
+            }
+            Query right = union.getRight();
+            r.reset();
+            view.setRecursiveResult(r);
+            while (true) {
+                r = right.query(0);
+                if (r.getRowCount() == 0) {
+                    break;
+                }
+                while (r.next()) {
+                    result.addRow(r.currentRow());
+                }
+                r.reset();
+                view.setRecursiveResult(r);
+            }
+            return new ViewCursor(table, result);
+        }
         ArrayList<Parameter> paramList = query.getParameters();
         for (int i = 0; originalParameters != null && i < originalParameters.size(); i++) {
             Parameter orig = originalParameters.get(i);
@@ -280,6 +324,10 @@ public class ViewIndex extends BaseIndex {
 
     public long getRowCountApproximation() {
         return 0;
+    }
+
+    public boolean isRecursive() {
+        return recursive;
     }
 
 }

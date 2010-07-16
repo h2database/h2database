@@ -20,6 +20,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.util.IntArray;
@@ -49,6 +50,8 @@ public class TableView extends Table {
     private long maxDataModificationId;
     private User owner;
     private Query topQuery;
+    private ResultInterface recursiveResult;
+    private boolean tableExpression;
 
     public TableView(Schema schema, int id, String name, String querySQL, ArrayList<Parameter> params, String[] columnNames,
             Session session, boolean recursive) {
@@ -118,10 +121,8 @@ public class TableView extends Table {
                     cols[i] = new Column(columnNames[i], Value.STRING);
                 }
                 index.setRecursive(true);
-                recursive = true;
                 createException = null;
             }
-
         }
         setColumns(cols);
         if (getId() != 0) {
@@ -385,7 +386,26 @@ public class TableView extends Table {
     }
 
     public boolean isDeterministic() {
+        if (recursive) {
+            return false;
+        }
         return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC);
+    }
+
+    public void setRecursiveResult(ResultInterface recursiveResult) {
+        this.recursiveResult = recursiveResult;
+    }
+
+    public ResultInterface getRecursiveResult() {
+        return recursiveResult;
+    }
+
+    public void setTableExpression(boolean tableExpression) {
+        this.tableExpression = tableExpression;
+    }
+
+    public boolean isTableExpression() {
+        return tableExpression;
     }
 
 }

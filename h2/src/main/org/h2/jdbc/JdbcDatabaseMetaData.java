@@ -1230,15 +1230,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             }
             checkClosed();
             PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
-                    + "CATALOG_NAME  TYPE_CAT, "
-                    + "CATALOG_NAME  TYPE_SCHEM, "
-                    + "CATALOG_NAME  TYPE_NAME, "
-                    + "CATALOG_NAME  CLASS_NAME, "
-                    + "CAST(ZERO() AS SMALLINT) DATA_TYPE, "
-                    + "CATALOG_NAME  REMARKS, "
-                    + "CAST(ZERO() AS SMALLINT) BASE_TYPE "
-                    + "FROM INFORMATION_SCHEMA.CATALOGS "
-                    + "WHERE FALSE");
+                    + "CAST(NULL AS VARCHAR) TYPE_CAT, "
+                    + "CAST(NULL AS VARCHAR) TYPE_SCHEM, "
+                    + "CAST(NULL AS VARCHAR) TYPE_NAME, "
+                    + "CAST(NULL AS VARCHAR) CLASS_NAME, "
+                    + "CAST(NULL AS SMALLINT) DATA_TYPE, "
+                    + "CAST(NULL AS VARCHAR) REMARKS, "
+                    + "CAST(NULL AS SMALLINT) BASE_TYPE "
+                    + "FROM DUAL WHERE FALSE");
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);

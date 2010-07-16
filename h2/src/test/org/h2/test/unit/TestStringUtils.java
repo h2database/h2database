@@ -167,10 +167,10 @@ public class TestStringUtils extends TestBase {
             assertEquals(a, c);
         }
     }
-    
+
     private void testReplaceAll() {
         assertEquals("def", StringUtils.replaceAll("abc def", "abc ", "", false));
-        assertEquals("adef", StringUtils.replaceAll("abc def", "bc ", "", false));
+        assertEquals("af", StringUtils.replaceAll("abc def", "bc de", "", false));
         assertEquals("abc def", StringUtils.replaceAll("abc def", "bc ", "bc ", false));
         assertEquals("abc ", StringUtils.replaceAll("abc def", "def", "", false));
         assertEquals(" ", StringUtils.replaceAll("abc abc", "abc", "", false));
@@ -178,10 +178,10 @@ public class TestStringUtils extends TestBase {
         assertEquals("abc def", StringUtils.replaceAll("abc def", "xyz", "abc", false));
         assertEquals("", StringUtils.replaceAll("abcabcabc", "abc", "", false));
         assertEquals("abcabcabc", StringUtils.replaceAll("abcabcabc", "aBc", "", false));
-        assertEquals("X", StringUtils.replaceAll("Xabcabcabc", "aBc", "", true));
-        assertEquals("X", StringUtils.replaceAll("XaBcabcaBc", "abc", "", true));
-        assertEquals("x", StringUtils.replaceAll("xabcabcabc", "aBc", "", true));
-        assertEquals("x", StringUtils.replaceAll("xaBcabcaBc", "abc", "", true));
+        assertEquals("d", StringUtils.replaceAll("abcd", "aBc", "", true));
+        assertEquals("d", StringUtils.replaceAll("abcd", "abc", "", true));
+        assertEquals("D", StringUtils.replaceAll("abcD", "aBc", "", true));
+        assertEquals("D", StringUtils.replaceAll("abcD", "abc", "", true));
     }
 
 }

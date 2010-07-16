@@ -18,8 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Problems with JDK 1.6.0_18 have been reports in the class StringUtils.quoteRemarkSQL. This method is now changed.
-</li><li>The "small jar" distribution did not include the CompressTool, 
+<ul><li>CAST(NULL AS ...) doesn't forget the data type, precision, and scale any longer.
+</li><li>Experimental support for recursive queries (see 'Advanced' - 'Recursive Queries' for details).
+</li><li>Problems with JDK 1.6.0_18 have been reports in the class StringUtils.quoteRemarkSQL. This method is now changed.
+</li><li>The "small jar" distribution did not include the CompressTool,
     which was required for some operations. Fixed.
 </li><li>The build tool now supports (minimalistic) shell mode, started using ./build.sh -
 </li><li>IS NULL comparison with nested queries and linked tables did not work.

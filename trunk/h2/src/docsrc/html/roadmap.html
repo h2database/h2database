@@ -490,10 +490,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     Derby: triggers are fired in the order in which they were created.
 </li><li>PostgreSQL compatibility: combine "users" and "roles". See:
     http://www.postgresql.org/docs/8.1/interactive/user-manag.html
-</li><li>Support NULL with a type: @meta CALL CAST(NULL AS INT) should return INT.
-    See the ValueExpression.java (currently it returns the type of the value;
-    it could have it's own type/precision/scale optionally, for example when created from CAST,
-    which is implemented in Function.java).
 </li><li>Improve documentation of system properties: only list the property names, default values, and description.
 </li><li>Support running totals / cumulative sum using SUM(..) OVER(..).
 </li><li>Improve object memory size calculation. Use constants for known VMs, or use reflection to call java.lang.instrument.Instrumentation.getObjectSize(Object objectToSize)

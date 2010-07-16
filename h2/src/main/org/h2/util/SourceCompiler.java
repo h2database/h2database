@@ -210,7 +210,7 @@ public class SourceCompiler {
     private void throwSyntaxError(ByteArrayOutputStream out) {
         String err = StringUtils.utf8Decode(out.toByteArray());
         if (err.length() > 0) {
-            err = StringUtils.replaceAll(err, compileDir, "");
+            err = StringUtils.replaceAll(err, compileDir, "", false);
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, err);
         }
     }

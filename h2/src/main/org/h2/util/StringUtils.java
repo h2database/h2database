@@ -697,10 +697,18 @@ public class StringUtils {
      * @param s the string
      * @param before the old text
      * @param after the new text
+     * @param caseInsensitive true if it should be case insensitive
      * @return the string with the before string replaced
      */
-    public static String replaceAll(String s, String before, String after) {
-        int next = s.indexOf(before);
+    public static String replaceAll(String s, String before, String after, boolean caseInsensitive) {
+        String testString;
+        if (caseInsensitive) {
+            testString = s.toLowerCase(Locale.ENGLISH);
+            before = before.toLowerCase(Locale.ENGLISH);
+        } else {
+            testString = s;
+        }
+        int next = testString.indexOf(before);
         if (next < 0) {
             return s;
         }
@@ -709,7 +717,7 @@ public class StringUtils {
         while (true) {
             buff.append(s.substring(index, next)).append(after);
             index = next + before.length();
-            next = s.indexOf(before, index);
+            next = testString.indexOf(before, index);
             if (next < 0) {
                 buff.append(s.substring(index));
                 break;
@@ -755,8 +763,8 @@ public class StringUtils {
      * @return the resulting string
      */
     public static String quoteRemarkSQL(String sql) {
-        sql = replaceAll(sql, "*/", "++/");
-        return replaceAll(sql, "/*", "/++");
+        sql = replaceAll(sql, "*/", "++/", false);
+        return replaceAll(sql, "/*", "/++", false);
     }
 
     /**

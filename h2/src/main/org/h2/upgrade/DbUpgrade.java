@@ -17,6 +17,7 @@ import java.util.Properties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemDisk;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -55,10 +56,10 @@ public class DbUpgrade {
     public static Connection connectWithOldVersion(String url, Properties info) throws SQLException {
         try {
             String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
-            url = url.replaceAll(org.h2.engine.Constants.START_URL, oldStartUrlPrefix);
-            url = url.replaceAll(";IGNORE_UNKNOWN_SETTINGS=TRUE", "");
-            url = url.replaceAll(";IGNORE_UNKNOWN_SETTINGS=FALSE", "");
-            url = url.replaceAll(";PAGE_STORE=TRUE", "");
+            url = StringUtils.replaceAll(url, org.h2.engine.Constants.START_URL, oldStartUrlPrefix, false);
+            url = StringUtils.replaceAll(url, ";IGNORE_UNKNOWN_SETTINGS=TRUE", "", true);
+            url = StringUtils.replaceAll(url, ";IGNORE_UNKNOWN_SETTINGS=FALSE", "", true);
+            url = StringUtils.replaceAll(url, ";PAGE_STORE=TRUE", "", true);
             url += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
             Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", url, info);
             boolean isRemote = (Boolean) Utils.callMethod(ci, "isRemote");

@@ -134,7 +134,7 @@ public class FunctionsMySQL {
     private static String convertToSimpleDateFormat(String format) {
         String[] replace = FORMAT_REPLACE;
         for (int i = 0; i < replace.length; i += 2) {
-            format = StringUtils.replaceAll(format, replace[i], replace[i + 1]);
+            format = StringUtils.replaceAll(format, replace[i], replace[i + 1], false);
         }
         return format;
     }

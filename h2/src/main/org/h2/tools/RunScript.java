@@ -221,9 +221,9 @@ public class RunScript extends Tool {
                                     for (int i = 0; i < columns; i++) {
                                         String s = rs.getString(i + 1);
                                         if (s != null) {
-                                            s = StringUtils.replaceAll(s, "\r\n", "\n");
-                                            s = StringUtils.replaceAll(s, "\n", "\n-->    ");
-                                            s = StringUtils.replaceAll(s, "\r", "\r-->    ");
+                                            s = StringUtils.replaceAll(s, "\r\n", "\n", false);
+                                            s = StringUtils.replaceAll(s, "\n", "\n-->    ", false);
+                                            s = StringUtils.replaceAll(s, "\r", "\r-->    ", false);
                                         }
                                         buff.append(' ').append(s);
                                     }
@@ -235,11 +235,11 @@ public class RunScript extends Tool {
                                 }
                                 if (checkResults) {
                                     String expected = r.readStatement() + ";";
-                                    expected = StringUtils.replaceAll(expected, "\r\n", "\n");
-                                    expected = StringUtils.replaceAll(expected, "\r", "\n");
+                                    expected = StringUtils.replaceAll(expected, "\r\n", "\n", false);
+                                    expected = StringUtils.replaceAll(expected, "\r", "\n", false);
                                     if (!expected.equals(result)) {
-                                        expected = StringUtils.replaceAll(expected, " ", "+");
-                                        result = StringUtils.replaceAll(result, " ", "+");
+                                        expected = StringUtils.replaceAll(expected, " ", "+", false);
+                                        result = StringUtils.replaceAll(result, " ", "+", false);
                                         throw new SQLException("Unexpected output for:\n" + sql.trim() + "\nGot:\n" + result + "\nExpected:\n" + expected);
                                     }
                                 }

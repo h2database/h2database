@@ -37,10 +37,10 @@ public class TestOldVersion extends TestBase {
         // cl = getClass().getClassLoader();
         Class< ? > driverClass;
         try {
-        	driverClass = cl.loadClass("org.h2.Driver");
+            driverClass = cl.loadClass("org.h2.Driver");
         } catch (ClassNotFoundException e) {
-        	println("not found: ext/h2-1.2.127.jar - test skipped");
-        	return;
+            println("not found: ext/h2-1.2.127.jar - test skipped");
+            return;
         }
         Method m = driverClass.getMethod("load");
         Driver driver = (Driver) m.invoke(null);

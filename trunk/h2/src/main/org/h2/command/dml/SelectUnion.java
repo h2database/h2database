@@ -73,8 +73,20 @@ public class SelectUnion extends Query {
         this.unionType = type;
     }
 
+    public int getUnionType() {
+        return unionType;
+    }
+
     public void setRight(Query select) {
         right = select;
+    }
+
+    public Query getLeft() {
+        return left;
+    }
+
+    public Query getRight() {
+        return right;
     }
 
     public void setSQL(String sql) {
@@ -98,6 +110,11 @@ public class SelectUnion extends Query {
         LocalResult result = new LocalResult(session, expressionArray, columnCount);
         result.done();
         return result;
+    }
+
+    public LocalResult getEmptyResult() {
+        int columnCount = left.getColumnCount();
+        return new LocalResult(session, expressionArray, columnCount);
     }
 
     protected LocalResult queryWithoutCache(int maxrows) {

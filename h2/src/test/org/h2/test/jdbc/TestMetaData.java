@@ -52,6 +52,7 @@ public class TestMetaData extends TestBase {
         testColumnDefault();
         testCrossReferences();
         testProcedureColumns();
+        testUDTs();
 
         stat = conn.createStatement();
         meta = conn.getMetaData();
@@ -206,7 +207,6 @@ public class TestMetaData extends TestBase {
         // meta.getSuperTables()
         // meta.getSuperTypes()
         // meta.getTypeInfo()
-        // meta.getUDTs()
 
         conn.close();
 
@@ -327,6 +327,17 @@ public class TestMetaData extends TestBase {
                         "" + DatabaseMetaData.procedureNullable }, });
         stat.execute("DROP ALIAS EXIT");
         stat.execute("DROP ALIAS PROP");
+    }
+
+    private void testUDTs() throws SQLException {
+        meta = conn.getMetaData();
+        ResultSet rs;
+        rs = meta.getUDTs(null, null, null, null);
+        assertResultSetMeta(rs, 7, new String[] { "TYPE_CAT", "TYPE_SCHEM", "TYPE_NAME",
+                "CLASS_NAME", "DATA_TYPE", "REMARKS", "BASE_TYPE"
+                }, new int[] {
+                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.VARCHAR,
+                Types.SMALLINT }, null, null);
     }
 
     private void testCrossReferences() throws SQLException {

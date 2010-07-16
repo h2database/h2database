@@ -1744,7 +1744,13 @@ public class Function extends Expression implements FunctionCall {
         scale = s;
         displaySize = d;
         if (allConst) {
-            return ValueExpression.get(getValue(session));
+            Value v = getValue(session);
+            if (v == ValueNull.INSTANCE) {
+                if (info.type == CAST || info.type == CONVERT) {
+                    return this;
+                }
+            }
+            return ValueExpression.get(v);
         }
         return this;
     }

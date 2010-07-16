@@ -2,6 +2,23 @@
  * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
+ *
+ * This code is based on the LZF algorithm from Marc Lehmann. It is a
+ * re-implementation of the C code:
+ * http://cvs.schmorp.de/liblzf/lzf_c.c?view=markup
+ * http://cvs.schmorp.de/liblzf/lzf_d.c?view=markup
+ *
+ * According to a mail from Marc Lehmann, it's OK to use his algorithm:
+ * Date: 2010-07-15 15:57
+ * Subject: Re: Question about LZF licensing
+ * ...
+ * The algorithm is not copyrighted (and cannot be copyrighted afaik) - as long
+ * as you wrote everything yourself, without copying my code, that's just fine
+ * (looking is of course fine too).
+ * ...
+ *
+ * Still I would like to keep his copyright info:
+ *
  * Copyright (c) 2000-2005 Marc Alexander Lehmann <schmorp@schmorp.de>
  * Copyright (c) 2005 Oren J. Maurice <oymaurice@hazorea.org.il>
  *
@@ -171,7 +188,7 @@ public final class CompressLZF implements Compressor {
                 // move one byte forward to allow for a literal run control byte
                 outPos++;
                 inPos += len;
-                // Rebuild the future, and store the last bytes to the hashtable.
+                // rebuild the future, and store the last bytes to the hashtable.
                 // Storing hashes of the last bytes in back-reference improves
                 // the compression ratio and only reduces speed slightly.
                 future = first(in, inPos);

@@ -19,6 +19,7 @@ import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.utils.Recorder;
 import org.h2.test.utils.RecordingFileSystem;
+import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.Profiler;
@@ -136,6 +137,11 @@ public class TestReopen extends TestBase implements Recorder {
             e.printStackTrace(System.out);
         }
         System.out.println("begin ------------------------------ " + writeCount);
+        try {
+            Recover.execute(fileName.substring(0, fileName.lastIndexOf('/')), null);
+        } catch (SQLException e) {
+            // ignore
+        }
         testDatabase += "X";
         FileSystem.getInstance(fileName).copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
         try {

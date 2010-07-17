@@ -236,11 +236,6 @@ This will list the top stack traces. Then either analyze this yourself, or
 post those stack traces in the Google Group.
 </p>
 <p>
-To find out what the problem is, open the database in embedded mode using the H2 Console.
-This will print progress information. If you have many lines with 'Creating index' it is an indication that the
-database was not closed the last time.
-</p>
-<p>
 Other possible reasons are: the database is very big (many GB), or contains linked tables
 that are slow to open.
 </p>

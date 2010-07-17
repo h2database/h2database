@@ -680,8 +680,28 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Set the escape character (used to escape the field delimiter). The
-     * default is " (a double quote). The value 0 means no escape character is used.
+     * Set the escape character. The escape character is used to escape the
+     * field delimiter. This is needed if the data contains the field delimiter.
+     * The default escape character is " (a double quote), which is the same as
+     * the field delimiter. If the field delimiter and the escape character are
+     * both " (double quote), and the data contains a double quote, then an
+     * additional double quote is added. Example:
+     * <pre>
+     * Data: He said "Hello".
+     * Escape character: "
+     * Field delimiter: "
+     * CSV file: "He said ""Hello""."
+     * </pre>
+     * If the field delimiter is a double quote and the escape character is a backslash,
+     * then escaping is done similar to Java (however, only the field delimiter is escaped).
+     * Example:
+     * <pre>
+     * Data: He said "Hello".
+     * Escape character: \
+     * Field delimiter: "
+     * CSV file: "He said \"Hello\"."
+     * </pre>
+     * The value 0 means no escape character is used.
      *
      * @param escapeCharacter the escape character
      */

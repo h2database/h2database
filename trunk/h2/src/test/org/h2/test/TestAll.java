@@ -61,6 +61,7 @@ import org.h2.test.db.TestTempTables;
 import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
+import org.h2.test.db.TestUpgrade;
 import org.h2.test.db.TestView;
 import org.h2.test.db.TestViewAlterTable;
 import org.h2.test.db.TestViewDropView;
@@ -640,6 +641,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
         new TestTools().runTest(this);
+        new TestUpgrade().runTest(this);
         new TestUtils().runTest(this);
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);

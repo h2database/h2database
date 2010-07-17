@@ -220,7 +220,7 @@ public class PageStore implements CacheWriter {
         this.accessMode = accessMode;
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
-        // if (!fileName.endsWith("reopen.h2.db"))
+        // if (fileName.endsWith("X.h2.db"))
         // trace.setLevel(TraceSystem.DEBUG);
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSizeDefault);
@@ -341,6 +341,7 @@ public class PageStore implements CacheWriter {
             logFirstTrunkPage = allocatePage();
             log.openForWriting(logFirstTrunkPage, false);
             recoveryRunning = false;
+            freed.set(0, pageCount);
             checkpoint();
             removeOldTempIndexes();
         }
@@ -402,7 +403,7 @@ public class PageStore implements CacheWriter {
             // ensure the free list is backed up again
             log.checkpoint();
 
-
+            byte[] test = new byte[16];
             byte[] empty = new byte[pageSize];
             for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
                 if (isUsed(i)) {
@@ -411,10 +412,14 @@ public class PageStore implements CacheWriter {
                     if (trace.isDebugEnabled()) {
                         trace.debug("free " + i);
                     }
-                    freed.set(i);
                     file.seek((long) i << pageSizeShift);
-                    file.write(empty, 0, pageSize);
-                    writeCount++;
+                    file.readFully(test, 0, 16);
+                    if (test[0] != 0) {
+                        file.seek((long) i << pageSizeShift);
+                        file.write(empty, 0, pageSize);
+                        writeCount++;
+                    }
+                    freed.set(i);
                 }
             }
         }
@@ -1018,6 +1023,13 @@ public class PageStore implements CacheWriter {
             freePage(pageId);
             if (recoveryRunning) {
                 writePage(pageId, createData());
+                if (reservedPages != null && reservedPages.containsKey(pageId)) {
+                    // re-allocate the page if it is used later on again
+                    int latestPos = reservedPages.get(pageId);
+                    if (latestPos > log.getLogPos()) {
+                        allocatePage(pageId);
+                    }
+                }
             }
         }
     }
@@ -1354,7 +1366,6 @@ public class PageStore implements CacheWriter {
     private void removeMeta(int logPos, Row row) {
         int id = row.getValue(0).getInt();
         PageIndex index = metaObjects.get(id);
-        int rootPageId = index.getRootPageId();
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex || index instanceof PageDelegateIndex) {
             if (index.isTemporary()) {
@@ -1365,13 +1376,6 @@ public class PageStore implements CacheWriter {
         }
         index.remove(systemSession);
         metaObjects.remove(id);
-        if (reservedPages != null && reservedPages.containsKey(rootPageId)) {
-            // re-allocate the page if it is used later on again
-            int latestPos = reservedPages.get(rootPageId);
-            if (latestPos > logPos) {
-                allocatePage(rootPageId);
-            }
-        }
     }
 
     private void addMeta(Row row, Session session, boolean redo) {

@@ -692,9 +692,9 @@ public class Csv implements SimpleRowSource {
      * Field delimiter: "
      * CSV file: "He said ""Hello""."
      * </pre>
-     * If the field delimiter is a double quote and the escape character is a backslash,
-     * then escaping is done similar to Java (however, only the field delimiter is escaped).
-     * Example:
+     * If the field delimiter is a double quote and the escape character is a
+     * backslash, then escaping is done similar to Java (however, only the field
+     * delimiter is escaped). Example:
      * <pre>
      * Data: He said "Hello".
      * Escape character: \

@@ -2380,7 +2380,7 @@ public class Parser {
                     String text = currentValue.getString();
                     // the PostgreSQL ODBC driver uses
                     // LIKE E'PROJECT\\_DATA' instead of LIKE 'PROJECT\_DATA'
-                    text = StringUtils.replaceAll(text, "\\\\", "\\", false);
+                    text = StringUtils.replaceAll(text, "\\\\", "\\");
                     read();
                     r = ValueExpression.get(ValueString.get(text));
                 } else {

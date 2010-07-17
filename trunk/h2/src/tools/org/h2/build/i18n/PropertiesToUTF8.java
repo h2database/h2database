@@ -146,8 +146,8 @@ public class PropertiesToUTF8 {
                 out.close();
             }
             String java = StringUtils.javaEncode(utf8);
-            java = StringUtils.replaceAll(java, "\\r", "\r", false);
-            java = StringUtils.replaceAll(java, "\\n", "\n", false);
+            java = StringUtils.replaceAll(java, "\\r", "\r");
+            java = StringUtils.replaceAll(java, "\\n", "\n");
             RandomAccessFile out = new RandomAccessFile("_java." + name, "rw");
             out.write(java.getBytes());
             out.setLength(out.getFilePointer());

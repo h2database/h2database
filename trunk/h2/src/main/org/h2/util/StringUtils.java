@@ -697,18 +697,27 @@ public class StringUtils {
      * @param s the string
      * @param before the old text
      * @param after the new text
-     * @param caseInsensitive true if it should be case insensitive
      * @return the string with the before string replaced
      */
-    public static String replaceAll(String s, String before, String after, boolean caseInsensitive) {
-        String testString;
-        if (caseInsensitive) {
-            testString = s.toLowerCase(Locale.ENGLISH);
-            before = before.toLowerCase(Locale.ENGLISH);
-        } else {
-            testString = s;
-        }
-        int next = testString.indexOf(before);
+    public static String replaceAll(String s, String before, String after) {
+        return replaceAll(s, s, before, after);
+    }
+
+    /**
+     * Replace all occurrences of the "before" string with the "after" string.
+     * A case-insensitive comparison is made.
+     *
+     * @param s the string
+     * @param before the old text
+     * @param after the new text
+     * @return the string with the before string replaced
+     */
+    public static String replaceAllIgnoreCase(String s, String before, String after) {
+        return replaceAll(s, toUpperEnglish(s), toUpperEnglish(before), after);
+    }
+
+    private static String replaceAll(String s, String test, String before, String after) {
+        int next = test.indexOf(before);
         if (next < 0) {
             return s;
         }
@@ -717,7 +726,7 @@ public class StringUtils {
         while (true) {
             buff.append(s.substring(index, next)).append(after);
             index = next + before.length();
-            next = testString.indexOf(before, index);
+            next = test.indexOf(before, index);
             if (next < 0) {
                 buff.append(s.substring(index));
                 break;
@@ -763,8 +772,8 @@ public class StringUtils {
      * @return the resulting string
      */
     public static String quoteRemarkSQL(String sql) {
-        sql = replaceAll(sql, "*/", "++/", false);
-        return replaceAll(sql, "/*", "/++", false);
+        sql = replaceAll(sql, "*/", "++/");
+        return replaceAll(sql, "/*", "/++");
     }
 
     /**

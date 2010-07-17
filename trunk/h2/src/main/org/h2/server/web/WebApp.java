@@ -304,9 +304,9 @@ public class WebApp {
                         value = space + value;
                     }
                     key = StringUtils.urlEncode(key);
-                    key = StringUtils.replaceAll(key, "+", " ", false);
+                    key = StringUtils.replaceAll(key, "+", " ");
                     value = StringUtils.urlEncode(value);
-                    value = StringUtils.replaceAll(value, "+", " ", false);
+                    value = StringUtils.replaceAll(value, "+", " ");
                     list.add(type + "#" + key + "#" + value);
                 }
                 Collections.sort(list);
@@ -738,7 +738,7 @@ public class WebApp {
             if (isH2) {
                 stackTrace = linkToSource(stackTrace);
             }
-            stackTrace = StringUtils.replaceAll(stackTrace, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;", false);
+            stackTrace = StringUtils.replaceAll(stackTrace, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
             String message = PageParser.escapeHtml(e.getMessage());
             String error = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st" + id
                     + "').style;x.display=x.display==''?'none':'';\">" + message + "</a>";

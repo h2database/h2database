@@ -92,7 +92,7 @@ public class TestSampleApps extends TestBase {
         System.setOut(oldOut);
         System.setErr(oldErr);
         String s = new String(buff.toByteArray(), "UTF-8");
-        s = StringUtils.replaceAll(s, "\r\n", "\n", false);
+        s = StringUtils.replaceAll(s, "\r\n", "\n");
         s = s.trim();
         expected = expected.trim();
         if (expected.endsWith("*")) {

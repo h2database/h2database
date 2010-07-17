@@ -55,8 +55,8 @@ public class UploadBuild {
             idx = index.indexOf("</A>");
             index = index.substring(0, idx) + index.substring(idx + "</A>".length());
         }
-        index = StringUtils.replaceAll(index, "[all", "", false);
-        index = StringUtils.replaceAll(index, "classes]", "", false);
+        index = StringUtils.replaceAll(index, "[all", "");
+        index = StringUtils.replaceAll(index, "classes]", "");
         FileOutputStream out = new FileOutputStream("coverage/overview.html");
         out.write(index.getBytes("ISO-8859-1"));
         out.close();

@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
-import java.util.Locale;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
@@ -58,8 +57,8 @@ public class Driver implements java.sql.Driver {
             if (!acceptsURL(url)) {
                 return null;
             }
-            boolean noUpgrade = url.toUpperCase(Locale.ENGLISH).contains(";NO_UPGRADE=TRUE");
-            url = StringUtils.replaceAll(url, ";NO_UPGRADE=TRUE", "", true);
+            boolean noUpgrade = StringUtils.toUpperEnglish(url).indexOf(";NO_UPGRADE=TRUE") >= 0;
+            url = StringUtils.replaceAllIgnoreCase(url, ";NO_UPGRADE=TRUE", "");
             if (DbUpgrade.areV1dot1ClassesPresent()) {
                 if (noUpgrade) {
                     Connection connection = DbUpgrade.connectWithOldVersion(url, info);

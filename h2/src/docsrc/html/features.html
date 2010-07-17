@@ -202,9 +202,9 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
-<td>Clustering</td>
+<td>Built-in Clustering / Replication</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
@@ -351,19 +351,11 @@ encrypted using AES-128 and XTEA encryption algorithms
 *5 The default H2 jar file contains debug information, jar files for other databases do not.<br />
 *6 PostgreSQL supports functional indexes.<br />
 *7 Derby only supports updatable result sets if the query is not sorted.<br />
-*8 Derby and HSQLDB don't support standard compliant information schema tables.<br />
+*8 Derby doesn't support standard compliant information schema tables.<br />
 *9 When using MVCC (multi version concurrency).<br />
 *10 Derby and HSQLDB
     <a href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation#Electronic_codebook_.28ECB.29">don't hide hide data patterns well</a>.<br />
 *11 The MULTI_THREADED option is not enabled by default, and not yet supported when using MVCC.
-</p>
-
-<h3>Derby and HSQLDB</h3>
-<p>
-After an unexpected process termination (for example power failure), H2 can usually
-recover safely and automatically without any user interaction. For Derby and HSQLDB,
-some manual steps are required ('Another instance of Derby may have already booted the database' /
-'The database is already in use by another process').
 </p>
 
 <h3>DaffodilDb and One$Db</h3>
@@ -373,7 +365,7 @@ It looks like the development of this database has stopped. The last release was
 
 <h3>McKoi</h3>
 <p>
-It looks like the development of this database has stopped. The last release was August 2004
+It looks like the development of this database has stopped. The last release was August 2004.
 </p>
 
 <h2 id="products_work_with">H2 in Use</h2>

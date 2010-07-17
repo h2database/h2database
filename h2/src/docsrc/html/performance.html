@@ -93,7 +93,6 @@ For most operations, the performance of H2 is about the same as for HSQLDB.
 One situation where H2 is slow is large result sets, because they are buffered to
 disk if more than a certain number of records are returned.
 The advantage of buffering is: there is no limit on the result set size.
-The database open/close time is fixed.
 </p>
 
 <h4>HSQLDB</h4>
@@ -101,11 +100,6 @@ The database open/close time is fixed.
 Version 2.0.0 was used for the test.
 Cached tables are used in this test (<code>hsqldb.default_table_type=cached</code>),
 and the write delay is 1 second (<code>SET WRITE_DELAY 1</code>).
-Older versions of HSQLDB (pre 2.0) where very slow in the last test (BenchC: Transactions).
-</p>
-<p>
-A disadvantage of HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases.
-The reason is, a backup of the whole data is made whenever the database is opened or closed.
 </p>
 
 <h4>Derby</h4>

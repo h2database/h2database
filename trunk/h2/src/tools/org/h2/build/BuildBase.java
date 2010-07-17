@@ -171,7 +171,7 @@ public class BuildBase {
             for (String a : args) {
                 if ("-quiet".equals(a)) {
                     quiet = true;
-                } else if (a.startsWith("-")) {
+                } else if ("-".equals(a)) {
                     runShell();
                     return;
                 } else if (a.startsWith("-D")) {

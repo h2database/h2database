@@ -37,8 +37,7 @@ Change Log
     because it was not always working as expected. Now System.gc() is used in a loop until the
     buffer is garbage collected. This of course is also not a nice solution, but the only one known to work.
     See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
-</li><li>Bugfix for the automatic 1.1 db migration: only uppercase parameters where replaced. If a lowercase
-    parameter like ifexists=true was in the connection url, the upgrade failed.
+</li><li>Bugfixes for the automatic 1.1 db migration.
 </li><li>If an old 1.1 database file version is found on connect, it is now possible to let the old h2
     classes (v 1.2.128) connect to the database. The automatic upgrade .jar file must be present, and the url
     must contain NO_UPGRADE=TRUE

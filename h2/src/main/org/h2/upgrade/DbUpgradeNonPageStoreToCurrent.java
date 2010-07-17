@@ -64,14 +64,13 @@ public class DbUpgradeNonPageStoreToCurrent {
             newUrl = url;
             newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";UNDO_LOG=1", "");
             newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";UNDO_LOG=0", "");
+            newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";IFEXISTS=TRUE", "");
             newUrl += ";UNDO_LOG=0";
             String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
             oldUrl = url;
             oldUrl = StringUtils.replaceAll(oldUrl, org.h2.engine.Constants.START_URL, oldStartUrlPrefix);
             oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";IGNORE_UNKNOWN_SETTINGS=TRUE", "");
             oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";IGNORE_UNKNOWN_SETTINGS=FALSE", "");
-            oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";IFEXISTS=TRUE", "");
-            oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";IFEXISTS=FALSE", "");
             oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";PAGE_STORE=TRUE", "");
             oldUrl += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
             Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", oldUrl, info);

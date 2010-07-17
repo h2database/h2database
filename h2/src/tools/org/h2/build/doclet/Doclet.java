@@ -153,7 +153,7 @@ public class Doclet {
                 boolean isVarArgs = method.isVarArgs() && j == params.length - 1;
                 String typeName = getTypeName(false, isVarArgs, param.type());
                 buff.append(typeName);
-                buffSignature.append(StringUtils.replaceAll(typeName, "[]", "-", false));
+                buffSignature.append(StringUtils.replaceAll(typeName, "[]", "-"));
                 buff.append(' ');
                 buff.append(param.name());
             }
@@ -380,7 +380,7 @@ public class Doclet {
         if (text == null) {
             return text;
         }
-        text = StringUtils.replaceAll(text, "\n </pre>", "</pre>", false);
+        text = StringUtils.replaceAll(text, "\n </pre>", "</pre>");
         return text;
     }
 

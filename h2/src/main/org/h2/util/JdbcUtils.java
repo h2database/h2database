@@ -146,7 +146,7 @@ public class JdbcUtils {
         if (pattern == null || pattern.length() == 0) {
             return pattern;
         }
-        return StringUtils.replaceAll(pattern, "\\", "\\\\", false);
+        return StringUtils.replaceAll(pattern, "\\", "\\\\");
     }
 
     /**

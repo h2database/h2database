@@ -63,7 +63,7 @@ public class CreateFunctionAlias extends SchemaCommand {
      * @param method the qualified method name
      */
     public void setJavaClassMethod(String method) {
-        this.javaClassMethod = StringUtils.replaceAll(method, " ", "", false);
+        this.javaClassMethod = StringUtils.replaceAll(method, " ", "");
     }
 
     public void setIfNotExists(boolean ifNotExists) {

@@ -62,17 +62,17 @@ public class DbUpgradeNonPageStoreToCurrent {
     private void init() throws SQLException {
         try {
             newUrl = url;
-            newUrl = StringUtils.replaceAll(newUrl, ";UNDO_LOG=1", "", true);
-            newUrl = StringUtils.replaceAll(newUrl, ";UNDO_LOG=0", "", true);
+            newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";UNDO_LOG=1", "");
+            newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";UNDO_LOG=0", "");
             newUrl += ";UNDO_LOG=0";
             String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
             oldUrl = url;
-            oldUrl = StringUtils.replaceAll(oldUrl, org.h2.engine.Constants.START_URL, oldStartUrlPrefix, false);
-            oldUrl = StringUtils.replaceAll(oldUrl, ";IGNORE_UNKNOWN_SETTINGS=TRUE", "", true);
-            oldUrl = StringUtils.replaceAll(oldUrl, ";IGNORE_UNKNOWN_SETTINGS=FALSE", "", true);
-            oldUrl = StringUtils.replaceAll(oldUrl, ";IFEXISTS=TRUE", "", true);
-            oldUrl = StringUtils.replaceAll(oldUrl, ";IFEXISTS=FALSE", "", true);
-            oldUrl = StringUtils.replaceAll(oldUrl, ";PAGE_STORE=TRUE", "", true);
+            oldUrl = StringUtils.replaceAll(oldUrl, org.h2.engine.Constants.START_URL, oldStartUrlPrefix);
+            oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";IGNORE_UNKNOWN_SETTINGS=TRUE", "");
+            oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";IGNORE_UNKNOWN_SETTINGS=FALSE", "");
+            oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";IFEXISTS=TRUE", "");
+            oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";IFEXISTS=FALSE", "");
+            oldUrl = StringUtils.replaceAllIgnoreCase(oldUrl, ";PAGE_STORE=TRUE", "");
             oldUrl += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
             Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", oldUrl, info);
             boolean isRemote = (Boolean) Utils.callMethod(ci, "isRemote");

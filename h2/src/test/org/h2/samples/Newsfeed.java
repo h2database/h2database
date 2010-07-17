@@ -63,18 +63,18 @@ public class Newsfeed {
      */
     private static String convertHtml2Text(String html) {
         String s = html;
-        s = StringUtils.replaceAll(s, "<b>", "", false);
-        s = StringUtils.replaceAll(s, "</b>", "", false);
-        s = StringUtils.replaceAll(s, "<ul>", "", false);
-        s = StringUtils.replaceAll(s, "</ul>", "", false);
-        s = StringUtils.replaceAll(s, "<li>", "- ", false);
-        s = StringUtils.replaceAll(s, "</li>", "", false);
-        s = StringUtils.replaceAll(s, "<a href=\"", "( ", false);
-        s = StringUtils.replaceAll(s, "\">", " ) ", false);
-        s = StringUtils.replaceAll(s, "</a>", "", false);
-        s = StringUtils.replaceAll(s, "<br />", "", false);
-        s = StringUtils.replaceAll(s, "<br/>", "", false);
-        s = StringUtils.replaceAll(s, "<br>", "", false);
+        s = StringUtils.replaceAll(s, "<b>", "");
+        s = StringUtils.replaceAll(s, "</b>", "");
+        s = StringUtils.replaceAll(s, "<ul>", "");
+        s = StringUtils.replaceAll(s, "</ul>", "");
+        s = StringUtils.replaceAll(s, "<li>", "- ");
+        s = StringUtils.replaceAll(s, "</li>", "");
+        s = StringUtils.replaceAll(s, "<a href=\"", "( ");
+        s = StringUtils.replaceAll(s, "\">", " ) ");
+        s = StringUtils.replaceAll(s, "</a>", "");
+        s = StringUtils.replaceAll(s, "<br />", "");
+        s = StringUtils.replaceAll(s, "<br/>", "");
+        s = StringUtils.replaceAll(s, "<br>", "");
         if (s.indexOf('<') >= 0 || s.indexOf('>') >= 0) {
             throw new RuntimeException("Unsupported HTML Tag: < or > in " + s);
         }

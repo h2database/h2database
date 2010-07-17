@@ -149,15 +149,15 @@ public class GenerateDoc {
                 String text = map.get("text");
                 if (text != null) {
                     // text is enclosed in <p> .. </p> so this works.
-                    text = StringUtils.replaceAll(text, "<br /><br />", "</p><p>", false);
-                    text = StringUtils.replaceAll(text, "<br />", " ", false);
+                    text = StringUtils.replaceAll(text, "<br /><br />", "</p><p>");
+                    text = StringUtils.replaceAll(text, "<br />", " ");
                     map.put("text", text);
                 }
 
                 String link = topic.toLowerCase();
-                link = StringUtils.replaceAll(link, " ", "_", false);
+                link = StringUtils.replaceAll(link, " ", "_");
                 // link = StringUtils.replaceAll(link, "_", "");
-                link = StringUtils.replaceAll(link, "@", "_", false);
+                link = StringUtils.replaceAll(link, "@", "_");
                 map.put("link", StringUtils.urlEncode(link));
 
                 list.add(map);

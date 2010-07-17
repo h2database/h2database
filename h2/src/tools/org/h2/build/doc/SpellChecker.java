@@ -175,7 +175,7 @@ public class SpellChecker {
         StringBuilder buff = new StringBuilder(text.length());
         int pos = 0, last = 0;
         if (fileName.endsWith(".properties")) {
-            text = StringUtils.replaceAll(text, "\\:", ":", false);
+            text = StringUtils.replaceAll(text, "\\:", ":");
         }
         while (true) {
             pos = text.indexOf("http://", pos);

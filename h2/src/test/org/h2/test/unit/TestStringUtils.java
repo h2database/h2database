@@ -169,19 +169,19 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testReplaceAll() {
-        assertEquals("def", StringUtils.replaceAll("abc def", "abc ", "", false));
-        assertEquals("af", StringUtils.replaceAll("abc def", "bc de", "", false));
-        assertEquals("abc def", StringUtils.replaceAll("abc def", "bc ", "bc ", false));
-        assertEquals("abc ", StringUtils.replaceAll("abc def", "def", "", false));
-        assertEquals(" ", StringUtils.replaceAll("abc abc", "abc", "", false));
-        assertEquals("xyz xyz", StringUtils.replaceAll("abc abc", "abc", "xyz", false));
-        assertEquals("abc def", StringUtils.replaceAll("abc def", "xyz", "abc", false));
-        assertEquals("", StringUtils.replaceAll("abcabcabc", "abc", "", false));
-        assertEquals("abcabcabc", StringUtils.replaceAll("abcabcabc", "aBc", "", false));
-        assertEquals("d", StringUtils.replaceAll("abcd", "aBc", "", true));
-        assertEquals("d", StringUtils.replaceAll("abcd", "abc", "", true));
-        assertEquals("D", StringUtils.replaceAll("abcD", "aBc", "", true));
-        assertEquals("D", StringUtils.replaceAll("abcD", "abc", "", true));
+        assertEquals("def", StringUtils.replaceAll("abc def", "abc ", ""));
+        assertEquals("af", StringUtils.replaceAll("abc def", "bc de", ""));
+        assertEquals("abc def", StringUtils.replaceAll("abc def", "bc ", "bc "));
+        assertEquals("abc ", StringUtils.replaceAll("abc def", "def", ""));
+        assertEquals(" ", StringUtils.replaceAll("abc abc", "abc", ""));
+        assertEquals("xyz xyz", StringUtils.replaceAll("abc abc", "abc", "xyz"));
+        assertEquals("abc def", StringUtils.replaceAll("abc def", "xyz", "abc"));
+        assertEquals("", StringUtils.replaceAll("abcabcabc", "abc", ""));
+        assertEquals("abcabcabc", StringUtils.replaceAll("abcabcabc", "aBc", ""));
+        assertEquals("d", StringUtils.replaceAllIgnoreCase("abcd", "aBc", ""));
+        assertEquals("d", StringUtils.replaceAllIgnoreCase("abcd", "abc", ""));
+        assertEquals("D", StringUtils.replaceAllIgnoreCase("abcD", "aBc", ""));
+        assertEquals("D", StringUtils.replaceAllIgnoreCase("abcD", "abc", ""));
     }
 
 }

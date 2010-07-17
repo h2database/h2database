@@ -230,21 +230,21 @@ public class Bnf {
 
     private String[] tokenize() {
         ArrayList<String> list = New.arrayList();
-        syntax = StringUtils.replaceAll(syntax, "yyyy-MM-dd", "@ymd@", false);
-        syntax = StringUtils.replaceAll(syntax, "hh:mm:ss", "@hms@", false);
-        syntax = StringUtils.replaceAll(syntax, "nnnnnnnnn", "@nanos@", false);
-        syntax = StringUtils.replaceAll(syntax, "function", "@func@", false);
-        syntax = StringUtils.replaceAll(syntax, "0x", "@hexStart@", false);
-        syntax = StringUtils.replaceAll(syntax, ",...", "@commaDots@", false);
-        syntax = StringUtils.replaceAll(syntax, "...", "@dots@", false);
-        syntax = StringUtils.replaceAll(syntax, "||", "@concat@", false);
-        syntax = StringUtils.replaceAll(syntax, "a-z|_", "@az_@", false);
-        syntax = StringUtils.replaceAll(syntax, "A-Z|_", "@az_@", false);
-        syntax = StringUtils.replaceAll(syntax, "a-f", "@af@", false);
-        syntax = StringUtils.replaceAll(syntax, "A-F", "@af@", false);
-        syntax = StringUtils.replaceAll(syntax, "0-9", "@digit@", false);
-        syntax = StringUtils.replaceAll(syntax, "'['", "@openBracket@", false);
-        syntax = StringUtils.replaceAll(syntax, "']'", "@closeBracket@", false);
+        syntax = StringUtils.replaceAll(syntax, "yyyy-MM-dd", "@ymd@");
+        syntax = StringUtils.replaceAll(syntax, "hh:mm:ss", "@hms@");
+        syntax = StringUtils.replaceAll(syntax, "nnnnnnnnn", "@nanos@");
+        syntax = StringUtils.replaceAll(syntax, "function", "@func@");
+        syntax = StringUtils.replaceAll(syntax, "0x", "@hexStart@");
+        syntax = StringUtils.replaceAll(syntax, ",...", "@commaDots@");
+        syntax = StringUtils.replaceAll(syntax, "...", "@dots@");
+        syntax = StringUtils.replaceAll(syntax, "||", "@concat@");
+        syntax = StringUtils.replaceAll(syntax, "a-z|_", "@az_@");
+        syntax = StringUtils.replaceAll(syntax, "A-Z|_", "@az_@");
+        syntax = StringUtils.replaceAll(syntax, "a-f", "@af@");
+        syntax = StringUtils.replaceAll(syntax, "A-F", "@af@");
+        syntax = StringUtils.replaceAll(syntax, "0-9", "@digit@");
+        syntax = StringUtils.replaceAll(syntax, "'['", "@openBracket@");
+        syntax = StringUtils.replaceAll(syntax, "']'", "@closeBracket@");
         StringTokenizer tokenizer = getTokenizer(syntax);
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();

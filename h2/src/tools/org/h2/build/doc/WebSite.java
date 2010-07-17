@@ -138,18 +138,18 @@ public class WebSite {
             if (name.endsWith(".html")) {
                 String page = new String(bytes, "UTF-8");
                 if (web) {
-                    page = StringUtils.replaceAll(page, ANALYTICS_TAG, ANALYTICS_SCRIPT, false);
+                    page = StringUtils.replaceAll(page, ANALYTICS_TAG, ANALYTICS_SCRIPT);
                 }
                 if (replaceFragments) {
                     page = replaceFragments(name, page);
-                    page = StringUtils.replaceAll(page, "<a href=\"frame", "<a href=\"main", false);
-                    page = StringUtils.replaceAll(page, "html/frame.html", "html/main.html", false);
+                    page = StringUtils.replaceAll(page, "<a href=\"frame", "<a href=\"main");
+                    page = StringUtils.replaceAll(page, "html/frame.html", "html/main.html");
                 }
                 if (web) {
-                    page = StringUtils.replaceAll(page, TRANSLATE_START, "", false);
-                    page = StringUtils.replaceAll(page, TRANSLATE_END, "", false);
-                    page = StringUtils.replaceAll(page, "<pre>", "<pre class=\"notranslate\">", false);
-                    page = StringUtils.replaceAll(page, "<code>", "<code class=\"notranslate\">", false);
+                    page = StringUtils.replaceAll(page, TRANSLATE_START, "");
+                    page = StringUtils.replaceAll(page, TRANSLATE_END, "");
+                    page = StringUtils.replaceAll(page, "<pre>", "<pre class=\"notranslate\">");
+                    page = StringUtils.replaceAll(page, "<code>", "<code class=\"notranslate\">");
                 }
                 bytes = page.getBytes("UTF-8");
             }

@@ -56,10 +56,10 @@ public class DbUpgrade {
     public static Connection connectWithOldVersion(String url, Properties info) throws SQLException {
         try {
             String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
-            url = StringUtils.replaceAll(url, org.h2.engine.Constants.START_URL, oldStartUrlPrefix, false);
-            url = StringUtils.replaceAll(url, ";IGNORE_UNKNOWN_SETTINGS=TRUE", "", true);
-            url = StringUtils.replaceAll(url, ";IGNORE_UNKNOWN_SETTINGS=FALSE", "", true);
-            url = StringUtils.replaceAll(url, ";PAGE_STORE=TRUE", "", true);
+            url = StringUtils.replaceAll(url, org.h2.engine.Constants.START_URL, oldStartUrlPrefix);
+            url = StringUtils.replaceAllIgnoreCase(url, ";IGNORE_UNKNOWN_SETTINGS=TRUE", "");
+            url = StringUtils.replaceAllIgnoreCase(url, ";IGNORE_UNKNOWN_SETTINGS=FALSE", "");
+            url = StringUtils.replaceAllIgnoreCase(url, ";PAGE_STORE=TRUE", "");
             url += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
             Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", url, info);
             boolean isRemote = (Boolean) Utils.callMethod(ci, "isRemote");

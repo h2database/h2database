@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>CAST(NULL AS ...) doesn't forget the data type, precision, and scale any longer.
+<ul><li>After deleting a lot of data (for example by dropping or altering tables, or indexes, 
+    or after a large transaction), opening a large database was very slow. Fixed.
+</li><li>When killing the process after creating and dropping many tables (specially temporary tables),
+    the database could not be opened sometimes.
+</li><li>CAST(NULL AS ...) doesn't forget the data type, precision, and scale any longer.
 </li><li>Experimental support for recursive queries (see 'Advanced' - 'Recursive Queries' for details).
 </li><li>Problems with JDK 1.6.0_18 have been reports in the class StringUtils.quoteRemarkSQL. This method is now changed.
 </li><li>The "small jar" distribution did not include the CompressTool,

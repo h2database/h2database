@@ -147,7 +147,10 @@ public class PageDataIndex extends PageIndex {
     }
 
     public DbException getNewDuplicateKeyException() {
-        String sql = "PRIMARY KEY ON " + table.getSQL() + "(" + indexColumns[mainIndexColumn].getSQL() + ")";
+        String sql = "PRIMARY KEY ON " + table.getSQL();
+        if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
+            sql +=  "(" + indexColumns[mainIndexColumn].getSQL() + ")";
+        }
         return DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
     }
 

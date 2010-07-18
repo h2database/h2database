@@ -85,8 +85,36 @@ public class TestSecurity extends TestBase {
 
     private void testAES() {
         BlockCipher test = CipherFactory.getBlockCipher("AES");
-        test.setKey(StringUtils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
 
+        String r;
+        byte[] data;
+
+        // test vector from
+        // http://csrc.nist.gov/groups/STM/cavp/documents/aes/KAT_AES.zip
+        // ECBVarTxt128e.txt
+        // COUNT = 0
+        test.setKey(StringUtils.convertStringToBytes("00000000000000000000000000000000"));
+        data = StringUtils.convertStringToBytes("80000000000000000000000000000000");
+        test.encrypt(data, 0, data.length);
+        r = StringUtils.convertBytesToString(data);
+        assertEquals("3ad78e726c1ec02b7ebfe92b23d9ec34", r);
+
+        // COUNT = 127
+        test.setKey(StringUtils.convertStringToBytes("00000000000000000000000000000000"));
+        data = StringUtils.convertStringToBytes("ffffffffffffffffffffffffffffffff");
+        test.encrypt(data, 0, data.length);
+        r = StringUtils.convertBytesToString(data);
+        assertEquals("3f5b8cc9ea855a0afa7347d23e8d664e", r);
+
+        // test vector from
+        // http://www.inconteam.com/index.php?option=com_content&view=article&id=55:aes-test-vectors&catid=41:encryption&Itemid=60#aes-ecb-128
+        test.setKey(StringUtils.convertStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"));
+        data = StringUtils.convertStringToBytes("6bc1bee22e409f96e93d7e117393172a");
+        test.encrypt(data, 0, data.length);
+        r = StringUtils.convertBytesToString(data);
+        assertEquals("3ad77bb40d7a3660a89ecaf32466ef97", r);
+
+        test.setKey(StringUtils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
         byte[] in = new byte[128];
         byte[] enc = new byte[128];
         test.encrypt(enc, 0, 128);

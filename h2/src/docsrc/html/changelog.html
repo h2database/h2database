@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>For improved performance, LOG=0 and LOG=1 are again supported.
+<ul><li>The built-in profiling tool now uses a default stack depth of 32 elements and a default interval of 10 ms.
+</li><li>Database files now grow 2 MB at a time instead of 256 KB. This improves performance, specially
+    when loading a new database.
+</li><li>H2 Console: new built-in command @sleep to help profile another session.
+</li><li>For improved performance, LOG=0 and LOG=1 are again supported.
     LOG=0 means the transaction log is disabled completely (fastest; for loading a database).
     LOG=1 means the transaction log is enabled, but FileDescriptor.sync is disabled (if no protection against power failure is required).
     LOG=2 is the default (transaction log is enabled, FileDescriptor.sync for each checkpoint).

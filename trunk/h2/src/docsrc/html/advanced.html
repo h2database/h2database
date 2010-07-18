@@ -1065,8 +1065,9 @@ then the iteration count is not required at all.
 <p>
 The database files can be encrypted using two different algorithms: AES-128 and
 XTEA (using 32 rounds). The reasons for supporting XTEA is performance
-(XTEA is about twice as fast as AES) and to have an alternative algorithm if
-AES is suddenly broken.
+(XTEA is a bit faster as AES in some environments) and to have an alternative algorithm if AES is suddenly broken. 
+Please note that the XTEA implementation used in this database only uses 32 rounds 
+and not 64 rounds as recommended by its inventor (as of 2010, the best known attack is on 27 rounds).
 </p><p>
 When a user tries to connect to an encrypted database, the combination of
 <code>file@</code> and the file password is hashed using SHA-256. This hash value is

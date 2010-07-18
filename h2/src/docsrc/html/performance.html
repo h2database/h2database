@@ -262,6 +262,8 @@ and for each step a new connection is opened and then closed.
 <p>
 The PolePosition is an open source benchmark. The algorithms are all quite simple.
 It was developed / sponsored by db4o.
+This test was not run for a longer time, so please be aware that the results below
+are for older database versions (H2 version 1.1, HSQLDB 1.8, Java 1.4).
 </p>
 <table border="1" class="bar">
 <tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>MySQL</th></tr>
@@ -583,13 +585,14 @@ System.out.println(prof.getTop(3));
 <p>
 To speed up large imports, consider using the following options temporarily:
 </p>
-<ul><li><code>SET CACHE_SIZE</code> (a large cache is faster)
+<ul><li><code>SET LOG 0</code> (disabling the transaction log)
+</li><li><code>SET CACHE_SIZE</code> (a large cache is faster)
 </li><li><code>SET LOCK_MODE 0</code> (disable locking)
 </li><li><code>SET UNDO_LOG 0</code> (disable the session undo log)
 </li></ul>
 <p>
 These options can be set in the database URL:
-<code>jdbc:h2:~/test;CACHE_SIZE=65536;LOCK_MODE=0;UNDO_LOG=0</code>.
+<code>jdbc:h2:~/test;LOG=0;CACHE_SIZE=65536;LOCK_MODE=0;UNDO_LOG=0</code>.
 Most of those options are not recommended for regular use, that means you need to reset them after use.
 </p>
 

@@ -76,7 +76,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         long after = System.currentTimeMillis();
         // it's hard to test - basically it shouldn't checkpoint too often
         if (after - before > 10000) {
-            fail("Checkpoint took " + (after - before) + " ms");
+            if (!config.record) {
+                fail("Checkpoint took " + (after - before) + " ms");
+            }
         }
         stat.execute("drop table test");
         stat.execute("drop sequence seq");
@@ -414,7 +416,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             } catch (SQLException e2) {
                 // ignore
             }
-            fail("count: " + count + " " + e);
+            throw new RuntimeException("count: " + count, e);
         }
     }
 

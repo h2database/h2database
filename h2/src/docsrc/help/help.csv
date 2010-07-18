@@ -1118,6 +1118,33 @@ This setting is persistent.
 SET IGNORECASE TRUE
 "
 
+"Commands (Other)","SET LOG","
+SET LOCK_MODE int
+","
+Sets the transaction log mode. The values 0, 1, and 2 are supported, the default is 2.
+This setting affects all connections.
+
+LOG=0 means the transaction log is disabled completely. It is the fastest mode,
+but also the most dangerous: if the process is killed while the database is open in this mode,
+the data might be lost. It must only be used if this is not a problem, for example when
+initially loading a database, or when running tests.
+
+LOG=1 means the transaction log is enabled, but FileDescriptor.sync is disabled.
+This setting is about half as fast as with LOG=0. This setting is useful if no protection 
+against power failure is required, but the data must be protected against killing the process.
+
+LOG=2 (the default) means the transaction log is enabled, and FileDescriptor.sync is called
+for each checkpoint. This setting is about half as fast as LOG=1. Depending on the
+file system, this will also protect against power failure in the majority if cases.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is not persistent.
+This setting can be appended to the database URL: jdbc:h2:test;LOG=0
+","
+SET LOG 1
+"
+
 "Commands (Other)","SET LOCK_MODE","
 SET LOCK_MODE int
 ","
@@ -1498,8 +1525,8 @@ CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
 "Other Grammar","Cipher","
 { AES | XTEA }
 ","
-Two algorithms are supported, AES (AES-128) and XTEA (using 32 rounds). The AES
-algorithm is about half as fast as XTEA.
+Two algorithms are supported: AES (AES-128) and XTEA (using 32 rounds).
+XTEA is a bit faster than AES in some environments, but AES is more secure.
 ","
 AES
 "

@@ -81,12 +81,8 @@ import org.h2.value.ValueString;
 public class PageStore implements CacheWriter {
 
     // TODO test running out of disk space (using a special file system)
-    // TODO test with recovery being the default method
-    // TODO test reservedPages does not grow unbound
-
-    // TODO utf-x: test if it's faster
-    // TODO corrupt pages should be freed once in a while
-    // TODO node row counts are incorrect (not splitting row counts)
+    // TODO unused pages should be freed once in a while
+    // TODO node row counts are incorrect (it's not splitting row counts)
     // TODO after opening the database, delay writing until required
     // TODO optimization: try to avoid allocating a byte array per page
     // TODO optimization: check if calling Data.getValueLen slows things down
@@ -96,27 +92,11 @@ public class PageStore implements CacheWriter {
     // TODO detect circles in linked lists
     // (input stream, free list, extend pages...)
     // at runtime and recovery
-    // synchronized correctly (on the index?)
     // TODO remove trace or use isDebugEnabled
     // TODO recover tool: support syntax to delete a row with a key
     // TODO don't store default values (store a special value)
-    // TODO split files (1 GB max size)
-    // TODO add a setting (that can be changed at runtime) to call fsync
-    // and delay on each commit
     // TODO check for file size (exception if not exact size expected)
     // TODO online backup using bsdiff
-
-    // TODO when removing DiskFile:
-    // remove CacheObject.blockCount
-    // remove Record.getMemorySize
-    // simplify InDoubtTransaction
-    // remove parameter in Record.write(DataPage buff)
-    // remove Record.getByteCount
-    // remove Database.objectIds
-    // remove TableData.checkRowCount
-    // remove Row.setPos
-    // remove database URL option RECOVER=1 option
-    // remove old database URL options and documentation
 
     /**
      * The smallest possible page size.
@@ -128,22 +108,26 @@ public class PageStore implements CacheWriter {
      */
     public static final int PAGE_SIZE_MAX = 32768;
 
+    /**
+     * This log mode means the transaction log is not used.
+     */
+    public static final int LOG_MODE_OFF = 0;
+
+    /**
+     * This log mode means the transaction log is used and FileDescriptor.sync()
+     * is called for each checkpoint. This is the default level.
+     */
+    private static final int LOG_MODE_SYNC = 2;
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
-
     private static final int MIN_PAGE_COUNT = 6;
-
     private static final int INCREMENT_PAGES = 128;
-
     private static final int READ_VERSION = 3;
     private static final int WRITE_VERSION = 3;
-
     private static final int META_TYPE_DATA_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
-
     private static final SearchRow[] EMPTY_SEARCH_ROW = { };
-
     private Database database;
     private final Trace trace;
     private String fileName;
@@ -153,11 +137,8 @@ public class PageStore implements CacheWriter {
     private int pageSizeShift;
     private long writeCountBase, writeCount, readCount;
     private int logKey, logFirstTrunkPage, logFirstDataPage;
-
     private Cache cache;
-
     private int freeListPagesPerList;
-
     private boolean recoveryRunning;
 
     /**
@@ -171,7 +152,6 @@ public class PageStore implements CacheWriter {
     private int pageCount;
 
     private PageLog log;
-
     private Schema metaSchema;
     private RegularTable metaTable;
     private PageDataIndex metaIndex;
@@ -189,7 +169,6 @@ public class PageStore implements CacheWriter {
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
     private Session systemSession;
     private BitSet freed = new BitSet();
-
     private ArrayList<PageFreeList> freeLists = New.arrayList();
 
     /**
@@ -202,10 +181,9 @@ public class PageStore implements CacheWriter {
     private int changeCount = 1;
 
     private Data emptyPage;
-
     private long logSizeBase;
-
     private HashMap<String, Integer> statistics;
+    private int logMode = LOG_MODE_SYNC;
 
     /**
      * Create a new page store object.
@@ -755,7 +733,9 @@ public class PageStore implements CacheWriter {
 
     private void writeVariableHeader() {
         trace.debug("writeVariableHeader");
-        file.sync();
+        if (logMode == LOG_MODE_SYNC) {
+            file.sync();
+        }
         Data page = createData();
         page.writeInt(0);
         page.writeLong(getWriteCountTotal());
@@ -1202,9 +1182,11 @@ public class PageStore implements CacheWriter {
      * @param add true if the row is added, false if it is removed
      */
     public void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) {
-        synchronized (database) {
+        if (logMode != LOG_MODE_OFF) {
             if (!recoveryRunning) {
-                log.logAddOrRemoveRow(session, tableId, row, add);
+                synchronized (database) {
+                    log.logAddOrRemoveRow(session, tableId, row, add);
+                }
             }
         }
     }
@@ -1701,6 +1683,14 @@ public class PageStore implements CacheWriter {
      */
     public int getChangeCount() {
         return changeCount;
+    }
+
+    public void setLogMode(int logMode) {
+        this.logMode = logMode;
+    }
+
+    public int getLogMode() {
+        return logMode;
     }
 
 }

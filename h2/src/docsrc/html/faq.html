@@ -148,7 +148,8 @@ bugs that have not yet been found (as with most software). Some features are kno
 to be dangerous, they are only supported for situations where performance is more important
 than reliability. Those dangerous features are:
 </p>
-<ul><li>Using the transaction isolation level <code>READ_UNCOMMITTED</code>
+<ul><li>Disabling the transaction log or FileDescriptor.sync() using LOG=0 or LOG=1.
+</li><li>Using the transaction isolation level <code>READ_UNCOMMITTED</code>
     (<code>LOCK_MODE 0</code>) while at the same time using multiple
     connections.
 </li><li>Disabling database file protection using (setting <code>FILE_LOCK</code> to

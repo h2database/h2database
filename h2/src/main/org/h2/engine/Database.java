@@ -2273,4 +2273,17 @@ public class Database implements DataHandler {
         return conn;
     }
 
+    public void setLogMode(int log) {
+        if (pageStore != null) {
+            pageStore.setLogMode(log);
+        }
+    }
+
+    public int getLogMode() {
+        if (pageStore != null) {
+            return pageStore.getLogMode();
+        }
+        return PageStore.LOG_MODE_OFF;
+    }
+
 }

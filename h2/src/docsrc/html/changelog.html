@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>After deleting a lot of data (for example by dropping or altering tables, or indexes, 
+<ul><li>For improved performance, LOG=0 and LOG=1 are again supported.
+    LOG=0 means the transaction log is disabled completely (fastest; for loading a database).
+    LOG=1 means the transaction log is enabled, but FileDescriptor.sync is disabled (if no protection against power failure is required).
+    LOG=2 is the default (transaction log is enabled, FileDescriptor.sync for each checkpoint).
+</li><li>After deleting a lot of data (for example by dropping or altering tables, or indexes, 
     or after a large transaction), opening a large database was very slow. Fixed.
 </li><li>When killing the process after creating and dropping many tables (specially temporary tables),
     the database could not be opened sometimes.

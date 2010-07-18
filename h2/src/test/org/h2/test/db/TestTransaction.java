@@ -34,6 +34,7 @@ public class TestTransaction extends TestBase {
     }
 
     public void test() throws SQLException {
+        testLogMode();
         testRollback();
         testRollback2();
         testForUpdate();
@@ -42,6 +43,47 @@ public class TestTransaction extends TestBase {
         testSavepoint();
         testIsolation();
         deleteDb("transaction");
+    }
+
+    private void testLogMode() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("transaction");
+        testLogMode(0);
+        testLogMode(1);
+        testLogMode(2);
+    }
+
+    private void testLogMode(int logMode) throws SQLException {
+        Connection conn;
+        Statement stat;
+        ResultSet rs;
+        conn = getConnection("transaction");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key) as select 1");
+        stat.execute("set write_delay 0");
+        stat.execute("set log " + logMode);
+        rs = stat.executeQuery("select value from information_schema.settings where name = 'LOG'");
+        rs.next();
+        assertEquals(logMode, rs.getInt(1));
+        stat.execute("insert into test values(2)");
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // expected
+        }
+        conn = getConnection("transaction");
+        stat = conn.createStatement();
+        rs = stat.executeQuery("select * from test order by id");
+        assertTrue(rs.next());
+        if (logMode != 0) {
+            assertTrue(rs.next());
+        }
+        assertFalse(rs.next());
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testForUpdate() throws SQLException {

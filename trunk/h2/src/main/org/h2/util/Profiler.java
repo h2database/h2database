@@ -17,8 +17,8 @@ import org.h2.engine.Constants;
 public class Profiler implements Runnable {
     private static final int MAX_ELEMENTS = 1000;
 
-    public int interval = 50;
-    public int depth = 16;
+    public int interval = 10;
+    public int depth = 32;
 
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
     private String[] ignoreThreads = StringUtils.arraySplit(

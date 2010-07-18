@@ -204,7 +204,7 @@ public class Set extends Prepared {
             if (value == 0) {
                 session.getUser().checkAdmin();
             }
-            // currently no effect
+            database.setLogMode(value);
             break;
         }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {

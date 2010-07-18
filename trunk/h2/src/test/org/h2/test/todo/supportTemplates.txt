@@ -58,6 +58,7 @@ I am very interested in analyzing and solving this problem. Corruption problems 
 - What is your database URL?
 - How many connections does your application use concurrently?
 - Do you use temporary tables?
+- Did you use LOG=0 or LOG=1?
 - With which version of H2 was this database created?
     You can find it out using:
     select * from information_schema.settings where name='CREATE_BUILD'

@@ -252,17 +252,20 @@ public abstract class TestBase {
             url += ";TRACE_LEVEL_SYSTEM_OUT=2";
         }
         if (config.traceLevelFile > 0 && admin) {
-            if (url.indexOf("TRACE_LEVEL_FILE=") < 0) {
+            if (url.indexOf(";TRACE_LEVEL_FILE=") < 0) {
                 url += ";TRACE_LEVEL_FILE=" + config.traceLevelFile;
             }
-            if (url.indexOf("TRACE_MAX_FILE_SIZE") < 0) {
+            if (url.indexOf(";TRACE_MAX_FILE_SIZE=") < 0) {
                 url += ";TRACE_MAX_FILE_SIZE=8";
             }
+        }
+        if (url.indexOf(";LOG=") < 0) {
+            url += ";LOG=1";
         }
         if (config.throttle > 0) {
             url += ";THROTTLE=" + config.throttle;
         }
-        if (url.indexOf("LOCK_TIMEOUT=") < 0) {
+        if (url.indexOf(";LOCK_TIMEOUT=") < 0) {
             url += ";LOCK_TIMEOUT=50";
         }
         if (config.diskUndo && admin) {
@@ -272,15 +275,15 @@ public abstract class TestBase {
             // force operations to disk
             url += ";MAX_OPERATION_MEMORY=1";
         }
-        if (config.mvcc && url.indexOf("MVCC=") < 0) {
+        if (config.mvcc && url.indexOf(";MVCC=") < 0) {
             url += ";MVCC=TRUE";
         }
-        if (config.cacheType != null && admin && url.indexOf("CACHE_TYPE=") < 0) {
+        if (config.cacheType != null && admin && url.indexOf(";CACHE_TYPE=") < 0) {
             url += ";CACHE_TYPE=" + config.cacheType;
         }
         if (config.diskResult && admin) {
             url += ";MAX_MEMORY_ROWS=100";
-            if (url.indexOf("CACHE_SIZE=") < 0) {
+            if (url.indexOf(";CACHE_SIZE=") < 0) {
                 url += ";CACHE_SIZE=0";
             }
         }

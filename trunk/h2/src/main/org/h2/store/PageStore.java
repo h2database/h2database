@@ -121,7 +121,7 @@ public class PageStore implements CacheWriter {
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
     private static final int MIN_PAGE_COUNT = 6;
-    private static final int INCREMENT_PAGES = 128;
+    private static final int INCREMENT_KB = 2048;
     private static final int READ_VERSION = 3;
     private static final int WRITE_VERSION = 3;
     private static final int META_TYPE_DATA_INDEX = 0;
@@ -291,7 +291,7 @@ public class PageStore implements CacheWriter {
         log.openForWriting(logFirstTrunkPage, false);
         isNew = true;
         recoveryRunning = false;
-        increaseFileSize(INCREMENT_PAGES);
+        increaseFileSize(INCREMENT_KB * 1024 / pageSize);
     }
 
     private void openExisting() {
@@ -878,7 +878,7 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             int p = PAGE_ID_FREE_LIST_ROOT + i * freeListPagesPerList;
             while (p >= pageCount) {
-                increaseFileSize(INCREMENT_PAGES);
+                increaseFileSize(INCREMENT_KB * 1024 / pageSize);
             }
             if (p < pageCount) {
                 list = (PageFreeList) getPage(p);
@@ -955,7 +955,7 @@ public class PageStore implements CacheWriter {
                 }
             }
             if (page >= pageCount) {
-                increaseFileSize(INCREMENT_PAGES);
+                increaseFileSize(INCREMENT_KB * 1024 / pageSize);
             }
             if (trace.isDebugEnabled()) {
                 // trace.debug("allocatePage " + pos);

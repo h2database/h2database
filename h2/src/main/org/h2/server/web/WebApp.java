@@ -1277,6 +1277,14 @@ public class WebApp {
                 profiler = new Profiler();
                 profiler.startCollecting();
                 return "Ok";
+            } else if (isBuiltIn(sql, "@sleep")) {
+                String s = sql.substring("@sleep".length()).trim();
+                int sleep = 1;
+                if (s.length() > 0) {
+                    sleep = Integer.parseInt(s);
+                }
+                Thread.sleep(sleep * 1000);
+                return "Ok";
             } else if (isBuiltIn(sql, "@transaction_isolation")) {
                 String s = sql.substring("@transaction_isolation".length()).trim();
                 if (s.length() > 0) {

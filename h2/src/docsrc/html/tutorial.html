@@ -386,6 +386,17 @@ otherwise they are not parsed correctly. If in doubt, add ';' before the command
     </tr>
     <tr>
         <td class="notranslate">
+            @prof_stop;<br />
+            @sleep 10;<br />
+            @prof_stop;
+        </td>
+        <td>
+            Sleep for a number of seconds. Used to profile a long running query or 
+            operation that is running in another session (but in the same process).
+        </td>
+    </tr>
+    <tr>
+        <td class="notranslate">
             @transaction_isolation;<br />
             @transaction_isolation&nbsp;2;
         </td>

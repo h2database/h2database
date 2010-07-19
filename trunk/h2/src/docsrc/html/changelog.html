@@ -18,9 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The built-in profiling tool now uses a default stack depth of 32 elements and a default interval of 10 ms.
-</li><li>Database files now grow 2 MB at a time instead of 256 KB. This improves performance, specially
-    when loading a new database.
+<ul><li>Storing lobs in the database has been changed. It is now faster.
+	Unfortunately, the change is not backward compatible; if you have used h2.lobInDatabase before
+	you will need to re-build the database.
+</li><li>SHUTDOWN COMPACT and compacting in general is faster.
+</li><li>H2 Console: requesting the status did not always show the window on top of others.
+</li><li>H2 Console: on some system, the browser windows got opened when requesting a new one.
+</li><li>The built-in profiling tool now uses a default stack depth of 32 elements and a default interval of 10 ms.
+</li><li>Database files now grows in 1 MB blocks (and at least 2%) at a time, 
+    instead of always 256 KB. This speeds up loading a new database.
 </li><li>H2 Console: new built-in command @sleep to help profile another session.
 </li><li>For improved performance, LOG=0 and LOG=1 are again supported.
     LOG=0 means the transaction log is disabled completely (fastest; for loading a database).

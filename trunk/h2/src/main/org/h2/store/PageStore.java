@@ -121,13 +121,15 @@ public class PageStore implements CacheWriter {
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
     private static final int MIN_PAGE_COUNT = 6;
-    private static final int INCREMENT_KB = 2048;
+    private static final int INCREMENT_KB = 1024;
+    private static final int INCREMENT_PERCENT_MIN = 2;
     private static final int READ_VERSION = 3;
     private static final int WRITE_VERSION = 3;
     private static final int META_TYPE_DATA_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
     private static final SearchRow[] EMPTY_SEARCH_ROW = { };
+    private static final int COMPACT_BLOCK_SIZE = 1536;
     private Database database;
     private final Trace trace;
     private String fileName;
@@ -291,7 +293,7 @@ public class PageStore implements CacheWriter {
         log.openForWriting(logFirstTrunkPage, false);
         isNew = true;
         recoveryRunning = false;
-        increaseFileSize(INCREMENT_KB * 1024 / pageSize);
+        increaseFileSize();
     }
 
     private void openExisting() {
@@ -443,16 +445,26 @@ public class PageStore implements CacheWriter {
             maxCompactTime = Integer.MAX_VALUE;
             maxMove = Integer.MAX_VALUE;
         }
-        for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x--, j++) {
-            synchronized (database) {
-                compact(x);
+        int blockSize = COMPACT_BLOCK_SIZE;
+        for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x -= blockSize) {
+            for (int y = x - blockSize + 1; y <= x; y++) {
+                if (y > MIN_PAGE_COUNT) {
+                    getPage(y);
+                }
+            }
+            for (int y = x - blockSize + 1; y <= x; y++) {
+                if (y > MIN_PAGE_COUNT) {
+                    synchronized (database) {
+                        compact(y);
+                    }
+                    j++;
+                }
             }
             long now = System.currentTimeMillis();
             if (now > start + maxCompactTime) {
                 break;
             }
         }
-
         // TODO can most likely be simplified
         checkpoint();
         log.checkpoint();
@@ -878,7 +890,7 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             int p = PAGE_ID_FREE_LIST_ROOT + i * freeListPagesPerList;
             while (p >= pageCount) {
-                increaseFileSize(INCREMENT_KB * 1024 / pageSize);
+                increaseFileSize();
             }
             if (p < pageCount) {
                 list = (PageFreeList) getPage(p);
@@ -954,14 +966,23 @@ public class PageStore implements CacheWriter {
                     break;
                 }
             }
-            if (page >= pageCount) {
-                increaseFileSize(INCREMENT_KB * 1024 / pageSize);
+            while (page >= pageCount) {
+                increaseFileSize();
             }
             if (trace.isDebugEnabled()) {
                 // trace.debug("allocatePage " + pos);
             }
             return page;
         }
+    }
+
+    private void increaseFileSize() {
+        int increment = INCREMENT_KB * 1024 / pageSize;
+        int percent = pageCount * INCREMENT_PERCENT_MIN / 100;
+        if (increment < percent) {
+            increment = (1 + (percent / increment)) * increment;
+        }
+        increaseFileSize(increment);
     }
 
     private void increaseFileSize(int increment) {

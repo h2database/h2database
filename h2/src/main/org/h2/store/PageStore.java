@@ -449,7 +449,8 @@ public class PageStore implements CacheWriter {
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x -= blockSize) {
             for (int y = x - blockSize + 1; y <= x; y++) {
                 if (y > MIN_PAGE_COUNT) {
-                    getPage(y);
+                    // ensure the page is in the disk buffer
+                    readPage(y);
                 }
             }
             for (int y = x - blockSize + 1; y <= x; y++) {

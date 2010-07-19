@@ -57,6 +57,7 @@ ShutdownHandler {
 //## AWT end ##
     private Server web, tcp, pg;
     private boolean isWindows;
+    private long lastOpen;
 
     /**
      * When running without options, -tcp, -web, -browser and -pg are started.
@@ -392,6 +393,13 @@ ShutdownHandler {
             // some systems don't support this method, for example IKVM
             // however it still works
         }
+        try {
+            // ensure this window is in front of the browser
+            frame.setAlwaysOnTop(true);
+            frame.setAlwaysOnTop(false);
+        } catch (Throwable t) {
+            // ignore
+        }
     }
 
     private void startBrowser() {
@@ -400,7 +408,11 @@ ShutdownHandler {
             if (urlText != null) {
                 urlText.setText(url);
             }
-            Server.openBrowser(url);
+            long now = System.currentTimeMillis();
+            if (lastOpen == 0 || lastOpen + 100 < now) {
+                lastOpen = now;
+                Server.openBrowser(url);
+            }
         }
     }
 //## AWT end ##

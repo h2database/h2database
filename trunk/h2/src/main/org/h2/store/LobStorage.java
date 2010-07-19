@@ -51,11 +51,13 @@ public class LobStorage {
 
     private static final int BLOCK_LENGTH = 20000;
     private static final boolean HASH = true;
-    private static final long UNIQUE = 0xffff;
+    // each entry needs 16 bytes (2 longs)
+    private static final int HASH_CACHE_SIZE = 8 * 1024;
     private Connection conn;
     private HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
     private CompressTool compress = CompressTool.getInstance();
+    private long[] hashBlocks = new long[HASH_CACHE_SIZE * 2];
 
     private final DataHandler handler;
     private boolean init;
@@ -83,14 +85,11 @@ public class LobStorage {
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, BYTE_COUNT BIGINT, TABLE INT) HIDDEN");
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
             stat.execute("CREATE INDEX IF NOT EXISTS INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
-            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, HASH INT, DATA BINARY) HIDDEN");
             ResultSet rs;
             rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
             rs.next();
             nextBlock = rs.getLong(1) + 1;
-            if (HASH) {
-                nextBlock = Math.max(UNIQUE + 1, nextBlock);
-            }
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
@@ -405,31 +404,44 @@ public class LobStorage {
         if (compressAlgorithm != null) {
             b = compress.compress(b, compressAlgorithm);
         }
+        int hash = Arrays.hashCode(b);
         if (HASH) {
-            block = Arrays.hashCode(b) & UNIQUE;
-            PreparedStatement prep = prepare(
-                    "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
-                    " WHERE BLOCK = ?");
-            prep.setLong(1, block);
-            ResultSet rs = prep.executeQuery();
-            if (rs.next()) {
-                boolean compressed = rs.getInt(1) != 0;
-                byte[] compare = rs.getBytes(2);
-                if (Arrays.equals(b, compare) && compressed == (compressAlgorithm != null)) {
-                    blockExists = true;
-                } else {
-                    block = nextBlock++;
+            block = 0;
+            int index = hash & (HASH_CACHE_SIZE - 1);
+            long oldHash = hashBlocks[index];
+int hashTableAddWhenReading;
+int hashTableRemoveWhenDeleting;
+            if (oldHash == hash) {
+                long old = hashBlocks[index + HASH_CACHE_SIZE];
+                PreparedStatement prep = prepare(
+                        "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
+                        " WHERE BLOCK = ?");
+                prep.setLong(1, old);
+                ResultSet rs = prep.executeQuery();
+                if (rs.next()) {
+                    boolean compressed = rs.getInt(1) != 0;
+                    byte[] compare = rs.getBytes(2);
+                    if (Arrays.equals(b, compare) && compressed == (compressAlgorithm != null)) {
+                        blockExists = true;
+                        block = old;
+                    }
                 }
             }
+            if (!blockExists) {
+                block = nextBlock++;
+            }
+            hashBlocks[index] = hash;
+            hashBlocks[index + HASH_CACHE_SIZE] = block;
         } else {
             block = nextBlock++;
         }
         if (!blockExists) {
             PreparedStatement prep = prepare(
-                    "INSERT INTO " + LOB_DATA + "(BLOCK, COMPRESSED, DATA) VALUES(?, ?, ?)");
+                    "INSERT INTO " + LOB_DATA + "(BLOCK, COMPRESSED, HASH, DATA) VALUES(?, ?, ?, ?)");
             prep.setLong(1, block);
             prep.setInt(2, compressAlgorithm == null ? 0 : 1);
-            prep.setBytes(3, b);
+            prep.setInt(3, hash);
+            prep.setBytes(4, b);
             prep.execute();
         }
         PreparedStatement prep = prepare(

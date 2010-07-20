@@ -50,9 +50,12 @@ public class LobStorage {
     private static final String LOB_DATA = "INFORMATION_SCHEMA.LOB_DATA";
 
     private static final int BLOCK_LENGTH = 20000;
-    private static final boolean HASH = true;
-    // each entry needs 16 bytes (2 longs)
-    private static final int HASH_CACHE_SIZE = 8 * 1024;
+
+    /**
+     * The size of cache for lob block hashes. Each entry needs 2 longs (16
+     * bytes), therefore, the size 4096 means 64 KB.
+     */
+    private static final int HASH_CACHE_SIZE = 4 * 1024;
     private Connection conn;
     private HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
@@ -83,9 +86,9 @@ public class LobStorage {
             // stat.execute("SET UNDO_LOG 0");
             // stat.execute("SET REDO_LOG_BINARY 0");
             stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, BYTE_COUNT BIGINT, TABLE INT) HIDDEN");
-            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, HASH INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
             stat.execute("CREATE INDEX IF NOT EXISTS INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
-            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, HASH INT, DATA BINARY) HIDDEN");
+            stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
             ResultSet rs;
             rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
             rs.next();
@@ -269,18 +272,25 @@ public class LobStorage {
     private void deleteLob(long lob) throws SQLException {
         PreparedStatement prep;
         prep = prepare(
+                "SELECT BLOCK, HASH FROM " + LOB_MAP + " D WHERE D.LOB = ? " +
+                "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " O " +
+                "WHERE O.BLOCK = D.BLOCK AND O.LOB <> ?)");
+        prep.setLong(1, lob);
+        prep.setLong(2, lob);
+        ResultSet rs = prep.executeQuery();
+        prep = prepare(
             "DELETE FROM " + LOB_MAP + " " +
             "WHERE LOB = ?");
         prep.setLong(1, lob);
         prep.execute();
-        prep = prepare(
-                "DELETE FROM " + LOB_DATA + " D " +
-                "WHERE BLOCK IN(SELECT M.BLOCK FROM " + LOB_MAP + " M WHERE LOB = ?) " +
-                "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " M " +
-                "WHERE M.BLOCK = D.BLOCK AND M.LOB <> ?)");
-        prep.setLong(1, lob);
-        prep.setLong(2, lob);
-        prep.execute();
+        while (rs.next()) {
+            long block = rs.getLong(1);
+            int hash = rs.getInt(2);
+            setHashCacheBlock(hash, -1);
+            prep = prepare("DELETE FROM " + LOB_DATA + " WHERE BLOCK = ?");
+            prep.setLong(1, block);
+            prep.execute();
+        }
         prep = prepare(
                 "DELETE FROM " + LOBS + " " +
                 "WHERE ID = ?");
@@ -371,8 +381,8 @@ public class LobStorage {
         try {
             long lobId = getNextLobId();
             PreparedStatement prep = prepare(
-                    "INSERT INTO " + LOB_MAP + "(LOB, SEQ, BLOCK) " +
-                    "SELECT ?, SEQ, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?");
+                    "INSERT INTO " + LOB_MAP + "(LOB, SEQ, HASH, BLOCK) " +
+                    "SELECT ?, SEQ, HASH, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?");
             prep.setLong(1, lobId);
             prep.setLong(2, oldLobId);
             prep.executeUpdate();
@@ -387,6 +397,25 @@ public class LobStorage {
             return v;
         } catch (SQLException e) {
             throw DbException.convert(e);
+        }
+    }
+
+    private long getHashCacheBlock(int hash) {
+        if (HASH_CACHE_SIZE > 0) {
+            int index = (int) (hash & (HASH_CACHE_SIZE - 1));
+            long oldHash = hashBlocks[index];
+            if (oldHash == hash) {
+                return hashBlocks[index + HASH_CACHE_SIZE];
+            }
+        }
+        return -1;
+    }
+
+    private void setHashCacheBlock(int hash, long block) {
+        if (HASH_CACHE_SIZE > 0) {
+            int index = (int) (hash & (HASH_CACHE_SIZE - 1));
+            hashBlocks[index] = hash;
+            hashBlocks[index + HASH_CACHE_SIZE] = block;
         }
     }
 
@@ -405,50 +434,37 @@ public class LobStorage {
             b = compress.compress(b, compressAlgorithm);
         }
         int hash = Arrays.hashCode(b);
-        if (HASH) {
-            block = 0;
-            int index = hash & (HASH_CACHE_SIZE - 1);
-            long oldHash = hashBlocks[index];
-int hashTableAddWhenReading;
-int hashTableRemoveWhenDeleting;
-            if (oldHash == hash) {
-                long old = hashBlocks[index + HASH_CACHE_SIZE];
-                PreparedStatement prep = prepare(
-                        "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
-                        " WHERE BLOCK = ?");
-                prep.setLong(1, old);
-                ResultSet rs = prep.executeQuery();
-                if (rs.next()) {
-                    boolean compressed = rs.getInt(1) != 0;
-                    byte[] compare = rs.getBytes(2);
-                    if (Arrays.equals(b, compare) && compressed == (compressAlgorithm != null)) {
-                        blockExists = true;
-                        block = old;
-                    }
+        block = getHashCacheBlock(hash);
+        if (block != -1) {
+            PreparedStatement prep = prepare(
+                    "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
+                    " WHERE BLOCK = ?");
+            prep.setLong(1, block);
+            ResultSet rs = prep.executeQuery();
+            if (rs.next()) {
+                boolean compressed = rs.getInt(1) != 0;
+                byte[] compare = rs.getBytes(2);
+                if (compressed == (compressAlgorithm != null) && Arrays.equals(b, compare)) {
+                    blockExists = true;
                 }
             }
-            if (!blockExists) {
-                block = nextBlock++;
-            }
-            hashBlocks[index] = hash;
-            hashBlocks[index + HASH_CACHE_SIZE] = block;
-        } else {
-            block = nextBlock++;
         }
         if (!blockExists) {
+            block = nextBlock++;
+            setHashCacheBlock(hash, block);
             PreparedStatement prep = prepare(
-                    "INSERT INTO " + LOB_DATA + "(BLOCK, COMPRESSED, HASH, DATA) VALUES(?, ?, ?, ?)");
+                    "INSERT INTO " + LOB_DATA + "(BLOCK, COMPRESSED, DATA) VALUES(?, ?, ?)");
             prep.setLong(1, block);
             prep.setInt(2, compressAlgorithm == null ? 0 : 1);
-            prep.setInt(3, hash);
-            prep.setBytes(4, b);
+            prep.setBytes(3, b);
             prep.execute();
         }
         PreparedStatement prep = prepare(
-                "INSERT INTO " + LOB_MAP + "(LOB, SEQ, BLOCK) VALUES(?, ?, ?)");
+                "INSERT INTO " + LOB_MAP + "(LOB, SEQ, HASH, BLOCK) VALUES(?, ?, ?, ?)");
         prep.setLong(1, lobId);
         prep.setInt(2, seq);
-        prep.setLong(3, block);
+        prep.setLong(3, hash);
+        prep.setLong(4, block);
         prep.execute();
     }
 

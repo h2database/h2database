@@ -59,8 +59,7 @@ public class BackupCommand extends Prepared {
             OutputStream zip = IOUtils.openFileOutputStream(fileName, false);
             ZipOutputStream out = new ZipOutputStream(zip);
             db.flush();
-            String fn;
-            fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
+            String fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
             backupPageStore(out, fn, db.getPageStore());
             // synchronize on the database, to avoid concurrent temp file
             // creation / deletion / backup

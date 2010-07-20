@@ -49,6 +49,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testDelete();
         testTempFilesDeleted();
         testAddLobRestart();
         testLobServerMemory();
@@ -79,6 +80,39 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testDelete() throws Exception {
+        if (!SysProperties.LOB_IN_DATABASE || config.memory) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("lob");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name clob)");
+        stat.execute("insert into test values(1, space(10000))");
+        assertSingleValue(stat, "select count(*) from information_schema.lob_data", 1);
+        stat.execute("insert into test values(2, space(10000))");
+        assertSingleValue(stat, "select count(*) from information_schema.lob_data", 1);
+        stat.execute("delete from test where id = 1");
+        assertSingleValue(stat, "select count(*) from information_schema.lob_data", 1);
+        stat.execute("insert into test values(3, space(10000))");
+        assertSingleValue(stat, "select count(*) from information_schema.lob_data", 1);
+        stat.execute("insert into test values(4, space(10000))");
+        assertSingleValue(stat, "select count(*) from information_schema.lob_data", 1);
+        stat.execute("delete from test where id = 2");
+        assertSingleValue(stat, "select count(*) from information_schema.lob_data", 1);
+        stat.execute("delete from test where id = 3");
+        assertSingleValue(stat, "select count(*) from information_schema.lob_data", 1);
+        stat.execute("delete from test");
+        conn.close();
+        conn = getConnection("lob");
+        stat = conn.createStatement();
+        assertSingleValue(stat, "select count(*) from information_schema.lob_data", 0);
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testTempFilesDeleted() throws Exception {

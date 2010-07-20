@@ -411,7 +411,6 @@ public class PageStore implements CacheWriter {
      * @param fully if the database should be fully compressed
      */
     public void compact(boolean fully) {
-System.out.println("compact");
         if (!SysProperties.PAGE_STORE_TRIM) {
             return;
         }

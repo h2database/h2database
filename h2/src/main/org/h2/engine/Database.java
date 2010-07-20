@@ -2275,6 +2275,12 @@ public class Database implements DataHandler {
 
     public void setLogMode(int log) {
         if (pageStore != null) {
+            if (log != PageStore.LOG_MODE_SYNC ||
+                    pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
+                // write the log mode in the trace file when enabling or
+                // disabling a dangerous mode
+                getTrace().error("log=" + log, null);
+            }
             pageStore.setLogMode(log);
         }
     }

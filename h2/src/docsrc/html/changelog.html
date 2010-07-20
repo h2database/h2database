@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Storing lobs in the database has been changed. It is now faster.
+<ul><li>The cache was not used efficiently when reading 
+    (behaving like a FIFO cache instead of an LRU cache).
+</li><li>Storing lobs in the database has been changed. It is now faster.
 	Unfortunately, the change is not backward compatible; if you have used h2.lobInDatabase before
 	you will need to re-build the database.
 </li><li>SHUTDOWN COMPACT is now faster.

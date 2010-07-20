@@ -553,7 +553,7 @@ public class PageStore implements CacheWriter {
      */
     public Page getPage(int pageId) {
         synchronized (database) {
-            Page p = (Page) cache.find(pageId);
+            Page p = (Page) cache.get(pageId);
             if (p != null) {
                 return p;
             }

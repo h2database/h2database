@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.140 (2010-07-25)</h2>
 <ul><li>The default MAX_LOG_SIZE is now 16 MB instead of 2 MB. Some uses cases are 3 times faster now.
 </li><li>Improved cache memory usage calculation.
 </li><li>Only resources that are actually used are loaded in memory.
@@ -727,39 +731,6 @@ Change Log
 </li><li>The native fulltext index kept a reference to a database after the database was closed.
 </li><li>Non-unique in-memory hash indexes are now supported. Thanks a lot to Sergi Vladykin for the patch!
 </li><li>The optimizer does a better job for joins if indexes are missing.
-</li></ul>
-
-<h2>Version 1.1.118 (2009-09-04)</h2>
-<ul><li>SHOW COLUMNS only listed indexed columns.
-</li><li>When calling SHUTDOWN IMMEDIATELY in the server mode, the .trace.db file was not closed.
-</li><li>DatabaseMetaData.getPrimaryKeys: the wrong constraint name was reported
-    if there was another constraint on the same table and columns.
-</li><li>AUTO_INCREMENT now works in the same way in ALTER TABLE ALTER COLUMN
-    as in CREATE TABLE (it does not create a primary key).
-</li><li>Native fulltext search: before searching, FT_INIT() had to be called.
-    This is no longer required.
-</li><li>Better support GaeVFS (Google App Engine Virtual File System).
-</li><li>JaQu: the plan is to support natural (pure Java / Scala) conditions such as
-    (id == 1 &amp;&amp; name.equals("Test")). A proof of concept decompiler is now included (it doesn't work yet).
-</li><li>Various bugfixes and improvements in the page store mechanism (still experimental).
-</li><li>PreparedStatement.setObject now converts a java.lang.Character to a string.
-</li><li>H2 Console: PierPaolo Ucchino has completed the Italian translation. Thanks a lot!
-</li><li>Various tools now use Java 5 var-args, such as main the methods and SimpleResultSet.addRow.
-</li><li>H2 Console: indexes of tables of non-default schemas are now also listed.
-</li><li>Issue 111: Multi-version concurrency / duplicate primary key after rollback.
-</li><li>Issue 110: Multi-version concurrency / wrong exception is thrown.
-</li><li>Parser: sequenceName.NEXTVAL and CURRVAL did not respect the schema search path.
-</li><li>Issue 101: The following sequence could throw the exception "Row not found when trying to delete":
-    start a transaction, insert many rows, delete many rows, rollback. The number of rows depends
-    on the cache size.
-</li><li>The stack trace of very common exceptions is no longer written to the .trace.db file by default.
-</li><li>An optimization for OR is implemented, but disabled by default.
-    Expressions of the type X=1 OR X=2 are converted to X IN(1, 2).
-    To enable, set the system property h2.optimizeInList to true before loading the H2 JDBC driver.
-</li><li>An optimization for IN(..) and IN(SELECT...) is implemented, but disabled by default.
-    To enable, set the system property h2.optimizeInList to true before loading the H2 JDBC driver.
-    If enabled, this overrides h2.optimizeIn and h2.optimizeInJoin. Unlike now, this optimization
-    will also speed up updates and deletes.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

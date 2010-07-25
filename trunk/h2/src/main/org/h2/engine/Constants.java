@@ -121,7 +121,7 @@ public class Constants {
     /**
      * The default value for the maximum transaction log size.
      */
-    public static final long DEFAULT_MAX_LOG_SIZE = 2 * 1024 * 1024;
+    public static final long DEFAULT_MAX_LOG_SIZE = 16 * 1024 * 1024;
 
     /**
      * The default maximum length on an in-memory LOB object.
@@ -206,6 +206,50 @@ public class Constants {
      * The highest possible parameter index.
      */
     public static final int MAX_PARAMETER_INDEX = 100000;
+
+    /**
+     * The memory needed by a object of class Data
+     */
+    public static final int MEMORY_DATA = 24;
+
+    /**
+     * This value is used to calculate the average memory usage.
+     */
+    public static final int MEMORY_FACTOR = 64;
+
+    /**
+     * The memory needed by a regular object with at least one field.
+     */
+    // Java 6, 64 bit: 24
+    // Java 6, 32 bit: 12
+    public static final int MEMORY_OBJECT = 24;
+
+    /**
+     * The memory needed by an object of class PageBtree.
+     */
+    public static final int MEMORY_PAGE_BTREE = 112 + MEMORY_DATA + 2 * MEMORY_OBJECT;
+
+    /**
+     * The memory needed by an object of class PageData.
+     */
+    public static final int MEMORY_PAGE_DATA = 144 + MEMORY_DATA + 3 * MEMORY_OBJECT;
+
+    /**
+     * The memory needed by an object of class PageDataOverflow.
+     */
+    public static final int MEMORY_PAGE_DATA_OVERFLOW = 96 + MEMORY_DATA;
+
+    /**
+     * The memory needed by a pointer.
+     */
+    // Java 6, 64 bit: 8
+    // Java 6, 32 bit: 4
+    public static final int MEMORY_POINTER = 8;
+
+    /**
+     * The memory needed by a Row.
+     */
+    public static final int MEMORY_ROW = 40;
 
     /**
      * The number of bytes in random salt that is used to hash passwords.

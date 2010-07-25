@@ -34,7 +34,7 @@ public class FileStore {
      * An empty buffer to speed up extending the file (it seems that writing 0
      * bytes is faster then calling setLength).
      */
-    protected static final byte[] EMPTY = new byte[16 * 1024];
+    protected static byte[] empty;
 
     /**
      * The magic file header.
@@ -356,13 +356,16 @@ public class FileStore {
     private void extendByWriting(long newLength) throws IOException {
         long pos = filePos;
         file.seek(fileLength);
-        byte[] empty = EMPTY;
+        if (empty == null) {
+            empty = new byte[16 * 1024];
+        }
+        byte[] e = empty;
         while (true) {
-            int p = (int) Math.min(newLength - fileLength, EMPTY.length);
+            int p = (int) Math.min(newLength - fileLength, e.length);
             if (p <= 0) {
                 break;
             }
-            file.write(empty, 0, p);
+            file.write(e, 0, p);
             fileLength += p;
         }
         file.seek(pos);

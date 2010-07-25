@@ -87,13 +87,16 @@ public class SecureFileStore extends FileStore {
         long length = length();
         if (newLength > length) {
             seek(length);
-            byte[] empty = EMPTY;
+            if (empty == null) {
+                empty = new byte[16 * 1024];
+            }
+            byte[] e = empty;
             while (true) {
-                int p = (int) Math.min(newLength - length, EMPTY.length);
+                int p = (int) Math.min(newLength - length, e.length);
                 if (p <= 0) {
                     break;
                 }
-                write(empty, 0, p);
+                write(e, 0, p);
                 length += p;
             }
             seek(oldPos);

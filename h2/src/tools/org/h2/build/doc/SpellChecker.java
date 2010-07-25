@@ -251,6 +251,10 @@ public class SpellChecker {
         if (token.startsWith(PREFIX_IGNORE)) {
             return;
         }
+        // ignore repeated characters
+        if (StringUtils.replaceAll(token, token.substring(0, 1), "").length() == 0) {
+            return;
+        }
         if (addToDictionary) {
             dictionary.add(token);
         } else {

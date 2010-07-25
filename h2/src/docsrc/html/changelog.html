@@ -18,23 +18,30 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The cache was not used efficiently when reading 
+<ul><li>The default MAX_LOG_SIZE is now 16 MB instead of 2 MB. Some uses cases are 3 times faster now.
+</li><li>Improved cache memory usage calculation.
+</li><li>Only resources that are actually used are loaded in memory.
+    This can reduce the memory usage by about 400 KB.
+</li><li>Profiling: the jar file can now be installed as an agent using
+    java -javaagent:h2*.jar - this was be used to more accurately calculate the memory footprint of the cache.
+    It has no effect when using H2 (using this feature in an application is not needed and not recommended).
+</li><li>The cache was not used efficiently when reading
     (behaving like a FIFO cache instead of an LRU cache).
 </li><li>Storing lobs in the database has been changed. It is now faster.
-	Unfortunately, the change is not backward compatible; if you have used h2.lobInDatabase before
-	you will need to re-build the database.
+    Unfortunately, the change is not backward compatible; if you have used h2.lobInDatabase before
+    you will need to re-build the database.
 </li><li>SHUTDOWN COMPACT is now faster.
 </li><li>H2 Console: requesting the status did not always show the window on top of others.
 </li><li>H2 Console: on some system, the browser windows got opened when requesting a new one.
 </li><li>The built-in profiling tool now uses a default stack depth of 32 elements and a default interval of 10 ms.
-</li><li>Database files now grows in 1 MB blocks (and at least 2%) at a time, 
+</li><li>Database files now grows in 1 MB blocks (and at least 20% at a time),
     instead of always 256 KB. This speeds up loading a new database.
 </li><li>H2 Console: new built-in command @sleep to help profile another session.
 </li><li>For improved performance, LOG=0 and LOG=1 are again supported.
     LOG=0 means the transaction log is disabled completely (fastest; for loading a database).
     LOG=1 means the transaction log is enabled, but FileDescriptor.sync is disabled (if no protection against power failure is required).
     LOG=2 is the default (transaction log is enabled, FileDescriptor.sync for each checkpoint).
-</li><li>After deleting a lot of data (for example by dropping or altering tables, or indexes, 
+</li><li>After deleting a lot of data (for example by dropping or altering tables, or indexes,
     or after a large transaction), opening a large database was very slow. Fixed.
 </li><li>When killing the process after creating and dropping many tables (specially temporary tables),
     the database could not be opened sometimes.

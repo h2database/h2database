@@ -1130,7 +1130,7 @@ the data might be lost. It must only be used if this is not a problem, for examp
 initially loading a database, or when running tests.
 
 LOG=1 means the transaction log is enabled, but FileDescriptor.sync is disabled.
-This setting is about half as fast as with LOG=0. This setting is useful if no protection 
+This setting is about half as fast as with LOG=0. This setting is useful if no protection
 against power failure is required, but the data must be protected against killing the process.
 
 LOG=2 (the default) means the transaction log is enabled, and FileDescriptor.sync is called
@@ -1202,7 +1202,7 @@ SET MAX_LOG_SIZE int
 ","
 Sets the maximum size of the transaction log, in megabytes. If the log exceeds the
 limit, a new stream is created. Old streams (that are not used for recovery) are
-freed automatically. The default max size is 2 MB.
+freed automatically. The default max size is 16 MB.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.

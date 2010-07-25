@@ -98,7 +98,8 @@ public class CheckJavadoc {
                 inComment = true;
             }
             if (inComment) {
-                if (line.length() > MAX_COMMENT_LINE_SIZE && !line.trim().startsWith("* http://")) {
+                if (line.length() > MAX_COMMENT_LINE_SIZE
+                        && !line.trim().startsWith("* http://")) {
                     System.out.println("Long line : " + file.getAbsolutePath()
                             + " (" + file.getName() + ":" + lineNumber + ")");
                     errorCount++;
@@ -107,7 +108,9 @@ public class CheckJavadoc {
                     inComment = false;
                 }
             }
-            if (!inComment && line.startsWith("//") && line.length() > MAX_COMMENT_LINE_SIZE) {
+            if (!inComment && line.startsWith("//")
+                    && line.length() > MAX_COMMENT_LINE_SIZE
+                    && !line.trim().startsWith("// http://")) {
                 System.out.println("Long line: " + file.getAbsolutePath()
                         + " (" + file.getName() + ":" + lineNumber + ")");
                 errorCount++;

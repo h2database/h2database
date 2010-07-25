@@ -161,24 +161,21 @@ In addition to that, running out of memory should be avoided.
 In older versions, OutOfMemory errors while using the database could corrupt a databases.
 </p>
 <p>
-Some areas of this database are not fully tested.
-When using one of those features for production, please ensure your use case
-is well tested (if possible with automated test cases).
-Those areas are:
+This database is well tested using automated test cases. The tests run every night
+and run for more than one hour. But not all areas of this database are equally well tested.
+When using one of the following features for production, please ensure your use case
+is well tested (if possible with automated test cases). The areas that are not well tested are:
 </p>
 <ul>
 <li>Platforms other than Windows XP, Linux, Mac OS X, or JVMs other than Sun 1.5 or 1.6
-</li><li>The feature <code>MULTI_THREADED</code>
-</li><li>The features <code>AUTO_SERVER</code> and
-    <code>AUTO_RECONNECT</code>
+</li><li>The features <code>AUTO_SERVER</code> and <code>AUTO_RECONNECT</code>
 </li><li>The file locking method 'Serialized'
-</li><li>The MVCC (multi version concurrency) mode
 </li><li>Cluster mode, 2-phase commit, savepoints
 </li><li>24/7 operation
-</li><li>Some operations on databases larger than 500 MB may be slower than expected
-</li><li>The optimizer may not always select the best plan
 </li><li>Fulltext search
 </li><li>Operations on LOBs over 2 GB
+</li><li>Some operations on databases larger than 500 MB may be slower than expected
+</li><li>The optimizer may not always select the best plan
 </li></ul>
 <p>
 Areas considered experimental are:

@@ -117,6 +117,8 @@ class AggregateData {
         case Aggregate.STDDEV_SAMP:
         case Aggregate.VAR_POP:
         case Aggregate.VAR_SAMP: {
+            // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+            // http://www.johndcook.com/standard_deviation.html
             double x = v.getDouble();
             if (count == 1) {
                 sum = x;

@@ -443,6 +443,30 @@ Indexes are also created for foreign key constraints, if required.
 For other columns, indexes need to be created manually using the <code>CREATE INDEX</code> statement.
 </p>
 
+<h3>How Data is Stored Internally</h3>
+<p>
+For persistent databases, if a table is created with a single column primary key of type <code>BIGINT, INT, SMALLINT, TINYINT</code>,
+then the data of the table is organized in this way. This is sometimes also called a "clustered index" or
+"index organized table".
+</p><p>
+H2 internally stores table data and indexes in the form of b-trees.
+Each b-tree stores entries as a list of unique keys (one or more columns) and data (zero or more columns).
+The table data is always organized in the form of a "data b-tree" with a single column key of type <code>long</code>.
+If a single column primary key of type <code>BIGINT, INT, SMALLINT, TINYINT</code> is specified when creating the table,
+then this column is used as the key of the data b-tree.
+If no primary key has been specified, if the primary key column is of another data type,
+or if the primary key contains more than one column,
+then a hidden auto-increment column of type <code>BIGINT</code> is added to the table,
+which is used as the key for the data b-tree.
+All other columns of the table are stored within the data area of this data b-tree
+(except for large <code>BLOB, CLOB</code> columns, which are stored externally).
+</p><p>
+For each additional index, one new "index b-tree" is created. The key of this b-tree consists of the indexed columns,
+plus the key of the data b-tree. If a primary key is created after the table has been created, or if the primary key
+contains multiple column, or if the primary key is not of the data types listed above, then the primary key
+is stored in a new index b-tree.
+</p>
+
 <h3>Optimizer</h3>
 <p>
 This database uses a cost based optimizer. For simple and queries and queries with medium complexity

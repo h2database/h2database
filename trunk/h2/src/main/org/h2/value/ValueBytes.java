@@ -110,7 +110,7 @@ public class ValueBytes extends Value {
     }
 
     public int getMemory() {
-        return value.length + 4;
+        return value.length + 24;
     }
 
     public boolean equals(Object other) {

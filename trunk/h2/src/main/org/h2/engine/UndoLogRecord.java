@@ -230,7 +230,7 @@ public class UndoLogRecord {
         for (int i = 0; i < columnCount; i++) {
             values[i] = buff.readValue();
         }
-        row = new Row(values, 1);
+        row = new Row(values, Row.MEMORY_CALCULATE);
         row.setKey(key);
         row.setDeleted(deleted);
         row.setSessionId(sessionId);

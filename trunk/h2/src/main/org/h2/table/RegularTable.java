@@ -599,7 +599,7 @@ public class RegularTable extends TableBase {
      * @return the row
      */
     public Row createRow(Value[] data) {
-        return new Row(data, memoryPerRow);
+        return new Row(data, Row.MEMORY_CALCULATE);
     }
 
     /**

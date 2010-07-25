@@ -14,10 +14,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Random;
+import org.h2.engine.Constants;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorage;
 import org.h2.test.TestBase;
+import org.h2.test.utils.MemoryFootprint;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
@@ -34,6 +37,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueResultSet;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
@@ -58,12 +62,21 @@ public class TestValueMemory extends TestBase implements DataHandler {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        // run using -javaagent:ext/h2-1.2.139.jar
+        TestBase test = TestBase.createCaller().init();
+        test.config.traceTest = true;
+        test.test();
     }
 
     public void test() throws SQLException {
         testCompare();
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
+            Value v = create(i);
+            String s = "type: " + v.getType() + " calculated: " + v.getMemory() + " real: " + MemoryFootprint.getObjectSize(v) + " " + v.getClass().getName() + ": " + v.toString();
+            trace(s);
+        }
+        for (int i = 0; i < Value.TYPE_COUNT; i++) {
+            assertEquals(i, create(i).getType());
             testType(i);
         }
     }
@@ -83,7 +96,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         long memory = 0;
         for (int i = 0; memory < 1000000; i++) {
             Value v = create(type);
-            memory += v.getMemory();
+            memory += v.getMemory() + Constants.MEMORY_POINTER;
             list.add(v);
         }
         Object[] array = list.toArray();
@@ -99,8 +112,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
         System.gc();
         long used = Utils.getMemoryUsed() - first;
         memory /= 1024;
+        if (config.traceTest) {
+            trace("Type: " + type + " Used memory: " + used + " calculated: " + memory + " length: " + array.length + " size: " + size);
+        }
         if (used > memory * 3) {
-            fail("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length + " size: " + size);
+            fail("Type: " + type + " Used memory: " + used + " calculated: " + memory + " length: " + array.length + " size: " + size);
         }
     }
     private Value create(int type) throws SQLException {
@@ -155,8 +171,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueArray.get(list);
         }
         case Value.RESULT_SET:
-            // not supported currently
-            return ValueNull.INSTANCE;
+            return ValueResultSet.get(new SimpleResultSet());
         case Value.JAVA_OBJECT:
             return ValueJavaObject.getNoCopy(randomBytes(random.nextInt(100)));
         case Value.UUID:

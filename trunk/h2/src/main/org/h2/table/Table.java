@@ -492,7 +492,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public Row getTemplateRow() {
-        return new Row(new Value[columns.length], memoryPerRow);
+        return new Row(new Value[columns.length], Row.MEMORY_CALCULATE);
     }
 
     /**

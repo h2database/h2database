@@ -65,4 +65,11 @@ public interface SearchRow {
      */
     long getKey();
 
+    /**
+     * Get the estimated memory used for this row, in bytes.
+     *
+     * @return the memory
+     */
+    int getMemory();
+
 }

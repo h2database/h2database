@@ -178,7 +178,7 @@ public class PageStreamTrunk extends Page {
      *
      * @return number of double words (4 bytes)
      */
-    public int getMemorySize() {
+    public int getMemory() {
         return store.getPageSize() >> 2;
     }
 

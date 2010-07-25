@@ -73,20 +73,20 @@ public interface Cache {
      *
      * @param size the maximum size in KB
      */
-    void setMaxSize(int size);
+    void setMaxMemory(int size);
 
     /**
-     * Get the maximum size in KB.
+     * Get the maximum memory to be used.
      *
      * @return the maximum size in KB
      */
-    int getMaxSize();
+    int getMaxMemory();
 
     /**
      * Get the used size in KB.
      *
      * @return the current size in KB
      */
-    int getSize();
+    int getMemory();
 
 }

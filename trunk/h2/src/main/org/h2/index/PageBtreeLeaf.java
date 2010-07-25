@@ -8,6 +8,7 @@ package org.h2.index;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.SearchRow;
@@ -152,6 +153,7 @@ public class PageBtreeLeaf extends PageBtree {
         offsets = newOffsets;
         rows = newRows;
         index.getPageStore().update(this);
+        memoryChange();
         return -1;
     }
 
@@ -177,6 +179,7 @@ public class PageBtreeLeaf extends PageBtree {
         start -= OFFSET_LENGTH;
         offsets = newOffsets;
         rows = newRows;
+        memoryChange();
     }
 
     int getEntryCount() {
@@ -262,6 +265,7 @@ public class PageBtreeLeaf extends PageBtree {
             index.writeRow(data, offsets[i], rows[i], onlyPosition);
         }
         written = true;
+        memoryChange();
     }
 
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) {
@@ -337,6 +341,19 @@ public class PageBtreeLeaf extends PageBtree {
             p.moveChild(getPos(), newPos);
         }
         store.free(getPos());
+    }
+
+    private void memoryChange() {
+        int memory = Constants.MEMORY_PAGE_BTREE + index.getPageStore().getPageSize();
+        if (rows != null) {
+            memory += getEntryCount() * (4 + Constants.MEMORY_POINTER);
+            for (SearchRow r : rows) {
+                if (r != null) {
+                    memory += r.getMemory();
+                }
+            }
+        }
+        index.memoryChange(memory >> 2);
     }
 
 }

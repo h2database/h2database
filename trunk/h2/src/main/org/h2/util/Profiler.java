@@ -6,6 +6,7 @@
  */
 package org.h2.util;
 
+import java.lang.instrument.Instrumentation;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,6 +16,7 @@ import org.h2.engine.Constants;
  * A simple CPU profiling tool similar to java -Xrunhprof.
  */
 public class Profiler implements Runnable {
+    private static Instrumentation instrumentation;
     private static final int MAX_ELEMENTS = 1000;
 
     public int interval = 10;
@@ -29,7 +31,8 @@ public class Profiler implements Runnable {
             "java.lang.UNIXProcess.waitForProcessExit," +
             "java.lang.Object.wait," +
             "java.lang.Thread.sleep," +
-            "sun.awt.windows.WToolkit.eventLoop,"
+            "sun.awt.windows.WToolkit.eventLoop," +
+            "sun.misc.Unsafe.park,"
             , ',', true);
     private volatile boolean stop;
     private HashMap<String, Integer> counts = new HashMap<String, Integer>();
@@ -37,6 +40,25 @@ public class Profiler implements Runnable {
     private int total;
     private Thread thread;
     private long time;
+
+    /**
+     * This method is called when the agent is installed.
+     *
+     * @param agentArgs the agent arguments
+     * @param inst the instrumentation object
+     */
+    public static void premain(String agentArgs, Instrumentation inst) {
+        instrumentation = inst;
+    }
+
+    /**
+     * Get the instrumentation object if started as an agent.
+     *
+     * @return the instrumentation, or null
+     */
+    public static Instrumentation getInstrumentation() {
+        return instrumentation;
+    }
 
     /**
      * Start collecting profiling data.

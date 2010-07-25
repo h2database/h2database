@@ -48,12 +48,12 @@ class CacheSecondLevel implements Cache {
         return baseCache.getAllChanged();
     }
 
-    public int getMaxSize() {
-        return baseCache.getMaxSize();
+    public int getMaxMemory() {
+        return baseCache.getMaxMemory();
     }
 
-    public int getSize() {
-        return baseCache.getSize();
+    public int getMemory() {
+        return baseCache.getMemory();
     }
 
     public void put(CacheObject r) {
@@ -66,8 +66,8 @@ class CacheSecondLevel implements Cache {
         map.remove(pos);
     }
 
-    public void setMaxSize(int size) {
-        baseCache.setMaxSize(size);
+    public void setMaxMemory(int size) {
+        baseCache.setMaxMemory(size);
     }
 
     public CacheObject update(int pos, CacheObject record) {

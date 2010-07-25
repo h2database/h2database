@@ -437,29 +437,23 @@ public class Utils {
      * @return the resource data
      */
     public static byte[] getResource(String name) throws IOException {
-        byte[] data;
-        if (RESOURCES.size() == 0) {
-            // TODO web: security (check what happens with files like 'lpt1.txt' on windows)
-            InputStream in = Utils.class.getResourceAsStream(name);
-            if (in == null) {
-                data = null;
-            } else {
-                data = IOUtils.readBytesAndClose(in, 0);
-            }
-        } else {
-            data = RESOURCES.get(name);
+        byte[] data = RESOURCES.get(name);
+        if (data == null) {
+            data = loadResource(name);
+            RESOURCES.put(name, data);
         }
         return data == null ? EMPTY_BYTES : data;
     }
 
-    static {
-        loadResourcesFromZip();
-    }
-
-    private static void loadResourcesFromZip() {
+    private static byte[] loadResource(String name) throws IOException {
         InputStream in = Utils.class.getResourceAsStream("data.zip");
         if (in == null) {
-            return;
+            in = Utils.class.getResourceAsStream(name);
+            if (in == null) {
+                return null;
+            } else {
+                return IOUtils.readBytesAndClose(in, 0);
+            }
         }
         ZipInputStream zipIn = new ZipInputStream(in);
         try {
@@ -472,16 +466,22 @@ public class Utils {
                 if (!entryName.startsWith("/")) {
                     entryName = "/" + entryName;
                 }
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                IOUtils.copy(zipIn, out);
-                zipIn.closeEntry();
-                RESOURCES.put(entryName, out.toByteArray());
+                if (entryName.equals(name)) {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    IOUtils.copy(zipIn, out);
+                    zipIn.closeEntry();
+                    return out.toByteArray();
+                } else {
+                    zipIn.closeEntry();
+                }
             }
-            zipIn.close();
         } catch (IOException e) {
             // if this happens we have a real problem
             e.printStackTrace();
+        } finally {
+            zipIn.close();
         }
+        return null;
     }
 
     /**

@@ -6,6 +6,7 @@
  */
 package org.h2.result;
 
+import org.h2.engine.Constants;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -17,6 +18,7 @@ public class SimpleRow implements SearchRow {
     private long key;
     private int version;
     private Value[] data;
+    private int memory;
 
     public SimpleRow(Value[] data) {
         this.data = data;
@@ -63,6 +65,20 @@ public class SimpleRow implements SearchRow {
             buff.append(v == null ? "null" : v.getTraceSQL());
         }
         return buff.append(')').toString();
+    }
+
+    public int getMemory() {
+        if (memory == 0) {
+            int len = data.length;
+            memory = Constants.MEMORY_OBJECT + len * Constants.MEMORY_POINTER;
+            for (int i = 0; i < len; i++) {
+                Value v = data[i];
+                if (v != null) {
+                    memory += v.getMemory();
+                }
+            }
+        }
+        return memory;
     }
 
 }

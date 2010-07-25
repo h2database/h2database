@@ -211,7 +211,7 @@ public class ValueDecimal extends Value {
     }
 
     public int getMemory() {
-        return MathUtils.precision(value) * 3 + 120;
+        return MathUtils.precision(value) + 120;
     }
 
 }

@@ -10,6 +10,7 @@ import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -65,7 +66,7 @@ public class PageDataLeaf extends PageData {
 
     private int columnCount;
 
-    private int memorySize;
+    private int memoryData;
 
     private PageDataLeaf(PageDataIndex index, int pageId, Data data) {
         super(index, pageId, data);
@@ -204,7 +205,6 @@ public class PageDataLeaf extends PageData {
         newOffsets[x] = offset;
         newKeys[x] = row.getKey();
         newRows[x] = row;
-        memorySize += row.getMemorySize();
         offsets = newOffsets;
         keys = newKeys;
         rows = newRows;
@@ -226,7 +226,8 @@ public class PageDataLeaf extends PageData {
             this.overflowRowSize = pageSize + rowLength;
             writeData();
             // free up the space used by the row
-            rowRef = new SoftReference<Row>(rows[0]);
+            Row r = rows[0];
+            rowRef = new SoftReference<Row>(r);
             rows[0] = null;
             Data all = index.getPageStore().createData();
             all.checkCapacity(data.length());
@@ -251,6 +252,11 @@ public class PageDataLeaf extends PageData {
                 page = next;
             } while (remaining > 0);
         }
+        if (rowRef == null) {
+            memoryChange(true, row);
+        } else {
+            memoryChange(true, null);
+        }
         return -1;
     }
 
@@ -261,7 +267,7 @@ public class PageDataLeaf extends PageData {
         readAllRows();
         Row r = rows[i];
         if (r != null) {
-            memorySize += r.getMemorySize();
+            memoryChange(false, r);
         }
         entryCount--;
         if (entryCount < 0) {
@@ -336,7 +342,7 @@ public class PageDataLeaf extends PageData {
                 rowRef = new SoftReference<Row>(r);
             } else {
                 rows[at] = r;
-                memorySize += r.getMemorySize();
+                memoryChange(true, r);
             }
         }
         return r;
@@ -551,8 +557,10 @@ public class PageDataLeaf extends PageData {
         index.getPageStore().update(this);
     }
 
-    public int getMemorySize() {
-        return index.getMemorySizePerPage();
+    private void memoryChange(boolean add, Row r) {
+        int diff = r == null ? 0 : 4 + 8 + Constants.MEMORY_POINTER + r.getMemory();
+        memoryData += add ? diff : -diff;
+        index.memoryChange((Constants.MEMORY_PAGE_DATA + memoryData + index.getPageStore().getPageSize()) >> 2);
     }
 
 }

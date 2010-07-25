@@ -34,17 +34,17 @@ public class CacheLRU implements Cache {
     /**
      * The maximum memory, in words (4 bytes each).
      */
-    private int maxSize;
+    private int maxMemory;
 
     /**
      * The current memory used in this cache, in words (4 bytes each).
      */
-    private int sizeMemory;
+    private int memory;
 
-    private CacheLRU(CacheWriter writer, int maxKb) {
-        this.maxSize = maxKb * 1024 / 4;
+    private CacheLRU(CacheWriter writer, int maxMemoryKb) {
+        this.setMaxMemory(maxMemoryKb);
         this.writer = writer;
-        this.len = MathUtils.nextPowerOf2(maxSize / 64);
+        this.len = MathUtils.nextPowerOf2(maxMemory / 64);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);
         clear();
@@ -82,7 +82,7 @@ public class CacheLRU implements Cache {
         values = null;
         values = new CacheObject[len];
         recordCount = 0;
-        sizeMemory = 0;
+        memory = len * Constants.MEMORY_POINTER;
     }
 
     public void put(CacheObject rec) {
@@ -97,7 +97,7 @@ public class CacheLRU implements Cache {
         rec.cacheChained = values[index];
         values[index] = rec;
         recordCount++;
-        sizeMemory += rec.getMemorySize();
+        memory += rec.getMemory();
         addToFront(rec);
         removeOldIfRequired();
     }
@@ -120,7 +120,7 @@ public class CacheLRU implements Cache {
 
     private void removeOldIfRequired() {
         // a small method, to allow inlining
-        if (sizeMemory >= maxSize) {
+        if (memory >= maxMemory) {
             removeOld();
         }
     }
@@ -128,11 +128,11 @@ public class CacheLRU implements Cache {
     private void removeOld() {
         int i = 0;
         ArrayList<CacheObject> changed = New.arrayList();
-        int mem = sizeMemory;
+        int mem = memory;
         int rc = recordCount;
         boolean flushed = false;
         CacheObject next = head.cacheNext;
-        while (mem * 4 > maxSize * 3 && rc > Constants.CACHE_MIN_RECORDS) {
+        while (mem * 4 > maxMemory * 3 && rc > Constants.CACHE_MIN_RECORDS) {
             CacheObject check = next;
             next = check.cacheNext;
             i++;
@@ -144,7 +144,7 @@ public class CacheLRU implements Cache {
                 } else {
                     // can't remove any record, because the records can not be removed
                     // hopefully this does not happen frequently, but it can happen
-                    writer.getTrace().info("Cannot remove records, cache size too small? records:" + recordCount + " memory:" + sizeMemory);
+                    writer.getTrace().info("Cannot remove records, cache size too small? records:" + recordCount + " memory:" + memory);
                     break;
                 }
             }
@@ -160,7 +160,7 @@ public class CacheLRU implements Cache {
                 continue;
             }
             rc--;
-            mem -= check.getMemorySize();
+            mem -= check.getMemory();
             if (check.isChanged()) {
                 changed.add(check);
             } else {
@@ -169,17 +169,17 @@ public class CacheLRU implements Cache {
         }
         if (changed.size() > 0) {
             Collections.sort(changed);
-            int max = maxSize;
+            int max = maxMemory;
             try {
                 // temporary disable size checking,
                 // to avoid stack overflow
-                maxSize = Integer.MAX_VALUE;
+                maxMemory = Integer.MAX_VALUE;
                 for (i = 0; i < changed.size(); i++) {
                     CacheObject rec = changed.get(i);
                     writer.writeBack(rec);
                 }
             } finally {
-                maxSize = max;
+                maxMemory = max;
             }
             for (i = 0; i < changed.size(); i++) {
                 CacheObject rec = changed.get(i);
@@ -235,7 +235,7 @@ public class CacheLRU implements Cache {
             last.cacheChained = rec.cacheChained;
         }
         recordCount--;
-        sizeMemory -= rec.getMemorySize();
+        memory -= rec.getMemory();
         removeFromLinkedList(rec);
         if (SysProperties.CHECK) {
             rec.cacheChained = null;
@@ -307,20 +307,26 @@ public class CacheLRU implements Cache {
         return list;
     }
 
-    public void setMaxSize(int maxKb) {
-        int newSize = maxKb * 1024 / 4;
-        maxSize = newSize < 0 ? 0 : newSize;
+    public void setMaxMemory(int maxKb) {
+        int newSize = MathUtils.convertLongToInt(maxKb * 1024L / 4);
+        maxMemory = newSize < 0 ? 0 : newSize;
         // can not resize, otherwise existing records are lost
         // resize(maxSize);
         removeOldIfRequired();
     }
 
-    public int getMaxSize() {
-        return maxSize * 4 / 1024;
+    public int getMaxMemory() {
+        return (int) (maxMemory * 4L / 1024);
     }
 
-    public int getSize() {
-        return sizeMemory * 4 / 1024;
+    public int getMemory() {
+        // CacheObject rec = head.cacheNext;
+        // while (rec != head) {
+            // System.out.println(rec.getMemory() + " " +
+            //        MemoryFootprint.getObjectSize(rec) + " " + rec);
+            // rec = rec.cacheNext;
+        // }
+        return (int) (memory * 4L / 1024);
     }
 
 }

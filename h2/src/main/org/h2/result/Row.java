@@ -6,6 +6,7 @@
  */
 package org.h2.result;
 
+import org.h2.engine.Constants;
 import org.h2.store.Data;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -26,7 +27,7 @@ public class Row implements SearchRow {
     public Row(Value[] data, int memory) {
         this.data = data;
         if (memory != MEMORY_CALCULATE) {
-            this.memory = 16 + memory * 4;
+            this.memory = memory;
         } else {
             this.memory = MEMORY_CALCULATE;
         }
@@ -83,13 +84,20 @@ public class Row implements SearchRow {
         return data.length;
     }
 
-    public int getMemorySize() {
+    public int getMemory() {
         if (memory != MEMORY_CALCULATE) {
             return memory;
         }
-        int m = 8;
-        for (int i = 0; data != null && i < data.length; i++) {
-            m += data[i].getMemory();
+        int m = Constants.MEMORY_ROW;
+        if (data != null) {
+            int len = data.length;
+            m += Constants.MEMORY_OBJECT + len * Constants.MEMORY_POINTER;
+            for (int i = 0; i < len; i++) {
+                Value v = data[i];
+                if (v != null) {
+                    m += v.getMemory();
+                }
+            }
         }
         return m;
     }

@@ -64,7 +64,7 @@ public class ValueString extends Value {
     }
 
     public int getMemory() {
-        return value.length() * 2 + 30;
+        return value.length() * 2 + 48;
     }
 
     public Value convertPrecision(long precision) {

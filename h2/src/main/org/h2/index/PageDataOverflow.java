@@ -8,6 +8,7 @@ package org.h2.index;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.store.Data;
@@ -198,9 +199,8 @@ public class PageDataOverflow extends Page {
      *
      * @return number of double words (4 bytes)
      */
-    public int getMemorySize() {
-        // double the byte array size
-        return store.getPageSize() >> 1;
+    public int getMemory() {
+        return (Constants.MEMORY_PAGE_DATA_OVERFLOW + store.getPageSize()) >> 2;
     }
 
     void setParentPageId(int parent) {

@@ -189,7 +189,7 @@ public abstract class Value {
      * @return the memory used in bytes
      */
     public int getMemory() {
-        return DataType.getDataType(getType()).memory * 4;
+        return DataType.getDataType(getType()).memory;
     }
 
     /**
@@ -350,6 +350,13 @@ public abstract class Value {
             cache[index] = v;
         }
         return v;
+    }
+
+    /**
+     * Clear the value cache. Used for testing.
+     */
+    public static void clearCache() {
+        softCache = null;
     }
 
     public Boolean getBoolean() {

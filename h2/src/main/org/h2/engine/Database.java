@@ -1597,7 +1597,7 @@ public class Database implements DataHandler {
         }
         cacheSize = kb;
         if (pageStore != null) {
-            pageStore.getCache().setMaxSize(kb);
+            pageStore.getCache().setMaxMemory(kb);
         }
     }
 

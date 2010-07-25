@@ -8,6 +8,7 @@ package org.h2.index;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -32,6 +33,8 @@ public class PageBtreeIndex extends PageIndex {
     private RegularTable tableData;
     private boolean needRebuild;
     private long rowCount;
+    private int memoryPerPage;
+    private int memoryCount;
 
     public PageBtreeIndex(RegularTable table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
@@ -422,6 +425,24 @@ public class PageBtreeIndex extends PageIndex {
      */
     boolean hasData(SearchRow row) {
         return row.getValue(columns[0].getColumnId()) != null;
+    }
+
+    int getMemoryPerPage() {
+        return memoryPerPage;
+    }
+
+    /**
+     * The memory usage of a page was changed. The new value is used to adopt
+     * the average estimated memory size of a page.
+     *
+     * @param x the new memory size
+     */
+    void memoryChange(int x) {
+        if (memoryCount < Constants.MEMORY_FACTOR) {
+            memoryPerPage += (x - memoryPerPage) / ++memoryCount;
+        } else {
+            memoryPerPage += (x > memoryPerPage ? 1 : -1) + ((x - memoryPerPage) / Constants.MEMORY_FACTOR);
+        }
     }
 
 }

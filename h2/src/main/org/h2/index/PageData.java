@@ -61,10 +61,16 @@ abstract class PageData extends Page {
      */
     protected boolean written;
 
+    /**
+     * The estimated memory used by this object.
+     */
+    protected int memoryEstimated;
+
     PageData(PageDataIndex index, int pageId, Data data) {
         this.index = index;
         this.data = data;
         setPos(pageId);
+        memoryEstimated = index.getMemoryPerPage();
     }
 
     /**
@@ -215,9 +221,12 @@ abstract class PageData extends Page {
      *
      * @return number of double words (4 bytes)
      */
-    public int getMemorySize() {
-        // four times the byte array size
-        return index.getPageStore().getPageSize();
+    public int getMemory() {
+        // need to always return the same value for the same object (otherwise
+        // the cache size would change after adding and then removing the same
+        // page from the cache) but index.getMemoryPerPage() can adopt according
+        // to how much memory a row needs on average
+        return memoryEstimated;
     }
 
     int getParentPageId() {
@@ -230,5 +239,7 @@ abstract class PageData extends Page {
         }
         return true;
     }
+
+
 
 }

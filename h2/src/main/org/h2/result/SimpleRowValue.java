@@ -6,6 +6,7 @@
  */
 package org.h2.result;
 
+import org.h2.engine.Constants;
 import org.h2.value.Value;
 
 /**
@@ -55,6 +56,10 @@ public class SimpleRowValue implements SearchRow {
 
     public String toString() {
         return "( /* " + key + " */ " + (data == null ? "null" : data.getTraceSQL()) + " )";
+    }
+
+    public int getMemory() {
+        return Constants.MEMORY_OBJECT + (data == null ? 0 : data.getMemory());
     }
 
 }

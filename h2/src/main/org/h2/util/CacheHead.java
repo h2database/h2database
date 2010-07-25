@@ -15,7 +15,7 @@ public class CacheHead extends CacheObject {
         return false;
     }
 
-    public int getMemorySize() {
+    public int getMemory() {
         return 0;
     }
 

@@ -48,7 +48,7 @@ public class RowList {
     private void writeRow(Data buff, Row r) {
         buff.checkCapacity(1 + Data.LENGTH_INT * 8);
         buff.writeByte((byte) 1);
-        buff.writeInt(r.getMemorySize());
+        buff.writeInt(r.getMemory());
         buff.writeInt(r.getColumnCount());
         buff.writeLong(r.getKey());
         buff.writeInt(r.getVersion());
@@ -126,7 +126,7 @@ public class RowList {
      */
     public void add(Row r) {
         list.add(r);
-        memory += r.getMemorySize();
+        memory += r.getMemory() + Constants.MEMORY_POINTER;
         if (maxMemory > 0 && memory > maxMemory) {
             writeAllRows();
         }

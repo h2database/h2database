@@ -7,6 +7,7 @@
 package org.h2.value;
 
 import java.sql.PreparedStatement;
+import org.h2.engine.Constants;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 
@@ -142,9 +143,9 @@ public class ValueArray extends Value {
     }
 
     public int getMemory() {
-        int memory = 0;
+        int memory = 32;
         for (Value v : values) {
-            memory += v.getMemory();
+            memory += v.getMemory() + Constants.MEMORY_POINTER;
         }
         return memory;
     }

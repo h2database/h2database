@@ -45,7 +45,8 @@ public class PageDataIndex extends PageIndex {
     private HashMap<Integer, Integer> sessionRowCount;
     private int mainIndexColumn = -1;
     private DbException fastDuplicateKeyException;
-    private int memorySizePerPage;
+    private int memoryPerPage;
+    private int memoryCount;
 
     public PageDataIndex(RegularTable table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
@@ -79,10 +80,8 @@ public class PageDataIndex extends PageIndex {
         table.setRowCount(rowCount);
         // estimate the memory usage as follows:
         // the less column, the more memory is required,
-        // because the more rows fit on a page
-        memorySizePerPage = store.getPageSize();
-        int estimatedRowsPerPage =  store.getPageSize() / ((1 + columns.length) * 8);
-        memorySizePerPage += estimatedRowsPerPage * 64;
+        // because the more rows fit in a page
+        memoryPerPage = (Constants.MEMORY_PAGE_DATA + store.getPageSize()) >> 2;
     }
 
     public DbException getDuplicateKeyException() {
@@ -502,10 +501,6 @@ public class PageDataIndex extends PageIndex {
         return mainIndexColumn;
     }
 
-    int getMemorySizePerPage() {
-        return memorySizePerPage;
-    }
-
     public String toString() {
         return getName();
     }
@@ -526,6 +521,24 @@ public class PageDataIndex extends PageIndex {
 
     public String getPlanSQL() {
         return table.getSQL() + ".tableScan";
+    }
+
+    int getMemoryPerPage() {
+        return memoryPerPage;
+    }
+
+    /**
+     * The memory usage of a page was changed. The new value is used to adopt
+     * the average estimated memory size of a page.
+     *
+     * @param x the new memory size
+     */
+    void memoryChange(int x) {
+        if (memoryCount < Constants.MEMORY_FACTOR) {
+            memoryPerPage += (x - memoryPerPage) / ++memoryCount;
+        } else {
+            memoryPerPage += (x > memoryPerPage ? 1 : -1) + ((x - memoryPerPage) / Constants.MEMORY_FACTOR);
+        }
     }
 
 }

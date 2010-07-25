@@ -43,11 +43,11 @@ public abstract class CacheObject implements Comparable<CacheObject> {
     public abstract boolean canRemove();
 
     /**
-     * Get the estimated memory size.
+     * Get the estimated used memory.
      *
-     * @return number of double words (4 bytes)
+     * @return number of words (one word is 4 bytes)
      */
-    public abstract int getMemorySize();
+    public abstract int getMemory();
 
     public void setPos(int pos) {
         if (SysProperties.CHECK && (cachePrevious != null || cacheNext != null || cacheChained != null)) {

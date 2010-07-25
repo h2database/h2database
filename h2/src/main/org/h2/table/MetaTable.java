@@ -891,8 +891,8 @@ public class MetaTable extends Table {
                 add(rows, "info.FILE_WRITE_TOTAL", "" + store.getWriteCountTotal());
                 add(rows, "info.FILE_WRITE", "" + store.getWriteCount());
                 add(rows, "info.FILE_READ", "" + store.getReadCount());
-                add(rows, "info.CACHE_MAX_SIZE", "" + store.getCache().getMaxSize());
-                add(rows, "info.CACHE_SIZE", "" + store.getCache().getSize());
+                add(rows, "info.CACHE_MAX_SIZE", "" + store.getCache().getMaxMemory());
+                add(rows, "info.CACHE_SIZE", "" + store.getCache().getMemory());
             }
             break;
         }

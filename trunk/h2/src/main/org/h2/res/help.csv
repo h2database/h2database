@@ -375,6 +375,10 @@ SET IGNORECASE { TRUE | FALSE }
 ","
 If IGNORECASE is enabled, text columns in newly created tables will be
 case-insensitive."
+"Commands (Other)","SET LOG","
+SET LOCK_MODE int
+","
+Sets the transaction log mode."
 "Commands (Other)","SET LOCK_MODE","
 SET LOCK_MODE int
 ","
@@ -497,7 +501,7 @@ Returns the first expression where the condition is true."
 "Other Grammar","Cipher","
 { AES | XTEA }
 ","
-Two algorithms are supported, AES (AES-128) and XTEA (using 32 rounds)."
+Two algorithms are supported: AES (AES-128) and XTEA (using 32 rounds)."
 "Other Grammar","Column Definition","
 columnName dataType { DEFAULT expression | AS computedColumnExpression } [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]

@@ -436,20 +436,21 @@ public class SysProperties {
 
     /**
      * System property <code>h2.objectCache</code> (default: true).<br />
-     * Cache commonly used objects (integers, strings).
+     * Cache commonly used values (numbers, strings). There is a shared cache
+     * for all values.
      */
     public static final boolean OBJECT_CACHE = getBooleanSetting("h2.objectCache", true);
 
     /**
      * System property <code>h2.objectCacheMaxPerElementSize</code> (default:
      * 4096).<br />
-     * Maximum size of an object in the cache.
+     * The maximum size (precision) of an object in the cache.
      */
     public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
 
     /**
      * System property <code>h2.objectCacheSize</code> (default: 1024).<br />
-     * Maximum size of an object in the cache.
+     * The maximum number of objects in the cache.
      * This value must be a power of 2.
      */
     public static final int OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(getIntSetting("h2.objectCacheSize", 1024));

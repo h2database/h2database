@@ -470,6 +470,12 @@ public class SysProperties {
     public static final boolean OPTIMIZE_DISTINCT = getBooleanSetting("h2.optimizeDistinct", true);
 
     /**
+     * System property <code>h2.optimizeUpdate</code> (default: true).<br />
+     * Speed up inserts, updates, and deletes by not reading all rows from a page unless necessary.
+     */
+    public static final boolean OPTIMIZE_UPDATE = getBooleanSetting("h2.optimizeUpdate", true);
+
+    /**
      * System property <code>h2.optimizeEvaluatableSubqueries</code> (default:
      * true).<br />
      * Optimize subqueries that are not dependent on the outer query.

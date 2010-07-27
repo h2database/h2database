@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.Properties;
+import org.h2.store.FileLister;
 
 /**
  * Command line tools implement the tool interface so that they can be used in
@@ -59,12 +60,17 @@ public abstract class Tool {
      * @param db the database name or null
      */
     protected void printNoDatabaseFilesFound(String dir, String db) {
-        StringBuilder buff = new StringBuilder("No database files have been found");
-        if (dir != null) {
+        StringBuilder buff;
+        dir = FileLister.getDir(dir);
+        if (!IOUtils.isDirectory(dir)) {
+            buff = new StringBuilder("Directory not found: ");
+            buff.append(dir);
+        } else {
+            buff = new StringBuilder("No database files have been found");
             buff.append(" in directory ").append(dir);
-        }
-        if (db != null) {
-            buff.append(" for the database ").append(db);
+            if (db != null) {
+                buff.append(" for the database ").append(db);
+            }
         }
         out.println(buff.toString());
     }

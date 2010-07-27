@@ -131,6 +131,7 @@ public class ChangeFileEncryption extends Tool {
     }
 
     private void process(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
+        dir = FileLister.getDir(dir);
         ChangeFileEncryption change = new ChangeFileEncryption();
         if (encryptPassword != null) {
             for (char c : encryptPassword) {

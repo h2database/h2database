@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testTruncateConstraintsDisabled();
         testPreparedSubquery2();
         testPreparedSubquery();
         testCompareDoubleWithIntColumn();
@@ -79,6 +80,39 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testTruncateConstraintsDisabled() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table parent(id identity) as select 0");
+        stat.execute("create table child(id identity, parent int references parent(id)) as select 0, 0");
+        try {
+            stat.execute("truncate table parent");
+            fail();
+        } catch (SQLException e) {
+            // expected
+        }
+        try {
+            stat.execute("delete from parent");
+            fail();
+        } catch (SQLException e) {
+            // expected
+        }
+        stat.execute("alter table parent set referential_integrity false");
+        stat.execute("delete from parent");
+        stat.execute("truncate table parent");
+        stat.execute("alter table parent set referential_integrity true");
+        try {
+            stat.execute("truncate table parent");
+            fail();
+        } catch (SQLException e) {
+            // expected
+        }
+        stat.execute("set referential_integrity false");
+        stat.execute("truncate table parent");
+        conn.close();
     }
 
     private void testPreparedSubquery2() throws SQLException {

@@ -649,15 +649,17 @@ public class RegularTable extends TableBase {
     }
 
     public boolean canTruncate() {
-        ArrayList<Constraint> constraints = getConstraints();
-        for (int i = 0; constraints != null && i < constraints.size(); i++) {
-            Constraint c = constraints.get(i);
-            if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
-                continue;
-            }
-            ConstraintReferential ref = (ConstraintReferential) c;
-            if (ref.getRefTable() == this) {
-                return false;
+        if (getCheckForeignKeyConstraints() && database.getReferentialIntegrity()) {
+            ArrayList<Constraint> constraints = getConstraints();
+            for (int i = 0; constraints != null && i < constraints.size(); i++) {
+                Constraint c = constraints.get(i);
+                if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
+                    continue;
+                }
+                ConstraintReferential ref = (ConstraintReferential) c;
+                if (ref.getRefTable() == this) {
+                    return false;
+                }
             }
         }
         return true;

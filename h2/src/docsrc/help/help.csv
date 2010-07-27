@@ -774,10 +774,12 @@ DROP VIEW TEST_VIEW
 "Commands (DDL)","TRUNCATE TABLE","
 TRUNCATE TABLE tableName
 ","
-Removes all rows from a table. Unlike DELETE FROM without where clause, this
-command can not be rolled back. This command is faster than DELETE without where
-clause. Only regular data tables without foreign key constraints can be
-truncated. Linked tables can't be truncated.
+Removes all rows from a table. 
+Unlike DELETE FROM without where clause, this command can not be rolled back. 
+This command is faster than DELETE without where clause. 
+Only regular data tables without foreign key constraints can be truncated 
+(except if referential integrity is disabled for this database or for this table). 
+Linked tables can't be truncated.
 
 This command commits an open transaction.
 ","

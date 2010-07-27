@@ -6,7 +6,14 @@
  */
 package org.h2.test.unit;
 
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.UUID;
 import org.h2.test.TestBase;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
@@ -27,9 +34,46 @@ public class TestValue extends TestBase {
     }
 
     public void test() {
+        testDataType();
         testUUID();
         testDouble(false);
         testDouble(true);
+    }
+
+    private void testDataType() {
+        testDataType(Value.NULL, null);
+        testDataType(Value.NULL, Void.class);
+        testDataType(Value.NULL, void.class);
+        testDataType(Value.ARRAY, String[].class);
+        testDataType(Value.STRING, String.class);
+        testDataType(Value.INT, Integer.class);
+        testDataType(Value.LONG, Long.class);
+        testDataType(Value.BOOLEAN, Boolean.class);
+        testDataType(Value.DOUBLE, Double.class);
+        testDataType(Value.BYTE, Byte.class);
+        testDataType(Value.SHORT, Short.class);
+        testDataType(Value.FLOAT, Float.class);
+        testDataType(Value.BYTES, byte[].class);
+        testDataType(Value.UUID, UUID.class);
+        testDataType(Value.NULL, Void.class);
+        testDataType(Value.DECIMAL, BigDecimal.class);
+        testDataType(Value.RESULT_SET, ResultSet.class);
+        testDataType(Value.BLOB, Value.ValueBlob.class);
+        testDataType(Value.CLOB, Value.ValueClob.class);
+        testDataType(Value.DATE, Date.class);
+        testDataType(Value.TIME, Time.class);
+        testDataType(Value.TIMESTAMP, Timestamp.class);
+        testDataType(Value.TIMESTAMP, java.util.Date.class);
+        testDataType(Value.CLOB, java.io.Reader.class);
+        testDataType(Value.CLOB, java.sql.Clob.class);
+        testDataType(Value.BLOB, java.io.InputStream.class);
+        testDataType(Value.BLOB, java.sql.Blob.class);
+        testDataType(Value.ARRAY, Object[].class);
+        testDataType(Value.JAVA_OBJECT, StringBuffer.class);
+    }
+
+    private void testDataType(int type, Class<?> clazz) {
+        assertEquals(type, DataType.getTypeFromClass(clazz));
     }
 
     private void testDouble(boolean useFloat) {

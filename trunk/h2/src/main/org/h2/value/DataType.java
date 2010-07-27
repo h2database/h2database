@@ -783,34 +783,38 @@ public class DataType {
         if (x.isPrimitive()) {
             x = Utils.getNonPrimitiveClass(x);
         }
-        if (ResultSet.class.isAssignableFrom(x)) {
+        if (String.class == x) {
+            return Value.STRING;
+        } else if (Integer.class == x) {
+            return Value.INT;
+        } else if (Long.class == x) {
+            return Value.LONG;
+        } else if (Boolean.class == x) {
+            return Value.BOOLEAN;
+        } else if (Double.class == x) {
+            return Value.DOUBLE;
+        } else if (Byte.class == x) {
+            return Value.BYTE;
+        } else if (Short.class == x) {
+            return Value.SHORT;
+        } else if (Character.class == x) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "char (not supported)");
+        } else if (Float.class == x) {
+            return Value.FLOAT;
+        } else if (byte[].class == x) {
+            return Value.BYTES;
+        } else if (UUID.class == x) {
+            return Value.UUID;
+        } else if (Void.class == x) {
+            return Value.NULL;
+        } else if (BigDecimal.class.isAssignableFrom(x)) {
+            return Value.DECIMAL;
+        } else if (ResultSet.class.isAssignableFrom(x)) {
             return Value.RESULT_SET;
         } else if (Value.ValueBlob.class.isAssignableFrom(x)) {
             return Value.BLOB;
         } else if (Value.ValueClob.class.isAssignableFrom(x)) {
             return Value.CLOB;
-        } else if (String.class.isAssignableFrom(x)) {
-            return Value.STRING;
-        } else if (BigDecimal.class.isAssignableFrom(x)) {
-            return Value.DECIMAL;
-        } else if (Boolean.class == x) {
-            return Value.BOOLEAN;
-        } else if (Byte.class == x) {
-            return Value.BYTE;
-        } else if (Short.class == x) {
-            return Value.SHORT;
-        } else if (Integer.class == x) {
-            return Value.INT;
-        } else if (Character.class == x) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "char (not supported)");
-        } else if (Long.class == x) {
-            return Value.LONG;
-        } else if (Float.class == x) {
-            return Value.FLOAT;
-        } else if (Double.class == x) {
-            return Value.DOUBLE;
-        } else if (byte[].class.isAssignableFrom(x)) {
-            return Value.BYTES;
         } else if (Date.class.isAssignableFrom(x)) {
             return Value.DATE;
         } else if (Time.class.isAssignableFrom(x)) {
@@ -827,12 +831,9 @@ public class DataType {
             return Value.BLOB;
         } else if (java.sql.Blob.class.isAssignableFrom(x)) {
             return Value.BLOB;
-        } else if (UUID.class.isAssignableFrom(x)) {
-            return Value.UUID;
         } else if (Object[].class.isAssignableFrom(x)) {
+            // this includes String[] and so on
             return Value.ARRAY;
-        } else if (Void.TYPE == x) {
-            return Value.NULL;
         } else {
             return Value.JAVA_OBJECT;
         }

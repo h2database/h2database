@@ -7,6 +7,7 @@
 package org.h2.test.unit;
 
 import java.io.File;
+import java.math.BigInteger;
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
 
@@ -30,6 +31,31 @@ public class TestUtils extends TestBase {
     }
 
     public void test() throws Exception {
+        testGetNonPrimitiveClass();
+        testGetNonPrimitiveClass();
+        testGetNonPrimitiveClass();
+        testReflectionUtils();
+    }
+
+    private void testGetNonPrimitiveClass() throws Exception {
+        testGetNonPrimitiveClass(BigInteger.class, BigInteger.class);
+        testGetNonPrimitiveClass(Boolean.class, boolean.class);
+        testGetNonPrimitiveClass(Byte.class, byte.class);
+        testGetNonPrimitiveClass(Character.class, char.class);
+        testGetNonPrimitiveClass(Byte.class, byte.class);
+        testGetNonPrimitiveClass(Double.class, double.class);
+        testGetNonPrimitiveClass(Float.class, float.class);
+        testGetNonPrimitiveClass(Integer.class, int.class);
+        testGetNonPrimitiveClass(Long.class, long.class);
+        testGetNonPrimitiveClass(Short.class, short.class);
+        testGetNonPrimitiveClass(Void.class, void.class);
+    }
+
+    private void testGetNonPrimitiveClass(Class<?> expected, Class<?> prim) {
+        assertEquals(expected.getName(), Utils.getNonPrimitiveClass(prim).getName());
+    }
+
+    private void testReflectionUtils() throws Exception {
         // Static method call
         long currentTimeMillis1 = System.currentTimeMillis();
         long currentTimeMillis2 = (Long) Utils.callStaticMethod("java.lang.System.currentTimeMillis");

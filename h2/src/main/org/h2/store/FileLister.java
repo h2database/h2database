@@ -62,20 +62,29 @@ public class FileLister {
     }
 
     /**
-     * Get the list of database files.
+     * Normalize the directory name.
      *
      * @param dir the directory (null for the current directory)
+     * @return the normalized directory name
+     */
+    public static String getDir(String dir) {
+        if (dir == null || dir.equals("")) {
+            return ".";
+        }
+        return IOUtils.normalize(dir);
+    }
+
+    /**
+     * Get the list of database files.
+     *
+     * @param dir the directory (must be normalized)
      * @param db the database name (null for all databases)
-     * @param all  if true, files such as the lock, trace, and lob
+     * @param all if true, files such as the lock, trace, and lob
      *            files are included. If false, only data, index, log,
      *            and lob files are returned
      * @return the list of files
      */
     public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) {
-        if (dir == null || dir.equals("")) {
-            dir = ".";
-        }
-        dir = IOUtils.normalize(dir);
         ArrayList<String> files = New.arrayList();
         String start = db == null ? null : IOUtils.normalize(dir + "/" + db);
         String[] list = IOUtils.listFiles(dir);

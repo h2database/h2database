@@ -105,14 +105,14 @@ public class Backup extends Tool {
 
     private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         ArrayList<String> list = FileLister.getDatabaseFiles(directory, db, true);
-        if (!quiet) {
-            FileLister.tryUnlockDatabase(list, "backup");
-        }
         if (list.size() == 0) {
             if (!quiet) {
                 printNoDatabaseFilesFound(directory, db);
             }
             return;
+        }
+        if (!quiet) {
+            FileLister.tryUnlockDatabase(list, "backup");
         }
         zipFileName = IOUtils.normalize(zipFileName);
         if (IOUtils.exists(zipFileName)) {

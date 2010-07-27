@@ -67,6 +67,7 @@ public class BackupCommand extends Prepared {
             synchronized (db.getLobSyncObject()) {
                 String prefix = db.getDatabasePath();
                 String dir = IOUtils.getParent(prefix);
+                dir = FileLister.getDir(dir);
                 ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
                 for (String n : fileList) {
                     if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {

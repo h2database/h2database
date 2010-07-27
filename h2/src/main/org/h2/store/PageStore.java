@@ -835,11 +835,11 @@ public class PageStore implements CacheWriter {
     }
 
     public void writeBack(CacheObject obj) {
+        Page record = (Page) obj;
+        if (trace.isDebugEnabled()) {
+            trace.debug("writeBack " + record);
+        }
         synchronized (database) {
-            Page record = (Page) obj;
-            if (trace.isDebugEnabled()) {
-                trace.debug("writeBack " + record);
-            }
             record.write();
             record.setChanged(false);
         }
@@ -852,12 +852,10 @@ public class PageStore implements CacheWriter {
      * @param old the old data (if known) or null
      */
     public void logUndo(Page page, Data old) {
+        if (logMode == LOG_MODE_OFF) {
+            return;
+        }
         synchronized (database) {
-            if (trace.isDebugEnabled()) {
-                // if (!record.isChanged()) {
-                //     trace.debug("logUndo " + record.toString());
-                // }
-            }
             checkOpen();
             database.checkWritingAllowed();
             if (!recoveryRunning) {
@@ -890,7 +888,9 @@ public class PageStore implements CacheWriter {
             int pos = page.getPos();
             if (SysProperties.CHECK && !recoveryRunning) {
                 // ensure the undo entry is already written
-                log.addUndo(pos, null);
+                if (logMode != LOG_MODE_OFF) {
+                    log.addUndo(pos, null);
+                }
             }
             allocatePage(pos);
             cache.update(pos, page);
@@ -976,7 +976,9 @@ public class PageStore implements CacheWriter {
     public int allocatePage() {
         int pos = allocatePage(null, 0);
         if (!recoveryRunning) {
-            log.addUndo(pos, emptyPage);
+            if (logMode != LOG_MODE_OFF) {
+                log.addUndo(pos, emptyPage);
+            }
         }
         return pos;
     }
@@ -1045,7 +1047,9 @@ public class PageStore implements CacheWriter {
             cache.remove(pageId);
             if (SysProperties.CHECK && !recoveryRunning && undo) {
                 // ensure the undo entry is already written
-                log.addUndo(pageId, null);
+                if (logMode != LOG_MODE_OFF) {
+                    log.addUndo(pageId, null);
+                }
             }
             freePage(pageId);
             if (recoveryRunning) {

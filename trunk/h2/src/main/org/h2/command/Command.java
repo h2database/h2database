@@ -188,7 +188,7 @@ public abstract class Command implements CommandInterface {
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
-        session.getDatabase().beforeWriting();
+        database.beforeWriting();
         synchronized (sync) {
             int rollback = session.getLogId();
             session.setCurrentCommand(this, startTime);
@@ -232,7 +232,7 @@ public abstract class Command implements CommandInterface {
                     // in this case we need to panic:
                     // close the database
                     callStop = false;
-                    session.getDatabase().shutdownImmediately();
+                    database.shutdownImmediately();
                     throw e;
                 } else {
                     session.rollbackTo(rollback, false);
@@ -244,7 +244,7 @@ public abstract class Command implements CommandInterface {
                         stop();
                     }
                 } finally {
-                    session.getDatabase().afterWriting();
+                    database.afterWriting();
                 }
             }
         }

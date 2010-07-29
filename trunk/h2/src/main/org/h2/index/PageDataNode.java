@@ -114,22 +114,8 @@ public class PageDataNode extends PageData {
         index.getPageStore().logUndo(this, data);
         written = false;
         changeCount = index.getPageStore().getChangeCount();
-        long[] newKeys = new long[entryCount + 1];
-        int[] newChildPageIds = new int[entryCount + 2];
-        if (childPageIds != null) {
-            System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
-        }
-        if (entryCount > 0) {
-            System.arraycopy(keys, 0, newKeys, 0, x);
-            if (x < entryCount) {
-                System.arraycopy(keys, x, newKeys, x + 1, entryCount - x);
-                System.arraycopy(childPageIds, x, newChildPageIds, x + 1, entryCount - x + 1);
-            }
-        }
-        newKeys[x] = key;
-        newChildPageIds[x + 1] = childPageId;
-        keys = newKeys;
-        childPageIds = newChildPageIds;
+        childPageIds = insert(childPageIds, entryCount + 1, x + 1, childPageId);
+        keys = insert(keys, entryCount, x, key);
         entryCount++;
         length += 4 + Data.getVarLongLen(key);
     }
@@ -195,7 +181,8 @@ public class PageDataNode extends PageData {
     }
 
     protected void remapChildren(int old) {
-        for (int child : childPageIds) {
+        for (int i = 0; i < entryCount + 1; i++) {
+            int child = childPageIds[i];
             PageData p = index.getPage(child, old);
             p.setParentPageId(getPos());
             index.getPageStore().update(p);
@@ -271,8 +258,9 @@ public class PageDataNode extends PageData {
     void freeRecursive() {
         index.getPageStore().logUndo(this, data);
         index.getPageStore().free(getPos());
-        for (int childPageId : childPageIds) {
-            index.getPage(childPageId, getPos()).freeRecursive();
+        for (int i = 0; i < entryCount + 1; i++) {
+            int child = childPageIds[i];
+            index.getPage(child, getPos()).freeRecursive();
         }
     }
 
@@ -285,7 +273,8 @@ public class PageDataNode extends PageData {
     int getRowCount() {
         if (rowCount == UNKNOWN_ROWCOUNT) {
             int count = 0;
-            for (int child : childPageIds) {
+            for (int i = 0; i < entryCount + 1; i++) {
+                int child = childPageIds[i];
                 PageData page = index.getPage(child, getPos());
                 if (getPos() == page.getPos()) {
                     throw DbException.throwInternalError("Page it its own child: " + getPos());
@@ -312,9 +301,12 @@ public class PageDataNode extends PageData {
     }
 
     private void check() {
-        for (int child : childPageIds) {
-            if (child == 0) {
-                DbException.throwInternalError();
+        if (SysProperties.CHECK) {
+            for (int i = 0; i < entryCount + 1; i++) {
+                int child = childPageIds[i];
+                if (child == 0) {
+                    DbException.throwInternalError();
+                }
             }
         }
     }
@@ -360,22 +352,14 @@ public class PageDataNode extends PageData {
         index.getPageStore().logUndo(this, data);
         written = false;
         changeCount = index.getPageStore().getChangeCount();
+        int removedKeyIndex = i < entryCount ? i : i - 1;
         entryCount--;
-        int removedKeyIndex = i < keys.length ? i : i - 1;
         length -= 4 + Data.getVarLongLen(keys[removedKeyIndex]);
         if (entryCount < 0) {
             DbException.throwInternalError();
         }
-        long[] newKeys = Utils.newLongArray(entryCount);
-        int[] newChildPageIds = new int[entryCount + 1];
-        System.arraycopy(keys, 0, newKeys, 0, Math.min(entryCount, i));
-        System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);
-        if (entryCount > i) {
-            System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
-        }
-        System.arraycopy(childPageIds, i + 1, newChildPageIds, i, entryCount - i + 1);
-        keys = newKeys;
-        childPageIds = newChildPageIds;
+        keys = remove(keys, entryCount + 1, removedKeyIndex);
+        childPageIds = remove(childPageIds, entryCount + 2, i);
     }
 
     public String toString() {
@@ -386,7 +370,8 @@ public class PageDataNode extends PageData {
         PageStore store = index.getPageStore();
         // load the pages into the cache, to ensure old pages
         // are written
-        for (int child : childPageIds) {
+        for (int i = 0; i < entryCount + 1; i++) {
+            int child = childPageIds[i];
             store.getPage(child);
         }
         if (parentPageId != ROOT) {
@@ -407,7 +392,8 @@ public class PageDataNode extends PageData {
             PageDataNode p = (PageDataNode) store.getPage(parentPageId);
             p.moveChild(getPos(), newPos);
         }
-        for (int child : childPageIds) {
+        for (int i = 0; i < entryCount + 1; i++) {
+            int child = childPageIds[i];
             PageData p = (PageData) store.getPage(child);
             p.setParentPageId(newPos);
             store.update(p);
@@ -422,7 +408,7 @@ public class PageDataNode extends PageData {
      * @param newPos the new position
      */
     void moveChild(int oldPos, int newPos) {
-        for (int i = 0; i < childPageIds.length; i++) {
+        for (int i = 0; i < entryCount + 1; i++) {
             if (childPageIds[i] == oldPos) {
                 index.getPageStore().logUndo(this, data);
                 written = false;

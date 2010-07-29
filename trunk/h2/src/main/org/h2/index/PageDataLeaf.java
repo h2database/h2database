@@ -85,6 +85,7 @@ public class PageDataLeaf extends PageData {
     static PageDataLeaf create(PageDataIndex index, int pageId, int parentPageId) {
         PageDataLeaf p = new PageDataLeaf(index, pageId, index.getPageStore().createData());
         index.getPageStore().logUndo(p, null);
+        p.rows = Row.EMPTY_ARRAY;
         p.parentPageId = parentPageId;
         p.columnCount = index.getTable().getColumns().length;
         p.writeHead();
@@ -147,7 +148,7 @@ public class PageDataLeaf extends PageData {
 
     private int findInsertionPoint(long key) {
         int x = find(key);
-        if (x < keys.length && keys[x] == key) {
+        if (x < entryCount && keys[x] == key) {
             throw index.getDuplicateKeyException();
         }
         return x;
@@ -178,10 +179,6 @@ public class PageDataLeaf extends PageData {
             return x;
         }
         index.getPageStore().logUndo(this, data);
-        int offset = last - rowLength;
-        int[] newOffsets = new int[entryCount + 1];
-        long[] newKeys = new long[entryCount + 1];
-        Row[] newRows = new Row[entryCount + 1];
         int x;
         if (entryCount == 0) {
             x = 0;
@@ -190,29 +187,17 @@ public class PageDataLeaf extends PageData {
                 readAllRows();
             }
             x = findInsertionPoint(row.getKey());
-            System.arraycopy(offsets, 0, newOffsets, 0, x);
-            System.arraycopy(keys, 0, newKeys, 0, x);
-            System.arraycopy(rows, 0, newRows, 0, x);
-            if (x < entryCount) {
-                for (int j = x; j < entryCount; j++) {
-                    newOffsets[j + 1] = offsets[j] - rowLength;
-                }
-                System.arraycopy(keys, x, newKeys, x + 1, entryCount - x);
-                System.arraycopy(rows, x, newRows, x + 1, entryCount - x);
-            }
         }
         written = false;
         changeCount = index.getPageStore().getChangeCount();
         last = x == 0 ? pageSize : offsets[x - 1];
-        offset = last - rowLength;
-        entryCount++;
+        int offset = last - rowLength;
         start += keyOffsetPairLen;
-        newOffsets[x] = offset;
-        newKeys[x] = row.getKey();
-        newRows[x] = row;
-        offsets = newOffsets;
-        keys = newKeys;
-        rows = newRows;
+        offsets = insert(offsets, entryCount, x, offset);
+        add(offsets, x + 1, entryCount + 1, -rowLength);
+        keys = insert(keys, entryCount, x, row.getKey());
+        rows = insert(rows, entryCount, x, row);
+        entryCount++;
         index.getPageStore().update(this);
         if (SysProperties.OPTIMIZE_UPDATE) {
             if (writtenData && offset >= start) {
@@ -298,12 +283,6 @@ public class PageDataLeaf extends PageData {
         overflowRowSize = 0;
         rowRef = null;
         int keyOffsetPairLen = 2 + Data.getVarLongLen(keys[i]);
-        int[] newOffsets = new int[entryCount];
-        long[] newKeys = new long[entryCount];
-        Row[] newRows = new Row[entryCount];
-        System.arraycopy(offsets, 0, newOffsets, 0, i);
-        System.arraycopy(keys, 0, newKeys, 0, i);
-        System.arraycopy(rows, 0, newRows, 0, i);
         int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[i];
         if (SysProperties.OPTIMIZE_UPDATE) {
@@ -317,15 +296,11 @@ public class PageDataLeaf extends PageData {
             int clearStart = offsets[entryCount];
             Arrays.fill(data.getBytes(), clearStart, clearStart + rowLength, (byte) 0);
         }
-        for (int j = i; j < entryCount; j++) {
-            newOffsets[j] = offsets[j + 1] + rowLength;
-        }
-        System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
-        System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
         start -= keyOffsetPairLen;
-        offsets = newOffsets;
-        keys = newKeys;
-        rows = newRows;
+        offsets = remove(offsets, entryCount + 1, i);
+        add(offsets, i, entryCount, rowLength);
+        keys = remove(keys, entryCount + 1, i);
+        rows = remove(rows, entryCount + 1, i);
     }
 
     Cursor find(Session session, long min, long max, boolean multiVersion) {

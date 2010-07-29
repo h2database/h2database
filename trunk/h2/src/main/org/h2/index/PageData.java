@@ -240,6 +240,4 @@ abstract class PageData extends Page {
         return true;
     }
 
-
-
 }

@@ -15,6 +15,11 @@ import org.h2.value.Value;
 public interface SearchRow {
 
     /**
+     * An empty array of SearchRow objects.
+     */
+    SearchRow[] EMPTY_ARRAY = {};
+
+    /**
      * Get the column count.
      *
      * @return the column count

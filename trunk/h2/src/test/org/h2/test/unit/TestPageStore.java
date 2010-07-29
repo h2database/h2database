@@ -16,6 +16,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import org.h2.api.DatabaseEventListener;
+import org.h2.result.Row;
+import org.h2.store.Page;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 
@@ -36,6 +38,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testInsertDelete();
         testCheckpoint();
         testDropRecreate();
         testDropAll();
@@ -59,6 +62,29 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testCreateIndexLater();
         testFuzzOperations();
         deleteDb("pageStore");
+    }
+
+    private void testInsertDelete() {
+        Row[] x = new Row[0];
+        Row r = new Row(null, 0);
+        x = Page.insert(x, 0, 0, r);
+        assertTrue(x[0] == r);
+        Row r2 = new Row(null, 0);
+        x = Page.insert(x, 1, 0, r2);
+        assertTrue(x[0] == r2);
+        assertTrue(x[1] == r);
+        Row r3 = new Row(null, 0);
+        x = Page.insert(x, 2, 1, r3);
+        assertTrue(x[0] == r2);
+        assertTrue(x[1] == r3);
+        assertTrue(x[2] == r);
+
+        x = Page.remove(x, 3, 1);
+        assertTrue(x[0] == r2);
+        assertTrue(x[1] == r);
+        x = Page.remove(x, 2, 0);
+        assertTrue(x[0] == r);
+        x = Page.remove(x, 1, 0);
     }
 
     private void testCheckpoint() throws SQLException {

@@ -17,6 +17,7 @@ import org.h2.value.Value;
 public class Row implements SearchRow {
 
     public static final int MEMORY_CALCULATE = -1;
+    public static final Row[] EMPTY_ARRAY = {};
     private long key;
     private final Value[] data;
     private final int memory;

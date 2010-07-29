@@ -26,7 +26,11 @@ public class TestBtreeIndex extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.big = true;
+        test.test();
+        test.test();
+        test.test();
     }
 
     public void test() throws SQLException {
@@ -163,7 +167,7 @@ public class TestBtreeIndex extends TestBase {
             testCount = 0;
             while (rs.next() && rs2.next()) {
                 if (!rs.getString(1).equals(rs2.getString(1))) {
-                    fail("" + testCount);
+                    assertEquals("" + testCount, rs.getString(1), rs.getString(2));
                 }
                 testCount++;
             }

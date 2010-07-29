@@ -35,7 +35,6 @@ import org.h2.index.PageIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
-import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -128,7 +127,6 @@ public class PageStore implements CacheWriter {
     private static final int META_TYPE_DATA_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
-    private static final SearchRow[] EMPTY_SEARCH_ROW = { };
     private static final int COMPACT_BLOCK_SIZE = 1536;
     private Database database;
     private final Trace trace;
@@ -1612,19 +1610,6 @@ public class PageStore implements CacheWriter {
         if (file == null) {
             throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
         }
-    }
-
-    /**
-     * Create an array of SearchRow with the given size.
-     *
-     * @param entryCount the number of elements
-     * @return the array
-     */
-    public static SearchRow[] newSearchRows(int entryCount) {
-        if (entryCount == 0) {
-            return EMPTY_SEARCH_ROW;
-        }
-        return new SearchRow[entryCount];
     }
 
     /**

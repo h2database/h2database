@@ -669,7 +669,9 @@ public class Session extends SessionWithState implements SessionFactory {
         }
         if (locks.size() > 0) {
             synchronized (database) {
-                for (Table t : locks) {
+                // don't use the enhance for loop to safe memory
+                for (int i = 0; i < locks.size(); i++) {
+                    Table t = locks.get(i);
                     t.unlock(this);
                 }
                 locks.clear();

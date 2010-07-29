@@ -471,7 +471,8 @@ public class SysProperties {
 
     /**
      * System property <code>h2.optimizeUpdate</code> (default: true).<br />
-     * Speed up inserts, updates, and deletes by not reading all rows from a page unless necessary.
+     * Speed up inserts, updates, and deletes by not reading all rows from a
+     * page unless necessary.
      */
     public static final boolean OPTIMIZE_UPDATE = getBooleanSetting("h2.optimizeUpdate", true);
 

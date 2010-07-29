@@ -6,6 +6,7 @@
  */
 package org.h2.index;
 
+import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -31,6 +32,8 @@ import org.h2.store.PageStore;
 public class PageBtreeLeaf extends PageBtree {
 
     private static final int OFFSET_LENGTH = 2;
+
+    private boolean writtenData;
 
     private PageBtreeLeaf(PageBtreeIndex index, int pageId, Data data) {
         super(index, pageId, data);
@@ -61,6 +64,7 @@ public class PageBtreeLeaf extends PageBtree {
     static PageBtreeLeaf create(PageBtreeIndex index, int pageId, int parentPageId) {
         PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, index.getPageStore().createData());
         index.getPageStore().logUndo(p, null);
+        p.rows = SearchRow.EMPTY_ARRAY;
         p.parentPageId = parentPageId;
         p.writeHead();
         p.start = p.data.length();
@@ -87,6 +91,7 @@ public class PageBtreeLeaf extends PageBtree {
         }
         start = data.length();
         written = true;
+        writtenData = true;
     }
 
     int addRowTry(SearchRow row) {
@@ -125,40 +130,41 @@ public class PageBtreeLeaf extends PageBtree {
             }
         }
         index.getPageStore().logUndo(this, data);
-        readAllRows();
+        if (!SysProperties.OPTIMIZE_UPDATE) {
+            readAllRows();
+        }
         changeCount = index.getPageStore().getChangeCount();
         written = false;
-        int offset = last - rowLength;
-        int[] newOffsets = new int[entryCount + 1];
-        SearchRow[] newRows = new SearchRow[entryCount + 1];
         int x;
         if (entryCount == 0) {
             x = 0;
         } else {
             x = find(row, false, true, true);
-            System.arraycopy(offsets, 0, newOffsets, 0, x);
-            System.arraycopy(rows, 0, newRows, 0, x);
-            if (x < entryCount) {
-                for (int j = x; j < entryCount; j++) {
-                    newOffsets[j + 1] = offsets[j] - rowLength;
-                }
-                offset = (x == 0 ? pageSize : offsets[x - 1]) - rowLength;
-                System.arraycopy(rows, x, newRows, x + 1, entryCount - x);
-            }
         }
-        entryCount++;
         start += OFFSET_LENGTH;
-        newOffsets[x] = offset;
-        newRows[x] = row;
-        offsets = newOffsets;
-        rows = newRows;
+        int offset = (x == 0 ? pageSize : offsets[x - 1]) - rowLength;
+        if (SysProperties.OPTIMIZE_UPDATE && writtenData) {
+            if (entryCount > 0) {
+                byte[] d = data.getBytes();
+                int dataStart = offsets[entryCount - 1];
+                int dataEnd = offset;
+                System.arraycopy(d, dataStart, d, dataStart - rowLength, dataEnd - dataStart + rowLength);
+            }
+            index.writeRow(data, offset, row, onlyPosition);
+        }
+        offsets = insert(offsets, entryCount, x, offset);
+        add(offsets, x + 1, entryCount + 1, -rowLength);
+        rows = insert(rows, entryCount, x, row);
+        entryCount++;
         index.getPageStore().update(this);
         memoryChange();
         return -1;
     }
 
     private void removeRow(int at) {
-        readAllRows();
+        if (!SysProperties.OPTIMIZE_UPDATE) {
+            readAllRows();
+        }
         index.getPageStore().logUndo(this, data);
         entryCount--;
         written = false;
@@ -166,19 +172,22 @@ public class PageBtreeLeaf extends PageBtree {
         if (entryCount <= 0) {
             DbException.throwInternalError();
         }
-        int[] newOffsets = new int[entryCount];
-        SearchRow[] newRows = new SearchRow[entryCount];
-        System.arraycopy(offsets, 0, newOffsets, 0, at);
-        System.arraycopy(rows, 0, newRows, 0, at);
         int startNext = at > 0 ? offsets[at - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[at];
-        for (int j = at; j < entryCount; j++) {
-            newOffsets[j] = offsets[j + 1] + rowLength;
-        }
-        System.arraycopy(rows, at + 1, newRows, at, entryCount - at);
         start -= OFFSET_LENGTH;
-        offsets = newOffsets;
-        rows = newRows;
+
+        if (SysProperties.OPTIMIZE_UPDATE) {
+            if (writtenData) {
+                byte[] d = data.getBytes();
+                int dataStart = offsets[entryCount];
+                System.arraycopy(d, dataStart, d, dataStart + rowLength, offsets[at] - dataStart);
+                Arrays.fill(d, dataStart, dataStart + rowLength, (byte) 0);
+            }
+        }
+
+        offsets = remove(offsets, entryCount + 1, at);
+        add(offsets, at, entryCount, rowLength);
+        rows = remove(rows, entryCount + 1, at);
         memoryChange();
     }
 
@@ -256,13 +265,18 @@ public class PageBtreeLeaf extends PageBtree {
         if (written) {
             return;
         }
-        readAllRows();
+        if (!SysProperties.OPTIMIZE_UPDATE) {
+            readAllRows();
+        }
         writeHead();
         for (int i = 0; i < entryCount; i++) {
             data.writeShortInt(offsets[i]);
         }
-        for (int i = 0; i < entryCount; i++) {
-            index.writeRow(data, offsets[i], rows[i], onlyPosition);
+        if (!writtenData || !SysProperties.OPTIMIZE_UPDATE) {
+            for (int i = 0; i < entryCount; i++) {
+                index.writeRow(data, offsets[i], rows[i], onlyPosition);
+            }
+            writtenData = true;
         }
         written = true;
         memoryChange();
@@ -347,7 +361,8 @@ public class PageBtreeLeaf extends PageBtree {
         int memory = Constants.MEMORY_PAGE_BTREE + index.getPageStore().getPageSize();
         if (rows != null) {
             memory += getEntryCount() * (4 + Constants.MEMORY_POINTER);
-            for (SearchRow r : rows) {
+            for (int i = 0; i < entryCount; i++) {
+                SearchRow r = rows[i];
                 if (r != null) {
                     memory += r.getMemory();
                 }

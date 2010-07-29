@@ -71,8 +71,10 @@ public class IndexCursor implements Cursor {
         inList = null;
         inColumn = null;
         inResult = null;
-        inResultTested = new HashSet<Value>();
-        for (IndexCondition condition : indexConditions) {
+        inResultTested = null;
+        // don't use enhanced for loop to avoid creating objects
+        for (int i = 0; i < indexConditions.size(); i++) {
+            IndexCondition condition = indexConditions.get(i);
             if (condition.isAlwaysFalse()) {
                 alwaysFalse = true;
                 break;
@@ -240,6 +242,9 @@ public class IndexCursor implements Cursor {
                 Value v = inResult.currentRow()[0];
                 if (v != ValueNull.INSTANCE) {
                     v = inColumn.convert(v);
+                    if (inResultTested == null) {
+                        inResultTested = new HashSet<Value>();
+                    }
                     if (inResultTested.add(v)) {
                         find(v);
                         break;

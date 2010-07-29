@@ -796,7 +796,9 @@ public abstract class Table extends SchemaObjectBase {
 
     private void fireConstraints(Session session, Row oldRow, Row newRow, boolean before) {
         if (constraints != null) {
-            for (Constraint constraint : constraints) {
+            // don't use enhanced for loop to avoid creating objects
+            for (int i = 0; i < constraints.size(); i++) {
+                Constraint constraint = constraints.get(i);
                 if (constraint.isBefore() == before) {
                     constraint.checkRow(session, this, oldRow, newRow);
                 }

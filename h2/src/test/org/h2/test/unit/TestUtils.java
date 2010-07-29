@@ -51,8 +51,8 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass(Void.class, void.class);
     }
 
-    private void testGetNonPrimitiveClass(Class<?> expected, Class<?> prim) {
-        assertEquals(expected.getName(), Utils.getNonPrimitiveClass(prim).getName());
+    private void testGetNonPrimitiveClass(Class<?> expected, Class<?> p) {
+        assertEquals(expected.getName(), Utils.getNonPrimitiveClass(p).getName());
     }
 
     private void testReflectionUtils() throws Exception {

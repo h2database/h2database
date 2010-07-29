@@ -6,6 +6,7 @@
  */
 package org.h2.store;
 
+import java.lang.reflect.Array;
 import org.h2.engine.Session;
 import org.h2.util.CacheObject;
 
@@ -69,6 +70,8 @@ public abstract class Page extends CacheObject {
      */
     public static final int TYPE_STREAM_DATA = 8;
 
+    private static final int COPY_THRESHOLD = 3;
+
     /**
      * When this page was changed the last time.
      */
@@ -87,5 +90,167 @@ public abstract class Page extends CacheObject {
      * Write the page.
      */
     public abstract void write();
+
+    /**
+     * Insert a value in an array. A new array is created if required.
+     *
+     * @param old the old array
+     * @param oldSize the old size
+     * @param pos the position
+     * @param x the value to insert
+     * @return the (new) array
+     */
+    @SuppressWarnings("unchecked")
+    public
+    static <T> T[] insert(T[] old, int oldSize, int pos, T x) {
+        T[] result;
+        if (old != null && old.length > oldSize) {
+            result = old;
+        } else {
+            // according to a test, this is as fast as "new Row[..]"
+            result = (T[]) Array.newInstance(old.getClass().getComponentType(), oldSize + 1 + COPY_THRESHOLD);
+            if (pos > 0) {
+                System.arraycopy(old, 0, result, 0, pos);
+            }
+        }
+        if (old != null && oldSize - pos > 0) {
+            System.arraycopy(old, pos, result, pos + 1, oldSize - pos);
+        }
+        result[pos] = x;
+        return result;
+    }
+
+    /**
+     * Delete a value in an array. A new array is created if required.
+     *
+     * @param old the old array
+     * @param oldSize the old size
+     * @param pos the position
+     * @return the (new) array
+     */
+    @SuppressWarnings("unchecked")
+    public
+    static <T> T[] remove(T[] old, int oldSize, int pos) {
+        T[] result;
+        if (old.length - oldSize < COPY_THRESHOLD) {
+            result = old;
+        } else {
+            // according to a test, this is as fast as "new Row[..]"
+            result = (T[]) Array.newInstance(old.getClass().getComponentType(), oldSize - 1);
+            System.arraycopy(old, 0, result, 0, Math.min(oldSize - 1, pos));
+        }
+        if (pos < oldSize) {
+            System.arraycopy(old, pos + 1, result, pos, oldSize - pos - 1);
+        }
+        return result;
+    }
+
+    /**
+     * Insert a value in an array. A new array is created if required.
+     *
+     * @param old the old array
+     * @param oldSize the old size
+     * @param pos the position
+     * @param x the value to insert
+     * @return the (new) array
+     */
+    protected static long[] insert(long[] old, int oldSize, int pos, long x) {
+        long[] result;
+        if (old != null && old.length > oldSize) {
+            result = old;
+        } else {
+            result = new long[oldSize + 1 + COPY_THRESHOLD];
+            if (pos > 0) {
+                System.arraycopy(old, 0, result, 0, pos);
+            }
+        }
+        if (old != null && oldSize - pos > 0) {
+            System.arraycopy(old, pos, result, pos + 1, oldSize - pos);
+        }
+        result[pos] = x;
+        return result;
+    }
+
+    /**
+     * Delete a value in an array. A new array is created if required.
+     *
+     * @param old the old array
+     * @param oldSize the old size
+     * @param pos the position
+     * @return the (new) array
+     */
+    protected static long[] remove(long[] old, int oldSize, int pos) {
+        long[] result;
+        if (old.length - oldSize < COPY_THRESHOLD) {
+            result = old;
+        } else {
+            result = new long[oldSize - 1];
+            System.arraycopy(old, 0, result, 0, pos);
+        }
+        System.arraycopy(old, pos + 1, result, pos, oldSize - pos - 1);
+        return result;
+    }
+
+    /**
+     * Insert a value in an array. A new array is created if required.
+     *
+     * @param old the old array
+     * @param oldSize the old size
+     * @param pos the position
+     * @param x the value to insert
+     * @return the (new) array
+     */
+    protected static int[] insert(int[] old, int oldSize, int pos, int x) {
+        int[] result;
+        if (old != null && old.length > oldSize) {
+            result = old;
+        } else {
+            result = new int[oldSize + 1 + COPY_THRESHOLD];
+            if (pos > 0 && old != null) {
+                System.arraycopy(old, 0, result, 0, pos);
+            }
+        }
+        if (old != null && oldSize - pos > 0) {
+            System.arraycopy(old, pos, result, pos + 1, oldSize - pos);
+        }
+        result[pos] = x;
+        return result;
+    }
+
+    /**
+     * Delete a value in an array. A new array is created if required.
+     *
+     * @param old the old array
+     * @param oldSize the old size
+     * @param pos the position
+     * @return the (new) array
+     */
+    protected static int[] remove(int[] old, int oldSize, int pos) {
+        int[] result;
+        if (old.length - oldSize < COPY_THRESHOLD) {
+            result = old;
+        } else {
+            result = new int[oldSize - 1];
+            System.arraycopy(old, 0, result, 0, Math.min(oldSize - 1, pos));
+        }
+        if (pos < oldSize) {
+            System.arraycopy(old, pos + 1, result, pos, oldSize - pos - 1);
+        }
+        return result;
+    }
+
+    /**
+     * Add a value to a subset of the array.
+     *
+     * @param array the array
+     * @param from the index of the first element (including)
+     * @param to the index of the last element (excluding)
+     * @param x the value to add
+     */
+    protected static void add(int[] array, int from, int to, int x) {
+        for (int i = from; i < to; i++) {
+            array[i] += x;
+        }
+    }
 
 }

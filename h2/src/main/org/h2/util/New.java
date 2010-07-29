@@ -24,7 +24,7 @@ public class New {
      * @return the object
      */
     public static <T> ArrayList<T> arrayList() {
-        return new ArrayList<T>();
+        return new ArrayList<T>(4);
     }
 
     /**

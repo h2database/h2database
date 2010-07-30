@@ -140,15 +140,16 @@ public class DbUpgradeNonPageStoreToCurrent {
                 scriptFile = new File(oldDataFile.getAbsolutePath() + "_script.sql");
             }
 
-//            outputStream.println("H2 Migrating '" + oldFile.getPath() +
-//            "' to '" + newFile.getPath() + "' via '" + scriptFile.getPath()
-//            + "'");
-
             Utils.callStaticMethod("org.h2.upgrade.v1_1.Driver.load");
-            String uuid = UUID.randomUUID().toString();
             Connection connection = DriverManager.getConnection(oldUrl, info);
             Statement stmt = connection.createStatement();
-            stmt.execute("script to '" + scriptFile + "' CIPHER AES PASSWORD '" + uuid + "' --hide--");
+            boolean isEncrypted = StringUtils.toUpperEnglish(url).indexOf(";CIPHER=") >= 0;
+            String uuid = UUID.randomUUID().toString();
+            if (isEncrypted) {
+                stmt.execute("script to '" + scriptFile + "' CIPHER AES PASSWORD '" + uuid + "' --hide--");
+            } else {
+                stmt.execute("script to '" + scriptFile + "'");
+            }
             stmt.close();
             connection.close();
 
@@ -158,7 +159,11 @@ public class DbUpgradeNonPageStoreToCurrent {
 
             connection = DriverManager.getConnection(newUrl, info);
             stmt = connection.createStatement();
-            stmt.execute("runscript from '" + scriptFile + "' CIPHER AES PASSWORD '" + uuid + "' --hide--");
+            if (isEncrypted) {
+                stmt.execute("runscript from '" + scriptFile + "' CIPHER AES PASSWORD '" + uuid + "' --hide--");
+            } else {
+                stmt.execute("runscript from '" + scriptFile + "'");
+            }
             stmt.execute("analyze");
             stmt.execute("shutdown compact");
             stmt.close();
@@ -169,9 +174,6 @@ public class DbUpgradeNonPageStoreToCurrent {
                 backupIndexFile.delete();
                 FileSystem.getInstance(backupLobsDir.getAbsolutePath()).deleteRecursive(backupLobsDir.getAbsolutePath(), false);
             }
-
-//            outputStream.println("H2 Migration of '" + oldFile.getPath() +
-//            "' finished successfully");
         } catch (Exception e)  {
             successful = false;
             if (backupDataFile.exists()) {
@@ -184,8 +186,6 @@ public class DbUpgradeNonPageStoreToCurrent {
                 backupLobsDir.renameTo(oldLobsDir);
             }
             newFile.delete();
-//            errorStream.println("H2 Migration of '" + oldFile.getPath() +
-//            "' finished with error: " + e.getMessage());
             throw DbException.toSQLException(e);
         } finally {
             if (scriptFile != null) {

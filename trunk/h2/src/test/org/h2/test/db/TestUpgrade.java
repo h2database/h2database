@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 
 /**
@@ -35,6 +36,7 @@ public class TestUpgrade extends TestBase {
         testNoDb();
         testNoUpgradeOldAndNew();
         testIfExists();
+        testCipher();
     }
 
     private void testNoDb() throws SQLException {
@@ -130,6 +132,28 @@ public class TestUpgrade extends TestBase {
         deleteDb("upgrade");
     }
 
+    private void testCipher() throws Exception {
+        deleteDb("upgrade");
+
+        // Create old db
+        Utils.callStaticMethod("org.h2.upgrade.v1_1.Driver.load");
+        Connection conn = DriverManager.getConnection("jdbc:h2v1_1:data/test/upgrade;PAGE_STORE=FALSE;CIPHER=AES", "abc", "abc abc");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        conn.close();
+        Utils.callStaticMethod("org.h2.upgrade.v1_1.Driver.unload");
+        assertTrue(new File("data/test/upgrade.data.db").exists());
+
+        // Connect to old DB with upgrade
+        conn = DriverManager.getConnection("jdbc:h2:data/test/upgrade;CIPHER=AES", "abc", "abc abc");
+        stat = conn.createStatement();
+        stat.executeQuery("select * from test");
+        conn.close();
+        assertTrue(new File("data/test/upgrade.h2.db").exists());
+
+        deleteDb("upgrade");
+    }
+
     public void deleteDb(String dbName) throws SQLException {
         super.deleteDb(dbName);
         try {
@@ -137,5 +161,7 @@ public class TestUpgrade extends TestBase {
         } catch (Exception e) {
             throw new SQLException(e.getMessage());
         }
+        IOUtils.delete("data/test/" + dbName + ".data.db.backup");
+        IOUtils.delete("data/test/" + dbName + ".index.db.backup");
     }
 }

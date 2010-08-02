@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Data modifications (inserts, updates, and deletes) are now up to 5 times faster
+<ul><li>EXPLAIN ANALYZE with an in-memory database threw an exception. Issue 216.
+</li><li>Data modifications (inserts, updates, and deletes) are now up to 5 times faster
     because converting objects to byte arrays is avoided if possible.
 </li><li>LOG=0 is now a bit faster (previously undo log entries were still written).
 </li><li>The command line tools now say so if the source directory of an option doesn't exist.

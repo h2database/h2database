@@ -349,8 +349,8 @@ public class TestScript extends TestBase {
                 if (e != null) {
                     TestBase.logError("script", e);
                 }
+                TestBase.logError(errors.toString(), null);
                 if (failFast) {
-                    TestBase.logError(errors.toString(), null);
                     conn.close();
                     System.exit(1);
                 }

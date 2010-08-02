@@ -70,7 +70,7 @@ public abstract class Page extends CacheObject {
      */
     public static final int TYPE_STREAM_DATA = 8;
 
-    private static final int COPY_THRESHOLD = 3;
+    private static final int COPY_THRESHOLD = 4;
 
     /**
      * When this page was changed the last time.

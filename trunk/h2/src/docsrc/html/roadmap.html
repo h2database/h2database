@@ -48,8 +48,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Priority 2</h2>
 <ul><li>Improve test code coverage.
+</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
-</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208.
 </li><li>Full outer joins.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
@@ -509,6 +509,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL compatibility: support escape with double \\.
 </li><li>Document the TCP server "management_db". Maybe include the IP address of the client.
 </li><li>Use javax.tools.JavaCompilerTool instead of com.sun.tools.javac.Main
+</li><li>Common Table Expression (CTE): support INSERT INTO ... SELECT ... Issue 219.
+</li><li>Support large GROUP BY operations. Issue 216.
+</li><li>Common Table Expression (CTE): support non-recursive queries. Issue 217.
+</li><li>Common Table Expression (CTE): avoid endless loop. Issue 218.
 </li></ul>
 
 <h2>Not Planned</h2>

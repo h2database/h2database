@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 import org.h2.command.Prepared;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -52,21 +53,24 @@ public class Explain extends Prepared {
 
     public ResultInterface query(int maxrows) {
         Column column = new Column("PLAN", Value.STRING);
-        ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), column);
+        Database db = session.getDatabase();
+        ExpressionColumn expr = new ExpressionColumn(db, column);
         Expression[] expressions = { expr };
         result = new LocalResult(session, expressions, 1);
         if (maxrows >= 0) {
             String plan;
             if (executeCommand) {
-                PageStore store = session.getDatabase().getPageStore();
-                store.statisticsStart();
+                PageStore store = db.isPersistent() ? db.getPageStore() : null;
+                if (store != null) {
+                    store.statisticsStart();
+                }
                 if (command.isQuery()) {
                     command.query(maxrows);
                 } else {
                     command.update();
                 }
                 plan = command.getPlanSQL();
-                Map<String, Integer> statistics = store.statisticsEnd();
+                Map<String, Integer> statistics = store == null ? null : store.statisticsEnd();
                 if (statistics != null) {
                     int total = 0;
                     for (Entry<String, Integer> e : statistics.entrySet()) {

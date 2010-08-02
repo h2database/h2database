@@ -1,4 +1,10 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+explain analyze select 1;
+> PLAN
+> ----------------------------------------------------------------------------
+> SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
+> rows: 1
+
 create table folder(id int primary key, name varchar(255), parent int);
 > ok
 

@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>EXPLAIN ANALYZE with an in-memory database threw an exception. Issue 216.
+<ul><li>The table INFORMATION_SCHEMA.SETTINGS now contains all H2-specific system properties 
+    (the ones that start with "h2.") and that are explicitly set. Previously, some H2-specific settings
+    (for example h2.analyzeAuto) were missing in this list.
+</li><li>Translation: the new messages have been translated to Spanish. Thanks a lot to Dario Fassi!
+</li><li>EXPLAIN ANALYZE with an in-memory database threw an exception. Issue 216.
 </li><li>Data modifications (inserts, updates, and deletes) are now up to 5 times faster
     because converting objects to byte arrays is avoided if possible.
 </li><li>LOG=0 is now a bit faster (previously undo log entries were still written).

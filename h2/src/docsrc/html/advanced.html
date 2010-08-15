@@ -1334,10 +1334,10 @@ must contain NO_UPGRADE=TRUE.
 This database has the following known limitations:
 </p>
 <ul>
-<li>Database file size limits (excluding BLOB and CLOB data):
-    With the default storage mechanism, the maximum file size is currently 256 GB for the data, and 256 GB for the index.
-    With the page store (experimental): 4 TB or higher.
-</li><li>BLOB and CLOB size limit: every CLOB or BLOB can be up to 256 GB.
+<li>Database file size limit:
+    4 TB (using the default page size of 2 KB) or higher (when using a larger page size).
+    When using the feature "h2.lobInDatabase" then this limit is including CLOB and BLOB data, 
+    otherwise this limit is excluding CLOB and BLOB data, and every CLOB or BLOB can be up to 256 GB.
 </li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32,
 the limit is 4 GB for the data. This is the limitation of the file system. The database does provide a
 workaround for this problem, it is to use the file name prefix <code>split:</code>. In that case files are split into

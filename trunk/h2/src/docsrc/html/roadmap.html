@@ -181,6 +181,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index.
+</li><li>Compatibility with Derby and PostgreSQL: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1). Issue 221.
 </li><li>Use LinkedList instead of ArrayList where applicable.
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support data type INTERVAL
@@ -202,7 +203,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support linked tables to the current database
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
-</li><li>Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
 </li><li>Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
 </li><li>Run benchmarks with JDK 1.5, JDK 1.6, java -server
 </li><li>Optimizations: faster hash function for strings, byte arrays
@@ -513,6 +513,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support large GROUP BY operations. Issue 216.
 </li><li>Common Table Expression (CTE): support non-recursive queries. Issue 217.
 </li><li>Common Table Expression (CTE): avoid endless loop. Issue 218.
+</li><li>Common Table Expression (CTE): support multiple named queries. Issue 220.
+</li><li>Common Table Expression (CTE): identifier scope may be incorrect. Issue 222.
 </li></ul>
 
 <h2>Not Planned</h2>

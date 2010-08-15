@@ -33,12 +33,47 @@ public class TestConnectionPool extends TestBase {
 
     public void test() throws Exception {
         deleteDb("connectionPool");
+        testTimeout();
         testUncommittedTransaction();
         testPerformance();
         testKeepOpen();
         testConnect();
         testThreads();
         deleteDb("connectionPool");
+    }
+
+    private void testTimeout() throws Exception {
+        String url = getURL("connectionPool", true), user = getUser(), password = getPassword();
+        final JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
+        man.setLoginTimeout(1);
+        man.setMaxConnections(2);
+        Connection conn = man.getConnection();
+        final boolean[] stop = { false };
+        Thread t = new Thread() {
+            public void run() {
+                while (!stop[0]) {
+                    // this calls notifyAll
+                    man.setMaxConnections(1);
+                    man.setMaxConnections(2);
+                }
+            }
+        };
+        t.start();
+        long time = System.currentTimeMillis();
+        try {
+            man.getConnection();
+            man.getConnection();
+            fail();
+        } catch (SQLException e) {
+            time = System.currentTimeMillis() - time;
+            assertTrue("timeout after " + time + " ms", time > 1000);
+        } finally {
+            conn.close();
+            stop[0] = true;
+            t.join();
+        }
+
+        man.dispose();
     }
 
     private void testUncommittedTransaction() throws SQLException {

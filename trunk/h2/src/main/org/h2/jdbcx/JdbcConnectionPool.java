@@ -65,11 +65,12 @@ import org.h2.message.DbException;
 public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
 
     private static final int DEFAULT_TIMEOUT = 30;
+    private static final int DEFAULT_MAX_CONNECTIONS = 10;
 
     private final ConnectionPoolDataSource dataSource;
     private final Stack<PooledConnection> recycledConnections = new Stack<PooledConnection>();
     private PrintWriter logWriter;
-    private int maxConnections = 10;
+    private int maxConnections = DEFAULT_MAX_CONNECTIONS;
     private int timeout = DEFAULT_TIMEOUT;
     private int activeConnections;
     private boolean isDisposed;
@@ -144,7 +145,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
 
     /**
      * Sets the maximum time in seconds to wait for a free connection.
-     * The default timeout is 5 minutes. Calling this method with the
+     * The default timeout is 30 seconds. Calling this method with the
      * value 0 will set the timeout to the default value.
      *
      * @param seconds the timeout, 0 meaning the default
@@ -194,13 +195,11 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      *      or a timeout occurred
      */
     public Connection getConnection() throws SQLException {
-        for (int i = 0;; i++) {
+        long max = System.currentTimeMillis() + timeout * 1000;
+        while (System.currentTimeMillis() <= max) {
             synchronized (this) {
                 if (activeConnections < maxConnections) {
                     return getConnectionNow();
-                }
-                if (i >= timeout) {
-                    throw new SQLException("Login timeout", "08001", 8001);
                 }
                 try {
                     wait(1000);
@@ -209,6 +208,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
                 }
             }
         }
+        throw new SQLException("Login timeout", "08001", 8001);
     }
 
     private Connection getConnectionNow() throws SQLException {

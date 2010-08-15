@@ -14,7 +14,9 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Properties;
 import org.h2.command.Command;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -860,32 +862,19 @@ public class MetaTable extends Table {
             add(rows, "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE");
             add(rows, "QUERY_TIMEOUT", "" + session.getQueryTimeout());
             add(rows, "LOG", "" + database.getLogMode());
-            // the setting for the current database
-            add(rows, "h2.allowBigDecimalExtensions", "" + SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS);
-            add(rows, "h2.baseDir", "" + SysProperties.getBaseDir());
-            add(rows, "h2.check", "" + SysProperties.CHECK);
-            add(rows, "h2.check2", "" + SysProperties.CHECK2);
-            add(rows, "h2.clientTraceDirectory", SysProperties.CLIENT_TRACE_DIRECTORY);
-            add(rows, SysProperties.H2_COLLATOR_CACHE_SIZE, "" + SysProperties.getCollatorCacheSize());
-            add(rows, "h2.defaultMaxMemoryUndo", "" + SysProperties.DEFAULT_MAX_MEMORY_UNDO);
-            add(rows, "h2.lobFilesPerDirectory", "" + SysProperties.LOB_FILES_PER_DIRECTORY);
-            add(rows, "h2.logAllErrors", "" + SysProperties.LOG_ALL_ERRORS);
-            add(rows, "h2.logAllErrorsFile", "" + SysProperties.LOG_ALL_ERRORS_FILE);
-            add(rows, "h2.maxFileRetry", "" + SysProperties.MAX_FILE_RETRY);
-            add(rows, SysProperties.H2_MAX_QUERY_TIMEOUT, "" + SysProperties.getMaxQueryTimeout());
-            add(rows, "h2.lobCloseBetweenReads", "" + SysProperties.lobCloseBetweenReads);
-            add(rows, "h2.objectCache", "" + SysProperties.OBJECT_CACHE);
-            add(rows, "h2.objectCacheSize", "" + SysProperties.OBJECT_CACHE_SIZE);
-            add(rows, "h2.objectCacheMaxPerElementSize", "" + SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE);
-            add(rows, "h2.optimizeInList", "" + SysProperties.OPTIMIZE_IN_LIST);
-            add(rows, "h2.optimizeSubqueryCache", "" + SysProperties.OPTIMIZE_SUBQUERY_CACHE);
-            add(rows, "h2.recompileAlways", "" + SysProperties.RECOMPILE_ALWAYS);
-            add(rows, "h2.redoBufferSize", "" + SysProperties.REDO_BUFFER_SIZE);
-            add(rows, "h2.runFinalize", "" + SysProperties.runFinalize);
-            add(rows, "h2.scriptDirectory", SysProperties.getScriptDirectory());
-            add(rows, "h2.serverCachedObjects", "" + SysProperties.SERVER_CACHED_OBJECTS);
-            add(rows, "h2.serverResultSetFetchSize", "" + SysProperties.SERVER_RESULT_SET_FETCH_SIZE);
-            add(rows, "h2.sortNullsHigh", "" + SysProperties.SORT_NULLS_HIGH);
+            // H2-specific system properties
+            ArrayList<String> settingNames = New.arrayList();
+            Properties p = System.getProperties();
+            for (Object o : p.keySet()) {
+                String s = o == null ? "" : o.toString();
+                if (s.startsWith("h2.")) {
+                    settingNames.add(s);
+                }
+            }
+            Collections.sort(settingNames);
+            for (String s : settingNames) {
+                add(rows, s, p.getProperty(s));
+            }
             if (database.isPersistent()) {
                 PageStore store = database.getPageStore();
                 add(rows, "info.FILE_WRITE_TOTAL", "" + store.getWriteCountTotal());

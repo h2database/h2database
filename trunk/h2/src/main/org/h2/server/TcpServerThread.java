@@ -68,12 +68,19 @@ public class TcpServerThread implements Runnable {
                 if (!server.allow(transfer.getSocket())) {
                     throw DbException.get(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
                 }
-                clientVersion = transfer.readInt();
-                if (clientVersion < Constants.TCP_PROTOCOL_VERSION) {
-                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION);
+                int minClientVersion = transfer.readInt();
+                if (minClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_7) {
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_7);
                 }
-                // max version (currently not used)
-                transfer.readInt();
+                int maxClientVersion = transfer.readInt();
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_7) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_7;
+                } else {
+                    clientVersion = minClientVersion;
+                }
+                transfer.setVersion(clientVersion);
                 String db = transfer.readString();
                 String originalURL = transfer.readString();
                 if (db == null && originalURL == null) {
@@ -118,10 +125,7 @@ public class TcpServerThread implements Runnable {
                 session = engine.getSession(ci);
                 transfer.setSession(session);
                 transfer.writeInt(SessionRemote.STATUS_OK);
-                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
-                    // version 6: reply what version to use
-                    transfer.writeInt(Constants.TCP_PROTOCOL_VERSION);
-                }
+                transfer.writeInt(clientVersion);
                 transfer.flush();
                 server.addConnection(threadId, originalURL, ci.getUserName());
                 trace("Connected");

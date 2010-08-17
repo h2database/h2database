@@ -16,12 +16,10 @@ import org.h2.command.CommandRemote;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.expression.ParameterInterface;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
-import org.h2.result.ResultInterface;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorage;
@@ -34,8 +32,6 @@ import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
 import org.h2.value.Transfer;
-import org.h2.value.Value;
-import org.h2.value.ValueString;
 
 /**
  * The client side part of a session when using the server mode. This object
@@ -76,7 +72,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     private byte[] fileEncryptionKey;
     private Object lobSyncObject = new Object();
     private String sessionId;
-    private int clientVersion = Constants.TCP_PROTOCOL_VERSION;
+    private int clientVersion;
     private boolean autoReconnect;
     private int lastReconnect;
     private SessionInterface embedded;
@@ -98,8 +94,8 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         trans.setSocket(socket);
         trans.setSSL(ci.isSSL());
         trans.init();
-        trans.writeInt(clientVersion);
-        trans.writeInt(clientVersion);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_7);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -112,9 +108,8 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         }
         try {
             done(trans);
-            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
-                clientVersion = trans.readInt();
-            }
+            clientVersion = trans.readInt();
+            trans.setVersion(clientVersion);
         } catch (DbException e) {
             trans.close();
             throw e;
@@ -341,45 +336,6 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         } catch (DbException e) {
             traceSystem.close();
             throw e;
-        }
-        upgradeClientVersionIfPossible();
-    }
-
-    private void upgradeClientVersionIfPossible() {
-        try {
-            // TODO check if a newer client version can be used
-            // not required when sending TCP_DRIVER_VERSION_6
-            CommandInterface command = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", 1);
-            ParameterInterface param = command.getParameters().get(0);
-            param.setValue(ValueString.get("info.BUILD_ID"), false);
-            ResultInterface result = command.executeQuery(1, false);
-            if (result.next()) {
-                Value[] v = result.currentRow();
-                int version = v[0].getInt();
-                if (version > 71) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION;
-                }
-            }
-            result.close();
-        } catch (DbException e) {
-            trace.error("Error trying to upgrade client version", e);
-            // ignore
-        }
-        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION) {
-            sessionId = StringUtils.convertBytesToString(MathUtils.secureRandomBytes(32));
-            synchronized (this) {
-                for (Transfer transfer : transferList) {
-                    try {
-                        traceOperation("SESSION_SET_ID", 0);
-                        transfer.writeInt(SessionRemote.SESSION_SET_ID);
-                        transfer.writeString(sessionId);
-                        done(transfer);
-                    } catch (Exception e) {
-                        trace.error("sessionSetId", e);
-                    }
-                }
-            }
-
         }
     }
 

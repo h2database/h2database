@@ -18,7 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The built-in connection pool (JdbcConnectionPool) did not always honor the login timeout
+<ul><li>CREATE FORCE VIEW didn't work in most cases if a referenced table didn't exist.
+</li><li>MVCC: when trying to insert two rows with the same key from two connections,
+    the second connection immediately threw the exception "Unique index or primary key violation".
+    Instead, the second connection now waits throwing the exception until the first connection
+    committed the change (same as when trying to concurrently update the same row).
+</li><li>Server mode: if the client ran with a different timezone setting than the server, date values
+    got shifted by the difference between the timezones. This problem affected the data types
+    DATE, TIME, and TIMESTAMP, when using PreparedStatement.setDate / setTime / setTimestamp
+    and ResultSet.getDate / getTime / getTimestamp.
+    To solve the problem, both the client and the server need to be updated (otherwise the old transfer protocol is used).
+</li><li>The built-in connection pool (JdbcConnectionPool) did not always honor the login timeout
     (the timeout could occur much too early). Thanks a lot to Dario Fassi for the patch!
 </li><li>Translation: the new messages have been translated to Spanish. Thanks a lot to Dario Fassi!
 </li><li>The table INFORMATION_SCHEMA.SETTINGS now contains all H2-specific system properties 

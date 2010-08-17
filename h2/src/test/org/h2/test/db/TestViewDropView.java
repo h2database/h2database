@@ -40,12 +40,26 @@ public class TestViewDropView extends TestBase {
         testDropViewDefaultBehaviour();
         testDropViewRestrict();
         testDropViewCascade();
+        testCreateForceView();
         testCreateOrReplaceView();
         testCreateOrReplaceViewWithNowInvalidDependentViews();
         testCreateOrReplaceForceViewWithNowInvalidDependentViews();
 
         conn.close();
         deleteDb("alter");
+    }
+
+    private void testCreateForceView() throws SQLException {
+        stat.execute("create force view test_view as select * from test");
+        stat.execute("create table test(id int)");
+        stat.execute("alter view test_view recompile");
+        stat.execute("select * from test_view");
+        stat.execute("drop table test_view, test");
+        stat.execute("create force view test_view as select * from test where 1=0");
+        stat.execute("create table test(id int)");
+        stat.execute("alter view test_view recompile");
+        stat.execute("select * from test_view");
+        stat.execute("drop table test_view, test");
     }
 
     private void testDropViewDefaultBehaviour() throws SQLException {

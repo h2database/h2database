@@ -166,19 +166,20 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Add H2 to Gem (Ruby install system).
 </li><li>Order conditions inside AND / OR to optimize the performance.
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
-</li><li>Support linked JCR tables
+</li><li>Support linked JCR tables.
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
-</li><li>Native fulltext search: min word length; store word positions
-</li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
-</li><li>Updatable Views (simple cases first)
-</li><li>Improve create index performance
-</li><li>Implement more JDBC 4.0 features
-</li><li>Support TRANSFORM / PIVOT as in MS Access
-</li><li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
-</li><li>Support updatable views with join on primary keys (to extend a table)
-</li><li>Public interface for functions (not public static)
+</li><li>Native fulltext search: min word length; store word positions.
+</li><li>Add an option to the SCRIPT command to generate only portable / standard SQL.
+</li><li>Updatable Views (simple cases first).
+</li><li>Improve create index performance.
+</li><li>Compact databases without having to close the database (vacuum).
+</li><li>Implement more JDBC 4.0 features.
+</li><li>Support TRANSFORM / PIVOT as in MS Access.
+</li><li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...).
+</li><li>Support updatable views with join on primary keys (to extend a table).
+</li><li>Public interface for functions (not public static).
 </li><li>Support reading the transaction log.
-</li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
+</li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record).
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index.
 </li><li>Compatibility with Derby and PostgreSQL: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1). Issue 221.
@@ -240,7 +241,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 146: Support merge join.
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Cluster: hot deploy (adding a node at runtime)
-</li><li>Compact databases without having to close the database (vacuum).
 </li><li>Support COSH, SINH, and TANH functions
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
@@ -515,6 +515,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Common Table Expression (CTE): avoid endless loop. Issue 218.
 </li><li>Common Table Expression (CTE): support multiple named queries. Issue 220.
 </li><li>Common Table Expression (CTE): identifier scope may be incorrect. Issue 222.
+</li><li>If a database object was not found in the current schema, but one with the same name existed in another schema, included that in the error message.
 </li></ul>
 
 <h2>Not Planned</h2>

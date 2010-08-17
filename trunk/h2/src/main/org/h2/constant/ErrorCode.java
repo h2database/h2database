@@ -1776,10 +1776,10 @@ public class ErrorCode {
     public static final int METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT = 90130;
 
     /**
-     * The error with code <code>90131</code> is thrown when
-     * using multi version concurrency control, and trying to update the same
-     * row from within two connections at the same time.
-     * Example:
+     * The error with code <code>90131</code> is thrown when using multi version
+     * concurrency control, and trying to update the same row from within two
+     * connections at the same time, or trying to insert two rows with the same
+     * key from two connections. Example:
      * <pre>
      * jdbc:h2:~/test;MVCC=TRUE
      * Session 1:

@@ -598,7 +598,6 @@ public class Transfer {
     }
 
     public void setVersion(int version) {
-System.out.println("transfer version " + version);
         this.version = version;
     }
 

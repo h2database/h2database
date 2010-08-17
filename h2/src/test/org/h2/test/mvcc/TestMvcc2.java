@@ -7,6 +7,7 @@
 package org.h2.test.mvcc;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.ErrorCode;
@@ -35,11 +36,13 @@ public class TestMvcc2 extends TestBase {
         test.test();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
         if (!config.mvcc) {
             return;
         }
         deleteDb("mvcc2");
+        testConcurrentInsert();
+        testConcurrentUpdate();
         testSelectForUpdate();
         testInsertUpdateRollback();
         testInsertRollback();
@@ -48,6 +51,86 @@ public class TestMvcc2 extends TestBase {
 
     private Connection getConnection() throws SQLException {
         return getConnection("mvcc2");
+    }
+
+    private void testConcurrentInsert() throws Exception {
+        Connection conn = getConnection();
+        final Connection conn2 = getConnection();
+        Statement stat = conn.createStatement();
+        final Statement stat2 = conn2.createStatement();
+        stat2.execute("set lock_timeout 1000");
+        stat.execute("create table test(id int primary key, name varchar)");
+        conn.setAutoCommit(false);
+        final boolean[] committed = { false };
+        final SQLException[] ex = { null };
+        Thread t = new Thread() {
+            public void run() {
+                try {
+//System.out.println("insert2 hallo");
+                    stat2.execute("insert into test values(0, 'Hallo')");
+//System.out.println("insert2 hallo done");
+                } catch (SQLException e) {
+//System.out.println("insert2 hallo e " + e);
+                    if (!committed[0]) {
+                        ex[0] = e;
+                    }
+                }
+            }
+        };
+//System.out.println("insert hello");
+        stat.execute("insert into test values(0, 'Hello')");
+        t.start();
+        Thread.sleep(500);
+//System.out.println("insert hello commit");
+        committed[0] = true;
+        conn.commit();
+        t.join();
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        ResultSet rs;
+        rs = stat.executeQuery("select name from test");
+        rs.next();
+        assertEquals("Hello", rs.getString(1));
+        stat.execute("drop table test");
+        conn2.close();
+        conn.close();
+    }
+
+    private void testConcurrentUpdate() throws Exception {
+        Connection conn = getConnection();
+        final Connection conn2 = getConnection();
+        Statement stat = conn.createStatement();
+        final Statement stat2 = conn2.createStatement();
+        stat2.execute("set lock_timeout 1000");
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(0, 'Hello')");
+        conn.setAutoCommit(false);
+        final SQLException[] ex = { null };
+        Thread t = new Thread() {
+            public void run() {
+                try {
+                    stat2.execute("update test set name = 'Hallo'");
+                } catch (SQLException e) {
+                    ex[0] = e;
+                }
+            }
+        };
+        stat.execute("update test set name = 'Hi'");
+        t.start();
+        Thread.sleep(500);
+        conn.commit();
+        t.join();
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        ResultSet rs;
+        rs = stat.executeQuery("select name from test");
+        rs.next();
+        assertEquals("Hallo", rs.getString(1));
+        stat.execute("drop table test");
+        conn2.close();
+        conn.close();
     }
 
     private void testSelectForUpdate() throws SQLException {

@@ -131,7 +131,19 @@ public class RegularTable extends TableBase {
                 trace.error("Could not undo operation", e);
                 throw e2;
             }
-            throw DbException.convert(e);
+            DbException dbe = DbException.convert(e);
+            if (dbe.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
+                for (int j = 0; j < indexes.size(); j++) {
+                    Index index = indexes.get(j);
+                    if (index.getIndexType().isUnique() && index instanceof MultiVersionIndex) {
+                        MultiVersionIndex mv = (MultiVersionIndex) index;
+                        if (mv.isUncommittedFromOtherSession(session, row)) {
+                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, index.getName());
+                        }
+                    }
+                }
+            }
+            throw dbe;
         }
         analyzeIfRequired(session);
     }

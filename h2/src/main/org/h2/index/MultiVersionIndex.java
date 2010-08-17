@@ -16,8 +16,8 @@ import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.Table;
 import org.h2.table.RegularTable;
+import org.h2.table.Table;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -124,6 +124,23 @@ public class MultiVersionIndex implements Index {
 
     public boolean needRebuild() {
         return base.needRebuild();
+    }
+
+    /**
+     * Check if there is an uncommitted row with the given key
+     * within a different session.
+     *
+     * @param session the original session
+     * @param row the row (only the key is checked)
+     * @return true if there is an uncommitted row
+     */
+    public boolean isUncommittedFromOtherSession(Session session, Row row) {
+        Cursor c = delta.find(session, row, row);
+        while (c.next()) {
+            Row r = c.get();
+            return r.getSessionId() != session.getId();
+        }
+        return false;
     }
 
     private boolean removeIfExists(Session session, Row row) {

@@ -9,7 +9,6 @@ package org.h2.command;
 import java.io.IOException;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
@@ -56,11 +55,10 @@ public class CommandRemote implements CommandInterface {
     private void prepare(SessionRemote s, boolean createParams) {
         id = s.getNextId();
         paramCount = 0;
-        boolean readParams = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION;
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = transferList.get(i);
-                if (readParams && createParams) {
+                if (createParams) {
                     s.traceOperation("SESSION_PREPARE_READ_PARAMS", id);
                     transfer.writeInt(SessionRemote.SESSION_PREPARE_READ_PARAMS).writeInt(id).writeString(sql);
                 } else {
@@ -74,13 +72,9 @@ public class CommandRemote implements CommandInterface {
                 if (createParams) {
                     parameters.clear();
                     for (int j = 0; j < paramCount; j++) {
-                        if (readParams) {
-                            ParameterRemote p = new ParameterRemote(j);
-                            p.readMetaData(transfer);
-                            parameters.add(p);
-                        } else {
-                            parameters.add(new ParameterRemote(j));
-                        }
+                        ParameterRemote p = new ParameterRemote(j);
+                        p.readMetaData(transfer);
+                        parameters.add(p);
                     }
                 }
             } catch (IOException e) {

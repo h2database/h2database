@@ -40,10 +40,20 @@ public class Constants {
     public static final String BUILD_DATE_STABLE = "2010-07-10";
 
     /**
+     * The TCP protocol version number 6.
+     */
+    public static final int TCP_PROTOCOL_VERSION_6 = 6;
+
+    /**
+     * The TCP protocol version number 7.
+     */
+    public static final int TCP_PROTOCOL_VERSION_7 = 7;
+
+    /**
      * The TCP protocol version number. This protocol is used by the TCP
      * server and remote JDBC client.
      */
-    public static final int TCP_PROTOCOL_VERSION = 6;
+    public static final int TCP_PROTOCOL_VERSION = TCP_PROTOCOL_VERSION_7;
 
     /**
      * The major version of this database.

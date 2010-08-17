@@ -30,6 +30,7 @@ import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.ExactUTF8InputStreamReader;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
@@ -50,6 +51,7 @@ public class Transfer {
     private DataOutputStream out;
     private SessionInterface session;
     private boolean ssl;
+    private int version;
 
     /**
      * Create a new transfer object for the specified session.
@@ -322,14 +324,26 @@ public class Transfer {
             writeByte(v.getByte());
             break;
         case Value.TIME:
-            writeLong(v.getTimeNoCopy().getTime());
+            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                writeLong(DateTimeUtils.getTimeLocal(v.getTimeNoCopy()));
+            } else {
+                writeLong(v.getTimeNoCopy().getTime());
+            }
             break;
         case Value.DATE:
-            writeLong(v.getDateNoCopy().getTime());
+            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                writeLong(DateTimeUtils.getTimeLocal(v.getDateNoCopy()));
+            } else {
+                writeLong(v.getDateNoCopy().getTime());
+            }
             break;
         case Value.TIMESTAMP: {
             Timestamp ts = v.getTimestampNoCopy();
-            writeLong(ts.getTime());
+            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                writeLong(DateTimeUtils.getTimeLocal(ts));
+            } else {
+                writeLong(ts.getTime());
+            }
             writeInt(ts.getNanos());
             break;
         }
@@ -455,10 +469,21 @@ public class Transfer {
         case Value.BYTE:
             return ValueByte.get(readByte());
         case Value.DATE:
+            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                return ValueDate.getNoCopy(new Date(DateTimeUtils.getTimeGMT(readLong())));
+            }
             return ValueDate.getNoCopy(new Date(readLong()));
         case Value.TIME:
+            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                return ValueTime.getNoCopy(new Time(DateTimeUtils.getTimeGMT(readLong())));
+            }
             return ValueTime.getNoCopy(new Time(readLong()));
         case Value.TIMESTAMP: {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                Timestamp ts = new Timestamp(DateTimeUtils.getTimeGMT(readLong()));
+                ts.setNanos(readInt());
+                return ValueTimestamp.getNoCopy(ts);
+            }
             Timestamp ts = new Timestamp(readLong());
             ts.setNanos(readInt());
             return ValueTimestamp.getNoCopy(ts);
@@ -570,6 +595,11 @@ public class Transfer {
         trans.setSocket(s2);
         trans.setSSL(ssl);
         return trans;
+    }
+
+    public void setVersion(int version) {
+System.out.println("transfer version " + version);
+        this.version = version;
     }
 
 }

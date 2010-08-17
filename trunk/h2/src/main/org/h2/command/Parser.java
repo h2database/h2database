@@ -4047,6 +4047,9 @@ public class Parser {
         } catch (DbException e) {
             if (force) {
                 command.setSelectSQL(select);
+                while (currentTokenType != END) {
+                    read();
+                }
             } else {
                 throw e;
             }

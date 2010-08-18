@@ -73,8 +73,6 @@ Features
     Computed Columns / Function Based Index</a><br />
 <a href="#multi_dimensional">
     Multi-Dimensional Indexes</a><br />
-<a href="#passwords">
-    Using Passwords</a><br />
 <a href="#user_defined_functions">
     User-Defined Functions and Stored Procedures</a><br />
 <a href="#triggers">
@@ -508,7 +506,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     </td>
 </tr>
 <tr>
-    <td><a href="#passwords">User name and/or password</a></td>
+    <td><a href="advanced.html#passwords">User name and/or password</a></td>
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
         jdbc:h2:file:~/sample;USER=sa;PASSWORD=123<br />
@@ -1368,78 +1366,6 @@ The tool generates a SQL query from a specified multi-dimensional range.
 The method used is not database dependent, and the tool can easily be ported to other databases.
 For an example how to use the tool, please have a look at the sample code provided
 in <code>TestMultiDimension.java</code>.
-</p>
-
-<h2 id="passwords">Using Passwords</h2>
-
-<h3>Using Secure Passwords</h3>
-<p>
-Remember that weak passwords can be broken regardless of the encryption and security protocols.
-Don't use passwords that can be found in a dictionary. Also appending numbers does not make them
-secure. A way to create good passwords that can be remembered is, take the first
-letters of a sentence, use upper and lower case characters, and creatively include special characters.
-Example:
-</p><p>
-<code>i'sE2rtPiUKtT</code> from the sentence <code>it's easy to remember this password if you know the trick</code>.
-</p>
-
-<h3>Passwords: Using Char Arrays instead of Strings</h3>
-<p>
-Java strings are immutable objects and cannot be safely 'destroyed' by the application.
-After creating a string, it will remain in the main memory of the computer at least
-until it is garbage collected. The garbage collection cannot be controlled by the application,
-and even if it is garbage collected the data may still remain in memory.
-It might also be possible that the part of memory containing the password
-is swapped to disk (because not enough main memory is available).
-</p><p>
-An attacker might have access to the swap file of the operating system.
-It is therefore a good idea to use char arrays instead of strings to store passwords.
-Char arrays can be cleared (filled with zeros) after use, and therefore the
-password will not be stored in the swap file.
-</p><p>
-This database supports using char arrays instead of string to pass user and file passwords.
-The following code can be used to do that:
-</p>
-<pre>
-import java.sql.*;
-import java.util.*;
-public class Test {
-    public static void main(String[] args) throws Exception {
-        Class.forName("org.h2.Driver");
-        String url = "jdbc:h2:~/test";
-        Properties prop = new Properties();
-        prop.setProperty("user", "sa");
-        System.out.print("Password?");
-        char[] password = System.console().readPassword();
-        prop.put("password", password);
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection(url, prop);
-        } finally {
-            Arrays.fill(password, (char) 0);
-        }
-        conn.close();
-    }
-}
-</pre>
-<p>
-This example requires Java 1.6.
-When using Swing, use <code>javax.swing.JPasswordField</code>.
-</p>
-
-<h3>Passing the User Name and/or Password in the URL</h3>
-<p>
-Instead of passing the user name as a separate parameter as in
-<code>
-Connection conn = DriverManager.
-    getConnection("jdbc:h2:~/test", "sa", "123");
-</code>
-the user name (and/or password) can be supplied in the URL itself:
-<code>
-Connection conn = DriverManager.
-    getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");
-</code>
-The settings in the URL override the settings passed as a separate parameter.
 </p>
 
 <h2 id="user_defined_functions">User-Defined Functions and Stored Procedures</h2>

@@ -18,7 +18,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>CREATE FORCE VIEW didn't work in most cases if a referenced table didn't exist.
+<ul><li>Password hash: in addition to connecting with the plain text password,
+    H2 now supports connecting with the password hash.
+    Like this you don't have to store plain text passwords in config files.
+    For details, see the documentation at Advanced / Password Hash.
+</li><li>Lucene 3.x support was added in the source code, however it is not yet enabled by default
+    and is not yet supported when using the default h2 jar file. To enable Lucene 3.x support,
+    the source code of H2 needs to be switched using <code>./build.sh -Dlucene=3 switchSource</code>,
+    and then re-compile. To switch the source code back use <code>./build.sh -Dlucene=2 switchSource</code> (replace
+    ./build.sh with build.bat on Windows).
+    The plan is to use Lucene 3 by default in H2 version 1.3.x.
+    Issue 147.
+</li><li>The native fulltext search could cause a Java level deadlock if searching from multiple connections concurrently.
+</li><li>CREATE FORCE VIEW didn't work in most cases if a referenced table didn't exist.
 </li><li>MVCC: when trying to insert two rows with the same key from two connections,
     the second connection immediately threw the exception "Unique index or primary key violation".
     Instead, the second connection now waits throwing the exception until the first connection
@@ -31,7 +43,7 @@ Change Log
 </li><li>The built-in connection pool (JdbcConnectionPool) did not always honor the login timeout
     (the timeout could occur much too early). Thanks a lot to Dario Fassi for the patch!
 </li><li>Translation: the new messages have been translated to Spanish. Thanks a lot to Dario Fassi!
-</li><li>The table INFORMATION_SCHEMA.SETTINGS now contains all H2-specific system properties 
+</li><li>The table INFORMATION_SCHEMA.SETTINGS now contains all H2-specific system properties
     (the ones that start with "h2.") and that are explicitly set. Previously, some H2-specific settings
     (for example h2.analyzeAuto) were missing in this list.
 </li><li>EXPLAIN ANALYZE with an in-memory database threw an exception. Issue 216.

@@ -38,6 +38,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Disable h2.databaseToUpper (database short names are converted to uppercase).
 </li><li>Enable h2.dropRestrict (default action for DROP is RESTRICT).
     Change documentation.
+</li><li>Use Lucene 3 by default.
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -516,6 +517,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Common Table Expression (CTE): support multiple named queries. Issue 220.
 </li><li>Common Table Expression (CTE): identifier scope may be incorrect. Issue 222.
 </li><li>If a database object was not found in the current schema, but one with the same name existed in another schema, included that in the error message.
+</li><li>Optimization to use an index for OR when using multiple keys: where (key1 = ? and key2 = ?) OR (key1 = ? and key2 = ?)
 </li></ul>
 
 <h2>Not Planned</h2>

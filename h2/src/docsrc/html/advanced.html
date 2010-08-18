@@ -980,10 +980,10 @@ Sometimes the database password needs to be stored in a configuration file
 (for example in the <code>web.xml</code> file).
 In addition to connecting with the plain text password,
 this database supports connecting with the password hash.
-This means that only the hash of the password (and not the plain text password) 
+This means that only the hash of the password (and not the plain text password)
 needs to be stored in the configuration file.
-This will only protect others from reading or re-constructing the plain text password 
-(even if they have access to the configuration file); 
+This will only protect others from reading or re-constructing the plain text password
+(even if they have access to the configuration file);
 it does not protect others from accessing the database using the password hash.
 </p>
 <p>
@@ -993,7 +993,7 @@ the password with the password hash. To calculate the password hash from a plain
 run the following command within the H2 Console tool:
 <code>@password_hash &lt;upperCaseUserName&gt; &lt;password&gt;</code>.
 As an example, if the user name is <code>sa</code> and the password is
-<code>test</code>, run the command 
+<code>test</code>, run the command
 <code>@password_hash SA test</code>.
 Then use the resulting password hash as you would use the plain text password.
 When using an encrypted database, then the user password and file password
@@ -1440,7 +1440,7 @@ This database has the following known limitations:
 <ul>
 <li>Database file size limit:
     4 TB (using the default page size of 2 KB) or higher (when using a larger page size).
-    When using the feature "h2.lobInDatabase" then this limit is including CLOB and BLOB data, 
+    When using the feature "h2.lobInDatabase" then this limit is including CLOB and BLOB data,
     otherwise this limit is excluding CLOB and BLOB data, and every CLOB or BLOB can be up to 256 GB.
 </li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32,
 the limit is 4 GB for the data. This is the limitation of the file system. The database does provide a

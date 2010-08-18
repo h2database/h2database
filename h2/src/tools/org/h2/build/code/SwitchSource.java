@@ -44,9 +44,13 @@ public class SwitchSource {
             } else if ("-version".equals(a)) {
                 version = args[++i];
             } else if (a.startsWith("-")) {
-                disable.add(a.substring(1));
+                String x = a.substring(1);
+                disable.add(x);
+                enable.remove(x);
             } else if (a.startsWith("+")) {
-                enable.add(a.substring(1));
+                String x = a.substring(1);
+                enable.add(x);
+                disable.remove(x);
             } else {
                 showUsage();
                 return;

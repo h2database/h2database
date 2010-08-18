@@ -131,8 +131,8 @@ public class RegularTable extends TableBase {
                 trace.error("Could not undo operation", e);
                 throw e2;
             }
-            DbException dbe = DbException.convert(e);
-            if (dbe.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
+            DbException de = DbException.convert(e);
+            if (de.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                 for (int j = 0; j < indexes.size(); j++) {
                     Index index = indexes.get(j);
                     if (index.getIndexType().isUnique() && index instanceof MultiVersionIndex) {
@@ -143,7 +143,7 @@ public class RegularTable extends TableBase {
                     }
                 }
             }
-            throw dbe;
+            throw de;
         }
         analyzeIfRequired(session);
     }

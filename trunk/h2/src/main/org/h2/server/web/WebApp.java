@@ -39,6 +39,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
+import org.h2.security.SHA256;
 import org.h2.tools.Backup;
 import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.ConvertTraceFile;
@@ -1270,6 +1271,11 @@ public class WebApp {
                 PreparedStatement prep = conn.prepareStatement(sql);
                 buff.append(getParameterResultSet(prep.getParameterMetaData()));
                 return buff.toString();
+            } else if (isBuiltIn(sql, "@password_hash")) {
+                sql = sql.substring("@password_hash".length()).trim();
+                String[] p = split(sql);
+                SHA256 sha = new SHA256();
+                return StringUtils.convertBytesToString(sha.getKeyPasswordHash(p[0], p[1].toCharArray()));
             } else if (isBuiltIn(sql, "@prof_start")) {
                 if (profiler != null) {
                     profiler.stopCollecting();

@@ -6,6 +6,9 @@
  */
 package org.h2.test.unit;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
@@ -27,10 +30,19 @@ public class TestSecurity extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() {
+    public void test() throws SQLException {
+        testConnectWithHash();
         testSHA();
         testAES();
         testXTEA();
+    }
+
+    private void testConnectWithHash() throws SQLException {
+        Connection conn = DriverManager.getConnection("jdbc:h2:mem:test", "sa", "sa");
+        String pwd = StringUtils.convertBytesToString(new SHA256().getKeyPasswordHash("SA", "sa".toCharArray()));
+        Connection conn2 = DriverManager.getConnection("jdbc:h2:mem:test;PASSWORD_HASH=TRUE", "sa", pwd);
+        conn.close();
+        conn2.close();
     }
 
     private void testSHA() {

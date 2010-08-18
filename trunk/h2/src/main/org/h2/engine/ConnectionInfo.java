@@ -79,7 +79,7 @@ public class ConnectionInfo implements Cloneable {
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
                 "INIT", "PASSWORD", "RECOVER", "USER", "AUTO_SERVER",
-                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE" };
+                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH" };
         for (String key : connectionTime) {
             if (SysProperties.CHECK && set.contains(key)) {
                 DbException.throwInternalError(key);
@@ -245,7 +245,7 @@ public class ConnectionInfo implements Cloneable {
      */
     private void convertPasswords() {
         char[] password = removePassword();
-        SHA256 sha = new SHA256();
+        boolean passwordHash = removeProperty("PASSWORD_HASH", false);
         if (getProperty("CIPHER", null) != null) {
             // split password into (filePassword+' '+userPassword)
             int space = -1;
@@ -264,9 +264,18 @@ public class ConnectionInfo implements Cloneable {
             System.arraycopy(password, 0, filePassword, 0, space);
             Arrays.fill(password, (char) 0);
             password = np;
-            filePasswordHash = sha.getKeyPasswordHash("file", filePassword);
+            filePasswordHash = hashPassword(passwordHash, "file", filePassword);
         }
-        userPasswordHash = sha.getKeyPasswordHash(user, password);
+        userPasswordHash = hashPassword(passwordHash, user, password);
+    }
+
+    private byte[] hashPassword(boolean passwordHash, String userName, char[] password) {
+        if (passwordHash) {
+            return StringUtils.convertStringToBytes(new String(password));
+        } else {
+            SHA256 sha = new SHA256();
+            return sha.getKeyPasswordHash(userName, password);
+        }
     }
 
     /**

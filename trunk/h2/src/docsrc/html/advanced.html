@@ -52,6 +52,10 @@ Advanced
     File Locking Protocols</a><br />
 <a href="#file_locking_serialized">
     File Locking Method 'Serialized'</a><br />
+<a href="#passwords">
+    Using Passwords</a><br />
+<a href="#password_hash">
+    Password Hash</a><br />
 <a href="#sql_injection">
     Protection against SQL Injection</a><br />
 <a href="#remote_access">
@@ -895,6 +899,106 @@ To enable this feature, append <code>;FILE_LOCK=SERIALIZED</code> to the databas
 <p>
 This feature is relatively new. When using it for production, please ensure
 your use case is well tested (if possible with automated test cases).
+</p>
+
+<h2 id="passwords">Using Passwords</h2>
+
+<h3>Using Secure Passwords</h3>
+<p>
+Remember that weak passwords can be broken regardless of the encryption and security protocols.
+Don't use passwords that can be found in a dictionary. Appending numbers does not make passwords
+secure. A way to create good passwords that can be remembered is: take the first
+letters of a sentence, use upper and lower case characters, and creatively include special characters
+(but it's more important to use a long password than to use special characters).
+Example:
+</p><p>
+<code>i'sE2rtPiUKtT</code> from the sentence <code>it's easy to remember this password if you know the trick</code>.
+</p>
+
+<h3>Passwords: Using Char Arrays instead of Strings</h3>
+<p>
+Java strings are immutable objects and cannot be safely 'destroyed' by the application.
+After creating a string, it will remain in the main memory of the computer at least
+until it is garbage collected. The garbage collection cannot be controlled by the application,
+and even if it is garbage collected the data may still remain in memory.
+It might also be possible that the part of memory containing the password
+is swapped to disk (if not enough main memory is available), which is
+a problem if the attacker has access to the swap file of the operating system.
+</p><p>
+It is a good idea to use char arrays instead of strings for passwords.
+Char arrays can be cleared (filled with zeros) after use, and therefore the
+password will not be stored in the swap file.
+</p><p>
+This database supports using char arrays instead of string to pass user and file passwords.
+The following code can be used to do that:
+</p>
+<pre>
+import java.sql.*;
+import java.util.*;
+public class Test {
+    public static void main(String[] args) throws Exception {
+        Class.forName("org.h2.Driver");
+        String url = "jdbc:h2:~/test";
+        Properties prop = new Properties();
+        prop.setProperty("user", "sa");
+        System.out.print("Password?");
+        char[] password = System.console().readPassword();
+        prop.put("password", password);
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url, prop);
+        } finally {
+            Arrays.fill(password, (char) 0);
+        }
+        conn.close();
+    }
+}
+</pre>
+<p>
+This example requires Java 1.6.
+When using Swing, use <code>javax.swing.JPasswordField</code>.
+</p>
+
+<h3>Passing the User Name and/or Password in the URL</h3>
+<p>
+Instead of passing the user name as a separate parameter as in
+<code>
+Connection conn = DriverManager.
+    getConnection("jdbc:h2:~/test", "sa", "123");
+</code>
+the user name (and/or password) can be supplied in the URL itself:
+<code>
+Connection conn = DriverManager.
+    getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");
+</code>
+The settings in the URL override the settings passed as a separate parameter.
+</p>
+
+<h2 id="password_hash">Password Hash</h2>
+<p>
+Sometimes the database password needs to be stored in a configuration file
+(for example in the <code>web.xml</code> file).
+In addition to connecting with the plain text password,
+this database supports connecting with the password hash.
+This means that only the hash of the password (and not the plain text password) 
+needs to be stored in the configuration file.
+This will only protect others from reading or re-constructing the plain text password 
+(even if they have access to the configuration file); 
+it does not protect others from accessing the database using the password hash.
+</p>
+<p>
+To connect using the password hash instead of plain text password, append
+<code>;PASSWORD_HASH=TRUE</code> to the database URL, and replace
+the password with the password hash. To calculate the password hash from a plain text password,
+run the following command within the H2 Console tool:
+<code>@password_hash &lt;upperCaseUserName&gt; &lt;password&gt;</code>.
+As an example, if the user name is <code>sa</code> and the password is
+<code>test</code>, run the command 
+<code>@password_hash SA test</code>.
+Then use the resulting password hash as you would use the plain text password.
+When using an encrypted database, then the user password and file password
+need to be hashed separately. To calculate the hash of the file password, run:
+<code>@password_hash file &lt;filePassword&gt;</code>.
 </p>
 
 <h2 id="sql_injection">Protection against SQL Injection</h2>

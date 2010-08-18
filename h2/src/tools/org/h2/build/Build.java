@@ -105,7 +105,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/emma-2.0.5312.jar" +
             File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
             File.pathSeparator + "ext/servlet-api-2.4.jar" +
-            File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
+            File.pathSeparator + "ext/" + getLuceneJar() +
             File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.5.0.jar";
         exec("java", args("-Xmx128m", "-cp", cp, "emma", "run",
@@ -127,6 +127,9 @@ public class Build extends BuildBase {
             } else {
                 SwitchSource.main("-dir", "src", "-version", version);
             }
+            if (System.getProperty("lucene") != null) {
+                SwitchSource.main("-dir", "src", "-LUCENE2", "-LUCENE3", "+LUCENE" + getLuceneVersion());
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -139,7 +142,7 @@ public class Build extends BuildBase {
         download();
         String classpath = "temp" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
-                File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
+                File.pathSeparator + "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
                 File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
@@ -218,9 +221,15 @@ public class Build extends BuildBase {
         download("ext/servlet-api-2.4.jar",
                 "http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar",
                 "3fc542fe8bb8164e8d3e840fe7403bc0518053c0");
-        download("ext/lucene-core-2.2.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar",
-                "47b6eee2e17bd68911e7045896a1c09de0b2dda8");
+        if (getLuceneVersion() == 3) {
+            download("ext/lucene-core-3.0.2.jar",
+                    "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/3.0.2/lucene-core-3.0.2.jar",
+                    "c2b48995ab855c1b9ea13867a0f976c994e0105d");
+        } else {
+            download("ext/lucene-core-2.2.0.jar",
+                    "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar",
+                    "47b6eee2e17bd68911e7045896a1c09de0b2dda8");
+        }
         download("ext/slf4j-api-1.5.0.jar",
                 "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.5.0/slf4j-api-1.5.0.jar",
                 "b2df265d02350ecfe87b6c1773c7c4fab2b33505");
@@ -238,6 +247,14 @@ public class Build extends BuildBase {
 
     private String getVersion() {
         return getStaticValue("org.h2.engine.Constants", "getVersion");
+    }
+
+    private String getLuceneJar() {
+        return "lucene-core-" + (getLuceneVersion() == 2 ? "2.2.0" : "3.0.2") + ".jar";
+    }
+
+    private int getLuceneVersion() {
+        return Integer.parseInt(System.getProperty("lucene", "2"));
     }
 
     private String getJarSuffix() {
@@ -382,7 +399,7 @@ public class Build extends BuildBase {
         mkdir("docs/javadoc");
         javadoc("-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
                 "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
-                "-classpath", "ext/lucene-core-2.2.0.jar",
+                "-classpath", "ext/" + getLuceneJar(),
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");
         copy("docs/javadoc", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
@@ -402,7 +419,7 @@ public class Build extends BuildBase {
                 "/../lib/tools.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
-                File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
+                File.pathSeparator + "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
@@ -412,7 +429,7 @@ public class Build extends BuildBase {
                 "-classpath", System.getProperty("java.home") + "/../lib/tools.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
-                File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
+                File.pathSeparator + "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",

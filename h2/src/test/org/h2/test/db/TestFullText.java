@@ -24,6 +24,11 @@ import org.h2.test.TestBase;
 public class TestFullText extends TestBase {
 
     /**
+     * The words used in this test.
+     */
+    static final String[] KNOWN_WORDS = { "skiing", "balance", "storage", "water", "train" };
+
+    /**
      * Run just this test.
      *
      * @param a ignored
@@ -38,7 +43,8 @@ public class TestFullText extends TestBase {
         if (config.memory) {
             return;
         }
-        testMultiThreaded();
+        testMultiThreaded(true);
+        testMultiThreaded(false);
         testStreamLob();
         test(false, "VARCHAR");
         test(false, "CLOB");
@@ -79,6 +85,8 @@ public class TestFullText extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        assertTrue(rs.next());
         stat.execute("UPDATE TEST SET NAME=NULL WHERE ID=1");
         stat.execute("UPDATE TEST SET NAME='Hello World' WHERE ID=1");
         conn.setAutoCommit(false);
@@ -87,7 +95,7 @@ public class TestFullText extends TestBase {
         conn.close();
         conn = getConnection("fullTextTransaction");
         stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
         assertTrue(rs.next());
         rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Moon', 0, 0)");
         assertFalse(rs.next());
@@ -97,7 +105,9 @@ public class TestFullText extends TestBase {
         FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullTextTransaction", false);
     }
 
-    private void testMultiThreaded() throws Exception {
+    private void testMultiThreaded(boolean lucene) throws Exception {
+        final String prefix = lucene ? "FTL" : "FT";
+        trace("Testing multithreaded " + prefix);
         deleteDb("fullText");
         final boolean[] stop = { false };
         final Exception[] exception = { null };
@@ -108,49 +118,67 @@ public class TestFullText extends TestBase {
             // getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
             final Connection conn = getConnection("fullText");
             Statement stat = conn.createStatement();
-            stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
-            stat.execute("CALL FT_INIT()");
-            stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
-            stat.execute("CALL FT_INIT()");
+            String className = lucene ? "FullTextLucene" : "FullText";
+            stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
+            stat.execute("CALL " + prefix + "_INIT()");
+            stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
+            stat.execute("CALL " + prefix + "_INIT()");
             final String tableName = "TEST" + i;
             stat.execute("CREATE TABLE " + tableName + "(ID INT PRIMARY KEY, DATA VARCHAR)");
-            FullText.createIndex(conn, "PUBLIC", tableName, null);
+            stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', '" + tableName + "', NULL)");
             threads[i] = new Thread() {
                 public void run() {
+                    trace("starting thread " + Thread.currentThread());
                     try {
                         PreparedStatement prep = conn.prepareStatement("INSERT INTO " + tableName + " VALUES(?, ?)");
+                        Statement stat = conn.createStatement();
                         Random random = new Random();
                         int x = 0;
                         while (!stop[0]) {
+                            trace("stop[0] = " + stop[0] + " for " + Thread.currentThread());
                             StringBuilder buff = new StringBuilder();
                             for (int j = 0; j < 1000; j++) {
-                                buff.append(" " + random.nextInt(10000));
-                                buff.append(" x" + j);
+                                buff.append(" ").append(random.nextInt(10000));
+                                buff.append(" x").append(j);
+                                buff.append(" ").append(KNOWN_WORDS[j % KNOWN_WORDS.length]);
                             }
                             prep.setInt(1, x);
                             prep.setString(2, buff.toString());
                             prep.execute();
                             x++;
+                            for (String knownWord : KNOWN_WORDS) {
+                                trace("searching for " + knownWord + " with " + Thread.currentThread());
+                                ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('" + knownWord + "', 0, 0)");
+                                assertTrue(rs.next());
+                            }
                         }
+                        trace("closing connection");
                         conn.close();
                     } catch (SQLException e) {
                         exception[0] = e;
+                    } finally {
+                        trace("completed thread " + Thread.currentThread());
                     }
                 }
             };
         }
         for (Thread t : threads) {
+            t.setDaemon(true);
             t.start();
         }
+        trace("sleeping");
         Thread.sleep(1000);
+
+        trace("setting stop to true");
         stop[0] = true;
         for (Thread t : threads) {
+            trace("joining " + t);
             t.join();
+            trace("done joining " + t);
         }
         if (exception[0] != null) {
             throw exception[0];
         }
-
     }
 
     private void testStreamLob() throws SQLException {
@@ -374,8 +402,6 @@ public class TestFullText extends TestBase {
         stat = conn.createStatement();
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0)");
 
-        stat.execute("CALL " + prefix + "DROP_ALL()");
-        stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 2, 1)");
         stat.execute("CALL " + prefix + "DROP_ALL()");
 
         conn.close();

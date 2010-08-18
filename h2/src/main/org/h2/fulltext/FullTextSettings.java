@@ -49,7 +49,7 @@ public class FullTextSettings {
     /**
      * The prepared statement cache.
      */
-    protected SoftHashMap<String, PreparedStatement> cache = new SoftHashMap<String, PreparedStatement>();
+    protected SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache = new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
 
     /**
      * Create a new instance.
@@ -153,13 +153,18 @@ public class FullTextSettings {
      * @return the prepared statement
      */
     protected synchronized PreparedStatement prepare(Connection conn, String sql) throws SQLException {
-        PreparedStatement prep = cache.get(sql);
+        SoftHashMap<String, PreparedStatement> c = cache.get(conn);
+        if (c == null) {
+            c = new SoftHashMap<String, PreparedStatement>();
+            cache.put(conn, c);
+        }
+        PreparedStatement prep = c.get(sql);
         if (prep != null && prep.getConnection().isClosed()) {
             prep = null;
         }
         if (prep == null) {
             prep = conn.prepareStatement(sql);
-            cache.put(sql, prep);
+            c.put(sql, prep);
         }
         return prep;
     }

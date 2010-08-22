@@ -244,7 +244,7 @@ public class AES implements BlockCipher {
     }
 
     public int getKeyLength() {
-        return 4 * 4;
+        return 16;
     }
 
 }

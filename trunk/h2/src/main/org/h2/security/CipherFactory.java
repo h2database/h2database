@@ -63,6 +63,8 @@ public class CipherFactory {
             return new XTEA();
         } else if ("AES".equalsIgnoreCase(algorithm)) {
             return new AES();
+        } else if ("FOG".equalsIgnoreCase(algorithm)) {
+            return new Fog();
         }
         throw DbException.get(ErrorCode.UNSUPPORTED_CIPHER, algorithm);
     }

@@ -50,4 +50,5 @@ public interface BlockCipher {
      * @return the length of the key
      */
     int getKeyLength();
+
 }

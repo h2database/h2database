@@ -376,7 +376,7 @@ SET IGNORECASE { TRUE | FALSE }
 If IGNORECASE is enabled, text columns in newly created tables will be
 case-insensitive."
 "Commands (Other)","SET LOG","
-SET LOCK_MODE int
+SET LOG int
 ","
 Sets the transaction log mode."
 "Commands (Other)","SET LOCK_MODE","
@@ -819,39 +819,39 @@ The sample variance (square of the sample standard deviation)."
 "Functions (Numeric)","ABS","
 ABS ( { int | long | decimal | double } )
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","ACOS","
 ACOS(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","ASIN","
 ASIN(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","ATAN","
 ATAN(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","COS","
 COS(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","COT","
 COT(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","SIN","
 SIN(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","TAN","
 TAN(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","ATAN2","
 ATAN2(double, double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","BITAND","
 BITAND(long, long)
 ","
@@ -871,43 +871,43 @@ The modulo operation."
 "Functions (Numeric)","CEILING","
 CEILING(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","DEGREES","
 DEGREES(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","EXP","
 EXP(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","FLOOR","
 FLOOR(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","LOG","
 LOG(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","LOG10","
 LOG10(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","RADIANS","
 RADIANS(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","SQRT","
 SQRT(double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","PI","
 PI()
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","POWER","
 POWER(double, double)
 ","
-See also Java Math."
+See also Java ""Math."
 "Functions (Numeric)","RAND","
 RAND( [ int ] )
 ","
@@ -999,7 +999,7 @@ Converts a string to the hex representation."
 "Functions (String)","INSTR","
 INSTR(string, searchString, [, startInt])
 ","
-Returns the location of a search string in a string (s)."
+Returns the location of a search string in a string."
 "Functions (String)","INSERT Function","
 INSERT(originalString, startInt, lengthInt, addString)
 ","
@@ -1091,7 +1091,7 @@ Decodes a byte array in the UTF8 format to a string."
 "Functions (String)","XMLATTR","
 XMLATTR(nameString, valueString)
 ","
-Creates an XML attribute element of the form name=""value""."
+Creates an XML attribute element of the form ""name=value""."
 "Functions (String)","XMLNODE","
 XMLNODE(elementString [, attributesString [, contentString]])
 ","
@@ -1107,7 +1107,7 @@ Creates an XML CDATA element."
 "Functions (String)","XMLSTARTDOC","
 XMLSTARTDOC()
 ","
-The string '<?xml version=""1."
+The string ""<?xml version='1."
 "Functions (String)","XMLTEXT","
 XMLTEXT(valueString)
 ","

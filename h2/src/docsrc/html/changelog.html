@@ -18,7 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Password hash: in addition to connecting with the plain text password,
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.141 (2010-08-22)</h2>
+<ul><li>New experimental pseudo-encryption algorithm "FOG".
+    It makes the data appear to be encrypted. This algorithm is cryptographically extremely weak, 
+    and should only be used to hide data from reading the plain text using a text editor.
+    Please let us know if you think this is useful or not.
+</li><li>Documentation: the grammar and function documentation can now be easier translated.
+</li><li>Password hash: in addition to connecting with the plain text password,
     H2 now supports connecting with the password hash.
     Like this you don't have to store plain text passwords in config files.
     For details, see the documentation at Advanced / Password Hash.

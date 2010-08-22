@@ -151,6 +151,7 @@ public class GenerateDoc {
                     // text is enclosed in <p> .. </p> so this works.
                     text = StringUtils.replaceAll(text, "<br /><br />", "</p><p>");
                     text = StringUtils.replaceAll(text, "<br />", " ");
+                    text = addCode(text);
                     map.put("text", text);
                 }
 
@@ -173,5 +174,57 @@ public class GenerateDoc {
             JdbcUtils.closeSilently(rs);
             JdbcUtils.closeSilently(stat);
         }
+    }
+
+    private String addCode(String text) {
+        text = StringUtils.replaceAll(text, "&quot;", "\"");
+        StringBuilder buff = new StringBuilder(text.length());
+        int len = text.length();
+        boolean code = false, codeQuoted = false;
+        for (int i = 0; i < len; i++) {
+            char c = text.charAt(i);
+            if (i < len - 1) {
+                char next = text.charAt(i+1);
+                if (!code && !codeQuoted) {
+                    if (Character.isUpperCase(c) && Character.isUpperCase(next)) {
+                        buff.append("<code>");
+                        code = true;
+                    } else if (c == '\"' && (i == 0 || text.charAt(i - 1) != '\\')) {
+                        buff.append("<code>");
+                        codeQuoted = true;
+                        continue;
+                    }
+                }
+            }
+            if (code) {
+                if (!Character.isLetterOrDigit(c) && "_.".indexOf(c) < 0) {
+                    buff.append("</code>");
+                    code = false;
+                }
+            } else if (codeQuoted && c == '\"') {
+                buff.append("</code>");
+                codeQuoted = false;
+                continue;
+            }
+            buff.append(c);
+        }
+        if (code) {
+            buff.append("</code>");
+        }
+        String s = buff.toString();
+        s = StringUtils.replaceAll(s, "</code>, <code>", ", ");
+        s = StringUtils.replaceAll(s, ".</code>", "</code>.");
+        s = StringUtils.replaceAll(s, ",</code>", "</code>.");
+        s = StringUtils.replaceAll(s, " @<code>", " <code>@");
+        s = StringUtils.replaceAll(s, "</code> <code>", " ");
+        s = StringUtils.replaceAll(s, "<code>SQL</code>", "SQL");
+        s = StringUtils.replaceAll(s, "<code>XML</code>", "XML");
+        s = StringUtils.replaceAll(s, "<code>URL</code>", "URL");
+        s = StringUtils.replaceAll(s, "<code>URLs</code>", "URLs");
+        s = StringUtils.replaceAll(s, "<code>HTML</code>", "HTML");
+        s = StringUtils.replaceAll(s, "<code>KB</code>", "KB");
+        s = StringUtils.replaceAll(s, "<code>MB</code>", "MB");
+        s = StringUtils.replaceAll(s, "<code>GB</code>", "GB");
+        return s;
     }
 }

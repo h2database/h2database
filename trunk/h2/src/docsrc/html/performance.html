@@ -452,7 +452,8 @@ then the data of the table is organized in this way. This is sometimes also call
 H2 internally stores table data and indexes in the form of b-trees.
 Each b-tree stores entries as a list of unique keys (one or more columns) and data (zero or more columns).
 The table data is always organized in the form of a "data b-tree" with a single column key of type <code>long</code>.
-If a single column primary key of type <code>BIGINT, INT, SMALLINT, TINYINT</code> is specified when creating the table,
+If a single column primary key of type <code>BIGINT, INT, SMALLINT, TINYINT</code> is specified when creating the table
+(or just after creating the table, but before inserting any rows),
 then this column is used as the key of the data b-tree.
 If no primary key has been specified, if the primary key column is of another data type,
 or if the primary key contains more than one column,

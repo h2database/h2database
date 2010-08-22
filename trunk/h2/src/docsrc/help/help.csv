@@ -21,7 +21,7 @@ LIMIT limits the number of rows returned by the query, OFFSET specified
 how many rows to skip. SAMPLE_SIZE limits the number of rows read for
 aggregate queries.
 
-Multiple set operators (UNION/INTERSECT/MINUS/EXPECT) are evaluated
+Multiple set operators (UNION, INTERSECT, MINUS, EXPECT) are evaluated
 from left to right. For compatibility with other databases and future versions
 of H2 please use parentheses.
 
@@ -386,7 +386,7 @@ CREATE AGGREGATE [ IF NOT EXISTS ] newAggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
-org.h2.api.AggregateFunction.
+""org.h2.api.AggregateFunction"".
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
@@ -403,22 +403,22 @@ same value for the same parameters. The result of such functions is cached if po
 
 The method name must be the full qualified class and method name,
 and may optionally include the parameter classes as in
-""java.lang.Integer.parseInt(java.lang.String, int)""). The class and the method
+""java.lang.Integer.parseInt(java.lang.String, int)"". The class and the method
 must both be public, and the method must be static. The class must be available
 in the classpath of the database engine (when using the server mode,
 it must be in the classpath of the server).
 
-When defining a function alias with source code, the Sun javac is compiler
-is used if the tools.jar is in the classpath. If not, javac is run as a separate process.
+When defining a function alias with source code, the Sun ""javac"" is compiler
+is used if the file ""tools.jar"" is in the classpath. If not, ""javac"" is run as a separate process.
 Only the source code is stored in the database; the class is compiled each time
 the database is re-opened. Source code is usually passed
 as dollar quoted text to avoid escaping problems. If import statements are used,
 then the tag @CODE must be added before the method.
 
-If the method throws a SQLException, it is directly re-thrown to the calling application;
+If the method throws an SQLException, it is directly re-thrown to the calling application;
 all other exceptions are first converted to a SQLException.
 
-If the first parameter of the Java function is a java.sql.Connection, then a
+If the first parameter of the Java function is a ""java.sql.Connection"", then a
 connection to the database is provided. This connection must not be closed.
 If the class contains multiple methods with the given name but different
 parameter count, all methods are mapped.
@@ -490,11 +490,11 @@ rollback), however in this case multi-row unique key updates may not always
 work. Linked tables to the same database share one connection.
 
 If a query is used instead of the original table name, the table is read only.
-Queries must be enclosed in parenthesis: (SELECT * FROM ORDERS).
+Queries must be enclosed in parenthesis: ""(SELECT * FROM ORDERS)"".
 
 To use JNDI to get the connection, the driver class must be a
-javax.naming.Context (for example javax.naming.InitialContext), and the URL must
-be the resource name (for example java:comp/env/jdbc/Test).
+javax.naming.Context (for example ""javax.naming.InitialContext""), and the URL must
+be the resource name (for example ""java:comp/env/jdbc/Test"").
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
@@ -561,10 +561,10 @@ Temporary tables can be global (accessible by all connections)
 or local (only accessible by the current connection).
 The default for temporary tables is global.
 Indexes of temporary tables are kept fully in main memory,
-unless the temporary table is created using CREATE CACHED ... TABLE.
+unless the temporary table is created using CREATE CACHED TABLE.
 
 The ENGINE option is only required when custom table implementations are used.
-The table engine class must implement the interface org.h2.api.TableEngine.
+The table engine class must implement the interface ""org.h2.api.TableEngine"".
 
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.
@@ -584,15 +584,15 @@ Creates a new trigger. The trigger class must be public. Inner classes are not s
 The class must be available in the classpath of the
 database engine (when using the server mode, it must be in the classpath of the server).
 
-'BEFORE' triggers are called after data conversion is made, default values are set,
+BEFORE triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;
 but before other constraints have been checked.
 If there are multiple triggers, the order in which they are called is undefined.
 
-Only row based 'AFTER' trigger can be called on rollback.
+Only row based AFTER trigger can be called on rollback.
 Exceptions that occur within such triggers are ignored.
 
-'INSTEAD OF' triggers are implicitly row based and behave like 'BEFORE' triggers.
+INSTEAD OF triggers are implicitly row based and behave like BEFORE triggers.
 Only the first such trigger is called. Such triggers on views are supported.
 
 The MERGE statement will call both INSERT and UPDATE triggers.
@@ -944,7 +944,7 @@ See also CREATE CONSTANT.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.
-This setting can be appended to the database URL: jdbc:h2:test;ALLOW_LITERALS=NONE
+This setting can be appended to the database URL: ""jdbc:h2:test;ALLOW_LITERALS=NONE""
 ","
 SET ALLOW_LITERALS NONE
 "
@@ -953,7 +953,7 @@ SET ALLOW_LITERALS NONE
 SET AUTOCOMMIT { TRUE | ON | FALSE | OFF }
 ","
 Switches auto commit on or off.
-This setting can be appended to the database URL: jdbc:h2:test;AUTOCOMMIT=OFF -
+This setting can be appended to the database URL: ""jdbc:h2:test;AUTOCOMMIT=OFF"" -
 however this will not work as expected when using a connection pool
 (the connection pool manager will re-enable autocommit when returning
 the connection to the pool, so autocommit will only be disabled the first
@@ -976,7 +976,7 @@ It has no effect for in-memory databases.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.
-This setting can be appended to the database URL: jdbc:h2:test;CACHE_SIZE=8192
+This setting can be appended to the database URL: ""jdbc:h2:test;CACHE_SIZE=8192""
 ","
 SET CACHE_SIZE 8192
 "
@@ -1001,7 +1001,7 @@ SET [ DATABASE ] COLLATION
 { OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }
 ","
 Sets the collation used for comparing strings. This command can only be executed
-if there are no tables defined. See java.text.Collator for details about
+if there are no tables defined. See ""java.text.Collator"" for details about
 STRENGTH.
 
 Admin rights are required to execute this command.
@@ -1032,7 +1032,7 @@ used. This setting is not persistent.
 
 Admin rights are required to execute this command, except if it is set when
 opening the database (in this case it is reset just after opening the database).
-This setting can be appended to the database URL: jdbc:h2:test;DATABASE_EVENT_LISTENER='sample.MyListener'
+This setting can be appended to the database URL: ""jdbc:h2:test;DATABASE_EVENT_LISTENER='sample.MyListener'""
 ","
 SET DATABASE_EVENT_LISTENER 'sample.MyListener'
 "
@@ -1052,7 +1052,7 @@ closed immediately, even if a delay is set.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.
-This setting can be appended to the database URL: jdbc:h2:test;DB_CLOSE_DELAY=-1
+This setting can be appended to the database URL: ""jdbc:h2:test;DB_CLOSE_DELAY=-1""
 ","
 SET DB_CLOSE_DELAY -1
 "
@@ -1121,28 +1121,28 @@ SET IGNORECASE TRUE
 "
 
 "Commands (Other)","SET LOG","
-SET LOCK_MODE int
+SET LOG int
 ","
 Sets the transaction log mode. The values 0, 1, and 2 are supported, the default is 2.
 This setting affects all connections.
 
-LOG=0 means the transaction log is disabled completely. It is the fastest mode,
+LOG 0 means the transaction log is disabled completely. It is the fastest mode,
 but also the most dangerous: if the process is killed while the database is open in this mode,
 the data might be lost. It must only be used if this is not a problem, for example when
 initially loading a database, or when running tests.
 
-LOG=1 means the transaction log is enabled, but FileDescriptor.sync is disabled.
-This setting is about half as fast as with LOG=0. This setting is useful if no protection
+LOG 1 means the transaction log is enabled, but FileDescriptor.sync is disabled.
+This setting is about half as fast as with LOG 0. This setting is useful if no protection
 against power failure is required, but the data must be protected against killing the process.
 
-LOG=2 (the default) means the transaction log is enabled, and FileDescriptor.sync is called
-for each checkpoint. This setting is about half as fast as LOG=1. Depending on the
+LOG 2 (the default) means the transaction log is enabled, and FileDescriptor.sync is called
+for each checkpoint. This setting is about half as fast as LOG 1. Depending on the
 file system, this will also protect against power failure in the majority if cases.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is not persistent.
-This setting can be appended to the database URL: jdbc:h2:test;LOG=0
+This setting can be appended to the database URL: ""jdbc:h2:test;LOG=0""
 ","
 SET LOG 1
 "
@@ -1168,7 +1168,7 @@ The value 3 means table level locking, but read locks are released immediately
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.
-This setting can be appended to the database URL: jdbc:h2:test;LOCK_MODE=3
+This setting can be appended to the database URL: ""jdbc:h2:test;LOCK_MODE=3""
 ","
 SET LOCK_MODE 1
 "
@@ -1180,7 +1180,7 @@ Sets the lock timeout (in milliseconds) for the current session. The default
 value for this setting is 1000 (one second).
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: jdbc:h2:test;LOCK_TIMEOUT=10000
+This setting can be appended to the database URL: ""jdbc:h2:test;LOCK_TIMEOUT=10000""
 ","
 SET LOCK_TIMEOUT 1000
 "
@@ -1251,7 +1251,7 @@ operation. The default max size is 100000. 0 means no limit.
 
 This setting is not persistent.
 Admin rights are required to execute this command.
-This setting can be appended to the database URL: jdbc:h2:test;MAX_OPERATION_MEMORY=10000
+This setting can be appended to the database URL: ""jdbc:h2:test;MAX_OPERATION_MEMORY=10000""
 ","
 SET MAX_OPERATION_MEMORY 0
 "
@@ -1265,7 +1265,7 @@ Modes in the feature section.
 This setting is not persistent.
 Admin rights are required to execute this command.
 This command commits an open transaction.
-This setting can be appended to the database URL: jdbc:h2:test;MODE=MYSQL
+This setting can be appended to the database URL: ""jdbc:h2:test;MODE=MYSQL""
 ","
 SET MODE HSQLDB
 "
@@ -1282,7 +1282,7 @@ This setting is not persistent, however the value is kept until the virtual mach
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
-This setting can be appended to the database URL: jdbc:h2:test;MULTI_THREADED=1
+This setting can be appended to the database URL: ""jdbc:h2:test;MULTI_THREADED=1""
 ","
 SET MULTI_THREADED 1
 "
@@ -1296,7 +1296,7 @@ the tables was changed. This option is enabled by default.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
-This setting can be appended to the database URL: jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0
+This setting can be appended to the database URL: ""jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0""
 ","
 SET OPTIMIZE_REUSE_RESULTS 0
 "
@@ -1357,7 +1357,7 @@ in statements where no schema is set explicitly. The default schema for new
 connections is PUBLIC.
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: jdbc:h2:test;SCHEMA=ABC
+This setting can be appended to the database URL: ""jdbc:h2:test;SCHEMA=ABC""
 ","
 SET SCHEMA INFORMATION_SCHEMA
 "
@@ -1370,7 +1370,7 @@ used in statements where no schema is set explicitly. The default schema for new
 connections is PUBLIC.
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: jdbc:h2:test;SCHEMA_SEARCH_PATH=ABC,DEF
+This setting can be appended to the database URL: ""jdbc:h2:test;SCHEMA_SEARCH_PATH=ABC,DEF""
 ","
 SET SCHEMA_SEARCH_PATH INFORMATION_SCHEMA, PUBLIC
 "
@@ -1383,7 +1383,7 @@ milliseconds delay after each 50 ms. The default value is 0 (throttling
 disabled).
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: jdbc:h2:test;THROTTLE=50
+This setting can be appended to the database URL: ""jdbc:h2:test;THROTTLE=50""
 ","
 SET THROTTLE 200
 "
@@ -1393,12 +1393,12 @@ SET { TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT } int
 ","
 Sets the trace level for file the file or system out stream. Levels are: 0=off,
 1=error, 2=info, 3=debug. The default level is 1 for file and 0 for system out.
-To use SLF4J, append ;TRACE_LEVEL_FILE=4 to the database URL when opening the database.
+To use SLF4J, append "";TRACE_LEVEL_FILE=4"" to the database URL when opening the database.
 
 This setting is not persistent.
 Admin rights are required to execute this command.
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3
+This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3""
 ","
 SET TRACE_LEVEL_SYSTEM_OUT 3
 "
@@ -1413,7 +1413,7 @@ deleted. The default max size is 16 MB.
 This setting is persistent.
 Admin rights are required to execute this command.
 This command commits an open transaction.
-This setting can be appended to the database URL: jdbc:h2:test;TRACE_MAX_FILE_SIZE=3
+This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_MAX_FILE_SIZE=3""
 ","
 SET TRACE_MAX_FILE_SIZE 10
 "
@@ -1438,7 +1438,7 @@ This setting is persistent. The default is 500 ms.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
-This setting can be appended to the database URL: jdbc:h2:test;WRITE_DELAY=0
+This setting can be appended to the database URL: ""jdbc:h2:test;WRITE_DELAY=0""
 ","
 SET WRITE_DELAY 2000
 "
@@ -1455,7 +1455,7 @@ All connections are closed, open transactions are rolled back.
 
 SHUTDOWN COMPACT fully compacts the database (re-creating the database may further reduce the database size).
 If the database is closed normally (using SHUTDOWN or by closing all connections), then the database is also compacted,
-but only for at most the time defined by the system property h2.maxCompactTime (see there).
+but only for at most the time defined by the system property ""h2.maxCompactTime"" (see there).
 
 SHUTDOWN IMMEDIATELY closes the database files without any cleanup and without compacting.
 
@@ -1600,7 +1600,7 @@ Each character that follows the escape character in the pattern needs to match e
 Patterns that end with an escape character are invalid and the expression returns NULL.
 
 When comparing with REGEXP, regular expression matching is used.
-See Java Matcher.find for details.
+See Java ""Matcher.find"" for details.
 ","
 LIKE 'Jo%'
 "
@@ -1648,7 +1648,7 @@ INT
 DATE 'yyyy-MM-dd'
 ","
 A date literal. The limitations are the same as for the Java data type
-java.sql.Date, but for compatibility with other databases the suggested minimum
+""java.sql.Date"", but for compatibility with other databases the suggested minimum
 and maximum years are 0001 and 9999.
 ","
 DATE '2004-12-31'
@@ -1868,7 +1868,7 @@ value
     | caseWhen
     | tableAlias.columnName
 ","
-A value. Parameters can be indexed, for example ?1 meaning the first parameter.
+A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
 ","
 'Hello'
 "
@@ -1885,7 +1885,7 @@ TIME '23:59:59'
 TIMESTAMP 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
 ","
 A timestamp literal. The limitations are the same as for the Java data type
-java.sql.Timestamp, but for compatibility with other databases the suggested
+""java.sql.Timestamp"", but for compatibility with other databases the suggested
 minimum and maximum years are 0001 and 9999.
 ","
 TIMESTAMP '2005-12-31 23:59:59'
@@ -1905,7 +1905,7 @@ INT | INTEGER | MEDIUMINT | INT4 | SIGNED
 ","
 Possible values: -2147483648 to 2147483647.
 
-Mapped to java.lang.Integer.
+Mapped to ""java.lang.Integer"".
 ","
 INT
 "
@@ -1915,7 +1915,7 @@ BOOLEAN | BIT | BOOL
 ","
 Possible values: TRUE and FALSE.
 
-Mapped to java.lang.Boolean.
+Mapped to ""java.lang.Boolean"".
 ","
 BOOLEAN
 "
@@ -1925,7 +1925,7 @@ TINYINT
 ","
 Possible values are: -128 to 127.
 
-Mapped to java.lang.Byte.
+Mapped to ""java.lang.Byte"".
 ","
 TINYINT
 "
@@ -1935,7 +1935,7 @@ SMALLINT | INT2 | YEAR
 ","
 Possible values: -32768 to 32767.
 
-Mapped to java.lang.Short.
+Mapped to ""java.lang.Short"".
 ","
 SMALLINT
 "
@@ -1945,7 +1945,7 @@ BIGINT | INT8
 ","
 Possible values: -9223372036854775808 to 9223372036854775807.
 
-Mapped to java.lang.Long.
+Mapped to ""java.lang.Long"".
 ","
 BIGINT
 "
@@ -1957,7 +1957,7 @@ Auto-Increment value. Possible values: -9223372036854775808 to
 9223372036854775807. Used values are never re-used, even when the transaction is
 rolled back.
 
-Mapped to java.lang.Long.
+Mapped to ""java.lang.Long"".
 ","
 IDENTITY
 "
@@ -1968,7 +1968,7 @@ IDENTITY
 Data type with fixed precision and scale. This data type is recommended for
 storing currency values.
 
-Mapped to java.math.BigDecimal.
+Mapped to ""java.math.BigDecimal"".
 ","
 DECIMAL(20, 2)
 "
@@ -1979,7 +1979,7 @@ DECIMAL(20, 2)
 Floating point number. Should not be used to represent currency values, because
 of rounding problems.
 
-Mapped to java.lang.Double.
+Mapped to ""java.lang.Double"".
 ","
 DOUBLE
 "
@@ -1990,7 +1990,7 @@ REAL
 Single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
 
-Mapped to java.lang.Float.
+Mapped to ""java.lang.Float"".
 ","
 REAL
 "
@@ -2000,7 +2000,7 @@ TIME
 ","
 The format is hh:mm:ss.
 
-Mapped to java.sql.Time. When converted to a java.sql.Date, the date is set to 1970-01-01.
+Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ","
 TIME
 "
@@ -2010,7 +2010,7 @@ DATE
 ","
 The format is yyyy-MM-dd.
 
-Mapped to java.sql.Date, with the time set to 00:00:00
+Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 (or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
 ","
 DATE
@@ -2021,7 +2021,7 @@ DATE
 ","
 The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
 
-Mapped to java.sql.Timestamp (java.util.Date is also supported).
+Mapped to ""java.sql.Timestamp"" (""java.util.Date"" is also supported).
 ","
 TIMESTAMP
 "
@@ -2045,11 +2045,11 @@ OTHER
 ","
 This type allows storing serialized Java objects. Internally, a byte array is
 used. Serialization and deserialization is done on the client side only.
-Deserialization is only done get getObject is called. Java operations cannot be
+Deserialization is only done get ""getObject"" is called. Java operations cannot be
 executed inside the database engine for security reasons. Use
-PreparedStatement.setObject to store values.
+""PreparedStatement.setObject"" to store values.
 
-Mapped to java.lang.Object (or any subclass).
+Mapped to ""java.lang.Object"" (or any subclass).
 ","
 OTHER
 "
@@ -2059,11 +2059,11 @@ OTHER
     | NVARCHAR2 | VARCHAR_CASESENSITIVE}  [ ( precisionInt ) ]
 ","
 Unicode String. Use two single quotes ('') to create a quote. The maximum precision
-is Integer.MAX_VALUE. The precision is a size constraint; only the actual data is
+is ""Integer.MAX_VALUE"". The precision is a size constraint; only the actual data is
 persisted. The whole text is kept in memory when using this data type. For large text data CLOB
 should be used; see there for details.
 
-Mapped to java.lang.String.
+Mapped to ""java.lang.String"".
 ","
 VARCHAR(255)
 "
@@ -2072,11 +2072,11 @@ VARCHAR(255)
 VARCHAR_IGNORECASE [ ( precisionInt ) ]
 ","
 Same as VARCHAR, but not case sensitive when comparing. Stored in mixed case.
-The maximum precision is Integer.MAX_VALUE characters, but the whole text is kept in
+The maximum precision is ""Integer.MAX_VALUE"" characters, but the whole text is kept in
 memory when using this data type. For large text data CLOB should be used;
 see there for details.
 
-Mapped to java.lang.String.
+Mapped to ""java.lang.String"".
 ","
 VARCHAR_IGNORECASE
 "
@@ -2087,11 +2087,11 @@ VARCHAR_IGNORECASE
 This type is supported for compatibility with other databases and older
 applications. The difference to VARCHAR is that trailing spaces are ignored and
 not persisted. Unicode String. Use two single quotes ('') to create a quote.
-The maximum precision is Integer.MAX_VALUE. The precision is a size constraint;
+The maximum precision is ""Integer.MAX_VALUE"". The precision is a size constraint;
 only the actual data is persisted. The whole text is kept in memory when using
 this data type. For large text data CLOB should be used; see there for details.
 
-Mapped to java.lang.String.
+Mapped to ""java.lang.String"".
 ","
 CHAR(10)
 "
@@ -2101,10 +2101,10 @@ CHAR(10)
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
 when using BINARY, large objects are not kept fully in-memory. Use
-PreparedStatement.setBinaryStream to store values. See also CLOB and
+""PreparedStatement.setBinaryStream"" to store values. See also CLOB and
 Advanced / Large Objects.
 
-Mapped to java.sql.Blob (java.io.InputStream is also supported).
+Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
 ","
 BLOB
 "
@@ -2116,13 +2116,13 @@ CLOB is like VARCHAR, but intended for very large values. Unlike when using
 VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.
 CLOB should be used for documents and texts with arbitrary size such as XML or
 HTML documents, text files, or memo fields of unlimited size. Use
-PreparedStatement.setCharacterStream to store values. See also Advanced / Large Objects.
+""PreparedStatement.setCharacterStream"" to store values. See also Advanced / Large Objects.
 
 VARCHAR should be used for text with relatively short average size (for example
 shorter than 200 characters). Short CLOB values are stored inline, but there is
 an overhead compared to VARCHAR.
 
-Mapped to java.sql.Clob (java.io.Reader is also supported).
+Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
 ","
 CLOB
 "
@@ -2131,9 +2131,9 @@ CLOB
 UUID
 ","
 Universally unique identifier. This is a 128 bit value. Use
-PreparedStatement.setBytes or setString to store values.
+""PreparedStatement.setBytes"" or ""setString"" to store values.
 
-Mapped to java.util.UUID.
+Mapped to ""java.util.UUID"".
 ","
 UUID
 "
@@ -2141,10 +2141,9 @@ UUID
 "Data Types","ARRAY Type","
 ARRAY
 ","
-An array of values. Use a value list (1, 2) or PreparedStatement.setObject(..,
-new Object[] {..}) to store values.
+An array of values. Use a value list (1, 2) or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values.
 
-Mapped to java.lang.Object[] (arrays of any non-primitive type are also supported).
+Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
 ","
 ARRAY
 "
@@ -2297,8 +2296,8 @@ VAR_SAMP(X)
 "Functions (Numeric)","ABS","
 ABS ( { int | long | decimal | double } )
 ","
-See also Java Math.abs.
-Please note that Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE and Math.abs(Long.MIN_VALUE) == Long.MIN_VALUE.
+See also Java ""Math.abs"".
+Please note that ""Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE"" and ""Math.abs(Long.MIN_VALUE) == Long.MIN_VALUE"".
 The returned value is of the same data type as the parameter.
 ","
 ABS(ID)
@@ -2307,7 +2306,7 @@ ABS(ID)
 "Functions (Numeric)","ACOS","
 ACOS(double)
 ","
-See also Java Math.* functions.
+See also Java ""Math.*"" functions.
 This method returns a double.
 ","
 ACOS(D)
@@ -2316,7 +2315,7 @@ ACOS(D)
 "Functions (Numeric)","ASIN","
 ASIN(double)
 ","
-See also Java Math.* functions.
+See also Java ""Math.*"" functions.
 This method returns a double.
 ","
 ASIN(D)
@@ -2325,7 +2324,7 @@ ASIN(D)
 "Functions (Numeric)","ATAN","
 ATAN(double)
 ","
-See also Java Math.* functions.
+See also Java ""Math.*"" functions.
 This method returns a double.
 ","
 ATAN(D)
@@ -2334,7 +2333,7 @@ ATAN(D)
 "Functions (Numeric)","COS","
 COS(double)
 ","
-See also Java Math.* functions.
+See also Java ""Math.*"" functions.
 This method returns a double.
 ","
 COS(ANGLE)
@@ -2343,7 +2342,7 @@ COS(ANGLE)
 "Functions (Numeric)","COT","
 COT(double)
 ","
-See also Java Math.* functions.
+See also Java ""Math.*"" functions.
 This method returns a double.
 ","
 COT(ANGLE)
@@ -2352,7 +2351,7 @@ COT(ANGLE)
 "Functions (Numeric)","SIN","
 SIN(double)
 ","
-See also Java Math.* functions.
+See also Java ""Math.*"" functions.
 This method returns a double.
 ","
 SIN(ANGLE)
@@ -2361,7 +2360,7 @@ SIN(ANGLE)
 "Functions (Numeric)","TAN","
 TAN(double)
 ","
-See also Java Math.* functions.
+See also Java ""Math.*"" functions.
 This method returns a double.
 ","
 TAN(ANGLE)
@@ -2370,7 +2369,7 @@ TAN(ANGLE)
 "Functions (Numeric)","ATAN2","
 ATAN2(double, double)
 ","
-See also Java Math.atan2.
+See also Java ""Math.atan2"".
 This method returns a double.
 ","
 ATAN2(X, Y)
@@ -2419,7 +2418,7 @@ MOD(A, B)
 "Functions (Numeric)","CEILING","
 CEILING(double)
 ","
-See also Java Math.ceil.
+See also Java ""Math.ceil"".
 This method returns a double.
 ","
 LOG(A)
@@ -2428,7 +2427,7 @@ LOG(A)
 "Functions (Numeric)","DEGREES","
 DEGREES(double)
 ","
-See also Java Math.toDegrees.
+See also Java ""Math.toDegrees"".
 This method returns a double.
 ","
 DEGREES(A)
@@ -2437,7 +2436,7 @@ DEGREES(A)
 "Functions (Numeric)","EXP","
 EXP(double)
 ","
-See also Java Math.exp.
+See also Java ""Math.exp"".
 This method returns a double.
 ","
 EXP(A)
@@ -2446,7 +2445,7 @@ EXP(A)
 "Functions (Numeric)","FLOOR","
 FLOOR(double)
 ","
-See also Java Math.floor.
+See also Java ""Math.floor"".
 This method returns a double.
 ","
 FLOOR(A)
@@ -2455,7 +2454,7 @@ FLOOR(A)
 "Functions (Numeric)","LOG","
 LOG(double)
 ","
-See also Java Math.log.
+See also Java ""Math.log"".
 This method returns a double.
 ","
 LOG(A)
@@ -2464,7 +2463,7 @@ LOG(A)
 "Functions (Numeric)","LOG10","
 LOG10(double)
 ","
-See also Java Math.log10 (in Java 5).
+See also Java ""Math.log10"" (in Java 5).
 This method returns a double.
 ","
 LOG10(A)
@@ -2473,7 +2472,7 @@ LOG10(A)
 "Functions (Numeric)","RADIANS","
 RADIANS(double)
 ","
-See also Java Math.toRadians.
+See also Java ""Math.toRadians"".
 This method returns a double.
 ","
 RADIANS(A)
@@ -2482,7 +2481,7 @@ RADIANS(A)
 "Functions (Numeric)","SQRT","
 SQRT(double)
 ","
-See also Java Math.sqrt.
+See also Java ""Math.sqrt"".
 This method returns a double.
 ","
 SQRT(A)
@@ -2491,7 +2490,7 @@ SQRT(A)
 "Functions (Numeric)","PI","
 PI()
 ","
-See also Java Math.PI.
+See also Java ""Math.PI"".
 This method returns a double.
 ","
 PI()
@@ -2500,7 +2499,7 @@ PI()
 "Functions (Numeric)","POWER","
 POWER(double, double)
 ","
-See also Java Math.pow.
+See also Java ""Math.pow"".
 This method returns a double.
 ","
 POWER(A, B)
@@ -2721,7 +2720,7 @@ RAWTOHEX(DATA)
 "Functions (String)","INSTR","
 INSTR(string, searchString, [, startInt])
 ","
-Returns the location of a search string in a string (s).
+Returns the location of a search string in a string.
 If a start position is used, the characters before it are ignored.
 If position is negative, the rightmost location is returned.
 0 is returned if the search string is not found.
@@ -2839,7 +2838,7 @@ TRIM(BOTH '_' FROM NAME)
 REGEXP_REPLACE(inputString, regexString, replacementString)
 ","
 Replaces each substring that matches a regular expression.
-For details, see the Java String.replaceAll() method.
+For details, see the Java ""String.replaceAll()"" method.
 If any parameter is null, the result is null.
 ","
 REGEXP_REPLACE('Hello    World', ' +', ' ')
@@ -2915,7 +2914,7 @@ CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 ","
 Returns a substring of a string starting at a position.
 The length is optional.
-Also supported is: SUBSTRING(string FROM start [FOR length]).
+Also supported is: ""SUBSTRING(string FROM start [FOR length])"".
 ","
 SUBSTR(NAME, 1)
 "
@@ -2931,7 +2930,7 @@ CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 "Functions (String)","XMLATTR","
 XMLATTR(nameString, valueString)
 ","
-Creates an XML attribute element of the form name=""value"".
+Creates an XML attribute element of the form ""name=value"".
 The value is encoded as XML text.
 This method returns a string.
 ","
@@ -2951,7 +2950,7 @@ CALL XMLNODE('a', XMLATTR('href', 'http://h2database.com'), 'H2')
 XMLCOMMENT(commentString)
 ","
 Creates an XML comment.
-Two dashes (--) are converted to - -.
+Two dashes (""--"") are converted to ""- -"".
 This method returns a string.
 ","
 CALL XMLCOMMENT('Test')
@@ -2961,7 +2960,7 @@ CALL XMLCOMMENT('Test')
 XMLCDATA(valueString)
 ","
 Creates an XML CDATA element.
-If the value contains ']]>', an XML text element is created instead.
+If the value contains ""]]>"", an XML text element is created instead.
 This method returns a string.
 ","
 CALL XMLCDATA('data')
@@ -2970,7 +2969,7 @@ CALL XMLCDATA('data')
 "Functions (String)","XMLSTARTDOC","
 XMLSTARTDOC()
 ","
-The string '<?xml version=""1.0""?>' is returned.
+The string ""<?xml version='1.0'?>"" is returned.
 ","
 CALL XMLSTARTDOC()
 "
@@ -3082,7 +3081,7 @@ FORMATDATETIME ( timestamp, formatString
 Formats a date, time or timestamp as a string.
 The most important format characters are:
 y year, M month, d day, H hour, m minute, s second.
-For details of the format, see java.text.SimpleDateFormat.
+For details of the format, see ""java.text.SimpleDateFormat"".
 This method returns a string.
 ","
 CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
@@ -3128,7 +3127,7 @@ PARSEDATETIME(string, formatString
 Parses a string and returns a timestamp.
 The most important format characters are:
 y year, M month, d day, H hour, m minute, s second.
-For details of the format, see java.text.SimpleDateFormat.
+For details of the format, see ""java.text.SimpleDateFormat"".
 ","
 CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT',
     'EEE, d MMM yyyy HH:mm:ss z', 'en', 'GMT')
@@ -3270,9 +3269,9 @@ parsed as NULL. All columns of type VARCHAR.
 
 The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
 
-This function can be used like a table: SELECT * FROM CSVREAD(...).
+This function can be used like a table: ""SELECT * FROM CSVREAD(...)"".
 Instead of a file, an URL may be used, for example
-jar:file:///c:/temp/example.zip!/org/example/nested.zip.
+""jar:file:///c:/temp/example.zip!/org/example/nested.zip"".
 
 Admin rights are required to execute this command.
 ","
@@ -3297,7 +3296,7 @@ The values are converted to text using the default string representation;
 if another conversion is required you need to change the select statement accordingly.
 The parameter nullString is used when writing NULL (by default nothing is written
 when NULL appears). The default line separator is the default value for this
-system ('line.separator' system property).
+system (system property ""line.separator"").
 
 The returned value is the number or rows written.
 Admin rights are required to execute this command.
@@ -3350,7 +3349,7 @@ IDENTITY()
 ","
 Returns the last inserted identity value for this session.
 This value changes whenever a new sequence number was generated,
-even within a trigger or Java function. See also SCOPE_IDENTITY().
+even within a trigger or Java function. See also SCOPE_IDENTITY.
 This method returns a long.
 ","
 CALL IDENTITY();
@@ -3521,7 +3520,7 @@ TRANSACTION_ID()
 Returns the current transaction id for this session.
 This method returns NULL if there is no uncommitted change, or if the the database is not persisted.
 Otherwise a value of the following form is returned:
-logFileId-position-sessionId.
+""logFileId-position-sessionId"".
 This method returns a string.
 The value is unique across database restarts (values are not re-used).
 ","

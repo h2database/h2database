@@ -2669,10 +2669,11 @@ public class Parser {
     }
 
     private boolean equalsToken(String a, String b) {
-        if (a.equals(b)) {
+        if (a == null) {
+            return b == null;
+        } else if (a.equals(b)) {
             return true;
-        }
-        if (!identifiersToUpper && a.equalsIgnoreCase(b)) {
+        } else if (!identifiersToUpper && a.equalsIgnoreCase(b)) {
             return true;
         }
         return false;

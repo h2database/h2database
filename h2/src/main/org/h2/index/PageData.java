@@ -214,7 +214,7 @@ abstract class PageData extends Page {
      * @param key the key
      * @return the row
      */
-    abstract Row getRow(long key);
+    abstract Row getRowWithKey(long key);
 
     /**
      * Get the estimated memory size.

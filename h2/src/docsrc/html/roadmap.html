@@ -49,6 +49,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Priority 2</h2>
 <ul><li>Improve test code coverage.
+</li><li>Maybe disable shutdown hook (DB_CLOSE_ON_EXIT=FALSE) by default.
 </li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
 </li><li>Full outer joins.
@@ -329,7 +330,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Fulltext search: lazy result generation using SimpleRowSource.
 </li><li>Support transformation to join for user defined functions, as for IN(SELECT...).
 </li><li>Fulltext search: support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
-</li><li>MySQL compatibility: support REPLACE, see http://dev.mysql.com/doc/refman/5.1/de/replace.html
+</li><li>MySQL compatibility: support REPLACE, see http://dev.mysql.com/doc/refman/6.0/en/replace.html and issue 73.
 </li><li>MySQL compatibility: support INSERT INTO table SET column1 = value1, column2 = value2
 </li><li>Docs: add a one line description for each functions and SQL statements at the top (in the link section).
 </li><li>Javadoc search: weight for titles should be higher ('random' should list Functions as the best match).
@@ -366,7 +367,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Doclet: convert tests in javadocs to a java class.
 </li><li>Doclet: format fields like methods, but support sorting by name and value.
 </li><li>Doclet: shrink the html files.
-</li><li>MySQL compatibility: support REPLACE - See http://code.google.com/p/h2database/issues/detail?id=73
 </li><li>MySQL compatibility: support SET NAMES 'latin1' - See also http://code.google.com/p/h2database/issues/detail?id=56
 </li><li>MySQL compatibility: DELETE .. FROM .. USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
 </li><li>Allow to scan index backwards starting with a value (to better support ORDER BY DESC).
@@ -396,7 +396,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>CACHE_SIZE: automatically use a fraction of Runtime.maxMemory - maybe automatically the second level cache.
 </li><li>Support date/time/timestamp as documented in http://en.wikipedia.org/wiki/ISO_8601
 </li><li>PostgreSQL compatibility: when in PG mode, treat BYTEA data like PG.
-</li><li>MySQL compatibility: REPLACE http://dev.mysql.com/doc/refman/6.0/en/replace.html
 </li><li>Support =ANY(array) as in PostgreSQL. See also http://www.postgresql.org/docs/8.0/interactive/arrays.html
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
 </li><li>MySQL compatibility: alter table add index i(c), add constraint c foreign key(c) references t(c);
@@ -518,6 +517,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Common Table Expression (CTE): identifier scope may be incorrect. Issue 222.
 </li><li>If a database object was not found in the current schema, but one with the same name existed in another schema, included that in the error message.
 </li><li>Optimization to use an index for OR when using multiple keys: where (key1 = ? and key2 = ?) OR (key1 = ? and key2 = ?)
+</li><li>JaQu should support a DataSource and a way to create a Db object using a Connection (for multi-threaded usage with a connection pool).
+</li><li>Move table to a different schema (rename table to a different schema), possibly using ALTER TABLE ... SET SCHEMA ...;
 </li></ul>
 
 <h2>Not Planned</h2>

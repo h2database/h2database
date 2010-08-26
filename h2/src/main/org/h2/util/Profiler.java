@@ -21,6 +21,7 @@ public class Profiler implements Runnable {
 
     public int interval = 10;
     public int depth = 32;
+    public boolean paused;
 
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
     private String[] ignoreThreads = StringUtils.arraySplit(
@@ -99,6 +100,9 @@ public class Profiler implements Runnable {
 
     private void tick() {
         if (interval > 0) {
+            if (paused) {
+                return;
+            }
             try {
                 Thread.sleep(interval);
             } catch (Exception e) {

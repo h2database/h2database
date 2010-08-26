@@ -270,7 +270,7 @@ public class PageDataLeaf extends PageData {
         if (!SysProperties.OPTIMIZE_UPDATE) {
             readAllRows();
         }
-        Row r = getRow(i);
+        Row r = getRowAt(i);
         if (r != null) {
             memoryChange(false, r);
         }
@@ -278,10 +278,13 @@ public class PageDataLeaf extends PageData {
         if (entryCount < 0) {
             DbException.throwInternalError();
         }
-        freeOverflow();
-        firstOverflowPageId = 0;
-        overflowRowSize = 0;
-        rowRef = null;
+        if (firstOverflowPageId != 0) {
+            start -= 4;
+            freeOverflow();
+            firstOverflowPageId = 0;
+            overflowRowSize = 0;
+            rowRef = null;
+        }
         int keyOffsetPairLen = 2 + Data.getVarLongLen(keys[i]);
         int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[i];
@@ -430,7 +433,7 @@ public class PageDataLeaf extends PageData {
         }
     }
 
-    Row getRow(long key) {
+    Row getRowWithKey(long key) {
         int at = find(key);
         return getRowAt(at);
     }

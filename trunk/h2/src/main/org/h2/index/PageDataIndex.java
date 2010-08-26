@@ -380,7 +380,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     public Row getRow(Session session, long key) {
-        return getRow(key);
+        return getRowWithKey(key);
     }
 
     /**
@@ -389,9 +389,9 @@ public class PageDataIndex extends PageIndex {
      * @param key the key
      * @return the row
      */
-    public Row getRow(long key) {
+    public Row getRowWithKey(long key) {
         PageData root = getPage(rootPageId, 0);
-        return root.getRow(key);
+        return root.getRowWithKey(key);
     }
 
     PageStore getPageStore() {

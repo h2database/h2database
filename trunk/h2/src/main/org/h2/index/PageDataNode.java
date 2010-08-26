@@ -264,10 +264,10 @@ public class PageDataNode extends PageData {
         }
     }
 
-    Row getRow(long key) {
+    Row getRowWithKey(long key) {
         int at = find(key);
         PageData page = index.getPage(childPageIds[at], getPos());
-        return page.getRow(key);
+        return page.getRowWithKey(key);
     }
 
     int getRowCount() {

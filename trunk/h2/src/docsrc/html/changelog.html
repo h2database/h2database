@@ -18,7 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>Inserting rows in reverse order could throw an ArrayIndexOutOfBoundsException 
+    in some cases (specially rows larger than the page size, which is 2 KB by default). Issue 226.
+</li><li>H2 Console: with Chrome and Safari, resizing the table/query frame doesn't work. Issue 225.
+</li><li>New experimental database file locking mechanism "FS" to use native file locking
+    (no *.lock.db file is created in this case, and no background thread is started). This mechanism
+    may not work on all systems (on some systems it's possible to lock the same file multiple
+    times within the same virtual machine, and on some system native file locking is not working
+    or unlocking is not working).
 </li></ul>
 
 <h2>Version 1.2.141 (2010-08-22)</h2>

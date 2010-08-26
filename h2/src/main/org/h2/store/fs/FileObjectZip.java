@@ -107,4 +107,12 @@ public class FileObjectZip implements FileObject {
         return file.getName();
     }
 
+    public boolean tryLock() {
+        return false;
+    }
+
+    public void releaseLock() {
+        // ignore
+    }
+
 }

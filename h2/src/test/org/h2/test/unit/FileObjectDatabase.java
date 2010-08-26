@@ -90,4 +90,12 @@ public class FileObjectDatabase implements FileObject {
         return fileName;
     }
 
+    public void releaseLock() {
+        // ignore
+    }
+
+    public boolean tryLock() {
+        return false;
+    }
+
 }

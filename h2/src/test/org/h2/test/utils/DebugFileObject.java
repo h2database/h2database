@@ -87,4 +87,15 @@ public class DebugFileObject implements FileObject {
             throw e;
         }
     }
+
+    public boolean tryLock() {
+        debug("tryLock");
+        return file.tryLock();
+    }
+
+    public void releaseLock() {
+        debug("releaseLock");
+        file.releaseLock();
+    }
+
 }

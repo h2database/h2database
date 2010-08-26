@@ -9,6 +9,7 @@ package org.h2.store.fs;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
 import org.h2.constant.SysProperties;
 import org.h2.util.IOUtils;
 
@@ -18,6 +19,7 @@ import org.h2.util.IOUtils;
 public class FileObjectDisk extends RandomAccessFile implements FileObject {
 
     private final String name;
+    private FileLock lock;
 
     FileObjectDisk(String fileName, String mode) throws FileNotFoundException {
         super(fileName, mode);
@@ -45,6 +47,29 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
 
     public String getName() {
         return name;
+    }
+
+    public synchronized boolean tryLock() {
+        if (lock == null) {
+            try {
+                lock = getChannel().tryLock();
+            } catch (Exception e) {
+                // could not lock (OverlappingFileLockException)
+            }
+            return lock != null;
+        }
+        return false;
+    }
+
+    public synchronized void releaseLock() {
+        if (lock != null) {
+            try {
+                lock.release();
+            } catch (IOException e) {
+                // ignore
+            }
+            lock = null;
+        }
     }
 
 }

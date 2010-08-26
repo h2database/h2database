@@ -507,7 +507,7 @@ public class Database implements DataHandler {
             traceSystem.getTrace(Trace.DATABASE)
                     .info("opening " + databaseName + " (build " + Constants.BUILD_ID + ")");
             if (autoServerMode) {
-                if (readOnly || fileLockMethod == FileLock.LOCK_NO || fileLockMethod == FileLock.LOCK_SERIALIZED) {
+                if (readOnly || fileLockMethod == FileLock.LOCK_NO || fileLockMethod == FileLock.LOCK_SERIALIZED || fileLockMethod == FileLock.LOCK_FS) {
                     throw DbException.getUnsupportedException("autoServerMode && (readOnly || fileLockMethod == NO" +
                             " || fileLockMethod == SERIALIZED)");
                 }
@@ -519,10 +519,12 @@ public class Database implements DataHandler {
                 }
             }
             if (!readOnly && fileLockMethod != FileLock.LOCK_NO) {
-                lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
-                lock.lock(fileLockMethod);
-                if (autoServerMode) {
-                    startServer(lock.getUniqueId());
+                if (fileLockMethod != FileLock.LOCK_FS) {
+                    lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
+                    lock.lock(fileLockMethod);
+                    if (autoServerMode) {
+                        startServer(lock.getUniqueId());
+                    }
                 }
             }
             while (isReconnectNeeded() && !beforeWriting()) {
@@ -1142,7 +1144,7 @@ public class Database implements DataHandler {
         }
         reconnectModified(false);
         closeFiles();
-        if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
+        if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO && fileLockMethod != FileLock.LOCK_FS) {
             // everything already closed (maybe in checkPowerOff)
             // don't delete temp files in this case because
             // the database could be open now (even from within another process)
@@ -2055,6 +2057,9 @@ public class Database implements DataHandler {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
             if (pageSize != SysProperties.PAGE_SIZE) {
                 pageStore.setPageSize(pageSize);
+            }
+            if (!readOnly && fileLockMethod == FileLock.LOCK_FS) {
+                pageStore.setLockFile(true);
             }
             pageStore.open();
         }

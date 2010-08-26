@@ -57,6 +57,11 @@ public class FileLock implements Runnable {
      */
     public static final int LOCK_SERIALIZED = 3;
 
+    /**
+     * Use the file system to lock the file; don't use a separate lock file.
+     */
+    public static final int LOCK_FS = 4;
+
     private static final String MAGIC = "FileLock";
     private static final String FILE = "file", SOCKET = "socket", SERIALIZED = "serialized";
     private static final int RANDOM_BYTES = 16;
@@ -133,6 +138,8 @@ public class FileLock implements Runnable {
             break;
         case LOCK_SERIALIZED:
             lockSerialized();
+            break;
+        case LOCK_FS:
             break;
         }
         locked = true;
@@ -462,6 +469,8 @@ public class FileLock implements Runnable {
             return FileLock.LOCK_SOCKET;
         } else if (method.equalsIgnoreCase("SERIALIZED")) {
             return FileLock.LOCK_SERIALIZED;
+        } else if (method.equalsIgnoreCase("FS")) {
+            return FileLock.LOCK_FS;
         } else {
             throw DbException.get(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
         }

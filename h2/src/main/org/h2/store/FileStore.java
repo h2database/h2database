@@ -509,4 +509,21 @@ public class FileStore {
         return textMode;
     }
 
+    /**
+     * Try to lock the file.
+     *
+     * @return true if successful
+     */
+    public boolean tryLock() {
+        return file.tryLock();
+    }
+
+    /**
+     * Release the file lock.
+     */
+    public void releaseLock() {
+        file.releaseLock();
+    }
+
+
 }

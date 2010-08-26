@@ -69,4 +69,12 @@ public class FileObjectMemory implements FileObject {
         return data.getLastModified();
     }
 
+    public boolean tryLock() {
+        return data.tryLock();
+    }
+
+    public void releaseLock() {
+        data.releaseLock();
+    }
+
 }

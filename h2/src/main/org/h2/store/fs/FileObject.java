@@ -75,4 +75,16 @@ public interface FileObject {
      */
     String getName();
 
+    /**
+     * Try to lock the file exclusively.
+     *
+     * @return true if locking was successful
+     */
+    boolean tryLock();
+
+    /**
+     * Release the file lock.
+     */
+    void releaseLock();
+
 }

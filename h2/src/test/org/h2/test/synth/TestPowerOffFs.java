@@ -11,7 +11,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.ErrorCode;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.utils.DebugFileSystem;
 
@@ -32,8 +31,7 @@ public class TestPowerOffFs extends TestBase {
     }
 
     public void test() throws Exception {
-        DebugFileSystem.register();
-        fs = (DebugFileSystem) FileSystem.getInstance("debug:/");
+        fs = DebugFileSystem.register();
         test(Integer.MAX_VALUE);
         System.out.println(Integer.MAX_VALUE - fs.getPowerOffCount());
         System.out.println("done");

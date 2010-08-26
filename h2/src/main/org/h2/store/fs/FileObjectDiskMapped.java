@@ -13,6 +13,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.nio.BufferUnderflowException;
 import java.nio.MappedByteBuffer;
+import java.nio.channels.FileLock;
 import java.nio.channels.FileChannel.MapMode;
 import org.h2.constant.SysProperties;
 import org.h2.util.IOUtils;
@@ -28,6 +29,7 @@ public class FileObjectDiskMapped implements FileObject {
     private final MapMode mode;
     private RandomAccessFile file;
     private MappedByteBuffer mapped;
+    private FileLock lock;
 
     /**
      * The position within the file. Can't use the position of the mapped buffer
@@ -178,6 +180,29 @@ public class FileObjectDiskMapped implements FileObject {
         mapped.position(pos);
         mapped.put(b, off, len);
         pos += len;
+    }
+
+    public synchronized boolean tryLock() {
+        if (lock == null) {
+            try {
+                lock = file.getChannel().tryLock();
+            } catch (IOException e) {
+                // could not lock
+            }
+            return lock != null;
+        }
+        return false;
+    }
+
+    public synchronized void releaseLock() {
+        if (lock != null) {
+            try {
+                lock.release();
+            } catch (IOException e) {
+                // ignore
+            }
+            lock = null;
+        }
     }
 
 }

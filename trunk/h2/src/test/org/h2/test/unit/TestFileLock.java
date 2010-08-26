@@ -7,6 +7,10 @@
 package org.h2.test.unit;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
@@ -50,10 +54,24 @@ public class TestFileLock extends TestBase implements Runnable {
         if (!getFile().startsWith(TestBase.BASE_TEST_DIR)) {
             return;
         }
+        testFsFileLock();
         testFutureModificationDate();
         testSimple();
         test(false);
         test(true);
+    }
+
+    private void testFsFileLock() throws Exception {
+        deleteDb("fileLock");
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLock;FILE_LOCK=FS;OPEN_NEW=TRUE";
+        Connection conn = DriverManager.getConnection(url);
+        try {
+            DriverManager.getConnection(url);
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
+        }
+        conn.close();
     }
 
     private void testFutureModificationDate() throws Exception {

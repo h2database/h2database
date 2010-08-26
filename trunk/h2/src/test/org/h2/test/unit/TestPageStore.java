@@ -38,6 +38,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testInsertReverse();
         testInsertDelete();
         testCheckpoint();
         testDropRecreate();
@@ -62,6 +63,19 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testCreateIndexLater();
         testFuzzOperations();
         deleteDb("pageStore");
+    }
+
+    private void testInsertReverse() throws SQLException {
+        deleteDb("pageStore");
+        Connection conn;
+        conn = getConnection("pageStore");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, data varchar)");
+        stat.execute("insert into test select -x, space(100) from system_range(1, 1000)");
+        stat.execute("drop table test");
+        stat.execute("create table test(id int primary key, data varchar)");
+        stat.execute("insert into test select -x, space(2048) from system_range(1, 1000)");
+        conn.close();
     }
 
     private void testInsertDelete() {

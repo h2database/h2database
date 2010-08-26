@@ -152,4 +152,12 @@ public class FileObjectSplit implements FileObject {
         return name;
     }
 
+    public boolean tryLock() {
+        return list[0].tryLock();
+    }
+
+    public void releaseLock() {
+        list[0].releaseLock();
+    }
+
 }

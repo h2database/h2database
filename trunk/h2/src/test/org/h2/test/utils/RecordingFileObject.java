@@ -67,4 +67,12 @@ public class RecordingFileObject implements FileObject {
         fs.log(Recorder.WRITE, name, buff, file.getFilePointer());
     }
 
+    public boolean tryLock() {
+        return file.tryLock();
+    }
+
+    public void releaseLock() {
+        file.releaseLock();
+    }
+
 }

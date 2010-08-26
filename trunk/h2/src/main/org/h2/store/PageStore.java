@@ -184,6 +184,7 @@ public class PageStore implements CacheWriter {
     private long logSizeBase;
     private HashMap<String, Integer> statistics;
     private int logMode = LOG_MODE_SYNC;
+    private boolean lockFile;
 
     /**
      * Create a new page store object.
@@ -281,6 +282,7 @@ public class PageStore implements CacheWriter {
         setPageSize(pageSize);
         freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
         file = database.openFile(fileName, accessMode, false);
+        lockFile();
         recoveryRunning = true;
         writeStaticHeader();
         writeVariableHeader();
@@ -294,8 +296,17 @@ public class PageStore implements CacheWriter {
         increaseFileSize();
     }
 
+    private void lockFile() {
+        if (lockFile) {
+            if (!file.tryLock()) {
+                throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, fileName);
+            }
+        }
+    }
+
     private void openExisting() {
         file = database.openFile(fileName, accessMode, true);
+        lockFile();
         readStaticHeader();
         freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
         fileLength = file.length();
@@ -304,6 +315,7 @@ public class PageStore implements CacheWriter {
             if (database.isReadOnly()) {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName + " pageCount: " + pageCount);
             }
+            file.releaseLock();
             file.close();
             IOUtils.delete(fileName);
             openNew();
@@ -800,6 +812,7 @@ public class PageStore implements CacheWriter {
             }
             if (file != null) {
                 try {
+                    file.releaseLock();
                     file.close();
                 } finally {
                     file = null;
@@ -1304,7 +1317,7 @@ public class PageStore implements CacheWriter {
     void redoDelete(int logPos, int tableId, long key) {
         Index index = metaObjects.get(tableId);
         PageDataIndex scan = (PageDataIndex) index;
-        Row row = scan.getRow(key);
+        Row row = scan.getRowWithKey(key);
         redo(logPos, tableId, row, false);
     }
 
@@ -1727,6 +1740,10 @@ public class PageStore implements CacheWriter {
 
     public int getLogMode() {
         return logMode;
+    }
+
+    public void setLockFile(boolean lockFile) {
+        this.lockFile = lockFile;
     }
 
 }

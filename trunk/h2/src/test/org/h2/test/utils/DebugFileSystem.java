@@ -33,8 +33,9 @@ public class DebugFileSystem extends FileSystem {
     /**
      * Register the file system.
      */
-    public static void register() {
+    public static DebugFileSystem register() {
         FileSystem.register(INSTANCE);
+        return INSTANCE;
     }
 
     /**

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 
 /**
  * File which uses NIO FileChannel.
@@ -19,6 +20,7 @@ public class FileObjectDiskChannel implements FileObject {
 
     private final String name;
     private FileChannel channel;
+    private FileLock lock;
 
     FileObjectDiskChannel(String fileName, String mode) throws FileNotFoundException {
         this.name = fileName;
@@ -84,6 +86,29 @@ public class FileObjectDiskChannel implements FileObject {
         buf.position(off);
         buf.limit(off + len);
         channel.write(buf);
+    }
+
+    public synchronized boolean tryLock() {
+        if (lock == null) {
+            try {
+                lock = channel.tryLock();
+            } catch (IOException e) {
+                // could not lock
+            }
+            return lock != null;
+        }
+        return false;
+    }
+
+    public synchronized void releaseLock() {
+        if (lock != null) {
+            try {
+                lock.release();
+            } catch (IOException e) {
+                // ignore
+            }
+            lock = null;
+        }
     }
 
 }

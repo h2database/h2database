@@ -14,7 +14,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.utils.DebugFileSystem;
 import org.h2.util.New;
@@ -44,9 +43,8 @@ public class TestPowerOffFs2 extends TestBase {
     }
 
     public void test() throws Exception {
-        DebugFileSystem.register();
+        fs = DebugFileSystem.register();
         url = "jdbc:h2:debug:memFS:powerOffFs;FILE_LOCK=NO;TRACE_LEVEL_FILE=0;WRITE_DELAY=0;CACHE_SIZE=32";
-        fs = (DebugFileSystem) FileSystem.getInstance("debug:/");
         for (int i = 0;; i++) {
             test(i);
         }

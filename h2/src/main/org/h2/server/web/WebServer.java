@@ -202,6 +202,8 @@ public class WebServer implements Service {
         session.put("sessionId", newId);
         session.put("ip", hostAddr);
         session.put("language", DEFAULT_LANGUAGE);
+        session.put("frame-border", "0");
+        session.put("frameset-border", "4");
         sessions.put(newId, session);
         // always read the english translation,
         // so that untranslated text appears at least in english

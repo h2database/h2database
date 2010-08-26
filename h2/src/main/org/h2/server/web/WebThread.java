@@ -260,6 +260,14 @@ class WebThread extends WebApp implements Runnable {
             } else if (lower.startsWith("content-length")) {
                 len = Integer.parseInt(line.substring(line.indexOf(':') + 1).trim());
                 trace("len=" + len);
+            } else if (lower.startsWith("user-agent")) {
+                boolean isWebKit = lower.indexOf("webkit/") >= 0;
+                if (isWebKit && session != null) {
+                    // workaround for what seems to be a WebKit bug:
+                    // http://code.google.com/p/chromium/issues/detail?id=6402
+                    session.put("frame-border", "1");
+                    session.put("frameset-border", "2");
+                }
             } else if (lower.startsWith("accept-language")) {
                 Locale locale = session == null ? null : session.locale;
                 if (locale == null) {

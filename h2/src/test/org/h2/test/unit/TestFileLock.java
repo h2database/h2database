@@ -69,7 +69,9 @@ public class TestFileLock extends TestBase implements Runnable {
             DriverManager.getConnection(url);
             fail();
         } catch (SQLException e) {
-            assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
+            if (e.getErrorCode() != ErrorCode.DATABASE_ALREADY_OPEN_1) {
+                throw e;
+            }
         }
         conn.close();
     }

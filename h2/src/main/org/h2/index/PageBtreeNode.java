@@ -35,6 +35,7 @@ import org.h2.util.Utils;
 public class PageBtreeNode extends PageBtree {
 
     private static final int CHILD_OFFSET_PAIR_LENGTH = 6;
+    private static final int MAX_KEY_LENGTH = 10;
 
     /**
      * The page ids of the children.
@@ -114,7 +115,7 @@ public class PageBtreeNode extends PageBtree {
 
     /**
      * Add a row. If it is possible this method returns -1, otherwise
-     * the split point. It is always possible to two rows.
+     * the split point. It is always possible to add two rows.
      *
      * @param row the now to add
      * @return the split point of this page, or -1 if no split is required
@@ -123,10 +124,21 @@ public class PageBtreeNode extends PageBtree {
         if (entryCount < 3) {
             return -1;
         }
-        int rowLength = index.getRowSize(data, row, onlyPosition);
-        int pageSize = index.getPageStore().getPageSize();
-        int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-        if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
+        int startData;
+        if (onlyPosition) {
+            // need to be pessimistic:
+            // if we only store the position, we may at most store as many
+            // entries as there is space for keys, because the current data area
+            // might get larger when _removing_ a child (if the new key needs
+            // more space) - and removing a child can't split this page
+            startData = entryCount + 1 * MAX_KEY_LENGTH;
+        } else {
+            int rowLength = index.getRowSize(data, row, onlyPosition);
+            int pageSize = index.getPageStore().getPageSize();
+            int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
+            startData = last - rowLength;
+        }
+        if (startData < start + CHILD_OFFSET_PAIR_LENGTH) {
             return entryCount / 2;
         }
         return -1;

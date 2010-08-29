@@ -519,6 +519,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimization to use an index for OR when using multiple keys: where (key1 = ? and key2 = ?) OR (key1 = ? and key2 = ?)
 </li><li>JaQu should support a DataSource and a way to create a Db object using a Connection (for multi-threaded usage with a connection pool).
 </li><li>Move table to a different schema (rename table to a different schema), possibly using ALTER TABLE ... SET SCHEMA ...;
+</li><li>nioMapped file system: automatically fall back to regular (non mapped) IO if there is a problem (out of memory exception for example).
+</li><li>Column as parameter of function table. Issue 228
 </li></ul>
 
 <h2>Not Planned</h2>

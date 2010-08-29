@@ -313,6 +313,7 @@ public class PageStore implements CacheWriter {
             if (e.getErrorCode() == ErrorCode.IO_EXCEPTION_2) {
                 throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, e, fileName);
             }
+            throw e;
         }
         lockFile();
         readStaticHeader();

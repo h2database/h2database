@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Inserting rows in reverse order could throw an ArrayIndexOutOfBoundsException 
+<ul><li>The default time to compact a database when closing (system property h2.maxCompactTime)
+    is now 0.2 seconds instead of 1 second.
+</li><li>Opening an closing a database is now faster.
+</li><li>In theory, when using indexes with large index rows (or when using a very small page size),
+    removing rows could throw an internal exception in some cases.
+</li><li>Inserting rows in reverse order could throw an ArrayIndexOutOfBoundsException 
     in some cases (specially rows larger than the page size, which is 2 KB by default). Issue 226.
 </li><li>H2 Console: with Chrome and Safari, resizing the table/query frame doesn't work. Issue 225.
 </li><li>New experimental database file locking mechanism "FS" to use native file locking

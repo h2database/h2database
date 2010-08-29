@@ -188,7 +188,12 @@ public class PageLog {
      * Free up all pages allocated by the log.
      */
     void free() {
+        if (trace.isDebugEnabled()) {
+            trace.debug("log free");
+        }
+        int currentDataPage = 0;
         if (pageOut != null) {
+            currentDataPage = pageOut.getCurrentDataPageId();
             pageOut.freeReserved();
         }
         PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
@@ -200,7 +205,7 @@ public class PageLog {
                 }
                 break;
             }
-            t.free();
+            t.free(currentDataPage);
             firstTrunkPage = t.getNextTrunk();
         }
     }

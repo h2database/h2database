@@ -158,17 +158,28 @@ public class PageStreamTrunk extends Page {
     }
 
     /**
-     * Free this page and all data pages.
+     * Free this page and all data pages. Pages after the last used data page
+     * (if within this list) are empty and therefore not just freed, but marked
+     * as not used.
      *
+     * @param lastUsedPage the last used data page
      * @return the number of pages freed
      */
-    int free() {
+    int free(int lastUsedPage) {
         store.free(getPos(), false);
         int freed = 1;
+        boolean notUsed = false;
         for (int i = 0; i < pageCount; i++) {
             int page = pageIds[i];
-            store.free(page, false);
+            if (notUsed) {
+                store.freeUnused(page);
+            } else {
+                store.free(page, false);
+            }
             freed++;
+            if (page == lastUsedPage) {
+                notUsed = true;
+            }
         }
         return freed;
     }

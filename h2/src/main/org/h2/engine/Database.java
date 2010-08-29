@@ -535,7 +535,6 @@ public class Database implements DataHandler {
             starting = true;
             getPageStore();
             starting = false;
-            reserveLobFileObjectIds();
             writer = WriterThread.create(this, writeDelay);
         } else {
             traceSystem = new TraceSystem(null);
@@ -1431,30 +1430,11 @@ public class Database implements DataHandler {
         }
     }
 
-    private void reserveLobFileObjectIds() {
-        String prefix = IOUtils.normalize(databaseName) + ".";
-        String path = IOUtils.getParent(databaseName);
-        String[] list = IOUtils.listFiles(path);
-        for (String name : list) {
-            if (name.endsWith(Constants.SUFFIX_LOB_FILE) && IOUtils.fileStartsWith(name, prefix)) {
-                name = name.substring(prefix.length());
-                name = name.substring(0, name.length() - Constants.SUFFIX_LOB_FILE.length());
-                int dot = name.indexOf('.');
-                if (dot >= 0) {
-                    String id = name.substring(dot + 1);
-                    int objectId = Integer.parseInt(id);
-                    objectIds.set(objectId);
-                }
-            }
-        }
-    }
-
     private void deleteOldTempFiles() {
         String path = IOUtils.getParent(databaseName);
-        String prefix = IOUtils.normalize(databaseName);
         String[] list = IOUtils.listFiles(path);
         for (String name : list) {
-            if (name.endsWith(Constants.SUFFIX_TEMP_FILE) && IOUtils.fileStartsWith(name, prefix)) {
+            if (name.endsWith(Constants.SUFFIX_TEMP_FILE) && IOUtils.fileStartsWith(name, databaseName)) {
                 // can't always delete the files, they may still be open
                 IOUtils.tryDelete(name);
             }

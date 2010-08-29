@@ -402,6 +402,9 @@ public class PageStore implements CacheWriter {
             // ensure the free list is backed up again
             log.checkpoint();
 
+            if (trace.isDebugEnabled()) {
+                trace.debug("writeFree");
+            }
             byte[] test = new byte[16];
             byte[] empty = new byte[pageSize];
             for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
@@ -444,13 +447,12 @@ public class PageStore implements CacheWriter {
         // open a new log at the very end
         // (to be truncated later)
         writeBack();
+        log.free();
         recoveryRunning = true;
         try {
-            log.free();
             logFirstTrunkPage = lastUsed + 1;
             allocatePage(logFirstTrunkPage);
             log.openForWriting(logFirstTrunkPage, true);
-
             // ensure the free list is backed up again
             log.checkpoint();
         } finally {
@@ -465,12 +467,6 @@ public class PageStore implements CacheWriter {
         }
         int blockSize = fully ? COMPACT_BLOCK_SIZE : 1;
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x -= blockSize) {
-            for (int full = x - blockSize + 1; full <= x; full++) {
-                if (full > MIN_PAGE_COUNT) {
-                    // ensure the page is in the disk buffer
-                    readPage(full);
-                }
-            }
             for (int full = x - blockSize + 1; full <= x; full++) {
                 if (full > MIN_PAGE_COUNT) {
                     synchronized (database) {
@@ -501,10 +497,10 @@ public class PageStore implements CacheWriter {
         writeBack();
         log.checkpoint();
 
+        log.free();
         // truncate the log
         recoveryRunning = true;
         try {
-            log.free();
             setLogFirstPage(0, 0, 0);
         } finally {
             recoveryRunning = false;
@@ -1061,7 +1057,7 @@ public class PageStore implements CacheWriter {
      */
     void free(int pageId, boolean undo) {
         if (trace.isDebugEnabled()) {
-            // trace.debug("freePage " + pageId);
+            // trace.debug("free " + pageId + " " + undo);
         }
         synchronized (database) {
             cache.remove(pageId);
@@ -1082,6 +1078,22 @@ public class PageStore implements CacheWriter {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Add a page to the free list. The page is not used, therefore doesn't need to be overwritten.
+     *
+     * @param pageId the page id
+     */
+    void freeUnused(int pageId) {
+        if (trace.isDebugEnabled()) {
+            trace.debug("freeUnused " + pageId);
+        }
+        synchronized (database) {
+            cache.remove(pageId);
+            freePage(pageId);
+            freed.set(pageId);
         }
     }
 

@@ -305,7 +305,15 @@ public class PageStore implements CacheWriter {
     }
 
     private void openExisting() {
-        file = database.openFile(fileName, accessMode, true);
+        try {
+            file = database.openFile(fileName, accessMode, true);
+        } catch (DbException e) {
+            // in Windows, you can't open a locked file
+            // (in other operating systems, you can)
+            if (e.getErrorCode() == ErrorCode.IO_EXCEPTION_2) {
+                throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, e, fileName);
+            }
+        }
         lockFile();
         readStaticHeader();
         freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);

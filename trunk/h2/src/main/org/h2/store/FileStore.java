@@ -78,16 +78,20 @@ public class FileStore {
             tempFileDeleter = handler.getTempFileDeleter();
         }
         try {
-            fs.createDirs(name);
-            if (fs.exists(name) && !fs.canWrite(name)) {
+            boolean exists = fs.exists(name);
+            if (exists && !fs.canWrite(name)) {
                 mode = "r";
                 this.mode = mode;
+            } else {
+                fs.createDirs(name);
             }
             file = fs.openFileObject(name, mode);
             if (mode.length() > 2) {
                 synchronousMode = true;
             }
-            fileLength = file.length();
+            if (exists) {
+                fileLength = file.length();
+            }
         } catch (IOException e) {
             throw DbException.convertIOException(e, "name: " + name + " mode: " + mode);
         }

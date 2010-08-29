@@ -191,7 +191,7 @@ public class PageOutputStream {
      * @param t the trunk page
      */
     void free(PageStreamTrunk t) {
-        pageCount -= t.free();
+        pageCount -= t.free(0);
     }
 
     /**

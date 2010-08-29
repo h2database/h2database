@@ -37,6 +37,7 @@ public class ConnectionInfo implements Cloneable {
      * The database name
      */
     private String name;
+    private String nameNormalized;
     private boolean remote;
     private boolean ssl;
     private boolean persistent;
@@ -331,14 +332,16 @@ public class ConnectionInfo implements Cloneable {
      */
     String getName() {
         if (persistent) {
-            String suffix = Constants.SUFFIX_PAGE_FILE;
-            String n = IOUtils.normalize(name + suffix);
-            String fileName = IOUtils.getFileName(n);
-            if (fileName.length() < suffix.length() + 1) {
-                throw DbException.get(ErrorCode.INVALID_DATABASE_NAME_1, name);
+            if (nameNormalized == null) {
+                String suffix = Constants.SUFFIX_PAGE_FILE;
+                String n = IOUtils.normalize(name + suffix);
+                String fileName = IOUtils.getFileName(n);
+                if (fileName.length() < suffix.length() + 1) {
+                    throw DbException.get(ErrorCode.INVALID_DATABASE_NAME_1, name);
+                }
+                nameNormalized = n.substring(0, n.length() - suffix.length());
             }
-            n = n.substring(0, n.length() - suffix.length());
-            return IOUtils.normalize(n);
+            return nameNormalized;
         }
         return name;
     }

@@ -363,10 +363,10 @@ public class SysProperties {
     public static final int MAX_COMPACT_COUNT = getIntSetting("h2.maxCompactCount", Integer.MAX_VALUE);
 
     /**
-     * System property <code>h2.maxCompactTime</code> (default: 1000).<br />
+     * System property <code>h2.maxCompactTime</code> (default: 200).<br />
      * The maximum time in milliseconds used to compact a database when closing.
      */
-    public static final int MAX_COMPACT_TIME = getIntSetting("h2.maxCompactTime", 1000);
+    public static final int MAX_COMPACT_TIME = getIntSetting("h2.maxCompactTime", 200);
 
     /**
      * System property <code>h2.maxFileRetry</code> (default: 16).<br />

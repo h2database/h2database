@@ -45,7 +45,7 @@ public class DebugFileObject implements FileObject {
     }
 
     public void readFully(byte[] b, int off, int len) throws IOException {
-        debug("readFully", off, len);
+        debug("readFully", file.getFilePointer(), off, len);
         file.readFully(b, off, len);
     }
 
@@ -67,12 +67,12 @@ public class DebugFileObject implements FileObject {
 
     public void write(byte[] b, int off, int len) throws IOException {
         checkPowerOff();
-        debug("write", off, len);
+        debug("write", file.getFilePointer(), off, len);
         file.write(b, off, len);
     }
 
     private void debug(String method, Object... params) {
-        fs.trace(method, name, params);
+        fs.trace(name, method, params);
     }
 
     private void checkPowerOff() throws IOException {

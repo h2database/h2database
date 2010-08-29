@@ -59,118 +59,118 @@ public class DebugFileSystem extends FileSystem {
 
     public boolean canWrite(String fileName) {
         fileName = translateFileName(fileName);
-        trace("canWrite", fileName);
+        trace(fileName, "canWrite");
         return FileSystem.getInstance(fileName).canWrite(fileName);
     }
 
     public void copy(String original, String copy) {
         original = translateFileName(original);
         copy = translateFileName(copy);
-        trace("copy", original, copy);
+        trace(original, "copy", copy);
         FileSystem.getInstance(original).copy(original, copy);
     }
 
     public void createDirs(String fileName) {
         fileName = translateFileName(fileName);
-        trace("createDirs", fileName);
+        trace(fileName, "createDirs");
         FileSystem.getInstance(fileName).createDirs(fileName);
     }
 
     public boolean createNewFile(String fileName) {
         fileName = translateFileName(fileName);
-        trace("createNewFile", fileName);
+        trace(fileName, "createNewFile");
         return FileSystem.getInstance(fileName).createNewFile(fileName);
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
         prefix = translateFileName(prefix);
-        trace("createTempFile", prefix, suffix, deleteOnExit, inTempDir);
+        trace(prefix, "createTempFile", suffix, deleteOnExit, inTempDir);
         return PREFIX + FileSystem.getInstance(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
     }
 
     public void delete(String fileName) {
         fileName = translateFileName(fileName);
-        trace("fileName", fileName);
+        trace(fileName, "fileName");
         FileSystem.getInstance(fileName).delete(fileName);
     }
 
     public void deleteRecursive(String directory, boolean tryOnly) {
         directory = translateFileName(directory);
-        trace("deleteRecursive", directory);
+        trace(directory, "deleteRecursive");
         FileSystem.getInstance(directory).deleteRecursive(directory, tryOnly);
     }
 
     public boolean exists(String fileName) {
         fileName = translateFileName(fileName);
-        trace("exists", fileName);
+        trace(fileName, "exists");
         return FileSystem.getInstance(fileName).exists(fileName);
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
         fileName = translateFileName(fileName);
         prefix = translateFileName(prefix);
-        trace("fileStartsWith", fileName, prefix);
+        trace(fileName, "fileStartsWith", prefix);
         return FileSystem.getInstance(fileName).fileStartsWith(fileName, prefix);
     }
 
     public String getAbsolutePath(String fileName) {
         fileName = translateFileName(fileName);
-        trace("getAbsolutePath", fileName);
+        trace(fileName, "getAbsolutePath");
         return PREFIX + FileSystem.getInstance(fileName).getAbsolutePath(fileName);
     }
 
     public String getFileName(String name) {
         name = translateFileName(name);
-        trace("getFileName", name);
+        trace(name, "getFileName");
         return FileSystem.getInstance(name).getFileName(name);
     }
 
     public long getLastModified(String fileName) {
         fileName = translateFileName(fileName);
-        trace("getLastModified", fileName);
+        trace(fileName, "getLastModified");
         return FileSystem.getInstance(fileName).getLastModified(fileName);
     }
 
     public String getParent(String fileName) {
         fileName = translateFileName(fileName);
-        trace("getParent", fileName);
+        trace(fileName, "getParent");
         return PREFIX + FileSystem.getInstance(fileName).getParent(fileName);
     }
 
     public boolean isAbsolute(String fileName) {
         fileName = translateFileName(fileName);
-        trace("isAbsolute", fileName);
+        trace(fileName, "isAbsolute");
         return FileSystem.getInstance(fileName).isAbsolute(fileName);
     }
 
     public boolean isDirectory(String fileName) {
         fileName = translateFileName(fileName);
-        trace("isDirectory", fileName);
+        trace(fileName, "isDirectory");
         return FileSystem.getInstance(fileName).isDirectory(fileName);
     }
 
     public boolean isReadOnly(String fileName) {
         fileName = translateFileName(fileName);
-        trace("isReadOnly", fileName);
+        trace(fileName, "isReadOnly");
         return FileSystem.getInstance(fileName).isReadOnly(fileName);
     }
 
     public boolean setReadOnly(String fileName) {
         fileName = translateFileName(fileName);
-        trace("setReadOnly", fileName);
+        trace(fileName, "setReadOnly");
         return FileSystem.getInstance(fileName).setReadOnly(fileName);
     }
 
     public long length(String fileName) {
         fileName = translateFileName(fileName);
-        trace("length", fileName);
+        trace(fileName, "length");
         return FileSystem.getInstance(fileName).length(fileName);
     }
 
     public String[] listFiles(String directory) {
         directory = translateFileName(directory);
-        trace("listFiles", directory);
+        trace(directory, "listFiles");
         String[] list = FileSystem.getInstance(directory).listFiles(directory);
         for (int i = 0; i < list.length; i++) {
             list[i] = PREFIX + list[i];
@@ -180,38 +180,38 @@ public class DebugFileSystem extends FileSystem {
 
     public String normalize(String fileName) {
         fileName = translateFileName(fileName);
-        trace("normalize", fileName);
+        trace(fileName, "normalize");
         return PREFIX + FileSystem.getInstance(fileName).normalize(fileName);
     }
 
     public InputStream openFileInputStream(String fileName) throws IOException {
         fileName = translateFileName(fileName);
-        trace("openFileInputStream", fileName);
+        trace(fileName, "openFileInputStream");
         return FileSystem.getInstance(fileName).openFileInputStream(fileName);
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
-        trace("openFileObject", fileName, mode);
+        trace(fileName, "openFileObject", mode);
         return new DebugFileObject(this, FileSystem.getInstance(fileName).openFileObject(fileName, mode));
     }
 
     public OutputStream openFileOutputStream(String fileName, boolean append) {
         fileName = translateFileName(fileName);
-        trace("openFileOutputStream", fileName, append);
+        trace(fileName, "openFileOutputStream", append);
         return FileSystem.getInstance(fileName).openFileOutputStream(fileName, append);
     }
 
     public void rename(String oldName, String newName) {
         oldName = translateFileName(oldName);
         newName = translateFileName(newName);
-        trace("rename", oldName, newName);
+        trace(oldName, "rename", newName);
         FileSystem.getInstance(oldName).rename(oldName, newName);
     }
 
     public boolean tryDelete(String fileName) {
         fileName = translateFileName(fileName);
-        trace("tryDelete", fileName);
+        trace(fileName, "tryDelete");
         return FileSystem.getInstance(fileName).tryDelete(fileName);
     }
 
@@ -228,12 +228,11 @@ public class DebugFileSystem extends FileSystem {
 
     /**
      * Print a debug message.
-     *
-     * @param method the method name
      * @param fileName the file name
+     * @param method the method name
      * @param params parameters if any
      */
-    void trace(String method, String fileName, Object... params) {
+    void trace(String fileName, String method, Object... params) {
         if (trace) {
             StringBuilder buff = new StringBuilder("    ");
             buff.append(fileName).append(' ').append(method);

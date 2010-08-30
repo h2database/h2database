@@ -1079,6 +1079,7 @@ public class MetaTable extends Table {
                             "" + alias.getId(),
                             // SOURCE
                             alias.getSource()
+                            // when adding more columns, see also below
                     );
                 }
             }
@@ -1104,7 +1105,10 @@ public class MetaTable extends Table {
                         // REMARKS
                         replaceNullWithEmpty(agg.getComment()),
                         // ID
-                        "" + agg.getId()
+                        "" + agg.getId(),
+                        // SOUCE
+                        ""
+                        // when adding more columns, see also below
                 );
             }
             break;

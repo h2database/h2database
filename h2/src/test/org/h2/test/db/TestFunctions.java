@@ -232,6 +232,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         assertEquals(1, rs.getMetaData().getScale(2));
         assertEquals(32767, rs.getMetaData().getScale(1));
+        stat.executeQuery("select * from information_schema.function_aliases");
         conn.close();
     }
 

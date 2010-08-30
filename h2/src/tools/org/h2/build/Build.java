@@ -318,6 +318,8 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/jaqu/*").
+            exclude("temp/org/h2/java/*").
+            exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
             exclude("temp/org/h2/server/ftp/*").
@@ -341,6 +343,8 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jaqu/*").
+            exclude("temp/org/h2/java/*").
+            exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
             exclude("temp/org/h2/test/*").
@@ -365,12 +369,15 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/fulltext/*").
             exclude("temp/org/h2/jaqu/*").
+            exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jdbcx/*").
+            exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
             exclude("temp/org/h2/server/*").
             exclude("temp/org/h2/test/*").
             exclude("temp/org/h2/tools/*").
+            exclude("temp/org/h2/upgrade/*").
             exclude("*.bat").
             exclude("*.sh").
             exclude("*.txt");

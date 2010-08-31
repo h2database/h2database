@@ -32,6 +32,8 @@ public class DebugFileSystem extends FileSystem {
 
     /**
      * Register the file system.
+     *
+     * @return the instance
      */
     public static DebugFileSystem register() {
         FileSystem.register(INSTANCE);

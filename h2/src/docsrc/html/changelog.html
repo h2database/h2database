@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>An ArrayIndexOutOfBoundsException was thrown when querying the table
+<ul><li>Documentation for using H2 on Android devices has been added under Tutorial - Android.
+</li><li>An ArrayIndexOutOfBoundsException was thrown when querying the table
     information_schema.function_aliases while there are any user defined aggregate functions.
 </li><li>The jar files are now about 50 KB smaller.
     In the last few versions they contained superfluous classes.
@@ -27,7 +28,7 @@ Change Log
 </li><li>Opening an closing a database is now faster.
 </li><li>In theory, when using indexes with large index rows (or when using a very small page size),
     removing rows could throw an internal exception in some cases.
-</li><li>Inserting rows in reverse order could throw an ArrayIndexOutOfBoundsException 
+</li><li>Inserting rows in reverse order could throw an ArrayIndexOutOfBoundsException
     in some cases (specially rows larger than the page size, which is 2 KB by default). Issue 226.
 </li><li>H2 Console: with Chrome and Safari, resizing the table/query frame doesn't work. Issue 225.
 </li><li>New experimental database file locking mechanism "FS" to use native file locking
@@ -39,7 +40,7 @@ Change Log
 
 <h2>Version 1.2.141 (2010-08-22)</h2>
 <ul><li>New experimental pseudo-encryption algorithm "FOG".
-    It makes the data appear to be encrypted. This algorithm is cryptographically extremely weak, 
+    It makes the data appear to be encrypted. This algorithm is cryptographically extremely weak,
     and should only be used to hide data from reading the plain text using a text editor.
     Please let us know if you think this is useful or not.
 </li><li>Documentation: the grammar and function documentation can now be easier translated.

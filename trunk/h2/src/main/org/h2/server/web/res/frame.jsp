@@ -17,7 +17,7 @@ Initial Developer: H2 Group
     <frameset cols="200,*" rows="*" frameborder="1" framespacing="4" border="${frameset-border}" bordercolor="white">
         <frame frameborder="0" marginheight="0" marginwidth="0" src="tables.do?jsessionid=${sessionId}" name="h2menu" />
         <frameset  rows="180,*" frameborder="1" framespacing="4" border="${frameset-border}" bordercolor="white">
-            <frame frameborder="0" marginheight="0" marginwidth="0" src="query.jsp?jsessionid=${sessionId}" name="h2query" scrolling="no" >
+            <frame frameborder="0" marginheight="0" marginwidth="0" src="query.jsp?jsessionid=${sessionId}" name="h2query" scrolling="no" />
             <frame frameborder="${frame-border}" marginheight="0" marginwidth="0" src="help.jsp?jsessionid=${sessionId}" name="h2result" />
         </frameset>
     </frameset>

@@ -75,7 +75,8 @@ public class TestTools extends TestBase {
         testRemove();
         testConvertTraceFile();
         testManagementDb();
-        testChangeFileEncryption();
+        testChangeFileEncryption(false);
+        testChangeFileEncryption(true);
         testServer();
         testScriptRunscript();
         testBackupRestore();
@@ -620,32 +621,32 @@ public class TestTools extends TestBase {
         DeleteDbFiles.main("-dir", getBaseDir(), "-db", "utils", "-quiet");
     }
 
-    private void testChangeFileEncryption() throws SQLException {
+    private void testChangeFileEncryption(boolean split) throws SQLException {
         org.h2.Driver.load();
-        DeleteDbFiles.execute(getBaseDir(), "utils", true);
-        Connection conn = DriverManager.getConnection("jdbc:h2:" +
-                getBaseDir() + "/utils;CIPHER=XTEA", "sa", "abc 123");
+        String dir = (split ? "split:19:" : "") + getBaseDir();
+        String url = "jdbc:h2:" + dir;
+        DeleteDbFiles.execute(dir, "utils", true);
+        Connection conn = DriverManager.getConnection(url + "/utils;CIPHER=XTEA", "sa", "abc 123");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB) " +
                 "AS SELECT X, SPACE(3000) FROM SYSTEM_RANGE(1, 300)");
         conn.close();
-        String[] args = { "-dir", getBaseDir(), "-db", "utils", "-cipher", "XTEA", "-decrypt", "abc", "-quiet" };
+        String[] args = { "-dir", dir, "-db", "utils", "-cipher", "XTEA", "-decrypt", "abc", "-quiet" };
         ChangeFileEncryption.main(args);
-        args = new String[] { "-dir", getBaseDir(), "-db", "utils", "-cipher", "AES", "-encrypt", "def", "-quiet" };
+        args = new String[] { "-dir", dir, "-db", "utils", "-cipher", "AES", "-encrypt", "def", "-quiet" };
         ChangeFileEncryption.main(args);
-        conn = DriverManager.getConnection("jdbc:h2:" +
-                getBaseDir() + "/utils;CIPHER=AES", "sa", "def 123");
+        conn = DriverManager.getConnection(url + "/utils;CIPHER=AES", "sa", "def 123");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         try {
-            args = new String[] { "-dir", getBaseDir(), "-db", "utils", "-cipher", "AES", "-decrypt", "def", "-quiet" };
+            args = new String[] { "-dir", dir, "-db", "utils", "-cipher", "AES", "-decrypt", "def", "-quiet" };
             ChangeFileEncryption.main(args);
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         conn.close();
-        args = new String[] { "-dir", getBaseDir(), "-db", "utils", "-quiet" };
+        args = new String[] { "-dir", dir, "-db", "utils", "-quiet" };
         DeleteDbFiles.main(args);
     }
 

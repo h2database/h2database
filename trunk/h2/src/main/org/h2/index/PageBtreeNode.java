@@ -126,7 +126,6 @@ public class PageBtreeNode extends PageBtree {
         }
         int startData;
         if (onlyPosition) {
-            // need to be pessimistic:
             // if we only store the position, we may at most store as many
             // entries as there is space for keys, because the current data area
             // might get larger when _removing_ a child (if the new key needs

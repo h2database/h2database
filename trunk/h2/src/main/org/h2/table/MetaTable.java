@@ -1106,7 +1106,7 @@ public class MetaTable extends Table {
                         replaceNullWithEmpty(agg.getComment()),
                         // ID
                         "" + agg.getId(),
-                        // SOUCE
+                        // SOURCE
                         ""
                         // when adding more columns, see also below
                 );

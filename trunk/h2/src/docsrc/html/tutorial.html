@@ -40,6 +40,8 @@ Tutorial
     Using H2 within NetBeans</a><br />
 <a href="#web_applications">
     Using Databases in Web Applications</a><br />
+<a href="#android">
+    Android</a><br />
 <a href="#csv">
     CSV (Comma Separated Values) Support</a><br />
 <a href="#upgrade_backup_restore">
@@ -719,6 +721,52 @@ To create a web application with just the H2 Console, run the following command:
 </p>
 <pre>
 build warConsole
+</pre>
+
+<h2 id="android">Android</h2>
+<p>
+You can use this database on an Android device (using the Dalvik VM) instead of or in addition to SQLite.
+So far, only very few tests and benchmarks were run, but it seems that performance is very similar to SQLite,
+except for opening and closing a database, which is not yet optimized in H2
+(H2 takes about 0.2 seconds, and SQLite about 0.02 seconds).
+So far, only very few tests have been run, and everything seems to work as expected.
+Fulltext search was not yet tested, however the native fulltext search should work.
+</p>
+<p>
+Reasons to use H2 instead of SQLite are:
+</p>
+<ul><li>Full Unicode support including UPPER() and LOWER() (unlike SQLite).
+</li><li>Fulltext search.
+</li><li>Multiple connections.
+</li><li>User defined functions, triggers.
+</li><li>Database file encryption.
+</li><li>Reading and writing CSV files (this feature can be used out side the database as well).
+</li><li>Referential integrity and check constraints.
+</li><li>Better data type and SQL support.
+</li><li>In-memory databases, read-only databases, linked tables.
+</li><li>Better compatibility with other databases which simplifies porting applications.
+</li><li>Possibly better performance.
+</li></ul>
+<p>
+Currently only the JDBC API is supported (it is planned to support the Android database API in future releases).
+Both the regular H2 jar file and the smaller <code>h2small-*.jar</code> can be used.
+To create the smaller jar file, run the command <code>./build.sh jarSmall</code> (Linux / Mac OS)
+or <code>build.bat jarSmall</code> (Windows).
+</p>
+<p>
+The database files needs to be stored in a place that is accessible for the application.
+Example:
+</p>
+<pre>
+String url = "jdbc:h2:/data/data/" +
+    "com.example.hello" +
+    "/data/hello" +
+    ";FILE_LOCK=FS" +
+    ";PAGE_SIZE=1024" +
+    ";CACHE_SIZE=8192";
+Class.forName("org.h2.Driver");
+conn = DriverManager.getConnection(url);
+...
 </pre>
 
 <h2 id="csv">CSV (Comma Separated Values) Support</h2>

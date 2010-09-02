@@ -1587,7 +1587,7 @@ The trigger can be used to veto a change by throwing a <code>SQLException</code>
 <h2 id="compacting">Compacting a Database</h2>
 <p>
 Empty space in the database file re-used automatically. When closing the database,
-the database is automatically compacted for up to 1 second by default. To compact more,
+the database is automatically compacted for up to 200 milliseconds by default. To compact more,
 use the SQL statement SHUTDOWN COMPACT. However re-creating the database may further
 reduce the database size because this will re-build the indexes.
 Here is a sample function to do this:

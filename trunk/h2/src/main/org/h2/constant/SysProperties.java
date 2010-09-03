@@ -343,6 +343,13 @@ public class SysProperties {
     public static final boolean LOB_IN_DATABASE = getBooleanSetting("h2.lobInDatabase", false);
 
     /**
+     * System property <code>h2.lobClientMaxSizeMemory</code> (default: 65536).<br />
+     * The maximum size of a LOB object to keep in memory on the client side
+     * when using the server mode.
+     */
+    public static final int LOB_CLIENT_MAX_SIZE_MEMORY = getIntSetting("h2.lobClientMaxSizeMemory", 65536);
+
+    /**
      * System property <code>h2.logAllErrors</code> (default: false).<br />
      * Write stack traces of any kind of error to a file.
      */
@@ -633,8 +640,8 @@ public class SysProperties {
 
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
-     * Invert the default sorting behavior for NULL values, such that NULL
-     * values are sorted to the end of a result set in an ascending sort and to
+     * Invert the default sorting behavior for NULL, such that NULL
+     * is at the end of a result set in an ascending sort and at
      * the beginning of a result set in a descending sort.
      */
     public static final boolean SORT_NULLS_HIGH = getBooleanSetting("h2.sortNullsHigh", false);

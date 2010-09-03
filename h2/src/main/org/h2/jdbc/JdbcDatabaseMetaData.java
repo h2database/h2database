@@ -459,7 +459,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Checks is NULL values are sorted high (bigger than any non-null values).
+     * Checks if NULL is sorted high (bigger than anything that is not null).
      *
      * @return false by default; true if the system property h2.sortNullsHigh is
      *         set to true
@@ -470,7 +470,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Checks is NULL values are sorted low (smaller than any non-null values).
+     * Checks if NULL is sorted low (smaller than anything that is not null).
      *
      * @return true by default; false if the system property h2.sortNullsHigh is
      *         set to true
@@ -481,8 +481,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Checks is NULL values are sorted at the beginning (no matter if ASC or
-     * DESC is used).
+     * Checks if NULL is sorted at the beginning (no matter if ASC or DESC is
+     * used).
      *
      * @return false
      */
@@ -492,8 +492,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Checks is NULL values are sorted at the end (no matter if ASC or DESC is
-     * used).
+     * Checks if NULL is sorted at the end (no matter if ASC or DESC is used).
      *
      * @return false
      */

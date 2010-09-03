@@ -140,9 +140,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns whether the last column accessed was a null value.
+     * Returns whether the last column accessed was null.
      *
-     * @return true if the last column accessed was a null value
+     * @return true if the last column accessed was null
      */
     public boolean wasNull() throws SQLException {
         try {

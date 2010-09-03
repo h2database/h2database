@@ -22,10 +22,10 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileSystem;
-import org.h2.util.StringUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.SortedProperties;
+import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 
 /**

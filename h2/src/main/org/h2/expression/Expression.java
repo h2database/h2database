@@ -224,9 +224,9 @@ public abstract class Expression {
     }
 
     /**
-     * Check whether this expression is a column and can store null values.
+     * Check whether this expression is a column and can store NULL.
      *
-     * @return whether null values are allowed
+     * @return whether NULL is allowed
      */
     public int getNullable() {
         return Column.NULLABLE_UNKNOWN;

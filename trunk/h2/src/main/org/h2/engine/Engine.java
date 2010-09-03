@@ -24,15 +24,12 @@ import org.h2.util.StringUtils;
  * It is also responsible for opening and creating new databases.
  * This is a singleton class.
  */
-public class Engine {
+public class Engine implements SessionFactory {
 
     private static final Engine INSTANCE = new Engine();
-    private static final HashMap<String, Database> DATABASES = New.hashMap();
-    private volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
 
-    private Engine() {
-        // don't allow others to instantiate
-    }
+    private final HashMap<String, Database> databases = New.hashMap();
+    private volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
 
     public static Engine getInstance() {
         return INSTANCE;
@@ -45,7 +42,7 @@ public class Engine {
         if (openNew || ci.isUnnamedInMemory()) {
             database = null;
         } else {
-            database = DATABASES.get(name);
+            database = databases.get(name);
         }
         User user = null;
         boolean opened = false;
@@ -64,7 +61,7 @@ public class Engine {
                 database.setMasterUser(user);
             }
             if (!ci.isUnnamedInMemory()) {
-                DATABASES.put(name, database);
+                databases.put(name, database);
             }
         }
         synchronized (database) {
@@ -108,7 +105,11 @@ public class Engine {
      * @param ci the connection information
      * @return the session
      */
-    public Session getSession(ConnectionInfo ci) {
+    public Session createSession(ConnectionInfo ci) {
+        return INSTANCE.createSessionAndValidate(ci);
+    }
+
+    private Session createSessionAndValidate(ConnectionInfo ci) {
         try {
             ConnectionInfo backup = null;
             String lockMethodName = ci.getProperty("FILE_LOCK", null);
@@ -213,7 +214,7 @@ public class Engine {
      * @param name the database name
      */
     public void close(String name) {
-        DATABASES.remove(name);
+        databases.remove(name);
     }
 
     /**

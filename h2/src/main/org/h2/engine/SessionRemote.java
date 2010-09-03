@@ -37,7 +37,7 @@ import org.h2.value.Transfer;
  * The client side part of a session when using the server mode. This object
  * communicates with a Session on the server side.
  */
-public class SessionRemote extends SessionWithState implements SessionFactory, DataHandler {
+public class SessionRemote extends SessionWithState implements DataHandler {
 
     public static final int SESSION_PREPARE = 0;
     public static final int SESSION_CLOSE = 1;
@@ -60,6 +60,8 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     public static final int STATUS_CLOSED = 2;
     public static final int STATUS_OK_STATE_CHANGED = 3;
 
+    private static SessionFactory sessionFactory;
+
     private TraceSystem traceSystem;
     private Trace trace;
     private ArrayList<Transfer> transferList = New.arrayList();
@@ -80,11 +82,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     private LobStorage lobStorage;
     private boolean cluster;
 
-    public SessionRemote() {
-        // nothing to do
-    }
-
-    private SessionRemote(ConnectionInfo ci) {
+    public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
     }
 
@@ -229,11 +227,13 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
                 backup = (ConnectionInfo) ci.clone();
                 connectionInfo = (ConnectionInfo) ci.clone();
             }
-            SessionFactory sf = (SessionFactory) Class.forName("org.h2.engine.Session").newInstance();
             if (openNew) {
                 ci.setProperty("OPEN_NEW", "true");
             }
-            return sf.createSession(ci);
+            if (sessionFactory == null) {
+                sessionFactory = (SessionFactory) Class.forName("org.h2.engine.Engine").newInstance();
+            }
+            return sessionFactory.createSession(ci);
         } catch (Exception re) {
             DbException e = DbException.convert(re);
             if (e.getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1) {
@@ -551,7 +551,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     }
 
     public int getMaxLengthInplaceLob() {
-        return Constants.DEFAULT_MAX_LENGTH_CLIENTSIDE_LOB;
+        return SysProperties.LOB_CLIENT_MAX_SIZE_MEMORY;
     }
 
     public FileStore openFile(String name, String mode, boolean mustExist) {

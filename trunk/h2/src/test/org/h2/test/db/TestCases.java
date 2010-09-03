@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testColumnWithConstraintAndComment();
         testTruncateConstraintsDisabled();
         testPreparedSubquery2();
         testPreparedSubquery();
@@ -80,6 +81,20 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testColumnWithConstraintAndComment() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int check id < 500)");
+        stat.execute("comment on column test.id is 'comment'");
+        conn.close();
+        conn = getConnection("cases");
+        conn.close();
     }
 
     private void testTruncateConstraintsDisabled() throws SQLException {

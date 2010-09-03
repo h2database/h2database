@@ -438,11 +438,11 @@ public class Column {
         if (selectivity != 0) {
             buff.append(" SELECTIVITY ").append(selectivity);
         }
-        if (checkConstraint != null) {
-            buff.append(" CHECK ").append(checkConstraintSQL);
-        }
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+        }
+        if (checkConstraint != null) {
+            buff.append(" CHECK ").append(checkConstraintSQL);
         }
         return buff.toString();
     }

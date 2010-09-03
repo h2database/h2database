@@ -376,7 +376,7 @@ public class TreeIndex extends BaseIndex {
 
     public Cursor findFirstOrLast(Session session, boolean first) {
         if (first) {
-            // TODO optimization: this loops through NULL values
+            // TODO optimization: this loops through NULL
             Cursor cursor = find(session, null, null);
             while (cursor.next()) {
                 SearchRow row = cursor.getSearchRow();

@@ -1611,8 +1611,11 @@ LIKE 'Jo%'
     | referentialConstraint }
     | PRIMARY KEY [ HASH ] ( columnName [,...] )
 ","
-Defines a constraint. The check condition must evaluate to true or to NULL (to
-prevent NULL, use NOT NULL).
+Defines a constraint.
+The check condition must evaluate to TRUE, FALSE or NULL.
+TRUE and NULL mean the operation is to be permitted, 
+and FALSE means the operation is to be rejected.
+To prevent NULL in a column, use NOT NULL instead of a check constraint.
 ","
 PRIMARY KEY(ID, NAME)
 "

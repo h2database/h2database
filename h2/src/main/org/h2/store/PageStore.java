@@ -477,13 +477,13 @@ public class PageStore implements CacheWriter {
                         }
                         if (compact(full, free)) {
                             j++;
+                            long now = System.currentTimeMillis();
+                            if (now > start + maxCompactTime) {
+                                j = maxMove;
+                                break;
+                            }
                         }
                     }
-                }
-                long now = System.currentTimeMillis();
-                if (now > start + maxCompactTime) {
-                    j = maxMove;
-                    break;
                 }
             }
         }

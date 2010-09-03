@@ -422,7 +422,8 @@ public class RegularTable extends TableBase {
 
     private void doLock(Session session, int lockMode, boolean exclusive) {
         traceLock(session, exclusive, "requesting for");
-        long max = System.currentTimeMillis() + session.getLockTimeout();
+        // don't get the current time unless necessary
+        long max = 0;
         boolean checkDeadlock = false;
         while (true) {
             if (lockExclusive == session) {
@@ -473,7 +474,10 @@ public class RegularTable extends TableBase {
                 checkDeadlock = true;
             }
             long now = System.currentTimeMillis();
-            if (now >= max) {
+            if (max == 0) {
+                // try at least one more time
+                max = now + session.getLockTimeout();
+            } else if (now >= max) {
                 traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
             }

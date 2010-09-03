@@ -121,8 +121,7 @@ public class TcpServerThread implements Runnable {
                 for (int i = 0; i < len; i++) {
                     ci.setProperty(transfer.readString(), transfer.readString());
                 }
-                Engine engine = Engine.getInstance();
-                session = engine.getSession(ci);
+                session = Engine.getInstance().createSession(ci);
                 transfer.setSession(session);
                 transfer.writeInt(SessionRemote.STATUS_OK);
                 transfer.writeInt(clientVersion);

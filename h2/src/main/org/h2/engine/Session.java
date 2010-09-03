@@ -42,7 +42,7 @@ import org.h2.value.ValueString;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class Session extends SessionWithState implements SessionFactory {
+public class Session extends SessionWithState {
 
     /**
      * This special log position means that the log entry has been written.
@@ -116,10 +116,6 @@ public class Session extends SessionWithState implements SessionFactory {
         Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         this.lockTimeout = setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
-    }
-
-    public SessionInterface createSession(ConnectionInfo ci) {
-        return Engine.getInstance().getSession(ci);
     }
 
     public boolean setCommitOrRollbackDisabled(boolean x) {
@@ -1178,7 +1174,7 @@ public class Session extends SessionWithState implements SessionFactory {
     public SessionInterface reconnect(boolean write) {
         readSessionState();
         close();
-        Session newSession = Engine.getInstance().getSession(connectionInfo);
+        Session newSession = Engine.getInstance().createSession(connectionInfo);
         newSession.sessionState = sessionState;
         newSession.recreateSessionState();
         if (write) {

@@ -67,8 +67,12 @@ public class DbUpgradeNonPageStoreToCurrent {
             newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";LOG=0", "");
             newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";LOG=1", "");
             newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";LOG=2", "");
+            newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";LOCK_MODE=0", "");
+            newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";LOCK_MODE=1", "");
+            newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";LOCK_MODE=2", "");
+            newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";LOCK_MODE=3", "");
             newUrl = StringUtils.replaceAllIgnoreCase(newUrl, ";IFEXISTS=TRUE", "");
-            newUrl += ";UNDO_LOG=0;LOG=0";
+            newUrl += ";UNDO_LOG=0;LOG=0;LOCK_MODE=0";
             String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
             oldUrl = url;
             oldUrl = StringUtils.replaceAll(oldUrl, org.h2.engine.Constants.START_URL, oldStartUrlPrefix);

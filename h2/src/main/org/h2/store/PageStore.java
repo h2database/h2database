@@ -509,17 +509,8 @@ public class PageStore implements CacheWriter {
             recordPageReads = true;
             for (int i = 0; i < tables.size(); i++) {
                 Table table = tables.get(i);
-                Column[] columns = table.getColumns();
-                String columnNames = "";
-                for (Column column : columns) {
-                    if (column.getType() != Value.BLOB) {
-                        if (!columnNames.equals("")) {
-                             columnNames += ",";
-                        }
-                        columnNames += column.getName();
-                    }
-                }
-                org.h2.command.Prepared pref = database.getSystemSession().prepare("select " + columnNames + " from " + table.getName());
+                org.h2.command.Prepared pref = database.getSystemSession().prepare("select * from " +
+                        table.getName() + " where -1=abs(rand())");
                 ResultInterface ri = pref.query(Integer.MAX_VALUE);
                 ri.close();
             }
@@ -528,11 +519,10 @@ public class PageStore implements CacheWriter {
             if (free == -1) {
                 DbException.throwInternalError("no free page for defrag");
             } else {
-                int currentSeqPosInDb = MIN_PAGE_COUNT;
                 for (int i = 0; i < recordedPagesList.size(); i++) {
                     writeBack();
                     cache.clear();
-                    int a = currentSeqPosInDb;
+                    int a = MIN_PAGE_COUNT + i;
                     int b = recordedPagesList.get(i);
 
                     if (a == b) {
@@ -548,21 +538,6 @@ public class PageStore implements CacheWriter {
                         recordedPagesList.set(index, b);
                     }
                     recordedPagesList.set(i, a);
-
-                    while (true) {
-                        currentSeqPosInDb++;
-                        if (currentSeqPosInDb >= pageCount) {
-                            currentSeqPosInDb = -1;
-                            break;
-                        }
-                        Page currentPage = getPage(currentSeqPosInDb);
-                        if (currentPage == null) {
-                            continue;
-                        }
-                        if (currentPage instanceof PageDataLeaf) {
-                            break;
-                        }
-                    }
                 }
             }
 
@@ -638,12 +613,13 @@ public class PageStore implements CacheWriter {
             trace.debug("swap " + a + " with " + b + " via " + free);
             try {
                 pageA.moveTo(systemSession, free);
-                freePage(a);
+                free(a);
+                pageB = getPage(b);
                 pageB.moveTo(systemSession, a);
-                freePage(b);
+                free(b);
                 f = getPage(free);
                 f.moveTo(systemSession, b);
-                freePage(free);
+                free(free);
             } finally {
                 changeCount++;
             }

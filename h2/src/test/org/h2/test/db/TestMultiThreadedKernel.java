@@ -45,6 +45,7 @@ public class TestMultiThreadedKernel extends TestBase {
             return;
         }
         deleteDb("multiThreadedKernel");
+        testConcurrentRead();
         testCache();
         deleteDb("multiThreadedKernel");
         final String url = getURL("multiThreadedKernel;DB_CLOSE_DELAY=-1;MULTI_THREADED=1", true);
@@ -88,6 +89,45 @@ public class TestMultiThreadedKernel extends TestBase {
         deleteDb("multiThreadedKernel");
     }
 
+    private void testConcurrentRead() throws Exception {
+        ArrayList<Thread> list = New.arrayList();
+        int size = 2;
+        final int count = 1000;
+        final boolean[] stopped = { false };
+        String url = getURL("multiThreadedKernel;MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
+        for (int i = 0; i < size; i++) {
+            final Connection conn = DriverManager.getConnection(url, getUser(), getPassword());
+            if (i == 0) {
+                Statement stat = conn.createStatement();
+                stat.execute("drop table test if exists");
+                stat.execute("create table test(id int primary key, name varchar) "
+                        + "as select x, x || space(10) from system_range(1, " + count + ")");
+            }
+            final Random random = new Random(i);
+            Thread t = new Thread() {
+                public void run() {
+                    try {
+                        PreparedStatement prep = conn.prepareStatement(
+                                "select * from test where id = ?");
+                        while (!stopped[0]) {
+                            prep.setInt(1, random.nextInt(count));
+                            prep.execute();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            t.start();
+            list.add(t);
+        }
+        Thread.sleep(1000);
+        stopped[0] = true;
+        for (Thread t : list) {
+            t.join();
+        }
+    }
+
     private void testCache() throws Exception {
         ArrayList<Thread> list = New.arrayList();
         int size = 3;
@@ -98,6 +138,7 @@ public class TestMultiThreadedKernel extends TestBase {
             final Connection conn = DriverManager.getConnection(url, getUser(), getPassword());
             if (i == 0) {
                 Statement stat = conn.createStatement();
+                stat.execute("drop table test if exists");
                 stat.execute("create table test(id int primary key, name varchar) "
                         + "as select x, space(3000) from system_range(1, " + count + ")");
             }

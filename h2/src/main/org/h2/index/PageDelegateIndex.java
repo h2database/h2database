@@ -53,8 +53,8 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        long min = mainIndex.getLong(first, Long.MIN_VALUE);
-        long max = mainIndex.getLong(last, Long.MAX_VALUE);
+        long min = mainIndex.getKey(first, Long.MIN_VALUE);
+        long max = mainIndex.getKey(last, Long.MAX_VALUE);
         return mainIndex.find(session, min, max, false);
     }
 

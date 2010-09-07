@@ -158,10 +158,10 @@ public class PageDataNode extends PageData {
         }
     }
 
-    Cursor find(Session session, long min, long max, boolean multiVersion) {
-        int x = find(min);
+    Cursor find(Session session, long minKey, long maxKey, boolean multiVersion) {
+        int x = find(minKey);
         int child = childPageIds[x];
-        return index.getPage(child, getPos()).find(session, min, max, multiVersion);
+        return index.getPage(child, getPos()).find(session, minKey, maxKey, multiVersion);
     }
 
     PageData split(int splitPoint) {

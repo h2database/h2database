@@ -306,9 +306,9 @@ public class PageDataLeaf extends PageData {
         rows = remove(rows, entryCount + 1, i);
     }
 
-    Cursor find(Session session, long min, long max, boolean multiVersion) {
-        int x = find(min);
-        return new PageDataCursor(session, this, x, max, multiVersion);
+    Cursor find(Session session, long minKey, long maxKey, boolean multiVersion) {
+        int x = find(minKey);
+        return new PageDataCursor(session, this, x, maxKey, multiVersion);
     }
 
     /**
@@ -321,8 +321,7 @@ public class PageDataLeaf extends PageData {
         Row r = rows[at];
         if (r == null) {
             if (firstOverflowPageId == 0) {
-                data.setPos(offsets[at]);
-                r = index.readRow(data, columnCount);
+                r = index.readRow(data, offsets[at], columnCount);
             } else {
                 if (rowRef != null) {
                     r = rowRef.get();
@@ -341,8 +340,7 @@ public class PageDataLeaf extends PageData {
                     next = page.readInto(buff);
                 } while (next != 0);
                 overflowRowSize = pageSize + buff.length();
-                buff.setPos(0);
-                r = index.readRow(buff, columnCount);
+                r = index.readRow(buff, 0, columnCount);
             }
             r.setKey(keys[at]);
             if (firstOverflowPageId != 0) {

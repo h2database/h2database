@@ -19,16 +19,16 @@ class PageDataCursor implements Cursor {
 
     private PageDataLeaf current;
     private int idx;
-    private final long max;
+    private final long maxKey;
     private Row row;
     private final boolean multiVersion;
     private final Session session;
     private Iterator<Row> delta;
 
-    PageDataCursor(Session session, PageDataLeaf current, int idx, long max, boolean multiVersion) {
+    PageDataCursor(Session session, PageDataLeaf current, int idx, long maxKey, boolean multiVersion) {
         this.current = current;
         this.idx = idx;
-        this.max = max;
+        this.maxKey = maxKey;
         this.multiVersion = multiVersion;
         this.session = session;
         if (multiVersion) {
@@ -73,9 +73,9 @@ class PageDataCursor implements Cursor {
 
     private boolean checkMax() {
         if (row != null) {
-            if (max != Long.MAX_VALUE) {
-                long x = current.index.getLong(row, Long.MAX_VALUE);
-                if (x > max) {
+            if (maxKey != Long.MAX_VALUE) {
+                long x = current.index.getKey(row, Long.MAX_VALUE);
+                if (x > maxKey) {
                     row = null;
                     return false;
                 }

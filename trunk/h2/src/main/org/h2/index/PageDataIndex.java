@@ -239,13 +239,13 @@ public class PageDataIndex extends PageIndex {
     }
 
     /**
-     * Get the key from the row
+     * Get the key from the row.
      *
      * @param row the row
      * @param ifEmpty the value to use if the row is empty
      * @return the key
      */
-    long getLong(SearchRow row, long ifEmpty) {
+    long getKey(SearchRow row, long ifEmpty) {
         if (row == null) {
             return ifEmpty;
         }
@@ -402,13 +402,17 @@ public class PageDataIndex extends PageIndex {
      * Read a row from the data page at the given position.
      *
      * @param data the data page
+     * @param pos the position to read from
      * @param columnCount the number of columns
      * @return the row
      */
-    Row readRow(Data data, int columnCount) {
+    Row readRow(Data data, int pos, int columnCount) {
         Value[] values = new Value[columnCount];
-        for (int i = 0; i < columnCount; i++) {
-            values[i] = data.readValue();
+        synchronized (data) {
+            data.setPos(pos);
+            for (int i = 0; i < columnCount; i++) {
+                values[i] = data.readValue();
+            }
         }
         return tableData.createRow(values);
     }

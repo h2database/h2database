@@ -323,23 +323,25 @@ public class PageBtreeIndex extends PageIndex {
      * @return the row
      */
     SearchRow readRow(Data data, int offset, boolean onlyPosition, boolean needData) {
-        data.setPos(offset);
-        long key = data.readVarLong();
-        if (onlyPosition) {
-            if (needData) {
-                return tableData.getRow(null, key);
+        synchronized (data) {
+            data.setPos(offset);
+            long key = data.readVarLong();
+            if (onlyPosition) {
+                if (needData) {
+                    return tableData.getRow(null, key);
+                }
+                SearchRow row = table.getTemplateSimpleRow(true);
+                row.setKey(key);
+                return row;
             }
-            SearchRow row = table.getTemplateSimpleRow(true);
+            SearchRow row = table.getTemplateSimpleRow(columns.length == 1);
             row.setKey(key);
+            for (Column col : columns) {
+                int idx = col.getColumnId();
+                row.setValue(idx, data.readValue());
+            }
             return row;
         }
-        SearchRow row = table.getTemplateSimpleRow(columns.length == 1);
-        row.setKey(key);
-        for (Column col : columns) {
-            int idx = col.getColumnId();
-            row.setValue(idx, data.readValue());
-        }
-        return row;
     }
 
     /**

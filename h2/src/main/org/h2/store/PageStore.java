@@ -524,40 +524,44 @@ public class PageStore implements CacheWriter {
                 ri.close();
             }
             recordPageReads = false;
-            int currentSeqPosInDb = MIN_PAGE_COUNT;
-            for (int i = 0; i < recordedPagesList.size(); i++) {
-                writeBack();
-                cache.clear();
-                int free = getFirstFree();
-                int a = currentSeqPosInDb;
-                int b = recordedPagesList.get(i);
+            int free = getFirstFree(); // We swap, so this page is fix
+            if (free == -1) {
+                DbException.throwInternalError("no free page for defrag");
+            } else {
+                int currentSeqPosInDb = MIN_PAGE_COUNT;
+                for (int i = 0; i < recordedPagesList.size(); i++) {
+                    writeBack();
+                    cache.clear();
+                    int a = currentSeqPosInDb;
+                    int b = recordedPagesList.get(i);
 
-                if (a == b) {
-                    continue;
-                }
-
-                boolean swapped = swap(a, b, free);
-                if (!swapped) {
-                    DbException.throwInternalError("swapping not possible: " + a + " with " + b + " via " + free);
-                }
-                int index = recordedPagesList.indexOf(a);
-                if (index != -1) {
-                    recordedPagesList.set(index, b);
-                }
-                recordedPagesList.set(i, a);
-
-                // Find next PageDataLeaf
-                while (true) {
-                    currentSeqPosInDb++;
-                    if (currentSeqPosInDb >= pageCount) {
-                        currentSeqPosInDb = -1;
-                    }
-                    Page currentPage = getPage(currentSeqPosInDb);
-                    if (currentPage == null) {
+                    if (a == b) {
                         continue;
                     }
-                    if (currentPage instanceof PageDataLeaf) {
-                        break;
+
+                    boolean swapped = swap(a, b, free);
+                    if (!swapped) {
+                        DbException.throwInternalError("swapping not possible: " + a + " with " + b + " via " + free);
+                    }
+                    int index = recordedPagesList.indexOf(a);
+                    if (index != -1) {
+                        recordedPagesList.set(index, b);
+                    }
+                    recordedPagesList.set(i, a);
+
+                    while (true) {
+                        currentSeqPosInDb++;
+                        if (currentSeqPosInDb >= pageCount) {
+                            currentSeqPosInDb = -1;
+                            break;
+                        }
+                        Page currentPage = getPage(currentSeqPosInDb);
+                        if (currentPage == null) {
+                            continue;
+                        }
+                        if (currentPage instanceof PageDataLeaf) {
+                            break;
+                        }
                     }
                 }
             }

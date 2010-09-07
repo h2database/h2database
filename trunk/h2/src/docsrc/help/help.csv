@@ -2513,7 +2513,7 @@ RAND( [ int ] )
 ","
 Calling the function without parameter returns the next a pseudo random number.
 Calling it with an parameter seeds the session's random number generator.
-This method returns a double.
+This method returns a double between 0 (including) and 1 (excluding).
 ","
 RAND()
 "

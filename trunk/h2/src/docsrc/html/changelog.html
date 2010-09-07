@@ -20,6 +20,8 @@ Change Log
 <h2>Next Version (unreleased)</h2>
 <ul><li>New experimental feature "SHUTDOWN DEFRAG". This option optimizes the page layout so
     that a full table scan is faster.
+</li><li>When using the MULTI_THREADED option, concurrently reading from a database
+    (specially from a larger database, or when using a small cache size) could throw an exception.
 </li><li>When adding a comment to a column that has a check constraint, 
     the database couldn't be re-opened.
 </li><li>New system property h2.lobClientMaxSizeMemory to set the maximum size 

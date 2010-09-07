@@ -243,6 +243,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 146: Support merge join.
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Cluster: hot deploy (adding a node at runtime)
+</li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Support COSH, SINH, and TANH functions
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
@@ -318,7 +319,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console: support single file upload and directory download (optional).
 </li><li>Document FTL_SEARCH, FTL_SEARCH_DATA.
 </li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
-</li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Auto-server: add option to define the IP address range or list.
 </li><li>Index creation using deterministic functions.
 </li><li>Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
@@ -520,7 +520,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>JaQu should support a DataSource and a way to create a Db object using a Connection (for multi-threaded usage with a connection pool).
 </li><li>Move table to a different schema (rename table to a different schema), possibly using ALTER TABLE ... SET SCHEMA ...;
 </li><li>nioMapped file system: automatically fall back to regular (non mapped) IO if there is a problem (out of memory exception for example).
-</li><li>Column as parameter of function table. Issue 228
+</li><li>Column as parameter of function table. Issue 228.
+</li><li>Support -webPassword to require a password to shutdown the H2 Console.
+</li><li>Connection pool: detect ;AUTOCOMMIT=FALSE in the database URL, and if set,
+    disable autoconnect for all connections.
 </li></ul>
 
 <h2>Not Planned</h2>

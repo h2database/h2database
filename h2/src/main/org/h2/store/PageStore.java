@@ -12,8 +12,10 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
+import org.h2.command.dml.TransactionCommand;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -34,6 +36,7 @@ import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -170,6 +173,10 @@ public class PageStore implements CacheWriter {
     private Session systemSession;
     private BitSet freed = new BitSet();
     private ArrayList<PageFreeList> freeLists = New.arrayList();
+
+    private boolean recordPageReads;
+    private ArrayList<Integer> recordedPagesList;
+    private HashSet<Integer> recordedPagesSet;
 
     /**
      * The change count is something like a "micro-transaction-id".
@@ -430,9 +437,10 @@ public class PageStore implements CacheWriter {
     /**
      * Shrink the file so there are no empty pages at the end.
      *
-     * @param fully if the database should be fully compressed
+     * @param compactMode != -1 if no compacting should happen, otherwise
+     * TransactionCommand.SHUTDOWN_COMPACT or TransactionCommand.SHUTDOWN_DEFRAG
      */
-    public void compact(boolean fully) {
+    public void compact(int compactMode) {
         if (!SysProperties.PAGE_STORE_TRIM) {
             return;
         }
@@ -459,13 +467,17 @@ public class PageStore implements CacheWriter {
             recoveryRunning = false;
         }
         long start = System.currentTimeMillis();
+        boolean isCompactFully = compactMode == TransactionCommand.SHUTDOWN_COMPACT;
+        boolean isDefrag = compactMode == TransactionCommand.SHUTDOWN_DEFRAG;
+        
         int maxCompactTime = SysProperties.MAX_COMPACT_TIME;
         int maxMove = SysProperties.MAX_COMPACT_COUNT;
-        if (fully) {
+
+        if (isCompactFully || isDefrag) {
             maxCompactTime = Integer.MAX_VALUE;
             maxMove = Integer.MAX_VALUE;
         }
-        int blockSize = fully ? COMPACT_BLOCK_SIZE : 1;
+        int blockSize = isCompactFully ? COMPACT_BLOCK_SIZE : 1;
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x -= blockSize) {
             for (int full = x - blockSize + 1; full <= x; full++) {
                 if (full > MIN_PAGE_COUNT) {
@@ -486,6 +498,72 @@ public class PageStore implements CacheWriter {
                     }
                 }
             }
+        }
+        if (isDefrag) {
+            writeBack();
+            cache.clear();
+            ArrayList<Table> tables = database.getAllTablesAndViews(false);
+            recordedPagesList = New.arrayList();
+            recordedPagesSet = New.hashSet();
+
+            recordPageReads = true;
+            for (int i = 0; i < tables.size(); i++) {
+                Table table = tables.get(i);
+                Column[] columns = table.getColumns();
+                String columnNames = "";
+                for (Column column : columns) {
+                    if (column.getType() != Value.BLOB) {
+                        if (!columnNames.equals("")) {
+                             columnNames += ",";
+                        }
+                        columnNames += column.getName();
+                    }
+                }
+                org.h2.command.Prepared pref = database.getSystemSession().prepare("select " + columnNames + " from " + table.getName());
+                ResultInterface ri = pref.query(Integer.MAX_VALUE);
+                ri.close();
+            }
+            recordPageReads = false;
+            int currentSeqPosInDb = MIN_PAGE_COUNT;
+            for (int i = 0; i < recordedPagesList.size(); i++) {
+                writeBack();
+                cache.clear();
+                int free = getFirstFree();
+                int a = currentSeqPosInDb;
+                int b = recordedPagesList.get(i);
+
+                if (a == b) {
+                    continue;
+                }
+
+                boolean swapped = swap(a, b, free);
+                if (!swapped) {
+                    DbException.throwInternalError("swapping not possible: " + a + " with " + b + " via " + free);
+                }
+                int index = recordedPagesList.indexOf(a);
+                if (index != -1) {
+                    recordedPagesList.set(index, b);
+                }
+                recordedPagesList.set(i, a);
+
+                // Find next PageDataLeaf
+                while (true) {
+                    currentSeqPosInDb++;
+                    if (currentSeqPosInDb >= pageCount) {
+                        currentSeqPosInDb = -1;
+                    }
+                    Page currentPage = getPage(currentSeqPosInDb);
+                    if (currentPage == null) {
+                        continue;
+                    }
+                    if (currentPage instanceof PageDataLeaf) {
+                        break;
+                    }
+                }
+            }
+
+            recordedPagesList = null;
+            recordedPagesSet = null;
         }
         // TODO can most likely be simplified
         checkpoint();
@@ -538,6 +616,37 @@ public class PageStore implements CacheWriter {
         return free;
     }
 
+    private boolean swap(int a, int b, int free) {
+        if (a < MIN_PAGE_COUNT || b < MIN_PAGE_COUNT || !isUsed(a) || !isUsed(b)) {
+            return false;
+        }
+        Page f = (Page) cache.get(free);
+        if (f != null) {
+            DbException.throwInternalError("not free: " + f);
+        }
+        Page pageA = getPage(a);
+        Page pageB = getPage(b);
+        if (pageA == null) {
+            freePage(a);
+        } else if (pageB == null) {
+            freePage(b);
+        } else {
+            trace.debug("swap " + a + " with " + b + " via " + free);
+            try {
+                pageA.moveTo(systemSession, free);
+                freePage(a);
+                pageB.moveTo(systemSession, a);
+                freePage(b);
+                f = getPage(free);
+                f.moveTo(systemSession, b);
+                freePage(free);
+            } finally {
+                changeCount++;
+            }
+        }
+        return true;
+    }
+
     private boolean compact(int full, int free) {
         if (full < MIN_PAGE_COUNT || free == -1 || free >= full || !isUsed(full)) {
             return false;
@@ -571,7 +680,8 @@ public class PageStore implements CacheWriter {
             Page p = (Page) cache.get(pageId);
             if (p != null) {
                 return p;
-            }
+            }            
+
             Data data = createData();
             readPage(pageId, data);
             int type = data.readByte();
@@ -601,6 +711,10 @@ public class PageStore implements CacheWriter {
                     statisticsIncrement(index.getTable().getName() + "." + index.getName() + " read");
                 }
                 p = PageDataLeaf.read(index, data, pageId);
+                if (recordPageReads && pageId >= MIN_PAGE_COUNT && !recordedPagesSet.contains(pageId)) {
+                    recordedPagesList.add(pageId);
+                    recordedPagesSet.add(pageId);
+                }
                 break;
             }
             case Page.TYPE_DATA_NODE: {

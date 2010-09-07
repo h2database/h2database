@@ -161,7 +161,7 @@ public class Database implements DataHandler {
     private volatile boolean checkpointRunning;
     private final Object reconnectSync = new Object();
     private int cacheSize;
-    private boolean compactFully;
+    private int compactMode = -1;
     private SourceCompiler compiler;
     private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
@@ -1124,7 +1124,7 @@ public class Database implements DataHandler {
                 try {
                     pageStore.checkpoint();
                     if (!readOnly) {
-                        pageStore.compact(compactFully);
+                        pageStore.compact(compactMode);
                     }
                 } catch (DbException e) {
                     if (e.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED) {
@@ -2233,8 +2233,8 @@ public class Database implements DataHandler {
         this.readOnly = readOnly;
     }
 
-    public void setCompactFully(boolean compactFully) {
-        this.compactFully = compactFully;
+    public void setCompactMode(int compactMode) {
+        this.compactMode = compactMode;
     }
 
     public SourceCompiler getCompiler() {

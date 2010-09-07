@@ -520,6 +520,8 @@ public class Parser {
             type = TransactionCommand.SHUTDOWN_IMMEDIATELY;
         } else if (readIf("COMPACT")) {
             type = TransactionCommand.SHUTDOWN_COMPACT;
+        } else if (readIf("DEFRAG")) {
+            type = TransactionCommand.SHUTDOWN_DEFRAG;
         } else {
             readIf("SCRIPT");
         }

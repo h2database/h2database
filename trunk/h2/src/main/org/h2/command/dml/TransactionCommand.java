@@ -92,6 +92,11 @@ public class TransactionCommand extends Prepared {
      */
     public static final int BEGIN = 15;
 
+    /**
+     * The type of a SHUTDOWN DEFRAG statement.
+     */
+    public static final int SHUTDOWN_DEFRAG = 16;
+
     private int type;
     private String savepointName;
     private String transactionName;
@@ -152,11 +157,12 @@ public class TransactionCommand extends Prepared {
             session.getDatabase().shutdownImmediately();
             break;
         case SHUTDOWN:
-        case SHUTDOWN_COMPACT: {
+        case SHUTDOWN_COMPACT:
+        case SHUTDOWN_DEFRAG: {
             session.getUser().checkAdmin();
             session.commit(false);
-            if (type == SHUTDOWN_COMPACT) {
-                session.getDatabase().setCompactFully(true);
+            if (type == SHUTDOWN_COMPACT || type == SHUTDOWN_DEFRAG) {
+                session.getDatabase().setCompactMode(type);
             }
             // close the database, but don't update the persistent setting
             session.getDatabase().setCloseDelay(0);

@@ -161,7 +161,7 @@ public class Database implements DataHandler {
     private volatile boolean checkpointRunning;
     private final Object reconnectSync = new Object();
     private int cacheSize;
-    private int compactMode = -1;
+    private int compactMode;
     private SourceCompiler compiler;
     private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;

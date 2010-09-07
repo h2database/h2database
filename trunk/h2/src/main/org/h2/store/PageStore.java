@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.TransactionCommand;
@@ -36,7 +35,6 @@ import org.h2.index.PageDelegateIndex;
 import org.h2.index.PageIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -176,7 +174,7 @@ public class PageStore implements CacheWriter {
 
     private boolean recordPageReads;
     private ArrayList<Integer> recordedPagesList;
-    private HashSet<Integer> recordedPagesSet;
+    private BitSet recordedPages;
 
     /**
      * The change count is something like a "micro-transaction-id".
@@ -437,7 +435,7 @@ public class PageStore implements CacheWriter {
     /**
      * Shrink the file so there are no empty pages at the end.
      *
-     * @param compactMode != -1 if no compacting should happen, otherwise
+     * @param compactMode 0 if no compacting should happen, otherwise
      * TransactionCommand.SHUTDOWN_COMPACT or TransactionCommand.SHUTDOWN_DEFRAG
      */
     public void compact(int compactMode) {
@@ -469,7 +467,10 @@ public class PageStore implements CacheWriter {
         long start = System.currentTimeMillis();
         boolean isCompactFully = compactMode == TransactionCommand.SHUTDOWN_COMPACT;
         boolean isDefrag = compactMode == TransactionCommand.SHUTDOWN_DEFRAG;
-        
+
+        int test;
+        // isCompactFully = isDefrag = true;
+
         int maxCompactTime = SysProperties.MAX_COMPACT_TIME;
         int maxMove = SysProperties.MAX_COMPACT_COUNT;
 
@@ -504,45 +505,42 @@ public class PageStore implements CacheWriter {
             cache.clear();
             ArrayList<Table> tables = database.getAllTablesAndViews(false);
             recordedPagesList = New.arrayList();
-            recordedPagesSet = New.hashSet();
-
+            recordedPages = new BitSet();
             recordPageReads = true;
             for (int i = 0; i < tables.size(); i++) {
                 Table table = tables.get(i);
-                org.h2.command.Prepared pref = database.getSystemSession().prepare("select * from " +
-                        table.getName() + " where -1=abs(rand())");
-                ResultInterface ri = pref.query(Integer.MAX_VALUE);
-                ri.close();
-            }
-            recordPageReads = false;
-            int free = getFirstFree(); // We swap, so this page is fix
-            if (free == -1) {
-                DbException.throwInternalError("no free page for defrag");
-            } else {
-                for (int i = 0; i < recordedPagesList.size(); i++) {
-                    writeBack();
-                    cache.clear();
-                    int a = MIN_PAGE_COUNT + i;
-                    int b = recordedPagesList.get(i);
-
-                    if (a == b) {
-                        continue;
-                    }
-
-                    boolean swapped = swap(a, b, free);
-                    if (!swapped) {
-                        DbException.throwInternalError("swapping not possible: " + a + " with " + b + " via " + free);
-                    }
-                    int index = recordedPagesList.indexOf(a);
-                    if (index != -1) {
-                        recordedPagesList.set(index, b);
-                    }
-                    recordedPagesList.set(i, a);
+                if (!table.isTemporary() && table.getTableType().equals(Table.TABLE)) {
+                    // rand() < 0 is never true, but the optimizer can't know,
+                    // therefore it's performing a table scan
+                    database.getSystemSession().prepare(
+                            "select * from " +
+                            table.getSQL() +
+                            " where rand() < zero()").query(Integer.MAX_VALUE);
+                    int todoScanIndexesAsWell;
                 }
             }
-
+            recordPageReads = false;
+            for (int i = 0; i < recordedPagesList.size(); i++) {
+                writeBack();
+                cache.clear();
+                int a = MIN_PAGE_COUNT + i;
+                int b = recordedPagesList.get(i);
+                if (a == b) {
+                    continue;
+                }
+                int temp = getFirstFree();
+                if (temp == -1) {
+                    DbException.throwInternalError("no free page for defrag");
+                }
+                swap(a, b, temp);
+                int index = recordedPagesList.indexOf(a);
+                if (index >= 0) {
+                    recordedPagesList.set(index, b);
+                }
+                recordedPagesList.set(i, a);
+            }
             recordedPagesList = null;
-            recordedPagesSet = null;
+            recordedPages = null;
         }
         // TODO can most likely be simplified
         checkpoint();
@@ -595,36 +593,32 @@ public class PageStore implements CacheWriter {
         return free;
     }
 
-    private boolean swap(int a, int b, int free) {
-        if (a < MIN_PAGE_COUNT || b < MIN_PAGE_COUNT || !isUsed(a) || !isUsed(b)) {
-            return false;
+    private void swap(int a, int b, int free) {
+        if (a < MIN_PAGE_COUNT || b < MIN_PAGE_COUNT) {
+            System.out.println(isUsed(a) + " " + isUsed(b));
+            DbException.throwInternalError("can't swap " + a + " and " + b);
         }
         Page f = (Page) cache.get(free);
         if (f != null) {
             DbException.throwInternalError("not free: " + f);
         }
-        Page pageA = getPage(a);
-        Page pageB = getPage(b);
-        if (pageA == null) {
-            freePage(a);
-        } else if (pageB == null) {
-            freePage(b);
-        } else {
-            trace.debug("swap " + a + " with " + b + " via " + free);
-            try {
-                pageA.moveTo(systemSession, free);
-                free(a);
-                pageB = getPage(b);
-                pageB.moveTo(systemSession, a);
-                free(b);
-                f = getPage(free);
-                f.moveTo(systemSession, b);
-                free(free);
-            } finally {
-                changeCount++;
-            }
+        trace.debug("swap " + a + " and " + b + " via " + free);
+        Page pageA = null;
+        if (isUsed(a)) {
+            pageA = getPage(a);
+            pageA.moveTo(systemSession, free);
+            free(a);
         }
-        return true;
+        if (isUsed(b)) {
+            Page pageB = getPage(b);
+            pageB.moveTo(systemSession, a);
+            free(b);
+        }
+        if (pageA != null) {
+            f = getPage(free);
+            f.moveTo(systemSession, b);
+            free(free);
+        }
     }
 
     private boolean compact(int full, int free) {
@@ -660,7 +654,7 @@ public class PageStore implements CacheWriter {
             Page p = (Page) cache.get(pageId);
             if (p != null) {
                 return p;
-            }            
+            }
 
             Data data = createData();
             readPage(pageId, data);
@@ -691,10 +685,6 @@ public class PageStore implements CacheWriter {
                     statisticsIncrement(index.getTable().getName() + "." + index.getName() + " read");
                 }
                 p = PageDataLeaf.read(index, data, pageId);
-                if (recordPageReads && pageId >= MIN_PAGE_COUNT && !recordedPagesSet.contains(pageId)) {
-                    recordedPagesList.add(pageId);
-                    recordedPagesSet.add(pageId);
-                }
                 break;
             }
             case Page.TYPE_DATA_NODE: {
@@ -1220,6 +1210,12 @@ public class PageStore implements CacheWriter {
      * @param page the page
      */
     void readPage(int pos, Data page) {
+        if (recordPageReads) {
+            if (pos >= MIN_PAGE_COUNT && !recordedPages.get(pos)) {
+                recordedPagesList.add(pos);
+                recordedPages.set(pos);
+            }
+        }
         synchronized (database) {
             if (pos < 0 || pos >= pageCount) {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);

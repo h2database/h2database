@@ -520,24 +520,34 @@ public class PageStore implements CacheWriter {
                 }
             }
             recordPageReads = false;
+            int target = MIN_PAGE_COUNT - 1;
             for (int i = 0; i < recordedPagesList.size(); i++) {
                 writeBack();
-                cache.clear();
-                int a = MIN_PAGE_COUNT + i;
-                int b = recordedPagesList.get(i);
-                if (a == b) {
+                int source = recordedPagesList.get(i);
+                Page pageSource = getPage(source);
+                if (!pageSource.canMove()) {
+                    continue;
+                }
+                while (true) {
+                    Page pageTarget = getPage(++target);
+                    if (pageTarget == null || pageTarget.canMove()) {
+                        break;
+                    }
+                }
+                if (target == source) {
                     continue;
                 }
                 int temp = getFirstFree();
                 if (temp == -1) {
                     DbException.throwInternalError("no free page for defrag");
                 }
-                swap(a, b, temp);
-                int index = recordedPagesList.indexOf(a);
+                cache.clear();
+                swap(source, target, temp);
+                int index = recordedPagesList.indexOf(target);
                 if (index >= 0) {
-                    recordedPagesList.set(index, b);
+                    recordedPagesList.set(index, source);
                 }
-                recordedPagesList.set(i, a);
+                recordedPagesList.set(i, target);
             }
             recordedPagesList = null;
             recordedPages = null;
@@ -606,17 +616,23 @@ public class PageStore implements CacheWriter {
         Page pageA = null;
         if (isUsed(a)) {
             pageA = getPage(a);
-            pageA.moveTo(systemSession, free);
+            if (pageA != null) {
+                pageA.moveTo(systemSession, free);
+            }
             free(a);
         }
         if (isUsed(b)) {
             Page pageB = getPage(b);
-            pageB.moveTo(systemSession, a);
+            if (pageB != null) {
+                pageB.moveTo(systemSession, a);
+            }
             free(b);
         }
         if (pageA != null) {
             f = getPage(free);
-            f.moveTo(systemSession, b);
+            if (f != null) {
+                f.moveTo(systemSession, b);
+            }
             free(free);
         }
     }

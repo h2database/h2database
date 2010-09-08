@@ -165,4 +165,8 @@ public class PageStreamData extends Page {
         return DATA_START;
     }
 
+    public boolean canMove() {
+        return false;
+    }
+
 }

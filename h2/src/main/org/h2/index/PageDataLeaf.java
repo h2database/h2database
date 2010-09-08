@@ -538,13 +538,13 @@ public class PageDataLeaf extends PageData {
         p2.writeData();
         p2.data.truncate(index.getPageStore().getPageSize());
         store.update(p2);
-        store.free(getPos());
         if (parentPageId == ROOT) {
             index.setRootPageId(session, newPos);
         } else {
             PageDataNode p = (PageDataNode) store.getPage(parentPageId);
             p.moveChild(getPos(), newPos);
         }
+        store.free(getPos());
     }
 
     /**

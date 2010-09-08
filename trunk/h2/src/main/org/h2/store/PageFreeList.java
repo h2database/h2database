@@ -222,4 +222,8 @@ public class PageFreeList extends Page {
         return false;
     }
 
+    public boolean canMove() {
+        return false;
+    }
+
 }

@@ -287,4 +287,8 @@ public class PageStreamTrunk extends Page {
         return "page[" + getPos() + "] stream trunk key:" + logKey + " next:" + nextTrunk;
     }
 
+    public boolean canMove() {
+        return false;
+    }
+
 }

@@ -10,7 +10,6 @@ import java.lang.reflect.Array;
 import org.h2.engine.Session;
 import org.h2.util.CacheObject;
 
-
 /**
  * A page. Format:
  * <ul><li>0-3: parent page id (0 for root)
@@ -251,6 +250,15 @@ public abstract class Page extends CacheObject {
         for (int i = from; i < to; i++) {
             array[i] += x;
         }
+    }
+
+    /**
+     * If this page can be moved. Transaction log and free-list pages can not.
+     *
+     * @return true if moving is allowed
+     */
+    public boolean canMove() {
+        return true;
     }
 
 }

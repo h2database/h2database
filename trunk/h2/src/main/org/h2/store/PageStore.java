@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.TransactionCommand;
@@ -174,7 +175,7 @@ public class PageStore implements CacheWriter {
 
     private boolean recordPageReads;
     private ArrayList<Integer> recordedPagesList;
-    private BitSet recordedPages;
+    private Hashtable<Integer, Integer> recordedPagesIndex;
 
     /**
      * The change count is something like a "micro-transaction-id".
@@ -505,7 +506,7 @@ public class PageStore implements CacheWriter {
             cache.clear();
             ArrayList<Table> tables = database.getAllTablesAndViews(false);
             recordedPagesList = New.arrayList();
-            recordedPages = new BitSet();
+            recordedPagesIndex = new Hashtable<Integer, Integer>();
             recordPageReads = true;
             for (int i = 0; i < tables.size(); i++) {
                 Table table = tables.get(i);
@@ -543,14 +544,16 @@ public class PageStore implements CacheWriter {
                 }
                 cache.clear();
                 swap(source, target, temp);
-                int index = recordedPagesList.indexOf(target);
-                if (index >= 0) {
+                Integer index = recordedPagesIndex.get(target);
+                if (index != null) {
                     recordedPagesList.set(index, source);
+                    recordedPagesIndex.put(source, index);
                 }
                 recordedPagesList.set(i, target);
+                recordedPagesIndex.put(target, i);
             }
             recordedPagesList = null;
-            recordedPages = null;
+            recordedPagesIndex = null;
         }
         // TODO can most likely be simplified
         checkpoint();
@@ -1227,9 +1230,9 @@ public class PageStore implements CacheWriter {
      */
     void readPage(int pos, Data page) {
         if (recordPageReads) {
-            if (pos >= MIN_PAGE_COUNT && !recordedPages.get(pos)) {
+            if (pos >= MIN_PAGE_COUNT && !recordedPagesIndex.containsKey(pos)) {
+                recordedPagesIndex.put(pos, recordedPagesList.size());
                 recordedPagesList.add(pos);
-                recordedPages.set(pos);
             }
         }
         synchronized (database) {

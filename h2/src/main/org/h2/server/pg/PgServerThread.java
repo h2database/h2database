@@ -229,11 +229,10 @@ public class PgServerThread implements Runnable {
             String prepName = readString();
             Prepared prep = prepared.get(prepName);
             if (prep == null) {
-                sendErrorResponse("Portal not found");
+                sendErrorResponse("Prepared not found");
                 break;
             }
-            portal.sql = prep.sql;
-            portal.prep = prep.prep;
+            portal.prep = prep;
             portals.put(portal.name, portal);
             int formatCodeCount = readShort();
             int[] formatCodes = new int[formatCodeCount];
@@ -246,7 +245,7 @@ public class PgServerThread implements Runnable {
                 byte[] d2 = Utils.newBytes(paramLen);
                 readFully(d2);
                 try {
-                    setParameter(portal.prep, i, d2, formatCodes);
+                    setParameter(prep.prep, i, d2, formatCodes);
                 } catch (Exception e) {
                     sendErrorResponse(e);
                 }
@@ -257,6 +256,25 @@ public class PgServerThread implements Runnable {
                 portal.resultColumnFormat[i] = readShort();
             }
             sendBindComplete();
+            break;
+        }
+        case 'C': {
+            char type = (char) readByte();
+            String name = readString();
+            server.trace("Close");
+            if (type == 'S') {
+                Prepared p = prepared.remove(name);
+                if (p != null) {
+                    JdbcUtils.closeSilently(p.prep);
+                }
+            } else if (type == 'P') {
+                portals.remove(name);
+            } else {
+                server.trace("expected S or P, got " + type);
+                sendErrorResponse("expected S or P");
+                break;
+            }
+            sendCloseComplete();
             break;
         }
         case 'D': {
@@ -275,7 +293,7 @@ public class PgServerThread implements Runnable {
                 if (p == null) {
                     sendErrorResponse("Portal not found: " + name);
                 } else {
-                    PreparedStatement prep = p.prep;
+                    PreparedStatement prep = p.prep.prep;
                     try {
                         ResultSetMetaData meta = prep.getMetaData();
                         sendRowDescription(meta);
@@ -298,8 +316,9 @@ public class PgServerThread implements Runnable {
                 break;
             }
             int maxRows = readShort();
-            PreparedStatement prep = p.prep;
-            server.trace(p.sql);
+            Prepared prepared = p.prep;
+            PreparedStatement prep = prepared.prep;
+            server.trace(prepared.sql);
             try {
                 prep.setMaxRows(maxRows);
                 boolean result = prep.execute();
@@ -311,12 +330,12 @@ public class PgServerThread implements Runnable {
                         while (rs.next()) {
                             sendDataRow(rs);
                         }
-                        sendCommandComplete(p.sql, 0);
+                        sendCommandComplete(prepared.sql, 0);
                     } catch (Exception e) {
                         sendErrorResponse(e);
                     }
                 } else {
-                    sendCommandComplete(p.sql, prep.getUpdateCount());
+                    sendCommandComplete(prepared.sql, prep.getUpdateCount());
                 }
             } catch (Exception e) {
                 sendErrorResponse(e);
@@ -586,6 +605,11 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
+    private void sendCloseComplete() throws IOException {
+        startMessage('3');
+        sendMessage();
+    }
+
     private void initDb() throws SQLException {
         Statement stat = null;
         ResultSet rs = null;
@@ -808,19 +832,14 @@ public class PgServerThread implements Runnable {
         String name;
 
         /**
-         * The SQL statement.
-         */
-        String sql;
-
-        /**
          * The format used in the result set columns (if set).
          */
         int[] resultColumnFormat;
 
         /**
-         * The prepared statement.
+         * The prepared object.
          */
-        PreparedStatement prep;
+        Prepared prep;
     }
 
 }

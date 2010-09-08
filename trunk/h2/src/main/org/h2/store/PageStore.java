@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.zip.CRC32;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.TransactionCommand;
@@ -175,7 +174,7 @@ public class PageStore implements CacheWriter {
 
     private boolean recordPageReads;
     private ArrayList<Integer> recordedPagesList;
-    private Hashtable<Integer, Integer> recordedPagesIndex;
+    private IntIntHashMap recordedPagesIndex;
 
     /**
      * The change count is something like a "micro-transaction-id".
@@ -506,7 +505,7 @@ public class PageStore implements CacheWriter {
             cache.clear();
             ArrayList<Table> tables = database.getAllTablesAndViews(false);
             recordedPagesList = New.arrayList();
-            recordedPagesIndex = new Hashtable<Integer, Integer>();
+            recordedPagesIndex = new IntIntHashMap();
             recordPageReads = true;
             for (int i = 0; i < tables.size(); i++) {
                 Table table = tables.get(i);
@@ -544,8 +543,8 @@ public class PageStore implements CacheWriter {
                 }
                 cache.clear();
                 swap(source, target, temp);
-                Integer index = recordedPagesIndex.get(target);
-                if (index != null) {
+                int index = recordedPagesIndex.get(target);
+                if (index != IntIntHashMap.NOT_FOUND) {
                     recordedPagesList.set(index, source);
                     recordedPagesIndex.put(source, index);
                 }
@@ -1230,7 +1229,7 @@ public class PageStore implements CacheWriter {
      */
     void readPage(int pos, Data page) {
         if (recordPageReads) {
-            if (pos >= MIN_PAGE_COUNT && !recordedPagesIndex.containsKey(pos)) {
+            if (pos >= MIN_PAGE_COUNT && recordedPagesIndex.get(pos) == IntIntHashMap.NOT_FOUND) {
                 recordedPagesIndex.put(pos, recordedPagesList.size());
                 recordedPagesList.add(pos);
             }

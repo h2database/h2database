@@ -505,7 +505,8 @@ Two algorithms are supported: AES (AES-128) and XTEA (using 32 rounds)."
 "Other Grammar","Column Definition","
 columnName dataType { DEFAULT expression | AS computedColumnExpression } [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
-[ SELECTIVITY selectivity ] [ PRIMARY KEY [ HASH ] | UNIQUE ]
+[ SELECTIVITY selectivity ] [ COMMENT expression ]
+[ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]
 ","
 Default expressions are used if no explicit value was used when adding a row."
 "Other Grammar","Comments","

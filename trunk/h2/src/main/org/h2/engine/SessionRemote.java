@@ -208,6 +208,12 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         throw DbException.getUnsupportedException("remote");
     }
 
+    /**
+     * Open a new (remote or embedded) session.
+     *
+     * @param ci the connection info
+     * @return the session
+     */
     public SessionInterface createSession(ConnectionInfo ci) {
         return new SessionRemote(ci).connectEmbeddedOrServer(false);
     }

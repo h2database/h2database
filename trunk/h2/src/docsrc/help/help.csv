@@ -1536,7 +1536,8 @@ AES
 "Other Grammar","Column Definition","
 columnName dataType { DEFAULT expression | AS computedColumnExpression } [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
-[ SELECTIVITY selectivity ] [ PRIMARY KEY [ HASH ] | UNIQUE ]
+[ SELECTIVITY selectivity ] [ COMMENT expression ]
+[ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]
 ","
 Default expressions are used if no explicit value was used when adding a row.
 The computed column expression is evaluated and assigned whenever the row changes.
@@ -1613,7 +1614,7 @@ LIKE 'Jo%'
 ","
 Defines a constraint.
 The check condition must evaluate to TRUE, FALSE or NULL.
-TRUE and NULL mean the operation is to be permitted, 
+TRUE and NULL mean the operation is to be permitted,
 and FALSE means the operation is to be rejected.
 To prevent NULL in a column, use NOT NULL instead of a check constraint.
 ","

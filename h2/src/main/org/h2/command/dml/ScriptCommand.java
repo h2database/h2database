@@ -61,6 +61,7 @@ import org.h2.value.ValueString;
  */
 public class ScriptCommand extends ScriptBase {
 
+    private String charset = SysProperties.FILE_ENCODING;
     private boolean passwords;
     private boolean data;
     private boolean settings;
@@ -530,7 +531,11 @@ public class ScriptCommand extends ScriptBase {
     private void reset() {
         result = null;
         buffer = null;
-        lineSeparator = StringUtils.utf8Encode(SysProperties.LINE_SEPARATOR);
+        try {
+            lineSeparator = SysProperties.LINE_SEPARATOR.getBytes(charset);
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, null);
+        }
     }
 
     private void add(String s, boolean insert) throws IOException {
@@ -539,7 +544,7 @@ public class ScriptCommand extends ScriptBase {
         }
         s += ";";
         if (out != null) {
-            byte[] buff = StringUtils.utf8Encode(s);
+            byte[] buff = s.getBytes(charset);
             int len = MathUtils.roundUpInt(buff.length + lineSeparator.length, Constants.FILE_BLOCK_SIZE);
             buffer = Utils.copy(buff, buffer);
 
@@ -566,6 +571,10 @@ public class ScriptCommand extends ScriptBase {
 
     public void setSimple(boolean simple) {
         this.simple = simple;
+    }
+
+    public void setCharset(String charset) {
+        this.charset = charset;
     }
 
 }

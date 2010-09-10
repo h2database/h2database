@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New experimental feature SHUTDOWN DEFRAG.
+<ul><li>Trying to create a view with parameters in the query will now throw an exception.
+    So far, creating the view was allowed, but the parameter value was not used (null was used instead).
+</li><li>New experimental feature SHUTDOWN DEFRAG.
     This option re-orders the pages while closing the database so that table scans are faster.
 </li><li>When using the MULTI_THREADED option, concurrently reading from a database
     (specially from a larger database, or when using a small cache size) could throw an exception.

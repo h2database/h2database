@@ -133,6 +133,7 @@ SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 [ DROP ] [ BLOCKSIZE blockSizeInt ]
 [ TO fileNameString [ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
     [ CIPHER cipher PASSWORD string ] ]
+[ CHARSET charsetString ]
 ","
 Creates a SQL script from the database.
 

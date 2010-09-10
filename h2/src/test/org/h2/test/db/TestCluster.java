@@ -249,8 +249,7 @@ public class TestCluster extends TestBase {
         }
         ResultSet rs = conn.createStatement().executeQuery(
                 "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='CLUSTER'");
-        rs.next();
-        String cluster = rs.getString(1);
+        String cluster = rs.next() ? rs.getString(1) : "''";
         assertEquals(expectedCluster, cluster);
     }
 

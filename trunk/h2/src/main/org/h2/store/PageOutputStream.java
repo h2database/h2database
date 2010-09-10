@@ -204,7 +204,7 @@ public class PageOutputStream {
             reservedPages = new IntArray();
             reserved = 0;
             for (int p : array) {
-                store.free(p);
+                store.free(p, false);
             }
         }
     }

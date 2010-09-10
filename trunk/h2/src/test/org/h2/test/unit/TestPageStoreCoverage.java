@@ -52,8 +52,23 @@ public class TestPageStoreCoverage extends TestBase {
 
     private void testMoveRoot() throws SQLException {
         Connection conn;
+
         conn = getConnection(URL);
         Statement stat = conn.createStatement();
+        stat.execute("create memory table test(id int primary key) as select x from system_range(1, 20)");
+        for (int i = 0; i < 10; i++) {
+            stat.execute("create memory table test" + i + "(id int primary key) as select x from system_range(1, 2)");
+        }
+        stat.execute("drop table test");
+        conn.close();
+
+        conn = getConnection(URL);
+        stat = conn.createStatement();
+        stat.execute("drop all objects delete files");
+        conn.close();
+
+        conn = getConnection(URL);
+        stat = conn.createStatement();
         stat.execute("create table test(id int primary key) as select x from system_range(1, 100)");
         for (int i = 0; i < 10; i++) {
             stat.execute("create table test" + i + "(id int primary key) as select x from system_range(1, 2)");

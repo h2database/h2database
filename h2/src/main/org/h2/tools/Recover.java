@@ -8,7 +8,6 @@ package org.h2.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -440,7 +439,7 @@ public class Recover extends Tool implements DataHandler {
             writeSchema(writer);
             try {
                 dumpPageLogStream(writer, logKey, logFirstTrunkPage, logFirstDataPage);
-            } catch (EOFException e) {
+            } catch (IOException e) {
                 // ignore
             }
             writer.println("---- Statistics ----------");
@@ -580,7 +579,11 @@ public class Recover extends Tool implements DataHandler {
                 } else {
                     byte[] compressBuffer = new byte[size];
                     in.readFully(compressBuffer, 0, size);
-                    compress.expand(compressBuffer, 0, size, data, 0, pageSize);
+                    try {
+                        compress.expand(compressBuffer, 0, size, data, 0, pageSize);
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        DbException.convertToIOException(e);
+                    }
                 }
                 String typeName = "";
                 int type = data[0];

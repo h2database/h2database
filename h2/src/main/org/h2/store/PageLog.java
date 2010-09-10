@@ -263,7 +263,11 @@ public class PageLog {
                         Arrays.fill(data.getBytes(), 0, store.getPageSize(), (byte) 0);
                     } else {
                         in.readFully(compressBuffer, 0, size);
-                        compress.expand(compressBuffer, 0, size, data.getBytes(), 0, store.getPageSize());
+                        try {
+                            compress.expand(compressBuffer, 0, size, data.getBytes(), 0, store.getPageSize());
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            DbException.convertToIOException(e);
+                        }
                     }
                     if (stage == RECOVERY_STAGE_UNDO) {
                         if (!undo.get(pageId)) {

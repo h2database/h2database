@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Trying to create a view with parameters in the query will now throw an exception.
+<ul><li>The SCRIPT command and tool now uses the default file encoding
+    for the system now instead of UTF-8 (as before).
+    In most cases, this will not affect existing applications, as the encoding
+    only affects how SQL identifiers (table names and so on) that contain special characters
+    are stored. Table data is escaped, and therefore is no problem.
+</li><li>The SCRIPT command and tool now also support the CHARSET option
+    (like RUNSCRIPT).
+</li><li>When closing a database, sometimes empty space in the database was not freed up.
+</li><li>Trying to create a view with parameters in the query will now throw an exception.
     So far, creating the view was allowed, but the parameter value was not used (null was used instead).
 </li><li>New experimental feature SHUTDOWN DEFRAG.
     This option re-orders the pages while closing the database so that table scans are faster.

@@ -13,7 +13,9 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
+import org.h2.expression.Parameter;
 import org.h2.message.DbException;
+import org.h2.message.TraceObject;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.table.TableView;
@@ -89,7 +91,6 @@ public class CreateView extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-
             if (orReplace && existingView.getTableType().equals(Table.VIEW)) {
                 db.renameSchemaObject(session, existingView, db.getTempTableName(session));
                 loadDependentViewSql(existingView, dependentViewSql);
@@ -102,7 +103,11 @@ public class CreateView extends SchemaCommand {
         if (select == null) {
             querySQL = selectSQL;
         } else {
-            querySQL = select.getSQL();
+            ArrayList<Parameter> params = select.getParameters();
+            if (params != null && params.size() > 0) {
+                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "parameters in views");
+            }
+            querySQL = TraceObject.toString(select.getSQL(), select.getParameters());
         }
         Session sysSession = db.getSystemSession();
         TableView view;
@@ -120,7 +125,6 @@ public class CreateView extends SchemaCommand {
             // this is not strictly required - ignore exceptions, specially when using FORCE
         }
         db.addSchemaObject(session, view);
-
         if (existingView != null) {
             recreateDependentViews(db, existingView, dependentViewSql, view);
         }

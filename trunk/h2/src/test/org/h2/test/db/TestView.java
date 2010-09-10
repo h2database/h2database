@@ -30,6 +30,7 @@ public class TestView extends TestBase {
     }
 
     public void test() throws SQLException {
+        testParameterizedView();
         testCache();
         testCacheFunction(true);
         testCacheFunction(false);
@@ -37,6 +38,33 @@ public class TestView extends TestBase {
         testUnionReconnect();
         testManyViews();
         deleteDb("view");
+    }
+
+    private void testParameterizedView() throws SQLException {
+        deleteDb("view");
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE Test(id INT AUTO_INCREMENT NOT NULL, f1 VARCHAR NOT NULL, f2 VARCHAR NOT NULL)");
+        stat.execute("INSERT INTO Test(f1, f2) VALUES ('value1','value2')");
+        stat.execute("INSERT INTO Test(f1, f2) VALUES ('value1','value3')");
+        PreparedStatement ps = conn.prepareStatement("CREATE VIEW Test_View AS SELECT f2 FROM Test WHERE f1=?");
+        ps.setString(1, "value1");
+        try {
+            ps.executeUpdate();
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        // ResultSet rs;
+        // rs = stat.executeQuery("SELECT * FROM Test_View");
+        // assertTrue(rs.next());
+        // assertFalse(rs.next());
+        // rs = stat.executeQuery("select VIEW_DEFINITION " +
+        //     "from information_schema.views " +
+        //     "where TABLE_NAME='TEST_VIEW'");
+        // rs.next();
+        // assertEquals("...", rs.getString(1));
+        conn.close();
     }
 
     private void testCacheFunction(boolean deterministic) throws SQLException {

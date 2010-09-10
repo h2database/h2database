@@ -570,17 +570,20 @@ public class TestTools extends TestBase {
         String fileName = getBaseDir() + "/b2.sql";
         DeleteDbFiles.main("-dir", getBaseDir(), "-db", "utils", "-quiet");
         Connection conn = DriverManager.getConnection(url, user, password);
+        conn.createStatement().execute("CREATE TABLE \u00f6()");
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
         Script.main("-url", url, "-user", user, "-password", password, "-script", fileName, "-options",
-                "nodata", "compression", "lzf", "cipher", "xtea", "password", "'123'");
+                "nodata", "compression", "lzf", "cipher", "xtea", "password", "'123'", "charset", "'utf-8'");
         Script.main("-url", url, "-user", user, "-password", password, "-script", fileName + ".txt");
         DeleteDbFiles.main("-dir", getBaseDir(), "-db", "utils", "-quiet");
         RunScript.main("-url", url, "-user", user, "-password", password, "-script", fileName,
-                "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'");
+                "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'", "charset", "'utf-8'");
         conn = DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/utils", "sa", "abc");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
+        assertFalse(rs.next());
+        rs = conn.createStatement().executeQuery("SELECT * FROM \u00f6");
         assertFalse(rs.next());
         conn.close();
 

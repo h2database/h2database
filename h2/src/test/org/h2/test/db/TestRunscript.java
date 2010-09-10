@@ -29,10 +29,29 @@ public class TestRunscript extends TestBase implements Trigger {
     }
 
     public void test() throws SQLException {
+        testEncoding();
         testClobPrimaryKey();
         test(false);
         test(true);
         deleteDb("runscript");
+    }
+
+    private void testEncoding() throws SQLException {
+        deleteDb("runscript");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("runscript");
+        stat = conn.createStatement();
+        stat.execute("create table \"T\u00f6\"(id int)");
+        stat.execute("script to '"+getBaseDir()+"/backup.sql'");
+        stat.execute("drop all objects");
+        stat.execute("runscript from '"+getBaseDir()+"/backup.sql'");
+        stat.execute("select * from \"t\u00f6\"");
+        stat.execute("script to '"+getBaseDir()+"/backup.sql' charset 'UTF-8'");
+        stat.execute("drop all objects");
+        stat.execute("runscript from '"+getBaseDir()+"/backup.sql' charset 'UTF-8'");
+        stat.execute("select * from \"t\u00f6\"");
+        conn.close();
     }
 
     /**

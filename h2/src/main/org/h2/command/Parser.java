@@ -4476,6 +4476,9 @@ public class Parser {
                     command.setPassword(readString().toCharArray());
                 }
             }
+            if (readIf("CHARSET")) {
+                command.setCharset(readString());
+            }
         }
         return command;
     }

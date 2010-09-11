@@ -42,7 +42,7 @@ public class TestRunscript extends TestBase implements Trigger {
         Statement stat;
         conn = getConnection("runscript");
         stat = conn.createStatement();
-        stat.execute("create table \"T\u00f6\"(id int)");
+        stat.execute("create table \"t\u00f6\"(id int)");
         stat.execute("script to '"+getBaseDir()+"/backup.sql'");
         stat.execute("drop all objects");
         stat.execute("runscript from '"+getBaseDir()+"/backup.sql'");

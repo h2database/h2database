@@ -1082,6 +1082,7 @@ limited by the memory. The default is CACHED.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.
+It has no effect for in-memory databases.
 ","
 SET DEFAULT_TABLE_TYPE MEMORY
 "
@@ -1192,6 +1193,7 @@ SET MAX_LENGTH_INPLACE_LOB int
 Sets the maximum size of an in-place LOB object. LOB objects larger that this
 size are stored in a separate file, otherwise stored directly in the database
 (in-place). The default max size is 1024.
+This setting has no effect for in-memory databases.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
@@ -1206,6 +1208,7 @@ SET MAX_LOG_SIZE int
 Sets the maximum size of the transaction log, in megabytes. If the log exceeds the
 limit, a new stream is created. Old streams (that are not used for recovery) are
 freed automatically. The default max size is 16 MB.
+This setting has no effect for in-memory databases.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
@@ -1223,6 +1226,7 @@ are read, then the rows are buffered to disk. The default value is 10000.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.
+It has no effect for in-memory databases.
 ","
 SET MAX_MEMORY_ROWS 1000
 "
@@ -1239,6 +1243,7 @@ This setting is not supported when using multi-version concurrency.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.
+It has no effect for in-memory databases.
 ","
 SET MAX_MEMORY_UNDO 1000
 "
@@ -1252,6 +1257,7 @@ operation. The default max size is 100000. 0 means no limit.
 
 This setting is not persistent.
 Admin rights are required to execute this command.
+It has no effect for in-memory databases.
 This setting can be appended to the database URL: ""jdbc:h2:test;MAX_OPERATION_MEMORY=10000""
 ","
 SET MAX_OPERATION_MEMORY 0

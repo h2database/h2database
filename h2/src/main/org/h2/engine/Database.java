@@ -590,11 +590,26 @@ public class Database implements DataHandler {
         // try to recompile the views that are invalid
         recompileInvalidViews(systemSession);
         starting = false;
-        addDefaultSetting(systemSession, SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
-        addDefaultSetting(systemSession, SetTypes.DEFAULT_TABLE_TYPE, null, Table.TYPE_CACHED);
-        addDefaultSetting(systemSession, SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
-        addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
-        addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
+
+//        addDefaultSetting(systemSession, SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
+//        addDefaultSetting(systemSession, SetTypes.DEFAULT_TABLE_TYPE, null, Table.TYPE_CACHED);
+//        addDefaultSetting(systemSession, SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
+//        addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
+//        addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
+
+//*
+int test;
+//        addDefaultSetting(systemSession,
+//SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
+        addDefaultSetting(systemSession,
+SetTypes.DEFAULT_TABLE_TYPE, null, Table.TYPE_CACHED);
+//        addDefaultSetting(systemSession,
+//SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
+//        addDefaultSetting(systemSession,
+//SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
+//        addDefaultSetting(systemSession,
+//SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
+//*/
         addDefaultSetting(systemSession, SetTypes.CREATE_BUILD, null, Constants.BUILD_ID);
         if (SysProperties.LOB_IN_DATABASE) {
             getLobStorage().init();

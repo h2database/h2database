@@ -34,10 +34,12 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
+        System.setProperty("h2.check2", "true");
         TestBase.createCaller().init().test();
     }
 
     public void test() throws Exception {
+        testWriteTransactionLogBeforeData();
         testDefrag();
         testInsertReverse();
         testInsertDelete();
@@ -64,6 +66,36 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testCreateIndexLater();
         testFuzzOperations();
         deleteDb("pageStore");
+    }
+
+    private void testWriteTransactionLogBeforeData() throws SQLException {
+        deleteDb("pageStore");
+        String url = getURL("pageStore;CACHE_SIZE=16;WRITE_DELAY=1000000", true);
+        Connection conn;
+        Statement stat;
+        conn = getConnection(url, getUser(), getPassword());
+        stat = conn.createStatement();
+        stat.execute("create table test(name varchar) as select space(100000)");
+        for (int i = 0; i < 100; i++) {
+            stat.execute("create table test" + i + "(id int) as select x from system_range(1, 1000)");
+        }
+        conn.close();
+        conn = getConnection(url, getUser(), getPassword());
+        stat = conn.createStatement();
+        stat.execute("drop table test0");
+        stat.execute("select * from test");
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (Exception e) {
+            // ignore
+        }
+        conn = getConnection(url, getUser(), getPassword());
+        stat = conn.createStatement();
+        for (int i = 1; i < 100; i++) {
+            stat.execute("select * from test" + i);
+        }
+        conn.close();
     }
 
     private void testDefrag() throws SQLException {

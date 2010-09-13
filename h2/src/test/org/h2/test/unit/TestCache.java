@@ -109,7 +109,7 @@ public class TestCache extends TestBase implements CacheWriter {
         for (int i = 0; i < 20; i++) {
             c.put(new Obj(i));
         }
-        assertEquals("0 1 2 3 ", out);
+        assertEquals("flush 0 flush 1 flush 2 flush 3 ", out);
     }
 
     /**

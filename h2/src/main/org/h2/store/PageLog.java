@@ -158,6 +158,11 @@ public class PageLog {
      */
     private BitSet usedLogPages;
 
+    /**
+     * This flag is set while freeing up pages.
+     */
+    private boolean freeing;
+
     PageLog(PageStore store) {
         this.store = store;
         dataBuffer = store.createData();
@@ -196,17 +201,31 @@ public class PageLog {
             currentDataPage = pageOut.getCurrentDataPageId();
             pageOut.freeReserved();
         }
-        PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
-        while (firstTrunkPage != 0 && firstTrunkPage < store.getPageCount()) {
-            PageStreamTrunk t = it.next();
-            if (t == null) {
-                if (it.canDelete()) {
-                    store.free(firstTrunkPage, false);
+        try {
+            freeing = true;
+            int first = 0;
+            int loopDetect = 1024, loopCount = 0;
+            PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
+            while (firstTrunkPage != 0 && firstTrunkPage < store.getPageCount()) {
+                PageStreamTrunk t = it.next();
+                if (loopCount++ >= loopDetect) {
+                    first = t.getPos();
+                    loopCount = 0;
+                    loopDetect *= 2;
+                } else if (first != 0 && t != null && first == t.getPos()) {
+                    throw DbException.throwInternalError("endless loop at " + t);
                 }
-                break;
+                if (t == null) {
+                    if (it.canDelete()) {
+                        store.free(firstTrunkPage, false);
+                    }
+                    break;
+                }
+                t.free(currentDataPage);
+                firstTrunkPage = t.getNextTrunk();
             }
-            t.free(currentDataPage);
-            firstTrunkPage = t.getNextTrunk();
+        } finally {
+            freeing = false;
         }
     }
 
@@ -452,7 +471,7 @@ public class PageLog {
      * @param page the old page data
      */
     void addUndo(int pageId, Data page) {
-        if (undo.get(pageId)) {
+        if (undo.get(pageId) || freeing) {
             return;
         }
         if (trace.isDebugEnabled()) {

@@ -623,19 +623,21 @@ public class PageStore implements CacheWriter {
             }
             free(a);
         }
-        if (isUsed(b)) {
-            Page pageB = getPage(b);
-            if (pageB != null) {
-                pageB.moveTo(systemSession, a);
+        if (free != b) {
+            if (isUsed(b)) {
+                Page pageB = getPage(b);
+                if (pageB != null) {
+                    pageB.moveTo(systemSession, a);
+                }
+                free(b);
             }
-            free(b);
-        }
-        if (pageA != null) {
-            f = getPage(free);
-            if (f != null) {
-                f.moveTo(systemSession, b);
+            if (pageA != null) {
+                f = getPage(free);
+                if (f != null) {
+                    f.moveTo(systemSession, b);
+                }
+                free(free);
             }
-            free(free);
         }
     }
 

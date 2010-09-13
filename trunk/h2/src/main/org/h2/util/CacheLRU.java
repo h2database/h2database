@@ -168,6 +168,11 @@ public class CacheLRU implements Cache {
             }
         }
         if (changed.size() > 0) {
+int fixMaybeReplacesChangeCount;
+            if (!flushed) {
+                writer.flushLog();
+            }
+
             Collections.sort(changed);
             int max = maxMemory;
             try {

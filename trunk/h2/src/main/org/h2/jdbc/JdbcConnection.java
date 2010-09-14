@@ -1360,7 +1360,9 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Called after executing a command that could have written something.
      */
     protected void afterWriting() {
-        session.afterWriting();
+        if (session != null) {
+            session.afterWriting();
+        }
     }
 
     String getURL() throws SQLException {

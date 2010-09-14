@@ -195,11 +195,12 @@ public class ScriptCommand extends ScriptBase {
             }
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE)) {
                 Sequence sequence = (Sequence) obj;
-                if (drop && !sequence.getBelongsToTable()) {
+                if (drop) {
                     add(sequence.getDropSQL(), false);
                 }
                 add(sequence.getCreateSQL(), false);
             }
+            int count = 0;
             for (Table table : tables) {
                 if (table.isHidden()) {
                     continue;
@@ -272,6 +273,10 @@ public class ScriptCommand extends ScriptBase {
                                 }
                             }
                             buff.append(')');
+                            count++;
+                            if ((count & 127) == 0) {
+                                checkCanceled();
+                            }
                             if (simple || buff.length() > Constants.IO_BUFFER_SIZE) {
                                 add(buff.toString(), true);
                                 buff = null;

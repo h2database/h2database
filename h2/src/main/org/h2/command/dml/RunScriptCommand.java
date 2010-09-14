@@ -42,6 +42,9 @@ public class RunScriptCommand extends ScriptBase {
                 }
                 execute(sql);
                 count++;
+                if ((count & 127) == 0) {
+                    checkCanceled();
+                }
             }
             reader.close();
         } catch (IOException e) {

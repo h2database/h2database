@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.api.Trigger;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 
@@ -28,12 +29,66 @@ public class TestRunscript extends TestBase implements Trigger {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
+        testCancelScript();
         testEncoding();
         testClobPrimaryKey();
         test(false);
         test(true);
         deleteDb("runscript");
+    }
+
+    private void testCancelScript() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        conn = getConnection("runscript");
+        final Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key) as select x from system_range(1, 10000)");
+        stat.execute("script simple drop to '"+getBaseDir()+"/backup.sql'");
+        stat.execute("set throttle 1000");
+        final String dir = getBaseDir();
+        final SQLException[] ex = new SQLException[1];
+        Thread thread;
+        SQLException e;
+
+        ex[0] = null;
+        thread = new Thread() {
+            public void run() {
+                try {
+                    stat.execute("script simple drop to '"+dir+"/backup2.sql'");
+                } catch (SQLException e) {
+                    ex[0] = e;
+                }
+            }
+        };
+        thread.start();
+        Thread.sleep(100);
+        stat.cancel();
+        thread.join();
+        e = ex[0];
+        assertTrue(e != null);
+        assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
+
+        thread = new Thread() {
+            public void run() {
+                try {
+                    stat.execute("runscript from '"+dir+"/backup.sql'");
+                } catch (SQLException e) {
+                    ex[0] = e;
+                }
+            }
+        };
+        thread.start();
+        Thread.sleep(100);
+        stat.cancel();
+        thread.join();
+        e = ex[0];
+        assertTrue(e != null);
+        assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
+
+        conn.close();
+        IOUtils.delete(getBaseDir() + "/backup.sql");
+        IOUtils.delete(getBaseDir() + "/backup2.sql");
     }
 
     private void testEncoding() throws SQLException {
@@ -52,6 +107,7 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("runscript from '"+getBaseDir()+"/backup.sql' charset 'UTF-8'");
         stat.execute("select * from \"t\u00f6\"");
         conn.close();
+        IOUtils.delete(getBaseDir() + "/backup.sql");
     }
 
     /**

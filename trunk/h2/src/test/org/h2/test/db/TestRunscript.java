@@ -46,12 +46,12 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("create table test(id int primary key) as select x from system_range(1, 10000)");
         stat.execute("script simple drop to '"+getBaseDir()+"/backup.sql'");
         stat.execute("set throttle 1000");
+        // need to wait a bit (throttle is only used every 50 ms)
+        Thread.sleep(100);
         final String dir = getBaseDir();
         final SQLException[] ex = new SQLException[1];
         Thread thread;
         SQLException e;
-
-        ex[0] = null;
         thread = new Thread() {
             public void run() {
                 try {
@@ -68,6 +68,11 @@ public class TestRunscript extends TestBase implements Trigger {
         e = ex[0];
         assertTrue(e != null);
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
+
+        ex[0] = null;
+        stat.execute("set throttle 1000");
+        // need to wait a bit (throttle is only used every 50 ms)
+        Thread.sleep(100);
 
         thread = new Thread() {
             public void run() {

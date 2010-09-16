@@ -167,6 +167,7 @@ public class Database implements DataHandler {
     private boolean flushOnEachCommit;
     private LobStorage lobStorage;
     private int pageSize = SysProperties.PAGE_SIZE;
+    private int defaultTableType = Table.TYPE_CACHED;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -575,8 +576,6 @@ public class Database implements DataHandler {
         objectIds.set(0);
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
-        // first, create all function aliases and sequences because
-        // they might be used in create table / view / constraints and so on
         ArrayList<MetaRecord> records = New.arrayList();
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
@@ -587,30 +586,17 @@ public class Database implements DataHandler {
         for (MetaRecord rec : records) {
             rec.execute(this, systemSession, eventListener);
         }
-        // try to recompile the views that are invalid
         recompileInvalidViews(systemSession);
         starting = false;
-
-//        addDefaultSetting(systemSession, SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
-//        addDefaultSetting(systemSession, SetTypes.DEFAULT_TABLE_TYPE, null, Table.TYPE_CACHED);
-//        addDefaultSetting(systemSession, SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
-//        addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
-//        addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
-
-//*
-int test;
-//        addDefaultSetting(systemSession,
-//SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
-        addDefaultSetting(systemSession,
-SetTypes.DEFAULT_TABLE_TYPE, null, Table.TYPE_CACHED);
-//        addDefaultSetting(systemSession,
-//SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
-//        addDefaultSetting(systemSession,
-//SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
-//        addDefaultSetting(systemSession,
-//SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
-//*/
-        addDefaultSetting(systemSession, SetTypes.CREATE_BUILD, null, Constants.BUILD_ID);
+        if (!readOnly) {
+            // set CREATE_BUILD in a new database
+            String name = SetTypes.getTypeName(SetTypes.CREATE_BUILD);
+            if (settings.get(name) == null) {
+                Setting setting = new Setting(this, allocateObjectId(), name);
+                setting.setIntValue(Constants.BUILD_ID);
+                addDatabaseObject(systemSession, setting);
+            }
+        }
         if (SysProperties.LOB_IN_DATABASE) {
             getLobStorage().init();
         }
@@ -680,22 +666,6 @@ SetTypes.DEFAULT_TABLE_TYPE, null, Table.TYPE_CACHED);
                     }
                 }
             }
-        }
-    }
-
-    private void addDefaultSetting(Session session, int type, String stringValue, int intValue) {
-        if (readOnly) {
-            return;
-        }
-        String name = SetTypes.getTypeName(type);
-        if (settings.get(name) == null) {
-            Setting setting = new Setting(this, allocateObjectId(), name);
-            if (stringValue == null) {
-                setting.setIntValue(intValue);
-            } else {
-                setting.setStringValue(stringValue);
-            }
-            addDatabaseObject(session, setting);
         }
     }
 
@@ -2290,6 +2260,14 @@ SetTypes.DEFAULT_TABLE_TYPE, null, Table.TYPE_CACHED);
             return pageStore.getLogMode();
         }
         return PageStore.LOG_MODE_OFF;
+    }
+
+    public int getDefaultTableType() {
+        return defaultTableType;
+    }
+
+    public void setDefaultTableType(int defaultTableType) {
+        this.defaultTableType = defaultTableType;
     }
 
 }

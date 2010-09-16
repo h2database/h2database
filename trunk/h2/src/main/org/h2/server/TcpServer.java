@@ -82,7 +82,7 @@ public class TcpServer implements Service {
 
     private void initManagementDb() throws SQLException {
         Properties prop = new Properties();
-        prop.setProperty("user", "sa");
+        prop.setProperty("user", "");
         prop.setProperty("password", managementPassword);
         // avoid using the driver manager
         Connection conn = Driver.load().connect("jdbc:h2:" + getManagementDbName(port), prop);
@@ -407,7 +407,7 @@ public class TcpServer implements Service {
                 Connection conn = null;
                 PreparedStatement prep = null;
                 try {
-                    conn = DriverManager.getConnection("jdbc:h2:" + url + "/" + db, "sa", password);
+                    conn = DriverManager.getConnection("jdbc:h2:" + url + "/" + db, "", password);
                     prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
                     prep.setInt(1, all ? 0 : port);
                     prep.setString(2, password);

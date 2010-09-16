@@ -507,16 +507,23 @@ public class PageStore implements CacheWriter {
             recordedPagesList = New.arrayList();
             recordedPagesIndex = new IntIntHashMap();
             recordPageReads = true;
+            Session s = database.getSystemSession();
             for (int i = 0; i < tables.size(); i++) {
                 Table table = tables.get(i);
                 if (!table.isTemporary() && table.getTableType().equals(Table.TABLE)) {
-                    // rand() < 0 is never true, but the optimizer can't know,
-                    // therefore it's performing a table scan
-                    database.getSystemSession().prepare(
-                            "select * from " +
-                            table.getSQL() +
-                            " where rand() < zero()").query(Integer.MAX_VALUE);
-                    int todoScanIndexesAsWell;
+                    Index scanIndex = table.getScanIndex(s);
+                    Cursor cursor = scanIndex.find(s, null, null);
+                    while (cursor.next()) {
+                        cursor.get();
+                    }
+                    for (Index index : table.getIndexes()) {
+                        if (index != scanIndex) {
+                            cursor = index.find(s, null, null);
+                            while (cursor.next()) {
+                                // the data is already read
+                            }
+                        }
+                    }
                 }
             }
             recordPageReads = false;

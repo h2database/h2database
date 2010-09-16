@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
 import org.h2.api.Trigger;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -256,26 +257,30 @@ public class TestPreparedStatement extends TestBase {
     }
 
     private void testCancelReuse(Connection conn) throws Exception {
-        conn.createStatement().execute("CREATE ALIAS YIELD FOR \"java.lang.Thread.yield\"");
-        final PreparedStatement prep = conn.prepareStatement("SELECT YIELD() FROM SYSTEM_RANGE(1, 100000000) LIMIT ?");
-        prep.setInt(1, 100000000);
+        conn.createStatement().execute("CREATE ALIAS SLEEP FOR \"java.lang.Thread.sleep\"");
+        // sleep for 10 seconds
+        final PreparedStatement prep = conn.prepareStatement("SELECT SLEEP(?) FROM SYSTEM_RANGE(1, 10000) LIMIT ?");
+        prep.setInt(1, 1);
+        prep.setInt(2, 10000);
+        final SQLException[] ex = new SQLException[1];
         Thread t = new Thread() {
             public void run() {
                 try {
                     prep.execute();
                 } catch (SQLException e) {
-                    // ignore
+                    ex[0] = e;
                 }
             }
         };
         t.start();
         Thread.sleep(100);
-        try {
-            prep.cancel();
-        } catch (SQLException e) {
-            this.assertKnownException(e);
-        }
+        prep.cancel();
+        t.join();
+        SQLException e = ex[0];
+        assertTrue(e != null);
+        assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
         prep.setInt(1, 1);
+        prep.setInt(2, 1);
         ResultSet rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(0, rs.getInt(1));

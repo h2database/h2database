@@ -50,10 +50,15 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_7 = 7;
 
     /**
+     * The TCP protocol version number 8.
+     */
+    public static final int TCP_PROTOCOL_VERSION_8 = 8;
+
+    /**
      * The TCP protocol version number. This protocol is used by the TCP
      * server and remote JDBC client.
      */
-    public static final int TCP_PROTOCOL_VERSION = TCP_PROTOCOL_VERSION_7;
+    public static final int TCP_PROTOCOL_VERSION = TCP_PROTOCOL_VERSION_8;
 
     /**
      * The major version of this database.

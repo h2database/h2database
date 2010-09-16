@@ -163,6 +163,7 @@ public class Set extends Prepared {
             break;
         case SetTypes.DEFAULT_TABLE_TYPE:
             session.getUser().checkAdmin();
+            database.setDefaultTableType(getIntValue());
             addOrUpdateSetting(name, null, getIntValue());
             break;
         case SetTypes.EXCLUSIVE: {

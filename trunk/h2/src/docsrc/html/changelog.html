@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Statement.cancel() did not work when running RUNSCRIPT and SCRIPT.
+<ul><li>Cluster: auto-commit was disabled after opening a connection.
+</li><li>Connection.getAutoCommit() is now much faster, specially when using the server mode.
+</li><li>Statement.cancel() had no effect when using the server mode.
+</li><li>SCRIPT: the SQL script no longer contains settings that match the default value.
+</li><li>Statement.cancel() did not work when running RUNSCRIPT and SCRIPT.
 </li><li>Statement.cancel() could cause a NullPointerException.
 </li><li>In some cases (specially when using a small cache size or a large database over 1 GB) for some
     operations like ALTER TABLE the data was written before the transaction log entries, which could cause a corrupt database

@@ -64,10 +64,14 @@ public class User extends RightOwner {
      */
     public void setUserPasswordHash(byte[] userPasswordHash) {
         if (userPasswordHash != null) {
-            salt = new byte[Constants.SALT_LEN];
-            MathUtils.randomBytes(salt);
-            SHA256 sha = new SHA256();
-            this.passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
+            if (userPasswordHash.length == 0) {
+                salt = passwordHash = userPasswordHash;
+            } else {
+                salt = new byte[Constants.SALT_LEN];
+                MathUtils.randomBytes(salt);
+                SHA256 sha = new SHA256();
+                passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
+            }
         }
     }
 
@@ -179,6 +183,9 @@ public class User extends RightOwner {
      * @return true if the user password hash is correct
      */
     public boolean validateUserPasswordHash(byte[] userPasswordHash) {
+        if (userPasswordHash.length == 0 && passwordHash.length == 0) {
+            return true;
+        }
         SHA256 sha = new SHA256();
         byte[] hash = sha.getHashWithSalt(userPasswordHash, salt);
         return Utils.compareSecure(hash, passwordHash);

@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Cluster: auto-commit was disabled after opening a connection.
+<ul><li>If the user name and password are not set or empty, then the password is not hashed.
+    To disable this behavior, set the system property h2.emptyPassword to false.
+    TCP server: the default user name for the management database is now an empty string.
+</li><li>Cluster: auto-commit was disabled after opening a connection.
 </li><li>Connection.getAutoCommit() is now much faster, specially when using the server mode.
 </li><li>Statement.cancel() had no effect when using the server mode.
 </li><li>SCRIPT: the SQL script no longer contains settings that match the default value.

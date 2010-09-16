@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -73,9 +74,14 @@ public class CreateUser extends DefineCommand {
         if (hash != null && salt != null) {
             user.setSaltAndHash(getByteArray(salt), getByteArray(hash));
         } else if (password != null) {
-            SHA256 sha = new SHA256();
             char[] passwordChars = getCharArray(password);
-            byte[] userPasswordHash = sha.getKeyPasswordHash(userName, passwordChars);
+            byte[] userPasswordHash;
+            if (userName.length() == 0 && passwordChars.length == 0 && SysProperties.EMPTY_PASSWORD) {
+                userPasswordHash = new byte[0];
+            } else {
+                SHA256 sha = new SHA256();
+                userPasswordHash = sha.getKeyPasswordHash(userName, passwordChars);
+            }
             user.setUserPasswordHash(userPasswordHash);
         } else {
             throw DbException.throwInternalError();

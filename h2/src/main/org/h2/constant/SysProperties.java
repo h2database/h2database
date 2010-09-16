@@ -297,6 +297,12 @@ public class SysProperties {
     public static final int ESTIMATED_FUNCTION_TABLE_ROWS = getIntSetting("h2.estimatedFunctionTableRows", 1000);
 
     /**
+     * System property <code>h2.emptyPassword</code> (default: true).<br />
+     * Don't use a secure hash if the user name and password are empty or not set.
+     */
+    public static final boolean EMPTY_PASSWORD = getBooleanSetting("h2.emptyPassword", true);
+
+    /**
      * System property <code>h2.functionsInSchema</code> (default:
      * false).<br />
      * If set, all functions are stored in a schema. Specially, the SCRIPT statement

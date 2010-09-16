@@ -582,7 +582,7 @@ public class Recover extends Tool implements DataHandler {
                     try {
                         compress.expand(compressBuffer, 0, size, data, 0, pageSize);
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        DbException.convertToIOException(e);
+                        throw DbException.convertToIOException(e);
                     }
                 }
                 String typeName = "";

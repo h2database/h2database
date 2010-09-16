@@ -1341,6 +1341,8 @@ No tables or views with the name of the table expression may exist.
 Different table expression names need to be used when using multiple distinct table
 expressions within the same transaction and for the same session.
 All columns of the table expression are of type <code>VARCHAR</code>.
+Views with recursive queries are not supported.
+Subqueries and <code>INSERT INTO ... FROM</code> with recursive queries are not supported.
 Parameters are only supported within the last <code>SELECT</code> statement
 (a workaround is to use session variables like <code>@start</code>
 within the table expression).

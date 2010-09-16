@@ -71,12 +71,12 @@ public class TcpServerThread implements Runnable {
                 int minClientVersion = transfer.readInt();
                 if (minClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_7) {
-                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_7);
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_8) {
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_8);
                 }
                 int maxClientVersion = transfer.readInt();
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_7) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_7;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_8) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_8;
                 } else {
                     clientVersion = minClientVersion;
                 }
@@ -353,6 +353,12 @@ public class TcpServerThread implements Runnable {
         }
         case SessionRemote.SESSION_SET_ID: {
             sessionId = transfer.readString();
+            transfer.writeInt(SessionRemote.STATUS_OK).flush();
+            break;
+        }
+        case SessionRemote.SESSION_SET_AUTOCOMMIT: {
+            boolean autoCommit = transfer.readBoolean();
+            session.setAutoCommit(autoCommit);
             transfer.writeInt(SessionRemote.STATUS_OK).flush();
             break;
         }

@@ -188,7 +188,7 @@ public class CommandRemote implements CommandInterface {
                     session.removeServer(e, i--, ++count);
                 }
             }
-            session.setAutoCommit(autoCommit);
+            session.setAutoCommitFromServer(autoCommit);
             session.autoCommitIfCluster();
             session.readSessionState();
             return updateCount;

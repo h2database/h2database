@@ -74,7 +74,6 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private SessionInterface session;
     private CommandInterface commit, rollback;
-    private CommandInterface setAutoCommitTrue, setAutoCommitFalse, getAutoCommit;
     private CommandInterface getReadOnly, getGeneratedKeys;
     private CommandInterface setLockMode, getLockMode;
     private CommandInterface setQueryTimeout, getQueryTimeout;
@@ -329,9 +328,6 @@ public class JdbcConnection extends TraceObject implements Connection {
     private void closePreparedCommands() {
         commit = closeAndSetNull(commit);
         rollback = closeAndSetNull(rollback);
-        setAutoCommitTrue = closeAndSetNull(setAutoCommitTrue);
-        setAutoCommitFalse = closeAndSetNull(setAutoCommitFalse);
-        getAutoCommit = closeAndSetNull(getAutoCommit);
         getReadOnly = closeAndSetNull(getReadOnly);
         getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
         getLockMode = closeAndSetNull(getLockMode);
@@ -362,13 +358,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCode("setAutoCommit(" + autoCommit + ");");
             }
             checkClosed();
-            if (autoCommit) {
-                setAutoCommitTrue = prepareCommand("SET AUTOCOMMIT TRUE", setAutoCommitTrue);
-                setAutoCommitTrue.executeUpdate();
-            } else {
-                setAutoCommitFalse = prepareCommand("SET AUTOCOMMIT FALSE", setAutoCommitFalse);
-                setAutoCommitFalse.executeUpdate();
-            }
+            session.setAutoCommit(autoCommit);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -385,19 +375,10 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             checkClosed();
             debugCodeCall("getAutoCommit");
-            return getInternalAutoCommit();
+            return session.getAutoCommit();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
-    }
-
-    private boolean getInternalAutoCommit() {
-        getAutoCommit = prepareCommand("CALL AUTOCOMMIT()", getAutoCommit);
-        ResultInterface result = getAutoCommit.executeQuery(0, false);
-        result.next();
-        boolean autoCommit = result.currentRow()[0].getBoolean().booleanValue();
-        result.close();
-        return autoCommit;
     }
 
     /**
@@ -1542,7 +1523,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 return false;
             }
             // force a network round trip (if networked)
-            getInternalAutoCommit();
+            getTransactionIsolation();
             return true;
         } catch (Exception e) {
             // this method doesn't throw an exception, but it logs it

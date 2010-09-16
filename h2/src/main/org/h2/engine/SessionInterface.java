@@ -93,4 +93,18 @@ public interface SessionInterface {
      */
     void afterWriting();
 
+    /**
+     * Check if this session is in auto-commit mode.
+     *
+     * @return true if the session is in auto-commit mode
+     */
+    boolean getAutoCommit();
+
+    /**
+     * Set the auto-commit mode.
+     *
+     * @param autoCommit the new value
+     */
+    void setAutoCommit(boolean autoCommit);
+
 }

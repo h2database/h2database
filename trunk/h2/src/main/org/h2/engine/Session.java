@@ -359,11 +359,6 @@ public class Session extends SessionWithState {
         return user;
     }
 
-    /**
-     * Change the autocommit setting for this session.
-     *
-     * @param b the new value
-     */
     public void setAutoCommit(boolean b) {
         autoCommit = b;
     }

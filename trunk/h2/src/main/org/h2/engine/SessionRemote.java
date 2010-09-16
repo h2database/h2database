@@ -54,6 +54,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public static final int SESSION_SET_ID = 12;
     public static final int SESSION_CANCEL_STATEMENT = 13;
     public static final int SESSION_CHECK_KEY = 14;
+    public static final int SESSION_SET_AUTOCOMMIT = 15;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
@@ -67,7 +68,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private ArrayList<Transfer> transferList = New.arrayList();
     private int nextId;
     private boolean autoCommit = true;
-    private CommandInterface switchOffAutoCommit;
+    private CommandInterface autoCommitFalse, autoCommitTrue;
     private ConnectionInfo connectionInfo;
     private String databaseName;
     private String cipher;
@@ -93,7 +94,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_7);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_8);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -108,6 +109,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             done(trans);
             clientVersion = trans.readInt();
             trans.setVersion(clientVersion);
+            trans.writeInt(SessionRemote.SESSION_SET_ID);
+            trans.writeString(sessionId);
+            done(trans);
         } catch (DbException e) {
             trans.close();
             throw e;
@@ -148,21 +152,64 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private void checkClusterDisableAutoCommit(String serverList) {
         if (autoCommit && transferList.size() > 1) {
-            if (switchOffAutoCommit == null) {
-                switchOffAutoCommit = prepareCommand("SET AUTOCOMMIT FALSE", Integer.MAX_VALUE);
-            }
-            // this will call setAutoCommit(false)
-            switchOffAutoCommit.executeUpdate();
+            setAutoCommitSend(false);
+            CommandInterface c = prepareCommand("SET CLUSTER " + serverList, Integer.MAX_VALUE);
+            // this will set autoCommit to false
+            c.executeUpdate();
             // so we need to switch it on
             autoCommit = true;
-            CommandInterface c = prepareCommand("SET CLUSTER " + serverList, Integer.MAX_VALUE);
-            c.executeUpdate();
             cluster = true;
         }
     }
 
+    public boolean getAutoCommit() {
+        return autoCommit;
+    }
+
     public void setAutoCommit(boolean autoCommit) {
+        if (!cluster) {
+            setAutoCommitSend(autoCommit);
+        }
         this.autoCommit = autoCommit;
+    }
+
+    public void setAutoCommitFromServer(boolean autoCommit) {
+        if (cluster) {
+            if (autoCommit) {
+                // the user executed SET AUTOCOMMIT TRUE
+                setAutoCommitSend(false);
+                this.autoCommit = true;
+            }
+        } else {
+            this.autoCommit = autoCommit;
+        }
+    }
+
+    private void setAutoCommitSend(boolean autoCommit) {
+        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_8) {
+            for (int i = 0, count = 0; i < transferList.size(); i++) {
+                Transfer transfer = transferList.get(i);
+                try {
+                    traceOperation("SESSION_SET_AUTOCOMMIT", autoCommit ? 1 : 0);
+                    transfer.writeInt(SessionRemote.SESSION_SET_AUTOCOMMIT).writeBoolean(autoCommit);
+                    done(transfer);
+                } catch (IOException e) {
+                    removeServer(e, i--, ++count);
+                }
+            }
+        } else {
+            if (autoCommit) {
+                if (autoCommitFalse == null) {
+                    autoCommitFalse = prepareCommand("SET AUTOCOMMIT FALSE", Integer.MAX_VALUE);
+                }
+                autoCommitFalse.executeUpdate();
+            } else {
+                if (autoCommitTrue == null) {
+                    autoCommitTrue = prepareCommand("SET AUTOCOMMIT TRUE", Integer.MAX_VALUE);
+                }
+                autoCommitTrue.executeUpdate();
+            }
+        }
     }
 
     /**
@@ -320,6 +367,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         String[] servers = StringUtils.arraySplit(server, ',', true);
         int len = servers.length;
         transferList.clear();
+        sessionId = StringUtils.convertBytesToString(MathUtils.secureRandomBytes(32));
         // TODO cluster: support more than 2 connections
         boolean switchOffCluster = false;
         try {

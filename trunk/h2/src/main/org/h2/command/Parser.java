@@ -85,7 +85,6 @@ import org.h2.engine.FunctionAlias;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.engine.Setting;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
@@ -3648,10 +3647,7 @@ public class Parser {
             return parseCreateTable(true, true, cached);
         } else if (readIf("TABLE")) {
             if (!cached && !memory) {
-                int defaultMode;
-                Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_TABLE_TYPE));
-                defaultMode = setting == null ? Table.TYPE_CACHED : setting.getIntValue();
-                cached = defaultMode == Table.TYPE_CACHED;
+                cached = database.getDefaultTableType() == Table.TYPE_CACHED;
             }
             return parseCreateTable(false, false, cached);
         } else {

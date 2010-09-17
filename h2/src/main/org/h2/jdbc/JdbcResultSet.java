@@ -447,8 +447,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns a column value as a Java object. For BINARY data, the data is
-     * de-serialized into a Java Object.
+     * Returns a column value as a Java object. The data is
+     * de-serialized into a Java object (on the client side).
      *
      * @param columnIndex (1,2,...)
      * @return the value or null
@@ -466,8 +466,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns a column value as a Java object. For BINARY data, the data is
-     * de-serialized into a Java Object.
+     * Returns a column value as a Java object. The data is
+     * de-serialized into a Java object (on the client side).
      *
      * @param columnLabel the column label
      * @return the value or null

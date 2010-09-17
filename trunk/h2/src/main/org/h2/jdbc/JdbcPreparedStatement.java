@@ -401,6 +401,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter.
+     * Objects of unknown classes are serialized (on the client side).
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -425,6 +426,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the value of a parameter. The object is converted, if required, to
      * the specified data type before sending to the database.
+     * Objects of unknown classes are serialized (on the client side).
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value, null is allowed
@@ -451,6 +453,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the value of a parameter. The object is converted, if required, to
      * the specified data type before sending to the database.
+     * Objects of unknown classes are serialized (on the client side).
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value, null is allowed

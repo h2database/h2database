@@ -600,8 +600,10 @@ The MERGE statement will call both INSERT and UPDATE triggers.
 Not supported are SELECT triggers with the option FOR EACH ROW,
 and AFTER SELECT triggers.
 
-Committing or rolling back a transaction within a trigger is not allowed,
-except for SELECT triggers.
+Committing or rolling back a transaction within a trigger is not allowed, except for SELECT triggers.
+
+The trigger need to be created in the same schema as the table.
+The schema name does not need to be specified when creating the trigger.
 
 This command commits an open transaction.
 ","

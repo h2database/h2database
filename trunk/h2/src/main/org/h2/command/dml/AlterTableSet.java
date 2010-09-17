@@ -6,6 +6,7 @@
  */
 package org.h2.command.dml;
 
+import org.h2.command.CommandInterface;
 import org.h2.command.ddl.SchemaCommand;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -19,23 +20,16 @@ import org.h2.table.Table;
  */
 public class AlterTableSet extends SchemaCommand {
 
-    /**
-     * Enable the referential integrity.
-     */
-    public static final int REFERENTIAL_INTEGRITY_TRUE = 0;
-
-    /**
-     * Disable the referential integrity.
-     */
-    public static final int REFERENTIAL_INTEGRITY_FALSE = 1;
-
     private String tableName;
     private final int type;
+
+    private boolean value;
     private boolean checkExisting;
 
-    public AlterTableSet(Session session, Schema schema, int type) {
+    public AlterTableSet(Session session, Schema schema, int type, boolean value) {
         super(session, schema);
         this.type = type;
+        this.value = value;
     }
 
     public void setCheckExisting(boolean b) {
@@ -55,16 +49,17 @@ public class AlterTableSet extends SchemaCommand {
         session.getUser().checkRight(table, Right.ALL);
         table.lock(session, true, true);
         switch(type) {
-        case REFERENTIAL_INTEGRITY_TRUE:
-            table.setCheckForeignKeyConstraints(session, true, checkExisting);
-            break;
-        case REFERENTIAL_INTEGRITY_FALSE:
-            table.setCheckForeignKeyConstraints(session, false, false);
+        case CommandInterface.ALTER_TABLE_SET_REFERENTIAL_INTEGRITY:
+            table.setCheckForeignKeyConstraints(session, value, value ? checkExisting : false);
             break;
         default:
             DbException.throwInternalError("type="+type);
         }
         return 0;
+    }
+
+    public int getType() {
+        return type;
     }
 
 }

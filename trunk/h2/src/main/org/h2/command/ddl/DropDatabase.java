@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Role;
@@ -112,6 +113,10 @@ public class DropDatabase extends DefineCommand {
 
     public void setDeleteFiles(boolean b) {
         this.deleteFiles = b;
+    }
+
+    public int getType() {
+        return CommandInterface.DROP_ALL_OBJECTS;
     }
 
 }

@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Role;
@@ -50,6 +51,10 @@ public class CreateRole extends DefineCommand {
         Role role = new Role(db, id, roleName, false);
         db.addDatabaseObject(session, role);
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.CREATE_ROLE;
     }
 
 }

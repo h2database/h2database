@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Comment;
 import org.h2.engine.Database;
@@ -144,6 +145,10 @@ public class SetComment extends DefineCommand {
 
     public void setColumn(boolean column) {
         this.column = column;
+    }
+
+    public int getType() {
+        return CommandInterface.COMMENT;
     }
 
 }

@@ -65,4 +65,8 @@ public class CommandList extends Command {
         return command.queryMeta();
     }
 
+    public int getCommandType() {
+        return command.getCommandType();
+    }
+
 }

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.api.DatabaseEventListener;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
@@ -136,6 +137,10 @@ public class BackupCommand extends Prepared {
 
     public ResultInterface queryMeta() {
         return null;
+    }
+
+    public int getType() {
+        return CommandInterface.BACKUP;
     }
 
 }

@@ -346,7 +346,7 @@ public class Parser {
             case 'g':
             case 'G':
                 if (readIf("GRANT")) {
-                    c = parseGrantRevoke(GrantRevoke.GRANT);
+                    c = parseGrantRevoke(CommandInterface.GRANT);
                 }
                 break;
             case 'h':
@@ -378,7 +378,7 @@ public class Parser {
                 if (readIf("ROLLBACK")) {
                     c = parseRollback();
                 } else if (readIf("REVOKE")) {
-                    c = parseGrantRevoke(GrantRevoke.REVOKE);
+                    c = parseGrantRevoke(CommandInterface.REVOKE);
                 } else if (readIf("RUNSCRIPT")) {
                     c = parseRunScript();
                 } else if (readIf("RELEASE")) {
@@ -497,30 +497,30 @@ public class Parser {
         if (!readIf("WORK")) {
             readIf("TRANSACTION");
         }
-        command = new TransactionCommand(session, TransactionCommand.BEGIN);
+        command = new TransactionCommand(session, CommandInterface.BEGIN);
         return command;
     }
 
     private TransactionCommand parseCommit() {
         TransactionCommand command;
         if (readIf("TRANSACTION")) {
-            command = new TransactionCommand(session, TransactionCommand.COMMIT_TRANSACTION);
+            command = new TransactionCommand(session, CommandInterface.COMMIT_TRANSACTION);
             command.setTransactionName(readUniqueIdentifier());
             return command;
         }
-        command = new TransactionCommand(session, TransactionCommand.COMMIT);
+        command = new TransactionCommand(session, CommandInterface.COMMIT);
         readIf("WORK");
         return command;
     }
 
     private TransactionCommand parseShutdown() {
-        int type = TransactionCommand.SHUTDOWN;
+        int type = CommandInterface.SHUTDOWN;
         if (readIf("IMMEDIATELY")) {
-            type = TransactionCommand.SHUTDOWN_IMMEDIATELY;
+            type = CommandInterface.SHUTDOWN_IMMEDIATELY;
         } else if (readIf("COMPACT")) {
-            type = TransactionCommand.SHUTDOWN_COMPACT;
+            type = CommandInterface.SHUTDOWN_COMPACT;
         } else if (readIf("DEFRAG")) {
-            type = TransactionCommand.SHUTDOWN_DEFRAG;
+            type = CommandInterface.SHUTDOWN_DEFRAG;
         } else {
             readIf("SCRIPT");
         }
@@ -530,24 +530,24 @@ public class Parser {
     private TransactionCommand parseRollback() {
         TransactionCommand command;
         if (readIf("TRANSACTION")) {
-            command = new TransactionCommand(session, TransactionCommand.ROLLBACK_TRANSACTION);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK_TRANSACTION);
             command.setTransactionName(readUniqueIdentifier());
             return command;
         }
         if (readIf("TO")) {
             read("SAVEPOINT");
-            command = new TransactionCommand(session, TransactionCommand.ROLLBACK_TO_SAVEPOINT);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK_TO_SAVEPOINT);
             command.setSavepointName(readUniqueIdentifier());
         } else {
             readIf("WORK");
-            command = new TransactionCommand(session, TransactionCommand.ROLLBACK);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK);
         }
         return command;
     }
 
     private Prepared parsePrepare() {
         if (readIf("COMMIT")) {
-            TransactionCommand command = new TransactionCommand(session, TransactionCommand.PREPARE_COMMIT);
+            TransactionCommand command = new TransactionCommand(session, CommandInterface.PREPARE_COMMIT);
             command.setTransactionName(readUniqueIdentifier());
             return command;
         }
@@ -572,7 +572,7 @@ public class Parser {
     }
 
     private TransactionCommand parseSavepoint() {
-        TransactionCommand command = new TransactionCommand(session, TransactionCommand.SAVEPOINT);
+        TransactionCommand command = new TransactionCommand(session, CommandInterface.SAVEPOINT);
         command.setSavepointName(readUniqueIdentifier());
         return command;
     }
@@ -3746,7 +3746,7 @@ public class Parser {
                 } while (readIf(","));
             }
         }
-        if (operationType == GrantRevoke.GRANT) {
+        if (operationType == CommandInterface.GRANT) {
             read("TO");
         } else {
             read("FROM");
@@ -4059,9 +4059,9 @@ public class Parser {
     private TransactionCommand parseCheckpoint() {
         TransactionCommand command;
         if (readIf("SYNC")) {
-            command = new TransactionCommand(session, TransactionCommand.CHECKPOINT_SYNC);
+            command = new TransactionCommand(session, CommandInterface.CHECKPOINT_SYNC);
         } else {
-            command = new TransactionCommand(session, TransactionCommand.CHECKPOINT);
+            command = new TransactionCommand(session, CommandInterface.CHECKPOINT);
         }
         return command;
     }
@@ -4148,7 +4148,7 @@ public class Parser {
         String userName = readUniqueIdentifier();
         if (readIf("SET")) {
             AlterUser command = new AlterUser(session);
-            command.setType(AlterUser.SET_PASSWORD);
+            command.setType(CommandInterface.ALTER_USER_SET_PASSWORD);
             command.setUser(database.getUser(userName));
             if (readIf("PASSWORD")) {
                 command.setPassword(readExpression());
@@ -4163,14 +4163,14 @@ public class Parser {
         } else if (readIf("RENAME")) {
             read("TO");
             AlterUser command = new AlterUser(session);
-            command.setType(AlterUser.RENAME);
+            command.setType(CommandInterface.ALTER_USER_RENAME);
             command.setUser(database.getUser(userName));
             String newName = readUniqueIdentifier();
             command.setNewName(newName);
             return command;
         } else if (readIf("ADMIN")) {
             AlterUser command = new AlterUser(session);
-            command.setType(AlterUser.ADMIN);
+            command.setType(CommandInterface.ALTER_USER_ADMIN);
             User user = database.getUser(userName);
             command.setUser(user);
             if (readIf("TRUE")) {
@@ -4201,7 +4201,7 @@ public class Parser {
         } else if (readIf("AUTOCOMMIT")) {
             readIfEqualOrTo();
             boolean value = readBooleanSetting();
-            int setting = value ? TransactionCommand.AUTOCOMMIT_TRUE : TransactionCommand.AUTOCOMMIT_FALSE;
+            int setting = value ? CommandInterface.SET_AUTOCOMMIT_TRUE : CommandInterface.SET_AUTOCOMMIT_FALSE;
             return new TransactionCommand(session, setting);
         } else if (readIf("MVCC")) {
             readIfEqualOrTo();
@@ -4223,14 +4223,14 @@ public class Parser {
         } else if (readIf("PASSWORD")) {
             readIfEqualOrTo();
             AlterUser command = new AlterUser(session);
-            command.setType(AlterUser.SET_PASSWORD);
+            command.setType(CommandInterface.ALTER_USER_SET_PASSWORD);
             command.setUser(session.getUser());
             command.setPassword(readExpression());
             return command;
         } else if (readIf("SALT")) {
             readIfEqualOrTo();
             AlterUser command = new AlterUser(session);
-            command.setType(AlterUser.SET_PASSWORD);
+            command.setType(CommandInterface.ALTER_USER_SET_PASSWORD);
             command.setUser(session.getUser());
             command.setSalt(readExpression());
             read("HASH");
@@ -4560,14 +4560,9 @@ public class Parser {
             return parseAlterTableAddColumn(table);
         } else if (readIf("SET")) {
             read("REFERENTIAL_INTEGRITY");
-            int type;
-            if (readIf("TRUE")) {
-                type = AlterTableSet.REFERENTIAL_INTEGRITY_TRUE;
-            } else {
-                read("FALSE");
-                type = AlterTableSet.REFERENTIAL_INTEGRITY_FALSE;
-            }
-            AlterTableSet command = new AlterTableSet(session, table.getSchema(), type);
+            int type = CommandInterface.ALTER_TABLE_SET_REFERENTIAL_INTEGRITY;
+            boolean value = readBooleanSetting();
+            AlterTableSet command = new AlterTableSet(session, table.getSchema(), type, value);
             command.setTableName(table.getName());
             if (readIf("CHECK")) {
                 command.setCheckExisting(true);
@@ -4601,7 +4596,7 @@ public class Parser {
             } else {
                 readIf("COLUMN");
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
-                command.setType(AlterTableAlterColumn.DROP);
+                command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 String columnName = readColumnIdentifier();
                 command.setTable(table);
                 command.setOldColumn(table.getColumn(columnName));
@@ -4625,7 +4620,7 @@ public class Parser {
                     AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                     command.setTable(table);
                     command.setOldColumn(column);
-                    command.setType(AlterTableAlterColumn.DEFAULT);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
                     command.setDefaultExpression(null);
                     return command;
                 }
@@ -4634,7 +4629,7 @@ public class Parser {
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
                 command.setOldColumn(column);
-                command.setType(AlterTableAlterColumn.NULL);
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
                 return command;
             } else if (readIf("TYPE")) {
                 // PostgreSQL compatibility
@@ -4649,15 +4644,15 @@ public class Parser {
                 command.setTable(table);
                 command.setOldColumn(column);
                 if (readIf("NULL")) {
-                    command.setType(AlterTableAlterColumn.NULL);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
                     return command;
                 } else if (readIf("NOT")) {
                     read("NULL");
-                    command.setType(AlterTableAlterColumn.NOT_NULL);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
                     return command;
                 } else if (readIf("DEFAULT")) {
                     Expression defaultExpression = readExpression();
-                    command.setType(AlterTableAlterColumn.DEFAULT);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
                     command.setDefaultExpression(defaultExpression);
                     return command;
                 }
@@ -4671,7 +4666,7 @@ public class Parser {
             } else if (readIf("SELECTIVITY")) {
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
-                command.setType(AlterTableAlterColumn.SELECTIVITY);
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_SELECTIVITY);
                 command.setOldColumn(column);
                 command.setSelectivity(readExpression());
                 return command;
@@ -4686,7 +4681,7 @@ public class Parser {
         Column newColumn = parseColumnForTable(columnName, column.isNullable());
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
         command.setTable(table);
-        command.setType(AlterTableAlterColumn.CHANGE_TYPE);
+        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
         command.setOldColumn(column);
         command.setNewColumn(newColumn);
         return command;
@@ -4696,7 +4691,7 @@ public class Parser {
         readIf("COLUMN");
         Schema schema = table.getSchema();
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-        command.setType(AlterTableAlterColumn.ADD);
+        command.setType(CommandInterface.ALTER_TABLE_ADD_COLUMN);
         command.setTable(table);
         String columnName = readColumnIdentifier();
         Column column = parseColumnForTable(columnName, true);
@@ -4747,7 +4742,7 @@ public class Parser {
         if (readIf("PRIMARY")) {
             read("KEY");
             AlterTableAddConstraint command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(AlterTableAddConstraint.PRIMARY_KEY);
+            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
             command.setComment(comment);
             command.setConstraintName(constraintName);
             command.setTableName(tableName);
@@ -4776,13 +4771,13 @@ public class Parser {
         AlterTableAddConstraint command;
         if (readIf("CHECK")) {
             command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(AlterTableAddConstraint.CHECK);
+            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
             command.setCheckExpression(readExpression());
         } else if (readIf("UNIQUE")) {
             readIf("KEY");
             readIf("INDEX");
             command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(AlterTableAddConstraint.UNIQUE);
+            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
             if (!readIf("(")) {
                 constraintName = readUniqueIdentifier();
                 read("(");
@@ -4794,7 +4789,7 @@ public class Parser {
             }
         } else if (readIf("FOREIGN")) {
             command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(AlterTableAddConstraint.REFERENTIAL);
+            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
             read("KEY");
             read("(");
             command.setIndexColumns(parseIndexColumnList());
@@ -4925,7 +4920,7 @@ public class Parser {
                             IndexColumn[] cols = { new IndexColumn() };
                             cols[0].columnName = column.getName();
                             AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema, false);
-                            pk.setType(AlterTableAddConstraint.PRIMARY_KEY);
+                            pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
                             pk.setTableName(tableName);
                             pk.setIndexColumns(cols);
                             command.addConstraintCommand(pk);
@@ -4942,7 +4937,7 @@ public class Parser {
                             cols[0].columnName = column.getName();
                             AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema, false);
                             pk.setPrimaryKeyHash(hash);
-                            pk.setType(AlterTableAddConstraint.PRIMARY_KEY);
+                            pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
                             pk.setTableName(tableName);
                             pk.setIndexColumns(cols);
                             command.addConstraintCommand(pk);
@@ -4952,7 +4947,7 @@ public class Parser {
                         } else if (readIf("UNIQUE")) {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema, false);
                             unique.setConstraintName(constraintName);
-                            unique.setType(AlterTableAddConstraint.UNIQUE);
+                            unique.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
                             IndexColumn[] cols = { new IndexColumn() };
                             cols[0].columnName = columnName;
                             unique.setIndexColumns(cols);
@@ -4972,7 +4967,7 @@ public class Parser {
                         if (readIf("REFERENCES")) {
                             AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema, false);
                             ref.setConstraintName(constraintName);
-                            ref.setType(AlterTableAddConstraint.REFERENTIAL);
+                            ref.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
                             IndexColumn[] cols = { new IndexColumn() };
                             cols[0].columnName = columnName;
                             ref.setIndexColumns(cols);

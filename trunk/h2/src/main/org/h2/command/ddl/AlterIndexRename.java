@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
@@ -45,6 +46,10 @@ public class AlterIndexRename extends DefineCommand {
         session.getUser().checkRight(oldIndex.getTable(), Right.ALL);
         db.renameSchemaObject(session, oldIndex, newIndexName);
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.ALTER_INDEX_RENAME;
     }
 
 }

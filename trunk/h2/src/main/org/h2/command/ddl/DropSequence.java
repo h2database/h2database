@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -50,6 +51,10 @@ public class DropSequence extends SchemaCommand {
             db.removeSchemaObject(session, sequence);
         }
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.DROP_SEQUENCE;
     }
 
 }

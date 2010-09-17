@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import org.h2.api.Trigger;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -112,6 +113,10 @@ public class Delete extends Prepared {
 
     public ResultInterface queryMeta() {
         return null;
+    }
+
+    public int getType() {
+        return CommandInterface.DELETE;
     }
 
 }

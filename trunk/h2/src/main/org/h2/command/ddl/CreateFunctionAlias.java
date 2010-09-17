@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
@@ -80,6 +81,10 @@ public class CreateFunctionAlias extends SchemaCommand {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public int getType() {
+        return CommandInterface.CREATE_ALIAS;
     }
 
 }

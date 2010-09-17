@@ -6,6 +6,7 @@
  */
 package org.h2.command.dml;
 
+import org.h2.command.CommandInterface;
 import org.h2.command.ddl.SchemaCommand;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
@@ -82,6 +83,10 @@ public class AlterSequence extends SchemaCommand {
             sysSession.commit(true);
         }
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.ALTER_SEQUENCE;
     }
 
 }

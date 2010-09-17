@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -37,6 +38,10 @@ public class TruncateTable extends DefineCommand {
         table.lock(session, true, true);
         table.truncate(session);
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.TRUNCATE_TABLE;
     }
 
 }

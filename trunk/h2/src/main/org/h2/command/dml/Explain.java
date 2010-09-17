@@ -9,6 +9,7 @@ package org.h2.command.dml;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -112,5 +113,9 @@ public class Explain extends Prepared {
 
     public boolean isReadOnly() {
         return true;
+    }
+
+    public int getType() {
+        return CommandInterface.EXPLAIN;
     }
 }

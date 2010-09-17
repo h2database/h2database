@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.engine.Session;
 
 /**
@@ -27,6 +28,10 @@ public class DeallocateProcedure extends DefineCommand {
 
     public void setProcedureName(String name) {
         this.procedureName = name;
+    }
+
+    public int getType() {
+        return CommandInterface.DEALLOCATE;
     }
 
 }

@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -58,6 +59,10 @@ public class CreateConstant extends SchemaCommand {
 
     public void setExpression(Expression expr) {
         this.expression = expr;
+    }
+
+    public int getType() {
+        return CommandInterface.CREATE_CONSTANT;
     }
 
 }

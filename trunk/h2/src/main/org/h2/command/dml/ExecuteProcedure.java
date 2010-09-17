@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Procedure;
 import org.h2.engine.Session;
@@ -76,6 +77,10 @@ public class ExecuteProcedure extends Prepared {
     public ResultInterface queryMeta() {
         Prepared prepared = procedure.getPrepared();
         return prepared.queryMeta();
+    }
+
+    public int getType() {
+        return CommandInterface.EXECUTE;
     }
 
 }

@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
@@ -70,6 +71,10 @@ public class DropIndex extends SchemaCommand {
             }
         }
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.DROP_INDEX;
     }
 
 }

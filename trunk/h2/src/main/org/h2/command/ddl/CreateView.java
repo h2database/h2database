@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
@@ -194,5 +195,9 @@ public class CreateView extends SchemaCommand {
         if (ddl) {
             session.commit(true);
         }
+    }
+
+    public int getType() {
+        return CommandInterface.CREATE_VIEW;
     }
 }

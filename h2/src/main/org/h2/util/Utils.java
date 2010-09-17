@@ -276,8 +276,7 @@ public class Utils {
         try {
             ByteArrayInputStream in = new ByteArrayInputStream(data);
             ObjectInputStream is = new ObjectInputStream(in);
-            Object obj = is.readObject();
-            return obj;
+            return is.readObject();
         } catch (Throwable e) {
             throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());
         }

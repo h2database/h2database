@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -104,6 +105,10 @@ public class CreateIndex extends SchemaCommand {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public int getType() {
+        return CommandInterface.CREATE_INDEX;
     }
 
 }

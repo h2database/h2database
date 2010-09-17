@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -33,26 +34,6 @@ import org.h2.util.New;
  * ALTER TABLE ADD CONSTRAINT
  */
 public class AlterTableAddConstraint extends SchemaCommand {
-
-    /**
-     * The type of a ALTER TABLE ADD CHECK statement.
-     */
-    public static final int CHECK = 0;
-
-    /**
-     * The type of a ALTER TABLE ADD UNIQUE statement.
-     */
-    public static final int UNIQUE = 1;
-
-    /**
-     * The type of a ALTER TABLE ADD FOREIGN KEY statement.
-     */
-    public static final int REFERENTIAL = 2;
-
-    /**
-     * The type of a ALTER TABLE ADD PRIMARY KEY statement.
-     */
-    public static final int PRIMARY_KEY = 3;
 
     private int type;
     private String constraintName;
@@ -111,7 +92,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         table.lock(session, true, true);
         Constraint constraint;
         switch (type) {
-        case PRIMARY_KEY: {
+        case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY: {
             IndexColumn.mapColumns(indexColumns, table);
             index = table.findPrimaryKey();
             ArrayList<Constraint> constraints = table.getConstraints();
@@ -153,7 +134,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             constraint = pk;
             break;
         }
-        case UNIQUE: {
+        case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE: {
             IndexColumn.mapColumns(indexColumns, table);
             boolean isOwner = false;
             if (index != null && canUseUniqueIndex(index, table, indexColumns)) {
@@ -174,7 +155,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             constraint = unique;
             break;
         }
-        case CHECK: {
+        case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK: {
             int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
@@ -189,7 +170,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             break;
         }
-        case REFERENTIAL: {
+        case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL: {
             Table refTable = refSchema.getTableOrView(session, refTableName);
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {

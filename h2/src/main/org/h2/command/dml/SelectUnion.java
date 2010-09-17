@@ -8,6 +8,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
@@ -370,6 +371,10 @@ public class SelectUnion extends Query {
     public void fireBeforeSelectTriggers() {
         left.fireBeforeSelectTriggers();
         right.fireBeforeSelectTriggers();
+    }
+
+    public int getType() {
+        return CommandInterface.SELECT;
     }
 
 }

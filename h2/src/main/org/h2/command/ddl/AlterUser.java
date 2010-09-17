@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -22,21 +23,6 @@ import org.h2.util.StringUtils;
  * ALTER USER SET PASSWORD
  */
 public class AlterUser extends DefineCommand {
-
-    /**
-     * The command type to set the password.
-     */
-    public static final int SET_PASSWORD = 0;
-
-    /**
-     * The command type to rename the user.
-     */
-    public static final int RENAME = 1;
-
-    /**
-     * The command type to change the admin flag.
-     */
-    public static final int ADMIN = 2;
 
     private int type;
     private User user;
@@ -90,7 +76,7 @@ public class AlterUser extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         switch (type) {
-        case SET_PASSWORD:
+        case CommandInterface.ALTER_USER_SET_PASSWORD:
             if (user != session.getUser()) {
                 session.getUser().checkAdmin();
             }
@@ -104,14 +90,14 @@ public class AlterUser extends DefineCommand {
                 user.setUserPasswordHash(userPasswordHash);
             }
             break;
-        case RENAME:
+        case CommandInterface.ALTER_USER_RENAME:
             session.getUser().checkAdmin();
             if (db.findUser(newName) != null || newName.equals(user.getName())) {
                 throw DbException.get(ErrorCode.USER_ALREADY_EXISTS_1, newName);
             }
             db.renameDatabaseObject(session, user, newName);
             break;
-        case ADMIN:
+        case CommandInterface.ALTER_USER_ADMIN:
             session.getUser().checkAdmin();
             if (!admin) {
                 user.checkOwnsNoSchemas();
@@ -123,6 +109,10 @@ public class AlterUser extends DefineCommand {
         }
         db.update(session, user);
         return 0;
+    }
+
+    public int getType() {
+        return type;
     }
 
 }

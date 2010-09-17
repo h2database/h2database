@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
@@ -47,6 +48,10 @@ public class DropFunctionAlias extends SchemaCommand {
 
     public void setIfExists(boolean ifExists) {
         this.ifExists = ifExists;
+    }
+
+    public int getType() {
+        return CommandInterface.DROP_ALIAS;
     }
 
 }

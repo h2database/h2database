@@ -9,6 +9,7 @@ package org.h2.command.dml;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
@@ -77,6 +78,10 @@ public class RunScriptCommand extends ScriptBase {
 
     public ResultInterface queryMeta() {
         return null;
+    }
+
+    public int getType() {
+        return CommandInterface.RUNSCRIPT;
     }
 
 }

@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.table.TableView;
@@ -31,6 +32,10 @@ public class AlterView extends DefineCommand {
         session.getUser().checkRight(view, Right.ALL);
         view.recompile(session);
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.ALTER_VIEW;
     }
 
 }

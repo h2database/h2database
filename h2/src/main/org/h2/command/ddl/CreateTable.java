@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import org.h2.command.CommandInterface;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
@@ -77,7 +78,7 @@ public class CreateTable extends SchemaCommand {
         } else {
             AlterTableAddConstraint con = (AlterTableAddConstraint) command;
             boolean alreadySet;
-            if (con.getType() == AlterTableAddConstraint.PRIMARY_KEY) {
+            if (con.getType() == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY) {
                 alreadySet = setPrimaryKeyColumns(con.getIndexColumns());
             } else {
                 alreadySet = false;
@@ -276,6 +277,10 @@ public class CreateTable extends SchemaCommand {
 
     public void setHidden(boolean isHidden) {
         data.isHidden = isHidden;
+    }
+
+    public int getType() {
+        return CommandInterface.CREATE_TABLE;
     }
 
 }

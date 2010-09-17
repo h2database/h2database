@@ -6,6 +6,7 @@
  */
 package org.h2.command.dml;
 
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.result.ResultInterface;
@@ -41,6 +42,10 @@ public class NoOperation extends Prepared {
 
     public ResultInterface queryMeta() {
         return null;
+    }
+
+    public int getType() {
+        return CommandInterface.NO_OPERATION;
     }
 
 }

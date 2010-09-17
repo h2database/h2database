@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.sql.ResultSet;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -102,6 +103,10 @@ public class Call extends Prepared {
     public boolean isReadOnly() {
         return expression.isEverything(ExpressionVisitor.READONLY);
 
+    }
+
+    public int getType() {
+        return CommandInterface.CALL;
     }
 
 }

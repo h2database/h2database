@@ -37,6 +37,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected final int resultSetConcurrency;
     protected boolean closedByResultSet;
     private CommandInterface executingCommand;
+    private int lastExecutedCommandType;
     private ArrayList<String> batchCommands;
     private boolean escapeProcessing = true;
 
@@ -926,8 +927,21 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param c the command
      */
     protected void setExecutingStatement(CommandInterface c) {
-        conn.setExecutingStatement(c == null ? null : this);
+        if (c == null) {
+            conn.setExecutingStatement(null);
+        } else {
+            conn.setExecutingStatement(this);
+            lastExecutedCommandType = c.getCommandType();
+        }
         executingCommand = c;
+    }
+
+    /**
+     * INTERNAL.
+     * Get the command type of the last executed command.
+     */
+    public int getLastExecutedCommandType() {
+        return lastExecutedCommandType;
     }
 
     /**

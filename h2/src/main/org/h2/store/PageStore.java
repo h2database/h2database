@@ -13,8 +13,8 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.zip.CRC32;
+import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
-import org.h2.command.dml.TransactionCommand;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -465,8 +465,8 @@ public class PageStore implements CacheWriter {
             recoveryRunning = false;
         }
         long start = System.currentTimeMillis();
-        boolean isCompactFully = compactMode == TransactionCommand.SHUTDOWN_COMPACT;
-        boolean isDefrag = compactMode == TransactionCommand.SHUTDOWN_DEFRAG;
+        boolean isCompactFully = compactMode == CommandInterface.SHUTDOWN_COMPACT;
+        boolean isDefrag = compactMode == CommandInterface.SHUTDOWN_DEFRAG;
 
         int test;
         // isCompactFully = isDefrag = true;

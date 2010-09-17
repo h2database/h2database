@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
@@ -47,6 +48,10 @@ public class AlterTableRename extends SchemaCommand {
         }
         db.renameSchemaObject(session, oldTable, newTableName);
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.ALTER_TABLE_RENAME;
     }
 
 }

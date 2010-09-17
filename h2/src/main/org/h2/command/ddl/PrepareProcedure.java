@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Procedure;
 import org.h2.engine.Session;
@@ -49,6 +50,10 @@ public class PrepareProcedure extends DefineCommand {
 
     public ArrayList<Parameter> getParameters() {
         return New.arrayList();
+    }
+
+    public int getType() {
+        return CommandInterface.PREPARE;
     }
 
 }

@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -44,42 +45,6 @@ import org.h2.util.New;
  */
 public class AlterTableAlterColumn extends SchemaCommand {
 
-    /**
-     * The type of a ALTER TABLE ALTER COLUMN SET NOT NULL statement.
-     */
-    public static final int NOT_NULL = 0;
-
-    /**
-     * The type of a ALTER TABLE ALTER COLUMN SET NULL statement.
-     */
-    public static final int NULL = 1;
-
-    /**
-     * The type of a ALTER TABLE ALTER COLUMN SET DEFAULT statement.
-     */
-    public static final int DEFAULT = 2;
-
-    /**
-     * The type of a ALTER TABLE ALTER COLUMN statement that changes the column
-     * data type.
-     */
-    public static final int CHANGE_TYPE = 3;
-
-    /**
-     * The type of a ALTER TABLE ADD statement.
-     */
-    public static final int ADD = 4;
-
-    /**
-     * The type of a ALTER TABLE DROP COLUMN statement.
-     */
-    public static final int DROP = 5;
-
-    /**
-     * The type of a ALTER TABLE ALTER COLUMN SELECTIVITY statement.
-     */
-    public static final int SELECTIVITY = 6;
-
     private Table table;
     private Column oldColumn;
     private Column newColumn;
@@ -112,7 +77,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         table.lock(session, true, true);
         Sequence sequence = oldColumn == null ? null : oldColumn.getSequence();
         switch (type) {
-        case NOT_NULL: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL: {
             if (!oldColumn.isNullable()) {
                 // no change
                 break;
@@ -122,7 +87,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             db.update(session, table);
             break;
         }
-        case NULL: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL: {
             if (oldColumn.isNullable()) {
                 // no change
                 break;
@@ -132,14 +97,14 @@ public class AlterTableAlterColumn extends SchemaCommand {
             db.update(session, table);
             break;
         }
-        case DEFAULT: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT: {
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, defaultExpression);
             removeSequence(sequence);
             db.update(session, table);
             break;
         }
-        case CHANGE_TYPE: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE: {
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, null);
             oldColumn.setConvertNullToDefault(false);
@@ -152,12 +117,12 @@ public class AlterTableAlterColumn extends SchemaCommand {
             copyData();
             break;
         }
-        case ADD: {
+        case CommandInterface.ALTER_TABLE_ADD_COLUMN: {
             convertAutoIncrementColumn(newColumn);
             copyData();
             break;
         }
-        case DROP: {
+        case CommandInterface.ALTER_TABLE_DROP_COLUMN: {
             if (table.getColumns().length == 1) {
                 throw DbException.get(ErrorCode.CANNOT_DROP_LAST_COLUMN, oldColumn.getSQL());
             }
@@ -166,7 +131,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             copyData();
             break;
         }
-        case SELECTIVITY: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_SELECTIVITY: {
             int value = newSelectivity.optimize(session).getValue(session).getInt();
             oldColumn.setSelectivity(value);
             db.update(session, table);
@@ -249,10 +214,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
         for (Column col : columns) {
             newColumns.add(col.getClone());
         }
-        if (type == DROP) {
+        if (type == CommandInterface.ALTER_TABLE_DROP_COLUMN) {
             int position = oldColumn.getColumnId();
             newColumns.remove(position);
-        } else if (type == ADD) {
+        } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN) {
             int position;
             if (addBefore == null) {
                 position = columns.length;
@@ -260,7 +225,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 position = table.getColumn(addBefore).getColumnId();
             }
             newColumns.add(position, newColumn);
-        } else if (type == CHANGE_TYPE) {
+        } else if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE) {
             int position = oldColumn.getColumnId();
             newColumns.remove(position);
             newColumns.add(position, newColumn);
@@ -290,7 +255,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (columnList.length() > 0) {
                 columnList.append(", ");
             }
-            if (type == ADD && nc == newColumn) {
+            if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN && nc == newColumn) {
                 Expression def = nc.getDefaultExpression();
                 columnList.append(def == null ? "NULL" : def.getSQL());
             } else {
@@ -487,6 +452,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
     public void setNewColumn(Column newColumn) {
         this.newColumn = newColumn;
+    }
+
+    public int getType() {
+        return type;
     }
 
 }

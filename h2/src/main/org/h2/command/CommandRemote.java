@@ -248,4 +248,8 @@ public class CommandRemote implements CommandInterface {
         return TraceObject.toString(sql, getParameters());
     }
 
+    public int getCommandType() {
+        return UNKNOWN;
+    }
+
 }

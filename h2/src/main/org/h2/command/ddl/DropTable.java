@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
@@ -118,6 +119,10 @@ public class DropTable extends SchemaCommand {
         if (next != null) {
             next.setDropAction(dropAction);
         }
+    }
+
+    public int getType() {
+        return CommandInterface.DROP_TABLE;
     }
 
 }

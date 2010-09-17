@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
@@ -25,16 +26,6 @@ import org.h2.util.New;
  * REVOKE ROLE
  */
 public class GrantRevoke extends DefineCommand {
-
-    /**
-     * The operation type to grant a right.
-     */
-    public static final int GRANT = 0;
-
-    /**
-     * The operation type to revoke a right.
-     */
-    public static final int REVOKE = 1;
 
     private ArrayList<String> roleNames;
     private int operationType;
@@ -92,18 +83,18 @@ public class GrantRevoke extends DefineCommand {
                 if (grantedRole == null) {
                     throw DbException.get(ErrorCode.ROLE_NOT_FOUND_1, name);
                 }
-                if (operationType == GRANT) {
+                if (operationType == CommandInterface.GRANT) {
                     grantRole(grantedRole);
-                } else if (operationType == REVOKE) {
+                } else if (operationType == CommandInterface.REVOKE) {
                     revokeRole(grantedRole);
                 } else {
                     DbException.throwInternalError("type=" + operationType);
                 }
             }
         } else {
-            if (operationType == GRANT) {
+            if (operationType == CommandInterface.GRANT) {
                 grantRight();
-            } else if (operationType == REVOKE) {
+            } else if (operationType == CommandInterface.REVOKE) {
                 revokeRight();
             } else {
                 DbException.throwInternalError("type=" + operationType);
@@ -183,6 +174,10 @@ public class GrantRevoke extends DefineCommand {
      */
     public void addTable(Table table) {
         tables.add(table);
+    }
+
+    public int getType() {
+        return operationType;
     }
 
 }

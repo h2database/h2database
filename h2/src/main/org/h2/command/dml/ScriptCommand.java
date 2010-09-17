@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -580,6 +581,10 @@ public class ScriptCommand extends ScriptBase {
 
     public void setCharset(String charset) {
         this.charset = charset;
+    }
+
+    public int getType() {
+        return CommandInterface.SCRIPT;
     }
 
 }

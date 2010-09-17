@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
@@ -68,6 +69,10 @@ public class DropView extends SchemaCommand {
             session.getDatabase().removeSchemaObject(session, view);
         }
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.DROP_VIEW;
     }
 
 }

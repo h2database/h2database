@@ -9,6 +9,7 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
@@ -233,6 +234,10 @@ public class Insert extends Prepared {
 
     public void setSortedInsertMode(boolean sortedInsertMode) {
         this.sortedInsertMode = sortedInsertMode;
+    }
+
+    public int getType() {
+        return CommandInterface.INSERT;
     }
 
 }

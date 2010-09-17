@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -47,6 +48,10 @@ public class DropConstant extends SchemaCommand {
             db.removeSchemaObject(session, constant);
         }
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.DROP_CONSTANT;
     }
 
 }

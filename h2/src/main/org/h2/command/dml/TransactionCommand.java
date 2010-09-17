@@ -6,6 +6,7 @@
  */
 package org.h2.command.dml;
 
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -16,86 +17,6 @@ import org.h2.result.ResultInterface;
  * Represents a transactional statement.
  */
 public class TransactionCommand extends Prepared {
-
-    /**
-     * The type of a SET AUTOCOMMIT TRUE statement.
-     */
-    public static final int AUTOCOMMIT_TRUE = 1;
-
-    /**
-     * The type of a SET AUTOCOMMIT FALSE statement.
-     */
-    public static final int AUTOCOMMIT_FALSE = 2;
-
-    /**
-     * The type of a COMMIT statement.
-     */
-    public static final int COMMIT = 3;
-
-    /**
-     * The type of a ROLLBACK statement.
-     */
-    public static final int ROLLBACK = 4;
-
-    /**
-     * The type of a CHECKPOINT statement.
-     */
-    public static final int CHECKPOINT = 5;
-
-    /**
-     * The type of a SAVEPOINT statement.
-     */
-    public static final int SAVEPOINT = 6;
-
-    /**
-     * The type of a ROLLBACK TO SAVEPOINT statement.
-     */
-    public static final int ROLLBACK_TO_SAVEPOINT = 7;
-
-    /**
-     * The type of a CHECKPOINT SYNC statement.
-     */
-    public static final int CHECKPOINT_SYNC = 8;
-
-    /**
-     * The type of a PREPARE COMMIT statement.
-     */
-    public static final int PREPARE_COMMIT = 9;
-
-    /**
-     * The type of a COMMIT TRANSACTION statement.
-     */
-    public static final int COMMIT_TRANSACTION = 10;
-
-    /**
-     * The type of a ROLLBACK TRANSACTION statement.
-     */
-    public static final int ROLLBACK_TRANSACTION = 11;
-
-    /**
-     * The type of a SHUTDOWN statement.
-     */
-    public static final int SHUTDOWN = 12;
-
-    /**
-     * The type of a SHUTDOWN IMMEDIATELY statement.
-     */
-    public static final int SHUTDOWN_IMMEDIATELY = 13;
-
-    /**
-     * The type of a SHUTDOWN COMPACT statement.
-     */
-    public static final int SHUTDOWN_COMPACT = 14;
-
-    /**
-     * The type of a BEGIN {WORK|TRANSACTION} statement.
-     */
-    public static final int BEGIN = 15;
-
-    /**
-     * The type of a SHUTDOWN DEFRAG statement.
-     */
-    public static final int SHUTDOWN_DEFRAG = 16;
 
     private int type;
     private String savepointName;
@@ -112,56 +33,56 @@ public class TransactionCommand extends Prepared {
 
     public int update() {
         switch (type) {
-        case AUTOCOMMIT_TRUE:
+        case CommandInterface.SET_AUTOCOMMIT_TRUE:
             session.setAutoCommit(true);
             break;
-        case AUTOCOMMIT_FALSE:
+        case CommandInterface.SET_AUTOCOMMIT_FALSE:
             session.setAutoCommit(false);
             break;
-        case BEGIN:
+        case CommandInterface.BEGIN:
             session.begin();
             break;
-        case COMMIT:
+        case CommandInterface.COMMIT:
             session.commit(false);
             break;
-        case ROLLBACK:
+        case CommandInterface.ROLLBACK:
             session.rollback();
             break;
-        case CHECKPOINT:
+        case CommandInterface.CHECKPOINT:
             session.getUser().checkAdmin();
             session.getDatabase().checkpoint();
             break;
-        case SAVEPOINT:
+        case CommandInterface.SAVEPOINT:
             session.addSavepoint(savepointName);
             break;
-        case ROLLBACK_TO_SAVEPOINT:
+        case CommandInterface.ROLLBACK_TO_SAVEPOINT:
             session.rollbackToSavepoint(savepointName);
             break;
-        case CHECKPOINT_SYNC:
+        case CommandInterface.CHECKPOINT_SYNC:
             session.getUser().checkAdmin();
             session.getDatabase().sync();
             break;
-        case PREPARE_COMMIT:
+        case CommandInterface.PREPARE_COMMIT:
             session.prepareCommit(transactionName);
             break;
-        case COMMIT_TRANSACTION:
+        case CommandInterface.COMMIT_TRANSACTION:
             session.getUser().checkAdmin();
             session.setPreparedTransaction(transactionName, true);
             break;
-        case ROLLBACK_TRANSACTION:
+        case CommandInterface.ROLLBACK_TRANSACTION:
             session.getUser().checkAdmin();
             session.setPreparedTransaction(transactionName, false);
             break;
-        case SHUTDOWN_IMMEDIATELY:
+        case CommandInterface.SHUTDOWN_IMMEDIATELY:
             session.getUser().checkAdmin();
             session.getDatabase().shutdownImmediately();
             break;
-        case SHUTDOWN:
-        case SHUTDOWN_COMPACT:
-        case SHUTDOWN_DEFRAG: {
+        case CommandInterface.SHUTDOWN:
+        case CommandInterface.SHUTDOWN_COMPACT:
+        case CommandInterface.SHUTDOWN_DEFRAG: {
             session.getUser().checkAdmin();
             session.commit(false);
-            if (type == SHUTDOWN_COMPACT || type == SHUTDOWN_DEFRAG) {
+            if (type == CommandInterface.SHUTDOWN_COMPACT || type == CommandInterface.SHUTDOWN_DEFRAG) {
                 session.getDatabase().setCompactMode(type);
             }
             // close the database, but don't update the persistent setting
@@ -209,6 +130,10 @@ public class TransactionCommand extends Prepared {
 
     public ResultInterface queryMeta() {
         return null;
+    }
+
+    public int getType() {
+        return type;
     }
 
 }

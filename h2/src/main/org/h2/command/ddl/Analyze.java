@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
@@ -107,6 +108,10 @@ public class Analyze extends DefineCommand {
 
     public void setTop(int top) {
         this.sampleRows = top;
+    }
+
+    public int getType() {
+        return CommandInterface.ANALYZE;
     }
 
 }

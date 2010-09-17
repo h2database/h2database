@@ -94,4 +94,8 @@ public class CommandContainer extends Command {
         return prepared.isCacheable();
     }
 
+    public int getCommandType() {
+        return prepared.getType();
+    }
+
 }

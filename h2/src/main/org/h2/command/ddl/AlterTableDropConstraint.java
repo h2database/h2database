@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Right;
@@ -44,6 +45,10 @@ public class AlterTableDropConstraint extends SchemaCommand {
             session.getDatabase().removeSchemaObject(session, constraint);
         }
         return 0;
+    }
+
+    public int getType() {
+        return CommandInterface.ALTER_TABLE_DROP_CONSTRAINT;
     }
 
 }

@@ -80,11 +80,11 @@ public abstract class Prepared {
      * @return the result set
      */
     public abstract ResultInterface queryMeta();
-    
-    
+
+
     /**
      * Get the command type as defined in CommandInterface
-     * 
+     *
      * @return the statement type
      */
     public abstract int getType();

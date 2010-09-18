@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.143 (2010-09-18)</h2>
 <ul><li>If the user name and password are not set or empty, then the password is not hashed.
     To disable this behavior, set the system property h2.emptyPassword to false.
     TCP server: the default user name for the management database is now an empty string.
@@ -791,41 +795,6 @@ Change Log
 </li><li>Possibility to set a vendor id in Constants.java, so that unofficial builds are distinguishable
     from official releases.
 </li><li>Allow writing to linked tables in readonly databases.
-</li></ul>
-
-<h2>Version 1.1.119 (2009-09-26)</h2>
-<ul><li>SQL statements in the exception message are no longer included if they contain '--hide--'.
-</li><li>Temporary local tables did not always work after reconnect if AUTO_SERVER=TRUE
-</li><li>New system property h2.defaultMaxLengthInplaceLob to change the default maximum size
-    of an in-place LOB object.
-</li><li>New system property h2.nullConcatIsNull to change the default null concatenation behavior.
-    The default will be enabled in version 1.2.
-</li><li>The cache algorithm TQ is disabled in this version, because it is unstable, and
-    because the current implementation does not have any measurable advantages over the default.
-</li><li>New committer: Christian Peter. He works for <a href="http://www.docware.com">Docware</a> and
-    helped a lot finding and fixing bugs, and generally improving the database. He is now a committer.
-</li><li>ChangeFileEncryption did not work with Lob subdirectories. Fixed.
-</li><li>Issue 121: JaQu: new simple update and merge methods.
-</li><li>Issue 120: JaQu didn't close result sets.
-</li><li>Issue 119: JaQu creates wrong WHERE conditions on some inputs.
-</li><li>The new page store mechanism is now alpha-level quality. The next release
-    will most likely be "1.2.120 beta" where this mode is enabled by default. To use
-    it right now, append ;PAGE_STORE=TRUE to the database URL. The file format
-    of this mode will probably not change any more.
-</li><li>SELECT COUNT(*) FROM SYSTEM_RANGE(...) returned the wrong result. Fixed.
-</li><li>The Recover tool now also processes the log files, however applying those changes
-    is still a manual process.
-</li><li>New sample application that shows how to pass data to a trigger.
-</li><li>More bugs in the server-less multi-connection mode have been fixed:
-    On Windows, two processes could write to the same database at the same time.
-</li><li>When loading triggers or other client classes
-    (static functions, database event listener, user aggregate functions, other JDBC drivers),
-    the database now uses the context class loader if the class could not be found using Class.forName().
-</li><li>Updating many rows with the same CLOB or BLOB values could result in FileNotFoundException.
-</li><li>Statement.getConnection() threw an exception if the connection was already closed.
-</li><li>The native fulltext index kept a reference to a database after the database was closed.
-</li><li>Non-unique in-memory hash indexes are now supported. Thanks a lot to Sergi Vladykin for the patch!
-</li><li>The optimizer does a better job for joins if indexes are missing.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

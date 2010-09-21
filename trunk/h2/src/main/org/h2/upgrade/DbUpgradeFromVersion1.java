@@ -20,10 +20,10 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * Class to convert a 1.1 DB (non page store) to a 1.2 DB (page store) format.
- * Conversion is done via "script to" and "runscript from".
+ * Class to convert a 1.1 database (non page store) to the 1.2 (page store)
+ * format. Conversion is done via "script to" and "runscript from".
  */
-public class DbUpgradeNonPageStoreToCurrent {
+public class DbUpgradeFromVersion1 {
 
     private static boolean scriptInTmpDir;
     private static boolean deleteOldDb;
@@ -53,7 +53,7 @@ public class DbUpgradeNonPageStoreToCurrent {
      * @param info The connection properties
      * @throws SQLException if an exception occurred
      */
-    public DbUpgradeNonPageStoreToCurrent(String url, Properties info) throws SQLException {
+    public DbUpgradeFromVersion1(String url, Properties info) throws SQLException {
         this.url = url;
         this.info = info;
         init();
@@ -216,7 +216,7 @@ public class DbUpgradeNonPageStoreToCurrent {
      *        located in the temp directory.
      */
     public static void setScriptInTmpDir(boolean scriptInTmpDir) {
-        DbUpgradeNonPageStoreToCurrent.scriptInTmpDir = scriptInTmpDir;
+        DbUpgradeFromVersion1.scriptInTmpDir = scriptInTmpDir;
     }
 
     /**
@@ -227,7 +227,7 @@ public class DbUpgradeNonPageStoreToCurrent {
      * @param deleteOldDb if true, the old db files will be deleted.
      */
     public static void setDeleteOldDb(boolean deleteOldDb) {
-        DbUpgradeNonPageStoreToCurrent.deleteOldDb = deleteOldDb;
+        DbUpgradeFromVersion1.deleteOldDb = deleteOldDb;
     }
 
 }

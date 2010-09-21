@@ -377,7 +377,6 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/server/*").
             exclude("temp/org/h2/test/*").
             exclude("temp/org/h2/tools/*").
-            exclude("temp/org/h2/upgrade/*").
             exclude("*.bat").
             exclude("*.sh").
             exclude("*.txt");

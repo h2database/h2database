@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import javax.sql.DataSource;
 
 import org.h2.jaqu.util.Utils;
 import org.h2.jaqu.util.WeakIdentityHashMap;
@@ -59,6 +60,21 @@ public class Db {
         try {
             Connection conn = JdbcUtils.getConnection(null, url, user, password);
             return new Db(conn);
+        } catch (SQLException e) {
+            throw convert(e);
+        }
+    }
+
+    /**
+     * Create a new database instance using a data source. This method is fast,
+     * so that you can always call open() / close() on usage.
+     *
+     * @param ds the data source
+     * @return the database instance.
+     */
+    public static Db open(DataSource ds) {
+        try {
+            return new Db(ds.getConnection());
         } catch (SQLException e) {
             throw convert(e);
         }

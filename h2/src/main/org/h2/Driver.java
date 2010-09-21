@@ -59,7 +59,7 @@ public class Driver implements java.sql.Driver {
             }
             boolean noUpgrade = StringUtils.toUpperEnglish(url).indexOf(";NO_UPGRADE=TRUE") >= 0;
             url = StringUtils.replaceAllIgnoreCase(url, ";NO_UPGRADE=TRUE", "");
-            if (DbUpgrade.areV1dot1ClassesPresent()) {
+            if (DbUpgrade.areUpgradeClassesPresent()) {
                 if (noUpgrade) {
                     Connection connection = DbUpgrade.connectWithOldVersion(url, info);
                     if (connection != null) {
@@ -69,7 +69,6 @@ public class Driver implements java.sql.Driver {
                     DbUpgrade.upgrade(url, info);
                 }
             }
-
             return new JdbcConnection(url, info);
         } catch (Exception e) {
             throw DbException.toSQLException(e);

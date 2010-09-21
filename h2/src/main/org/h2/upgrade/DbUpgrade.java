@@ -26,14 +26,14 @@ import org.h2.util.Utils;
  */
 public class DbUpgrade {
 
-    private static boolean v1dot1ClassesPresent;
+    private static boolean upgradeClassesPresent;
 
-    private static Map<String, DbUpgradeNonPageStoreToCurrent> runningConversions;
+    private static Map<String, DbUpgradeFromVersion1> runningConversions;
 
     static {
         // static initialize block
-        v1dot1ClassesPresent = Utils.isClassPresent("org.h2.upgrade.v1_1.Driver");
-        runningConversions = Collections.synchronizedMap(new Hashtable<String, DbUpgradeNonPageStoreToCurrent>(1));
+        upgradeClassesPresent = Utils.isClassPresent("org.h2.upgrade.v1_1.Driver");
+        runningConversions = Collections.synchronizedMap(new Hashtable<String, DbUpgradeFromVersion1>(1));
     }
 
     /**
@@ -41,12 +41,12 @@ public class DbUpgrade {
      *
      * @return true if it is
      */
-    public static boolean areV1dot1ClassesPresent() {
-        return v1dot1ClassesPresent;
+    public static boolean areUpgradeClassesPresent() {
+        return upgradeClassesPresent;
     }
 
     /**
-     * Connects to an old 1.1 database
+     * Connects to an old (version 1.1) database.
      *
      * @param url The connection string
      * @param info The connection properties
@@ -98,23 +98,19 @@ public class DbUpgrade {
      * @throws SQLException
      */
     public static synchronized void upgrade(String url, Properties info) throws SQLException {
-        if (v1dot1ClassesPresent) {
-            upgradeFromNonPageStore(url, info);
-        }
-    }
-
-    private static void upgradeFromNonPageStore(String url, Properties info) throws SQLException {
-        if (runningConversions.containsKey(url)) {
-            // do not migrate, because we are currently migrating, and this is
-            // the connection where "runscript from" will be executed
-            return;
-        }
-        try {
-            DbUpgradeNonPageStoreToCurrent instance = new DbUpgradeNonPageStoreToCurrent(url, info);
-            runningConversions.put(url, instance);
-            instance.upgrade();
-        } finally {
-            runningConversions.remove(url);
+        if (upgradeClassesPresent) {
+            if (runningConversions.containsKey(url)) {
+                // do not migrate, because we are currently migrating, and this is
+                // the connection where "runscript from" will be executed
+                return;
+            }
+            try {
+                DbUpgradeFromVersion1 instance = new DbUpgradeFromVersion1(url, info);
+                runningConversions.put(url, instance);
+                instance.upgrade();
+            } finally {
+                runningConversions.remove(url);
+            }
         }
     }
 

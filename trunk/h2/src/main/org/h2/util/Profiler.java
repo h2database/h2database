@@ -33,7 +33,9 @@ public class Profiler implements Runnable {
             "java.lang.Object.wait," +
             "java.lang.Thread.sleep," +
             "sun.awt.windows.WToolkit.eventLoop," +
-            "sun.misc.Unsafe.park,"
+            "sun.misc.Unsafe.park," +
+            "dalvik.system.VMStack.getThreadStackTrace," +
+            "dalvik.system.NativeStart.run"
             , ',', true);
     private volatile boolean stop;
     private HashMap<String, Integer> counts = new HashMap<String, Integer>();

@@ -1495,9 +1495,14 @@ public class MetaTable extends Table {
         }
         case SESSIONS: {
             boolean admin = session.getUser().isAdmin();
+            long now = System.currentTimeMillis();
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
                     Command command = s.getCurrentCommand();
+                    long start = s.getCurrentCommandStart();
+                    if (start == 0) {
+                        start = now;
+                    }
                     add(rows,
                             // ID
                             "" + s.getId(),
@@ -1508,7 +1513,7 @@ public class MetaTable extends Table {
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START
-                            new Timestamp(s.getCurrentCommandStart()).toString()
+                            new Timestamp(start).toString()
                     );
                 }
             }

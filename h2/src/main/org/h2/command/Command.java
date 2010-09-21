@@ -121,14 +121,14 @@ public abstract class Command implements CommandInterface {
      * @return the result set
      */
     public ResultInterface executeQuery(int maxrows, boolean scrollable) {
-        startTime = System.currentTimeMillis();
+        startTime = 0;
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         synchronized (sync) {
             try {
                 database.checkPowerOff();
-                session.setCurrentCommand(this, startTime);
+                session.setCurrentCommand(this);
                 return query(maxrows);
             } catch (DbException e) {
                 e.addSQL(sql);
@@ -144,7 +144,9 @@ public abstract class Command implements CommandInterface {
      * Start the stopwatch.
      */
     void start() {
-        startTime = System.currentTimeMillis();
+        if (trace.isInfoEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
     }
 
     /**
@@ -161,7 +163,7 @@ public abstract class Command implements CommandInterface {
 
     private void stop() {
         session.closeTemporaryResults();
-        session.setCurrentCommand(null, 0);
+        session.setCurrentCommand(null);
         if (!isTransactional()) {
             session.commit(true);
         } else if (session.getAutoCommit()) {
@@ -183,7 +185,7 @@ public abstract class Command implements CommandInterface {
     }
 
     public int executeUpdate() {
-        long start = startTime = System.currentTimeMillis();
+        long start = 0;
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
@@ -191,7 +193,7 @@ public abstract class Command implements CommandInterface {
         database.beforeWriting();
         synchronized (sync) {
             int rollback = session.getLogId();
-            session.setCurrentCommand(this, startTime);
+            session.setCurrentCommand(this);
             try {
                 while (true) {
                     database.checkPowerOff();
@@ -200,6 +202,10 @@ public abstract class Command implements CommandInterface {
                     } catch (DbException e) {
                         if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
                             long now = System.currentTimeMillis();
+                            if (start == 0) {
+                                start = now;
+                                continue;
+                            }
                             if (now - start > session.getLockTimeout()) {
                                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
                             }

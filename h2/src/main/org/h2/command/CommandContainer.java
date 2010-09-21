@@ -64,7 +64,6 @@ public class CommandContainer extends Command {
 
     public int update() {
         recompileIfRequired();
-        // TODO query time: should keep lock time separate from running time
         start();
         prepared.checkParameters();
         int updateCount = prepared.update();
@@ -74,7 +73,6 @@ public class CommandContainer extends Command {
 
     public ResultInterface query(int maxrows) {
         recompileIfRequired();
-        // TODO query time: should keep lock time separate from running time
         start();
         prepared.checkParameters();
         ResultInterface result = prepared.query(maxrows);

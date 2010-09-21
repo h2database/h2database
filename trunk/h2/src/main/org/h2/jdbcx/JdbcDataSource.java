@@ -21,6 +21,7 @@ import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
+import org.h2.Driver;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 import org.h2.util.StringUtils;
@@ -176,7 +177,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         Properties info = new Properties();
         info.setProperty("user", user);
         info.put("password", password);
-        return new JdbcConnection(url, info);
+        return (JdbcConnection) Driver.load().connect(url, info);
     }
 
     /**

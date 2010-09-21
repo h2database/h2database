@@ -19,6 +19,7 @@ import javax.sql.XAConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+import org.h2.Driver;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
@@ -73,7 +74,7 @@ implements XAConnection, XAResource
         Properties info = new Properties();
         info.setProperty("user", user);
         info.put("password", StringUtils.cloneCharArray(password));
-        physicalConn = new JdbcConnection(url, info);
+        physicalConn = (JdbcConnection) Driver.load().connect(url, info);
     }
 //## Java 1.4 end ##
 

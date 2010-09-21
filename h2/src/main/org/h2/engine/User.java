@@ -187,6 +187,9 @@ public class User extends RightOwner {
             return true;
         }
         SHA256 sha = new SHA256();
+        if (userPasswordHash.length == 0) {
+            userPasswordHash = sha.getKeyPasswordHash(getName(), new char[0]);
+        }
         byte[] hash = sha.getHashWithSalt(userPasswordHash, salt);
         return Utils.compareSecure(hash, passwordHash);
     }

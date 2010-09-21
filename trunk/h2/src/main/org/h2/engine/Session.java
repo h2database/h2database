@@ -81,7 +81,7 @@ public class Session extends SessionWithState {
     private boolean allowLiterals;
     private String currentSchemaName;
     private String[] schemaSearchPath;
-    private String traceModuleName;
+    private Trace trace;
     private HashMap<String, Value> unlinkLobMap;
     private int systemIdentifier;
     private HashMap<String, Procedure> procedures;
@@ -699,13 +699,15 @@ public class Session extends SessionWithState {
     }
 
     public Trace getTrace() {
-        if (traceModuleName == null) {
-            traceModuleName = Trace.JDBC + "[" + id + "]";
+        if (trace != null && !closed) {
+            return trace;
         }
+        String traceModuleName = Trace.JDBC + "[" + id + "]";
         if (closed) {
             return new TraceSystem(null).getTrace(traceModuleName);
         }
-        return database.getTrace(traceModuleName);
+        trace = database.getTrace(traceModuleName);
+        return trace;
     }
 
     public void setLastIdentity(Value last) {
@@ -836,6 +838,9 @@ public class Session extends SessionWithState {
      * Wait for some time if this session is throttled (slowed down).
      */
     public void throttle() {
+        if (currentCommandStart == 0) {
+            currentCommandStart = System.currentTimeMillis();
+        }
         if (throttle == 0) {
             return;
         }
@@ -858,11 +863,12 @@ public class Session extends SessionWithState {
      * @param command the command
      * @param startTime the time execution has been started
      */
-    public void setCurrentCommand(Command command, long startTime) {
+    public void setCurrentCommand(Command command) {
         this.currentCommand = command;
-        this.currentCommandStart = startTime;
-        if (queryTimeout > 0 && startTime != 0) {
-            cancelAt = startTime + queryTimeout;
+        if (queryTimeout > 0 && command != null) {
+            long now = System.currentTimeMillis();
+            currentCommandStart = now;
+            cancelAt = now + queryTimeout;
         }
     }
 

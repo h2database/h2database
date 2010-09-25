@@ -60,8 +60,10 @@ public class IntArray {
      * @return the value
      */
     public int get(int index) {
-        if (SysProperties.CHECK && index >= size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
+        if (SysProperties.CHECK) {
+            if (index >= size) {
+                throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
+            }
         }
         return data[index];
     }
@@ -72,8 +74,10 @@ public class IntArray {
      * @param index the index
      */
     public void remove(int index) {
-        if (SysProperties.CHECK && index >= size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
+        if (SysProperties.CHECK) {
+            if (index >= size) {
+                throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
+            }
         }
         System.arraycopy(data, index + 1, data, index, size - index - 1);
         size--;

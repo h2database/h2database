@@ -50,8 +50,10 @@ public abstract class CacheObject implements Comparable<CacheObject> {
     public abstract int getMemory();
 
     public void setPos(int pos) {
-        if (SysProperties.CHECK && (cachePrevious != null || cacheNext != null || cacheChained != null)) {
-            DbException.throwInternalError("setPos too late");
+        if (SysProperties.CHECK) {
+            if (cachePrevious != null || cacheNext != null || cacheChained != null) {
+                DbException.throwInternalError("setPos too late");
+            }
         }
         this.pos = pos;
     }

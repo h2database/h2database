@@ -56,8 +56,10 @@ public class TempFileDeleter {
         if (ref != null) {
             String f2 = refMap.remove(ref);
             if (f2 != null) {
-                if (SysProperties.CHECK && fileName != null && !f2.equals(fileName)) {
-                    DbException.throwInternalError("f2:" + f2 + " f:" + fileName);
+                if (SysProperties.CHECK) {
+                    if (fileName != null && !f2.equals(fileName)) {
+                        DbException.throwInternalError("f2:" + f2 + " f:" + fileName);
+                    }
                 }
                 fileName = f2;
             }
@@ -106,8 +108,10 @@ public class TempFileDeleter {
         IOUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {
             String f2 = refMap.remove(ref);
-            if (SysProperties.CHECK && (f2 == null || !f2.equals(fileName))) {
-                DbException.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2) + " f:" + fileName);
+            if (SysProperties.CHECK) {
+                if (f2 == null || !f2.equals(fileName)) {
+                    DbException.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2) + " f:" + fileName);
+                }
             }
         }
         deleteUnused();

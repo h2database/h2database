@@ -164,25 +164,25 @@ public class SysProperties {
      * System property <code>h2.check</code> (default: true).<br />
      * Assertions in the database engine.
      */
-    /*## CHECK begin ##
+    //## CHECK begin ##
     public static final boolean CHECK = getBooleanSetting("h2.check", true);
-    ## CHECK end ##*/
+    //## CHECK end ##
 
-    //## NO_CHECK begin ##
+    /*## NO_CHECK begin ##
     public static final boolean CHECK = false;
-    //## NO_CHECK end ##
+    ## NO_CHECK end ##*/
 
     /**
      * System property <code>h2.check2</code> (default: true).<br />
      * Additional assertions in the database engine.
      */
-    /*## CHECK begin ##
+    //## CHECK begin ##
     public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);
-    ## CHECK end ##*/
+    //## CHECK end ##
 
-    //## NO_CHECK begin ##
+    /*## NO_CHECK begin ##
     public static final boolean CHECK2 = false;
-    //## NO_CHECK end ##
+    ## NO_CHECK end ##*/
 
     /**
      * System property <code>h2.clientTraceDirectory</code> (default:

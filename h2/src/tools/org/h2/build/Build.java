@@ -120,12 +120,18 @@ public class Build extends BuildBase {
      * Switch the source code to the current JDK.
      */
     public void switchSource() {
+        switchSource(true);
+    }
+
+    private void switchSource(boolean enableCheck) {
         try {
             String version = System.getProperty("version");
+            String check = enableCheck ? "+CHECK" : "-CHECK";
+            String noCheck = enableCheck ? "-NO_CHECK" : "+NO_CHECK";
             if (version == null) {
-                SwitchSource.main("-dir", "src", "-auto");
+                SwitchSource.main("-dir", "src", "-auto", check, noCheck);
             } else {
-                SwitchSource.main("-dir", "src", "-version", version);
+                SwitchSource.main("-dir", "src", "-version", version, check, noCheck);
             }
             if (System.getProperty("lucene") != null) {
                 SwitchSource.main("-dir", "src", "-LUCENE2", "-LUCENE3", "+LUCENE" + getLuceneVersion());
@@ -136,7 +142,7 @@ public class Build extends BuildBase {
     }
 
     private void compile(boolean debugInfo, boolean clientOnly, boolean basicResourcesOnly) {
-        switchSource();
+        switchSource(debugInfo);
         clean();
         mkdir("temp");
         download();

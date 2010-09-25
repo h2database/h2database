@@ -593,32 +593,32 @@ public class Session extends SessionWithState {
      * Add an undo log entry to this session.
      *
      * @param table the table
-     * @param type the operation type (see {@link UndoLogRecord})
+     * @param operation the operation type (see {@link UndoLogRecord})
      * @param row the row
      */
-    public void log(Table table, short type, Row row) {
-        log(new UndoLogRecord(table, type, row));
-    }
-
-    private void log(UndoLogRecord log) {
-        // called _after_ the row was inserted successfully into the table,
-        // otherwise rollback will try to rollback a not-inserted row
-        if (SysProperties.CHECK) {
-            int lockMode = database.getLockMode();
-            if (lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
-                String type = log.getTable().getTableType();
-                if (locks.indexOf(log.getTable()) < 0
-                        && !Table.TABLE_LINK.equals(type)
-                        && !Table.EXTERNAL_TABLE_ENGINE.equals(type)) {
-                    DbException.throwInternalError();
+    public void log(Table table, short operation, Row row) {
+        if (undoLogEnabled) {
+            UndoLogRecord log = new UndoLogRecord(table, operation, row);
+            // called _after_ the row was inserted successfully into the table,
+            // otherwise rollback will try to rollback a not-inserted row
+            if (SysProperties.CHECK) {
+                int lockMode = database.getLockMode();
+                if (lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
+                    String tableType = log.getTable().getTableType();
+                    if (locks.indexOf(log.getTable()) < 0
+                            && !Table.TABLE_LINK.equals(tableType)
+                            && !Table.EXTERNAL_TABLE_ENGINE.equals(tableType)) {
+                        DbException.throwInternalError();
+                    }
                 }
             }
-        }
-        if (undoLogEnabled) {
             undoLog.add(log);
         } else {
-            log.commit();
-            log.getRow().commit();
+            // see also UndoLogRecord.commit
+            for (Index index : table.getIndexes()) {
+                index.commit(operation, row);
+            }
+            row.commit();
         }
     }
 

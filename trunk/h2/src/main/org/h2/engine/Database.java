@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +51,7 @@ import org.h2.table.TableLinkConnection;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
+import org.h2.util.BitField;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -101,7 +101,7 @@ public class Database implements DataHandler {
 
     private final Set<Session> userSessions = Collections.synchronizedSet(new HashSet<Session>());
     private Session exclusiveSession;
-    private final BitSet objectIds = new BitSet();
+    private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
 
     private Schema mainSchema;

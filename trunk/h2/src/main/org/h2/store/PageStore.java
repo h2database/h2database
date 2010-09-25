@@ -9,7 +9,6 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.zip.CRC32;
@@ -41,6 +40,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
+import org.h2.util.BitField;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
@@ -169,7 +169,7 @@ public class PageStore implements CacheWriter {
     private boolean isNew;
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
     private Session systemSession;
-    private BitSet freed = new BitSet();
+    private BitField freed = new BitField();
     private ArrayList<PageFreeList> freeLists = New.arrayList();
 
     private boolean recordPageReads;
@@ -345,7 +345,7 @@ public class PageStore implements CacheWriter {
             logFirstTrunkPage = allocatePage();
             log.openForWriting(logFirstTrunkPage, false);
             recoveryRunning = false;
-            freed.set(0, pageCount);
+            freed.set(0, pageCount, true);
             checkpoint();
             removeOldTempIndexes();
         }
@@ -479,22 +479,23 @@ public class PageStore implements CacheWriter {
             maxMove = Integer.MAX_VALUE;
         }
         int blockSize = isCompactFully ? COMPACT_BLOCK_SIZE : 1;
+        int firstFree = MIN_PAGE_COUNT;
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x -= blockSize) {
             for (int full = x - blockSize + 1; full <= x; full++) {
-                if (full > MIN_PAGE_COUNT) {
+                if (full > MIN_PAGE_COUNT && isUsed(full)) {
                     synchronized (database) {
-                        int free = getFirstFree();
-                        if (free == -1 || free >= full) {
+                        firstFree = getFirstFree(firstFree);
+                        if (firstFree == -1 || firstFree >= full) {
                             j = maxMove;
                             break;
                         }
-                        if (compact(full, free)) {
+                        if (compact(full, firstFree)) {
                             j++;
                             long now = System.currentTimeMillis();
-                            if (now > start + maxCompactTime) {
-                                j = maxMove;
-                                break;
-                            }
+//                            if (now > start + maxCompactTime) {
+//                                j = maxMove;
+//                                break;
+//                            }
                         }
                     }
                 }
@@ -528,6 +529,7 @@ public class PageStore implements CacheWriter {
             }
             recordPageReads = false;
             int target = MIN_PAGE_COUNT - 1;
+            int temp = 0;
             for (int i = 0; i < recordedPagesList.size(); i++) {
                 writeBack();
                 int source = recordedPagesList.get(i);
@@ -544,7 +546,7 @@ public class PageStore implements CacheWriter {
                 if (target == source) {
                     continue;
                 }
-                int temp = getFirstFree();
+                temp = getFirstFree(temp);
                 if (temp == -1) {
                     DbException.throwInternalError("no free page for defrag");
                 }
@@ -601,10 +603,10 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private int getFirstFree() {
+    private int getFirstFree(int start) {
         int free = -1;
-        for (int i = 0; i < pageCount; i++) {
-            free = getFreeList(i).getFirstFree();
+        for (int id = getFreeListId(start); start < pageCount; id++) {
+            free = getFreeList(id).getFirstFree(start);
             if (free != -1) {
                 break;
             }
@@ -1087,7 +1089,7 @@ public class PageStore implements CacheWriter {
      * @param exclude the exclude list
      * @param after all allocated pages are higher than this page
      */
-    void allocatePages(IntArray list, int pagesToAllocate, BitSet exclude, int after) {
+    void allocatePages(IntArray list, int pagesToAllocate, BitField exclude, int after) {
         for (int i = 0; i < pagesToAllocate; i++) {
             int page = allocatePage(exclude, after);
             after = page;
@@ -1110,7 +1112,7 @@ public class PageStore implements CacheWriter {
         return pos;
     }
 
-    private int allocatePage(BitSet exclude, int first) {
+    private int allocatePage(BitField exclude, int first) {
         int page;
         synchronized (database) {
             // TODO could remember the first possible free list page

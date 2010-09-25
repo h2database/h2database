@@ -5,8 +5,8 @@
  */
 package org.h2.store;
 
-import java.util.BitSet;
 import org.h2.engine.Session;
+import org.h2.util.BitField;
 
 /**
  * The list of free pages of a page store. The format of a free list trunk page
@@ -22,7 +22,7 @@ public class PageFreeList extends Page {
     private static final int DATA_START = 3;
 
     private final PageStore store;
-    private final BitSet used = new BitSet();
+    private final BitField used = new BitField();
     private final int pageCount;
     private boolean full;
     private Data data;
@@ -67,7 +67,7 @@ public class PageFreeList extends Page {
      * @param first the first page to look for
      * @return the page, or -1 if all pages are used
      */
-    int allocate(BitSet exclude, int first) {
+    int allocate(BitField exclude, int first) {
         if (full) {
             return -1;
         }
@@ -98,11 +98,12 @@ public class PageFreeList extends Page {
         }
     }
 
-    int getFirstFree() {
+    int getFirstFree(int first) {
         if (full) {
             return -1;
         }
-        int free = used.nextClearBit(0);
+        int start = Math.max(0, first - getPos());
+        int free = used.nextClearBit(start);
         if (free >= pageCount) {
             return -1;
         }
@@ -154,11 +155,18 @@ public class PageFreeList extends Page {
         data.readShortInt();
         for (int i = 0; i < pageCount; i += 8) {
             int x = data.readByte() & 255;
-            for (int j = 0; j < 8; j++) {
-                if ((x & (1 << j)) != 0) {
-                    used.set(i + j);
-                }
-            }
+            int test;
+            used.setByte(i, x);
+//            for (int j = 0; j < 8; j++) {
+//                if ((x & (1 << j)) != 0) {
+//                    if (!used.get(i + j)) {
+//                        System.out.println("??");
+//                    }
+//                    used.set(i + j);
+//                } else if (used.get(i+j)) {
+//                    System.out.println("??");
+//                }
+//            }
         }
         full = false;
     }
@@ -168,13 +176,15 @@ public class PageFreeList extends Page {
         data.writeByte((byte) Page.TYPE_FREE_LIST);
         data.writeShortInt(0);
         for (int i = 0; i < pageCount; i += 8) {
-            int x = 0;
-            for (int j = 0; j < 8; j++) {
-                if (used.get(i + j)) {
-                    x += 1 << j;
-                }
-            }
-            data.writeByte((byte) x);
+int tst;
+//            int x = 0;
+//            for (int j = 0; j < 8; j++) {
+//                if (used.get(i + j)) {
+//                    x += 1 << j;
+//                }
+//            }
+//            data.writeByte((byte) x);
+            data.writeByte((byte) used.getByte(i));
         }
         store.writePage(getPos(), data);
     }

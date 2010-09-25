@@ -9,9 +9,9 @@ package org.h2.store;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.BitSet;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.util.BitField;
 
 /**
  * An input stream that reads from a page store.
@@ -130,8 +130,8 @@ public class PageInputStream extends InputStream {
      *
      * @return the bit set
      */
-    BitSet allocateAllPages() {
-        BitSet pages = new BitSet();
+    BitField allocateAllPages() {
+        BitField pages = new BitField();
         int key = logKey;
         PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
         while (true) {

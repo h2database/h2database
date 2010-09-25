@@ -328,9 +328,11 @@ public class BuildBase {
                 cmd.addAll(args);
             }
             println("");
-            Process p = Runtime.getRuntime().exec(cmd.array());
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command(cmd.array());
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
             copyInThread(p.getInputStream(), quiet ? null : sysOut);
-            copyInThread(p.getErrorStream(), quiet ? null : sysOut);
             p.waitFor();
             return p.exitValue();
         } catch (Exception e) {

@@ -78,6 +78,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control).
 </li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after.
 </li><li>Implement, test, document XAConnection and so on.
+</li><li>Issue 159: System property for the H2 Console and TCP configuration (which .h2.server.properties and .h2.keystore to use).
 </li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption).
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2.
 </li><li>Drop with invalidate views (so that source code is not lost). Check what other databases do exactly.
@@ -134,6 +135,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Max memory rows / max undo log size: use block count / row size not row count.
 </li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2).
 </li><li>Implement point-in-time recovery.
+</li><li>Option for SCRIPT to only process one or a set of schemas or tables, and append to a file.
 </li><li>LIKE: improved version for larger texts (currently using naive search).
 </li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
 </li><li>Throw an exception when the application calls getInt on a Long (optional).
@@ -156,7 +158,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app).
 </li><li>Count on a column that can not be null could be optimized to COUNT(*).
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility).
-</li><li>Issue 159: System property for the H2 Console and TCP configuration (which .h2.server.properties and .h2.keystore to use).
 </li><li>Backup tool should work with other databases as well.
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs.
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess).
@@ -205,7 +206,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support OUTER UNION
 </li><li>Support parameterized views (similar to CSVREAD, but using just SQL for the definition)
 </li><li>A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
-</li><li>Option for SCRIPT to only process one or a set of tables, and append to a file
 </li><li>Support linked tables to the current database
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)

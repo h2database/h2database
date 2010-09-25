@@ -885,6 +885,22 @@ share, two processes (running on different computers) could still open the same
 database files, if they do not have a direct TCP/IP connection.
 </p>
 
+<h3>File Locking Method 'FS'</h3>
+<p>
+This database file locking mechanism uses native file system lock on the database file.
+No *.lock.db file is created in this case, and no background thread is started. 
+This mechanism may not work on all systems as expected.
+Some systems allow to lock the same file multiple times within the same virtual machine, 
+and on some system native file locking is not supported or files are not unlocked after a power failure.
+</p>
+<p>
+To enable this feature, append <code>;FILE_LOCK=FS</code> to the database URL.
+</p>
+<p>
+This feature is relatively new. When using it for production, please ensure
+your system does in fact lock files as expected.
+</p>
+
 <h2 id="file_locking_serialized">File Locking Method 'Serialized'</h2>
 <p>
 This locking mode allows to open multiple connections to the same database.

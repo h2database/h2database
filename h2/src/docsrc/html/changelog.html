@@ -18,7 +18,23 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>Performance has been improved a bit.
+</li><li>DatabaseMetaData.getJDBCMajorVersion now returns 4 (instead of 3) when the driver
+    is compiled with Java 6 (the default).
+</li><li>Re-added the internal utility class BitField which improves performance of opening
+    and closing a database (because it supports setByte / getByte, unlike java.util.BitSet).
+</li><li>INFORMATION_SCHEMA.SESSIONS: the start time of a SQL statement 
+    is no longer set in each case. It is only set for long running statements.
+    This change should improve performance a bit on some devices, specially when using Android.
+</li><li>A old databases without user name and password (created with H2 version 1.2.142 or older)
+    couldn't be opened with version 1.2.143. Fixed.
+</li><li>The database upgrade classes have been renamed.
+</li><li>The database did not automatically upgrade when using a connection pool or data source.
+</li><li>JaQu: a database object can now also be created using a DataSource. Issue 227.
+</li><li>The built-in profiler now better supports the Dalvik VM.
+</li><li>The jarSmall build target no longer includes assertions
+    (SysProperties.CHECK, CHECK2, system properties h2.check and h2.check2).
+</li><li>The jarSmall build target excluded the DbUpgrade classes by mistake.
 </li></ul>
 
 <h2>Version 1.2.143 (2010-09-18)</h2>

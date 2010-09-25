@@ -9,7 +9,6 @@ package org.h2.store;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashMap;
 import org.h2.compress.CompressLZF;
 import org.h2.constant.ErrorCode;
@@ -18,6 +17,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
+import org.h2.util.BitField;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
@@ -133,13 +133,13 @@ public class PageLog {
      * If the bit is set, the given page was written to the current log section.
      * The undo entry of these pages doesn't need to be written again.
      */
-    private BitSet undo = new BitSet();
+    private BitField undo = new BitField();
 
     /**
      * The undo entry of those pages was written in any log section.
      * These pages may not be used in the transaction log.
      */
-    private BitSet undoAll = new BitSet();
+    private BitField undoAll = new BitField();
 
     /**
      * The map of section ids (key) and data page where the section starts (value).
@@ -156,7 +156,7 @@ public class PageLog {
      * The map of pages used by the transaction log.
      * Only used during recovery.
      */
-    private BitSet usedLogPages;
+    private BitField usedLogPages;
 
     /**
      * This flag is set while freeing up pages.
@@ -405,7 +405,7 @@ public class PageLog {
         } catch (IOException e) {
             trace.debug("log recovery stopped: " + e.toString());
         }
-        undo = new BitSet();
+        undo = new BitField();
         if (stage == RECOVERY_STAGE_REDO) {
             usedLogPages = null;
         }
@@ -477,8 +477,10 @@ public class PageLog {
         if (trace.isDebugEnabled()) {
             trace.debug("log undo " + pageId);
         }
-        if (SysProperties.CHECK && page == null) {
-            DbException.throwInternalError("Undo entry not written");
+        if (SysProperties.CHECK) {
+            if (page == null) {
+                DbException.throwInternalError("Undo entry not written");
+            }
         }
         undo.set(pageId);
         undoAll.set(pageId);
@@ -665,7 +667,7 @@ public class PageLog {
         Data buffer = getBuffer();
         buffer.writeByte((byte) CHECKPOINT);
         write(buffer);
-        undo = new BitSet();
+        undo = new BitField();
         logSectionId++;
         logPos = 0;
         pageOut.flush();

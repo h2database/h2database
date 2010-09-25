@@ -6,13 +6,13 @@
  */
 package org.h2.command.dml;
 
-import java.util.BitSet;
 import java.util.Random;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.Plan;
 import org.h2.table.PlanItem;
 import org.h2.table.TableFilter;
+import org.h2.util.BitField;
 import org.h2.util.Permutations;
 
 /**
@@ -25,7 +25,7 @@ public class Optimizer {
     private static final int MAX_BRUTE_FORCE = 2000;
     private static final int MAX_GENETIC = 500;
     private long start;
-    private BitSet switched;
+    private BitField switched;
 
     //  possible plans for filters, if using brute force:
     //  1 filter 1 plan
@@ -160,13 +160,13 @@ public class Optimizer {
                 }
             }
             if (generateRandom) {
-                switched = new BitSet();
+                switched = new BitField();
                 System.arraycopy(filters, 0, best, 0, filters.length);
                 shuffleAll(best);
                 System.arraycopy(best, 0, list, 0, filters.length);
             }
             if (testPlan(list)) {
-                switched = new BitSet();
+                switched = new BitField();
                 System.arraycopy(list, 0, best, 0, filters.length);
             }
         }

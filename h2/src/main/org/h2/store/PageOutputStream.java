@@ -6,9 +6,9 @@
  */
 package org.h2.store;
 
-import java.util.BitSet;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.util.BitField;
 import org.h2.util.IntArray;
 
 /**
@@ -19,7 +19,7 @@ public class PageOutputStream {
     private PageStore store;
     private final Trace trace;
     private int trunkPageId;
-    private final BitSet exclude;
+    private final BitField exclude;
 
     private int trunkNext;
     private IntArray reservedPages = new IntArray();
@@ -43,7 +43,7 @@ public class PageOutputStream {
      * @param logKey the log key of the first trunk page
      * @param atEnd whether only pages at the end of the file should be used
      */
-    public PageOutputStream(PageStore store, int trunkPage, BitSet exclude, int logKey, boolean atEnd) {
+    public PageOutputStream(PageStore store, int trunkPage, BitField exclude, int logKey, boolean atEnd) {
         this.trace = store.getTrace();
         this.store = store;
         this.trunkPageId = trunkPage;

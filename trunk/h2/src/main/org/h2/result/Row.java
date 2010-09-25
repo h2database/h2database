@@ -18,20 +18,17 @@ public class Row implements SearchRow {
 
     public static final int MEMORY_CALCULATE = -1;
     public static final Row[] EMPTY_ARRAY = {};
+
     private long key;
     private final Value[] data;
-    private final int memory;
+    private int memory;
     private int version;
     private boolean deleted;
     private int sessionId;
 
     public Row(Value[] data, int memory) {
         this.data = data;
-        if (memory != MEMORY_CALCULATE) {
-            this.memory = memory;
-        } else {
-            this.memory = MEMORY_CALCULATE;
-        }
+        this.memory = memory;
     }
 
     public void setKeyAndVersion(SearchRow row) {
@@ -100,6 +97,7 @@ public class Row implements SearchRow {
                 }
             }
         }
+        this.memory = m;
         return m;
     }
 

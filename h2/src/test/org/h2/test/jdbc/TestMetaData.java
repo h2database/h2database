@@ -423,7 +423,11 @@ public class TestMetaData extends TestBase {
             assertTrue(meta.getDatabaseProductVersion().startsWith(versionStart));
             assertEquals(meta.getDatabaseMajorVersion(), meta.getDriverMajorVersion());
             assertEquals(meta.getDatabaseMinorVersion(), meta.getDriverMinorVersion());
-            assertEquals(3, meta.getJDBCMajorVersion());
+            int majorVersion = 3;
+            //## Java 1.6 begin ##
+            majorVersion = 4;
+            //## Java 1.6 end ##
+            assertEquals(majorVersion, meta.getJDBCMajorVersion());
             assertEquals(0, meta.getJDBCMinorVersion());
         }
         assertEquals("H2", meta.getDatabaseProductName());

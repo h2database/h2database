@@ -459,8 +459,10 @@ public class StringUtils {
                 buff[j++] = (byte) Integer.parseInt(encoded.substring(i + 1, i + 3), 16);
                 i += 2;
             } else {
-                if (SysProperties.CHECK && (ch > 127 || ch < ' ')) {
-                    throw new IllegalArgumentException("unexpected char " + (int) ch + " decoding " + encoded);
+                if (SysProperties.CHECK) {
+                    if (ch > 127 || ch < ' ') {
+                        throw new IllegalArgumentException("Unexpected char " + (int) ch + " decoding " + encoded);
+                    }
                 }
                 buff[j++] = (byte) ch;
             }

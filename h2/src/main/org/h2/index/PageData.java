@@ -234,10 +234,9 @@ abstract class PageData extends Page {
     }
 
     public boolean canRemove() {
-int test;
-//        if (changeCount >= index.getPageStore().getChangeCount()) {
-//            return false;
-//        }
+        if (changeCount >= index.getPageStore().getChangeCount()) {
+            return false;
+        }
         return true;
     }
 

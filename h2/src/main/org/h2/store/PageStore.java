@@ -468,7 +468,7 @@ public class PageStore implements CacheWriter {
         boolean isCompactFully = compactMode == CommandInterface.SHUTDOWN_COMPACT;
         boolean isDefrag = compactMode == CommandInterface.SHUTDOWN_DEFRAG;
 
-        int test;
+        int testWithReopen;
         // isCompactFully = isDefrag = true;
 
         int maxCompactTime = SysProperties.MAX_COMPACT_TIME;
@@ -492,10 +492,10 @@ public class PageStore implements CacheWriter {
                         if (compact(full, firstFree)) {
                             j++;
                             long now = System.currentTimeMillis();
-//                            if (now > start + maxCompactTime) {
-//                                j = maxMove;
-//                                break;
-//                            }
+                            if (now > start + maxCompactTime) {
+                                j = maxMove;
+                                break;
+                            }
                         }
                     }
                 }
@@ -1584,6 +1584,11 @@ public class PageStore implements CacheWriter {
         metaRootPageId.put(id, rootPageId);
         if (type == META_TYPE_DATA_INDEX) {
             CreateTableData data = new CreateTableData();
+            if (SysProperties.CHECK) {
+                if (columns == null) {
+                    throw DbException.throwInternalError(row.toString());
+                }
+            }
             for (int i = 0; i < columns.length; i++) {
                 Column col = new Column("C" + i, Value.INT);
                 data.columns.add(col);

@@ -552,7 +552,9 @@ public class TestCases extends TestBase {
         }
         time = System.currentTimeMillis() - time;
         if (time > 5000) {
-            fail("closing took " + time);
+            if (!config.record) {
+                fail("closing took " + time);
+            }
         }
         deleteDb("cases");
     }

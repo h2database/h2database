@@ -155,18 +155,7 @@ public class PageFreeList extends Page {
         data.readShortInt();
         for (int i = 0; i < pageCount; i += 8) {
             int x = data.readByte() & 255;
-            int test;
             used.setByte(i, x);
-//            for (int j = 0; j < 8; j++) {
-//                if ((x & (1 << j)) != 0) {
-//                    if (!used.get(i + j)) {
-//                        System.out.println("??");
-//                    }
-//                    used.set(i + j);
-//                } else if (used.get(i+j)) {
-//                    System.out.println("??");
-//                }
-//            }
         }
         full = false;
     }
@@ -176,14 +165,6 @@ public class PageFreeList extends Page {
         data.writeByte((byte) Page.TYPE_FREE_LIST);
         data.writeShortInt(0);
         for (int i = 0; i < pageCount; i += 8) {
-int tst;
-//            int x = 0;
-//            for (int j = 0; j < 8; j++) {
-//                if (used.get(i + j)) {
-//                    x += 1 << j;
-//                }
-//            }
-//            data.writeByte((byte) x);
             data.writeByte((byte) used.getByte(i));
         }
         store.writePage(getPos(), data);

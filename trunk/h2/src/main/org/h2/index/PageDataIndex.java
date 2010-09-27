@@ -204,7 +204,7 @@ public class PageDataIndex extends PageIndex {
         if (p instanceof PageDataOverflow) {
             return (PageDataOverflow) p;
         }
-        throw DbException.get(ErrorCode.FILE_CORRUPTED_1, p.toString());
+        throw DbException.get(ErrorCode.FILE_CORRUPTED_1, p == null ? "null" : p.toString());
     }
 
     /**

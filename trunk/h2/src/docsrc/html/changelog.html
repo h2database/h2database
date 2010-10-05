@@ -18,12 +18,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Performance has been improved a bit.
+<ul><li>The build tool now uses JAVA_HOME for javac as well. Issue 233.
+</li><li>H2 Console: new experimental feature to support file download and upload,
+    but only if there is a directory called "transfer" in the current working directory.
+    For security reasons, only very simple file names are supported. Sub-directories are not supported.
+    To upload, use transfer.jsp; to download, use transfer/fileName.
+</li><li>A new sample application that shows how to manually create an encrypted
+    and compressed script file.
+</li><li>Performance has been improved a bit.
 </li><li>DatabaseMetaData.getJDBCMajorVersion now returns 4 (instead of 3) when the driver
     is compiled with Java 6 (the default).
 </li><li>Re-added the internal utility class BitField which improves performance of opening
     and closing a database (because it supports setByte / getByte, unlike java.util.BitSet).
-</li><li>INFORMATION_SCHEMA.SESSIONS: the start time of a SQL statement 
+</li><li>INFORMATION_SCHEMA.SESSIONS: the start time of a SQL statement
     is no longer set in each case. It is only set for long running statements.
     This change should improve performance a bit on some devices, specially when using Android.
 </li><li>A old databases without user name and password (created with H2 version 1.2.142 or older)

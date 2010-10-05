@@ -620,5 +620,10 @@ These options can be set in the database URL:
 <code>jdbc:h2:~/test;LOG=0;CACHE_SIZE=65536;LOCK_MODE=0;UNDO_LOG=0</code>.
 Most of those options are not recommended for regular use, that means you need to reset them after use.
 </p>
+<p>
+If you have to import a lot of rows, use a PreparedStatement or use CSV import.
+Please note that <code>CREATE TABLE(...) ... AS SELECT ...</code>
+is faster than <code>CREATE TABLE(...); INSERT INTO ... SELECT ...</code>.
+</p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

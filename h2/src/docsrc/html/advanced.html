@@ -888,9 +888,9 @@ database files, if they do not have a direct TCP/IP connection.
 <h3>File Locking Method 'FS'</h3>
 <p>
 This database file locking mechanism uses native file system lock on the database file.
-No *.lock.db file is created in this case, and no background thread is started. 
+No *.lock.db file is created in this case, and no background thread is started.
 This mechanism may not work on all systems as expected.
-Some systems allow to lock the same file multiple times within the same virtual machine, 
+Some systems allow to lock the same file multiple times within the same virtual machine,
 and on some system native file locking is not supported or files are not unlocked after a power failure.
 </p>
 <p>
@@ -1313,7 +1313,7 @@ that means the probability is about 0.000'000'000'06.
 
 <h2 id="recursive_queries">Recursive Queries</h2>
 <p>
-H2 has experimental support for recursive queries, using so called "common table expressions".
+H2 has experimental support for recursive queries using so called "common table expressions" (CTE).
 Examples:
 </p>
 <pre>

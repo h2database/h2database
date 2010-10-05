@@ -55,13 +55,13 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Maybe disable shutdown hook (DB_CLOSE_ON_EXIT=FALSE) by default.
 </li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
+</li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Full outer joins.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Compatibility: automatically load functions from a script depending on the mode - see FunctionsMySQL.java, issue 211.
 </li><li>Test very large databases and LOBs (up to 256 GB).
-</li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
@@ -95,7 +95,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Comparison: pluggable sort order: natural sort.
 </li><li>Count index range query (count(*) where id between 10 and 20).
 </li><li>Performance: update in-place.
-</li><li>Recursive Queries (see details).
 </li><li>Eclipse plugin.
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait].
     See also MS SQL Server "Query Notification".
@@ -253,6 +252,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve documentation of access rights
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
 </li><li>Remember the user defined data type (domain) of a column
+</li><li>MVCC: support multi-threaded kernel with multi-version concurrency.
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
 </li><li>Improve time to open large databases (see mail 'init time for distributed setup')
@@ -346,7 +346,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62
 </li><li>Add database creation date and time to the database.
 </li><li>Support ASSERTION.
-</li><li>MVCC: support multi-threaded kernel with multi-version concurrency.
 </li><li>MySQL compatibility: support comparing 1='a'
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
@@ -498,6 +497,12 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support running totals / cumulative sum using SUM(..) OVER(..).
 </li><li>Improve object memory size calculation. Use constants for known VMs, or use reflection to call java.lang.instrument.Instrumentation.getObjectSize(Object objectToSize)
 </li><li>Triggers: NOT NULL checks should be done after running triggers (Oracle behavior, maybe others).
+</li><li>Common Table Expression (CTE) / recursive queries: support INSERT INTO ... SELECT ... Issue 219.
+</li><li>Common Table Expression (CTE) / recursive queries: support non-recursive queries. Issue 217.
+</li><li>Common Table Expression (CTE) / recursive queries: avoid endless loop. Issue 218.
+</li><li>Common Table Expression (CTE) / recursive queries: support multiple named queries. Issue 220.
+</li><li>Common Table Expression (CTE) / recursive queries: identifier scope may be incorrect. Issue 222.
+</li><li>Common Table Expression (CTE) / recursive queries: support parameters.
 </li><li>Log long running transactions (similar to long running statements).
 </li><li>Support schema specific domains.
 </li><li>Parameter data type is data type of other operand. Issue 205.
@@ -513,11 +518,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL compatibility: support escape with double \\.
 </li><li>Document the TCP server "management_db". Maybe include the IP address of the client.
 </li><li>Use javax.tools.JavaCompilerTool instead of com.sun.tools.javac.Main
-</li><li>Common Table Expression (CTE): support INSERT INTO ... SELECT ... Issue 219.
-</li><li>Common Table Expression (CTE): support non-recursive queries. Issue 217.
-</li><li>Common Table Expression (CTE): avoid endless loop. Issue 218.
-</li><li>Common Table Expression (CTE): support multiple named queries. Issue 220.
-</li><li>Common Table Expression (CTE): identifier scope may be incorrect. Issue 222.
 </li><li>If a database object was not found in the current schema, but one with the same name existed in another schema, included that in the error message.
 </li><li>Optimization to use an index for OR when using multiple keys: where (key1 = ? and key2 = ?) OR (key1 = ? and key2 = ?)
 </li><li>JaQu should support a DataSource and a way to create a Db object using a Connection (for multi-threaded usage with a connection pool).
@@ -527,6 +527,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support -webPassword to require a password to shutdown the H2 Console.
 </li><li>Connection pool: detect ;AUTOCOMMIT=FALSE in the database URL, and if set,
     disable autocommit for all connections.
+</li><li>Compatibility with MS Access: support "&amp;" to concatenate text.
 </li></ul>
 
 <h2>Not Planned</h2>

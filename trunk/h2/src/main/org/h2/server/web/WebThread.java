@@ -8,9 +8,12 @@ package org.h2.server.web;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Iterator;
@@ -18,11 +21,12 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * For each connection to a session, an object of this class is created.
@@ -34,6 +38,7 @@ class WebThread extends WebApp implements Runnable {
     protected Socket socket;
     private Thread thread;
     private InputStream input;
+    private int headerBytes;
     private String ifModifiedSince;
 
     WebThread(Socket socket, WebServer server) {
@@ -160,10 +165,10 @@ class WebThread extends WebApp implements Runnable {
                                 while (it.hasNext()) {
                                     String s = it.next();
                                     s = PageParser.parse(s, session.map);
+                                    bytes = StringUtils.utf8Encode(s);
                                     if (bytes.length == 0) {
                                         continue;
                                     }
-                                    bytes = StringUtils.utf8Encode(s);
                                     output.write(Integer.toHexString(bytes.length).getBytes());
                                     output.write("\r\n".getBytes());
                                     output.write(bytes);
@@ -203,13 +208,19 @@ class WebThread extends WebApp implements Runnable {
     private String readHeaderLine() throws IOException {
         StringBuilder buff = new StringBuilder();
         while (true) {
-            int i = input.read();
-            if (i == -1) {
+            headerBytes++;
+            int c = input.read();
+            if (c == -1) {
                 throw new IOException("Unexpected EOF");
-            } else if (i == '\r' && input.read() == '\n' || i == '\n') {
+            } else if (c == '\r') {
+                headerBytes++;
+                if (input.read() == '\n') {
+                    return buff.length() > 0 ? buff.toString() : null;
+                }
+            } else if (c == '\n') {
                 return buff.length() > 0 ? buff.toString() : null;
             } else {
-                buff.append((char) i);
+                buff.append((char) c);
             }
         }
     }
@@ -243,6 +254,7 @@ class WebThread extends WebApp implements Runnable {
         trace("parseHeader");
         int len = 0;
         ifModifiedSince = null;
+        boolean multipart = false;
         while (true) {
             String line = readHeaderLine();
             if (line == null) {
@@ -251,14 +263,19 @@ class WebThread extends WebApp implements Runnable {
             trace(" " + line);
             String lower = StringUtils.toLowerEnglish(line);
             if (lower.startsWith("if-modified-since")) {
-                ifModifiedSince = line.substring(line.indexOf(':') + 1).trim();
+                ifModifiedSince = getHeaderLineValue(line);
             } else if (lower.startsWith("connection")) {
-                String conn = line.substring(line.indexOf(':') + 1).trim();
+                String conn = getHeaderLineValue(line);
                 if ("keep-alive".equals(conn)) {
                     keepAlive = true;
                 }
+            } else if (lower.startsWith("content-type")) {
+                String type = getHeaderLineValue(line);
+                if (type.startsWith("multipart/form-data")) {
+                    multipart = true;
+                }
             } else if (lower.startsWith("content-length")) {
-                len = Integer.parseInt(line.substring(line.indexOf(':') + 1).trim());
+                len = Integer.parseInt(getHeaderLineValue(line));
                 trace("len=" + len);
             } else if (lower.startsWith("user-agent")) {
                 boolean isWebKit = lower.indexOf("webkit/") >= 0;
@@ -271,7 +288,7 @@ class WebThread extends WebApp implements Runnable {
             } else if (lower.startsWith("accept-language")) {
                 Locale locale = session == null ? null : session.locale;
                 if (locale == null) {
-                    String languages = line.substring(line.indexOf(':') + 1).trim();
+                    String languages = getHeaderLineValue(line);
                     StringTokenizer tokenizer = new StringTokenizer(languages, ",;");
                     while (tokenizer.hasMoreTokens()) {
                         String token = tokenizer.nextToken();
@@ -300,7 +317,9 @@ class WebThread extends WebApp implements Runnable {
                 break;
             }
         }
-        if (session != null && len > 0) {
+        if (multipart) {
+            uploadMultipart(input, len);
+        } else if (session != null && len > 0) {
             byte[] bytes = Utils.newBytes(len);
             for (int pos = 0; pos < len;) {
                 pos += input.read(bytes, pos, len - pos);
@@ -309,6 +328,56 @@ class WebThread extends WebApp implements Runnable {
             parseAttributes(s);
         }
         return keepAlive;
+    }
+
+    private void uploadMultipart(InputStream in, int len) throws IOException {
+        if (!new File(WebServer.TRANSFER).exists()) {
+            return;
+        }
+        String fileName = "temp.bin";
+        headerBytes = 0;
+        String boundary = readHeaderLine();
+        while (true) {
+            String line = readHeaderLine();
+            if (line == null) {
+                break;
+            }
+            int index = line.indexOf("filename=\"");
+            if (index > 0) {
+                fileName = line.substring(index + "filename=\"".length(), line.lastIndexOf('"'));
+            }
+            trace(" " + line);
+        }
+        if (!server.isSimpleName(fileName)) {
+            return;
+        }
+        len -= headerBytes;
+        File file = new File(WebServer.TRANSFER, fileName);
+        OutputStream out = new FileOutputStream(file);
+        byte[] bytes = Utils.newBytes(Constants.IO_BUFFER_SIZE);
+        while (len > 0) {
+            int l = Math.min(Constants.IO_BUFFER_SIZE, len);
+            l = in.read(bytes, 0, l);
+            if (l < 0) {
+                break;
+            }
+            out.write(bytes, 0, l);
+            len -= l;
+        }
+        out.close();
+        // remove the boundary
+        RandomAccessFile f = new RandomAccessFile(file, "rw");
+        int testSize = (int) Math.min(f.length(), Constants.IO_BUFFER_SIZE);
+        f.seek(f.length() - testSize);
+        f.readFully(bytes, 0, testSize);
+        String s = new String(bytes, "ASCII");
+        int x = s.indexOf(boundary);
+        f.setLength(f.length() - testSize + x - 2);
+        f.close();
+    }
+
+    private String getHeaderLineValue(String line) {
+        return line.substring(line.indexOf(':') + 1).trim();
     }
 
     protected String adminShutdown() {

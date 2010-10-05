@@ -122,8 +122,10 @@ public class AES implements BlockCipher {
     }
 
     public void encrypt(byte[] bytes, int off, int len) {
-        if (SysProperties.CHECK && (len % ALIGN != 0)) {
-            DbException.throwInternalError("unaligned len " + len);
+        if (SysProperties.CHECK) {
+            if (len % ALIGN != 0) {
+                DbException.throwInternalError("unaligned len " + len);
+            }
         }
         for (int i = off; i < off + len; i += 16) {
             encryptBlock(bytes, bytes, i);
@@ -131,8 +133,10 @@ public class AES implements BlockCipher {
     }
 
     public void decrypt(byte[] bytes, int off, int len) {
-        if (SysProperties.CHECK && (len % ALIGN != 0)) {
-            DbException.throwInternalError("unaligned len " + len);
+        if (SysProperties.CHECK) {
+            if (len % ALIGN != 0) {
+                DbException.throwInternalError("unaligned len " + len);
+            }
         }
         for (int i = off; i < off + len; i += 16) {
             decryptBlock(bytes, bytes, i);

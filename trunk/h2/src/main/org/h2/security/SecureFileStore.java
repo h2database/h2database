@@ -12,8 +12,9 @@ import org.h2.store.FileStore;
 import org.h2.util.MathUtils;
 
 /**
- * A file store that encrypts all data before writing,
- * and decrypts all data after reading.
+ * A file store that encrypts all data before writing, and decrypts all data
+ * after reading. Areas that were never written to (for example after calling
+ * setLength to enlarge the file) are not encrypted (contains 0 bytes).
  */
 public class SecureFileStore extends FileStore {
 
@@ -72,37 +73,19 @@ public class SecureFileStore extends FileStore {
 
     public void readFully(byte[] b, int off, int len) {
         super.readFully(b, off, len);
-        cipher.decrypt(b, off, len);
-        xorInitVector(b, off, len, pos);
+        for (int i = 0; i < len; i++) {
+            if (b[i] != 0) {
+                cipher.decrypt(b, off, len);
+                xorInitVector(b, off, len, pos);
+                break;
+            }
+        }
         pos += len;
     }
 
     public void seek(long x) {
         this.pos = x;
         super.seek(x);
-    }
-
-    public void setLength(long newLength) {
-        long oldPos = pos;
-        long length = length();
-        if (newLength > length) {
-            seek(length);
-            if (empty == null) {
-                empty = new byte[16 * 1024];
-            }
-            byte[] e = empty;
-            while (true) {
-                int p = (int) Math.min(newLength - length, e.length);
-                if (p <= 0) {
-                    break;
-                }
-                write(e, 0, p);
-                length += p;
-            }
-            seek(oldPos);
-        } else {
-            super.setLength(newLength);
-        }
     }
 
     private void xorInitVector(byte[] b, int off, int len, long p) {

@@ -7,6 +7,7 @@
 package org.h2.server.web;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,6 +46,8 @@ import org.h2.util.SortedProperties;
  * Console application. It is not optimized for performance.
  */
 public class WebServer implements Service {
+
+    static final String TRANSFER = "transfer";
 
     private static final String DEFAULT_LANGUAGE = "en";
 
@@ -138,6 +141,17 @@ public class WebServer implements Service {
      */
     byte[] getFile(String file) throws IOException {
         trace("getFile <" + file + ">");
+        if (file.startsWith(TRANSFER + "/") && new File(TRANSFER).exists()) {
+            file = file.substring(TRANSFER.length() + 1);
+            if (!isSimpleName(file)) {
+                return null;
+            }
+            File f = new File(TRANSFER, file);
+            if (!f.exists()) {
+                return null;
+            }
+            return IOUtils.readBytesAndClose(new FileInputStream(f), -1);
+        }
         byte[] data = Utils.getResource("/org/h2/server/web/res/" + file);
         if (data == null) {
             trace(" null");
@@ -145,6 +159,22 @@ public class WebServer implements Service {
             trace(" size=" + data.length);
         }
         return data;
+    }
+
+    /**
+     * Check if this is a simple name (only contains '.', '-', '_', letters, or
+     * digits).
+     *
+     * @param s the string
+     * @return true if it's a simple name
+     */
+    boolean isSimpleName(String s) {
+        for (char c : s.toCharArray()) {
+            if (c != '.' && c != '_' && c != '-' && !Character.isLetterOrDigit(c)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

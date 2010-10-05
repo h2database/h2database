@@ -145,7 +145,7 @@ public class WebApp {
         } else if ("html".equals(suffix) || "do".equals(suffix) || "jsp".equals(suffix)) {
             cache = false;
             mimeType = "text/html";
-            if (session == null) {
+            if (session == null && !file.startsWith(WebServer.TRANSFER)) {
                 session = server.createNewSession(hostAddr);
                 if (!"notAllowed.jsp".equals(file)) {
                     file = "index.do";
@@ -155,10 +155,8 @@ public class WebApp {
             cache = true;
             mimeType = "text/javascript";
         } else {
-            cache = false;
-            mimeType = "text/html";
-            file = "error.jsp";
-            trace("Unknown mime type, file " + file);
+            cache = true;
+            mimeType = "application/octet-stream";
         }
         trace("mimeType=" + mimeType);
         trace(file);
@@ -235,6 +233,8 @@ public class WebApp {
                 file = autoCompleteList();
             } else if ("tools.do".equals(file)) {
                 file = tools();
+            } else if ("transfer.do".equals(file)) {
+                file = "transfer.jsp";
             } else {
                 file = "error.jsp";
             }

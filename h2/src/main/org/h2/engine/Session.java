@@ -861,7 +861,6 @@ public class Session extends SessionWithState {
      * executing the statement.
      *
      * @param command the command
-     * @param startTime the time execution has been started
      */
     public void setCurrentCommand(Command command) {
         this.currentCommand = command;

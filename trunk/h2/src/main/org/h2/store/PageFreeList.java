@@ -98,6 +98,12 @@ public class PageFreeList extends Page {
         }
     }
 
+    /**
+     * Get the first free page starting at the given offset.
+     *
+     * @param first the page number to start the search
+     * @return the page number, or -1
+     */
     int getFirstFree(int first) {
         if (full) {
             return -1;

@@ -11,8 +11,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 import org.h2.test.TestBase;
+import org.h2.tools.SimpleResultSet;
 
 /**
  * Tests for the CallableStatement class.
@@ -57,6 +60,56 @@ public class TestCallableStatement extends TestBase {
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
+        stat.execute("CREATE ALIAS testcall FOR \"" + getClass().getName() + ".testCall\"");
+        call = conn.prepareCall("{CALL testcall(?,?,?)}");
+        call.setInt("A", 100);
+        call.setString(2, "abc");
+        long t = System.currentTimeMillis();
+        call.setTimestamp("C", new Timestamp(t));
+        call.registerOutParameter(1, Types.INTEGER);
+        call.registerOutParameter("B", Types.VARCHAR);
+        call.executeUpdate();
+        try {
+            call.getTimestamp("C");
+            fail("not registered out parameter accessible");
+        } catch (SQLException e) {
+            // expected exception
+        }
+        call.registerOutParameter(3, Types.TIMESTAMP);
+        call.executeUpdate();
+        assertEquals(t + 1, call.getTimestamp(3).getTime());
+        assertEquals(200, call.getInt("A"));
+        assertEquals("ABC", call.getString("B"));
+        try {
+            call.getString(100);
+            fail("incorrect parameter index value");
+        } catch (SQLException e) {
+            // expected exception
+        }
+        try {
+            call.getString(0);
+            fail("incorrect parameter index value");
+        } catch (SQLException e) {
+            // expected exception
+        }
+        try {
+            call.getBoolean("ASD");
+            fail("incorrect parameter name value");
+        } catch (SQLException e) {
+            // expected exception
+        }
+    }
+    
+    public static ResultSet testCall(Connection connect,  int a, String b, Timestamp c) throws SQLException {
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("A", Types.INTEGER, 0, 0);
+        rs.addColumn("B", Types.VARCHAR, 0, 0);
+        rs.addColumn("C", Types.TIMESTAMP, 0, 0);
+        if ("jdbc:columnlist:connection".equals(connect.getMetaData().getURL())) {
+            return rs;
+        }
+        rs.addRow(a * 2, b.toUpperCase(), new Timestamp(c.getTime() + 1));
+        return rs;
     }
 
 }

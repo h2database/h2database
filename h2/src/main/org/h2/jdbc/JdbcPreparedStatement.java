@@ -60,7 +60,7 @@ import java.sql.SQLXML;
 public class JdbcPreparedStatement extends JdbcStatement implements PreparedStatement {
 
     private final String sqlStatement;
-    private CommandInterface command;
+    protected CommandInterface command;
     private ArrayList<Value[]> batchParameters;
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int id, int resultSetType,

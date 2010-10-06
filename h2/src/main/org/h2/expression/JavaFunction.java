@@ -6,16 +6,19 @@
  */
 package org.h2.expression;
 
+import java.sql.SQLException;
 import org.h2.command.Parser;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
@@ -154,4 +157,18 @@ public class JavaFunction extends Expression implements FunctionCall {
         return functionAlias.isDeterministic();
     }
 
+    public Expression[] getExpressionColumns(Session session) {
+        switch (getType()) {
+        case Value.RESULT_SET:
+            ValueResultSet vrs = getValueForColumnList(session, getArgs());
+            try {
+                return getExpressionColumns(session, vrs.getResultSet());
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        case Value.ARRAY:
+            return getExpressionColumns(session, (ValueArray) getValue(session));
+        }
+        return super.getExpressionColumns(session);
+    }
 }

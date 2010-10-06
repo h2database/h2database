@@ -7,16 +7,12 @@
 package org.h2.result;
 
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
-import org.h2.table.Column;
 import org.h2.util.New;
 import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
@@ -83,7 +79,7 @@ public class LocalResult implements ResultInterface {
      */
     public static LocalResult read(Session session, ResultSet rs, int maxrows) {
         try {
-            Expression[] cols = getExpressionColumns(session, rs);
+            Expression[] cols = Expression.getExpressionColumns(session, rs);
             int columnCount = cols.length;
             LocalResult result = new LocalResult(session, cols, columnCount);
             for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
@@ -99,24 +95,6 @@ public class LocalResult implements ResultInterface {
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
-    }
-
-    private static Expression[] getExpressionColumns(Session session, ResultSet rs) throws SQLException {
-        ResultSetMetaData meta = rs.getMetaData();
-        int columnCount = meta.getColumnCount();
-        Expression[] expressions = new Expression[columnCount];
-        Database db = session == null ? null : session.getDatabase();
-        for (int i = 0; i < columnCount; i++) {
-            String name = meta.getColumnLabel(i + 1);
-            int type = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
-            int precision = meta.getPrecision(i + 1);
-            int scale = meta.getScale(i + 1);
-            int displaySize = meta.getColumnDisplaySize(i + 1);
-            Column col = new Column(name, type, precision, scale, displaySize);
-            Expression expr = new ExpressionColumn(db, col);
-            expressions[i] = expr;
-        }
-        return expressions;
     }
 
     /**

@@ -7,6 +7,7 @@
 package org.h2.expression;
 
 import org.h2.engine.Session;
+import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
@@ -106,6 +107,17 @@ public class ExpressionList extends Expression {
             cost += e.getCost();
         }
         return cost;
+    }
+
+    public Expression[] getExpressionColumns(Session session) {
+        ExpressionColumn[] expr = new ExpressionColumn[list.length];
+        for (int i = 0; i < list.length; i++) {
+            Expression e = list[i];
+            Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale(),
+                    e.getDisplaySize());
+            expr[i] = new ExpressionColumn(session.getDatabase(), col);
+        }
+        return expr;
     }
 
 }

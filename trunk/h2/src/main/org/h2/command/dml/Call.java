@@ -11,11 +11,10 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
-import org.h2.table.Column;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueResultSet;
@@ -26,7 +25,6 @@ import org.h2.value.ValueResultSet;
  */
 public class Call extends Prepared {
 
-
     private Expression expression;
     private Expression[] expressions;
 
@@ -35,7 +33,14 @@ public class Call extends Prepared {
     }
 
     public ResultInterface queryMeta() {
-        LocalResult result = new LocalResult(session, expressions, 1);
+        int expressionType = expression.getType();
+        LocalResult result;
+        if (expressionType == Value.RESULT_SET || expressionType == Value.ARRAY) {
+            Expression[] expr = expression.getExpressionColumns(session);
+            result = new LocalResult(session, expr, expr.length);
+        } else {
+            result = new LocalResult(session, expressions, 1);
+        }
         result.done();
         return result;
     }
@@ -60,18 +65,17 @@ public class Call extends Prepared {
     public ResultInterface query(int maxrows) {
         setCurrentRowNumber(1);
         Value v = expression.getValue(session);
-        if (v.getType() == Value.RESULT_SET) {
+        switch (expression.getType()) {
+        case Value.RESULT_SET:
             ResultSet rs = ((ValueResultSet) v).getResultSet();
             return LocalResult.read(session, rs, maxrows);
-        } else if (v.getType() == Value.ARRAY) {
+        case Value.ARRAY:
             Value[] list = ((ValueArray) v).getList();
-            Expression[] expr = new Expression[list.length];
-            for (int i = 0; i < list.length; i++) {
-                Value e = list[i];
-                Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale(), e.getDisplaySize());
-                expr[i] = new ExpressionColumn(session.getDatabase(), col);
+            Expression[] expr = expression.getExpressionColumns(session);
+            if (expr.length != list.length) {
+                throw DbException.throwInternalError();
             }
-            LocalResult result = new LocalResult(session, expr, list.length);
+            LocalResult result = new LocalResult(session, expr, expr.length);
             result.addRow(list);
             result.done();
             return result;

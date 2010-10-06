@@ -6,6 +6,7 @@
  */
 package org.h2.expression;
 
+import java.util.ArrayList;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
@@ -24,6 +25,7 @@ import org.h2.value.ValueNull;
 public class Subquery extends Expression {
 
     private Query query;
+    private Expression expression;
 
     public Subquery(Query query) {
         this.query = query;
@@ -93,7 +95,20 @@ public class Subquery extends Expression {
     }
 
     private Expression getExpression() {
-        return query.getExpressions().get(0);
+        if (expression == null) {
+            ArrayList<Expression> exprs = query.getExpressions();
+            int columnCount = query.getColumnCount();
+            if (columnCount == 1) {
+                expression = exprs.get(0);
+            } else {
+                Expression[] list = new Expression[columnCount];
+                for (int i = 0; i < columnCount; i++) {
+                    list[i] = exprs.get(i);
+                }
+                expression = new ExpressionList(list);
+            }
+        }
+        return expression;
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
@@ -108,4 +123,7 @@ public class Subquery extends Expression {
         return 10 + (int) (10 * query.getCost());
     }
 
+    public Expression[] getExpressionColumns(Session session) {
+        return getExpression().getExpressionColumns(session);
+    }
 }

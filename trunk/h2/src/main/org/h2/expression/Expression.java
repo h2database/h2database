@@ -6,12 +6,18 @@
  */
 package org.h2.expression;
 
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 
 /**
  * An expression is a operation, a value, or a function in a query.
@@ -290,6 +296,60 @@ public abstract class Expression {
      */
     public String toString() {
         return getSQL();
+    }
+
+    /**
+     * If this expression consists of column expressions it should return them.
+     * 
+     * @return array of expression columns if applicable, null otherwise
+     */
+    public Expression[] getExpressionColumns(Session session) {
+        return null;
+    }
+
+    /**
+     * Extracts expression columns from ValueArray
+     * 
+     * @param session the current session
+     * @param value the value to extract columns from
+     * @return array of expression columns
+     */
+    public static Expression[] getExpressionColumns(Session session, ValueArray value) {
+        Value[] list = value.getList();
+        ExpressionColumn[] expr = new ExpressionColumn[list.length];
+        for (int i = 0; i < list.length; i++) {
+            Value v = list[i];
+            Column col = new Column("C" + (i + 1), v.getType(), v.getPrecision(), v.getScale(),
+                    v.getDisplaySize());
+            expr[i] = new ExpressionColumn(session.getDatabase(), col);
+        }
+        return expr;
+    }
+
+    /**
+     * Extracts expression columns from the given result set. 
+     * 
+     * @param session the session
+     * @param rs the result set
+     * @return an array of expression columns 
+     * @throws SQLException
+     */
+    public static Expression[] getExpressionColumns(Session session, ResultSet rs) throws SQLException {
+        ResultSetMetaData meta = rs.getMetaData();
+        int columnCount = meta.getColumnCount();
+        Expression[] expressions = new Expression[columnCount];
+        Database db = session == null ? null : session.getDatabase();
+        for (int i = 0; i < columnCount; i++) {
+            String name = meta.getColumnLabel(i + 1);
+            int type = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
+            int precision = meta.getPrecision(i + 1);
+            int scale = meta.getScale(i + 1);
+            int displaySize = meta.getColumnDisplaySize(i + 1);
+            Column col = new Column(name, type, precision, scale, displaySize);
+            Expression expr = new ExpressionColumn(db, col);
+            expressions[i] = expr;
+        }
+        return expressions;
     }
 
 }

@@ -4493,11 +4493,13 @@ public class Parser {
             return table;
         }
         String[] schemaNames = session.getSchemaSearchPath();
-        for (int i = 0; schemaNames != null && i < schemaNames.length; i++) {
-            Schema s = database.getSchema(schemaNames[i]);
-            table = s.findTableOrView(session, tableName);
-            if (table != null) {
-                return table;
+        if (schemaNames != null) {
+            for (String name : schemaNames) {
+                Schema s = database.getSchema(name);
+                table = s.findTableOrView(session, tableName);
+                if (table != null) {
+                    return table;
+                }
             }
         }
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);

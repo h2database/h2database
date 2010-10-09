@@ -220,10 +220,11 @@ public class CreateTable extends SchemaCommand {
      */
     private boolean setPrimaryKeyColumns(IndexColumn[] columns) {
         if (pkColumns != null) {
-            if (columns.length != pkColumns.length) {
+            int len = columns.length;
+            if (len != pkColumns.length) {
                 throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
             }
-            for (int i = 0; i < columns.length; i++) {
+            for (int i = 0; i < len; i++) {
                 if (!columns[i].columnName.equals(pkColumns[i].columnName)) {
                     throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }

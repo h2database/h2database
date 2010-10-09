@@ -163,7 +163,7 @@ public class Update extends Prepared {
             condition = condition.optimize(session);
             condition.createIndexConditions(session, tableFilter);
         }
-        for (int i = 0; i < expressions.length; i++) {
+        for (int i = 0, len = expressions.length; i < len; i++) {
             Expression expr = expressions[i];
             if (expr != null) {
                 expr.mapColumns(tableFilter, 0);

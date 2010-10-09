@@ -302,7 +302,7 @@ public class ConstraintReferential extends Constraint {
             // special case self referencing constraints:
             // check the inserted row first
             boolean self = true;
-            for (int i = 0; i < columns.length; i++) {
+            for (int i = 0, len = columns.length; i < len; i++) {
                 int idx = columns[i].column.getColumnId();
                 Value v = newRow.getValue(idx);
                 Column refCol = refColumns[i].column;
@@ -318,7 +318,7 @@ public class ConstraintReferential extends Constraint {
             }
         }
         Row check = refTable.getTemplateRow();
-        for (int i = 0; i < columns.length; i++) {
+        for (int i = 0, len = columns.length; i < len; i++) {
             int idx = columns[i].column.getColumnId();
             Value v = newRow.getValue(idx);
             Column refCol = refColumns[i].column;
@@ -343,7 +343,8 @@ public class ConstraintReferential extends Constraint {
             }
             Column[] cols = searchIndex.getColumns();
             boolean allEqual = true;
-            for (int i = 0; i < columns.length && i < cols.length; i++) {
+            int len = Math.min(columns.length, cols.length);
+            for (int i = 0; i < len; i++) {
                 int idx = cols[i].getColumnId();
                 Value c = check.getValue(idx);
                 Value f = found.getValue(idx);
@@ -365,7 +366,7 @@ public class ConstraintReferential extends Constraint {
 
     private void checkRow(Session session, Row oldRow) {
         SearchRow check = table.getTemplateSimpleRow(false);
-        for (int i = 0; i < columns.length; i++) {
+        for (int i = 0, len = columns.length; i < len; i++) {
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
             Column col = columns[i].column;
@@ -410,7 +411,7 @@ public class ConstraintReferential extends Constraint {
                 Prepared updateCommand = getUpdate(session);
                 if (updateAction == CASCADE) {
                     ArrayList<Parameter> params = updateCommand.getParameters();
-                    for (int i = 0; i < columns.length; i++) {
+                    for (int i = 0, len = columns.length; i < len; i++) {
                         Parameter param = params.get(i);
                         Column refCol = refColumns[i].column;
                         param.setValue(newRow.getValue(refCol.getColumnId()));
@@ -436,7 +437,7 @@ public class ConstraintReferential extends Constraint {
     }
 
     private void setWhere(Prepared command, int pos, Row row) {
-        for (int i = 0; i < refColumns.length; i++) {
+        for (int i = 0, len = refColumns.length; i < len; i++) {
             int idx = refColumns[i].column.getColumnId();
             Value v = row.getValue(idx);
             ArrayList<Parameter> params = command.getParameters();
@@ -526,7 +527,7 @@ public class ConstraintReferential extends Constraint {
         Prepared command = session.prepare(sql);
         if (action != CASCADE) {
             ArrayList<Parameter> params = command.getParameters();
-            for (int i = 0; i < columns.length; i++) {
+            for (int i = 0, len = columns.length; i < len; i++) {
                 Column column = columns[i].column;
                 Parameter param = params.get(i);
                 Value value;

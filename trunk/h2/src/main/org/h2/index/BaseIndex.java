@@ -55,8 +55,9 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         if (newIndexColumns != null) {
             this.indexColumns = newIndexColumns;
             columns = new Column[newIndexColumns.length];
-            columnIds = new int[columns.length];
-            for (int i = 0; i < columns.length; i++) {
+            int len = columns.length;
+            columnIds = new int[len];
+            for (int i = 0; i < len; i++) {
                 Column col = newIndexColumns[i].column;
                 columns[i] = col;
                 columnIds[i] = col.getColumnId();
@@ -202,7 +203,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         long cost = rowCount;
         long rows = rowCount;
         int totalSelectivity = 0;
-        for (int i = 0; masks != null && i < columns.length; i++) {
+        if (masks == null) {
+            return cost;
+        }
+        for (int i = 0, len = columns.length; i < len; i++) {
             Column column = columns[i];
             int index = column.getColumnId();
             int mask = masks[index];
@@ -235,7 +239,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public int compareRows(SearchRow rowData, SearchRow compare) {
-        for (int i = 0; i < indexColumns.length; i++) {
+        for (int i = 0, len = indexColumns.length; i < len; i++) {
             int index = columnIds[i];
             Value v = compare.getValue(index);
             if (v == null) {
@@ -287,11 +291,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     private int compareValues(Value a, Value b, int sortType) {
+        if (a == b) {
+            return 0;
+        }
         boolean aNull = a == null, bNull = b == null;
         if (aNull || bNull) {
-            if (aNull == bNull) {
-                return 0;
-            }
             return SortOrder.compareNull(aNull, bNull, sortType);
         }
         int comp = table.compareTypeSave(a, b);
@@ -302,7 +306,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public int getColumnIndex(Column col) {
-        for (int i = 0; i < columns.length; i++) {
+        for (int i = 0, len = columns.length; i < len; i++) {
             if (columns[i] == col) {
                 return i;
             }

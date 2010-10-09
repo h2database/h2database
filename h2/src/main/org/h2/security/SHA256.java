@@ -69,8 +69,7 @@ public class SHA256 {
             buff[n++] = (byte) (c >> 8);
             buff[n++] = (byte) c;
         }
-        for (int i = 0; i < password.length; i++) {
-            char c = password[i];
+        for (char c : password) {
             buff[n++] = (byte) (c >> 8);
             buff[n++] = (byte) c;
         }

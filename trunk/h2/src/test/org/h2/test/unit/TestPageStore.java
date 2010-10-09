@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -20,6 +21,7 @@ import org.h2.result.Row;
 import org.h2.store.Page;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.New;
 
 /**
  * Test the page store.
@@ -35,10 +37,12 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
      */
     public static void main(String... a) throws Exception {
         System.setProperty("h2.check2", "true");
+        System.setProperty("h2.lobInDatabase", "true");
         TestBase.createCaller().init().test();
     }
 
     public void test() throws Exception {
+        testRecoverLobInDatabase();
         testWriteTransactionLogBeforeData();
         testDefrag();
         testInsertReverse();
@@ -66,6 +70,41 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testCreateIndexLater();
         testFuzzOperations();
         deleteDb("pageStore");
+    }
+
+    private void testRecoverLobInDatabase() throws SQLException {
+        deleteDb("pageStore");
+        String url = getURL("pageStore;MVCC=TRUE;CACHE_SIZE=1", true);
+        Connection conn;
+        Statement stat;
+        conn = getConnection(url, getUser(), getPassword());
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name clob)");
+        stat.execute("create index idx_id on test(id)");
+        stat.execute("insert into test select x, space(1100+x) from system_range(1, 100)");
+        Connection conn2;
+        Statement stat2;
+        Random r = new Random(1);
+        ArrayList<Connection> list = New.arrayList();
+        for (int i = 0; i < 10; i++) {
+            conn2 = getConnection(url, getUser(), getPassword());
+            list.add(conn2);
+            stat2 = conn.createStatement();
+            conn2.setAutoCommit(false);
+            if (r.nextBoolean()) {
+                stat2.execute("update test set id = id where id = " + r.nextInt(100));
+            } else {
+                stat2.execute("delete from test where id = " + r.nextInt(100));
+            }
+        }
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
+        conn = getConnection(url, getUser(), getPassword());
+        conn.close();
     }
 
     private void testWriteTransactionLogBeforeData() throws SQLException {

@@ -2270,4 +2270,8 @@ public class Database implements DataHandler {
         this.defaultTableType = defaultTableType;
     }
 
+    public void setMultiVersion(boolean multiVersion) {
+        this.multiVersion = multiVersion;
+    }
+
 }

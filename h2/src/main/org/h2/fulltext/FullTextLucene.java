@@ -430,8 +430,9 @@ public class FullTextLucene extends FullText {
             if (limit == 0) {
                 limit = docs.totalHits;
             }
-            for (int i = 0; i < limit && i + offset < docs.totalHits
-                    && i + offset < docs.scoreDocs.length; i++) {
+            for (int i = 0, len = docs.scoreDocs.length;
+                    i < limit && i + offset < docs.totalHits
+                    && i + offset < len; i++) {
                 ScoreDoc sd = docs.scoreDocs[i + offset];
                 Document doc = searcher.doc(sd.doc);
                 float score = sd.score;

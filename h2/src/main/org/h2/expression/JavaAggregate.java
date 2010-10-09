@@ -99,16 +99,17 @@ public class JavaAggregate extends Expression {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) {
-        for (int i = 0; i < args.length; i++) {
-            args[i].mapColumns(resolver, level);
+        for (Expression arg : args) {
+            arg.mapColumns(resolver, level);
         }
     }
 
     public Expression optimize(Session session) {
         userConnection = session.createConnection(false);
-        argTypes = new int[args.length];
-        int[] argSqlTypes = new int[args.length];
-        for (int i = 0; i < args.length; i++) {
+        int len = args.length;
+        argTypes = new int[len];
+        int[] argSqlTypes = new int[len];
+        for (int i = 0; i < len; i++) {
             Expression expr = args[i];
             args[i] = expr.optimize(session);
             int type = expr.getType();
@@ -178,7 +179,7 @@ public class JavaAggregate extends Expression {
             }
             Object[] argValues = new Object[args.length];
             Object arg = null;
-            for (int i = 0; i < args.length; i++) {
+            for (int i = 0, len = args.length; i < len; i++) {
                 Value v = args[i].getValue(session);
                 v = v.convertTo(argTypes[i]);
                 arg = v.getObject();

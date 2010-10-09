@@ -300,7 +300,7 @@ public abstract class Expression {
 
     /**
      * If this expression consists of column expressions it should return them.
-     * 
+     *
      * @return array of expression columns if applicable, null otherwise
      */
     public Expression[] getExpressionColumns(Session session) {
@@ -309,7 +309,7 @@ public abstract class Expression {
 
     /**
      * Extracts expression columns from ValueArray
-     * 
+     *
      * @param session the current session
      * @param value the value to extract columns from
      * @return array of expression columns
@@ -317,7 +317,7 @@ public abstract class Expression {
     public static Expression[] getExpressionColumns(Session session, ValueArray value) {
         Value[] list = value.getList();
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
-        for (int i = 0; i < list.length; i++) {
+        for (int i = 0, len = list.length; i < len; i++) {
             Value v = list[i];
             Column col = new Column("C" + (i + 1), v.getType(), v.getPrecision(), v.getScale(),
                     v.getDisplaySize());
@@ -327,11 +327,11 @@ public abstract class Expression {
     }
 
     /**
-     * Extracts expression columns from the given result set. 
-     * 
+     * Extracts expression columns from the given result set.
+     *
      * @param session the session
      * @param rs the result set
-     * @return an array of expression columns 
+     * @return an array of expression columns
      * @throws SQLException
      */
     public static Expression[] getExpressionColumns(Session session, ResultSet rs) throws SQLException {

@@ -527,6 +527,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Connection pool: detect ;AUTOCOMMIT=FALSE in the database URL, and if set,
     disable autocommit for all connections.
 </li><li>Compatibility with MS Access: support "&amp;" to concatenate text.
+</li><li>The BACKUP statement should not synchronize on the database, and therefore should not block other users.
 </li></ul>
 
 <h2>Not Planned</h2>

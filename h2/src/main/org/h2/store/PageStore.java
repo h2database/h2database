@@ -338,7 +338,13 @@ public class PageStore implements CacheWriter {
         readVariableHeader();
         log = new PageLog(this);
         log.openForReading(logKey, logFirstTrunkPage, logFirstDataPage);
+        boolean old = database.isMultiVersion();
+        // temporarily disabling multi-version concurrency, because
+        // the multi-version index sometimes compares rows
+        // and the LOB storage is not yet available.
+        database.setMultiVersion(false);
         recover();
+        database.setMultiVersion(old);
         if (!database.isReadOnly()) {
             recoveryRunning = true;
             log.free();
@@ -789,8 +795,7 @@ public class PageStore implements CacheWriter {
         trace.debug("getFirstUncommittedSection");
         Session[] sessions = database.getSessions(true);
         int firstUncommittedSection = log.getLogSectionId();
-        for (int i = 0; i < sessions.length; i++) {
-            Session session = sessions[i];
+        for (Session session : sessions) {
             int firstUncommitted = session.getFirstUncommittedLog();
             if (firstUncommitted != Session.LOG_WRITTEN) {
                 if (firstUncommitted < firstUncommittedSection) {
@@ -1589,7 +1594,7 @@ public class PageStore implements CacheWriter {
                     throw DbException.throwInternalError(row.toString());
                 }
             }
-            for (int i = 0; i < columns.length; i++) {
+            for (int i = 0, len = columns.length; i < len; i++) {
                 Column col = new Column("C" + i, Value.INT);
                 data.columns.add(col);
             }
@@ -1612,8 +1617,9 @@ public class PageStore implements CacheWriter {
             }
             RegularTable table = (RegularTable) p.getTable();
             Column[] tableCols = table.getColumns();
-            IndexColumn[] cols = new IndexColumn[columns.length];
-            for (int i = 0; i < columns.length; i++) {
+            int len = columns.length;
+            IndexColumn[] cols = new IndexColumn[len];
+            for (int i = 0; i < len; i++) {
                 String c = columns[i];
                 IndexColumn ic = new IndexColumn();
                 int idx = c.indexOf('/');
@@ -1630,8 +1636,8 @@ public class PageStore implements CacheWriter {
             if (ops[3].equals("d")) {
                 indexType = IndexType.createPrimaryKey(true, false);
                 Column[] tableColumns = table.getColumns();
-                for (int i = 0; i < cols.length; i++) {
-                    tableColumns[cols[i].column.getColumnId()].setNullable(false);
+                for (IndexColumn indexColumn : cols) {
+                    tableColumns[indexColumn.column.getColumnId()].setNullable(false);
                 }
             } else {
                 indexType = IndexType.createNonUnique(true);

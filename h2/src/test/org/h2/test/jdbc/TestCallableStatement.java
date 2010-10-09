@@ -60,8 +60,8 @@ public class TestCallableStatement extends TestBase {
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
-        stat.execute("CREATE ALIAS testcall FOR \"" + getClass().getName() + ".testCall\"");
-        call = conn.prepareCall("{CALL testcall(?,?,?)}");
+        stat.execute("CREATE ALIAS testCall FOR \"" + getClass().getName() + ".testCall\"");
+        call = conn.prepareCall("{CALL testCall(?,?,?)}");
         call.setInt("A", 100);
         call.setString(2, "abc");
         long t = System.currentTimeMillis();
@@ -93,13 +93,13 @@ public class TestCallableStatement extends TestBase {
             // expected exception
         }
         try {
-            call.getBoolean("ASD");
+            call.getBoolean("X");
             fail("incorrect parameter name value");
         } catch (SQLException e) {
             // expected exception
         }
     }
-    
+
     public static ResultSet testCall(Connection connect,  int a, String b, Timestamp c) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("A", Types.INTEGER, 0, 0);

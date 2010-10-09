@@ -86,8 +86,9 @@ public class ValueArray extends Value {
     }
 
     public Object getObject() {
-        Object[] list = new Object[values.length];
-        for (int i = 0; i < values.length; i++) {
+        int len = values.length;
+        Object[] list = new Object[len];
+        for (int i = 0; i < len; i++) {
             list[i] = values[i].getObject();
         }
         return list;
@@ -131,10 +132,11 @@ public class ValueArray extends Value {
         if (values == v.values) {
             return true;
         }
-        if (values.length != v.values.length) {
+        int len = values.length;
+        if (len != v.values.length) {
             return false;
         }
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < len; i++) {
             if (!values[i].equals(v.values[i])) {
                 return false;
             }

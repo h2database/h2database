@@ -36,8 +36,9 @@ import org.h2.value.ValueNull;
 
 /**
  * Represents a callable statement.
- * 
+ *
  * @author Sergi Vladykin
+ * @author Thomas Mueller
  */
 public class JdbcCallableStatement extends JdbcPreparedStatement implements CallableStatement {
 
@@ -51,7 +52,20 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     }
 
     /**
-     * @see java.sql.PreparedStatement#executeUpdate()
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
+     * @throws SQLException if this object is closed or invalid
      */
     public int executeUpdate() throws SQLException {
         if (command.isQuery()) {
@@ -82,13 +96,13 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
         }
         return meta;
     }
-    
+
     private void checkIndexBounds(int parameterIndex) throws SQLException {
         if (parameterIndex < 1 || parameterIndex > maxOutParameters) {
             throw DbException.getInvalidValueException(Integer.toString(parameterIndex), "parameterIndex");
-        }        
+        }
     }
-    
+
     private void registerOutParameter(int parameterIndex, int sqlType, int scale, String typeName) throws SQLException {
         try {
             if (outParameters == null) {
@@ -106,7 +120,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
             throw logAndConvert(e);
         }
     }
-    
+
     private void checkRegistered(int parameterIndex) throws SQLException {
         try {
             checkIndexBounds(parameterIndex);

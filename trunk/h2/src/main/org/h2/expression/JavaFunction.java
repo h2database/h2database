@@ -53,7 +53,7 @@ public class JavaFunction extends Expression implements FunctionCall {
 
     public Expression optimize(Session session) {
         boolean allConst = isDeterministic();
-        for (int i = 0; i < args.length; i++) {
+        for (int i = 0, len = args.length; i < len; i++) {
             Expression e = args[i].optimize(session);
             args[i] = e;
             allConst &= e.isConstant();
@@ -160,9 +160,9 @@ public class JavaFunction extends Expression implements FunctionCall {
     public Expression[] getExpressionColumns(Session session) {
         switch (getType()) {
         case Value.RESULT_SET:
-            ValueResultSet vrs = getValueForColumnList(session, getArgs());
+            ValueResultSet rs = getValueForColumnList(session, getArgs());
             try {
-                return getExpressionColumns(session, vrs.getResultSet());
+                return getExpressionColumns(session, rs.getResultSet());
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }

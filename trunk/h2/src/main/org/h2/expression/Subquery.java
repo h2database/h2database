@@ -96,14 +96,14 @@ public class Subquery extends Expression {
 
     private Expression getExpression() {
         if (expression == null) {
-            ArrayList<Expression> exprs = query.getExpressions();
+            ArrayList<Expression> expressions = query.getExpressions();
             int columnCount = query.getColumnCount();
             if (columnCount == 1) {
-                expression = exprs.get(0);
+                expression = expressions.get(0);
             } else {
                 Expression[] list = new Expression[columnCount];
                 for (int i = 0; i < columnCount; i++) {
-                    list[i] = exprs.get(i);
+                    list[i] = expressions.get(i);
                 }
                 expression = new ExpressionList(list);
             }

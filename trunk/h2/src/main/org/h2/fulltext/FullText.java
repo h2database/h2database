@@ -961,8 +961,7 @@ public class FullText {
 
         private int[] getWordIds(Object[] row) throws SQLException {
             HashSet<String> words = New.hashSet();
-            for (int i = 0; i < index.indexColumns.length; i++) {
-                int idx = index.indexColumns[i];
+            for (int idx : index.indexColumns) {
                 int type = columnTypes[idx];
                 Object data = row[idx];
                 if (type == Types.CLOB && data != null) {

@@ -93,9 +93,10 @@ public class JdbcStatement extends TraceObject implements Statement {
      * If another result set exists for this statement, this will be closed
      * (even if this statement fails).
      *
-     * If the statement is a create or drop and does not throw an exception,
-     * the current transaction (if any) is committed after executing the statement.
      * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
      *
      * @param sql the SQL statement
      * @return the update count (number of row affected by an insert,

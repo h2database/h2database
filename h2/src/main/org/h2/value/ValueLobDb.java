@@ -240,6 +240,12 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     }
 
     protected int compareSecure(Value v, CompareMode mode) {
+        if (v instanceof ValueLobDb) {
+            ValueLobDb v2 = (ValueLobDb) v;
+            if (lobId == v2.lobId) {
+                return 0;
+            }
+        }
         if (type == Value.CLOB) {
             return Integer.signum(getString().compareTo(v.getString()));
         }

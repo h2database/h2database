@@ -126,7 +126,7 @@ public class SortOrder implements Comparator<Value[]> {
      * @return the result of the comparison
      */
     public int compare(Value[] a, Value[] b) {
-        for (int i = 0; i < indexes.length; i++) {
+        for (int i = 0, len = indexes.length; i < len; i++) {
             int idx = indexes[i];
             int type = sortTypes[i];
             Value ao = a[idx];

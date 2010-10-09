@@ -53,9 +53,6 @@ public class Data {
      */
     public static final int LENGTH_INT = 4;
 
-    private static final boolean TEST = false;
-    private static final int TEST_OFFSET = 0;
-
     /**
      * The length of a long value.
      */
@@ -163,7 +160,7 @@ public class Data {
      * @param len the length of the string
      * @return the number of bytes required
      */
-    public static int getStringWithoutLengthLen(String s, int len) {
+    private static int getStringWithoutLengthLen(String s, int len) {
         int plus = 0;
         for (int i = 0; i < len; i++) {
             char c = s.charAt(i);
@@ -255,19 +252,6 @@ public class Data {
     }
 
     /**
-     * Increase the size to the given length.
-     * The current position is set to the given value.
-     *
-     * @param len the new length
-     */
-    public void fill(int len) {
-        pos = len;
-        if (data.length < len) {
-            checkCapacity(len - data.length);
-        }
-    }
-
-    /**
      * Create a new buffer for the given handler. The
      * handler will decide what type of buffer is created.
      *
@@ -330,15 +314,6 @@ public class Data {
     }
 
     /**
-     * Append a number of bytes to this buffer.
-     *
-     * @param buff the data
-     */
-    public void write(byte[] buff) {
-        write(buff, 0, buff.length);
-    }
-
-    /**
      * Copy a number of bytes to the given buffer from the current position. The
      * current position is incremented accordingly.
      *
@@ -349,16 +324,6 @@ public class Data {
     public void read(byte[] buff, int off, int len) {
         System.arraycopy(data, pos, buff, off, len);
         pos += len;
-    }
-
-    /**
-     * Copy a number of bytes to the given buffer from the current position. The
-     * current position is incremented accordingly.
-     *
-     * @param buff the output buffer
-     */
-    public void read(byte[] buff) {
-        read(buff, 0, buff.length);
     }
 
     /**
@@ -405,9 +370,6 @@ public class Data {
      */
     public void writeValue(Value v) {
         int start = pos;
-        if (TEST) {
-            pos += TEST_OFFSET;
-        }
         if (v == ValueNull.INSTANCE) {
             data[pos++] = 0;
             return;
@@ -626,9 +588,6 @@ public class Data {
      * @return the value
      */
     public Value readValue() {
-        if (TEST) {
-            pos += TEST_OFFSET;
-        }
         int type = data[pos++] & 255;
         switch (type) {
         case Value.NULL:
@@ -785,11 +744,7 @@ public class Data {
      * @param handler the data handler for lobs
      * @return the number of bytes required to store this value
      */
-    public static int getValueLen(Value v, DataHandler handler) {
-        return getValueLen2(v, handler) + TEST_OFFSET;
-    }
-
-    private static int getValueLen2(Value v, DataHandler handler) {
+    private static int getValueLen(Value v, DataHandler handler) {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }
@@ -1129,7 +1084,11 @@ public class Data {
      */
     public void fillAligned() {
         // 0..6 > 8, 7..14 > 16, 15..22 > 24, ...
-        fill(MathUtils.roundUpInt(pos + 2, Constants.FILE_BLOCK_SIZE));
+        int len = MathUtils.roundUpInt(pos + 2, Constants.FILE_BLOCK_SIZE);
+        pos = len;
+        if (data.length < len) {
+            checkCapacity(len - data.length);
+        }
     }
 
 }

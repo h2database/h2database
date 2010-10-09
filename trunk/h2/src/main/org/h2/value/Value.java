@@ -802,8 +802,10 @@ public abstract class Value {
      *         1 otherwise
      */
     public final int compareTypeSave(Value v, CompareMode mode) {
-        if (this == ValueNull.INSTANCE) {
-            return v == ValueNull.INSTANCE ? 0 : -1;
+        if (this == v) {
+            return 0;
+        } else if (this == ValueNull.INSTANCE) {
+            return -1;
         } else if (v == ValueNull.INSTANCE) {
             return 1;
         }

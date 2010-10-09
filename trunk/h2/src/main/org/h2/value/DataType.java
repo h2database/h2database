@@ -586,8 +586,9 @@ public class DataType {
                 if (list == null) {
                     return ValueNull.INSTANCE;
                 }
-                Value[] values = new Value[list.length];
-                for (int i = 0; i < list.length; i++) {
+                int len = list.length;
+                Value[] values = new Value[len];
+                for (int i = 0; i < len; i++) {
                     values[i] = DataType.convertToValue(session, list[i], Value.NULL);
                 }
                 v = ValueArray.get(values);

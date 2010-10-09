@@ -135,7 +135,7 @@ public class FunctionAlias extends SchemaObjectBase {
         Class< ? > javaClass = Utils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
         ArrayList<JavaMethod> list = New.arrayList();
-        for (int i = 0; i < methods.length; i++) {
+        for (int i = 0, len = methods.length; i < len; i++) {
             Method m = methods[i];
             if (!Modifier.isStatic(m.getModifiers())) {
                 continue;
@@ -338,7 +338,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 params[params.length - 1] = varArg;
             }
 
-            for (int a = 0; a < args.length; a++, p++) {
+            for (int a = 0, len = args.length; a < len; a++, p++) {
                 boolean currentIsVarArg = varArgs && p >= paramClasses.length - 1;
                 Class< ? > paramClass;
                 if (currentIsVarArg) {

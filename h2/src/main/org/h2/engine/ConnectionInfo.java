@@ -250,7 +250,7 @@ public class ConnectionInfo implements Cloneable {
         if (getProperty("CIPHER", null) != null) {
             // split password into (filePassword+' '+userPassword)
             int space = -1;
-            for (int i = 0; i < password.length; i++) {
+            for (int i = 0, len = password.length; i < len; i++) {
                 if (password[i] == ' ') {
                     space = i;
                     break;

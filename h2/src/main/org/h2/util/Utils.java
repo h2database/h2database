@@ -124,8 +124,10 @@ public class Utils {
             return -1;
         }
         int last = bytes.length - pattern.length + 1;
-        next: for (; start < last; start++) {
-            for (int i = 0; i < pattern.length; i++) {
+        int patternLen = pattern.length;
+        next:
+        for (; start < last; start++) {
+            for (int i = 0; i < patternLen; i++) {
                 if (bytes[start + i] != pattern[i]) {
                     continue next;
                 }
@@ -174,15 +176,16 @@ public class Utils {
         if ((test == null) || (good == null)) {
             return (test == null) && (good == null);
         }
-        if (test.length != good.length) {
+        int len = test.length;
+        if (len != good.length) {
             return false;
         }
-        if (test.length == 0) {
+        if (len == 0) {
             return true;
         }
         // don't use conditional operations inside the loop
         int bits = 0;
-        for (int i = 0; i < good.length; i++) {
+        for (int i = 0; i < len; i++) {
             // this will never reset any bits
             bits |= test[i] ^ good[i];
         }
@@ -559,9 +562,10 @@ public class Utils {
     }
 
     private static int match(Class<?>[] params, Object[] values) {
-        if (params.length == values.length) {
+        int len = params.length;
+        if (len == values.length) {
             int points = 1;
-            for (int i = 0; i < params.length; i++) {
+            for (int i = 0; i < len; i++) {
                 Class<?> pc = getNonPrimitiveClass(params[i]);
                 Class<?> vc = values[i].getClass();
                 if (pc == vc) {

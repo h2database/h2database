@@ -904,9 +904,7 @@ need to be available on the server side.
 The <code>BACKUP</code> SQL statement and the <code>Backup</code> tool both create a zip file
 with all database files. However, the contents of this file are not human readable.
 </p><p>
-Unlike than the SCRIPT statement, the <code>BACKUP</code> statement does not lock the
-database objects when using the multi-threaded mode, and therefore does not block other users.
-The resulting backup is transactionally consistent:
+The resulting backup is transactionally consistent, meaning the consistency and atomicy rules apply.
 </p>
 <pre>
 BACKUP TO 'backup.zip'

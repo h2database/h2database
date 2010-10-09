@@ -966,6 +966,9 @@ public abstract class Table extends SchemaObjectBase {
      *         1 otherwise
      */
     public int compareTypeSave(Value a, Value b) {
+        if (a == b) {
+            return 0;
+        }
         int dataType = Value.getHigherOrder(a.getType(), b.getType());
         a = a.convertTo(dataType);
         b = b.convertTo(dataType);

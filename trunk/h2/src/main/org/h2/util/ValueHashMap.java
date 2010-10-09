@@ -41,7 +41,8 @@ public class ValueHashMap<V> extends HashBase {
         Value[] oldKeys = keys;
         V[] oldValues = values;
         reset(newLevel);
-        for (int i = 0; i < oldKeys.length; i++) {
+        int len = oldKeys.length;
+        for (int i = 0; i < len; i++) {
             Value k = oldKeys[i];
             if (k != null && k != ValueNull.DELETED) {
                 put(k, oldValues[i]);
@@ -169,7 +170,8 @@ public class ValueHashMap<V> extends HashBase {
      */
     public ArrayList<V> values() {
         ArrayList<V> list = New.arrayList(size);
-        for (int i = 0; i < keys.length; i++) {
+        int len = keys.length;
+        for (int i = 0; i < len; i++) {
             Value k = keys[i];
             if (k != null && k != ValueNull.DELETED) {
                 list.add(values[i]);

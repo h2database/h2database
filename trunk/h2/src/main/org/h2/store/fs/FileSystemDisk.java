@@ -217,7 +217,7 @@ public class FileSystemDisk extends FileSystem {
             if (!base.endsWith(File.separator)) {
                 base += File.separator;
             }
-            for (int i = 0; i < list.length; i++) {
+            for (int i = 0, len = list.length; i < len; i++) {
                 list[i] = base + list[i];
             }
             return list;
@@ -230,8 +230,10 @@ public class FileSystemDisk extends FileSystem {
         fileName = translateFileName(fileName);
         if (IOUtils.isDirectory(fileName)) {
             String[] list = listFiles(fileName);
-            for (int i = 0; list != null && i < list.length; i++) {
-                deleteRecursive(list[i], tryOnly);
+            if (list != null) {
+                for (String l : list) {
+                    deleteRecursive(l, tryOnly);
+                }
             }
         }
         if (tryOnly) {

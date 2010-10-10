@@ -6,13 +6,11 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import org.h2.command.Parser;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
-import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
@@ -161,11 +159,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         switch (getType()) {
         case Value.RESULT_SET:
             ValueResultSet rs = getValueForColumnList(session, getArgs());
-            try {
-                return getExpressionColumns(session, rs.getResultSet());
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
+            return getExpressionColumns(session, rs.getResultSet());
         case Value.ARRAY:
             return getExpressionColumns(session, (ValueArray) getValue(session));
         }

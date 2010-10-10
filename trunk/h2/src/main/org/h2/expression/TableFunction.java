@@ -6,7 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
@@ -150,10 +149,7 @@ public class TableFunction extends Function {
     }
 
     public Expression[] getExpressionColumns(Session session) {
-        try {
-            return getExpressionColumns(session, getTable(session, getArgs(), true, false).getResultSet());
-        } catch (SQLException e) {
-            throw DbException.convert(e);
-        }
+        return getExpressionColumns(session, getTable(session, getArgs(), true, false).getResultSet());
     }
+
 }

@@ -21,13 +21,29 @@ td, input, select, textarea, body, code, pre {
 
 pre {
     background-color: #ece9d8;
-    border: 1px solid rgb(172, 168, 153);
-    padding: 4px;
+    border: 1px solid #aca899;
+    padding: 6px;
+
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    border-radius: 4px;
+
+    -moz-box-shadow: 2px 2px 2px #aca899;
+    -webkit-box-shadow: 2px 2px 2px #aca899;
+    -khtml-box-shadow: 2px 2px 2px #aca899;
+    -o-box-shadow: 2px 2px 2px #aca899;
+    box-shadow: 2px 2px 2px #aca899;
 }
 
 code {
     background-color: #ece9d8;
-    padding: 0px 2px;
+    padding: 0px 4px;
+
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    border-radius: 4px;
 }
 
 img {
@@ -75,6 +91,19 @@ table {
     background-color: #ffffff;
     border-collapse: collapse;
     border: 1px solid #aca899;
+}
+
+.main {
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    border-radius: 4px;
+
+    -moz-box-shadow: 2px 2px 2px #aca899;
+    -webkit-box-shadow: 2px 2px 2px #aca899;
+    -khtml-box-shadow: 2px 2px 2px #aca899;
+    -o-box-shadow: 2px 2px 2px #aca899;
+    box-shadow: 2px 2px 2px #aca899;
 }
 
 th {
@@ -229,10 +258,6 @@ table.index {
     border-collapse: collapse;
 }
 
-/*    width: 570px;
-    width: 190px;
-    */
-
 td.index {
     width: 33%;
     border: 0px;
@@ -256,6 +281,8 @@ td.index {
     margin: 0px 0px;
     border: 2px solid;
     -moz-border-radius: 0.4em;
+    -webkit-border-radius: 0.4em;
+    -khtml-border-radius: 0.4em;
     border-radius: 0.4em;
     background-color: #fff;
 }

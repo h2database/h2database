@@ -41,6 +41,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Use Lucene 3 by default.
 </li><li>For RUNSCRIPT and SCRIPT (commands and tools), use UTF-8 by default.
 </li><li>Set h2.maxMemoryRowsDistinct to a lower value.
+</li><li>Enable h2.optimizeInsertFromSelect (speed up CREATE TABLE ... AS SELECT).
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -184,6 +185,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support updatable views with join on primary keys (to extend a table).
 </li><li>Public interface for functions (not public static).
 </li><li>Support reading the transaction log.
+</li><li>Support GRANT SELECT, UPDATE ON *.
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record).
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index.
@@ -308,7 +310,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console: support configuration option for fixed width (monospace) font.
 </li><li>Native fulltext search: support analyzers (specially for Chinese, Japanese).
 </li><li>Automatically compact databases from time to time (as a background process).
-</li><li>Support GRANT SELECT, UPDATE ON *.
 </li><li>Test Eclipse DTP.
 </li><li>H2 Console: autocomplete: keep the previous setting
 </li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.

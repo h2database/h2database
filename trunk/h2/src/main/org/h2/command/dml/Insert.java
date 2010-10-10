@@ -21,6 +21,7 @@ import org.h2.expression.Parameter;
 import org.h2.index.PageIndex;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
@@ -32,13 +33,15 @@ import org.h2.value.Value;
  * This class represents the statement
  * INSERT
  */
-public class Insert extends Prepared {
+public class Insert extends Prepared implements ResultTarget {
 
     private Table table;
     private Column[] columns;
     private ArrayList<Expression[]> list = New.arrayList();
     private Query query;
     private boolean sortedInsertMode;
+    private int rowNumber;
+    private boolean insertFromSelect;
 
     public Insert(Session session) {
         super(session);
@@ -89,17 +92,18 @@ public class Insert extends Prepared {
     }
 
     private int insertRows() {
-        int count;
         session.getUser().checkRight(table, Right.INSERT);
         setCurrentRowNumber(0);
         table.fire(session, Trigger.INSERT, true);
-        if (list.size() > 0) {
-            count = 0;
-            for (int x = 0; x < list.size(); x++) {
-                Expression[] expr = list.get(x);
+        rowNumber = 0;
+        int listSize = list.size();
+        if (listSize > 0) {
+            int columnLen = columns.length;
+            for (int x = 0; x < listSize; x++) {
                 Row newRow = table.getTemplateRow();
+                Expression[] expr = list.get(x);
                 setCurrentRowNumber(x + 1);
-                for (int i = 0; i < columns.length; i++) {
+                for (int i = 0; i < columnLen; i++) {
                     Column c = columns[i];
                     int index = c.getColumnId();
                     Expression e = expr[i];
@@ -114,6 +118,7 @@ public class Insert extends Prepared {
                         }
                     }
                 }
+                rowNumber++;
                 table.validateConvertUpdateSequence(session, newRow);
                 boolean done = table.fireBeforeRow(session, null, newRow);
                 if (!done) {
@@ -122,39 +127,44 @@ public class Insert extends Prepared {
                     session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
                 }
-                count++;
             }
         } else {
-            ResultInterface rows = query.query(0);
-            count = 0;
             table.lock(session, true, false);
-            while (rows.next()) {
-                count++;
-                Value[] r = rows.currentRow();
-                Row newRow = table.getTemplateRow();
-                setCurrentRowNumber(count);
-                for (int j = 0; j < columns.length; j++) {
-                    Column c = columns[j];
-                    int index = c.getColumnId();
-                    try {
-                        Value v = c.convert(r[j]);
-                        newRow.setValue(index, v);
-                    } catch (DbException ex) {
-                        throw setRow(ex, count, getSQL(r));
-                    }
+            if (insertFromSelect) {
+                query.query(0, this);
+            } else {
+                ResultInterface rows = query.query(0);
+                while (rows.next()) {
+                    Value[] r = rows.currentRow();
+                    addRow(r);
                 }
-                table.validateConvertUpdateSequence(session, newRow);
-                boolean done = table.fireBeforeRow(session, null, newRow);
-                if (!done) {
-                    table.addRow(session, newRow);
-                    session.log(table, UndoLogRecord.INSERT, newRow);
-                    table.fireAfterRow(session, null, newRow, false);
-                }
+                rows.close();
             }
-            rows.close();
         }
         table.fire(session, Trigger.INSERT, false);
-        return count;
+        return rowNumber;
+    }
+
+    public void addRow(Value[] values) {
+        Row newRow = table.getTemplateRow();
+        setCurrentRowNumber(++rowNumber);
+        for (int j = 0, len = columns.length; j < len; j++) {
+            Column c = columns[j];
+            int index = c.getColumnId();
+            try {
+                Value v = c.convert(values[j]);
+                newRow.setValue(index, v);
+            } catch (DbException ex) {
+                throw setRow(ex, rowNumber, getSQL(values));
+            }
+        }
+        table.validateConvertUpdateSequence(session, newRow);
+        boolean done = table.fireBeforeRow(session, null, newRow);
+        if (!done) {
+            table.addRow(session, newRow);
+            session.log(table, UndoLogRecord.INSERT, newRow);
+            table.fireAfterRow(session, null, newRow, false);
+        }
     }
 
     public String getPlanSQL() {
@@ -204,7 +214,7 @@ public class Insert extends Prepared {
                 if (expr.length != columns.length) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
-                for (int i = 0; i < expr.length; i++) {
+                for (int i = 0, len = expr.length; i < len; i++) {
                     Expression e = expr[i];
                     if (e != null) {
                         e = e.optimize(session);
@@ -238,6 +248,10 @@ public class Insert extends Prepared {
 
     public int getType() {
         return CommandInterface.INSERT;
+    }
+
+    public void setInsertFromSelect(boolean value) {
+        this.insertFromSelect = value;
     }
 
 }

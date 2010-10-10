@@ -171,6 +171,7 @@ public class CreateTable extends SchemaCommand {
                     insert.setSortedInsertMode(sortedInsertMode);
                     insert.setQuery(asQuery);
                     insert.setTable(table);
+                    insert.setInsertFromSelect(true);
                     insert.prepare();
                     insert.update();
                 } finally {

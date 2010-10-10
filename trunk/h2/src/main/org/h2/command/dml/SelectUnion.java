@@ -20,6 +20,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -118,16 +119,27 @@ public class SelectUnion extends Query {
         return new LocalResult(session, expressionArray, columnCount);
     }
 
-    protected LocalResult queryWithoutCache(int maxrows) {
+    protected LocalResult queryWithoutCache(int maxrows, ResultTarget target) {
         if (maxrows != 0) {
             if (limitExpr != null) {
                 maxrows = Math.min(limitExpr.getValue(session).getInt(), maxrows);
             }
             limitExpr = ValueExpression.get(ValueInt.get(maxrows));
         }
+        if (SysProperties.optimizeInsertFromSelect) {
+            if (unionType == UNION_ALL && target != null) {
+                if (sort == null && !distinct && maxrows == 0 && offsetExpr == null && limitExpr == null) {
+                    left.query(0, target);
+                    right.query(0, target);
+                    return null;
+                }
+            }
+        }
         int columnCount = left.getColumnCount();
         LocalResult result = new LocalResult(session, expressionArray, columnCount);
-        result.setSortOrder(sort);
+        if (sort != null) {
+            result.setSortOrder(sort);
+        }
         if (distinct) {
             left.setDistinct(true);
             right.setDistinct(true);
@@ -197,6 +209,13 @@ public class SelectUnion extends Query {
             result.setLimit(limitExpr.getValue(session).getInt());
         }
         result.done();
+        if (target != null) {
+            while (result.next()) {
+                target.addRow(result.currentRow());
+            }
+            result.close();
+            return null;
+        }
         return result;
     }
 
@@ -350,9 +369,9 @@ public class SelectUnion extends Query {
         return buff.toString();
     }
 
-    public ResultInterface query(int limit) {
+    public ResultInterface query(int limit, ResultTarget target) {
         // union doesn't always know the parameter list of the left and right queries
-        return queryWithoutCache(limit);
+        return queryWithoutCache(limit, target);
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {

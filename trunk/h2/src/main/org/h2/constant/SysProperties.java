@@ -481,6 +481,14 @@ public class SysProperties {
     public static final int OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(getIntSetting("h2.objectCacheSize", 1024));
 
     /**
+     * System property <code>h2.optimizeInsertFromSelect</code>
+     * (default: false).<br />
+     * Insert into table from query directly bypassing temporary disk storage.
+     * This also applies to create table as select.
+     */
+    public static boolean optimizeInsertFromSelect = getBooleanSetting("h2.optimizeInsertFromSelect", false);
+
+    /**
      * System property <code>h2.optimizeDistinct</code> (default: true).<br />
      * Improve the performance of simple DISTINCT queries if an index is
      * available for the given column. The optimization is used if:

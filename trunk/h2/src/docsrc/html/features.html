@@ -156,7 +156,8 @@ encrypted using AES-128 and XTEA encryption algorithms
 
 <h2 id="comparison">Comparison to Other Database Engines</h2>
 
-<table><tr>
+<table class="main">
+<tr>
 <th>Feature</th>
 <th>H2</th>
 <th><a href="http://db.apache.org/derby">Derby</a></th>
@@ -433,7 +434,8 @@ it's an local or remote connection) can do so using the exact same database URL.
 This database supports multiple connection modes and connection settings.
 This is achieved using different database URLs. Settings in the URLs are not case sensitive.
 </p>
-<table><tr><th>Topic</th><th>URL Format and Examples</th></tr>
+<table class="main">
+<tr><th>Topic</th><th>URL Format and Examples</th></tr>
 <tr>
     <td><a href="#embedded_databases">Embedded (local) connection</a></td>
     <td class="notranslate">
@@ -842,7 +844,7 @@ The locks are also released when the autocommit mode changes, and for connection
 autocommit set to true (this is the default), locks are released after each statement.
 The following statements generate locks:
 </p>
-<table>
+<table class="main">
     <tr>
         <th>Type of Lock</th>
         <th>SQL Statement</th>
@@ -883,7 +885,8 @@ The initial lock timeout (that is the timeout used for new connections) can be s
 <p>
 The following files are created for persistent databases:
 </p>
-<table><tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
+<table class="main">
+<tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
 <tr><td class="notranslate">
     test.h2.db
 </td><td>

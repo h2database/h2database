@@ -1523,7 +1523,7 @@ Centralリポジトリの利用
 #Next Version (unreleased)
 
 @changelog_1002_li
-#New experimental feature to speed up CREATE TABLE ... AS SELECT and INSERT INTO ... SELECT. To enable the feature, set the system property h2.optimizeInsertFromSelect to true. For large queries, performance can be doubled. 
+#New experimental feature to speed up CREATE TABLE ... AS SELECT. To enable the feature, set the system property h2.optimizeInsertFromSelect to true. For large queries, performance can be doubled. 
 
 @changelog_1003_li
 #When LOB objects are stored in the database (using the experimental setting h2.lobInDatabase), and using the MVCC mode, opening a database with uncommitted transactions could throw a NullPointerException. 
@@ -8630,7 +8630,7 @@ H2 コンソール アプリケーション
 #Set h2.maxMemoryRowsDistinct to a lower value. 
 
 @roadmap_1015_li
-#Enable h2.optimizeInsertFromSelect (speed up insert into ... select). 
+#Enable h2.optimizeInsertFromSelect (speed up CREATE TABLE ... AS SELECT). 
 
 @roadmap_1016_h2
 #Priority 1

@@ -47,13 +47,15 @@ public class PageDataIndex extends PageIndex {
     private DbException fastDuplicateKeyException;
     private int memoryPerPage;
     private int memoryCount;
+    private boolean multiVersion;
 
     public PageDataIndex(RegularTable table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
+        this.multiVersion = database.isMultiVersion();
 
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);
-        if (database.isMultiVersion()) {
+        if (multiVersion) {
             sessionRowCount = New.hashMap();
             isMultiVersion = true;
         }
@@ -178,7 +180,7 @@ public class PageDataIndex extends PageIndex {
             root = newRoot;
         }
         row.setDeleted(false);
-        if (database.isMultiVersion()) {
+        if (multiVersion) {
             if (delta == null) {
                 delta = New.hashSet();
             }
@@ -322,7 +324,7 @@ public class PageDataIndex extends PageIndex {
                 store.incrementChangeCount();
             }
         }
-        if (database.isMultiVersion()) {
+        if (multiVersion) {
             // if storage is null, the delete flag is not yet set
             row.setDeleted(true);
             if (delta == null) {
@@ -355,7 +357,7 @@ public class PageDataIndex extends PageIndex {
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
             database.getLobStorage().removeAllForTable(table.getId());
         }
-        if (database.isMultiVersion()) {
+        if (multiVersion) {
             sessionRowCount.clear();
         }
         tableData.setRowCount(0);
@@ -422,7 +424,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     public long getRowCount(Session session) {
-        if (database.isMultiVersion()) {
+        if (multiVersion) {
             Integer i = sessionRowCount.get(session.getId());
             long count = i == null ? 0 : i.intValue();
             count += rowCount;
@@ -466,7 +468,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     private void incrementRowCount(int sessionId, int count) {
-        if (database.isMultiVersion()) {
+        if (multiVersion) {
             Integer id = sessionId;
             Integer c = sessionRowCount.get(id);
             int current = c == null ? 0 : c.intValue();
@@ -476,7 +478,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     public void commit(int operation, Row row) {
-        if (database.isMultiVersion()) {
+        if (multiVersion) {
             if (delta != null) {
                 delta.remove(row);
             }

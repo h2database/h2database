@@ -25,7 +25,7 @@ import org.h2.value.ValueArray;
  * and it is also used directly by the ResultSet class in the embedded mode.
  * If the result does not fit in memory, it is written to a temporary file.
  */
-public class LocalResult implements ResultInterface {
+public class LocalResult implements ResultInterface, ResultTarget {
 
     private int maxMemoryRows;
     private Session session;
@@ -78,10 +78,10 @@ public class LocalResult implements ResultInterface {
      * @return the local result set
      */
     public static LocalResult read(Session session, ResultSet rs, int maxrows) {
+        Expression[] cols = Expression.getExpressionColumns(session, rs);
+        int columnCount = cols.length;
+        LocalResult result = new LocalResult(session, cols, columnCount);
         try {
-            Expression[] cols = Expression.getExpressionColumns(session, rs);
-            int columnCount = cols.length;
-            LocalResult result = new LocalResult(session, cols, columnCount);
             for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
                 Value[] list = new Value[columnCount];
                 for (int j = 0; j < columnCount; j++) {
@@ -90,11 +90,11 @@ public class LocalResult implements ResultInterface {
                 }
                 result.addRow(list);
             }
-            result.done();
-            return result;
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
+        result.done();
+        return result;
     }
 
     /**

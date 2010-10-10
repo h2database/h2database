@@ -29,6 +29,7 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -151,7 +152,7 @@ public class Select extends Query {
         }
     }
 
-    private void queryGroupSorted(int columnCount, LocalResult result) {
+    private void queryGroupSorted(int columnCount, ResultTarget result) {
         int rowNumber = 0;
         setCurrentRowNumber(0);
         Value[] previousKeyValues = null;
@@ -190,7 +191,7 @@ public class Select extends Query {
         }
     }
 
-    private void addGroupSortedRow(Value[] keyValues, int columnCount, LocalResult result) {
+    private void addGroupSortedRow(Value[] keyValues, int columnCount, ResultTarget result) {
         Value[] row = new Value[columnCount];
         for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
             row[groupIndex[j]] = keyValues[j];
@@ -443,7 +444,7 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryDistinct(LocalResult result, long limitRows) {
+    private void queryDistinct(ResultTarget result, long limitRows) {
         if (limitRows != 0 && offsetExpr != null) {
             // limitRows must be long, otherwise we get an int overflow
             // if limitRows is at or near Integer.MAX_VALUE
@@ -469,7 +470,7 @@ public class Select extends Query {
             Value[] row = { value };
             result.addRow(row);
             rowNumber++;
-            if ((sort == null || sortUsingIndex) && limitRows != 0 && result.getRowCount() >= limitRows) {
+            if ((sort == null || sortUsingIndex) && limitRows != 0 && rowNumber >= limitRows) {
                 break;
             }
             if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -478,7 +479,7 @@ public class Select extends Query {
         }
     }
 
-    private void queryFlat(int columnCount, LocalResult result, long limitRows) {
+    private void queryFlat(int columnCount, ResultTarget result, long limitRows) {
         if (limitRows != 0 && offsetExpr != null) {
             // limitRows must be long, otherwise we get an int overflow
             // if limitRows is at or near Integer.MAX_VALUE
@@ -503,7 +504,7 @@ public class Select extends Query {
                 }
                 result.addRow(row);
                 rowNumber++;
-                if ((sort == null || sortUsingIndex) && limitRows != 0 && result.getRowCount() >= limitRows) {
+                if ((sort == null || sortUsingIndex) && limitRows != 0 && rowNumber >= limitRows) {
                     break;
                 }
                 if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -516,7 +517,7 @@ public class Select extends Query {
         }
     }
 
-    private void queryQuick(int columnCount, LocalResult result) {
+    private void queryQuick(int columnCount, ResultTarget result) {
         Value[] row = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
@@ -531,7 +532,7 @@ public class Select extends Query {
         return result;
     }
 
-    protected LocalResult queryWithoutCache(int maxRows) {
+    protected LocalResult queryWithoutCache(int maxRows, ResultTarget target) {
         int limitRows = maxRows;
         if (limitExpr != null) {
             int l = limitExpr.getValue(session).getInt();
@@ -542,12 +543,23 @@ public class Select extends Query {
             }
         }
         int columnCount = expressions.size();
-        LocalResult result = new LocalResult(session, expressionArray, visibleColumnCount);
-        if (!sortUsingIndex || distinct) {
+        LocalResult result = null;
+        if (!SysProperties.optimizeInsertFromSelect || target == null) {
+            result = createLocalResult(result);
+        }
+        if (sort != null && (!sortUsingIndex || distinct)) {
+            result = createLocalResult(result);
             result.setSortOrder(sort);
         }
         if (distinct && !isDistinctQuery) {
+            result = createLocalResult(result);
             result.setDistinct();
+        }
+        if (isGroupQuery && !isGroupSortedQuery) {
+            result = createLocalResult(result);
+        }
+        if (limitRows != 0 || offsetExpr != null) {
+            result = createLocalResult(result);
         }
         topTableFilter.startQuery(session);
         topTableFilter.reset();
@@ -566,18 +578,19 @@ public class Select extends Query {
                 throw DbException.getUnsupportedException("FOR UPDATE && JOIN");
             }
         }
+        ResultTarget to = result != null ? result : target;
         if (isQuickAggregateQuery) {
-            queryQuick(columnCount, result);
+            queryQuick(columnCount, to);
         } else if (isGroupQuery) {
             if (isGroupSortedQuery) {
-                queryGroupSorted(columnCount, result);
+                queryGroupSorted(columnCount, to);
             } else {
                 queryGroup(columnCount, result);
             }
         } else if (isDistinctQuery) {
-            queryDistinct(result, limitRows);
+            queryDistinct(to, limitRows);
         } else {
-            queryFlat(columnCount, result, limitRows);
+            queryFlat(columnCount, to, limitRows);
         }
         if (offsetExpr != null) {
             result.setOffset(offsetExpr.getValue(session).getInt());
@@ -585,8 +598,22 @@ public class Select extends Query {
         if (limitRows != 0) {
             result.setLimit(limitRows);
         }
-        result.done();
-        return result;
+        if (result != null) {
+            result.done();
+            if (target != null) {
+                while (result.next()) {
+                    target.addRow(result.currentRow());
+                }
+                result.close();
+                return null;
+            }
+            return result;
+        }
+        return null;
+    }
+
+    private LocalResult createLocalResult(LocalResult old) {
+        return old != null ? old : new LocalResult(session, expressionArray, visibleColumnCount);
     }
 
     private void expandColumnList() {

@@ -21,6 +21,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
@@ -62,12 +63,15 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Execute the query without checking the cache.
+     * Execute the query without checking the cache. If a target is specified,
+     * the results are written to it, and the method returns null. If no target
+     * is specified, a new LocalResult is created and returned.
      *
      * @param limit the limit as specified in the JDBC method call
+     * @param target the target to write results to
      * @return the result
      */
-    protected abstract LocalResult queryWithoutCache(int limit);
+    protected abstract LocalResult queryWithoutCache(int limit, ResultTarget target);
 
     /**
      * Initialize the query.
@@ -218,10 +222,21 @@ public abstract class Query extends Prepared {
         return params;
     }
 
-    public ResultInterface query(int limit) {
+    public ResultInterface query(int maxrows) {
+        return query(maxrows, null);
+    }
+
+    /**
+     * Execute the query, writing the result to the target result.
+     *
+     * @param maxrows the maximum number of rows to return
+     * @param target the target result (null will return the result)
+     * @return the result set (if the target is not set).
+     */
+    ResultInterface query(int limit, ResultTarget target) {
         fireBeforeSelectTriggers();
         if (!session.getDatabase().getOptimizeReuseResults()) {
-            return queryWithoutCache(limit);
+            return queryWithoutCache(limit, target);
         }
         Value[] params = getParameterValues();
         long now = session.getDatabase().getModificationDataId();
@@ -238,7 +253,7 @@ public abstract class Query extends Prepared {
         }
         lastParameters = params;
         closeLastResult();
-        lastResult = queryWithoutCache(limit);
+        lastResult = queryWithoutCache(limit, target);
         this.lastEvaluated = now;
         lastLimit = limit;
         return lastResult;

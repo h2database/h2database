@@ -100,12 +100,21 @@ public class TestCallableStatement extends TestBase {
         }
     }
 
-    public static ResultSet testCall(Connection connect,  int a, String b, Timestamp c) throws SQLException {
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @param a the value a
+     * @param b the value b
+     * @param c the value c
+     * @return a result set
+     */
+    public static ResultSet testCall(Connection conn,  int a, String b, Timestamp c) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("A", Types.INTEGER, 0, 0);
         rs.addColumn("B", Types.VARCHAR, 0, 0);
         rs.addColumn("C", Types.TIMESTAMP, 0, 0);
-        if ("jdbc:columnlist:connection".equals(connect.getMetaData().getURL())) {
+        if ("jdbc:columnlist:connection".equals(conn.getMetaData().getURL())) {
             return rs;
         }
         rs.addRow(a * 2, b.toUpperCase(), new Timestamp(c.getTime() + 1));

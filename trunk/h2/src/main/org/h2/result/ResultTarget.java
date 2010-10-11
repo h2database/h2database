@@ -20,4 +20,11 @@ public interface ResultTarget {
      */
     void addRow(Value[] values);
 
+    /**
+     * Get the number of rows.
+     *
+     * @return the number of rows
+     */
+    int getRowCount();
+
 }

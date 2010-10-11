@@ -504,7 +504,7 @@ public class Select extends Query {
                 }
                 result.addRow(row);
                 rowNumber++;
-                if ((sort == null || sortUsingIndex) && limitRows != 0 && rowNumber >= limitRows) {
+                if ((sort == null || sortUsingIndex) && limitRows != 0 && result.getRowCount() >= limitRows) {
                     break;
                 }
                 if (sampleSize > 0 && rowNumber >= sampleSize) {

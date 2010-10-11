@@ -167,6 +167,10 @@ public class Insert extends Prepared implements ResultTarget {
         }
     }
 
+    public int getRowCount() {
+        return rowNumber;
+    }
+
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
         buff.append(table.getSQL()).append('(');

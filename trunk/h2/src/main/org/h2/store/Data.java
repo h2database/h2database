@@ -984,6 +984,11 @@ public class Data {
             pos++;
             return b;
         }
+        // a separate function so that this one can be inlined
+        return readVarIntRest(b);
+    }
+
+    private int readVarIntRest(int b) {
         int x = b & 0x7f;
         b = data[pos + 1];
         if (b >= 0) {

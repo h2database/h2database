@@ -25,7 +25,7 @@ import org.h2.util.Utils;
  */
 public class DbUpgradeFromVersion1 {
 
-    private static boolean scriptInTmpDir;
+    private static boolean scriptInTempDir;
     private static boolean deleteOldDb;
 
     private String url;
@@ -138,7 +138,7 @@ public class DbUpgradeFromVersion1 {
         }
         File scriptFile = null;
         try {
-            if (scriptInTmpDir) {
+            if (scriptInTempDir) {
                 scriptFile = File.createTempFile("h2dbmigration", "backup.sql");
             } else {
                 scriptFile = new File(oldDataFile.getAbsolutePath() + "_script.sql");
@@ -212,11 +212,11 @@ public class DbUpgradeFromVersion1 {
      * directory. Use this method to change the directory to the temp
      * directory.
      *
-     * @param scriptInTmpDir true if the conversion script should be
+     * @param scriptInTempDir true if the conversion script should be
      *        located in the temp directory.
      */
-    public static void setScriptInTmpDir(boolean scriptInTmpDir) {
-        DbUpgradeFromVersion1.scriptInTmpDir = scriptInTmpDir;
+    public static void setScriptInTempDir(boolean scriptInTempDir) {
+        DbUpgradeFromVersion1.scriptInTempDir = scriptInTempDir;
     }
 
     /**

@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testOuterJoin();
         testColumnWithConstraintAndComment();
         testTruncateConstraintsDisabled();
         testPreparedSubquery2();
@@ -81,6 +82,18 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testOuterJoin() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table parent(p int primary key) as select 1");
+        stat.execute("create table child(c int primary key, pc int) as select 2, 1");
+        ResultSet rs = stat.executeQuery("select * from parent left outer join child on p = pc where c is null");
+        assertFalse(rs.next());
+        stat.execute("drop all objects");
+        conn.close();
     }
 
     private void testColumnWithConstraintAndComment() throws SQLException {

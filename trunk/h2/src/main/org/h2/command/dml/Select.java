@@ -768,7 +768,16 @@ public class Select extends Query {
         if (condition != null) {
             condition = condition.optimize(session);
             for (TableFilter f : filters) {
-                condition.createIndexConditions(session, f);
+                // outer joins: must not add index conditions such as
+                // "c is null" - example:
+                // create table parent(p int primary key) as select 1;
+                // create table child(c int primary key, pc int);
+                // insert into child values(2, 1);
+                // select p, c from parent
+                // left outer join child on p = pc where c is null;
+                if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
+                    condition.createIndexConditions(session, f);
+                }
             }
         }
         if (isGroupQuery && groupIndex == null && havingIndex < 0 && filters.size() == 1) {

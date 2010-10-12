@@ -371,7 +371,7 @@ public class Recover extends Tool implements DataHandler {
                 writeError(writer, e);
             }
             Data s = Data.create(this, 128);
-            store.seek(0);
+            seek(0);
             store.readFully(s.getBytes(), 0, 128);
             s.setPos(48);
             pageSize = s.readInt();
@@ -384,25 +384,25 @@ public class Recover extends Tool implements DataHandler {
                 pageSize = SysProperties.PAGE_SIZE;
                 writer.println("-- ERROR: page size; using " + pageSize);
             }
-            int pageCount = (int) (length / pageSize);
-            parents = new int[pageCount];
+            long pageCount = length / pageSize;
+            parents = new int[(int) pageCount];
             s = Data.create(this, pageSize);
-            for (int i = 3; i < pageCount; i++) {
+            for (long i = 3; i < pageCount; i++) {
                 s.reset();
-                store.seek(i * pageSize);
+                seek(i);
                 store.readFully(s.getBytes(), 0, 32);
                 s.readByte();
                 s.readShortInt();
-                parents[i] = s.readInt();
+                parents[(int) i] = s.readInt();
             }
             int logKey = 0, logFirstTrunkPage = 0, logFirstDataPage = 0;
             s = Data.create(this, pageSize);
-            for (int i = 1;; i++) {
+            for (long i = 1;; i++) {
                 if (i == 3) {
                     break;
                 }
                 s.reset();
-                store.seek(i * pageSize);
+                seek(i);
                 store.readFully(s.getBytes(), 0, pageSize);
                 CRC32 crc = new CRC32();
                 crc.update(s.getBytes(), 4, pageSize - 4);
@@ -461,11 +461,11 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageStore(PrintWriter writer, int pageCount) {
+    private void dumpPageStore(PrintWriter writer, long pageCount) {
         Data s = Data.create(this, pageSize);
-        for (int page = 3; page < pageCount; page++) {
+        for (long page = 3; page < pageCount; page++) {
             s = Data.create(this, pageSize);
-            store.seek(page * pageSize);
+            seek(page);
             store.readFully(s.getBytes(), 0, pageSize);
             int type = s.readByte();
             switch (type) {
@@ -475,7 +475,7 @@ public class Recover extends Tool implements DataHandler {
             }
             boolean last = (type & Page.FLAG_LAST) != 0;
             type &= ~Page.FLAG_LAST;
-            if (!PageStore.checksumTest(s.getBytes(), page, pageSize)) {
+            if (!PageStore.checksumTest(s.getBytes(), (int) page, pageSize)) {
                 writer.println("-- ERROR: page " + page + " checksum mismatch type: " + type);
             }
             s.readShortInt();
@@ -685,15 +685,15 @@ public class Recover extends Tool implements DataHandler {
         private final FileStore store;
         private final Data page;
         private final int pageSize;
-        private int trunkPage;
-        private int dataPage;
+        private long trunkPage;
+        private long dataPage;
         private IntArray dataPages = new IntArray();
         private boolean endOfFile;
         private int remaining;
         private int logKey;
 
         public PageInputStream(PrintWriter writer, DataHandler handler,
-                FileStore store, int logKey, int firstTrunkPage, int firstDataPage, int pageSize) {
+                FileStore store, int logKey, long firstTrunkPage, long firstDataPage, int pageSize) {
             this.writer = writer;
             this.store = store;
             this.pageSize = pageSize;
@@ -750,10 +750,10 @@ public class Recover extends Tool implements DataHandler {
                     endOfFile = true;
                     return;
                 }
-                store.seek((long) trunkPage * pageSize);
+                store.seek(trunkPage * pageSize);
                 store.readFully(page.getBytes(), 0, pageSize);
                 page.reset();
-                if (!PageStore.checksumTest(page.getBytes(), trunkPage, pageSize)) {
+                if (!PageStore.checksumTest(page.getBytes(), (int) trunkPage, pageSize)) {
                     writer.println("-- ERROR: checksum mismatch page: " +trunkPage);
                     endOfFile = true;
                     return;
@@ -788,13 +788,13 @@ public class Recover extends Tool implements DataHandler {
             }
             if (dataPages.size() > 0) {
                 page.reset();
-                int nextPage = dataPages.get(0);
+                long nextPage = dataPages.get(0);
                 dataPages.remove(0);
-                store.seek((long) nextPage * pageSize);
+                store.seek(nextPage * pageSize);
                 store.readFully(page.getBytes(), 0, pageSize);
                 page.reset();
                 int t = page.readByte();
-                if (t != 0 && !PageStore.checksumTest(page.getBytes(), nextPage, pageSize)) {
+                if (t != 0 && !PageStore.checksumTest(page.getBytes(), (int) nextPage, pageSize)) {
                     writer.println("-- ERROR: checksum mismatch page: " +nextPage);
                     endOfFile = true;
                     return;
@@ -818,7 +818,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageBtreeNode(PrintWriter writer, Data s, int pageId, boolean positionOnly) {
+    private void dumpPageBtreeNode(PrintWriter writer, Data s, long pageId, boolean positionOnly) {
         int rowCount = s.readInt();
         int entryCount = s.readShortInt();
         int[] children = new int[entryCount + 1];
@@ -976,7 +976,7 @@ public class Recover extends Tool implements DataHandler {
             while (true) {
                 checkParent(writer, parent, new int[]{(int) next}, 0);
                 parent = next;
-                store.seek(pageSize * next);
+                seek(next);
                 store.readFully(s2.getBytes(), 0, pageSize);
                 s2.reset();
                 int type = s2.readByte();
@@ -1037,7 +1037,7 @@ public class Recover extends Tool implements DataHandler {
                                 append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(), saltIndex, replacement.length);
-                            store.seek(pageSize * pageId);
+                            seek(pageId);
                             store.write(s.getBytes(), 0, pageSize);
                             if (trace) {
                                 out.println("User: " + userName);
@@ -1048,6 +1048,11 @@ public class Recover extends Tool implements DataHandler {
                 }
             }
         }
+    }
+
+    private void seek(long page) {
+        // page is long to avoid integer overflow
+        store.seek(page * pageSize);
     }
 
     private Value[] createRecord(PrintWriter writer, Data s, int columnCount) {

@@ -288,7 +288,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: real SQL statement for DESCRIBE TEST
 </li><li>Use a default delay of 1 second before closing a database.
 </li><li>Write (log) to system table before adding to internal data structures.
-</li><li>Support very large deletes and updates.
+</li><li>Support opening a database that is in the classpath, maybe using a new file system.
 </li><li>Doclet (javadocs): constructors are not listed.
 </li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
@@ -329,7 +329,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
 </li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and buggy.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
-</li><li>Support opening a database that is in the classpath, maybe using a new file system.
 </li><li>Fulltext search: lazy result generation using SimpleRowSource.
 </li><li>Support transformation to join for user defined functions, as for IN(SELECT...).
 </li><li>Fulltext search: support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
@@ -343,6 +342,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL)
 </li><li>Allow calling function with no parameters without parenthesis. See http://code.google.com/p/h2database/issues/detail?id=50
 </li><li>CSV: currently # is a line comment and can start at any field. Make it optional.
+</li><li>Support a data type "timestamp with timezone" using java.util.Calendar.
 </li><li>Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62
 </li><li>Add database creation date and time to the database.
 </li><li>Support ASSERTION.
@@ -469,7 +469,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 179: Related subqueries in HAVING clause
 </li><li>IBM DB2 compatibility: NOT NULL WITH DEFAULT. Similar to MySQL Mode.convertInsertNullToZero.
 </li><li>Creating primary key: always create a constraint.
-</li><li>Support a data type "timestamp with timezone" using java.util.Calendar.
 </li><li>Maybe use a different page layout: keep the data at the head of the page, and ignore the tail
     (don't store / read it). This may increase write / read performance depending on the file system.
 </li><li>Indexes of temporary tables are currently kept in-memory. Is this how it should be?

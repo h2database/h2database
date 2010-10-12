@@ -11,7 +11,9 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -393,7 +395,7 @@ public class Transfer {
             // below, writer.flush needs to be called to ensure the buffer is written
             // but, this will also flush the output stream, and this slows things down
             // so construct an output stream that will ignore this chained flush call
-            java.io.OutputStream out2 = new java.io.FilterOutputStream(out) {
+            OutputStream out2 = new FilterOutputStream(out) {
                 public void flush() {
                     // do nothing
                 }

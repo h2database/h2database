@@ -74,7 +74,7 @@ class PageDataCursor implements Cursor {
     private boolean checkMax() {
         if (row != null) {
             if (maxKey != Long.MAX_VALUE) {
-                long x = current.index.getKey(row, Long.MAX_VALUE);
+                long x = current.index.getKey(row, Long.MAX_VALUE, Long.MAX_VALUE);
                 if (x > maxKey) {
                     row = null;
                     return false;

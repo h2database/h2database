@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New experimental feature to speed up CREATE TABLE ... AS SELECT.
+<ul><li>The index condition columnName IS NULL was not efficient when using a clustered index.
+</li><li>The Recover tool did not work for databases larger than 2 GB.
+</li><li>In memory database: outer joins with a condition "column is null" could return the wrong result.
+</li><li>Temporary files were not created in the temporary directory of the system, but in the current working directory.
+    This affected temporary undo log files for read-only databases, temporary files for large result sets when using read-only databases, 
+    and temporary lob files when storing LOBs in the database (system property h2.lobInDatabase).
+</li><li>New experimental feature to speed up CREATE TABLE ... AS SELECT.
     To enable the feature, set the system property h2.optimizeInsertFromSelect to true.
     For large queries, performance can be doubled.
 </li><li>When LOB objects are stored in the database (using the experimental setting h2.lobInDatabase),

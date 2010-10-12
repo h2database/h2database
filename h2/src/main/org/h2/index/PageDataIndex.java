@@ -245,15 +245,18 @@ public class PageDataIndex extends PageIndex {
      *
      * @param row the row
      * @param ifEmpty the value to use if the row is empty
+     * @param ifNull the value to use if the column is NULL
      * @return the key
      */
-    long getKey(SearchRow row, long ifEmpty) {
+    long getKey(SearchRow row, long ifEmpty, long ifNull) {
         if (row == null) {
             return ifEmpty;
         }
         Value v = row.getValue(mainIndexColumn);
-        if (v == null || v == ValueNull.INSTANCE) {
-            return ifEmpty;
+        if (v == null) {
+            throw DbException.throwInternalError(row.toString());
+        } else if (v == ValueNull.INSTANCE) {
+            return ifNull;
         }
         return v.getLong();
     }

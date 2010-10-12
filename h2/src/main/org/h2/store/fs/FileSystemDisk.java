@@ -178,7 +178,7 @@ public class FileSystemDisk extends FileSystem {
         String prefix = new File(name).getName();
         File dir;
         if (inTempDir) {
-            dir = null;
+            dir = new File(System.getProperty("java.io.tmpdir"));
         } else {
             dir = new File(name).getAbsoluteFile().getParentFile();
             IOUtils.mkdirs(dir);

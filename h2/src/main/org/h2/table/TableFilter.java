@@ -941,7 +941,7 @@ public class TableFilter implements ColumnResolver {
          *
          * @param f the filter
          */
-        public void accept(TableFilter f);
+        void accept(TableFilter f);
     }
 
 }

@@ -121,7 +121,7 @@ public class CreateScriptFile {
             }
             return new PrintWriter(new OutputStreamWriter(out, charset));
         } catch (Exception e) {
-            throw new IOException(e);
+            throw (IOException) new IOException(e.getMessage()).initCause(e);
         }
     }
 
@@ -157,7 +157,7 @@ public class CreateScriptFile {
             }
             return new LineNumberReader(new InputStreamReader(in, charset));
         } catch (Exception e) {
-            throw new IOException(e);
+            throw (IOException) new IOException(e.getMessage()).initCause(e);
         }
     }
 

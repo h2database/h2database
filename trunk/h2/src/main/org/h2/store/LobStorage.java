@@ -72,7 +72,7 @@ public class LobStorage {
     /**
      * Initialize the lob storage.
      */
-    public void init() {
+    private void init() {
         if (init) {
             return;
         }
@@ -379,6 +379,7 @@ public class LobStorage {
      */
     public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
         try {
+            init();
             long lobId = getNextLobId();
             PreparedStatement prep = prepare(
                     "INSERT INTO " + LOB_MAP + "(LOB, SEQ, HASH, BLOCK) " +
@@ -590,6 +591,7 @@ public class LobStorage {
      */
     public void setTable(long lobId, int table) {
         try {
+            init();
             PreparedStatement prep = prepare("UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?");
             prep.setInt(1, table);
             prep.setLong(2, lobId);

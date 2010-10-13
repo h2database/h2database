@@ -597,9 +597,6 @@ public class Database implements DataHandler {
                 addDatabaseObject(systemSession, setting);
             }
         }
-        if (SysProperties.LOB_IN_DATABASE) {
-            getLobStorage().init();
-        }
         systemSession.commit(true);
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
         afterWriting();
@@ -1361,10 +1358,11 @@ public class Database implements DataHandler {
         }
         update(session, obj);
         // remember that this scans only one level deep!
-        for (int i = 0; list != null && i < list.size(); i++) {
-            DbObject o = list.get(i);
-            if (o.getCreateSQL() != null) {
-                update(session, o);
+        if (list != null) {
+            for (DbObject o : list) {
+                if (o.getCreateSQL() != null) {
+                    update(session, o);
+                }
             }
         }
     }

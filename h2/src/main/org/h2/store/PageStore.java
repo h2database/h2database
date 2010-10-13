@@ -474,8 +474,9 @@ public class PageStore implements CacheWriter {
         boolean isCompactFully = compactMode == CommandInterface.SHUTDOWN_COMPACT;
         boolean isDefrag = compactMode == CommandInterface.SHUTDOWN_DEFRAG;
 
-        int testWithReopen;
-        // isCompactFully = isDefrag = true;
+        if (SysProperties.defragAlways) {
+            isCompactFully = isDefrag = true;
+        }
 
         int maxCompactTime = SysProperties.MAX_COMPACT_TIME;
         int maxMove = SysProperties.MAX_COMPACT_COUNT;
@@ -515,8 +516,7 @@ public class PageStore implements CacheWriter {
             recordedPagesIndex = new IntIntHashMap();
             recordPageReads = true;
             Session s = database.getSystemSession();
-            for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+            for (Table table : tables) {
                 if (!table.isTemporary() && table.getTableType().equals(Table.TABLE)) {
                     Index scanIndex = table.getScanIndex(s);
                     Cursor cursor = scanIndex.find(s, null, null);
@@ -536,7 +536,7 @@ public class PageStore implements CacheWriter {
             recordPageReads = false;
             int target = MIN_PAGE_COUNT - 1;
             int temp = 0;
-            for (int i = 0; i < recordedPagesList.size(); i++) {
+            for (int i = 0, size = recordedPagesList.size(); i < size; i++) {
                 writeBack();
                 int source = recordedPagesList.get(i);
                 Page pageSource = getPage(source);

@@ -18,12 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The index condition columnName IS NULL was not efficient when using a clustered index.
+<ul><li>The Windows .bat files did not contain CR+LF.
+</li><li>The LOB storage (when the system property h2.lobInDatabase is set) is now only initialized when needed.
+</li><li>The index condition columnName IS NULL was not efficient when using a clustered index.
 </li><li>The Recover tool did not work for databases larger than 2 GB.
 </li><li>In memory database: outer joins with a condition "column is null" could return the wrong result.
 </li><li>Temporary files were not created in the temporary directory of the system, but in the current working directory.
-    This affected temporary undo log files for read-only databases, temporary files for large result sets when using read-only databases, 
-    and temporary lob files when storing LOBs in the database (system property h2.lobInDatabase).
+    This affected temporary undo log files for read-only databases, temporary files for large result sets when using read-only databases,
+    and temporary LOB files when storing LOBs in the database (system property h2.lobInDatabase).
+    When the setting h2.lobInDatabase is not set,
+    temporary LOB files are still stored in a sub-directory (.lobs.db/) of the current working directory.
 </li><li>New experimental feature to speed up CREATE TABLE ... AS SELECT.
     To enable the feature, set the system property h2.optimizeInsertFromSelect to true.
     For large queries, performance can be doubled.

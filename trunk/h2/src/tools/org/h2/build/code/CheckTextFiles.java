@@ -27,6 +27,7 @@ public class CheckTextFiles {
             "java", "txt", "properties", "sql", "xml", "csv", "Driver", "prefs" };
     private static final String[] SUFFIX_IGNORE = { "gif", "png", "odg", "ico", "sxd",
             "layout", "res", "win", "jar", "task", "svg", "MF", "sh", "DS_Store", "prop" };
+    private static final String[] SUFFIX_CRLF = { "bat" };
 
     private boolean failOnError;
     private boolean allowTab, allowCR = true, allowTrailingSpaces;
@@ -99,6 +100,13 @@ public class CheckTextFiles {
             }
             if (ignore == check) {
                 throw new RuntimeException("Unknown suffix: " + suffix + " for file: " + file.getAbsolutePath());
+            }
+            useCRLF = false;
+            for (String s : SUFFIX_CRLF) {
+                if (suffix.equals(s)) {
+                    useCRLF = true;
+                    break;
+                }
             }
             if (check) {
                 checkOrFixFile(file, autoFix, checkLicense);

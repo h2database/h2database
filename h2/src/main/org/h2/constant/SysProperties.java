@@ -254,6 +254,12 @@ public class SysProperties {
     public static final int DEFAULT_RESULT_SET_CONCURRENCY = getIntSetting("h2.defaultResultSetConcurrency", ResultSet.CONCUR_READ_ONLY);
 
     /**
+     * System property <code>h2.defragAlways</code> (default: false).<br />
+     * Each time the database is closed, it is fully defragmented (SHUTDOWN DEFRAG).
+     */
+    public static boolean defragAlways = getBooleanSetting("h2.defragAlways", false);
+
+    /**
      * System property <code>h2.dataSourceTraceLevel</code> (default: 1).<br />
      * The trace level of the data source implementation. Default is 1 for
      * error.

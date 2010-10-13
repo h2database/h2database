@@ -195,11 +195,13 @@ public class ViewIndex extends BaseIndex {
             return new ViewCursor(table, result);
         }
         ArrayList<Parameter> paramList = query.getParameters();
-        for (int i = 0; originalParameters != null && i < originalParameters.size(); i++) {
-            Parameter orig = originalParameters.get(i);
-            int idx = orig.getIndex();
-            Value value = orig.getValue(session);
-            setParameter(paramList, idx, value);
+        if (originalParameters != null) {
+            for (int i = 0, size = originalParameters.size(); i < size; i++) {
+                Parameter orig = originalParameters.get(i);
+                int idx = orig.getIndex();
+                Value value = orig.getValue(session);
+                setParameter(paramList, idx, value);
+            }
         }
         int len;
         if (first != null) {

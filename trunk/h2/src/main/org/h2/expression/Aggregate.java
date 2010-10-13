@@ -548,10 +548,12 @@ public class Aggregate extends Expression {
         if (separator != null && !separator.isEverything(visitor)) {
             return false;
         }
-        for (int i = 0; orderList != null && i < orderList.size(); i++) {
-            SelectOrderBy o = orderList.get(i);
-            if (!o.expression.isEverything(visitor)) {
-                return false;
+        if (orderList != null) {
+            for (int i = 0, size = orderList.size(); i < size; i++) {
+                SelectOrderBy o = orderList.get(i);
+                if (!o.expression.isEverything(visitor)) {
+                    return false;
+                }
             }
         }
         return true;

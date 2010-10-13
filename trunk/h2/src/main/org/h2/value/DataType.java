@@ -351,7 +351,7 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 400
         );
-        for (int i = 0; i < TYPES_BY_VALUE_TYPE.size(); i++) {
+        for (int i = 0, size = TYPES_BY_VALUE_TYPE.size(); i < size; i++) {
             DataType dt = TYPES_BY_VALUE_TYPE.get(i);
             if (dt == null) {
                 DbException.throwInternalError("unmapped type " + i);

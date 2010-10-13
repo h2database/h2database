@@ -85,11 +85,11 @@ public class Merge extends Prepared {
         session.setLastIdentity(ValueLong.get(0));
         if (list.size() > 0) {
             count = 0;
-            for (int x = 0; x < list.size(); x++) {
+            for (int x = 0, size = list.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
                 Expression[] expr = list.get(x);
                 Row newRow = table.getTemplateRow();
-                for (int i = 0; i < columns.length; i++) {
+                for (int i = 0, len = columns.length; i < len; i++) {
                     Column c = columns[i];
                     int index = c.getColumnId();
                     Expression e = expr[i];

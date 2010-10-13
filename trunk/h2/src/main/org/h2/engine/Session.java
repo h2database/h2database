@@ -631,6 +631,7 @@ public class Session extends SessionWithState {
             // MVCC: keep shared locks (insert / update / delete)
             return;
         }
+        // locks is modified in the loop
         for (int i = 0; i < locks.size(); i++) {
             Table t = locks.get(i);
             if (!t.isLockedExclusively()) {
@@ -661,7 +662,7 @@ public class Session extends SessionWithState {
         if (locks.size() > 0) {
             synchronized (database) {
                 // don't use the enhance for loop to safe memory
-                for (int i = 0; i < locks.size(); i++) {
+                for (int i = 0, size = locks.size(); i < size; i++) {
                     Table t = locks.get(i);
                     t.unlock(this);
                 }

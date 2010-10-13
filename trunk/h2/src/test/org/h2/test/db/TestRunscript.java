@@ -43,11 +43,11 @@ public class TestRunscript extends TestBase implements Trigger {
         Connection conn;
         conn = getConnection("runscript");
         final Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key) as select x from system_range(1, 10000)");
+        stat.execute("create table test(id int primary key) as select x from system_range(1, 20000)");
         stat.execute("script simple drop to '"+getBaseDir()+"/backup.sql'");
         stat.execute("set throttle 1000");
         // need to wait a bit (throttle is only used every 50 ms)
-        Thread.sleep(100);
+        Thread.sleep(200);
         final String dir = getBaseDir();
         final SQLException[] ex = new SQLException[1];
         Thread thread;
@@ -62,7 +62,7 @@ public class TestRunscript extends TestBase implements Trigger {
             }
         };
         thread.start();
-        Thread.sleep(100);
+        Thread.sleep(200);
         stat.cancel();
         thread.join();
         e = ex[0];

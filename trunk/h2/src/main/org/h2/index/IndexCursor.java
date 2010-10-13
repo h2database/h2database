@@ -73,7 +73,7 @@ public class IndexCursor implements Cursor {
         inResult = null;
         inResultTested = null;
         // don't use enhanced for loop to avoid creating objects
-        for (int i = 0; i < indexConditions.size(); i++) {
+        for (int i = 0, size = indexConditions.size(); i < size; i++) {
             IndexCondition condition = indexConditions.get(i);
             if (condition.isAlwaysFalse()) {
                 alwaysFalse = true;

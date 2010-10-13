@@ -214,8 +214,9 @@ public abstract class Query extends Prepared {
         if (list == null) {
             list = New.arrayList();
         }
-        Value[] params = new Value[list.size()];
-        for (int i = 0; i < list.size(); i++) {
+        int size = list.size();
+        Value[] params = new Value[size];
+        for (int i = 0; i < size; i++) {
             Value v = list.get(i).getParamValue();
             params[i] = v;
         }
@@ -330,12 +331,14 @@ public abstract class Query extends Prepared {
                 }
             } else {
                 String s = e.getSQL();
-                for (int j = 0; expressionSQL != null && j < expressionSQL.size(); j++) {
-                    String s2 = expressionSQL.get(j);
-                    if (s2.equals(s)) {
-                        idx = j;
-                        isAlias = true;
-                        break;
+                if (expressionSQL != null) {
+                    for (int j = 0, size = expressionSQL.size(); j < size; j++) {
+                        String s2 = expressionSQL.get(j);
+                        if (s2.equals(s)) {
+                            idx = j;
+                            isAlias = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -360,9 +363,10 @@ public abstract class Query extends Prepared {
      * @return the {@link SortOrder} object
      */
     public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) {
-        int[] index = new int[orderList.size()];
-        int[] sortType = new int[orderList.size()];
-        for (int i = 0; i < orderList.size(); i++) {
+        int size = orderList.size();
+        int[] index = new int[size];
+        int[] sortType = new int[size];
+        for (int i = 0; i < size; i++) {
             SelectOrderBy o = orderList.get(i);
             int idx;
             boolean reverse = false;

@@ -64,7 +64,7 @@ public class SHA256 {
         String user = userName + "@";
         byte[] buff = new byte[2 * (user.length() + password.length)];
         int n = 0;
-        for (int i = 0; i < user.length(); i++) {
+        for (int i = 0, length = user.length(); i < length; i++) {
             char c = user.charAt(i);
             buff[n++] = (byte) (c >> 8);
             buff[n++] = (byte) c;

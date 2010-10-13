@@ -565,12 +565,14 @@ public abstract class Table extends SchemaObjectBase {
         item.setIndex(getScanIndex(session));
         item.cost = item.getIndex().getCost(session, null);
         ArrayList<Index> indexes = getIndexes();
-        for (int i = 1; indexes != null && masks != null && i < indexes.size(); i++) {
-            Index index = indexes.get(i);
-            double cost = index.getCost(session, masks);
-            if (cost < item.cost) {
-                item.cost = cost;
-                item.setIndex(index);
+        if (indexes != null && masks != null) {
+            for (int i = 1, size = indexes.size(); i < size; i++) {
+                Index index = indexes.get(i);
+                double cost = index.getCost(session, masks);
+                if (cost < item.cost) {
+                    item.cost = cost;
+                    item.setIndex(index);
+                }
             }
         }
         return item;
@@ -583,10 +585,12 @@ public abstract class Table extends SchemaObjectBase {
      */
     public Index findPrimaryKey() {
         ArrayList<Index> indexes = getIndexes();
-        for (int i = 0; indexes != null && i < indexes.size(); i++) {
-            Index idx = indexes.get(i);
-            if (idx.getIndexType().isPrimaryKey()) {
-                return idx;
+        if (indexes != null) {
+            for (int i = 0, size = indexes.size(); i < size; i++) {
+                Index idx = indexes.get(i);
+                if (idx.getIndexType().isPrimaryKey()) {
+                    return idx;
+                }
             }
         }
         return null;
@@ -797,7 +801,7 @@ public abstract class Table extends SchemaObjectBase {
     private void fireConstraints(Session session, Row oldRow, Row newRow, boolean before) {
         if (constraints != null) {
             // don't use enhanced for loop to avoid creating objects
-            for (int i = 0; i < constraints.size(); i++) {
+            for (int i = 0, size = constraints.size(); i < size; i++) {
                 Constraint constraint = constraints.get(i);
                 if (constraint.isBefore() == before) {
                     constraint.checkRow(session, this, oldRow, newRow);
@@ -856,9 +860,10 @@ public abstract class Table extends SchemaObjectBase {
     public void setCheckForeignKeyConstraints(Session session, boolean enabled, boolean checkExisting)
             {
         if (enabled && checkExisting) {
-            for (int i = 0; constraints != null && i < constraints.size(); i++) {
-                Constraint c = constraints.get(i);
-                c.checkExistingData(session);
+            if (constraints != null) {
+                for (Constraint c : constraints) {
+                    c.checkExistingData(session);
+                }
             }
         }
         checkForeignKeyConstraints = enabled;
@@ -878,12 +883,14 @@ public abstract class Table extends SchemaObjectBase {
      */
     public Index getIndexForColumn(Column column, boolean first) {
         ArrayList<Index> indexes = getIndexes();
-        for (int i = 1; indexes != null && i < indexes.size(); i++) {
-            Index index = indexes.get(i);
-            if (index.canGetFirstOrLast()) {
-                int idx = index.getColumnIndex(column);
-                if (idx == 0) {
-                    return index;
+        if (indexes != null) {
+            for (int i = 1, size = indexes.size(); i < size; i++) {
+                Index index = indexes.get(i);
+                if (index.canGetFirstOrLast()) {
+                    int idx = index.getColumnIndex(column);
+                    if (idx == 0) {
+                        return index;
+                    }
                 }
             }
         }
@@ -915,12 +922,13 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void removeIndexOrTransferOwnership(Session session, Index index) {
         boolean stillNeeded = false;
-        for (int i = 0; constraints != null && i < constraints.size(); i++) {
-            Constraint cons = constraints.get(i);
-            if (cons.usesIndex(index)) {
-                cons.setIndexOwner(index);
-                database.update(session, cons);
-                stillNeeded = true;
+        if (constraints != null) {
+            for (Constraint cons : constraints) {
+                if (cons.usesIndex(index)) {
+                    cons.setIndexOwner(index);
+                    database.update(session, cons);
+                    stillNeeded = true;
+                }
             }
         }
         if (!stillNeeded) {

@@ -238,13 +238,15 @@ public class Select extends Query {
             return null;
         }
         ArrayList<Index> indexes = topTableFilter.getTable().getIndexes();
-        for (int i = 0; indexes != null && i < indexes.size(); i++) {
-            Index index = indexes.get(i);
-            if (index.getIndexType().isScan()) {
-                continue;
-            }
-            if (isGroupSortedIndex(topTableFilter, index)) {
-                return index;
+        if (indexes != null) {
+            for (int i = 0, size = indexes.size(); i < size; i++) {
+                Index index = indexes.get(i);
+                if (index.getIndexType().isScan()) {
+                    continue;
+                }
+                if (isGroupSortedIndex(topTableFilter, index)) {
+                    return index;
+                }
             }
         }
         return null;
@@ -256,7 +258,7 @@ public class Select extends Query {
         // also check that the first columns in the index are grouped
         boolean[] grouped = new boolean[indexColumns.length];
         outerLoop:
-        for (int i = 0; i < expressions.size(); i++) {
+        for (int i = 0, size = expressions.size(); i < size; i++) {
             if (!groupByExpression[i]) {
                 continue;
             }
@@ -407,38 +409,40 @@ public class Select extends Query {
             return topTableFilter.getTable().getScanIndex(session);
         }
         ArrayList<Index> list = topTableFilter.getTable().getIndexes();
-        for (int i = 0; list != null && i < list.size(); i++) {
-            Index index = list.get(i);
-            if (index.getCreateSQL() == null) {
-                // can't use the scan index
-                continue;
-            }
-            if (index.getIndexType().isHash()) {
-                continue;
-            }
-            IndexColumn[] indexCols = index.getIndexColumns();
-            if (indexCols.length < sortCols.length) {
-                continue;
-            }
-            boolean ok = true;
-            for (int j = 0; j < sortCols.length; j++) {
-                // the index and the sort order must start
-                // with the exact same columns
-                IndexColumn idxCol = indexCols[j];
-                Column sortCol = sortCols[j];
-                if (idxCol.column != sortCol) {
-                    ok = false;
-                    break;
+        if (list != null) {
+            for (int i = 0, size = list.size(); i < size; i++) {
+                Index index = list.get(i);
+                if (index.getCreateSQL() == null) {
+                    // can't use the scan index
+                    continue;
                 }
-                if (idxCol.sortType != sortTypes[j]) {
-                    // NULL FIRST for ascending and NULLS LAST
-                    // for descending would actually match the default
-                    ok = false;
-                    break;
+                if (index.getIndexType().isHash()) {
+                    continue;
                 }
-            }
-            if (ok) {
-                return index;
+                IndexColumn[] indexCols = index.getIndexColumns();
+                if (indexCols.length < sortCols.length) {
+                    continue;
+                }
+                boolean ok = true;
+                for (int j = 0; j < sortCols.length; j++) {
+                    // the index and the sort order must start
+                    // with the exact same columns
+                    IndexColumn idxCol = indexCols[j];
+                    Column sortCol = sortCols[j];
+                    if (idxCol.column != sortCol) {
+                        ok = false;
+                        break;
+                    }
+                    if (idxCol.sortType != sortTypes[j]) {
+                        // NULL FIRST for ascending and NULLS LAST
+                        // for descending would actually match the default
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) {
+                    return index;
+                }
             }
         }
         return null;
@@ -617,6 +621,7 @@ public class Select extends Query {
     }
 
     private void expandColumnList() {
+        // the expressions may change within the loop
         for (int i = 0; i < expressions.size(); i++) {
             Expression expr = expressions.get(i);
             if (!expr.isWildcard()) {
@@ -696,12 +701,14 @@ public class Select extends Query {
         // then 'HAVING' expressions,
         // and 'GROUP BY' expressions at the end
         if (group != null) {
-            groupIndex = new int[group.size()];
-            for (int i = 0; i < group.size(); i++) {
+            int size = group.size();
+            int expSize = expressionSQL.size();
+            groupIndex = new int[size];
+            for (int i = 0; i < size; i++) {
                 Expression expr = group.get(i);
                 String sql = expr.getSQL();
                 int found = -1;
-                for (int j = 0; j < expressionSQL.size(); j++) {
+                for (int j = 0; j < expSize; j++) {
                     String s2 = expressionSQL.get(j);
                     if (s2.equals(sql)) {
                         found = j;
@@ -710,7 +717,7 @@ public class Select extends Query {
                 }
                 if (found < 0) {
                     // special case: GROUP BY a column alias
-                    for (int j = 0; j < expressionSQL.size(); j++) {
+                    for (int j = 0; j < expSize; j++) {
                         Expression e = expressions.get(j);
                         if (sql.equals(e.getAlias())) {
                             found = j;

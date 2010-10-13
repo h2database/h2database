@@ -156,9 +156,11 @@ public abstract class Prepared {
      * @throws SQLException if any parameter has not been set
      */
     protected void checkParameters() {
-        for (int i = 0; parameters != null && i < parameters.size(); i++) {
-            Parameter param = parameters.get(i);
-            param.checkSet();
+        if (parameters != null) {
+            for (int i = 0, size = parameters.size(); i < size; i++) {
+                Parameter param = parameters.get(i);
+                param.checkSet();
+            }
         }
     }
 

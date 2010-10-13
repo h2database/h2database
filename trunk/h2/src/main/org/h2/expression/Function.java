@@ -146,7 +146,7 @@ public class Function extends Expression implements FunctionCall {
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
         char number = 0;
-        for (int i = 0; i < index.length(); i++) {
+        for (int i = 0, length = index.length(); i < length; i++) {
             char c = index.charAt(i);
             if (c < '9') {
                 number = c;

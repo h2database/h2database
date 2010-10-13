@@ -173,18 +173,19 @@ public class CacheLRU implements Cache {
             }
             Collections.sort(changed);
             int max = maxMemory;
+            int size = changed.size();
             try {
                 // temporary disable size checking,
                 // to avoid stack overflow
                 maxMemory = Integer.MAX_VALUE;
-                for (i = 0; i < changed.size(); i++) {
+                for (i = 0; i < size; i++) {
                     CacheObject rec = changed.get(i);
                     writer.writeBack(rec);
                 }
             } finally {
                 maxMemory = max;
             }
-            for (i = 0; i < changed.size(); i++) {
+            for (i = 0; i < size; i++) {
                 CacheObject rec = changed.get(i);
                 remove(rec.getPos());
                 if (SysProperties.CHECK) {

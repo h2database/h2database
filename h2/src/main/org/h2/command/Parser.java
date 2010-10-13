@@ -429,7 +429,7 @@ public class Parser {
                 throw getSyntaxError();
             }
             if (indexedParameterList != null) {
-                for (int i = 0; i < indexedParameterList.size(); i++) {
+                for (int i = 0, size = indexedParameterList.size(); i < size; i++) {
                     if (indexedParameterList.get(i) == null) {
                         indexedParameterList.set(i, new Parameter(i));
                     }
@@ -844,9 +844,11 @@ public class Parser {
     private Prepared prepare(Session s, String sql, ArrayList<Value> paramValues) {
         Prepared prep = s.prepare(sql);
         ArrayList<Parameter> params = prep.getParameters();
-        for (int i = 0; params != null && i < params.size(); i++) {
-            Parameter p = params.get(i);
-            p.setValue(paramValues.get(i));
+        if (params != null) {
+            for (int i = 0, size = params.size(); i < size; i++) {
+                Parameter p = params.get(i);
+                p.setValue(paramValues.get(i));
+            }
         }
         return prep;
     }
@@ -955,11 +957,7 @@ public class Parser {
             if (isSelect()) {
                 Query query = parseSelectUnion();
                 read(")");
-                ArrayList<Parameter> params = New.arrayList();
-                for (int i = 0; i < parameters.size(); i++) {
-                    params.add(parameters.get(i));
-                }
-                query.setParameterList(params);
+                query.setParameterList(New.arrayList(parameters));
                 query.init();
                 Session s;
                 if (createView != null) {
@@ -1404,7 +1402,7 @@ public class Parser {
         int paramIndex = parameters.size();
         Query command = parseSelectUnion();
         ArrayList<Parameter> params = New.arrayList();
-        for (int i = paramIndex; i < parameters.size(); i++) {
+        for (int i = paramIndex, size = parameters.size(); i < size; i++) {
             params.add(parameters.get(i));
         }
         command.setParameterList(params);
@@ -5053,7 +5051,7 @@ public class Parser {
         if ((!Character.isLetter(c) && c != '_') || Character.isLowerCase(c)) {
             return StringUtils.quoteIdentifier(s);
         }
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = 1, length = s.length(); i < length; i++) {
             c = s.charAt(i);
             if ((!Character.isLetterOrDigit(c) && c != '_') || Character.isLowerCase(c)) {
                 return StringUtils.quoteIdentifier(s);

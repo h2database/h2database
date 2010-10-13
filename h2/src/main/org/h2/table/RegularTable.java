@@ -111,7 +111,7 @@ public class RegularTable extends TableBase {
             row.setSessionId(session.getId());
         }
         try {
-            for (; i < indexes.size(); i++) {
+            for (int size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
                 index.add(session, row);
                 checkRowCount(session, index, 1);

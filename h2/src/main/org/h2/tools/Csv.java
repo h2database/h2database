@@ -289,8 +289,9 @@ public class Csv implements SimpleRowSource {
                 return data;
             }
         }
-        StringBuilder buff = new StringBuilder(data.length());
-        for (int i = 0; i < data.length(); i++) {
+        int length = data.length();
+        StringBuilder buff = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             char ch = data.charAt(i);
             if (ch == fieldDelimiter || ch == escapeCharacter) {
                 buff.append(escapeCharacter);
@@ -357,7 +358,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private boolean isSimpleColumnName(String columnName) {
-        for (int i = 0; i < columnName.length(); i++) {
+        for (int i = 0, length = columnName.length(); i < length; i++) {
             char ch = columnName.charAt(i);
             if (i == 0) {
                 if (ch != '_' && !Character.isLetter(ch)) {

@@ -81,7 +81,8 @@ public class ConditionIn extends Condition {
             return left;
         }
         boolean allValuesConstant = true;
-        for (int i = 0; i < valueList.size(); i++) {
+        int size = valueList.size();
+        for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             e = e.optimize(session);
             if (allValuesConstant && !e.isConstant()) {
@@ -92,7 +93,7 @@ public class ConditionIn extends Condition {
         if (constant && allValuesConstant) {
             return ValueExpression.get(getValue(session));
         }
-        if (valueList.size() == 1) {
+        if (size == 1) {
             Expression right = valueList.get(0);
             Expression expr = new Comparison(session, Comparison.EQUAL, left, right);
             expr = expr.optimize(session);

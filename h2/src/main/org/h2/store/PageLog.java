@@ -517,8 +517,9 @@ public class PageLog {
         }
         Data buffer = getBuffer();
         buffer.writeByte((byte) FREE_LOG);
-        buffer.writeVarInt(pages.size());
-        for (int i = 0; i < pages.size(); i++) {
+        int size = pages.size();
+        buffer.writeVarInt(size);
+        for (int i = 0; i < size; i++) {
             buffer.writeVarInt(pages.get(i));
         }
         write(buffer);

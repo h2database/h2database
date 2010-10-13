@@ -92,7 +92,7 @@ public class RowList {
         }
         Data buff = rowBuff;
         initBuffer(buff);
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0, size = list.size(); i < size; i++) {
             if (i > 0 && buff.length() > Constants.IO_BUFFER_SIZE) {
                 flushBuffer(buff);
                 initBuffer(buff);

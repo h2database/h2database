@@ -108,9 +108,10 @@ public class StringUtils {
         if (s == null) {
             return "NULL";
         }
-        StringBuilder buff = new StringBuilder(s.length() + 2);
+        int length = s.length();
+        StringBuilder buff = new StringBuilder(length + 2);
         buff.append('\'');
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             if (c == '\'') {
                 buff.append(c);
@@ -134,8 +135,9 @@ public class StringUtils {
      * @return the Java representation
      */
     public static String javaEncode(String s) {
-        StringBuilder buff = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); i++) {
+        int length = s.length();
+        StringBuilder buff = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             switch (c) {
 //            case '\b':
@@ -213,8 +215,9 @@ public class StringUtils {
      * @return the string
      */
     public static String javaDecode(String s) {
-        StringBuilder buff = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); i++) {
+        int length = s.length();
+        StringBuilder buff = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             if (c == '"') {
                 break;
@@ -449,9 +452,10 @@ public class StringUtils {
      * @return the decoded string
      */
     public static String urlDecode(String encoded) {
-        byte[] buff = new byte[encoded.length()];
+        int length = encoded.length();
+        byte[] buff = new byte[length];
         int j = 0;
-        for (int i = 0; i < encoded.length(); i++) {
+        for (int i = 0; i < length; i++) {
             char ch = encoded.charAt(i);
             if (ch == '+') {
                 buff[j++] = ' ';
@@ -485,18 +489,19 @@ public class StringUtils {
         if (s == null) {
             return null;
         }
-        if (s.length() == 0) {
+        int length = s.length();
+        if (length == 0) {
             return new String[0];
         }
         ArrayList<String> list = New.arrayList();
-        StringBuilder buff = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); i++) {
+        StringBuilder buff = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             if (c == separatorChar) {
                 String e = buff.toString();
                 list.add(trim ? e.trim() : e);
                 buff.setLength(0);
-            } else if (c == '\\' && i < s.length() - 1) {
+            } else if (c == '\\' && i < length - 1) {
                 buff.append(s.charAt(++i));
             } else {
                 buff.append(c);
@@ -525,7 +530,7 @@ public class StringUtils {
             if (s == null) {
                 s = "";
             }
-            for (int j = 0; j < s.length(); j++) {
+            for (int j = 0, length = s.length(); j < length; j++) {
                 char c = s.charAt(j);
                 if (c == '\\' || c == separatorChar) {
                     buff.append('\\');
@@ -656,8 +661,9 @@ public class StringUtils {
      * @return the escaped text
      */
     public static String xmlText(String text) {
-        StringBuilder buff = new StringBuilder(text.length());
-        for (int i = 0; i < text.length(); i++) {
+        int length = text.length();
+        StringBuilder buff = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             char ch = text.charAt(i);
             switch (ch) {
             case '<':
@@ -745,9 +751,10 @@ public class StringUtils {
      * @return the double quoted text
      */
     public static String quoteIdentifier(String s) {
-        StringBuilder buff = new StringBuilder(s.length() + 2);
+        int length = s.length();
+        StringBuilder buff = new StringBuilder(length + 2);
         buff.append('\"');
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             if (c == '"') {
                 buff.append(c);

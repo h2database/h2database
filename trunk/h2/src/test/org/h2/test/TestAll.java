@@ -39,7 +39,6 @@ import org.h2.test.db.TestMultiConn;
 import org.h2.test.db.TestMultiDimension;
 import org.h2.test.db.TestMultiThread;
 import org.h2.test.db.TestMultiThreadedKernel;
-import org.h2.test.db.TestNestedJoins;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
 import org.h2.test.db.TestOutOfMemory;
@@ -104,6 +103,8 @@ import org.h2.test.synth.TestKill;
 import org.h2.test.synth.TestKillRestart;
 import org.h2.test.synth.TestKillRestartMulti;
 import org.h2.test.synth.TestMultiThreaded;
+import org.h2.test.synth.TestNestedJoins;
+import org.h2.test.synth.TestOuterJoins;
 import org.h2.test.synth.TestRandomCompare;
 import org.h2.test.synth.TestRandomSQL;
 import org.h2.test.synth.TestTimer;
@@ -281,6 +282,11 @@ java org.h2.test.TestAll timer
     boolean stopOnError;
 
     /**
+     * If the database should always be defragmented when closing.
+     */
+    boolean defrag;
+
+    /**
      * The cache type.
      */
     String cacheType;
@@ -439,6 +445,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
         mvcc = traceTest = stopOnError = false;
+        defrag = false;
         traceLevelFile = throttle = 0;
         cipher = null;
         test();
@@ -464,6 +471,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         throttle = 0;
         cacheType = null;
         cipher = null;
+        defrag = true;
         test();
 
         traceLevelFile = 2;
@@ -471,6 +479,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         smallLog = true;
         networked = true;
         ssl = true;
+        defrag = false;
         test();
 
         smallLog = false;
@@ -532,7 +541,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMultiDimension().runTest(this);
         new TestMultiThread().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
-        new TestNestedJoins().runTest(this);
         new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
         new TestOutOfMemory().runTest(this);
@@ -604,6 +612,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestKillRestart().runTest(this);
         new TestKillRestartMulti().runTest(this);
         new TestMultiThreaded().runTest(this);
+        new TestOuterJoins().runTest(this);
+        new TestNestedJoins().runTest(this);
 
         afterTest();
     }
@@ -737,6 +747,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, throttle > 0, "throttle:" + throttle);
         appendIf(buff, traceTest, "traceTest");
         appendIf(buff, stopOnError, "stopOnError");
+        appendIf(buff, defrag, "defrag");
         return buff.toString();
     }
 

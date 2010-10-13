@@ -107,6 +107,7 @@ public abstract class TestBase {
     public TestBase init(TestAll conf) throws Exception {
         baseDir = getTestDir("");
         System.setProperty("java.io.tmpdir", TEMP_DIR);
+        SysProperties.defragAlways = conf.defrag;
         this.config = conf;
         return this;
     }

@@ -237,6 +237,7 @@ public class TableFilter implements ColumnResolver {
      */
     public void prepare() {
         // forget all unused index conditions
+        // the indexConditions list may be modified here
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition condition = indexConditions.get(i);
             if (!condition.isAlwaysFalse()) {
@@ -530,7 +531,15 @@ public class TableFilter implements ColumnResolver {
             if (join == null) {
                 join = filter;
                 filter.joinOuter = outer;
-                if (!SysProperties.NESTED_JOINS) {
+                if (SysProperties.NESTED_JOINS) {
+                    if (outer) {
+                        filter.visit(new TableFilterVisitor() {
+                            public void accept(TableFilter f) {
+                                f.joinOuterIndirect = true;
+                            }
+                        });
+                    }
+                } else {
                     if (outer) {
                         // convert all inner joins on the right hand side to outer joins
                         TableFilter f = filter.join;
@@ -667,6 +676,7 @@ public class TableFilter implements ColumnResolver {
      * Remove all index conditions that are not used by the current index.
      */
     void removeUnusableIndexConditions() {
+        // the indexConditions list may be modified here
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition cond = indexConditions.get(i);
             if (!cond.isEvaluatable()) {

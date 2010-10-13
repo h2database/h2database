@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.db;
+package org.h2.test.synth;
 
 import java.io.File;
 import java.io.StringReader;
@@ -25,7 +25,7 @@ import org.h2.util.ScriptReader;
 /**
  * Tests nested joins and right outer joins.
  */
-public class TestNestedJoins extends TestBase {
+public class TestOuterJoins extends TestBase {
 
     private ArrayList<Statement> dbs = New.arrayList();
 
@@ -37,7 +37,7 @@ public class TestNestedJoins extends TestBase {
     public static void main(String... a) throws Exception {
         System.setProperty("h2.nestedJoins", "true");
         TestBase test = TestBase.createCaller().init();
-        // test.config.traceTest = true;
+        test.config.traceTest = true;
         test.test();
     }
 
@@ -45,14 +45,14 @@ public class TestNestedJoins extends TestBase {
         if (!SysProperties.NESTED_JOINS) {
             return;
         }
-        deleteDb("nestedJoins");
+        deleteDb("outerJoins");
         testCases();
         testRandom();
-        deleteDb("nestedJoins");
+        deleteDb("outerJoins");
     }
 
     private void testRandom() throws Exception {
-        Connection conn = getConnection("nestedJoins");
+        Connection conn = getConnection("outerJoins");
         dbs.add(conn.createStatement());
 
         try {
@@ -62,51 +62,43 @@ public class TestNestedJoins extends TestBase {
         } catch (Exception e) {
             // database not installed - ok
         }
-
-        // Derby doesn't work currently
-        // deleteDerby();
-        // try {
-        //     Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        //     Connection c2 = DriverManager.getConnection(
-        //         "jdbc:derby:" + getBaseDir() +
-        //         "/derby/test;create=true", "sa", "sa");
-        //     dbs.add(c2.createStatement());
-        // } catch (Exception e) {
-        //     // database not installed - ok
-        // }
+        deleteDerby();
+        try {
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+            Connection c2 = DriverManager.getConnection(
+                    "jdbc:derby:" + getBaseDir() +
+                    "/derby/test;create=true", "sa", "sa");
+            dbs.add(c2.createStatement());
+        } catch (Exception e) {
+            // database not installed - ok
+        }
         String shortest = null;
         Throwable shortestEx = null;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 4; i++) {
             try {
-                execute("drop table t" + i);
+                executeAndLog("drop table t" + i);
             } catch (Exception e) {
                 // ignore
             }
-            String sql = "create table t" + i + "(x int)";
-            trace(sql + ";");
-            execute(sql);
-            if (i >= 4) {
-                for (int j = 0; j < i; j++) {
-                    sql = "insert into t" + i + " values(" + j + ")";
-                    trace(sql + ";");
-                    execute(sql);
-                }
-            }
         }
-        // the first 4 tables: all combinations
+        executeAndLog("create table t0(x int primary key)");
+        executeAndLog("create table t1(x int)");
+        // for H2, this will ensure it's not using a clustered index
+        executeAndLog("create table t2(x real primary key)");
+        executeAndLog("create table t3(x int)");
+        executeAndLog("create index idx_t3_x on t3(x)");
         for (int i = 0; i < 16; i++) {
             for (int j = 0; j < 4; j++) {
                 if ((i & (1 << j)) != 0) {
-                    String sql = "insert into t" + j + " values(" + i + ")";
-                    trace(sql + ";");
-                    execute(sql);
+                    executeAndLog("insert into t" + j + " values(" + i + ")");
                 }
             }
         }
-        Random random = new Random(1);
-        for (int i = 0; i < 10000; i++) {
+        Random random = new Random();
+        int len = getSize(500, 5000);
+        for (int i = 0; i < len; i++) {
             StringBuilder buff = new StringBuilder();
-            int t = 1 + random.nextInt(9);
+            int t = 1 + random.nextInt(3);
             buff.append("select ");
             for (int j = 0; j < t; j++) {
                 if (j > 0) {
@@ -116,6 +108,7 @@ public class TestNestedJoins extends TestBase {
             }
             buff.append("from ");
             appendRandomJoin(random, buff, 0, t - 1);
+            appendRandomCondition(random, buff, t);
             String sql = buff.toString();
             try {
                 execute(sql);
@@ -125,7 +118,6 @@ public class TestNestedJoins extends TestBase {
                     fail(sql);
                     // SQLException se = (SQLException) e;
                     // System.out.println(se);
-                    // System.out.println("  " + sql);
                 }
                 if (e != null) {
                     if (shortest == null || sql.length() < shortest.length()) {
@@ -139,7 +131,7 @@ public class TestNestedJoins extends TestBase {
             shortestEx.printStackTrace();
             fail(shortest + " " + shortestEx);
         }
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 4; i++) {
             try {
                 execute("drop table t" + i);
             } catch (Exception e) {
@@ -195,6 +187,65 @@ public class TestNestedJoins extends TestBase {
         buff.append(")");
     }
 
+    private void appendRandomCondition(Random random, StringBuilder buff, int max) {
+        if (max > 0 && random.nextInt(4) == 0) {
+            return;
+        }
+        buff.append(" where ");
+        int count = 1 + random.nextInt(3);
+        for (int i = 0; i < count; i++) {
+            if (i > 0) {
+                buff.append(random.nextBoolean() ? " and " : " or ");
+            }
+            buff.append("t" + random.nextInt(max) + ".x");
+            switch (random.nextInt(8)) {
+            case 0:
+                buff.append("=");
+                appendRandomValueOrColumn(random, buff, max);
+                break;
+            case 1:
+                buff.append(">=");
+                appendRandomValueOrColumn(random, buff, max);
+                break;
+            case 2:
+                buff.append("<=");
+                appendRandomValueOrColumn(random, buff, max);
+                break;
+            case 3:
+                buff.append("<");
+                appendRandomValueOrColumn(random, buff, max);
+                break;
+            case 4:
+                buff.append(">");
+                appendRandomValueOrColumn(random, buff, max);
+                break;
+            case 5:
+                buff.append("<>");
+                appendRandomValueOrColumn(random, buff, max);
+                break;
+            case 6:
+                buff.append(" is not null");
+                break;
+            case 7:
+                buff.append(" is null");
+                break;
+            }
+        }
+    }
+
+    private void appendRandomValueOrColumn(Random random, StringBuilder buff, int max) {
+        if (random.nextBoolean()) {
+            buff.append(random.nextInt(8) - 2);
+        } else {
+            buff.append("t" + random.nextInt(max) + ".x");
+        }
+    }
+
+    private void executeAndLog(String sql) throws SQLException {
+        trace(sql + ";");
+        execute(sql);
+    }
+
     private void execute(String sql) throws SQLException {
         String expected = null;
         SQLException e = null;
@@ -209,6 +260,8 @@ public class TestNestedJoins extends TestBase {
                         assertEquals(sql, expected, data);
                     }
                 }
+            } catch (AssertionError e2) {
+                e = new SQLException(e2.getMessage());
             } catch (SQLException e2) {
                 // ignore now, throw at the end
                 e = e2;
@@ -227,7 +280,8 @@ public class TestNestedJoins extends TestBase {
                 if (i > 0) {
                     buff.append(" ");
                 }
-                buff.append(rs.getString(i + 1));
+                int x = rs.getInt(i + 1);
+                buff.append(rs.wasNull() ? "null" : x);
             }
             list.add(buff.toString());
         }

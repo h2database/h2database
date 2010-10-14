@@ -49,12 +49,13 @@ public class RowList {
         buff.checkCapacity(1 + Data.LENGTH_INT * 8);
         buff.writeByte((byte) 1);
         buff.writeInt(r.getMemory());
-        buff.writeInt(r.getColumnCount());
+        int columnCount = r.getColumnCount();
+        buff.writeInt(columnCount);
         buff.writeLong(r.getKey());
         buff.writeInt(r.getVersion());
         buff.writeInt(r.isDeleted() ? 1 : 0);
         buff.writeInt(r.getSessionId());
-        for (int i = 0; i < r.getColumnCount(); i++) {
+        for (int i = 0; i < columnCount; i++) {
             Value v = r.getValue(i);
             buff.checkCapacity(1);
             if (v == null) {

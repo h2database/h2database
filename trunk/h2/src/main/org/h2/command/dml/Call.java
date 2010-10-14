@@ -105,7 +105,7 @@ public class Call extends Prepared {
     }
 
     public boolean isReadOnly() {
-        return expression.isEverything(ExpressionVisitor.READONLY);
+        return expression.isEverything(ExpressionVisitor.READONLY_VISITOR);
 
     }
 

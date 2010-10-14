@@ -1356,8 +1356,9 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static String rawToHex(String s) {
-        StringBuilder buff = new StringBuilder(4 * s.length());
-        for (int i = 0; i < s.length(); i++) {
+        int length = s.length();
+        StringBuilder buff = new StringBuilder(4 * length);
+        for (int i = 0; i < length; i++) {
             String hex = Integer.toHexString(s.charAt(i) & 0xffff);
             for (int j = hex.length(); j < 4; j++) {
                 buff.append('0');

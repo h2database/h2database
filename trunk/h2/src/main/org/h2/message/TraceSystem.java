@@ -100,7 +100,6 @@ public class TraceSystem implements TraceWriter {
     public TraceSystem(String fileName) {
         this.fileName = fileName;
         updateLevel();
-        traces = SmallLRUCache.newInstance(100);
     }
 
     private void updateLevel() {
@@ -126,6 +125,9 @@ public class TraceSystem implements TraceWriter {
      * @return the trace object
      */
     public synchronized Trace getTrace(String module) {
+        if (traces == null) {
+            traces = SmallLRUCache.newInstance(16);
+        }
         Trace t = traces.get(module);
         if (t == null) {
             t = new Trace(writer, module);

@@ -6,6 +6,7 @@
  */
 package org.h2.engine;
 
+import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.index.Index;
@@ -149,8 +150,9 @@ public class UndoLogRecord {
         }
         buff.writeLong(row.getKey());
         buff.writeInt(row.getSessionId());
-        buff.writeInt(row.getColumnCount());
-        for (int i = 0; i < row.getColumnCount(); i++) {
+        int count = row.getColumnCount();
+        buff.writeInt(count);
+        for (int i = 0; i < count; i++) {
             Value v = row.getValue(i);
             buff.checkCapacity(buff.getValueLen(v));
             buff.writeValue(v);
@@ -260,7 +262,9 @@ public class UndoLogRecord {
      * It commits the change to the indexes.
      */
     public void commit() {
-        for (Index index : table.getIndexes()) {
+        ArrayList<Index> indexes = table.getIndexes();
+        for (int i = 0, size = indexes.size(); i < size; i++) {
+            Index index = indexes.get(i);
             index.commit(operation, row);
         }
     }

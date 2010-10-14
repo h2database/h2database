@@ -148,7 +148,7 @@ public class Database implements DataHandler {
     private Mode mode = Mode.getInstance(Mode.REGULAR);
     private boolean multiThreaded;
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
-    private SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache.newInstance(128);
+    private SmallLRUCache<String, String[]> lobFileListCache;
     private boolean autoServerMode;
     private Server server;
     private HashMap<TableLinkConnection, TableLinkConnection> linkConnections;
@@ -672,7 +672,7 @@ public class Database implements DataHandler {
         }
         synchronized (infoSchema) {
             if (!metaTablesInitialized) {
-                for (int type = 0; type < MetaTable.getMetaTableTypeCount(); type++) {
+                for (int type = 0, count = MetaTable.getMetaTableTypeCount(); type < count; type++) {
                     MetaTable m = new MetaTable(infoSchema, -1 - type, type);
                     infoSchema.add(m);
                 }
@@ -1962,6 +1962,9 @@ public class Database implements DataHandler {
     }
 
     public SmallLRUCache<String, String[]> getLobFileListCache() {
+        if (lobFileListCache == null) {
+            lobFileListCache = SmallLRUCache.newInstance(128);
+        }
         return lobFileListCache;
     }
 

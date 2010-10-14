@@ -201,9 +201,10 @@ public class Aggregate extends Expression {
     }
 
     private SortOrder initOrder(Session session) {
-        int[] index = new int[orderList.size()];
-        int[] sortType = new int[orderList.size()];
-        for (int i = 0; i < orderList.size(); i++) {
+        int size = orderList.size();
+        int[] index = new int[size];
+        int[] sortType = new int[size];
+        for (int i = 0; i < size; i++) {
             SelectOrderBy o = orderList.get(i);
             index[i] = i + 1;
             int order = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
@@ -240,9 +241,10 @@ public class Aggregate extends Expression {
             if (v != ValueNull.INSTANCE) {
                 v = v.convertTo(Value.STRING);
                 if (orderList != null) {
-                    Value[] array = new Value[1 + orderList.size()];
+                    int size = orderList.size();
+                    Value[] array = new Value[1 + size];
                     array[0] = v;
-                    for (int i = 0; i < orderList.size(); i++) {
+                    for (int i = 0; i < size; i++) {
                         SelectOrderBy o = orderList.get(i);
                         array[i + 1] = o.expression.getValue(session);
                     }

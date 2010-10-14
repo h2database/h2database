@@ -22,7 +22,7 @@ public class PageFreeList extends Page {
     private static final int DATA_START = 3;
 
     private final PageStore store;
-    private final BitField used = new BitField();
+    private final BitField used;
     private final int pageCount;
     private boolean full;
     private Data data;
@@ -31,6 +31,7 @@ public class PageFreeList extends Page {
         setPos(pageId);
         this.store = store;
         pageCount = (store.getPageSize() - DATA_START) * 8;
+        used = new BitField(pageCount);
         used.set(0);
     }
 

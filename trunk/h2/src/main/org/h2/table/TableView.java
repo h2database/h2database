@@ -87,7 +87,7 @@ public class TableView extends Table {
             tables = New.arrayList(query.getTables());
             ArrayList<Expression> expressions = query.getExpressions();
             ArrayList<Column> list = New.arrayList();
-            for (int i = 0; i < query.getColumnCount(); i++) {
+            for (int i = 0, count = query.getColumnCount(); i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
                 if (columnNames != null && columnNames.length > i) {
@@ -389,7 +389,7 @@ public class TableView extends Table {
         if (recursive) {
             return false;
         }
-        return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC);
+        return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR);
     }
 
     public void setRecursiveResult(ResultInterface recursiveResult) {

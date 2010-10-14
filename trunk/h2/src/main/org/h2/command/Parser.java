@@ -651,7 +651,7 @@ public class Parser {
             read(")");
             read("=");
             Expression expression = readExpression();
-            for (int i = 0; i < columns.size(); i++) {
+            for (int i = 0, size = columns.size(); i < size; i++) {
                 Column column = columns.get(i);
                 Function f = Function.getFunction(database, "ARRAY_GET");
                 f.setParameter(0, expression);

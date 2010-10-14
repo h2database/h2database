@@ -49,7 +49,7 @@ public class CommandContainer extends Command {
             long mod = prepared.getModificationMetaId();
             prepared.setModificationMetaId(0);
             ArrayList<Parameter> newParams = prepared.getParameters();
-            for (int i = 0; i < newParams.size(); i++) {
+            for (int i = 0, size = newParams.size(); i < size; i++) {
                 Parameter old = oldParams.get(i);
                 if (old.isValueSet()) {
                     Value v = old.getValue(session);

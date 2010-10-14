@@ -49,7 +49,9 @@ public class IntArray {
      * @param value the value to append
      */
     public void add(int value) {
-        checkCapacity();
+        if (size >= data.length) {
+            ensureCapacity(size + size);
+        }
         data[size++] = value;
     }
 
@@ -83,9 +85,16 @@ public class IntArray {
         size--;
     }
 
-    private void checkCapacity() {
-        if (size >= data.length) {
-            int[] d = new int[Math.max(4, data.length * 2)];
+    /**
+     * Ensure the the underlying array is large enough for the given number of
+     * entries.
+     *
+     * @param minCapacity the minimum capacity
+     */
+    public void ensureCapacity(int minCapacity) {
+        minCapacity = Math.max(4, minCapacity);
+        if (minCapacity >= data.length) {
+            int[] d = new int[minCapacity];
             System.arraycopy(data, 0, d, 0, data.length);
             data = d;
         }

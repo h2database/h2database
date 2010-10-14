@@ -622,9 +622,10 @@ public class JdbcStatement extends TraceObject implements Statement {
                     // TODO batch: check what other database do if no commands are set
                     batchCommands = New.arrayList();
                 }
-                int[] result = new int[batchCommands.size()];
+                int size = batchCommands.size();
+                int[] result = new int[size];
                 boolean error = false;
-                for (int i = 0; i < batchCommands.size(); i++) {
+                for (int i = 0; i < size; i++) {
                     String sql = batchCommands.get(i);
                     try {
                         result[i] = executeUpdateInternal(sql);

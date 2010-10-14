@@ -511,9 +511,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *             closed
      */
     public int findColumn(String columnLabel) throws SQLException {
-        for (int i = 0; columnLabel != null && columns != null && i < columns.size(); i++) {
-            if (columnLabel.equalsIgnoreCase(getColumn(i).name)) {
-                return i + 1;
+        if (columnLabel != null && columns != null) {
+            for (int i = 0, size = columns.size(); i < size; i++) {
+                if (columnLabel.equalsIgnoreCase(getColumn(i).name)) {
+                    return i + 1;
+                }
             }
         }
         throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel).getSQLException();

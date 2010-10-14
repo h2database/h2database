@@ -203,7 +203,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             debugCodeCall("clearParameters");
             checkClosed();
             ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
-            for (ParameterInterface param : parameters) {
+            for (int i = 0, size = parameters.size(); i < size; i++) {
+                ParameterInterface param = parameters.get(i);
                 // can only delete old temp files if they are not in the batch
                 param.setValue(null, batchParameters == null);
             }
@@ -1068,12 +1069,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 // TODO batch: check what other database do if no parameters are set
                 batchParameters = New.arrayList();
             }
-            int[] result = new int[batchParameters.size()];
+            int size = batchParameters.size();
+            int[] result = new int[size];
             boolean error = false;
             SQLException next = null;
             checkClosedForWrite();
             try {
-                for (int i = 0; i < batchParameters.size(); i++) {
+                for (int i = 0; i < size; i++) {
                     Value[] set = batchParameters.get(i);
                     ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
                     for (int j = 0; j < set.length; j++) {
@@ -1122,8 +1124,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             checkClosedForWrite();
             try {
                 ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
-                Value[] set = new Value[parameters.size()];
-                for (int i = 0; i < parameters.size(); i++) {
+                int size = parameters.size();
+                Value[] set = new Value[size];
+                for (int i = 0; i < size; i++) {
                     ParameterInterface param = parameters.get(i);
                     Value value = param.getParamValue();
                     set[i] = value;
@@ -1494,7 +1497,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             ArrayList< ? extends ParameterInterface> oldParams = command.getParameters();
             command = conn.prepareCommand(sqlStatement, fetchSize);
             ArrayList< ? extends ParameterInterface> newParams = command.getParameters();
-            for (int i = 0; i < oldParams.size(); i++) {
+            for (int i = 0, size = oldParams.size(); i < size; i++) {
                 ParameterInterface old = oldParams.get(i);
                 Value value = old.getParamValue();
                 if (value != null) {

@@ -313,17 +313,17 @@ public class IndexCondition {
      */
     public boolean isEvaluatable() {
         if (expression != null) {
-            return expression.isEverything(ExpressionVisitor.EVALUATABLE);
+            return expression.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR);
         }
         if (expressionList != null) {
             for (Expression e : expressionList) {
-                if (!e.isEverything(ExpressionVisitor.EVALUATABLE)) {
+                if (!e.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
                     return false;
                 }
             }
             return true;
         }
-        return expressionQuery.isEverything(ExpressionVisitor.EVALUATABLE);
+        return expressionQuery.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR);
     }
 
 }

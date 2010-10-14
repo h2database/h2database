@@ -505,10 +505,11 @@ public class FullText {
      * @param columns the column list
      */
     protected static void setColumns(int[] index, ArrayList<String> keys, ArrayList<String> columns) throws SQLException {
-        for (int i = 0; i < keys.size(); i++) {
+        for (int i = 0, keySize = keys.size(); i < keySize; i++) {
             String key = keys.get(i);
             int found = -1;
-            for (int j = 0; found == -1 && j < columns.size(); j++) {
+            int columnsSize = columns.size();
+            for (int j = 0; found == -1 && j < columnsSize; j++) {
                 String column = columns.get(j);
                 if (column.equals(key)) {
                     found = j;
@@ -733,9 +734,10 @@ public class FullText {
         if (data.indexOf('\'') < 0) {
             return "'" + data + "'";
         }
-        StringBuilder buff = new StringBuilder(data.length() + 2);
+        int len = data.length();
+        StringBuilder buff = new StringBuilder(len + 2);
         buff.append('\'');
-        for (int i = 0; i < data.length(); i++) {
+        for (int i = 0; i < len; i++) {
             char ch = data.charAt(i);
             if (ch == '\'') {
                 buff.append(ch);

@@ -1217,6 +1217,7 @@ public class Recover extends Tool implements DataHandler {
             sql = sql.substring("IF NOT EXISTS ".length());
         }
         boolean ignore = false;
+        // sql is modified in the loop
         for (int i = 0; i < sql.length(); i++) {
             char ch = sql.charAt(i);
             if (ch == '\"') {

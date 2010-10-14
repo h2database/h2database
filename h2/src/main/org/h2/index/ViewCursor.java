@@ -45,7 +45,7 @@ public class ViewCursor implements Cursor {
         }
         current = table.getTemplateRow();
         Value[] values = result.currentRow();
-        for (int i = 0; i < current.getColumnCount(); i++) {
+        for (int i = 0, len = current.getColumnCount(); i < len; i++) {
             Value v = i < values.length ? values[i] : ValueNull.INSTANCE;
             current.setValue(i, v);
         }

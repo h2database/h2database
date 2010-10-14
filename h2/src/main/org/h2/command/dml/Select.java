@@ -874,7 +874,8 @@ public class Select extends Query {
     }
 
     public void fireBeforeSelectTriggers() {
-        for (TableFilter filter : filters) {
+        for (int i = 0, size = filters.size(); i < size; i++) {
+            TableFilter filter = filters.get(i);
             filter.getTable().fire(session, Trigger.SELECT, true);
         }
     }
@@ -908,7 +909,7 @@ public class Select extends Query {
             }
             Expression on = f.getJoinCondition();
             if (on != null) {
-                if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
+                if (!on.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
                     if (SysProperties.NESTED_JOINS) {
                         f.removeJoinCondition();
                         // need to check that all added are bound to a table
@@ -932,7 +933,7 @@ public class Select extends Query {
             }
             on = f.getFilterCondition();
             if (on != null) {
-                if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
+                if (!on.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
                     f.removeFilterCondition();
                     addCondition(on);
                 }
@@ -1105,7 +1106,7 @@ public class Select extends Query {
         Expression comp;
         Expression col = expressions.get(columnId);
         col = col.getNonAliasExpression();
-        if (col.isEverything(ExpressionVisitor.QUERY_COMPARABLE)) {
+        if (col.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
             comp = new Comparison(session, comparisonType, col, param);
         } else {
             // add the parameters, so they can be set later
@@ -1159,7 +1160,8 @@ public class Select extends Query {
             if (isForUpdate) {
                 return false;
             }
-            for (TableFilter f : filters) {
+            for (int i = 0, size = filters.size(); i < size; i++) {
+                TableFilter f = filters.get(i);
                 if (!f.getTable().isDeterministic()) {
                     return false;
                 }
@@ -1167,7 +1169,8 @@ public class Select extends Query {
             break;
         }
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
-            for (TableFilter f : filters) {
+            for (int i = 0, size = filters.size(); i < size; i++) {
+                TableFilter f = filters.get(i);
                 long m = f.getTable().getMaxDataModificationId();
                 visitor.addDataModificationId(m);
             }
@@ -1180,8 +1183,9 @@ public class Select extends Query {
             break;
         }
         case ExpressionVisitor.GET_DEPENDENCIES: {
-            for (TableFilter filter : filters) {
-                Table table = filter.getTable();
+            for (int i = 0, size = filters.size(); i < size; i++) {
+                TableFilter f = filters.get(i);
+                Table table = f.getTable();
                 visitor.addDependency(table);
                 table.addDependencies(visitor.getDependencies());
             }
@@ -1191,7 +1195,8 @@ public class Select extends Query {
         }
         visitor.incrementQueryLevel(1);
         boolean result = true;
-        for (Expression e : expressions) {
+        for (int i = 0, size = expressions.size(); i < size; i++) {
+            Expression e = expressions.get(i);
             if (!e.isEverything(visitor)) {
                 result = false;
                 break;
@@ -1208,7 +1213,7 @@ public class Select extends Query {
     }
 
     public boolean isReadOnly() {
-        return isEverything(ExpressionVisitor.READONLY);
+        return isEverything(ExpressionVisitor.READONLY_VISITOR);
     }
 
 

@@ -121,9 +121,11 @@ public abstract class Table extends SchemaObjectBase {
 
     public void rename(String newName) {
         super.rename(newName);
-        for (int i = 0; constraints != null && i < constraints.size(); i++) {
-            Constraint constraint = constraints.get(i);
-            constraint.rebuild();
+        if (constraints != null) {
+            for (int i = 0, size = constraints.size(); i < size; i++) {
+                Constraint constraint = constraints.get(i);
+                constraint.rebuild();
+            }
         }
     }
 
@@ -470,23 +472,27 @@ public abstract class Table extends SchemaObjectBase {
      * @throws SQLException if the column is referenced
      */
     public void checkColumnIsNotReferenced(Column col) {
-        for (int i = 0; constraints != null && i < constraints.size(); i++) {
-            Constraint constraint = constraints.get(i);
-            if (constraint.containsColumn(col)) {
-                throw DbException.get(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, constraint.getSQL());
+        if (constraints != null) {
+            for (int i = 0, size = constraints.size(); i < size; i++) {
+                Constraint constraint = constraints.get(i);
+                if (constraint.containsColumn(col)) {
+                    throw DbException.get(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, constraint.getSQL());
+                }
             }
         }
         ArrayList<Index> indexes = getIndexes();
-        for (int i = 0; indexes != null && i < indexes.size(); i++) {
-            Index index = indexes.get(i);
-            if (index.getColumns().length == 1) {
-                continue;
-            }
-            if (index.getCreateSQL() == null) {
-                continue;
-            }
-            if (index.getColumnIndex(col) >= 0) {
-                throw DbException.get(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, index.getSQL());
+        if (indexes != null) {
+            for (int i = 0, size = indexes.size(); i < size; i++) {
+                Index index = indexes.get(i);
+                if (index.getColumns().length == 1) {
+                    continue;
+                }
+                if (index.getCreateSQL() == null) {
+                    continue;
+                }
+                if (index.getColumnIndex(col) >= 0) {
+                    throw DbException.get(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, index.getSQL());
+                }
             }
         }
     }

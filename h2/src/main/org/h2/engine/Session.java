@@ -469,7 +469,8 @@ public class Session extends SessionWithState {
                         rows.add(entry.getRow());
                         undoLog.removeLast(false);
                     }
-                    for (Row r : rows) {
+                    for (int i = 0, size = rows.size(); i < size; i++) {
+                        Row r = rows.get(i);
                         r.commit();
                     }
                 }
@@ -615,7 +616,9 @@ public class Session extends SessionWithState {
             undoLog.add(log);
         } else {
             // see also UndoLogRecord.commit
-            for (Index index : table.getIndexes()) {
+            ArrayList<Index> indexes = table.getIndexes();
+            for (int i = 0, size = indexes.size(); i < size; i++) {
+                Index index = indexes.get(i);
                 index.commit(operation, row);
             }
             row.commit();

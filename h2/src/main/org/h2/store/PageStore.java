@@ -382,8 +382,8 @@ public class PageStore implements CacheWriter {
     private void writeBack() {
         ArrayList<CacheObject> list = cache.getAllChanged();
         Collections.sort(list);
-        for (CacheObject rec : list) {
-            writeBack(rec);
+        for (int i = 0, size = list.size(); i < size; i++) {
+            writeBack(list.get(i));
         }
     }
 
@@ -1095,6 +1095,7 @@ public class PageStore implements CacheWriter {
      * @param after all allocated pages are higher than this page
      */
     void allocatePages(IntArray list, int pagesToAllocate, BitField exclude, int after) {
+        list.ensureCapacity(list.size() + pagesToAllocate);
         for (int i = 0; i < pagesToAllocate; i++) {
             int page = allocatePage(exclude, after);
             after = page;

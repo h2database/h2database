@@ -112,7 +112,7 @@ public class Plan {
             setEvaluatable(tableFilter, true);
             Expression on = tableFilter.getJoinCondition();
             if (on != null) {
-                if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
+                if (!on.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
                     invalidPlan = true;
                     break;
                 }

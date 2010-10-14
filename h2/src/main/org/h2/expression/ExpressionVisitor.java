@@ -8,7 +8,9 @@ package org.h2.expression;
 
 import java.util.HashSet;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.DbObject;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 
@@ -26,6 +28,11 @@ public class ExpressionVisitor {
     public static final int INDEPENDENT = 0;
 
     /**
+     * The visitor singleton for the type INDEPENDENT.
+     */
+    public static final ExpressionVisitor INDEPENDENT_VISITOR = new ExpressionVisitor(INDEPENDENT);
+
+    /**
      * Are all aggregates MIN(column), MAX(column), or COUNT(*) for the given
      * table (getTable)?
      */
@@ -37,13 +44,23 @@ public class ExpressionVisitor {
     public static final int DETERMINISTIC = 2;
 
     /**
+     * The visitor singleton for the type DETERMINISTIC.
+     */
+    public static final ExpressionVisitor DETERMINISTIC_VISITOR = new ExpressionVisitor(DETERMINISTIC);
+
+    /**
      * Can the expression be evaluated, that means are all columns set to
      * 'evaluatable'?
      */
     public static final int EVALUATABLE = 3;
 
     /**
-     * Request to set the latest modification id.
+     * The visitor singleton for the type EVALUATABLE.
+     */
+    public static final ExpressionVisitor EVALUATABLE_VISITOR = new ExpressionVisitor(EVALUATABLE);
+
+    /**
+     * Request to set the latest modification id (addDataModificationId).
      */
     public static final int SET_MAX_DATA_MODIFICATION_ID = 4;
 
@@ -53,13 +70,18 @@ public class ExpressionVisitor {
     public static final int READONLY = 5;
 
     /**
+     * The visitor singleton for the type EVALUATABLE.
+     */
+    public static final ExpressionVisitor READONLY_VISITOR = new ExpressionVisitor(READONLY);
+
+    /**
      * Does an expression have no relation to the given table filter
      * (getResolver)?
      */
     public static final int NOT_FROM_RESOLVER = 6;
 
     /**
-     * Request to get the set of dependencies.
+     * Request to get the set of dependencies (addDependency).
      */
     public static final int GET_DEPENDENCIES = 7;
 
@@ -70,6 +92,11 @@ public class ExpressionVisitor {
      * Also a sequence expression must not be used.
      */
     public static final int QUERY_COMPARABLE = 8;
+
+    /**
+     * The visitor singleton for the type QUERY_COMPARABLE.
+     */
+    public static final ExpressionVisitor QUERY_COMPARABLE_VISITOR = new ExpressionVisitor(QUERY_COMPARABLE);
 
     private int queryLevel;
     private Table table;
@@ -89,6 +116,16 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor get(int type) {
+        if (SysProperties.CHECK) {
+            switch (type) {
+            case INDEPENDENT:
+            case DETERMINISTIC:
+            case EVALUATABLE:
+            case READONLY:
+            case QUERY_COMPARABLE:
+                throw DbException.throwInternalError("Singleton not used");
+            }
+        }
         return new ExpressionVisitor(type);
     }
 

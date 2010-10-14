@@ -176,7 +176,7 @@ class ResultDiskBuffer implements ResultExternal {
 
     private Value[] nextSorted() {
         int next = -1;
-        for (int i = 0; i < tapes.size(); i++) {
+        for (int i = 0, size = tapes.size(); i < size; i++) {
             ResultDiskTape tape = tapes.get(i);
             if (tape.buffer.size() == 0 && tape.pos < tape.end) {
                 file.seek(tape.pos);

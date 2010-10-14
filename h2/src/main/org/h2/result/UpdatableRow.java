@@ -136,7 +136,7 @@ public class UpdatableRow {
     }
 
     private void setKey(PreparedStatement prep, int start, Value[] current) throws SQLException {
-        for (int i = 0; i < key.size(); i++) {
+        for (int i = 0, size = key.size(); i < size; i++) {
             String col = key.get(i);
             int idx = getColumnIndex(col);
             Value v = current[idx];

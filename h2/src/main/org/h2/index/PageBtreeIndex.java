@@ -217,7 +217,7 @@ public class PageBtreeIndex extends PageIndex {
             trace.debug(getName() + " remove " + row);
         }
         if (tableData.getContainsLargeObject()) {
-            for (int i = 0; i < row.getColumnCount(); i++) {
+            for (int i = 0, len = row.getColumnCount(); i < len; i++) {
                 Value v = row.getValue(i);
                 if (v.isLinked()) {
                     session.unlinkAtCommit(v);

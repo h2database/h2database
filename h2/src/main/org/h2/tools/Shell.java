@@ -209,7 +209,7 @@ public class Shell extends Tool implements Runnable {
                     listMode = !listMode;
                     println("Result list mode is now " + (listMode ? "on" : "off"));
                 } else if ("HISTORY".equals(upper)) {
-                    for (int i = 0; i < history.size(); i++) {
+                    for (int i = 0, size = history.size(); i < size; i++) {
                         String s = history.get(i);
                         s = s.replace('\n', ' ').replace('\r', ' ');
                         println("#" + (1 + i) + ": " + s);

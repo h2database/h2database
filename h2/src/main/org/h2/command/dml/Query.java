@@ -200,7 +200,7 @@ public abstract class Query extends Prepared {
                 return false;
             }
         }
-        if (!isEverything(ExpressionVisitor.DETERMINISTIC) || !isEverything(ExpressionVisitor.INDEPENDENT)) {
+        if (!isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR) || !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return false;
         }
         if (db.getModificationDataId() > lastEval && getMaxDataModificationId() > lastEval) {
@@ -241,7 +241,7 @@ public abstract class Query extends Prepared {
         }
         Value[] params = getParameterValues();
         long now = session.getDatabase().getModificationDataId();
-        if (isEverything(ExpressionVisitor.DETERMINISTIC)) {
+        if (isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
             if (lastResult != null && !lastResult.isClosed() && limit == lastLimit) {
                 if (sameResultAsLast(session, params, lastParameters, lastEvaluated)) {
                     lastResult = lastResult.createShallowCopy(session);

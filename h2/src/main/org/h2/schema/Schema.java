@@ -331,7 +331,7 @@ public class Schema extends DbObjectBase {
         String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
         String name = null;
         synchronized (temporaryUniqueNames) {
-            for (int i = 1; i < hash.length(); i++) {
+            for (int i = 1, len = hash.length(); i < len; i++) {
                 name = prefix + hash.substring(0, i);
                 if (!map.containsKey(name) && !temporaryUniqueNames.contains(name)) {
                     break;

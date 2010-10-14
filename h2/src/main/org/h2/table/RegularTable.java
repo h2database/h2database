@@ -224,7 +224,7 @@ public class RegularTable extends TableBase {
                 long total = remaining;
                 Cursor cursor = scan.find(session, null, null);
                 long i = 0;
-                int bufferSize = Constants.DEFAULT_MAX_MEMORY_ROWS;
+                int bufferSize = (int) Math.min(rowCount, Constants.DEFAULT_MAX_MEMORY_ROWS);
                 ArrayList<Row> buffer = New.arrayList(bufferSize);
                 String n = getName() + ":" + index.getName();
                 int t = MathUtils.convertLongToInt(total);
@@ -667,14 +667,16 @@ public class RegularTable extends TableBase {
     public boolean canTruncate() {
         if (getCheckForeignKeyConstraints() && database.getReferentialIntegrity()) {
             ArrayList<Constraint> constraints = getConstraints();
-            for (int i = 0; constraints != null && i < constraints.size(); i++) {
-                Constraint c = constraints.get(i);
-                if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
-                    continue;
-                }
-                ConstraintReferential ref = (ConstraintReferential) c;
-                if (ref.getRefTable() == this) {
-                    return false;
+            if (constraints != null) {
+                for (int i = 0, size = constraints.size(); i < size; i++) {
+                    Constraint c = constraints.get(i);
+                    if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
+                        continue;
+                    }
+                    ConstraintReferential ref = (ConstraintReferential) c;
+                    if (ref.getRefTable() == this) {
+                        return false;
+                    }
                 }
             }
         }

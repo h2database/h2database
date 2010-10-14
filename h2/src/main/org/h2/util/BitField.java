@@ -14,8 +14,16 @@ public final class BitField {
     private static final int ADDRESS_BITS = 6;
     private static final int BITS = 64;
     private static final int ADDRESS_MASK = BITS - 1;
-    private long[] data = new long[10];
+    private long[] data;
     private int maxLength;
+
+    public BitField() {
+        this(64);
+    }
+
+    public BitField(int capacity) {
+        data = new long[capacity >>> 3];
+    }
 
     /**
      * Get the index of the next bit that is not set.

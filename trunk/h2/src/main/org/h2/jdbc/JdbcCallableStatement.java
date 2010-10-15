@@ -415,7 +415,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     }
 
 //## Java 1.6 begin ##
-    public void setAsciiStream(String parameterName, InputStream x, long length) throws SQLException {
+    public void setAsciiStream(String parameterName,
+            InputStream x, long length) throws SQLException {
         setAsciiStream(getIndexForName(parameterName), x, length);
     }
 //## Java 1.6 end ##
@@ -510,43 +511,50 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setRowId(String parameterName, RowId x) throws SQLException {
+    public void setRowId(String parameterName, RowId x)
+            throws SQLException {
         setRowId(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setNString(String parameterName, String x) throws SQLException {
+    public void setNString(String parameterName, String x)
+            throws SQLException {
         setNString(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setNCharacterStream(String parameterName, Reader value, long length) throws SQLException {
+    public void setNCharacterStream(String parameterName,
+            Reader value, long length) throws SQLException {
         setNCharacterStream(getIndexForName(parameterName), value, length);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setNClob(String parameterName, NClob value) throws SQLException {
+    public void setNClob(String parameterName, NClob value)
+            throws SQLException {
         setNClob(getIndexForName(parameterName), value);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setClob(String parameterName, Reader reader, long length) throws SQLException {
+    public void setClob(String parameterName, Reader reader,
+            long length) throws SQLException {
         setClob(getIndexForName(parameterName), reader, length);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setBlob(String parameterName, InputStream inputStream, long length) throws SQLException {
+    public void setBlob(String parameterName, InputStream inputStream,
+            long length) throws SQLException {
         setBlob(getIndexForName(parameterName), inputStream, length);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setNClob(String parameterName, Reader reader, long length) throws SQLException {
+    public void setNClob(String parameterName, Reader reader,
+            long length) throws SQLException {
         setNClob(getIndexForName(parameterName), reader, length);
     }
 //## Java 1.6 end ##
@@ -565,7 +573,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setSQLXML(String parameterName, SQLXML xmlObject) throws SQLException {
+    public void setSQLXML(String parameterName,
+            SQLXML xmlObject) throws SQLException {
         setSQLXML(getIndexForName(parameterName), xmlObject);
     }
 //## Java 1.6 end ##
@@ -597,33 +606,38 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public Reader getNCharacterStream(int parameterIndex) throws SQLException {
+    public Reader getNCharacterStream(int parameterIndex)
+            throws SQLException {
         checkRegistered(parameterIndex);
         return resultSet.getNCharacterStream(parameterIndex);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public Reader getNCharacterStream(String parameterName) throws SQLException {
+    public Reader getNCharacterStream(String parameterName)
+            throws SQLException {
         return getNCharacterStream(getIndexForName(parameterName));
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public Reader getCharacterStream(int parameterIndex) throws SQLException {
+    public Reader getCharacterStream(int parameterIndex)
+            throws SQLException {
         checkRegistered(parameterIndex);
         return resultSet.getCharacterStream(parameterIndex);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public Reader getCharacterStream(String parameterName) throws SQLException {
+    public Reader getCharacterStream(String parameterName)
+            throws SQLException {
         return getCharacterStream(getIndexForName(parameterName));
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setBlob(String parameterName, Blob x) throws SQLException {
+    public void setBlob(String parameterName, Blob x)
+            throws SQLException {
         setBlob(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
@@ -635,41 +649,48 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setAsciiStream(String parameterName, InputStream x) throws SQLException {
+    public void setAsciiStream(String parameterName, InputStream x)
+            throws SQLException {
         setAsciiStream(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
 
-    public void setAsciiStream(String parameterName, InputStream x, int length) throws SQLException {
+    public void setAsciiStream(String parameterName,
+            InputStream x, int length) throws SQLException {
         setAsciiStream(getIndexForName(parameterName), x, length);
     }
 
 //## Java 1.6 begin ##
-    public void setBinaryStream(String parameterName, InputStream x) throws SQLException {
+    public void setBinaryStream(String parameterName,
+            InputStream x) throws SQLException {
         setBinaryStream(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setBinaryStream(String parameterName, InputStream x, long length) throws SQLException {
+    public void setBinaryStream(String parameterName,
+            InputStream x, long length) throws SQLException {
         setBinaryStream(getIndexForName(parameterName), x, length);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setBlob(String parameterName, InputStream x) throws SQLException {
+    public void setBlob(String parameterName, InputStream x)
+            throws SQLException {
         setBlob(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setCharacterStream(String parameterName, Reader x) throws SQLException {
+    public void setCharacterStream(String parameterName, Reader x)
+            throws SQLException {
         setCharacterStream(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setCharacterStream(String parameterName, Reader x, long length) throws SQLException {
+    public void setCharacterStream(String parameterName,
+            Reader x, long length) throws SQLException {
         setCharacterStream(getIndexForName(parameterName), x, length);
     }
 //## Java 1.6 end ##
@@ -681,7 +702,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
 //## Java 1.6 end ##
 
 //## Java 1.6 begin ##
-    public void setNCharacterStream(String parameterName, Reader x) throws SQLException {
+    public void setNCharacterStream(String parameterName,
+            Reader x) throws SQLException {
         setNCharacterStream(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##

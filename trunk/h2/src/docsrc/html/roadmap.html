@@ -351,6 +351,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
 </li><li>RunScript should be able to read from system in (or quite mode for Shell).
 </li><li>Natural join: support select x from dual natural join dual.
+</li><li>Support using system properties in database URLs (may be a security problem).
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
 </li><li>Use the Java service provider mechanism to register file systems and function libraries.
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
@@ -422,7 +423,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve concurrency for in-memory database operations.
 </li><li>Issue 122: Support for connection aliases for remote tcp connections.
 </li><li>Fast scrambling (strong encryption doesn't help if the password is included in the application).
-</li><li>Support using system properties in database URLs (may be a security problem).
 </li><li>Issue 126: The index name should be "IDX_" plus the constraint name unless there is a conflict, in which case append a number.
 </li><li>Issue 127: Support activation/deactivation of triggers
 </li><li>Issue 130: Custom log event listeners
@@ -528,6 +528,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     disable autocommit for all connections.
 </li><li>Compatibility with MS Access: support "&amp;" to concatenate text.
 </li><li>The BACKUP statement should not synchronize on the database, and therefore should not block other users.
+</li><li>Listener or authentication module for new connections, or a way to restrict the number of different connections to a tcp server, 
+    or to prevent to login with the same username and password from different IPs.
+    Possibly using the DatabaseEventListener API, or a new API.
 </li></ul>
 
 <h2>Not Planned</h2>

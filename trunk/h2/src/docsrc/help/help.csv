@@ -973,6 +973,7 @@ The default value is 16384 (16 MB). The value is rounded to the next higher powe
 Depending on the virtual machine, the actual memory required may be higher.
 
 This setting is persistent and affects all connections as there is only one cache per database.
+Using a very small value (specially 0) will reduce performance a lot.
 This setting only affects the database engine (the server in a client/server environment).
 It has no effect for in-memory databases.
 

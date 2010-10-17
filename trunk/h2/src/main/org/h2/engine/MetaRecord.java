@@ -111,13 +111,13 @@ public class MetaRecord implements Comparable<MetaRecord> {
             return 1;
         case DbObject.SCHEMA:
             return 2;
-        case DbObject.USER_DATATYPE:
-            return 3;
-        case DbObject.SEQUENCE:
-            return 4;
-        case DbObject.CONSTANT:
-            return 5;
         case DbObject.FUNCTION_ALIAS:
+            return 3;
+        case DbObject.USER_DATATYPE:
+            return 4;
+        case DbObject.SEQUENCE:
+            return 5;
+        case DbObject.CONSTANT:
             return 6;
         case DbObject.TABLE_OR_VIEW:
             return 7;

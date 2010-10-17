@@ -57,6 +57,7 @@ public class TestCases extends TestBase {
         if (config.memory) {
             return;
         }
+        testCheckContraintWithFunction();
         testDeleteAndDropTableWithLobs(true);
         testDeleteAndDropTableWithLobs(false);
         testEmptyBtreeIndex();
@@ -82,6 +83,18 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testCheckContraintWithFunction() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create alias is_email as 'boolean isEmail(String x) { return x != null && x.indexOf(''@'') > 0; }'");
+        stat.execute("create domain email as varchar check is_email(value)");
+        stat.execute("create table test(e email)");
+        conn.close();
+        conn = getConnection("cases");
+        conn.close();
     }
 
     private void testOuterJoin() throws SQLException {

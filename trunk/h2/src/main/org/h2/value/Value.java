@@ -741,13 +741,13 @@ public abstract class Value {
                 }
             }
             case BYTE:
-                return ValueByte.get(Byte.decode(s.trim()));
+                return ValueByte.get(Byte.parseByte(s.trim()));
             case SHORT:
-                return ValueShort.get(Short.decode(s.trim()));
+                return ValueShort.get(Short.parseShort(s.trim()));
             case INT:
-                return ValueInt.get(Integer.decode(s.trim()));
+                return ValueInt.get(Integer.parseInt(s.trim()));
             case LONG:
-                return ValueLong.get(Long.decode(s.trim()));
+                return ValueLong.get(Long.parseLong(s.trim()));
             case DECIMAL:
                 return ValueDecimal.get(new BigDecimal(s.trim()));
             case TIME:

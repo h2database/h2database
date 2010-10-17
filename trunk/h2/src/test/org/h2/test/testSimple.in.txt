@@ -1,3 +1,5 @@
+select cast(' 011 ' as int);
+> 11;
 select E'test\\test';
 > test\test;
 create table a(id int) as select null;

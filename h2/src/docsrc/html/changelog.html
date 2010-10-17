@@ -18,10 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>When a domain (user defined data type) contained a user defined function, the database could not be opened.
+</li><li>CAST('011' AS INT) will no longer use decode the value as an octal number (using Integer.decode) but now use Integer.parseInt.
+	The same logic applied to byte, short, and long. This also means that trying to convert hex numbers (0x...) with CAST now fails.
 </li></ul>
 
-<h2>Version 1.2.143 (2010-09-18)</h2>
+<h2>Version 1.2.144 (2010-10-15)</h2>
 <ul><li>The Windows .bat files did not contain CR+LF.
 </li><li>The LOB storage (when the system property h2.lobInDatabase is set) is now only initialized when needed.
 </li><li>The index condition columnName IS NULL was not efficient when using a clustered index.

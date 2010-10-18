@@ -1212,13 +1212,11 @@ CALL TIMESTAMP '2008-01-01 12:00:00+01:00';
 </pre>
 <p>
 If the time zone is not set, the value is parsed using the current time zone setting of the system.
-Date and time information is stored in H2 database files in local time.
-If the database is opened using another system time zone, the date and time will change accordingly.
-If you want to move a database from one time zone to the other and don't want this to happen,
-you need to create a SQL script file using the <code>SCRIPT</code> command or
-<code>Script</code> tool, and then load
-the database using the <code>RUNSCRIPT</code> command
-or the <code>RunScript</code> tool in the new time zone.
+Date and time information is stored in H2 database files without time zone information.
+If the database is opened using another system time zone, the date and time will be the same.
+That means if you store the value '2000-01-01 12:00:00' in one time zone, then close the database
+and open the database again in a different time zone, you will also get '2000-01-01 12:00:00'.
+Please note that changing the time zone after the H2 driver is loaded is not supported.
 </p>
 
 <h2 id="spring">Using Spring</h2>

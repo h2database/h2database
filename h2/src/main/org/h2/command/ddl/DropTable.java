@@ -30,7 +30,6 @@ public class DropTable extends SchemaCommand {
     private String tableName;
     private Table table;
     private DropTable next;
-    private int dropTableId;
     private int dropAction = SysProperties.DROP_RESTRICT ? ConstraintReferential.RESTRICT : ConstraintReferential.CASCADE;
 
     public DropTable(Session session, Schema schema) {
@@ -68,7 +67,6 @@ public class DropTable extends SchemaCommand {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
             }
         } else {
-            dropTableId = table.getId();
             session.getUser().checkRight(table, Right.ALL);
             if (!table.canDrop()) {
                 throw DbException.get(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
@@ -100,7 +98,6 @@ public class DropTable extends SchemaCommand {
             table.setModified();
             Database db = session.getDatabase();
             db.removeSchemaObject(session, table);
-            db.getLobStorage().removeAllForTable(dropTableId);
         }
         if (next != null) {
             next.executeDrop();

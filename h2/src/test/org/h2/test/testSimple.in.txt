@@ -1,3 +1,5 @@
+select N'test';
+> test;
 select cast(' 011 ' as int);
 > 11;
 select E'test\\test';

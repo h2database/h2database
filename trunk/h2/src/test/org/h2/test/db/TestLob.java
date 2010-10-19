@@ -49,6 +49,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testDropAllObjects();
         testDelete();
         testTempFilesDeleted();
         testAddLobRestart();
@@ -80,6 +81,37 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testDropAllObjects() throws Exception {
+        if (SysProperties.LOB_IN_DATABASE || config.memory) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("lob");
+        stat = conn.createStatement();
+
+        stat.execute("create table test(id int primary key, name clob)");
+        stat.execute("insert into test values(1, space(10000))");
+        assertEquals(1, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        stat.execute("drop table test");
+        assertEquals(0, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+
+        stat.execute("create table test(id int primary key, name clob)");
+        stat.execute("insert into test values(1, space(10000))");
+        assertEquals(1, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        stat.execute("drop all objects");
+        assertEquals(0, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+
+        stat.execute("create table test(id int primary key, name clob)");
+        stat.execute("insert into test values(1, space(10000))");
+        assertEquals(1, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        stat.execute("truncate table test");
+        assertEquals(0, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+
+        conn.close();
     }
 
     private void testDelete() throws Exception {

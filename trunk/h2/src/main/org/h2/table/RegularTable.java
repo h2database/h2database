@@ -81,7 +81,6 @@ public class RegularTable extends TableBase {
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType())) {
                 containsLargeObject = true;
-                memoryPerRow = Row.MEMORY_CALCULATE;
             }
         }
         traceLock = database.getTrace(Trace.LOCK);
@@ -646,6 +645,9 @@ public class RegularTable extends TableBase {
         }
         scanIndex.remove(session);
         database.removeMeta(session, getId());
+        if (containsLargeObject) {
+            database.getLobStorage().removeAllForTable(getId());
+        }
         scanIndex = null;
         lockExclusive = null;
         lockShared = null;

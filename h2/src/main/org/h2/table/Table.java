@@ -35,7 +35,6 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.util.New;
 import org.h2.value.CompareMode;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -84,11 +83,6 @@ public abstract class Table extends SchemaObjectBase {
      * The columns of this table.
      */
     protected Column[] columns;
-
-    /**
-     * The amount of memory required for a row if all values would be very small.
-     */
-    protected int memoryPerRow;
 
     /**
      * The compare mode used for this table.
@@ -342,15 +336,12 @@ public abstract class Table extends SchemaObjectBase {
         if (columnMap.size() > 0) {
             columnMap.clear();
         }
-        // a row needs memory even if there are no columns
-        int memory = 1;
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
             int dataType = col.getType();
             if (dataType == Value.UNKNOWN) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, col.getSQL());
             }
-            memory += DataType.getDataType(dataType).memory;
             col.setTable(this, i);
             String columnName = col.getName();
             if (columnMap.get(columnName) != null) {
@@ -358,7 +349,6 @@ public abstract class Table extends SchemaObjectBase {
             }
             columnMap.put(columnName, col);
         }
-        memoryPerRow = memory;
     }
 
     /**

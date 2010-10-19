@@ -2328,11 +2328,7 @@ public class Parser {
                 }
             } else {
                 read();
-                if (equalsToken("X", name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                    read();
-                    byte[] buffer = StringUtils.convertStringToBytes(currentValue.getString());
-                    r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
-                } else if (readIf(".")) {
+                if (readIf(".")) {
                     r = readTermObjectDot(name);
                 } else if (equalsToken("CASE", name)) {
                     // CASE must be processed before (,
@@ -2362,26 +2358,39 @@ public class Parser {
                     read("FOR");
                     Sequence sequence = readSequence();
                     r = new SequenceValue(sequence);
-                } else if (equalsToken("DATE", name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                    String date = currentValue.getString();
-                    read();
-                    r = ValueExpression.get(ValueDate.get(ValueDate.parseDate(date)));
-                } else if (equalsToken("TIME", name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                    String time = currentValue.getString();
-                    read();
-                    r = ValueExpression.get(ValueTime.get(ValueTime.parseTime(time)));
-                } else if (equalsToken("TIMESTAMP", name) && currentTokenType == VALUE
-                        && currentValue.getType() == Value.STRING) {
-                    String timestamp = currentValue.getString();
-                    read();
-                    r = ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
-                } else if (equalsToken("E", name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                    String text = currentValue.getString();
-                    // the PostgreSQL ODBC driver uses
-                    // LIKE E'PROJECT\\_DATA' instead of LIKE 'PROJECT\_DATA'
-                    text = StringUtils.replaceAll(text, "\\\\", "\\");
-                    read();
-                    r = ValueExpression.get(ValueString.get(text));
+                } else if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    if (equalsToken("DATE", name)) {
+                        String date = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueDate.get(ValueDate.parseDate(date)));
+                    } else if (equalsToken("TIME", name)) {
+                        String time = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueTime.get(ValueTime.parseTime(time)));
+                    } else if (equalsToken("TIMESTAMP", name)) {
+                        String timestamp = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
+                    } else if (equalsToken("X", name)) {
+                        read();
+                        byte[] buffer = StringUtils.convertStringToBytes(currentValue.getString());
+                        r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
+                    } else if (equalsToken("E", name)) {
+                        String text = currentValue.getString();
+                        // the PostgreSQL ODBC driver uses
+                        // LIKE E'PROJECT\\_DATA' instead of LIKE 'PROJECT\_DATA'
+                        // N: SQL-92 "National Language" strings
+                        text = StringUtils.replaceAll(text, "\\\\", "\\");
+                        read();
+                        r = ValueExpression.get(ValueString.get(text));
+                    } else if (equalsToken("N", name)) {
+                        // SQL-92 "National Language" strings
+                        String text = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueString.get(text));
+                    } else {
+                        r = new ExpressionColumn(database, null, null, name);
+                    }
                 } else {
                     r = new ExpressionColumn(database, null, null, name);
                 }

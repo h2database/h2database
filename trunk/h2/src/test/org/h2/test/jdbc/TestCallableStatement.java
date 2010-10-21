@@ -112,7 +112,7 @@ public class TestCallableStatement extends TestBase {
             assertEquals(ErrorCode.OBJECT_CLOSED, e.getErrorCode());
         }
         try {
-            call.getURL("X");
+            call.getString("X");
         } catch (SQLException e) {
             assertEquals(ErrorCode.OBJECT_CLOSED, e.getErrorCode());
         }

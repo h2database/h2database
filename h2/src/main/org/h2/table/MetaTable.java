@@ -1117,9 +1117,9 @@ public class MetaTable extends Table {
             for (SchemaObject aliasAsSchemaObject : database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
-                    Class< ? >[] columnList = method.getColumnClasses();
+                    Class<?>[] columnList = method.getColumnClasses();
                     for (int k = 0; k < columnList.length; k++) {
-                        Class< ? > clazz = columnList[k];
+                        Class<?> clazz = columnList[k];
                         int dataType = DataType.getTypeFromClass(clazz);
                         DataType dt = DataType.getDataType(dataType);
                         int nullable = clazz.isPrimitive() ? DatabaseMetaData.columnNoNulls

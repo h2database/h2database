@@ -29,11 +29,11 @@ import org.h2.util.StringUtils;
  * An argument of a statement.
  */
 class Arg {
-    private Class< ? > clazz;
+    private Class<?> clazz;
     private Object obj;
     private Statement stat;
 
-    Arg(Class< ? > clazz, Object obj) {
+    Arg(Class<?> clazz, Object obj) {
         this.clazz = clazz;
         this.obj = obj;
     }
@@ -60,7 +60,7 @@ class Arg {
         }
     }
 
-    Class< ? > getValueClass() {
+    Class<?> getValueClass() {
         return clazz;
     }
 
@@ -68,7 +68,7 @@ class Arg {
         return obj;
     }
 
-    private String quote(Class< ? > valueClass, Object value) {
+    private String quote(Class<?> valueClass, Object value) {
         if (value == null) {
             return null;
         } else if (valueClass == String.class) {

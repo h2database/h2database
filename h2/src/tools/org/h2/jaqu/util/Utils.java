@@ -125,11 +125,11 @@ public class Utils {
         return false;
     }
 
-    public static Object convert(Object o, Class< ? > targetType) {
+    public static Object convert(Object o, Class<?> targetType) {
         if (o == null) {
             return null;
         }
-        Class< ? > currentType = o.getClass();
+        Class<?> currentType = o.getClass();
         if (targetType.isAssignableFrom(currentType)) {
             return o;
         }

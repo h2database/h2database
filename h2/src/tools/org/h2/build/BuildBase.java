@@ -369,7 +369,7 @@ public class BuildBase {
      */
     protected String getStaticField(String className, String fieldName) {
         try {
-            Class< ? > clazz = Class.forName(className);
+            Class<?> clazz = Class.forName(className);
             Field field = clazz.getField(fieldName);
             return field.get(null).toString();
         } catch (Exception e) {
@@ -386,7 +386,7 @@ public class BuildBase {
      */
     protected String getStaticValue(String className, String methodName) {
         try {
-            Class< ? > clazz = Class.forName(className);
+            Class<?> clazz = Class.forName(className);
             Method method = clazz.getMethod(methodName);
             return method.invoke(null).toString();
         } catch (Exception e) {
@@ -472,7 +472,7 @@ public class BuildBase {
                         "Building "
                 }));
             }
-            Class< ? > clazz = Class.forName("com.sun.tools.javadoc.Main");
+            Class<?> clazz = Class.forName("com.sun.tools.javadoc.Main");
             Method execute = clazz.getMethod("execute", String[].class);
             result = (Integer) invoke(execute, null, new Object[] { args });
         } catch (Exception e) {
@@ -769,13 +769,13 @@ public class BuildBase {
         int result;
         PrintStream old = System.err;
         try {
-            Class< ? > clazz = Class.forName("com.sun.tools.javac.Main");
+            Class<?> clazz = Class.forName("com.sun.tools.javac.Main");
             if (quiet) {
                 System.setErr(filter(System.err, new String[] {
                         "Note:"
                 }));
             }
-            Method compile = clazz.getMethod("compile", new Class< ? >[] { String[].class });
+            Method compile = clazz.getMethod("compile", new Class<?>[] { String[].class });
             Object instance = clazz.newInstance();
             result = (Integer) invoke(compile, instance, new Object[] { array });
         } catch (Exception e) {

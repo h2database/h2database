@@ -24,7 +24,7 @@ public class ClassUtils {
         return (Class<X>) x.getClass();
     }
 
-    public static Class< ? > loadClass(String className) {
+    public static Class<?> loadClass(String className) {
         try {
             return Class.forName(className);
         } catch (Exception e) {

@@ -54,14 +54,14 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
     private static final boolean RECOVER_ALL = false;
 
-    private static final Class< ? >[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,
+    private static final Class<?>[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,
             ResultSet.class, ResultSetMetaData.class, Savepoint.class,
             ParameterMetaData.class, Clob.class, Blob.class, Array.class, CallableStatement.class };
 
     private static final String DIR = "synth";
 
     private ArrayList<Object> objects = New.arrayList();
-    private HashMap<Class < ? >, ArrayList<Method>> classMethods = New.hashMap();
+    private HashMap<Class <?>, ArrayList<Method>> classMethods = New.hashMap();
     private RandomGen random = new RandomGen();
     private ArrayList<String> statements = New.arrayList();
     private int openCount;
@@ -320,7 +320,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
                 objects.remove(objectId);
                 continue;
             }
-            Class< ? > in = getJdbcInterface(o);
+            Class<?> in = getJdbcInterface(o);
             ArrayList<Method> methods = classMethods.get(in);
             Method m = methods.get(random.getInt(methods.size()));
             Object o2 = callRandom(seed, i, objectId, o, m);
@@ -356,7 +356,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
     }
 
     private Object callRandom(int seed, int id, int objectId, Object o, Method m) {
-        Class< ? >[] paramClasses = m.getParameterTypes();
+        Class<?>[] paramClasses = m.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         for (int i = 0; i < params.length; i++) {
             params[i] = getRandomParam(paramClasses[i]);
@@ -376,7 +376,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         if (result == null) {
             return null;
         }
-        Class< ? > in = getJdbcInterface(result);
+        Class<?> in = getJdbcInterface(result);
         if (in == null) {
             return null;
         }
@@ -408,7 +408,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         }
     }
 
-    private Object getRandomParam(Class< ? > type) {
+    private Object getRandomParam(Class<?> type) {
         if (type == int.class) {
             return new Integer(random.getRandomInt());
         } else if (type == byte.class) {
@@ -478,8 +478,8 @@ public class TestCrashAPI extends TestBase implements Runnable {
         return null;
     }
 
-    private Class< ? > getJdbcInterface(Object o) {
-        for (Class < ? > in : o.getClass().getInterfaces()) {
+    private Class<?> getJdbcInterface(Object o) {
+        for (Class <?> in : o.getClass().getInterfaces()) {
             if (classMethods.get(in) != null) {
                 return in;
             }
@@ -488,10 +488,10 @@ public class TestCrashAPI extends TestBase implements Runnable {
     }
 
     private void initMethods() {
-        for (Class< ? > inter : INTERFACES) {
+        for (Class<?> inter : INTERFACES) {
             classMethods.put(inter, new ArrayList<Method>());
         }
-        for (Class< ? > inter : INTERFACES) {
+        for (Class<?> inter : INTERFACES) {
             ArrayList<Method> list = classMethods.get(inter);
             for (Method m : inter.getMethods()) {
                 list.add(m);

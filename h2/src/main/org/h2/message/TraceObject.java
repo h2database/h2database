@@ -355,7 +355,7 @@ public class TraceObject {
      * @param map the map to convert
      * @return the Java source code
      */
-    protected String quoteMap(Map<String, Class< ? >> map) {
+    protected String quoteMap(Map<String, Class<?>> map) {
         if (map == null) {
             return "null";
         }
@@ -364,9 +364,9 @@ public class TraceObject {
         }
         StringBuilder buff = new StringBuilder("new Map() /* ");
         try {
-            for (Map.Entry<String, Class < ? >> entry : map.entrySet()) {
+            for (Map.Entry<String, Class <?>> entry : map.entrySet()) {
                 String key = entry.getKey();
-                Class< ? > clazz = entry.getValue();
+                Class<?> clazz = entry.getValue();
                 buff.append(key).append(':').append(clazz.getName());
             }
         } catch (Exception e) {

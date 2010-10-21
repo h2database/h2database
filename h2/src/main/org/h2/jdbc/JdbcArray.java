@@ -57,7 +57,7 @@ public class JdbcArray extends TraceObject implements Array {
      * @param map is ignored. Only empty or null maps are supported
      * @return the Object array
      */
-    public Object getArray(Map<String, Class< ? >> map) throws SQLException {
+    public Object getArray(Map<String, Class<?>> map) throws SQLException {
         try {
             debugCode("getArray("+quoteMap(map)+");");
             checkMap(map);
@@ -97,7 +97,7 @@ public class JdbcArray extends TraceObject implements Array {
      * @param map is ignored. Only empty or null maps are supported
      * @return the Object array
      */
-    public Object getArray(long index, int count, Map<String, Class< ? >> map) throws SQLException {
+    public Object getArray(long index, int count, Map<String, Class<?>> map) throws SQLException {
         try {
             debugCode("getArray(" + index + ", " + count + ", " + quoteMap(map)+");");
             checkClosed();
@@ -164,7 +164,7 @@ public class JdbcArray extends TraceObject implements Array {
      * @param map is ignored. Only empty or null maps are supported
      * @return the result set
      */
-    public ResultSet getResultSet(Map<String, Class< ? >> map) throws SQLException {
+    public ResultSet getResultSet(Map<String, Class<?>> map) throws SQLException {
         try {
             debugCode("getResultSet("+quoteMap(map)+");");
             checkClosed();
@@ -207,7 +207,7 @@ public class JdbcArray extends TraceObject implements Array {
      * @param map is ignored. Only empty or null maps are supported
      * @return the result set
      */
-    public ResultSet getResultSet(long index, int count, Map<String, Class< ? >> map) throws SQLException {
+    public ResultSet getResultSet(long index, int count, Map<String, Class<?>> map) throws SQLException {
         try {
             debugCode("getResultSet("+index+", " + count+", " + quoteMap(map)+");");
             checkClosed();
@@ -263,7 +263,7 @@ public class JdbcArray extends TraceObject implements Array {
         return subset;
     }
 
-    private void checkMap(Map<String, Class< ? >> map) {
+    private void checkMap(Map<String, Class<?>> map) {
         if (map != null && map.size() > 0) {
             throw DbException.getUnsupportedException("map.size > 0");
         }

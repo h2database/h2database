@@ -132,7 +132,7 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     private void loadClass() {
-        Class< ? > javaClass = Utils.loadUserClass(className);
+        Class<?> javaClass = Utils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
         ArrayList<JavaMethod> list = New.arrayList();
         for (int i = 0, len = methods.length; i < len; i++) {
@@ -168,7 +168,7 @@ public class FunctionAlias extends SchemaObjectBase {
     private String getMethodSignature(Method m) {
         StatementBuilder buff = new StatementBuilder(m.getName());
         buff.append('(');
-        for (Class< ? > p : m.getParameterTypes()) {
+        for (Class<?> p : m.getParameterTypes()) {
             // do not use a space here, because spaces are removed
             // in CreateFunctionAlias.setJavaClassMethod()
             buff.appendExceptFirst(",");
@@ -275,29 +275,29 @@ public class FunctionAlias extends SchemaObjectBase {
         private final int dataType;
         private boolean hasConnectionParam;
         private boolean varArgs;
-        private Class< ? > varArgClass;
+        private Class<?> varArgClass;
         private int paramCount;
 
         JavaMethod(Method method, int id) {
             this.method = method;
             this.id = id;
-            Class< ? >[] paramClasses = method.getParameterTypes();
+            Class<?>[] paramClasses = method.getParameterTypes();
             paramCount = paramClasses.length;
             if (paramCount > 0) {
-                Class< ? > paramClass = paramClasses[0];
+                Class<?> paramClass = paramClasses[0];
                 if (Connection.class.isAssignableFrom(paramClass)) {
                     hasConnectionParam = true;
                     paramCount--;
                 }
             }
             if (paramCount > 0) {
-                Class< ? > lastArg = paramClasses[paramClasses.length - 1];
+                Class<?> lastArg = paramClasses[paramClasses.length - 1];
                 if (lastArg.isArray() && FunctionAlias.isVarArgs(method)) {
                     varArgs = true;
                     varArgClass = lastArg.getComponentType();
                 }
             }
-            Class< ? > returnClass = method.getReturnType();
+            Class<?> returnClass = method.getReturnType();
             dataType = DataType.getTypeFromClass(returnClass);
         }
 
@@ -323,7 +323,7 @@ public class FunctionAlias extends SchemaObjectBase {
          * @return the value
          */
         public Value getValue(Session session, Expression[] args, boolean columnList) {
-            Class< ? >[] paramClasses = method.getParameterTypes();
+            Class<?>[] paramClasses = method.getParameterTypes();
             Object[] params = new Object[paramClasses.length];
             int p = 0;
             if (hasConnectionParam && params.length > 0) {
@@ -340,7 +340,7 @@ public class FunctionAlias extends SchemaObjectBase {
 
             for (int a = 0, len = args.length; a < len; a++, p++) {
                 boolean currentIsVarArg = varArgs && p >= paramClasses.length - 1;
-                Class< ? > paramClass;
+                Class<?> paramClass;
                 if (currentIsVarArg) {
                     paramClass = varArgClass;
                 } else {
@@ -404,7 +404,7 @@ public class FunctionAlias extends SchemaObjectBase {
             }
         }
 
-        public Class< ? >[] getColumnClasses() {
+        public Class<?>[] getColumnClasses() {
             return method.getParameterTypes();
         }
 

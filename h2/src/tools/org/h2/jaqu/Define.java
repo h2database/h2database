@@ -13,7 +13,7 @@ package org.h2.jaqu;
 //## Java 1.5 begin ##
 public class Define {
 
-    private static TableDefinition< ? > currentTableDefinition;
+    private static TableDefinition<?> currentTableDefinition;
     private static Table currentTable;
 
     public static void primaryKey(Object... columns) {

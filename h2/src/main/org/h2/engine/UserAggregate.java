@@ -19,7 +19,7 @@ import org.h2.util.Utils;
 public class UserAggregate extends DbObjectBase {
 
     private String className;
-    private Class< ? > javaClass;
+    private Class<?> javaClass;
 
     public UserAggregate(Database db, int id, String name, String className, boolean force) {
         initDbObjectBase(db, id, name, Trace.FUNCTION);

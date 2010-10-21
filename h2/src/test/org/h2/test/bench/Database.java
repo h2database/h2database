@@ -101,7 +101,7 @@ class Database {
             Thread.sleep(100);
         } else if (url.startsWith("jdbc:hsqldb:hsql:")) {
             if (!serverHSQLDB) {
-                Class< ? > c;
+                Class<?> c;
                 try {
                     c = Class.forName("org.hsqldb.server.Server");
                 } catch (Exception e) {

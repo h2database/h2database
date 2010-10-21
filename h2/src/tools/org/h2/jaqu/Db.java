@@ -32,7 +32,7 @@ public class Db {
         Utils.newWeakIdentityHashMap();
 
     private final Connection conn;
-    private final Map<Class< ? >, TableDefinition< ? >> classMap =
+    private final Map<Class<?>, TableDefinition<?>> classMap =
         Utils.newHashMap();
 
     Db(Connection conn) {
@@ -97,22 +97,22 @@ public class Db {
     }
 
     public <T> void insert(T t) {
-        Class< ? > clazz = t.getClass();
+        Class<?> clazz = t.getClass();
         define(clazz).createTableIfRequired(this).insert(this, t);
     }
 
     public <T> void merge(T t) {
-        Class< ? > clazz = t.getClass();
+        Class<?> clazz = t.getClass();
         define(clazz).createTableIfRequired(this).merge(this, t);
     }
 
     public <T> void update(T t) {
-        Class< ? > clazz = t.getClass();
+        Class<?> clazz = t.getClass();
         define(clazz).createTableIfRequired(this).update(this, t);
     }
 
     public <T extends Object> Query<T> from(T alias) {
-        Class< ? > clazz = alias.getClass();
+        Class<?> clazz = alias.getClass();
         define(clazz).createTableIfRequired(this);
         return Query.from(this, alias);
     }

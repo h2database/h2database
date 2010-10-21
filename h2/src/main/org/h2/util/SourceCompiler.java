@@ -27,7 +27,7 @@ import org.h2.message.DbException;
  */
 public class SourceCompiler {
 
-    private static final Class< ? > JAVAC_SUN;
+    private static final Class<?> JAVAC_SUN;
 
     /**
      * The class name to source code map.
@@ -37,12 +37,12 @@ public class SourceCompiler {
     /**
      * The class name to byte code map.
      */
-    HashMap<String, Class< ? >> compiled = New.hashMap();
+    HashMap<String, Class<?>> compiled = New.hashMap();
 
     private String compileDir = System.getProperty("java.io.tmpdir");
 
     static {
-        Class< ? > clazz;
+        Class<?> clazz;
         try {
             clazz = Class.forName("com.sun.tools.javac.Main");
         } catch (Exception e) {
@@ -69,16 +69,16 @@ public class SourceCompiler {
      * @param packageAndClassName the class name
      * @return the class
      */
-    private Class< ? > getClass(String packageAndClassName) throws ClassNotFoundException {
+    private Class<?> getClass(String packageAndClassName) throws ClassNotFoundException {
 
-        Class< ? > compiledClass = compiled.get(packageAndClassName);
+        Class<?> compiledClass = compiled.get(packageAndClassName);
         if (compiledClass != null) {
             return compiledClass;
         }
 
         ClassLoader classLoader = new ClassLoader(getClass().getClassLoader()) {
-            public Class< ? > findClass(String name) throws ClassNotFoundException {
-                Class< ? > classInstance = compiled.get(name);
+            public Class<?> findClass(String name) throws ClassNotFoundException {
+                Class<?> classInstance = compiled.get(name);
                 if (classInstance == null) {
                     String source = sources.get(name);
                     String packageName = null;
@@ -111,7 +111,7 @@ public class SourceCompiler {
      * @return the method name
      */
     public Method getMethod(String className) throws ClassNotFoundException {
-        Class< ? > clazz = getClass(className);
+        Class<?> clazz = getClass(className);
         Method[] methods = clazz.getDeclaredMethods();
         for (Method m : methods) {
             int modifiers = m.getModifiers();

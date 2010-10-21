@@ -93,19 +93,6 @@ public class Utils {
     }
 
     /**
-     * Write a long value to the byte array.
-     *
-     * @param buff the byte array
-     * @param pos the position
-     * @param x the value
-     */
-    public static void writeLong(byte[] buff, int pos, long x) {
-        for (int i = 0; i < 8; i++) {
-            buff[pos + i] = (byte) ((x >> (8 * (8 - i))) & 255);
-        }
-    }
-
-    /**
      * Calculate the index of the first occurrence of the pattern in the byte
      * array, starting with the given index. This methods returns -1 if the
      * pattern has not been found, and the start position if the pattern is

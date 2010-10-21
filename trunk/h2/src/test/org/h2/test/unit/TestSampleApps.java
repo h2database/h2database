@@ -73,7 +73,7 @@ public class TestSampleApps extends TestBase {
         IOUtils.delete(getBaseDir() + "/optimizations.sql");
     }
 
-    private void testApp(String expected, Class< ? > clazz, String... args) throws Exception {
+    private void testApp(String expected, Class<?> clazz, String... args) throws Exception {
         DeleteDbFiles.execute("data", "test", true);
         Method m = clazz.getMethod("main", String[].class);
         PrintStream oldOut = System.out, oldErr = System.err;

@@ -776,7 +776,7 @@ public class DataType {
      * @param x the Java class
      * @return the value type
      */
-    public static int getTypeFromClass(Class < ? > x) {
+    public static int getTypeFromClass(Class <?> x) {
         // TODO refactor: too many if/else in functions, can reduce!
         if (x == null || Void.TYPE == x) {
             return Value.NULL;
@@ -1011,7 +1011,7 @@ public class DataType {
      * @param clazz the Java class
      * @return the default object
      */
-    public static Object getDefaultForPrimitiveType(Class< ? > clazz) {
+    public static Object getDefaultForPrimitiveType(Class<?> clazz) {
         if (clazz == Boolean.TYPE) {
             return Boolean.FALSE;
         } else if (clazz == Byte.TYPE) {
@@ -1041,7 +1041,7 @@ public class DataType {
      * @param paramClass the target class
      * @return the converted object
      */
-    public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class< ? > paramClass) {
+    public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class<?> paramClass) {
         if (paramClass == Blob.class) {
             return new JdbcBlob(conn, v, 0);
         } else if (paramClass == Clob.class) {

@@ -35,7 +35,7 @@ public class TestOldVersion extends TestBase {
         URL[] urls = { new URL("file:ext/h2-1.2.127.jar") };
         ClassLoader cl = new URLClassLoader(urls, null);
         // cl = getClass().getClassLoader();
-        Class< ? > driverClass;
+        Class<?> driverClass;
         try {
             driverClass = cl.loadClass("org.h2.Driver");
         } catch (ClassNotFoundException e) {
@@ -55,7 +55,7 @@ public class TestOldVersion extends TestBase {
         }
         server.stop();
 
-        Class< ? > serverClass = cl.loadClass("org.h2.tools.Server");
+        Class<?> serverClass = cl.loadClass("org.h2.tools.Server");
         m = serverClass.getMethod("createTcpServer", String[].class);
         Object serverOld = m.invoke(null, new Object[]{new String[]{"-tcpPort", "9001"}});
         m = serverOld.getClass().getMethod("start");

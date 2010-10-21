@@ -14,17 +14,17 @@ package org.h2.jaqu;
 //## Java 1.5 begin ##
 public class QueryJoinCondition<A> {
 
-    private Query< ? > query;
-    private SelectTable< ? > join;
+    private Query<?> query;
+    private SelectTable<?> join;
     private A x;
 
-    QueryJoinCondition(Query< ? > query, SelectTable< ? > join, A x) {
+    QueryJoinCondition(Query<?> query, SelectTable<?> join, A x) {
         this.query = query;
         this.join = join;
         this.x = x;
     }
 
-    public Query< ? > is(A y) {
+    public Query<?> is(A y) {
         join.addConditionToken(new Condition<A>(x, y, CompareType.EQUAL));
         return query;
     }

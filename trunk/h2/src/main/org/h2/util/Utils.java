@@ -391,7 +391,7 @@ public class Utils {
      * @param className the name of the class
      * @return the class object
      */
-    public static Class< ? > loadUserClass(String className) {
+    public static Class<?> loadUserClass(String className) {
         if (!ALLOW_ALL_CLASSES && !ALLOWED_CLASS_NAMES.contains(className)) {
             boolean allowed = false;
             for (String s : ALLOWED_CLASS_NAME_PREFIXES) {

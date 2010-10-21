@@ -55,7 +55,7 @@ public class FileStore {
     private FileObject file;
     private long filePos;
     private long fileLength;
-    private Reference< ? > autoDeleteReference;
+    private Reference<?> autoDeleteReference;
     private boolean checkedWriting = true;
     private boolean synchronousMode;
     private String mode;

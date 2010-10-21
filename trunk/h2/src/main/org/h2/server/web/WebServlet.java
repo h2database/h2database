@@ -31,7 +31,7 @@ public class WebServlet extends HttpServlet {
 
     public void init() {
         ServletConfig config = getServletConfig();
-        Enumeration< ? > en = config.getInitParameterNames();
+        Enumeration<?> en = config.getInitParameterNames();
         ArrayList<String> list = New.arrayList();
         while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
@@ -93,7 +93,7 @@ public class WebServlet extends HttpServlet {
         file = getAllowedFile(req, file);
         byte[] bytes = null;
         Properties attributes = new Properties();
-        Enumeration< ? > en = req.getAttributeNames();
+        Enumeration<?> en = req.getAttributeNames();
         while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
             String value = req.getAttribute(name).toString();

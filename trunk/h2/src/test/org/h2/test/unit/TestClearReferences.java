@@ -52,9 +52,9 @@ public class TestClearReferences extends TestBase {
         // initialize the known classes
         MathUtils.secureRandomLong();
 
-        ArrayList<Class < ? >> classes = New.arrayList();
+        ArrayList<Class <?>> classes = New.arrayList();
         check(classes, new File("bin/org/h2"));
-        for (Class< ? > clazz : classes) {
+        for (Class<?> clazz : classes) {
             clearClass(clazz);
         }
         if (hasError) {
@@ -62,7 +62,7 @@ public class TestClearReferences extends TestBase {
         }
     }
 
-    private void check(ArrayList<Class < ? >> classes, File file) {
+    private void check(ArrayList<Class <?>> classes, File file) {
         String name = file.getName();
         if (file.isDirectory()) {
             if (name.equals("CVS") || name.equals(".svn")) {
@@ -83,7 +83,7 @@ public class TestClearReferences extends TestBase {
             }
             className = className.replace('/', '.');
             className = className.substring(0, className.length() - ".class".length());
-            Class< ? > clazz = null;
+            Class<?> clazz = null;
             try {
                 clazz = Class.forName(className);
             } catch (ClassNotFoundException e) {
@@ -100,7 +100,7 @@ public class TestClearReferences extends TestBase {
      *
      * @param clazz the class to clear
      */
-    private void clearClass(Class< ? > clazz) throws Exception {
+    private void clearClass(Class<?> clazz) throws Exception {
         for (Field field : clazz.getDeclaredFields()) {
             if (field.getType().isPrimitive() || field.getName().indexOf("$") != -1) {
                 continue;

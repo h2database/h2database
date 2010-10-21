@@ -162,7 +162,7 @@ public class TestTools extends TestBase {
                 int len = m.getParameterTypes().length;
                 Object[] params = new Object[len];
                 int i = 0;
-                for (Class< ? > type : m.getParameterTypes()) {
+                for (Class<?> type : m.getParameterTypes()) {
                     Object o = null;
                     if (type == int.class) {
                         o = 1;

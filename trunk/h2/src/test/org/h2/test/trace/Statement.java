@@ -39,7 +39,7 @@ class Statement {
     private Object object;
     private String methodName;
     private Arg[] args;
-    private Class< ? > returnClass;
+    private Class<?> returnClass;
 
     Statement(Player player) {
         this.player = player;
@@ -59,13 +59,13 @@ class Statement {
             }
             return null;
         }
-        Class< ? > clazz;
+        Class<?> clazz;
         if (staticCall) {
             clazz = Player.getClass(staticCallClass);
         } else {
             clazz = object.getClass();
         }
-        Class< ? >[] parameterTypes = new Class[args.length];
+        Class<?>[] parameterTypes = new Class[args.length];
         Object[] parameters = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
             Arg arg = args[i];
@@ -121,7 +121,7 @@ class Statement {
         return buff.toString();
     }
 
-    Class< ? > getReturnClass() {
+    Class<?> getReturnClass() {
         return returnClass;
     }
 

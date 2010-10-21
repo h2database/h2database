@@ -145,7 +145,7 @@ public class Player {
      * @param className the class name
      * @return the class
      */
-    static Class< ? > getClass(String className) {
+    static Class<?> getClass(String className) {
         for (String s : IMPORTED_PACKAGES) {
             try {
                 return Class.forName(s + className);

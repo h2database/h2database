@@ -227,7 +227,7 @@ implements ParameterMetaData
      * [Not supported] Checks if unwrap can return an object of this class.
      */
 //## Java 1.6 begin ##
-    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw unsupported("isWrapperFor");
     }
 //## Java 1.6 end ##

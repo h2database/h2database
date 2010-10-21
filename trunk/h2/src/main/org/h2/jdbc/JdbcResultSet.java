@@ -771,7 +771,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported] Gets a column as a object using the specified type
      * mapping.
      */
-    public Object getObject(String columnLabel, Map<String, Class< ? >> map) throws SQLException {
+    public Object getObject(String columnLabel, Map<String, Class<?>> map) throws SQLException {
         throw unsupported("map");
     }
 
@@ -3415,7 +3415,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported] Checks if unwrap can return an object of this class.
      */
 //## Java 1.6 begin ##
-    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw unsupported("isWrapperFor");
     }
 //## Java 1.6 end ##

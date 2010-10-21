@@ -484,7 +484,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 return;
             }
             try {
-                Class< ? > desktopClass = Class.forName("java.awt.Desktop");
+                Class<?> desktopClass = Class.forName("java.awt.Desktop");
                 // Desktop.isDesktopSupported()
                 Boolean supported = (Boolean) desktopClass.
                     getMethod("isDesktopSupported").

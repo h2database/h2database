@@ -354,7 +354,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      * @param iface the class
      */
 //## Java 1.6 begin ##
-    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw DbException.getUnsupportedException("isWrapperFor");
     }
 //## Java 1.6 end ##

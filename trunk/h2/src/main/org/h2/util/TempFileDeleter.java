@@ -20,7 +20,7 @@ import org.h2.message.DbException;
 public class TempFileDeleter {
 
     private final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
-    private final HashMap<PhantomReference< ? >, String> refMap = New.hashMap();
+    private final HashMap<PhantomReference<?>, String> refMap = New.hashMap();
 
     private TempFileDeleter() {
         // utility class
@@ -38,9 +38,9 @@ public class TempFileDeleter {
      * @param file the object to monitor
      * @return the reference that can be used to stop deleting the file
      */
-    public synchronized Reference< ? > addFile(String fileName, Object file) {
+    public synchronized Reference<?> addFile(String fileName, Object file) {
         IOUtils.trace("TempFileDeleter.addFile", fileName, file);
-        PhantomReference< ? > ref = new PhantomReference<Object>(file, queue);
+        PhantomReference<?> ref = new PhantomReference<Object>(file, queue);
         refMap.put(ref, fileName);
         deleteUnused();
         return ref;
@@ -52,7 +52,7 @@ public class TempFileDeleter {
      * @param ref the reference as returned by addFile
      * @param fileName the file name
      */
-    public synchronized void deleteFile(Reference< ? > ref, String fileName) {
+    public synchronized void deleteFile(Reference<?> ref, String fileName) {
         if (ref != null) {
             String f2 = refMap.remove(ref);
             if (f2 != null) {
@@ -104,7 +104,7 @@ public class TempFileDeleter {
      * @param ref the reference as returned by addFile
      * @param fileName the file name
      */
-    public void stopAutoDelete(Reference< ? > ref, String fileName) {
+    public void stopAutoDelete(Reference<?> ref, String fileName) {
         IOUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {
             String f2 = refMap.remove(ref);

@@ -31,7 +31,7 @@ public class Query<T> {
     private Db db;
     private SelectTable<T> from;
     private ArrayList<Token> conditions = Utils.newArrayList();
-    private ArrayList<SelectTable< ? >> joins = Utils.newArrayList();
+    private ArrayList<SelectTable<?>> joins = Utils.newArrayList();
     private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = Utils.newIdentityHashMap();
     private ArrayList<OrderExpression<T>> orderByList = Utils.newArrayList();
     private Object[] groupByExpressions;
@@ -125,7 +125,7 @@ public class Query<T> {
 
     @SuppressWarnings("unchecked")
     private <X, Z> List<X> select(Z x, boolean distinct) {
-        Class< ? > clazz = x.getClass();
+        Class<?> clazz = x.getClass();
         if (Utils.isSimpleType(clazz)) {
             return getSimple((X) x, distinct);
         }

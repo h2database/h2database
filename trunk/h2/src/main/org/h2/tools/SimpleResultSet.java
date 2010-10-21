@@ -113,7 +113,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL
          */
-        public Object getArray(Map<String, Class< ? >> map) throws SQLException {
+        public Object getArray(Map<String, Class<?>> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -127,7 +127,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL
          */
-        public Object getArray(long index, int count, Map<String, Class< ? >> map) throws SQLException {
+        public Object getArray(long index, int count, Map<String, Class<?>> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -159,7 +159,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL
          */
-        public ResultSet getResultSet(Map<String, Class< ? >> map) throws SQLException {
+        public ResultSet getResultSet(Map<String, Class<?>> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -173,7 +173,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL
          */
-        public ResultSet getResultSet(long index, int count, Map<String, Class< ? >> map) throws SQLException {
+        public ResultSet getResultSet(long index, int count, Map<String, Class<?>> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -1457,7 +1457,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public Object getObject(int i, Map<String, Class< ? >> map) throws SQLException {
+    public Object getObject(int i, Map<String, Class<?>> map) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1583,7 +1583,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public Object getObject(String colName, Map<String, Class< ? >> map) throws SQLException {
+    public Object getObject(String colName, Map<String, Class<?>> map) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1841,7 +1841,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 begin ##
-    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw getUnsupportedException();
     }
 //## Java 1.6 end ##

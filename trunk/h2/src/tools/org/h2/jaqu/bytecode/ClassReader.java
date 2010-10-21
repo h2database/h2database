@@ -47,7 +47,7 @@ public class ClassReader {
     public Token decompile(Object instance, Map<String, Object> fields, String method) {
         this.fieldMap = fields;
         this.convertMethodName = method;
-        Class< ? > clazz = instance.getClass();
+        Class<?> clazz = instance.getClass();
         String className = clazz.getName();
         debug("class name " + className);
         ByteArrayOutputStream buff = new ByteArrayOutputStream();

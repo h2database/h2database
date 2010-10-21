@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 
@@ -97,6 +98,23 @@ public class TestCallableStatement extends TestBase {
             fail("incorrect parameter name value");
         } catch (SQLException e) {
             // expected exception
+        }
+        // test for exceptions after closing
+        call.close();
+        try {
+            call.executeUpdate();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.OBJECT_CLOSED, e.getErrorCode());
+        }
+        try {
+            call.registerOutParameter(1, Types.INTEGER);
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.OBJECT_CLOSED, e.getErrorCode());
+        }
+        try {
+            call.getURL("X");
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.OBJECT_CLOSED, e.getErrorCode());
         }
     }
 

@@ -945,7 +945,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
-     * @param length the number of bytes
+     * @param length the number of characters
      * @throws SQLException if this object is closed
      */
     public void setCharacterStream(int parameterIndex, Reader x, int length) throws SQLException {
@@ -972,7 +972,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
-     * @param length the number of bytes
+     * @param length the number of characters
      * @throws SQLException if this object is closed
      */
     public void setCharacterStream(int parameterIndex, Reader x, long length) throws SQLException {
@@ -1300,7 +1300,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
-     * @param length the number of bytes
+     * @param length the number of characters
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
@@ -1402,6 +1402,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
+     * @param length the number of characters
      * @throws SQLException if this object is closed
      */
     public void setClob(int parameterIndex, Reader x, long length) throws SQLException {
@@ -1454,6 +1455,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
+     * @param length the number of characters
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##

@@ -25,6 +25,7 @@ import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * This is the base class for all value classes.
@@ -487,17 +488,17 @@ public abstract class Value {
     /**
      * Compare a value to the specified type.
      *
-     * @param type the value type
-     * @return the value
+     * @param targetType the type of the returned value
+     * @return the converted value
      */
-    public Value convertTo(int type) {
-        // converting NULL done in ValueNull
+    public Value convertTo(int targetType) {
+        // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
-        if (getType() == type) {
+        if (getType() == targetType) {
             return this;
         }
         // decimal conversion
-        switch (type) {
+        switch (targetType) {
         case BOOLEAN: {
             switch (getType()) {
             case BYTE:
@@ -534,6 +535,8 @@ public abstract class Value {
                 return ValueByte.get(convertToByte(convertToLong(getDouble())));
             case FLOAT:
                 return ValueByte.get(convertToByte(convertToLong(getFloat())));
+            case BYTES:
+                return ValueByte.get((byte) Integer.parseInt(getString(), 16));
             }
             break;
         }
@@ -553,6 +556,8 @@ public abstract class Value {
                 return ValueShort.get(convertToShort(convertToLong(getDouble())));
             case FLOAT:
                 return ValueShort.get(convertToShort(convertToLong(getFloat())));
+            case BYTES:
+                return ValueShort.get((short) Integer.parseInt(getString(), 16));
             }
             break;
         }
@@ -572,6 +577,8 @@ public abstract class Value {
                 return ValueInt.get(convertToInt(convertToLong(getDouble())));
             case FLOAT:
                 return ValueInt.get(convertToInt(convertToLong(getFloat())));
+            case BYTES:
+                return ValueInt.get((int) Long.parseLong(getString(), 16));
             }
             break;
         }
@@ -591,6 +598,14 @@ public abstract class Value {
                 return ValueLong.get(convertToLong(getDouble()));
             case FLOAT:
                 return ValueLong.get(convertToLong(getFloat()));
+            case BYTES: {
+                // parseLong doesn't work for ffffffffffffffff
+                byte[] d = getBytes();
+                if (d.length == 8) {
+                    return ValueLong.get(Utils.readLong(d, 0));
+                }
+                return ValueLong.get(Long.parseLong(getString(), 16));
+            }
             }
             break;
         }
@@ -698,6 +713,37 @@ public abstract class Value {
                 return ValueBytes.getNoCopy(getBytesNoCopy());
             case UUID:
                 return ValueBytes.getNoCopy(getBytes());
+            case BYTE:
+                return ValueBytes.getNoCopy(new byte[]{getByte()});
+            case SHORT: {
+                int x = getShort();
+                return ValueBytes.getNoCopy(new byte[]{
+                        (byte) (x >> 8),
+                        (byte) x
+                });
+            }
+            case INT: {
+                int x = getInt();
+                return ValueBytes.getNoCopy(new byte[]{
+                        (byte) (x >> 24),
+                        (byte) (x >> 16),
+                        (byte) (x >> 8),
+                        (byte) x
+                });
+            }
+            case LONG: {
+                long x = getLong();
+                return ValueBytes.getNoCopy(new byte[]{
+                        (byte) (x >> 56),
+                        (byte) (x >> 48),
+                        (byte) (x >> 40),
+                        (byte) (x >> 32),
+                        (byte) (x >> 24),
+                        (byte) (x >> 16),
+                        (byte) (x >> 8),
+                        (byte) x
+                });
+            }
             }
             break;
         }
@@ -727,7 +773,7 @@ public abstract class Value {
         // conversion by parsing the string value
         String s = getString();
         try {
-            switch (type) {
+            switch (targetType) {
             case NULL:
                 return ValueNull.INSTANCE;
             case BOOLEAN: {
@@ -785,7 +831,7 @@ public abstract class Value {
             case UUID:
                 return ValueUuid.get(s);
             default:
-                throw DbException.throwInternalError("type=" + type);
+                throw DbException.throwInternalError("type=" + targetType);
             }
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);

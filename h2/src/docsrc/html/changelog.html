@@ -18,8 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>LOB files were not deleted when running DROP ALL OBJECTS.
+<ul><li>Various CallableStatement methods could throw a NullPointerException.
+</li><li>LOB files were not deleted when running DROP ALL OBJECTS.
 </li><li>MS SQL Server compatibility: support string literals prefixed with N ("National Language" strings). Issue 240.
+</li><li>CAST: when converting a string to binary, it is hex encoded (every byte two characters);
+	a hex string can be converted to a number by first converting it to binary. Examples:
+	CAST(CAST('FFFF' AS BINARY) AS INT) = 65535, CAST(65535 AS BINARY) = '0000FFFF'.
 </li><li>When a domain (user defined data type) contained a user defined function, the database could not be opened.
 </li><li>CAST('011' AS INT) will no longer use decode the value as an octal number (using Integer.decode) but now use Integer.parseInt.
 	The same logic applied to byte, short, and long. This also means that trying to convert hex numbers (0x...) with CAST now fails.

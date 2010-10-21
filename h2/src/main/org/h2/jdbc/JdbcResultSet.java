@@ -319,7 +319,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as a String.
+     * Returns the value of the specified column as a BigDecimal.
      *
      * @param columnIndex (1,2,...)
      * @return the value
@@ -383,11 +383,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as a String.
+     * Returns the value of the specified column as a BigDecimal.
      *
      * @param columnLabel the column label
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
         try {
@@ -419,7 +420,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnLabel the column label
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     public Time getTime(String columnLabel) throws SQLException {
         try {
@@ -435,7 +437,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnLabel the column label
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
         try {
@@ -691,7 +694,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as a String.
+     * Returns the value of the specified column as a BigDecimal.
      *
      * @deprecated
      *
@@ -716,7 +719,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as a String.
+     * Returns the value of the specified column as a BigDecimal.
      *
      * @deprecated
      *
@@ -760,7 +763,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported] Gets a column as a object using the specified type
      * mapping.
      */
-    public Object getObject(int columnIndex, Map<String, Class< ? >> map) throws SQLException {
+    public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
         throw unsupported("map");
     }
 
@@ -990,7 +993,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as input stream.
+     * Returns the value of the specified column as an input stream.
      *
      * @param columnIndex (1,2,...)
      * @return the value
@@ -1007,7 +1010,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as input stream.
+     * Returns the value of the specified column as an input stream.
      *
      * @param columnLabel the column label
      * @return the value
@@ -1101,7 +1104,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as input stream.
+     * Returns the value of the specified column as an input stream.
      *
      * @param columnIndex (1,2,...)
      * @return the value
@@ -1119,7 +1122,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as input stream.
+     * Returns the value of the specified column as an input stream.
      *
      * @param columnLabel the column label
      * @return the value
@@ -1137,7 +1140,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as input stream.
+     * Returns the value of the specified column as a reader.
      *
      * @param columnIndex (1,2,...)
      * @return the value
@@ -1154,7 +1157,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as input stream.
+     * Returns the value of the specified column as a reader.
      *
      * @param columnLabel the column label
      * @return the value
@@ -3286,7 +3289,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 //## Java 1.6 end ##
 
     /**
-     * Returns the value of the specified column as input stream.
+     * Returns the value of the specified column as a reader.
      *
      * @param columnIndex (1,2,...)
      * @return the value
@@ -3305,7 +3308,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 //## Java 1.6 end ##
 
     /**
-     * Returns the value of the specified column as input stream.
+     * Returns the value of the specified column as a reader.
      *
      * @param columnLabel the column label
      * @return the value

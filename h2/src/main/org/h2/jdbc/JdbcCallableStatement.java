@@ -413,7 +413,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * specified time zone.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
-     * @param calendar the calendar
+     * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
@@ -428,7 +428,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * specified time zone.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
-     * @param calendar the calendar
+     * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
@@ -443,7 +443,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * specified time zone.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
-     * @param calendar the calendar
+     * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
@@ -465,7 +465,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * specified time zone.
      *
      * @param parameterName the parameter name
-     * @param calendar the calendar
+     * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
@@ -479,7 +479,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * specified time zone.
      *
      * @param parameterName the parameter name
-     * @param calendar the calendar
+     * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
@@ -493,7 +493,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * specified time zone.
      *
      * @param parameterName the parameter name
-     * @param calendar the calendar
+     * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
@@ -907,7 +907,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param calendar the calendar
+     * @param cal the calendar
      * @throws SQLException if this object is closed
      */
     public void setTimestamp(String parameterName, Timestamp x, Calendar cal) throws SQLException {
@@ -920,7 +920,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param calendar the calendar
+     * @param cal the calendar
      * @throws SQLException if this object is closed
      */
     public void setTime(String parameterName, Time x, Calendar cal) throws SQLException {
@@ -933,7 +933,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param calendar the calendar
+     * @param cal the calendar
      * @throws SQLException if this object is closed
      */
     public void setDate(String parameterName, Date x, Calendar cal) throws SQLException {
@@ -950,8 +950,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the number of bytes
      * @throws SQLException if this object is closed
      */
-    public void setCharacterStream(String parameterName, Reader reader, int length) throws SQLException {
-        setCharacterStream(getIndexForName(parameterName), reader, length);
+    public void setCharacterStream(String parameterName, Reader x, int length) throws SQLException {
+        setCharacterStream(getIndexForName(parameterName), x, length);
     }
 
     /**
@@ -1036,12 +1036,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     }
 
     /**
-     * Sets the time using a specified time zone. The value will be converted to
-     * the local time zone.
+     * Sets the time using a specified time zone.
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param calendar the calendar
      * @throws SQLException if this object is closed
      */
     public void setTime(String parameterName, Time x) throws SQLException {
@@ -1189,7 +1187,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * Sets the value of a parameter.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
@@ -1205,29 +1203,29 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the reader.
      * The reader may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @param length the number of bytes
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
     public void setNCharacterStream(String parameterName,
-            Reader value, long length) throws SQLException {
-        setNCharacterStream(getIndexForName(parameterName), value, length);
+            Reader x, long length) throws SQLException {
+        setNCharacterStream(getIndexForName(parameterName), x, length);
     }
 //## Java 1.6 end ##
 
     /**
      * Sets the value of a parameter as a Clob.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
-    public void setNClob(String parameterName, NClob value)
+    public void setNClob(String parameterName, NClob x)
             throws SQLException {
-        setNClob(getIndexForName(parameterName), value);
+        setNClob(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
 
@@ -1236,14 +1234,14 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the reader.
      * The reader may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
-    public void setClob(String parameterName, Reader reader,
+    public void setClob(String parameterName, Reader x,
             long length) throws SQLException {
-        setClob(getIndexForName(parameterName), reader, length);
+        setClob(getIndexForName(parameterName), x, length);
     }
 //## Java 1.6 end ##
 
@@ -1252,14 +1250,14 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the stream.
      * The stream may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
-    public void setBlob(String parameterName, InputStream inputStream,
+    public void setBlob(String parameterName, InputStream x,
             long length) throws SQLException {
-        setBlob(getIndexForName(parameterName), inputStream, length);
+        setBlob(getIndexForName(parameterName), x, length);
     }
 //## Java 1.6 end ##
 
@@ -1268,21 +1266,21 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the reader.
      * The reader may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
-    public void setNClob(String parameterName, Reader reader,
+    public void setNClob(String parameterName, Reader x,
             long length) throws SQLException {
-        setNClob(getIndexForName(parameterName), reader, length);
+        setNClob(getIndexForName(parameterName), x, length);
     }
 //## Java 1.6 end ##
 
     /**
      * Sets the value of a parameter as a Blob.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
@@ -1296,7 +1294,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * Sets the value of a parameter as a Clob.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
@@ -1311,7 +1309,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the stream.
      * The stream may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
@@ -1327,7 +1325,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the stream.
      * The stream may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @param length the number of bytes
      * @throws SQLException if this object is closed
@@ -1342,7 +1340,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the stream.
      * The stream may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
@@ -1358,7 +1356,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the stream.
      * The stream may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @param length the number of bytes
      * @throws SQLException if this object is closed
@@ -1375,7 +1373,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the stream.
      * The stream may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
@@ -1391,7 +1389,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the reader.
      * The reader may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
@@ -1407,7 +1405,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the reader.
      * The reader may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @param length the number of characters
      * @throws SQLException if this object is closed
@@ -1424,7 +1422,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the reader.
      * The reader may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
@@ -1439,13 +1437,12 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the reader.
      * The reader may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
-    public void setNCharacterStream(String parameterName,
-            Reader x) throws SQLException {
+    public void setNCharacterStream(String parameterName, Reader x) throws SQLException {
         setNCharacterStream(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
@@ -1455,9 +1452,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * This method does not close the reader.
      * The reader may be closed after executing the statement.
      *
-     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param parameterName the parameter name
      * @param x the value
-     * @param length the number of characters
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
@@ -1470,8 +1466,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported] Sets the value of a parameter as a SQLXML object.
      */
 //## Java 1.6 begin ##
-    public void setSQLXML(String parameterName,
-            SQLXML xmlObject) throws SQLException {
+    public void setSQLXML(String parameterName, SQLXML x) throws SQLException {
         throw unsupported("SQLXML");
     }
 //## Java 1.6 end ##

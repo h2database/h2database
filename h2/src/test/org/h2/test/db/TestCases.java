@@ -57,7 +57,7 @@ public class TestCases extends TestBase {
         if (config.memory) {
             return;
         }
-        testCheckContraintWithFunction();
+        testCheckConstraintWithFunction();
         testDeleteAndDropTableWithLobs(true);
         testDeleteAndDropTableWithLobs(false);
         testEmptyBtreeIndex();
@@ -85,7 +85,7 @@ public class TestCases extends TestBase {
         deleteDb("cases");
     }
 
-    private void testCheckContraintWithFunction() throws SQLException {
+    private void testCheckConstraintWithFunction() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();

@@ -170,8 +170,8 @@ public class TableFilter implements ColumnResolver {
                 }
             }
             item = table.getBestPlanItem(s, masks);
-            // the more index conditions, the earlier the table
-            // to ensure joins without indexes are evaluated:
+            // The more index conditions, the earlier the table.
+            // This is to ensure joins without indexes run quickly:
             // x (x.a=10); y (x.b=y.b) - see issue 113
             item.cost -= item.cost * indexConditions.size() / 100 / level;
         }

@@ -850,4 +850,15 @@ public class PageLog {
         return store.createData();
     }
 
+
+    /**
+     * Get the smallest possible page id used. This is the trunk page if only
+     * appending at the end of the file, or 0.
+     *
+     * @return the smallest possible page.
+     */
+    int getMinPageId() {
+        return pageOut == null ? 0 : pageOut.getMinPageId();
+    }
+
 }

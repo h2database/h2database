@@ -18,9 +18,11 @@ public class PageOutputStream {
 
     private PageStore store;
     private final Trace trace;
-    private int trunkPageId;
     private final BitField exclude;
+    private final boolean atEnd;
+    private final int minPageId;
 
+    private int trunkPageId;
     private int trunkNext;
     private IntArray reservedPages = new IntArray();
     private PageStreamTrunk trunk;
@@ -31,7 +33,6 @@ public class PageOutputStream {
     private boolean needFlush;
     private boolean writing;
     private int pageCount;
-    private boolean atEnd;
     private int logKey;
 
     /**
@@ -51,6 +52,7 @@ public class PageOutputStream {
         // minus one, because we increment before creating a trunk page
         this.logKey = logKey - 1;
         this.atEnd = atEnd;
+        minPageId = atEnd ? trunkPage : 0;
     }
 
     /**
@@ -207,6 +209,16 @@ public class PageOutputStream {
                 store.free(p, false);
             }
         }
+    }
+
+    /**
+     * Get the smallest possible page id used. This is the trunk page if only
+     * appending at the end of the file, or 0.
+     *
+     * @return the smallest possible page.
+     */
+    int getMinPageId() {
+        return minPageId;
     }
 
 }

@@ -665,15 +665,21 @@ public class PageStore implements CacheWriter {
             DbException.throwInternalError("not free: " + f);
         }
         Page p = getPage(full);
-        if (p != null) {
+        if (p == null) {
+            freePage(full);
+        } else if (p instanceof PageStreamData || p instanceof PageStreamTrunk) {
+            if (p.getPos() < log.getMinPageId()) {
+                // an old transaction log page
+                // probably a leftover from a crash
+                freePage(full);
+            }
+        } else {
             trace.debug("move " + p.getPos() + " to " + free);
             try {
                 p.moveTo(systemSession, free);
             } finally {
                 changeCount++;
             }
-        } else {
-            freePage(full);
         }
         return true;
     }

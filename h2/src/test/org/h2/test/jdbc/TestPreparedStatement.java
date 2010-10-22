@@ -44,6 +44,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testExecuteUpdateCall(conn);
         testPrepareExecute(conn);
         testUUID(conn);
         testScopedGeneratedKey(conn);
@@ -75,6 +76,15 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
         deleteDb("preparedStatement");
+    }
+
+    private void testExecuteUpdateCall(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        try {
+            stat.executeUpdate("CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)");
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.DATA_CONVERSION_ERROR_1, e.getErrorCode());
+        }
     }
 
     private void testPrepareExecute(Connection conn) throws SQLException {

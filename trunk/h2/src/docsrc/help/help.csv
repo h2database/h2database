@@ -2144,10 +2144,12 @@ CLOB
 "Data Types","UUID Type","
 UUID
 ","
-Universally unique identifier. This is a 128 bit value. Use
-""PreparedStatement.setBytes"" or ""setString"" to store values.
+Universally unique identifier. This is a 128 bit value.
+To store values, use ""PreparedStatement.setBytes"",
+""setString"", or ""setObject(uuid)"" (where ""uuid"" is a ""java.util.UUID"").
+""ResultSet.getObject"" will return a ""java.util.UUID"".
 
-Mapped to ""java.util.UUID"".
+For details, see the documentation of ""java.util.UUID"".
 ","
 UUID
 "

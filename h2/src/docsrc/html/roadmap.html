@@ -388,7 +388,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Store the Lucene index in the database itself.
 </li><li>Support standard MERGE statement: http://en.wikipedia.org/wiki/Merge_%28SQL%29
 </li><li>Oracle compatibility: support DECODE(x, ...).
-</li><li>Console: Start Browser: if ip number changed, try localhost instead.
 </li><li>MVCC: compare concurrent update behavior with PostgreSQL and Oracle.
 </li><li>HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface).
 </li><li>HSQLDB compatibility: support CALL "java.lang.Math.sqrt"(2.0)
@@ -423,6 +422,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve concurrency for in-memory database operations.
 </li><li>Issue 122: Support for connection aliases for remote tcp connections.
 </li><li>Fast scrambling (strong encryption doesn't help if the password is included in the application).
+</li><li>H2 Console: support -webPassword to require a password to access preferences or shutdown.
 </li><li>Issue 126: The index name should be "IDX_" plus the constraint name unless there is a conflict, in which case append a number.
 </li><li>Issue 127: Support activation/deactivation of triggers
 </li><li>Issue 130: Custom log event listeners
@@ -523,7 +523,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Move table to a different schema (rename table to a different schema), possibly using ALTER TABLE ... SET SCHEMA ...;
 </li><li>nioMapped file system: automatically fall back to regular (non mapped) IO if there is a problem (out of memory exception for example).
 </li><li>Column as parameter of function table. Issue 228.
-</li><li>Support -webPassword to require a password to shutdown the H2 Console.
 </li><li>Connection pool: detect ;AUTOCOMMIT=FALSE in the database URL, and if set,
     disable autocommit for all connections.
 </li><li>Compatibility with MS Access: support "&amp;" to concatenate text.

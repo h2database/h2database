@@ -208,18 +208,18 @@ public class PageLog {
             PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
             while (firstTrunkPage != 0 && firstTrunkPage < store.getPageCount()) {
                 PageStreamTrunk t = it.next();
-                if (loopCount++ >= loopDetect) {
-                    first = t.getPos();
-                    loopCount = 0;
-                    loopDetect *= 2;
-                } else if (first != 0 && t != null && first == t.getPos()) {
-                    throw DbException.throwInternalError("endless loop at " + t);
-                }
                 if (t == null) {
                     if (it.canDelete()) {
                         store.free(firstTrunkPage, false);
                     }
                     break;
+                }
+                if (loopCount++ >= loopDetect) {
+                    first = t.getPos();
+                    loopCount = 0;
+                    loopDetect *= 2;
+                } else if (first != 0 && first == t.getPos()) {
+                    throw DbException.throwInternalError("endless loop at " + t);
                 }
                 t.free(currentDataPage);
                 firstTrunkPage = t.getNextTrunk();

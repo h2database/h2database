@@ -245,6 +245,20 @@ public class TestNestedJoins extends TestBase {
 
         /*
         create table test(id int primary key);
+        insert into test values(1);
+        select b.id from test a left outer join test b on a.id = b.id and not exists (select * from test c where c.id = b.id);
+        -- expected: null
+         */
+        stat.execute("create table test(id int primary key)");
+        stat.execute("insert into test values(1)");
+        rs = stat.executeQuery("select b.id from test a left outer join test b on a.id = b.id and not exists (select * from test c where c.id = b.id)");
+        assertTrue(rs.next());
+        sql = rs.getString(1);
+        assertEquals(null, sql);
+        stat.execute("drop table test");
+
+        /*
+        create table test(id int primary key);
         explain select * from test a left outer join (test c) on a.id = c.id;
         -- expected: uses the primary key index
         */

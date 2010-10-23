@@ -911,10 +911,10 @@ public class Select extends Query {
             if (on != null) {
                 if (!on.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
                     if (SysProperties.NESTED_JOINS) {
-                        f.removeJoinCondition();
                         // need to check that all added are bound to a table
                         on = on.optimize(session);
                         if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
+                            f.removeJoinCondition();
                             addCondition(on);
                         }
                     } else {

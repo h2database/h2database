@@ -43,8 +43,6 @@ public class TestFullText extends TestBase {
         if (config.memory) {
             return;
         }
-        testMultiThreaded(true);
-        testMultiThreaded(false);
         testStreamLob();
         test(false, "VARCHAR");
         test(false, "CLOB");
@@ -53,6 +51,8 @@ public class TestFullText extends TestBase {
         String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
         try {
             Class.forName(luceneFullTextClassName);
+            testMultiThreaded(true);
+            testMultiThreaded(false);
             testTransaction(true);
             test(true, "VARCHAR");
             test(true, "CLOB");

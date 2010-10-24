@@ -76,7 +76,9 @@ public class TestTools extends TestBase {
         testConvertTraceFile();
         testManagementDb();
         testChangeFileEncryption(false);
-        testChangeFileEncryption(true);
+        if (!config.splitFileSystem) {
+            testChangeFileEncryption(true);
+        }
         testServer();
         testScriptRunscript();
         testBackupRestore();

@@ -27,6 +27,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
 import org.h2.store.fs.FileSystem;
+import org.h2.store.fs.FileSystemSplit;
 import org.h2.test.utils.RecordingFileSystem;
 import org.h2.tools.DeleteDbFiles;
 
@@ -213,11 +214,17 @@ public abstract class TestBase {
      * @return the directory, possibly including file system prefix
      */
     protected String getBaseDir() {
-        if (config != null && config.record) {
-            return RecordingFileSystem.PREFIX + "memFS:" + baseDir;
+        String dir = baseDir;
+        if (config != null) {
+            if (config.record) {
+                dir = RecordingFileSystem.PREFIX + "memFS:" + dir;
+            }
+            if (config.splitFileSystem) {
+                dir = FileSystemSplit.PREFIX + "16:" + dir;
+            }
         }
         // return "split:nioMapped:" + baseDir;
-        return baseDir;
+        return dir;
     }
 
     /**

@@ -6,7 +6,6 @@
  */
 package org.h2.test.db;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -151,14 +150,9 @@ public class TestRunscript extends TestBase implements Trigger {
 
     private void test(boolean password) throws SQLException {
         deleteDb("runscript");
-        Connection conn1, conn2, conn3;
-        Statement stat1, stat2, stat3;
-        String connectionString1 = "jdbc:h2:split:16:" + getBaseDir() + "/runscript;MAX_LENGTH_INPLACE_LOB=1";
-        String connectionString2 = "jdbc:h2:split:16:" + getBaseDir() + "/runscriptRestore;MAX_LENGTH_INPLACE_LOB=1";
-        String connectionString3 = "jdbc:h2:split:16:" + getBaseDir() + "/runscriptRestoreRecover;MAX_LENGTH_INPLACE_LOB=1";
-
-        conn1 = getConnection(connectionString1 + ";CIPHER=AES", "user", "pw pw");
-        
+        Connection conn1, conn2;
+        Statement stat1, stat2;
+        conn1 = getConnection("runscript");
         stat1 = conn1.createStatement();
         stat1.execute("create table test (id identity, name varchar(12))");
         stat1.execute("insert into test (name) values ('first'), ('second')");
@@ -171,8 +165,7 @@ public class TestRunscript extends TestBase implements Trigger {
         stat1.execute("create schema testSchema authorization testAdmin");
         stat1.execute("create table testSchema.parent(id int primary key, name varchar)");
         stat1.execute("create index idxname on testSchema.parent(name)");
-        stat1
-                .execute("create table testSchema.child(id int primary key, parentId int, name varchar, foreign key(parentId) references parent(id))");
+        stat1.execute("create table testSchema.child(id int primary key, parentId int, name varchar, foreign key(parentId) references parent(id))");
         stat1.execute("create user testUser salt '02' hash '03'");
         stat1.execute("create role testRole");
         stat1.execute("grant all on testSchema.child to testUser");
@@ -187,9 +180,9 @@ public class TestRunscript extends TestBase implements Trigger {
             sql += " CIPHER AES PASSWORD 't1e2s3t4'";
         }
         stat1.execute(sql);
-        
+
         deleteDb("runscriptRestore");
-        conn2 = getConnection(connectionString2, "user", "pw pw");
+        conn2 = getConnection("runscriptRestore");
         stat2 = conn2.createStatement();
         sql = "runscript from '" + getBaseDir() + "/backup.2.sql'";
         if (password) {
@@ -209,39 +202,46 @@ public class TestRunscript extends TestBase implements Trigger {
         }
         stat2.execute(sql);
         stat2.execute("script to '" + getBaseDir() + "/backup.3.sql'");
-        
-        conn1.close();
-        ChangeFileEncryption.execute("split:" + getBaseDir(), "runscript", "AES", "pw".toCharArray(), null, true);
-        Recover.execute("split:" + getBaseDir(), "runscript");
-        deleteDb("runscriptRestoreRecover");
-        conn3 = getConnection(connectionString3, "abc", "pw");
-        stat3 = conn3.createStatement();
-        stat3.execute("runscript from '" + getBaseDir() + "/runscript.h2.sql'");
-        conn3.close();
-        conn3 = getConnection(connectionString3, "user", "pw");
-        stat3 = conn3.createStatement();
-        stat3.execute("drop user abc");
-        conn1 = getConnection(connectionString1, "user", "pw");
-        stat1 = conn1.createStatement();
-        
+
         assertEqualDatabases(stat1, stat2);
-        assertEqualDatabases(stat1, stat3);
-        
+
+        if (!config.memory) {
+            conn1.close();
+
+            if (config.cipher != null) {
+                ChangeFileEncryption.execute(getBaseDir(), "runscript", config.cipher, getFilePassword().toCharArray(), null, true);
+            }
+            Recover.execute(getBaseDir(), "runscript");
+
+            deleteDb("runscriptRestoreRecover");
+            Connection conn3 = getConnection("runscriptRestoreRecover", "tempUser", getPassword());
+            Statement stat3 = conn3.createStatement();
+            stat3.execute("runscript from '" + getBaseDir() + "/runscript.h2.sql'");
+            conn3.close();
+            conn3 = getConnection("runscriptRestoreRecover");
+            stat3 = conn3.createStatement();
+            stat3.execute("drop user tempUser");
+
+            if (config.cipher != null) {
+                ChangeFileEncryption.execute(getBaseDir(), "runscript", config.cipher, null, getFilePassword().toCharArray(), true);
+            }
+
+            conn1 = getConnection("runscript");
+            stat1 = conn1.createStatement();
+
+            assertEqualDatabases(stat1, stat3);
+            conn3.close();
+        }
+
+        assertEqualDatabases(stat1, stat2);
+
         conn1.close();
         conn2.close();
-        conn3.close();
-        
-        // .txt file from recovery
-        File[] files = new File(getBaseDir() + "/runscript.lobs.db").listFiles();
-        for (File file : files) {
-            IOUtils.delete(file.getAbsolutePath());            
-        }
-        IOUtils.delete(getBaseDir() + "/backup.2.sql");
-        IOUtils.delete(getBaseDir() + "/backup.3.sql");
-        IOUtils.delete(getBaseDir() + "/runscript.h2.sql");
-        deleteDb("runscript");
         deleteDb("runscriptRestore");
         deleteDb("runscriptRestoreRecover");
+        IOUtils.delete(getBaseDir() + "/backup.2.sql");
+        IOUtils.delete(getBaseDir() + "/backup.3.sql");
+
     }
 
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {

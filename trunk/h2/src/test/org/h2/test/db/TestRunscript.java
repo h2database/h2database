@@ -6,13 +6,17 @@
  */
 package org.h2.test.db;
 
+import java.io.File;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.api.Trigger;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.tools.ChangeFileEncryption;
+import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
 
 /**
@@ -147,12 +151,18 @@ public class TestRunscript extends TestBase implements Trigger {
 
     private void test(boolean password) throws SQLException {
         deleteDb("runscript");
-        Connection conn1, conn2;
-        Statement stat1, stat2;
-        conn1 = getConnection("runscript");
+        Connection conn1, conn2, conn3;
+        Statement stat1, stat2, stat3;
+        String connectionString1 = "jdbc:h2:split:16:" + getBaseDir() + "/runscript;MAX_LENGTH_INPLACE_LOB=1";
+        String connectionString2 = "jdbc:h2:split:16:" + getBaseDir() + "/runscriptRestore;MAX_LENGTH_INPLACE_LOB=1";
+        String connectionString3 = "jdbc:h2:split:16:" + getBaseDir() + "/runscriptRestoreRecover;MAX_LENGTH_INPLACE_LOB=1";
+
+        conn1 = getConnection(connectionString1 + ";CIPHER=AES", "user", "pw pw");
+        
         stat1 = conn1.createStatement();
         stat1.execute("create table test (id identity, name varchar(12))");
         stat1.execute("insert into test (name) values ('first'), ('second')");
+        stat1.execute("create table test2(id int primary key) as select x from system_range(1, 5000)");
         stat1.execute("create sequence testSeq start with 100 increment by 10");
         stat1.execute("create alias myTest for \"" + getClass().getName() + ".test\"");
         stat1.execute("create trigger myTrigger before insert on test nowait call \"" + getClass().getName() + "\"");
@@ -168,15 +178,18 @@ public class TestRunscript extends TestBase implements Trigger {
         stat1.execute("grant all on testSchema.child to testUser");
         stat1.execute("grant select, insert on testSchema.parent to testRole");
         stat1.execute("grant testRole to testUser");
-
+        stat1.execute("create table blob (value blob)");
+        PreparedStatement prep = conn1.prepareStatement("insert into blob values (?)");
+        prep.setBytes(1, new byte[65536]);
+        prep.execute();
         String sql = "script to '" + getBaseDir() + "/backup.2.sql'";
         if (password) {
             sql += " CIPHER AES PASSWORD 't1e2s3t4'";
         }
         stat1.execute(sql);
-
+        
         deleteDb("runscriptRestore");
-        conn2 = getConnection("runscriptRestore");
+        conn2 = getConnection(connectionString2, "user", "pw pw");
         stat2 = conn2.createStatement();
         sql = "runscript from '" + getBaseDir() + "/backup.2.sql'";
         if (password) {
@@ -196,15 +209,39 @@ public class TestRunscript extends TestBase implements Trigger {
         }
         stat2.execute(sql);
         stat2.execute("script to '" + getBaseDir() + "/backup.3.sql'");
-
+        
+        conn1.close();
+        ChangeFileEncryption.execute("split:" + getBaseDir(), "runscript", "AES", "pw".toCharArray(), null, true);
+        Recover.execute("split:" + getBaseDir(), "runscript");
+        deleteDb("runscriptRestoreRecover");
+        conn3 = getConnection(connectionString3, "abc", "pw");
+        stat3 = conn3.createStatement();
+        stat3.execute("runscript from '" + getBaseDir() + "/runscript.h2.sql'");
+        conn3.close();
+        conn3 = getConnection(connectionString3, "user", "pw");
+        stat3 = conn3.createStatement();
+        stat3.execute("drop user abc");
+        conn1 = getConnection(connectionString1, "user", "pw");
+        stat1 = conn1.createStatement();
+        
         assertEqualDatabases(stat1, stat2);
-
+        assertEqualDatabases(stat1, stat3);
+        
         conn1.close();
         conn2.close();
-        deleteDb("runscriptRestore");
+        conn3.close();
+        
+        // .txt file from recovery
+        File[] files = new File(getBaseDir() + "/runscript.lobs.db").listFiles();
+        for (File file : files) {
+            IOUtils.delete(file.getAbsolutePath());            
+        }
         IOUtils.delete(getBaseDir() + "/backup.2.sql");
         IOUtils.delete(getBaseDir() + "/backup.3.sql");
-
+        IOUtils.delete(getBaseDir() + "/runscript.h2.sql");
+        deleteDb("runscript");
+        deleteDb("runscriptRestore");
+        deleteDb("runscriptRestoreRecover");
     }
 
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {

@@ -246,6 +246,11 @@ java org.h2.test.TestAll timer
     public boolean record;
 
     /**
+     * Test the split file system.
+     */
+    public boolean splitFileSystem;
+
+    /**
      * If the transaction log should be kept small (that is, the log should be
      * switched early).
      */
@@ -448,11 +453,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         defrag = false;
         traceLevelFile = throttle = 0;
         cipher = null;
+        // splitFileSystem = true;
         test();
         testUnit();
 
         networked = true;
         memory = true;
+        splitFileSystem = false;
         test();
 
         memory = false;
@@ -748,6 +755,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, traceTest, "traceTest");
         appendIf(buff, stopOnError, "stopOnError");
         appendIf(buff, defrag, "defrag");
+        appendIf(buff, splitFileSystem, "split");
         return buff.toString();
     }
 

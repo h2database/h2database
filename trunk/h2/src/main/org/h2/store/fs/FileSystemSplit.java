@@ -22,7 +22,10 @@ import org.h2.util.New;
  */
 public class FileSystemSplit extends FileSystem {
 
-    private static final String PREFIX = "split:";
+    /**
+     * The prefix to use for this file system.
+     */
+    public static final String PREFIX = "split:";
 
     private static final String PART_SUFFIX = ".part";
 

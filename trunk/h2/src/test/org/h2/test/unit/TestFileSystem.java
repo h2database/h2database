@@ -44,9 +44,11 @@ public class TestFileSystem extends TestBase {
         testDatabaseInJar();
         // set default part size to 1 << 10
         FileSystem.getInstance("split:10:" + getBaseDir() + "/fs");
-        testFileSystem("nioMapped:" + getBaseDir() + "/fs");
-        testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");
-        testFileSystem("split:" + getBaseDir() + "/fs");
+        if (!config.splitFileSystem) {
+            testFileSystem("nioMapped:" + getBaseDir() + "/fs");
+            testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");
+            testFileSystem("split:" + getBaseDir() + "/fs");
+        }
         testFileSystem(getBaseDir() + "/fs");
         testFileSystem(FileSystemMemory.PREFIX);
         FileSystemDatabase fs = FileSystemDatabase.register("jdbc:h2:mem:fs");

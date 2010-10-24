@@ -184,7 +184,16 @@ public abstract class TestBase {
      * @return the login password
      */
     protected String getPassword(String userPassword) {
-        return config == null || config.cipher == null ? userPassword : "filePassword " + userPassword;
+        return config == null || config.cipher == null ? userPassword : getFilePassword() + " " + userPassword;
+    }
+
+    /**
+     * Get the file password (only required if file encryption is used).
+     *
+     * @return the file password
+     */
+    protected String getFilePassword() {
+        return "filePassword";
     }
 
     /**

@@ -13,7 +13,6 @@ import java.io.SequenceInputStream;
 import java.util.ArrayList;
 
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.New;
 
@@ -24,6 +23,8 @@ import org.h2.util.New;
 public class FileSystemSplit extends FileSystem {
 
     private static final String PREFIX = "split:";
+
+    private static final String PART_SUFFIX = ".part";
 
     private long defaultMaxSize = 1L << SysProperties.SPLIT_FILE_SIZE_SHIFT;
 
@@ -174,7 +175,7 @@ public class FileSystemSplit extends FileSystem {
         ArrayList<String> list = New.arrayList();
         for (int i = 0; i < array.length; i++) {
             String f = array[i];
-            if (f.endsWith(Constants.SUFFIX_SPLIT_FILE)) {
+            if (f.endsWith(PART_SUFFIX)) {
                 continue;
             }
             array[i] = f = PREFIX + f;
@@ -312,7 +313,7 @@ public class FileSystemSplit extends FileSystem {
      */
     static String getFileName(String fileName, int id) {
         if (id > 0) {
-            fileName += "." + id + Constants.SUFFIX_SPLIT_FILE;
+            fileName += "." + id + PART_SUFFIX;
         }
         return fileName;
     }

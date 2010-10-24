@@ -107,6 +107,8 @@ public class FileLister {
                     ok = true;
                 } else if (f.endsWith(Constants.SUFFIX_TRACE_FILE)) {
                     ok = true;
+                } else if (f.endsWith(Constants.SUFFIX_SPLIT_FILE)) {
+                    ok = true;
                 }
             }
             if (ok) {

@@ -353,6 +353,11 @@ public class Constants {
      * The file name suffix of trace files.
      */
     public static final String SUFFIX_TRACE_FILE = ".trace.db";
+    
+    /**
+     * The file name suffix of split files.
+     */
+    public static final String SUFFIX_SPLIT_FILE = ".part";
 
     /**
      * The delay that is to be used if throttle has been enabled.

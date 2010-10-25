@@ -204,6 +204,7 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testRandomAccess(String fsBase) throws Exception {
+        StringBuilder buff = new StringBuilder();
         FileSystem fs = FileSystem.getInstance(fsBase);
         String s = fs.createTempFile(fsBase + "/tmp", ".tmp", false, false);
         File file = new File(TestBase.BASE_TEST_DIR + "/tmp");
@@ -221,66 +222,77 @@ public class TestFileSystem extends TestBase {
         f.sync();
         Random random = new Random(1);
         int size = getSize(100, 500);
-        for (int i = 0; i < size; i++) {
-            int pos = random.nextInt(10000);
-            switch(random.nextInt(7)) {
-            case 0: {
-                pos = (int) Math.min(pos, ra.length());
-                trace("seek " + pos);
-                f.seek(pos);
-                ra.seek(pos);
-                break;
-            }
-            case 1: {
-                byte[] buffer = new byte[random.nextInt(1000)];
-                random.nextBytes(buffer);
-                trace("write " + buffer.length);
-                f.write(buffer, 0, buffer.length);
-                ra.write(buffer, 0, buffer.length);
-                break;
-            }
-            case 2: {
-                f.setFileLength(pos);
-                ra.setLength(pos);
-                if (ra.getFilePointer() > pos) {
-                    f.seek(0);
-                    ra.seek(0);
+        try {
+            for (int i = 0; i < size; i++) {
+                int pos = random.nextInt(10000);
+                switch(random.nextInt(7)) {
+                case 0: {
+                    pos = (int) Math.min(pos, ra.length());
+                    trace("seek " + pos);
+                    buff.append("seek " + pos + "\n");
+                    f.seek(pos);
+                    ra.seek(pos);
+                    break;
                 }
-                trace("setLength " + pos);
-                break;
+                case 1: {
+                    byte[] buffer = new byte[random.nextInt(1000)];
+                    random.nextBytes(buffer);
+                    trace("write " + buffer.length);
+                    buff.append("write " + buffer.length + "\n");
+                    f.write(buffer, 0, buffer.length);
+                    ra.write(buffer, 0, buffer.length);
+                    break;
+                }
+                case 2: {
+                    f.setFileLength(pos);
+                    ra.setLength(pos);
+                    if (ra.getFilePointer() > pos) {
+                        f.seek(0);
+                        ra.seek(0);
+                    }
+                    trace("setLength " + pos);
+                    buff.append("setLength " + pos + "\n");
+                    break;
+                }
+                case 3: {
+                    int len = random.nextInt(1000);
+                    len = (int) Math.min(len, ra.length() - ra.getFilePointer());
+                    byte[] b1 = new byte[len];
+                    byte[] b2 = new byte[len];
+                    ra.readFully(b1, 0, len);
+                    f.readFully(b2, 0, len);
+                    trace("readFully " + len);
+                    buff.append("readFully " + len + "\n");
+                    assertEquals(b1, b2);
+                    break;
+                }
+                case 4: {
+                    trace("getFilePointer");
+                    buff.append("getFilePointer\n");
+                    assertEquals(ra.getFilePointer(), f.getFilePointer());
+                    break;
+                }
+                case 5: {
+                    trace("length " + ra.length());
+                    buff.append("length " + ra.length() + "\n");
+                    assertEquals(ra.length(), f.length());
+                    break;
+                }
+                case 6: {
+                    trace("reopen");
+                    buff.append("reopen\n");
+                    f.close();
+                    ra.close();
+                    ra = new RandomAccessFile(file, "rw");
+                    f = fs.openFileObject(s, "rw");
+                    assertEquals(ra.length(), f.length());
+                    break;
+                }
+                default:
+                }
             }
-            case 3: {
-                int len = random.nextInt(1000);
-                len = (int) Math.min(len, ra.length() - ra.getFilePointer());
-                byte[] b1 = new byte[len];
-                byte[] b2 = new byte[len];
-                ra.readFully(b1, 0, len);
-                f.readFully(b2, 0, len);
-                trace("readFully " + len);
-                assertEquals(b1, b2);
-                break;
-            }
-            case 4: {
-                trace("getFilePointer");
-                assertEquals(ra.getFilePointer(), f.getFilePointer());
-                break;
-            }
-            case 5: {
-                trace("length " + ra.length());
-                assertEquals(ra.length(), f.length());
-                break;
-            }
-            case 6: {
-                trace("reopen");
-                f.close();
-                ra.close();
-                ra = new RandomAccessFile(file, "rw");
-                f = fs.openFileObject(s, "rw");
-                assertEquals(ra.length(), f.length());
-                break;
-            }
-            default:
-            }
+        } catch (Exception e) {
+            fail("Exception: " + e + "\n"+ buff.toString());
         }
         f.close();
         ra.close();

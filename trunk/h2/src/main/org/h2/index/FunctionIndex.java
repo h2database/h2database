@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 
-import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -56,7 +55,7 @@ public class FunctionIndex extends BaseIndex {
         if (functionTable.canGetRowCount()) {
             expectedRows = functionTable.getRowCountApproximation();
         } else {
-            expectedRows = SysProperties.ESTIMATED_FUNCTION_TABLE_ROWS;
+            expectedRows = database.getSettings().estimatedFunctionTableRows;
         }
         return expectedRows * 10;
     }

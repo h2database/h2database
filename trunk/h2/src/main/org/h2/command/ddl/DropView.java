@@ -8,7 +8,6 @@ package org.h2.command.ddl;
 
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -26,10 +25,11 @@ public class DropView extends SchemaCommand {
 
     private String viewName;
     private boolean ifExists;
-    private int dropAction = SysProperties.DROP_RESTRICT ? ConstraintReferential.RESTRICT : ConstraintReferential.CASCADE;
+    private int dropAction;
 
     public DropView(Session session, Schema schema) {
         super(session, schema);
+        dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintReferential.RESTRICT : ConstraintReferential.CASCADE;
     }
 
     public void setIfExists(boolean b) {

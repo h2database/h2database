@@ -474,7 +474,7 @@ public class PageStore implements CacheWriter {
         boolean isCompactFully = compactMode == CommandInterface.SHUTDOWN_COMPACT;
         boolean isDefrag = compactMode == CommandInterface.SHUTDOWN_DEFRAG;
 
-        if (SysProperties.defragAlways) {
+        if (database.getSettings().defragAlways) {
             isCompactFully = isDefrag = true;
         }
 

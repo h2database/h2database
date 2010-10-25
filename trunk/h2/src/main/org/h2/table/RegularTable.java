@@ -59,7 +59,7 @@ public class RegularTable extends TableBase {
     private boolean containsLargeObject;
     private PageDataIndex mainIndex;
     private int changesSinceAnalyze;
-    private int nextAnalyze = SysProperties.ANALYZE_AUTO;
+    private int nextAnalyze;
 
     /**
      * True if one thread ever was waiting to lock this table. This is to avoid
@@ -70,6 +70,7 @@ public class RegularTable extends TableBase {
 
     public RegularTable(CreateTableData data) {
         super(data);
+        nextAnalyze = database.getSettings().analyzeAuto;
         this.isHidden = data.isHidden;
         if (data.persistData && database.isPersistent()) {
             mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData), data.create, data.session);

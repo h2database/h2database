@@ -44,7 +44,7 @@ public class TestPattern extends TestBase {
 
     private void testPattern() {
         CompareMode mode = CompareMode.getInstance(null, 0);
-        CompareLike comp = new CompareLike(mode, null, null, null, false);
+        CompareLike comp = new CompareLike(mode, "\\", null, null, null, false);
         test(comp, "B", "%_");
         test(comp, "A", "A%");
         test(comp, "A", "A%%");

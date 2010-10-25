@@ -183,10 +183,11 @@ public class Parser {
     private boolean rightsChecked;
     private boolean recompileAlways;
     private ArrayList<Parameter> indexedParameterList;
-    private boolean identifiersToUpper = SysProperties.IDENTIFIERS_TO_UPPER;
+    private final boolean identifiersToUpper;
 
     public Parser(Session session) {
         database = session.getDatabase();
+        this.identifiersToUpper = database.getSettings().databaseToUpper;
         this.session = session;
     }
 
@@ -1774,10 +1775,10 @@ public class Parser {
                     esc = readConcat();
                 }
                 recompileAlways = true;
-                r = new CompareLike(database.getCompareMode(), r, b, esc, false);
+                r = new CompareLike(database, r, b, esc, false);
             } else if (readIf("REGEXP")) {
                 Expression b = readConcat();
-                r = new CompareLike(database.getCompareMode(), r, b, null, true);
+                r = new CompareLike(database, r, b, null, true);
             } else if (readIf("IS")) {
                 if (readIf("NOT")) {
                     if (readIf("NULL")) {
@@ -1898,7 +1899,7 @@ public class Parser {
                     function.setParameter(0, r);
                     r = function;
                 }
-                r = new CompareLike(database.getCompareMode(), r, readSum(), null, true);
+                r = new CompareLike(database, r, readSum(), null, true);
             } else if (readIf("!~")) {
                 if (readIf("*")) {
                     Function function = Function.getFunction(database, "CAST");
@@ -1906,7 +1907,7 @@ public class Parser {
                     function.setParameter(0, r);
                     r = function;
                 }
-                r = new ConditionNot(new CompareLike(database.getCompareMode(), r, readSum(), null, true));
+                r = new ConditionNot(new CompareLike(database, r, readSum(), null, true));
             } else {
                 return r;
             }

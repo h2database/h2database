@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When the system property h2.nestedJoins was enabled, some outer joins returned the wrong result.
+<ul><li>Various system properties have been replaced with database level settings:
+    analyzeAuto, analyzeSample, databaseToUpper,...
+    See the javadoc documentation of DbSettings for details.
+    The system properties are still supported for backward compatibility.
+</li><li>When the system property h2.nestedJoins was enabled, some outer joins returned the wrong result.
 </li><li>Opening a database could throw a NullPointerException.
 </li><li>After a crash, the database file did not always shrink because 
     old transaction log pages were not removed from the file.

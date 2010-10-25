@@ -19,6 +19,7 @@ import java.util.StringTokenizer;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
+import org.h2.constant.DbSettings;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -168,9 +169,11 @@ public class Database implements DataHandler {
     private LobStorage lobStorage;
     private int pageSize = SysProperties.PAGE_SIZE;
     private int defaultTableType = Table.TYPE_CACHED;
+    private DbSettings dbSettings;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
+        this.dbSettings = ci.getDbSettings();
         this.compareMode = CompareMode.getInstance(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
@@ -481,7 +484,7 @@ public class Database implements DataHandler {
         if (n == null || n.length() == 0) {
             n = "unnamed";
         }
-        return SysProperties.DATABASE_TO_UPPER ? StringUtils.toUpperEnglish(n) : n;
+        return getSettings().databaseToUpper ? StringUtils.toUpperEnglish(n) : n;
     }
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {
@@ -2273,6 +2276,10 @@ public class Database implements DataHandler {
 
     public void setMultiVersion(boolean multiVersion) {
         this.multiVersion = multiVersion;
+    }
+
+    public DbSettings getSettings() {
+        return dbSettings;
     }
 
 }

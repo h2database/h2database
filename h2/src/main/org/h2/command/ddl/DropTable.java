@@ -9,7 +9,6 @@ package org.h2.command.ddl;
 import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
@@ -30,10 +29,11 @@ public class DropTable extends SchemaCommand {
     private String tableName;
     private Table table;
     private DropTable next;
-    private int dropAction = SysProperties.DROP_RESTRICT ? ConstraintReferential.RESTRICT : ConstraintReferential.CASCADE;
+    private int dropAction;
 
     public DropTable(Session session, Schema schema) {
         super(session, schema);
+        dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintReferential.RESTRICT : ConstraintReferential.CASCADE;
     }
 
     /**

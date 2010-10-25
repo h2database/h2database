@@ -8,7 +8,6 @@ package org.h2.command.ddl;
 
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -27,10 +26,11 @@ public class Analyze extends DefineCommand {
     /**
      * The sample size.
      */
-    private int sampleRows = SysProperties.ANALYZE_SAMPLE;
+    private int sampleRows;
 
     public Analyze(Session session) {
         super(session);
+        sampleRows = session.getDatabase().getSettings().analyzeSample;
     }
 
     public int update() {

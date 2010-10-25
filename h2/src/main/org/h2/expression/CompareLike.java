@@ -9,7 +9,7 @@ package org.h2.expression;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
@@ -27,9 +27,9 @@ import org.h2.value.ValueString;
 public class CompareLike extends Condition {
 
     private static final int MATCH = 0, ONE = 1, ANY = 2;
-    private static final Character DEFAULT_ESCAPE_CHAR = getEscapeChar(SysProperties.DEFAULT_ESCAPE);
 
     private final CompareMode compareMode;
+    private final String defaultEscape;
     private Expression left;
     private Expression right;
     private Expression escape;
@@ -48,8 +48,13 @@ public class CompareLike extends Condition {
     private boolean fastCompare;
     private boolean invalidPattern;
 
-    public CompareLike(CompareMode compareMode, Expression left, Expression right, Expression escape, boolean regexp) {
+    public CompareLike(Database db, Expression left, Expression right, Expression escape, boolean regexp) {
+        this(db.getCompareMode(), db.getSettings().defaultEscape, left, right, escape, regexp);
+    }
+
+    public CompareLike(CompareMode compareMode, String defaultEscape, Expression left, Expression right, Expression escape, boolean regexp) {
         this.compareMode = compareMode;
+        this.defaultEscape = defaultEscape;
         this.regexp = regexp;
         this.left = left;
         this.right = right;
@@ -124,12 +129,12 @@ public class CompareLike extends Condition {
 
     private Character getEscapeChar(Value e) {
         if (e == null) {
-            return DEFAULT_ESCAPE_CHAR;
+            return getEscapeChar(defaultEscape);
         }
         String es = e.getString();
         Character esc;
         if (es == null) {
-            esc = DEFAULT_ESCAPE_CHAR;
+            esc = getEscapeChar(defaultEscape);
         } else if (es.length() == 0) {
             esc = null;
         } else if (es.length() > 1) {

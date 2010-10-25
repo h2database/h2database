@@ -85,6 +85,7 @@ public class SysProperties {
      * System property <code>h2.analyzeSample</code> (default: 10000).<br />
      * The default sample size when analyzing a table.
      */
+    // DbSettings
     public static final int ANALYZE_SAMPLE = getIntSetting("h2.analyzeSample", 10000);
 
     /**
@@ -96,6 +97,7 @@ public class SysProperties {
      * starting the database. It is not run on local temporary tables, and
      * tables that have a trigger on SELECT.
      */
+    // DbSettings
     public static final int ANALYZE_AUTO = getIntSetting("h2.analyzeAuto", 0);
 
     /**
@@ -109,6 +111,7 @@ public class SysProperties {
      * for all databases except MySQL. For MySQL, it is always enabled.
      */
     public static final boolean ALIAS_COLUMN_NAME = getBooleanSetting("h2.aliasColumnName", false);
+    // TODO Mode
 
     /**
      * System property <code>h2.allowBigDecimalExtensions</code> (default:
@@ -151,6 +154,7 @@ public class SysProperties {
      * The default cache size in KB.
      */
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
+    // TODO constant
 
     /**
      * System property <code>h2.cacheTypeDefault</code> (default: LRU).<br />
@@ -159,6 +163,7 @@ public class SysProperties {
      * cacheSizeIndexShift.
      */
     public static final String CACHE_TYPE_DEFAULT = getStringSetting("h2.cacheTypeDefault", "LRU");
+    // TODO constant
 
     /**
      * System property <code>h2.check</code> (default: true).<br />
@@ -193,13 +198,14 @@ public class SysProperties {
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
 
     /**
-     * System property <code>h2.commandCacheSize</code> (default: 0).<br />
+     * System property <code>h2.queryCacheSize</code> (default: 0).<br />
      * The size of the query cache. Each session has it's own cache with the
      * given size. The cache is only used if the SQL statement and all
      * parameters match. Only the last returned result per query is cached. Only
      * SELECT statements are cached (excluding UNION and FOR UPDATE statements).
      * This works for both statements and prepared statement.
      */
+    // DbSettings
     public static final int QUERY_CACHE_SIZE = getIntSetting("h2.queryCacheSize", 0);
 
     /**
@@ -214,6 +220,7 @@ public class SysProperties {
      * function, and in the CATALOG column of all database meta data methods.
      * Setting this to "false" is experimental.
      */
+    // DbSettings
     public static final boolean DATABASE_TO_UPPER = getBooleanSetting("h2.databaseToUpper", true);
 
     /**
@@ -221,6 +228,7 @@ public class SysProperties {
      * The default escape character for LIKE comparisons. To select no escape
      * character, use an empty string.
      */
+    // DbSettings
     public static final String DEFAULT_ESCAPE = getStringSetting("h2.defaultEscape", "\\");
 
     /**
@@ -229,6 +237,7 @@ public class SysProperties {
      * The default for the setting MAX_OPERATION_MEMORY.
      */
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
+    // TODO constant
 
     /**
      * System property <code>h2.defaultMaxLengthInplaceLob</code>
@@ -236,6 +245,7 @@ public class SysProperties {
      * The default maximum length of an LOB that is stored in the database file.
      */
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = getIntSetting("h2.defaultMaxLengthInplaceLob", 4096);
+    // TODO constant
 
     /**
      * System property <code>h2.defaultMaxLengthInplaceLob2</code>
@@ -244,6 +254,7 @@ public class SysProperties {
      * Only used if h2.lobInDatabase is enabled.
      */
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB2 = getIntSetting("h2.defaultMaxLengthInplaceLob2", 128);
+    // TODO constant
 
     /**
      * System property <code>h2.defaultResultSetConcurrency</code> (default:
@@ -252,12 +263,14 @@ public class SysProperties {
      * Connection.createStatement() or prepareStatement(String sql).
      */
     public static final int DEFAULT_RESULT_SET_CONCURRENCY = getIntSetting("h2.defaultResultSetConcurrency", ResultSet.CONCUR_READ_ONLY);
+    // TODO constant
 
     /**
      * System property <code>h2.defragAlways</code> (default: false).<br />
      * Each time the database is closed, it is fully defragmented (SHUTDOWN DEFRAG).
      */
     public static boolean defragAlways = getBooleanSetting("h2.defragAlways", false);
+    // DbSettings
 
     /**
      * System property <code>h2.dataSourceTraceLevel</code> (default: 1).<br />
@@ -271,12 +284,14 @@ public class SysProperties {
      * The default value for the MAX_MEMORY_UNDO setting.
      */
     public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 50000);
+    // TODO constant
 
     /**
      * System property <code>h2.defaultLockMode</code> (default: 3).<br />
      * The default value for the LOCK_MODE setting.
      */
     public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", Constants.LOCK_MODE_READ_COMMITTED);
+    // TODO constant
 
     /**
      * System property <code>h2.delayWrongPasswordMin</code> (default: 250).<br />
@@ -304,6 +319,7 @@ public class SysProperties {
      * with older versions of H2 the default action is currently CASCADE. This will
      * change in a future version of H2.
      */
+    // DbSettings
     public static final boolean DROP_RESTRICT = getBooleanSetting("h2.dropRestrict", false);
 
     /**
@@ -312,6 +328,7 @@ public class SysProperties {
      * The estimated number of rows in a function table (for example, CSVREAD or
      * FTL_SEARCH). This value is used by the optimizer.
      */
+    // DbSettings
     public static final int ESTIMATED_FUNCTION_TABLE_ROWS = getIntSetting("h2.estimatedFunctionTableRows", 1000);
 
     /**
@@ -327,6 +344,7 @@ public class SysProperties {
      * will always include the schema name in the CREATE ALIAS statement.
      * This is not backward compatible with H2 versions 1.2.134 and older.
      */
+    // DbSettings
     public static final boolean FUNCTIONS_IN_SCHEMA = getBooleanSetting("h2.functionsInSchema", false);
 
     /**
@@ -334,7 +352,9 @@ public class SysProperties {
      * Unquoted identifiers in SQL statements are case insensitive and converted
      * to uppercase.
      */
+    // DbSettings
     public static final boolean IDENTIFIERS_TO_UPPER = getBooleanSetting("h2.identifiersToUpper", true);
+
     /**
      * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
      * Buffer size for large result sets. Set this value to 0 to disable the

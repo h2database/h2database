@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import org.h2.command.dml.SetTypes;
+import org.h2.constant.DbSettings;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
@@ -204,6 +205,7 @@ public class ConnectionInfo implements Cloneable {
     }
 
     private void readSettingsFromURL() {
+        DbSettings dbSettings = DbSettings.getInstance(null);
         int idx = url.indexOf(';');
         if (idx >= 0) {
             String settings = url.substring(idx + 1);
@@ -217,7 +219,7 @@ public class ConnectionInfo implements Cloneable {
                 String value = setting.substring(equal + 1);
                 String key = setting.substring(0, equal);
                 key = StringUtils.toUpperEnglish(key);
-                if (!isKnownSetting(key)) {
+                if (!isKnownSetting(key) && !dbSettings.containsKey(key)) {
                     throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
                 }
                 String old = prop.getProperty(key);
@@ -557,6 +559,22 @@ public class ConnectionInfo implements Cloneable {
         remote = true;
         persistent = false;
         this.name = serverKey;
+    }
+
+    public DbSettings getDbSettings() {
+        DbSettings defaultSettings = DbSettings.getInstance(null);
+        Properties p = null;
+        for (Object s : prop.keySet()) {
+            String k = s.toString();
+            if (!isKnownSetting(k) && defaultSettings.containsKey(k)) {
+                if (p == null) {
+                    p = new Properties();
+                }
+                p.put(k, prop.get(k));
+                prop.remove(k);
+            }
+        }
+        return DbSettings.getInstance(p);
     }
 
 }

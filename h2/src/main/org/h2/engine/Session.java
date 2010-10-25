@@ -101,15 +101,12 @@ public class Session extends SessionWithState {
     private int modificationId;
     private int modificationIdState;
     private int objectId;
-    private int queryCacheSize = SysProperties.QUERY_CACHE_SIZE;
+    private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
-
-    public Session() {
-        // to create a new session using the factory
-    }
 
     public Session(Database database, User user, int id) {
         this.database = database;
+        this.queryCacheSize = database.getSettings().queryCacheSize;
         this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;

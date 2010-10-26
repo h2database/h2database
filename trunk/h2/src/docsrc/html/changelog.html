@@ -35,6 +35,7 @@ Change Log
 </li><li>When a domain (user defined data type) contained a user defined function, the database could not be opened.
 </li><li>CAST('011' AS INT) will no longer use decode the value as an octal number (using Integer.decode) but now use Integer.parseInt.
     The same logic applied to byte, short, and long. This also means that trying to convert hex numbers (0x...) with CAST now fails.
+</li><li>A table in the Recover tool script could not be imported if the script contained duplicate keys.
 </li></ul>
 
 <h2>Version 1.2.144 (2010-10-15)</h2>

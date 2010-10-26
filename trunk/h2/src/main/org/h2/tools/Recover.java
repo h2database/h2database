@@ -1120,9 +1120,11 @@ public class Recover extends Tool implements DataHandler {
         writer.println("---- Schema ----------");
         Collections.sort(schema);
         for (MetaRecord m : schema) {
-            String sql = m.getSQL();
-            // create, but not referential integrity constraints and so on
-            if (sql.startsWith("CREATE ")) {
+            int t = m.getObjectType();
+            if (t != DbObject.INDEX && t != DbObject.CONSTRAINT) {
+                // create, but not referential integrity constraints and so on
+                // because they could fail on duplicate keys
+                String sql = m.getSQL();
                 writer.println(sql + ";");
             }
         }
@@ -1168,9 +1170,10 @@ public class Recover extends Tool implements DataHandler {
             writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " + LobStorage.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {
-            String sql = m.getSQL();
-            // everything except create
-            if (!sql.startsWith("CREATE ")) {
+            int t = m.getObjectType();
+            if (t == DbObject.INDEX || t == DbObject.CONSTRAINT) {
+                // create indexes and constraints
+                String sql = m.getSQL();
                 writer.println(sql + ";");
             }
         }

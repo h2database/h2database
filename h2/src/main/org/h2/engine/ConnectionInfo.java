@@ -9,6 +9,7 @@ package org.h2.engine;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 import org.h2.command.dml.SetTypes;
@@ -563,18 +564,22 @@ public class ConnectionInfo implements Cloneable {
 
     public DbSettings getDbSettings() {
         DbSettings defaultSettings = DbSettings.getInstance(null);
-        Properties p = null;
-        for (Object s : prop.keySet()) {
-            String k = s.toString();
-            if (!isKnownSetting(k) && defaultSettings.containsKey(k)) {
-                if (p == null) {
-                    p = new Properties();
+        HashMap<String, String> s = null;
+        ArrayList<String> remove = New.arrayList();
+        for (Object k : prop.keySet()) {
+            String key = k.toString();
+            if (!isKnownSetting(key) && defaultSettings.containsKey(key)) {
+                if (s == null) {
+                    s = New.hashMap();
                 }
-                p.put(k, prop.get(k));
-                prop.remove(k);
+                s.put(key, prop.getProperty(key));
+                remove.add(key);
             }
         }
-        return DbSettings.getInstance(p);
+        for (String r : remove) {
+            prop.remove(r);
+        }
+        return DbSettings.getInstance(s);
     }
 
 }

@@ -22,7 +22,6 @@ import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
@@ -108,7 +107,6 @@ public abstract class TestBase {
     public TestBase init(TestAll conf) throws Exception {
         baseDir = getTestDir("");
         System.setProperty("java.io.tmpdir", TEMP_DIR);
-        SysProperties.defragAlways = conf.defrag;
         this.config = conf;
         return this;
     }
@@ -307,6 +305,10 @@ public abstract class TestBase {
         if (config.cipher != null) {
             url += ";CIPHER=" + config.cipher;
         }
+        if (config.defrag) {
+            url += ";DEFRAG_ALWAYS=TRUE";
+        }
+
         return "jdbc:h2:" + url;
     }
 
@@ -1158,12 +1160,14 @@ public abstract class TestBase {
      * @throws AssertionError if the databases don't match
      */
     protected void assertEqualDatabases(Statement stat1, Statement stat2) throws SQLException {
-        if (SysProperties.ANALYZE_AUTO > 0) {
+        ResultSet rs = stat1.executeQuery("select value from information_schema.settings where name='analyzeAuto'");
+        int analyzeAuto = rs.next() ? rs.getInt(1) : 0;
+        if (analyzeAuto > 0) {
             stat1.execute("analyze");
             stat2.execute("analyze");
         }
-        ResultSet rs1 = stat1.executeQuery("SCRIPT NOPASSWORDS");
-        ResultSet rs2 = stat2.executeQuery("SCRIPT NOPASSWORDS");
+        ResultSet rs1 = stat1.executeQuery("SCRIPT simple NOPASSWORDS");
+        ResultSet rs2 = stat2.executeQuery("SCRIPT simple NOPASSWORDS");
         ArrayList<String> list1 = new ArrayList<String>();
         ArrayList<String> list2 = new ArrayList<String>();
         while (rs1.next()) {

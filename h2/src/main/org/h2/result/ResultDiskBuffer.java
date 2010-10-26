@@ -31,6 +31,7 @@ class ResultDiskBuffer implements ResultExternal {
     private ResultDiskTape mainTape;
     private SortOrder sort;
     private int columnCount;
+    private final int maxBufferSize;
 
     /**
      * Represents a virtual disk tape for the merge sort algorithm.
@@ -74,6 +75,7 @@ class ResultDiskBuffer implements ResultExternal {
             mainTape = new ResultDiskTape();
             mainTape.pos = FileStore.HEADER_LENGTH;
         }
+        this.maxBufferSize = db.getSettings().largeResultBufferSize;
     }
 
     public void addRows(ArrayList<Value[]> rows) {
@@ -84,7 +86,6 @@ class ResultDiskBuffer implements ResultExternal {
         long start = file.getFilePointer();
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int bufferLen = 0;
-        int maxBufferSize = SysProperties.LARGE_RESULT_BUFFER_SIZE;
         for (Value[] row : rows) {
             buff.reset();
             buff.writeInt(0);

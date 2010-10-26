@@ -128,8 +128,8 @@ public class Database implements DataHandler {
     private int writeDelay = Constants.DEFAULT_WRITE_DELAY;
     private DatabaseEventListener eventListener;
     private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
-    private int maxMemoryUndo = SysProperties.DEFAULT_MAX_MEMORY_UNDO;
-    private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
+    private int maxMemoryUndo = Constants.DEFAULT_MAX_MEMORY_UNDO;
+    private int lockMode = Constants.DEFAULT_LOCK_MODE;
     private int maxLengthInplaceLob;
     private int allowLiterals = Constants.ALLOW_LITERALS_ALL;
 
@@ -148,7 +148,7 @@ public class Database implements DataHandler {
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getInstance(Mode.REGULAR);
     private boolean multiThreaded;
-    private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
+    private int maxOperationMemory = Constants.DEFAULT_MAX_OPERATION_MEMORY;
     private SmallLRUCache<String, String[]> lobFileListCache;
     private boolean autoServerMode;
     private Server server;
@@ -180,12 +180,12 @@ public class Database implements DataHandler {
         this.databaseName = name;
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = SysProperties.LOB_IN_DATABASE ?
-                SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB2 : SysProperties.DEFAULT_MAX_LENGTH_INPLACE_LOB;
+                Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB2 : Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
         String lockMethodName = ci.getProperty("FILE_LOCK", null);
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
-        this.cacheSize = ci.getProperty("CACHE_SIZE", SysProperties.CACHE_SIZE_DEFAULT);
+        this.cacheSize = ci.getProperty("CACHE_SIZE", Constants.CACHE_SIZE_DEFAULT);
         this.pageSize = ci.getProperty("PAGE_SIZE", SysProperties.PAGE_SIZE);
         if ("r".equals(accessModeData)) {
             readOnly = true;
@@ -202,7 +202,7 @@ public class Database implements DataHandler {
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
-        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", SysProperties.CACHE_TYPE_DEFAULT));
+        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
     }
 

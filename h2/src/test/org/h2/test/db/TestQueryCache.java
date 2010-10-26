@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 /**
@@ -24,16 +23,12 @@ public class TestQueryCache extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        System.setProperty("h2.queryCacheSize", "10");
         TestBase.createCaller().init().test();
     }
 
     public void test() throws Exception {
-        if (SysProperties.QUERY_CACHE_SIZE <= 0) {
-            return;
-        }
         deleteDb("queryCache");
-        Connection conn = getConnection("queryCache");
+        Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar) as select x, space(100) from system_range(1, 1000)");
         PreparedStatement prep = conn.prepareStatement("select count(*) from test t1, test t2");

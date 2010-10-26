@@ -15,8 +15,8 @@ import java.sql.Timestamp;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.Properties;
 import org.h2.command.Command;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -862,18 +862,15 @@ public class MetaTable extends Table {
             add(rows, "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE");
             add(rows, "QUERY_TIMEOUT", "" + session.getQueryTimeout());
             add(rows, "LOG", "" + database.getLogMode());
-            // H2-specific system properties
+            // database settings
             ArrayList<String> settingNames = New.arrayList();
-            Properties p = System.getProperties();
-            for (Object o : p.keySet()) {
-                String s = o == null ? "" : o.toString();
-                if (s.startsWith("h2.")) {
-                    settingNames.add(s);
-                }
+            HashMap<String, String> s = database.getSettings().getSettings();
+            for (String k : s.keySet()) {
+                settingNames.add(k);
             }
             Collections.sort(settingNames);
-            for (String s : settingNames) {
-                add(rows, s, p.getProperty(s));
+            for (String k : settingNames) {
+                add(rows, k, s.get(k));
             }
             if (database.isPersistent()) {
                 PageStore store = database.getPageStore();

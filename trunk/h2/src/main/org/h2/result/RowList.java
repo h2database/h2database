@@ -40,7 +40,7 @@ public class RowList {
      */
     public RowList(Session session) {
         this.session = session;
-        if (SysProperties.DEFAULT_MAX_OPERATION_MEMORY > 0 && session.getDatabase().isPersistent()) {
+        if (session.getDatabase().isPersistent()) {
             maxMemory = session.getDatabase().getMaxOperationMemory();
         }
     }

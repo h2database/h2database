@@ -7,8 +7,6 @@
 package org.h2.engine;
 
 import java.util.HashMap;
-
-import org.h2.constant.SysProperties;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -115,7 +113,6 @@ public class Mode {
 
     static {
         Mode mode = new Mode(REGULAR);
-        mode.aliasColumnName = SysProperties.ALIAS_COLUMN_NAME;
         mode.nullConcatIsNull = true;
         add(mode);
 

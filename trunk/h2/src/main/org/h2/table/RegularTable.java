@@ -382,7 +382,7 @@ public class RegularTable extends TableBase {
         if (n > 0) {
             nextAnalyze = n;
         }
-        int rows = SysProperties.ANALYZE_SAMPLE;
+        int rows = session.getDatabase().getSettings().analyzeSample;
         Analyze.analyzeTable(session, this, rows, false);
     }
 

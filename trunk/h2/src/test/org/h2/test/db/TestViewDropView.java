@@ -6,14 +6,12 @@
  */
 package org.h2.test.db;
 
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
-import org.h2.test.TestBase;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
+import org.h2.test.TestBase;
 
 /**
  * Test the impact of DROP VIEW statements on dependent views.
@@ -64,20 +62,23 @@ public class TestViewDropView extends TestBase {
 
     private void testDropViewDefaultBehaviour() throws SQLException {
         createTestData();
+        ResultSet rs = stat.executeQuery("select value from information_schema.settings where name = 'DROP_RESTRICT'");
+        rs.next();
+        boolean dropRestrict = rs.getBoolean(1);
 
         try {
             // Should fail because have dependencies
             stat.execute("drop view v1");
-            if (SysProperties.DROP_RESTRICT) {
+            if (dropRestrict) {
                 fail();
             }
         } catch (SQLException e) {
-            if (!SysProperties.DROP_RESTRICT) {
+            if (!dropRestrict) {
                 assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
             }
         }
 
-        if (SysProperties.DROP_RESTRICT) {
+        if (dropRestrict) {
             checkViewRemainsValid();
         }
     }

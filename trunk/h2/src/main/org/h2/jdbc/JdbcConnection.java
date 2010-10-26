@@ -162,7 +162,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeAssign("Statement", TraceObject.STATEMENT, id, "createStatement()");
             }
             checkClosed();
-            return new JdbcStatement(this, id, ResultSet.TYPE_FORWARD_ONLY, SysProperties.DEFAULT_RESULT_SET_CONCURRENCY, false);
+            return new JdbcStatement(this, id, ResultSet.TYPE_FORWARD_ONLY, Constants.DEFAULT_RESULT_SET_CONCURRENCY, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -230,7 +230,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY, SysProperties.DEFAULT_RESULT_SET_CONCURRENCY, false);
+            return new JdbcPreparedStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY, Constants.DEFAULT_RESULT_SET_CONCURRENCY, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -251,7 +251,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY, SysProperties.DEFAULT_RESULT_SET_CONCURRENCY, true);
+            return new JdbcPreparedStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY, Constants.DEFAULT_RESULT_SET_CONCURRENCY, true);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -792,7 +792,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcCallableStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY, SysProperties.DEFAULT_RESULT_SET_CONCURRENCY);
+            return new JdbcCallableStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY, Constants.DEFAULT_RESULT_SET_CONCURRENCY);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

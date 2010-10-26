@@ -6,7 +6,7 @@
  */
 package org.h2.engine;
 
-import java.util.Properties;
+import java.util.HashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 
@@ -15,10 +15,10 @@ import org.h2.message.DbException;
  */
 public class SettingsBase {
 
-    private Properties properties;
+    private HashMap<String, String> settings;
 
-    protected SettingsBase(Properties p) {
-        this.properties = p;
+    protected SettingsBase(HashMap<String, String> s) {
+        this.settings = s;
     }
 
     protected boolean get(String key, boolean defaultValue) {
@@ -40,20 +40,35 @@ public class SettingsBase {
     }
 
     protected String get(String key, String defaultValue) {
-        String keyUpper = key.toUpperCase();
-        String v = properties.getProperty(keyUpper);
+        StringBuilder buff = new StringBuilder("h2.");
+        boolean nextUpper = false;
+        for (char c : key.toCharArray()) {
+            if (c == '_') {
+                nextUpper = true;
+            } else {
+                // Character.toUpperCase / toLowerCase ignores the locale
+                buff.append(nextUpper ? Character.toUpperCase(c) : Character.toLowerCase(c));
+                nextUpper = false;
+            }
+        }
+        String sysProperty = buff.toString();
+        String v = settings.get(key);
         if (v == null) {
-            v = System.getProperty("h2." + key);
+            v = System.getProperty(sysProperty);
         }
         if (v == null) {
-            properties.put(keyUpper, defaultValue);
+            settings.put(key, defaultValue);
             v = defaultValue;
         }
         return v;
     }
 
     public boolean containsKey(String k) {
-        return properties.containsKey(k);
+        return settings.containsKey(k);
+    }
+
+    public HashMap<String, String> getSettings() {
+        return settings;
     }
 
 }

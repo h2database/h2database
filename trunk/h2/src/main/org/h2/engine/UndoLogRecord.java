@@ -69,10 +69,7 @@ public class UndoLogRecord {
      * @return if it can be stored
      */
     boolean canStore() {
-        if (SysProperties.LARGE_TRANSACTIONS) {
-            // actually the method is not called in this case
-            return true;
-        }
+        // if large transactions are enabled, this method is not called
         if (table.getUniqueIndex() != null) {
             return true;
         }
@@ -145,9 +142,7 @@ public class UndoLogRecord {
         buff.writeInt(0);
         buff.writeInt(operation);
         buff.writeByte(row.isDeleted() ? (byte) 1 : (byte) 0);
-        if (SysProperties.LARGE_TRANSACTIONS) {
-            buff.writeInt(log.getTableId(table));
-        }
+        buff.writeInt(log.getTableId(table));
         buff.writeLong(row.getKey());
         buff.writeInt(row.getSessionId());
         int count = row.getColumnCount();
@@ -222,9 +217,7 @@ public class UndoLogRecord {
     private void load(Data buff, UndoLog log) {
         operation = (short) buff.readInt();
         boolean deleted = buff.readByte() == 1;
-        if (SysProperties.LARGE_TRANSACTIONS) {
-            table = log.getTable(buff.readInt());
-        }
+        table = log.getTable(buff.readInt());
         long key = buff.readLong();
         int sessionId = buff.readInt();
         int columnCount = buff.readInt();

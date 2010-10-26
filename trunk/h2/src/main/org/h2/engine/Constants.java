@@ -6,6 +6,9 @@
  */
 package org.h2.engine;
 
+import java.sql.ResultSet;
+import org.h2.constant.SysProperties;
+
 /**
  * Constants are fixed values that are used in the whole database code.
  */
@@ -396,6 +399,50 @@ public class Constants {
      * The package name of user defined classes.
      */
     public static final String USER_PACKAGE = "org.h2.dynamic";
+
+    int sortByName;
+
+    /**
+     * The default result set concurrency for statements created with
+     * Connection.createStatement() or prepareStatement(String sql).
+     */
+    public static final int DEFAULT_RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY;
+
+    /**
+     * The default maximum length of an LOB that is stored with the record itself.
+     * Only used if h2.lobInDatabase is enabled.
+     */
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB2 = 128;
+
+    /**
+     * The default value for the LOCK_MODE setting.
+     */
+    public static final int DEFAULT_LOCK_MODE = LOCK_MODE_READ_COMMITTED;
+
+    /**
+     * The default value for the MAX_MEMORY_UNDO setting.
+     */
+    public static final int DEFAULT_MAX_MEMORY_UNDO = 50000;
+
+    /**
+     * The default maximum length of an LOB that is stored in the database file.
+     */
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 4096;
+
+    /**
+     * The default cache size in KB.
+     */
+    public static final int CACHE_SIZE_DEFAULT = 16 * 1024;
+
+    /**
+     * The default cache type.
+     */
+    public static final String CACHE_TYPE_DEFAULT = "LRU";
+
+    /**
+     * The default for the setting MAX_OPERATION_MEMORY.
+     */
+    public static final int DEFAULT_MAX_OPERATION_MEMORY = 100000;
 
     private Constants() {
         // utility class

@@ -1644,7 +1644,9 @@ public class Parser {
                 Expression expr = readExpression();
                 if (readIf("AS") || currentTokenType == IDENTIFIER) {
                     String alias = readAliasIdentifier();
-                    expr = new Alias(expr, alias, database.getMode().aliasColumnName);
+                    boolean aliasColumnName = database.getSettings().aliasColumnName;
+                    aliasColumnName |= database.getMode().aliasColumnName;
+                    expr = new Alias(expr, alias, aliasColumnName);
                 }
                 expressions.add(expr);
             }
@@ -3597,7 +3599,6 @@ public class Parser {
             read("REPLACE");
             orReplace = true;
         }
-
         boolean force = readIf("FORCE");
         if (readIf("VIEW")) {
             return parseCreateView(force, orReplace);

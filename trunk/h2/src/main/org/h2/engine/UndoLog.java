@@ -19,6 +19,7 @@ import org.h2.util.New;
  * Each session keeps a undo log if rollback is required.
  */
 public class UndoLog {
+
     private Database database;
     private ArrayList<Long> storedEntriesPos = New.arrayList();
     private ArrayList<UndoLogRecord> records = New.arrayList();
@@ -27,6 +28,7 @@ public class UndoLog {
     private int memoryUndo;
     private int storedEntries;
     private HashMap<Integer, Table> tables;
+    private boolean largeTransactions;
 
     /**
      * Create a new undo log for the given session.
@@ -35,6 +37,7 @@ public class UndoLog {
      */
     public UndoLog(Session session) {
         this.database = session.getDatabase();
+        largeTransactions = database.getSettings().largeTransactions;
     }
 
     /**
@@ -43,7 +46,7 @@ public class UndoLog {
      * @return the number of rows
      */
     public int size() {
-        if (SysProperties.LARGE_TRANSACTIONS) {
+        if (largeTransactions) {
             return storedEntries + records.size();
         }
         if (SysProperties.CHECK && memoryUndo > records.size()) {
@@ -75,7 +78,7 @@ public class UndoLog {
      */
     public UndoLogRecord getLast() {
         int i = records.size() - 1;
-        if (SysProperties.LARGE_TRANSACTIONS) {
+        if (largeTransactions) {
             if (i < 0 && storedEntries > 0) {
                 int last = storedEntriesPos.size() - 1;
                 long pos = storedEntriesPos.get(last);
@@ -151,7 +154,7 @@ public class UndoLog {
      */
     public void add(UndoLogRecord entry) {
         records.add(entry);
-        if (SysProperties.LARGE_TRANSACTIONS) {
+        if (largeTransactions) {
             memoryUndo++;
             if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent() && !database.isMultiVersion()) {
                 if (file == null) {

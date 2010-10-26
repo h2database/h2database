@@ -156,7 +156,7 @@ public class TestRunscript extends TestBase implements Trigger {
         stat1 = conn1.createStatement();
         stat1.execute("create table test (id identity, name varchar(12))");
         stat1.execute("insert into test (name) values ('first'), ('second')");
-        stat1.execute("create table test2(id int primary key) as select x from system_range(1, 5000)");
+        stat1.execute("create table test2(id int primary key) as select x from system_range(1, 5)");
         stat1.execute("create sequence testSeq start with 100 increment by 10");
         stat1.execute("create alias myTest for \"" + getClass().getName() + ".test\"");
         stat1.execute("create trigger myTrigger before insert on test nowait call \"" + getClass().getName() + "\"");

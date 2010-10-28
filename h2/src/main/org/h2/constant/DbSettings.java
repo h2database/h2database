@@ -125,6 +125,14 @@ public class DbSettings extends SettingsBase {
      */
     public final int queryCacheSize = get("QUERY_CACHE_SIZE", 0);
 
+    /**
+     * Database setting <code>MAX_QUERY_TIMEOUT</code> (default: 0).<br />
+     * The maximum timeout of a query in milliseconds. The default is 0, meaning
+     * no limit. Please note the actual query timeout may be set to a lower
+     * value.
+     */
+    public int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
+
     private DbSettings(HashMap<String, String> s) {
         super(s);
     }

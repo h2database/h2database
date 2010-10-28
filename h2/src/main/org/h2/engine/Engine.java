@@ -10,6 +10,7 @@ import java.util.HashMap;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
+import org.h2.constant.DbSettings;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
@@ -157,7 +158,12 @@ public class Engine implements SessionFactory {
             }
         }
         session.setAllowLiterals(true);
+        DbSettings defaultSettings = DbSettings.getInstance(null);
         for (String setting : ci.getKeys()) {
+            if (defaultSettings.containsKey(setting)) {
+                // database setting are only used when opening the database
+                continue;
+            }
             String value = ci.getProperty(setting);
             try {
                 CommandInterface command = session.prepareCommand("SET " + Parser.quoteIdentifier(setting) + " "

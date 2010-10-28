@@ -28,6 +28,7 @@ import org.h2.util.Utils;
  */
 public class ConnectionInfo implements Cloneable {
     private static final HashSet<String> KNOWN_SETTINGS = New.hashSet();
+
     private Properties prop = new Properties();
     private String originalURL;
     private String url;
@@ -562,10 +563,9 @@ public class ConnectionInfo implements Cloneable {
         this.name = serverKey;
     }
 
-    public DbSettings getDbSettings() {
+    DbSettings getDbSettings() {
         DbSettings defaultSettings = DbSettings.getInstance(null);
         HashMap<String, String> s = null;
-        ArrayList<String> remove = New.arrayList();
         for (Object k : prop.keySet()) {
             String key = k.toString();
             if (!isKnownSetting(key) && defaultSettings.containsKey(key)) {
@@ -573,11 +573,7 @@ public class ConnectionInfo implements Cloneable {
                     s = New.hashMap();
                 }
                 s.put(key, prop.getProperty(key));
-                remove.add(key);
             }
-        }
-        for (String r : remove) {
-            prop.remove(r);
         }
         return DbSettings.getInstance(s);
     }

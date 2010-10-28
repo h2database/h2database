@@ -32,7 +32,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
 import org.h2.test.TestAll;
@@ -177,7 +176,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         // can not use FILE_LOCK=NO, otherwise something could be written into
         // the database in the finalize method
 
-        String add = "";
+        String add = ";MAX_QUERY_TIMEOUT=10000";
 
 //         int testing;
 //        if(openCount >= 32) {
@@ -263,7 +262,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         return conn;
     }
 
-    private void testOne(int seed) throws SQLException {
+    public void testCase(int seed) throws SQLException {
         printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;
@@ -511,16 +510,6 @@ public class TestCrashAPI extends TestBase implements Runnable {
         org.h2.Driver.load();
         statements.addAll(add);
         return this;
-    }
-
-    public void testCase(int i) throws SQLException {
-        int old = SysProperties.getMaxQueryTimeout();
-        try {
-            System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + 10000);
-            testOne(i);
-        } finally {
-            System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + old);
-        }
     }
 
 }

@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Some system properties are not supported any longer, because they can 
+<ul><li>When the system property h2.lobInDatabase is set, CREATE TABLE ... AS SELECT
+    with a LOB column did not always work.
+</li><li>Some system properties are not supported any longer, because they can 
     already be set in the database URL. Those settings are:
     h2.cacheSizeDefault, h2.cacheTypeDefault
 </li><li>Various system properties have been replaced with database level settings:

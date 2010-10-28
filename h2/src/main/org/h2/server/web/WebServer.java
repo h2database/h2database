@@ -576,14 +576,14 @@ public class WebServer implements Service {
      *
      * @param prop null or the properties webPort, webAllowOthers, and webSSL
      */
-    synchronized void saveSettings(Properties prop) {
+    synchronized void saveProperties(Properties prop) {
         try {
             if (prop == null) {
                 Properties old = loadProperties();
                 prop = new SortedProperties();
                 prop.setProperty("webPort", "" + SortedProperties.getIntProperty(old, "webPort", port));
-                prop.setProperty("webAllowOthers", "" + SortedProperties.getBooleanProperty(old, "webAllowOthers", ssl));
-                prop.setProperty("webSSL", "" + SortedProperties.getBooleanProperty(old, "webSSL", allowOthers));
+                prop.setProperty("webAllowOthers", "" + SortedProperties.getBooleanProperty(old, "webAllowOthers", allowOthers));
+                prop.setProperty("webSSL", "" + SortedProperties.getBooleanProperty(old, "webSSL", ssl));
             }
             ArrayList<ConnectionInfo> settings = getSettings();
             int len = settings.size();
@@ -593,7 +593,8 @@ public class WebServer implements Service {
                     prop.setProperty(String.valueOf(len - i - 1), info.getString());
                 }
             }
-            OutputStream out = IOUtils.openFileOutputStream(getPropertiesFileName(), false);
+            String fileName = getPropertiesFileName();
+            OutputStream out = IOUtils.openFileOutputStream(fileName, false);
             prop.store(out, "H2 Server Properties");
             out.close();
         } catch (Exception e) {

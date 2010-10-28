@@ -72,7 +72,7 @@ public class LobStorage {
     /**
      * Initialize the lob storage.
      */
-    private void init() {
+    public void init() {
         if (init) {
             return;
         }

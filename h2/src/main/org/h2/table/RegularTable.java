@@ -19,6 +19,7 @@ import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
@@ -72,6 +73,19 @@ public class RegularTable extends TableBase {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
         this.isHidden = data.isHidden;
+        for (Column col : getColumns()) {
+            if (DataType.isLargeObject(col.getType())) {
+                containsLargeObject = true;
+            }
+        }
+        if (containsLargeObject) {
+            Database db = data.session.getDatabase();
+            if (!db.isStarting()) {
+                // the lob tables are already created
+                // if the database is starting
+                db.getLobStorage().init();
+            }
+        }
         if (data.persistData && database.isPersistent()) {
             mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData), data.create, data.session);
             scanIndex = mainIndex;
@@ -79,11 +93,6 @@ public class RegularTable extends TableBase {
             scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData));
         }
         indexes.add(scanIndex);
-        for (Column col : getColumns()) {
-            if (DataType.isLargeObject(col.getType())) {
-                containsLargeObject = true;
-            }
-        }
         traceLock = database.getTrace(Trace.LOCK);
     }
 

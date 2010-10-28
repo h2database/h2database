@@ -49,6 +49,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testCreateAsSelect();
         testDropAllObjects();
         testDelete();
         testTempFilesDeleted();
@@ -81,6 +82,16 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testCreateAsSelect() throws Exception {
+        deleteDb("lob");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("lob");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int, data clob) as select 1, space(10000)");
+        conn.close();
     }
 
     private void testDropAllObjects() throws Exception {

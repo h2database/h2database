@@ -124,6 +124,10 @@ public class CreateTable extends SchemaCommand {
                 }
             }
         }
+        data.id = getObjectId();
+        data.create = create;
+        data.session = session;
+        Table table = getSchema().createTable(data);
         ArrayList<Sequence> sequences = New.arrayList();
         for (Column c : data.columns) {
             if (c.isAutoIncrement()) {
@@ -135,10 +139,6 @@ public class CreateTable extends SchemaCommand {
                 sequences.add(seq);
             }
         }
-        data.id = getObjectId();
-        data.create = create;
-        data.session = session;
-        Table table = getSchema().createTable(data);
         table.setComment(comment);
         if (data.temporary && !data.globalTemporary) {
             if (onCommitDrop) {

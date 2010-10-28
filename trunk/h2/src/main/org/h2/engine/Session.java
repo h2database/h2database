@@ -95,7 +95,7 @@ public class Session extends SessionWithState {
     private long currentCommandStart;
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
-    private int queryTimeout = SysProperties.getMaxQueryTimeout();
+    private int queryTimeout;
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
     private int modificationId;
@@ -106,6 +106,7 @@ public class Session extends SessionWithState {
 
     public Session(Database database, User user, int id) {
         this.database = database;
+        this.queryTimeout = database.getSettings().maxQueryTimeout;
         this.queryCacheSize = database.getSettings().queryCacheSize;
         this.undoLog = new UndoLog(this);
         this.user = user;
@@ -1125,7 +1126,7 @@ public class Session extends SessionWithState {
     }
 
     public void setQueryTimeout(int queryTimeout) {
-        int max = SysProperties.getMaxQueryTimeout();
+        int max = database.getSettings().maxQueryTimeout;
         if (max != 0 && (max < queryTimeout || queryTimeout == 0)) {
             // the value must be at most max
             queryTimeout = max;

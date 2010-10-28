@@ -484,7 +484,7 @@ public class Database implements DataHandler {
         if (n == null || n.length() == 0) {
             n = "unnamed";
         }
-        return getSettings().databaseToUpper ? StringUtils.toUpperEnglish(n) : n;
+        return dbSettings.databaseToUpper ? StringUtils.toUpperEnglish(n) : n;
     }
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {

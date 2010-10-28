@@ -40,12 +40,6 @@ public class SysProperties {
     /**
      * INTERNAL
      */
-    public static final String H2_MAX_QUERY_TIMEOUT = "h2.maxQueryTimeout";
-    // TODO DbSettings
-
-    /**
-     * INTERNAL
-     */
     public static final String H2_COLLATOR_CACHE_SIZE = "h2.collatorCacheSize";
     // TODO DbSettings
 
@@ -636,16 +630,6 @@ public class SysProperties {
      */
     public static String getScriptDirectory() {
         return getStringSetting(H2_SCRIPT_DIRECTORY, "");
-    }
-
-    /**
-     * System property <code>h2.maxQueryTimeout</code> (default: 0).<br />
-     * The maximum timeout of a query. The default is 0, meaning no limit.
-     *
-     * @return the current value
-     */
-    public static int getMaxQueryTimeout() {
-        return getIntSetting(H2_MAX_QUERY_TIMEOUT, 0);
     }
 
     /**

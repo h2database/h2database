@@ -12,9 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
-
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 /**
@@ -149,21 +147,15 @@ public class TestCancel extends TestBase {
 
     private void testMaxQueryTimeout() throws SQLException {
         deleteDb("cancel");
-        int oldMax = SysProperties.getMaxQueryTimeout();
+        Connection conn = getConnection("cancel;MAX_QUERY_TIMEOUT=10");
+        Statement stat = conn.createStatement();
         try {
-            System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + 10);
-            Connection conn = getConnection("cancel");
-            Statement stat = conn.createStatement();
-            try {
-                stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-                fail();
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
-            }
-            conn.close();
-        } finally {
-            System.setProperty("h2.maxQueryTimeout", "" + oldMax);
+            stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
         }
+        conn.close();
     }
 
     /**

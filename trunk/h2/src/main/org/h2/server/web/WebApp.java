@@ -348,7 +348,7 @@ public class WebApp {
             boolean ssl = Boolean.valueOf((String) attributes.get("ssl")).booleanValue();
             prop.setProperty("webSSL", String.valueOf(ssl));
             server.setSSL(ssl);
-            server.saveSettings(prop);
+            server.saveProperties(prop);
         } catch (Exception e) {
             trace(e.toString());
         }
@@ -1652,7 +1652,7 @@ public class WebApp {
         info.user = attributes.getProperty("user", "");
         server.updateSetting(info);
         attributes.put("setting", info.name);
-        server.saveSettings(null);
+        server.saveProperties(null);
         return "index.do";
     }
 
@@ -1735,7 +1735,7 @@ public class WebApp {
         if (settings.size() > 0) {
             attributes.put("setting", settings.get(0));
         }
-        server.saveSettings(null);
+        server.saveProperties(null);
         return "index.do";
     }
 

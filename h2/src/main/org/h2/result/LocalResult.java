@@ -9,7 +9,7 @@ package org.h2.result;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import org.h2.constant.SysProperties;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -226,7 +226,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 ValueArray array = ValueArray.get(values);
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
-                if (rowCount > SysProperties.MAX_MEMORY_ROWS_DISTINCT && session.getDatabase().isPersistent()) {
+                Database db = session.getDatabase();
+                if (rowCount > db.getSettings().maxMemoryRowsDistinct && db.isPersistent()) {
                     disk = new ResultTempTable(session, sort);
                     disk.addRows(distinctRows.values());
                     distinctRows = null;

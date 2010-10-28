@@ -16,7 +16,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-import org.h2.constant.SysProperties;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -35,14 +34,14 @@ public class TestNestedJoins extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        System.setProperty("h2.nestedJoins", "true");
         TestBase test = TestBase.createCaller().init();
         // test.config.traceTest = true;
+        test.config.nestedJoins = true;
         test.test();
     }
 
     public void test() throws Exception {
-        if (!SysProperties.NESTED_JOINS) {
+        if (!config.nestedJoins) {
             return;
         }
         deleteDb("nestedJoins");

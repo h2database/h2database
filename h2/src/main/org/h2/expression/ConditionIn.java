@@ -7,7 +7,6 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
@@ -110,7 +109,7 @@ public class ConditionIn extends Condition {
         if (filter != l.getTableFilter()) {
             return;
         }
-        if (SysProperties.OPTIMIZE_IN_LIST) {
+        if (session.getDatabase().getSettings().optimizeInList) {
             ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
             visitor.setResolver(filter);
             for (Expression e : valueList) {

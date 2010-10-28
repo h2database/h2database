@@ -64,7 +64,7 @@ class ResultDiskBuffer implements ResultExternal {
         this.sort = sort;
         this.columnCount = columnCount;
         Database db = session.getDatabase();
-        rowBuff = Data.create(db, SysProperties.PAGE_SIZE);
+        rowBuff = Data.create(db, Constants.DEFAULT_PAGE_SIZE);
         String fileName = session.getDatabase().createTempFile();
         file = session.getDatabase().openFile(fileName, "rw", false);
         file.setCheckedWriting(false);

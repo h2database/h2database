@@ -76,7 +76,6 @@ import org.h2.command.dml.SetTypes;
 import org.h2.command.dml.TransactionCommand;
 import org.h2.command.dml.Update;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -970,7 +969,7 @@ public class Parser {
                 table = TableView.createTempView(s, session.getUser(), alias, query, currentSelect);
             } else {
                 TableFilter top;
-                if (SysProperties.NESTED_JOINS) {
+                if (database.getSettings().nestedJoins) {
                     String joinTable = Constants.PREFIX_JOIN + parseIndex;
                     top = new TableFilter(session, getDualTable(true), joinTable, rightsChecked, currentSelect);
                     TableFilter n = readTableFilter(false);
@@ -1234,6 +1233,7 @@ public class Parser {
 
     private TableFilter readJoin(TableFilter top, Select command, boolean fromOuter) {
         TableFilter last = top;
+        boolean nestedJoins = database.getSettings().nestedJoins;
         while (true) {
             if (readIf("RIGHT")) {
                 readIf("OUTER");
@@ -1245,7 +1245,7 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (SysProperties.NESTED_JOINS) {
+                if (nestedJoins) {
                     String joinTable = Constants.PREFIX_JOIN + parseIndex;
                     TableFilter nt = new TableFilter(session, getDualTable(true), joinTable, rightsChecked, currentSelect);
                     nt.addJoin(top, false, true, null);
@@ -1276,7 +1276,7 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (SysProperties.NESTED_JOINS) {
+                if (nestedJoins) {
                     top.addJoin(join, false, false, on);
                 } else {
                     top.addJoin(join, fromOuter, false, on);
@@ -1289,7 +1289,7 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (SysProperties.NESTED_JOINS) {
+                if (nestedJoins) {
                     top.addJoin(join, false, false, on);
                 } else {
                     top.addJoin(join, fromOuter, false, on);
@@ -1298,7 +1298,7 @@ public class Parser {
             } else if (readIf("CROSS")) {
                 read("JOIN");
                 TableFilter join = readTableFilter(fromOuter);
-                if (SysProperties.NESTED_JOINS) {
+                if (nestedJoins) {
                     top.addJoin(join, false, false, null);
                 } else {
                     top.addJoin(join, fromOuter, false, null);
@@ -1331,7 +1331,7 @@ public class Parser {
                         }
                     }
                 }
-                if (SysProperties.NESTED_JOINS) {
+                if (nestedJoins) {
                     top.addJoin(join, false, false, on);
                 } else {
                     top.addJoin(join, fromOuter, false, on);

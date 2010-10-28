@@ -194,7 +194,7 @@ public class TableFilter implements ColumnResolver {
     }
 
     private void setEvaluatable(TableFilter join) {
-        if (SysProperties.NESTED_JOINS) {
+        if (session.getDatabase().getSettings().nestedJoins) {
             setEvaluatable(true);
             return;
         }
@@ -498,7 +498,7 @@ public class TableFilter implements ColumnResolver {
     public void addJoin(TableFilter filter, boolean outer, boolean nested, final Expression on) {
         if (on != null) {
             on.mapColumns(this, 0);
-            if (SysProperties.NESTED_JOINS) {
+            if (session.getDatabase().getSettings().nestedJoins) {
                 visit(new TableFilterVisitor() {
                     public void accept(TableFilter f) {
                         on.mapColumns(f, 0);
@@ -511,7 +511,7 @@ public class TableFilter implements ColumnResolver {
                 });
             }
         }
-        if (nested && SysProperties.NESTED_JOINS) {
+        if (nested && session.getDatabase().getSettings().nestedJoins) {
             if (nestedJoin != null) {
                 throw DbException.throwInternalError();
             }
@@ -531,7 +531,7 @@ public class TableFilter implements ColumnResolver {
             if (join == null) {
                 join = filter;
                 filter.joinOuter = outer;
-                if (SysProperties.NESTED_JOINS) {
+                if (session.getDatabase().getSettings().nestedJoins) {
                     if (outer) {
                         filter.visit(new TableFilterVisitor() {
                             public void accept(TableFilter f) {

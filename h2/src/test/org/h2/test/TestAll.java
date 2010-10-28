@@ -251,6 +251,11 @@ java org.h2.test.TestAll timer
     public boolean splitFileSystem;
 
     /**
+     * Support nested joins.
+     */
+    public boolean nestedJoins;
+
+    /**
      * If the transaction log should be kept small (that is, the log should be
      * switched early).
      */
@@ -319,10 +324,10 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
         int initialTest;
-        // System.setProperty("h2.largeTransactions", "true");
         // System.setProperty("h2.lobInDatabase", "true");
+         test.nestedJoins = true;
+        // System.setProperty("h2.largeTransactions", "true");
         // System.setProperty("h2.analyzeAuto", "100");
-        // System.setProperty("h2.nestedJoins", "true");
         // System.setProperty("h2.optimizeOr", "true");
         // System.setProperty("h2.queryCacheSize", "100");
         // System.setProperty("h2.dropRestrict", "true");

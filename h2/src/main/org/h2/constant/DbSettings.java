@@ -103,17 +103,45 @@ public class DbSettings extends SettingsBase {
     public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", false);
 
     /**
-     * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
+     * Database setting <code>LARGE_RESULT_BUFFER_SIZE</code> (default: 4096).<br />
      * Buffer size for large result sets. Set this value to 0 to disable the
      * buffer.
      */
     public final int largeResultBufferSize = get("LARGE_RESULT_BUFFER_SIZE", 4 * 1024);
 
     /**
-     * System property <code>h2.largeTransactions</code> (default: false).<br />
+     * Database setting <code>LARGE_TRANSACTIONS</code> (default: false).<br />
      * Support very large transactions
      */
     public final boolean largeTransactions = get("LARGE_TRANSACTIONS", false);
+
+    /**
+     * Database setting <code>MAX_COMPACT_COUNT</code>
+     * (default: Integer.MAX_VALUE).<br />
+     * The maximum number of pages to move when closing a database.
+     */
+    public final int maxCompactCount = get("MAX_COMPACT_COUNT", Integer.MAX_VALUE);
+
+    /**
+     * Database setting <code>MAX_COMPACT_TIME</code> (default: 200).<br />
+     * The maximum time in milliseconds used to compact a database when closing.
+     */
+    public final int maxCompactTime = get("MAX_COMPACT_TIME", 200);
+
+    /**
+     * Database setting <code>MAX_MEMORY_ROWS_DISTINCT</code> (default:
+     * Integer.MAX_VALUE).<br />
+     * The maximum number of rows kept in-memory for SELECT DISTINCT queries. If
+     * more than this number of rows are in a result set, a temporary table is
+     * used.
+     */
+    public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT", Integer.MAX_VALUE);
+
+    /**
+     * Database setting <code>h2.nestedJoins</code> (default: false).<br />
+     * Whether nested joins should be supported.
+     */
+    public final boolean nestedJoins = get("NESTED_JOINS", false);
 
     /**
      * Database setting <code>QUERY_CACHE_SIZE</code> (default: 0).<br />
@@ -132,6 +160,104 @@ public class DbSettings extends SettingsBase {
      * value.
      */
     public int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
+
+    /**
+     * Database setting <code>OPTIMIZE_INSERT_FROM_SELECT</code>
+     * (default: false).<br />
+     * Insert into table from query directly bypassing temporary disk storage.
+     * This also applies to create table as select.
+     */
+    public final boolean optimizeInsertFromSelect = get("OPTIMIZE_INSERT_FROM_SELECT", false);
+
+    /**
+     * Database setting <code>OPTIMIZE_DISTINCT</code> (default: true).<br />
+     * Improve the performance of simple DISTINCT queries if an index is
+     * available for the given column. The optimization is used if:
+     * <ul>
+     * <li>The select is a single column query without condition </li>
+     * <li>The query contains only one table, and no group by </li>
+     * <li>There is only one table involved </li>
+     * <li>There is an ascending index on the column </li>
+     * <li>The selectivity of the column is below 20 </li>
+     * </ul>
+     */
+    public final boolean optimizeDistinct = get("OPTIMIZE_DISTINCT", true);
+
+    /**
+     * Database setting <code>OPTIMIZE_UPDATE</code> (default: true).<br />
+     * Speed up inserts, updates, and deletes by not reading all rows from a
+     * page unless necessary.
+     */
+    public final boolean optimizeUpdate = get("OPTIMIZE_UPDATE", true);
+
+    /**
+     * Database setting <code>OPTIMIZE_EVALUATABLE_SUBQUERIES</code> (default:
+     * true).<br />
+     * Optimize subqueries that are not dependent on the outer query.
+     */
+    public final boolean optimizeEvaluatableSubqueries = get("OPTIMIZE_EVALUATABLE_SUBQUERIES", true);
+
+    /**
+     * Database setting <code>OPTIMIZE_IN_LIST</code> (default: true).<br />
+     * Optimize IN(...) and IN(SELECT ...) comparisons. This includes
+     * optimization for SELECT, DELETE, and UPDATE.
+     */
+    public final boolean optimizeInList = get("OPTIMIZE_IN_LIST", true);
+
+    /**
+     * Database setting <code>OPTIMIZE_IS_NULL</code> (default: false).<br />
+     * Use an index for condition of the form columnName IS NULL.
+     */
+    public final boolean optimizeIsNull = get("OPTIMIZE_IS_NULL", true);
+
+    /**
+     * Database setting <code>OPTIMIZE_OR</code> (default: false).<br />
+     * Convert (C=? OR C=?) to (C IN(?, ?)).
+     */
+    public final boolean optimizeOr = get("OPTIMIZE_OR", false);
+
+    /**
+     * Database setting <code>OPTIMIZE_SUBQUERY_CACHE</code> (default: true).<br />
+     * Cache subquery results.
+     */
+    public final boolean optimizeSubqueryCache = get("OPTIMIZE_SUBQUERY_CACHE", true);
+
+    /**
+     * Database setting <code>OPTIMIZE_TWO_EQUALS</code> (default: true).<br />
+     * Optimize expressions of the form A=B AND B=1. In this case, AND A=1 is
+     * added so an index on A can be used.
+     */
+    public final boolean optimizeTwoEquals = get("OPTIMIZE_TWO_EQUALS", true);
+
+    /**
+     * Database setting <code>PAGE_STORE_TRIM</code> (default: true).<br />
+     * Trim the database size when closing.
+     */
+    public final boolean pageStoreTrim = get("PAGE_STORE_TRIM", true);
+
+    /**
+     * Database setting <code>PAGE_STORE_INTERNAL_COUNT</code> (default: false).<br />
+     * Update the row counts on a node level.
+     */
+    public final boolean pageStoreInternalCount = get("PAGE_STORE_INTERNAL_COUNT", false);
+
+    /**
+     * Database setting <code>RECOMPILE_ALWAYS</code> (default: false).<br />
+     * Always recompile prepared statements.
+     */
+    public final boolean recompileAlways = get("RECOMPILE_ALWAYS", false);
+    // DbSettings
+
+    /**
+     * Database setting <code>RECONNECT_CHECK_DELAY</code> (default: 200).<br />
+     * Check the .lock.db file every this many milliseconds to detect that the
+     * database was changed. The process writing to the database must first
+     * notify a change in the .lock.db file, then wait twice this many
+     * milliseconds before updating the database.
+     */
+    public final int reconnectCheckDelay = get("RECONNECT_CHECK_DELAY", 200);
+    // DbSettings
+
 
     private DbSettings(HashMap<String, String> s) {
         super(s);

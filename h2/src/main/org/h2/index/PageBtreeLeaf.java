@@ -33,10 +33,12 @@ public class PageBtreeLeaf extends PageBtree {
 
     private static final int OFFSET_LENGTH = 2;
 
+    private final boolean optimizeUpdate;
     private boolean writtenData;
 
     private PageBtreeLeaf(PageBtreeIndex index, int pageId, Data data) {
         super(index, pageId, data);
+        this.optimizeUpdate = index.getDatabase().getSettings().optimizeUpdate;
     }
 
     /**
@@ -130,7 +132,7 @@ public class PageBtreeLeaf extends PageBtree {
             }
         }
         index.getPageStore().logUndo(this, data);
-        if (!SysProperties.OPTIMIZE_UPDATE) {
+        if (!optimizeUpdate) {
             readAllRows();
         }
         changeCount = index.getPageStore().getChangeCount();
@@ -143,7 +145,7 @@ public class PageBtreeLeaf extends PageBtree {
         }
         start += OFFSET_LENGTH;
         int offset = (x == 0 ? pageSize : offsets[x - 1]) - rowLength;
-        if (SysProperties.OPTIMIZE_UPDATE && writtenData) {
+        if (optimizeUpdate && writtenData) {
             if (entryCount > 0) {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount - 1];
@@ -162,7 +164,7 @@ public class PageBtreeLeaf extends PageBtree {
     }
 
     private void removeRow(int at) {
-        if (!SysProperties.OPTIMIZE_UPDATE) {
+        if (!optimizeUpdate) {
             readAllRows();
         }
         index.getPageStore().logUndo(this, data);
@@ -176,7 +178,7 @@ public class PageBtreeLeaf extends PageBtree {
         int rowLength = startNext - offsets[at];
         start -= OFFSET_LENGTH;
 
-        if (SysProperties.OPTIMIZE_UPDATE) {
+        if (optimizeUpdate) {
             if (writtenData) {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount];
@@ -265,14 +267,14 @@ public class PageBtreeLeaf extends PageBtree {
         if (written) {
             return;
         }
-        if (!SysProperties.OPTIMIZE_UPDATE) {
+        if (!optimizeUpdate) {
             readAllRows();
         }
         writeHead();
         for (int i = 0; i < entryCount; i++) {
             data.writeShortInt(offsets[i]);
         }
-        if (!writtenData || !SysProperties.OPTIMIZE_UPDATE) {
+        if (!writtenData || !optimizeUpdate) {
             for (int i = 0; i < entryCount; i++) {
                 index.writeRow(data, offsets[i], rows[i], onlyPosition);
             }

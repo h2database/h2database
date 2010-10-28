@@ -400,7 +400,17 @@ public class Constants {
      */
     public static final String USER_PACKAGE = "org.h2.dynamic";
 
-    int sortByName;
+    int sortByNameAndDocument;
+
+    /**
+     * The default page size to use for new databases.
+     */
+    public static final int DEFAULT_PAGE_SIZE = 2048;
+
+    /**
+     * The minimum write delay that causes commits to be delayed.
+     */
+    public static final int MIN_WRITE_DELAY = 5;
 
     /**
      * The default result set concurrency for statements created with

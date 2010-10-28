@@ -38,12 +38,6 @@ public class SysProperties {
     public static final String H2_SCRIPT_DIRECTORY = "h2.scriptDirectory";
 
     /**
-     * INTERNAL
-     */
-    public static final String H2_COLLATOR_CACHE_SIZE = "h2.collatorCacheSize";
-    // TODO DbSettings
-
-    /**
      * System property <code>file.encoding</code> (default: Cp1252).<br />
      * It is usually set by the system and is the default encoding used for the
      * RunScript and CSV tool.
@@ -143,6 +137,13 @@ public class SysProperties {
      */
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
 
+     /**
+      * System property <code>h2.collatorCacheSize</code> (default: 32000).<br />
+      * The cache size for collation keys (in elements). Used when a collator has
+      * been set for the database.
+      */
+    public static final int COLLATOR_CACHE_SIZE = getIntSetting("h2.collatorCacheSize", 32000);
+
     /**
      * System property <code>h2.consoleStream</code> (default: true).<br />
      * H2 Console: stream query results.
@@ -198,7 +199,6 @@ public class SysProperties {
      * Store LOB files in the database.
      */
     public static final boolean LOB_IN_DATABASE = getBooleanSetting("h2.lobInDatabase", false);
-    // DbSettings
 
     /**
      * System property <code>h2.lobClientMaxSizeMemory</code> (default: 65536).<br />
@@ -221,21 +221,6 @@ public class SysProperties {
     public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
 
     /**
-     * System property <code>h2.maxCompactCount</code>
-     * (default: Integer.MAX_VALUE).<br />
-     * The maximum number of pages to move when closing a database.
-     */
-    public static final int MAX_COMPACT_COUNT = getIntSetting("h2.maxCompactCount", Integer.MAX_VALUE);
-    // DbSettings
-
-    /**
-     * System property <code>h2.maxCompactTime</code> (default: 200).<br />
-     * The maximum time in milliseconds used to compact a database when closing.
-     */
-    public static final int MAX_COMPACT_TIME = getIntSetting("h2.maxCompactTime", 200);
-    // DbSettings
-
-    /**
      * System property <code>h2.maxFileRetry</code> (default: 16).<br />
      * Number of times to retry file delete and rename. in Windows, files can't
      * be deleted if they are open. Waiting a bit can help (sometimes the
@@ -244,16 +229,6 @@ public class SysProperties {
      * Connection.close() or InputStream.close().
      */
     public static final int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
-
-    /**
-     * System property <code>h2.maxMemoryRowsDistinct</code> (default:
-     * Integer.MAX_VALUE).<br />
-     * The maximum number of rows kept in-memory for SELECT DISTINCT queries. If
-     * more than this number of rows are in a result set, a temporary table is
-     * used.
-     */
-    public static final int MAX_MEMORY_ROWS_DISTINCT = getIntSetting("h2.maxMemoryRowsDistinct", Integer.MAX_VALUE);
-    // DbSettings
 
     /**
      * System property <code>h2.maxReconnect</code> (default: 3).<br />
@@ -266,7 +241,6 @@ public class SysProperties {
      * The maximum size of a LOB value that is written as data to the trace system.
      */
     public static final long MAX_TRACE_DATA_LENGTH = getIntSetting("h2.maxTraceDataLength", 65535);
-    // DbSettings
 
     /**
      * System property <code>h2.minColumnNameMap</code> (default: 3).<br />
@@ -274,20 +248,6 @@ public class SysProperties {
      * methods with column name (instead of column index) parameter are called.
      */
     public static final int MIN_COLUMN_NAME_MAP = getIntSetting("h2.minColumnNameMap", 3);
-
-    /**
-     * System property <code>h2.minWriteDelay</code> (default: 5).<br />
-     * The minimum write delay that causes commits to be delayed.
-     */
-    public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
-    // DbSettings
-
-    /**
-     * System property <code>h2.nestedJoins</code> (default: false).<br />
-     * Whether nested joins should be supported.
-     */
-    public static final boolean NESTED_JOINS = getBooleanSetting("h2.nestedJoins", false);
-    // DbSettings
 
     /**
      * System property <code>h2.nioLoadMapped</code> (default: false).<br />
@@ -327,104 +287,6 @@ public class SysProperties {
     public static final int OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(getIntSetting("h2.objectCacheSize", 1024));
 
     /**
-     * System property <code>h2.optimizeInsertFromSelect</code>
-     * (default: false).<br />
-     * Insert into table from query directly bypassing temporary disk storage.
-     * This also applies to create table as select.
-     */
-    public static boolean optimizeInsertFromSelect = getBooleanSetting("h2.optimizeInsertFromSelect", false);
-    // DbSettings
-
-    /**
-     * System property <code>h2.optimizeDistinct</code> (default: true).<br />
-     * Improve the performance of simple DISTINCT queries if an index is
-     * available for the given column. The optimization is used if:
-     * <ul>
-     * <li>The select is a single column query without condition </li>
-     * <li>The query contains only one table, and no group by </li>
-     * <li>There is only one table involved </li>
-     * <li>There is an ascending index on the column </li>
-     * <li>The selectivity of the column is below 20 </li>
-     * </ul>
-     */
-    public static final boolean OPTIMIZE_DISTINCT = getBooleanSetting("h2.optimizeDistinct", true);
-    // DbSettings
-
-    /**
-     * System property <code>h2.optimizeUpdate</code> (default: true).<br />
-     * Speed up inserts, updates, and deletes by not reading all rows from a
-     * page unless necessary.
-     */
-    public static final boolean OPTIMIZE_UPDATE = getBooleanSetting("h2.optimizeUpdate", true);
-    // DbSettings
-
-    /**
-     * System property <code>h2.optimizeEvaluatableSubqueries</code> (default:
-     * true).<br />
-     * Optimize subqueries that are not dependent on the outer query.
-     */
-    public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = getBooleanSetting("h2.optimizeEvaluatableSubqueries", true);
-    // DbSettings
-
-    /**
-     * System property <code>h2.optimizeInList</code> (default: true).<br />
-     * Optimize IN(...) and IN(SELECT ...) comparisons. This includes
-     * optimization for SELECT, DELETE, and UPDATE.
-     */
-    public static final boolean OPTIMIZE_IN_LIST = getBooleanSetting("h2.optimizeInList", true);
-    // DbSettings
-
-    /**
-     * System property <code>h2.optimizeIsNull</code> (default: false).<br />
-     * Use an index for condition of the form columnName IS NULL.
-     */
-    public static final boolean OPTIMIZE_IS_NULL = getBooleanSetting("h2.optimizeIsNull", true);
-    // DbSettings
-
-    /**
-     * System property <code>h2.optimizeOr</code> (default: false).<br />
-     * Convert (C=? OR C=?) to (C IN(?, ?)).
-     */
-    public static final boolean OPTIMIZE_OR = getBooleanSetting("h2.optimizeOr", false);
-    // DbSettings
-
-    /**
-     * System property <code>h2.optimizeSubqueryCache</code> (default: true).<br />
-     * Cache subquery results.
-     */
-    public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
-    // DbSettings
-
-    /**
-     * System property <code>h2.optimizeTwoEquals</code> (default: true).<br />
-     * Optimize expressions of the form A=B AND B=1. In this case, AND A=1 is
-     * added so an index on A can be used.
-     */
-    public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
-    // DbSettings
-
-    /**
-     * System property <code>h2.pageSize</code> (default: 2048).<br />
-     * The page size to use for new databases.
-     */
-    public static final int PAGE_SIZE = getIntSetting("h2.pageSize", 2048);
-    // DbSettings (already!)
-
-    /**
-     * System property <code>h2.pageStoreTrim</code> (default: true).<br />
-     * Trim the database size when closing.
-     */
-    public static final boolean PAGE_STORE_TRIM = getBooleanSetting("h2.pageStoreTrim", true);
-    // DbSettings
-
-    /**
-     * System property <code>h2.pageStoreInternalCount</code> (default: false).<br />
-     * Update the row counts on a node level.
-     */
-    public static final boolean PAGE_STORE_INTERNAL_COUNT = getBooleanSetting("h2.pageStoreInternalCount", false);
-    // DbSettings
-
-    /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
      * Default client encoding for PG server. It is used if the client does not
      * sends his encoding.
@@ -436,23 +298,6 @@ public class SysProperties {
      * The prefix for temporary files in the temp directory.
      */
     public static final String PREFIX_TEMP_FILE = getStringSetting("h2.prefixTempFile", "h2.temp");
-
-    /**
-     * System property <code>h2.recompileAlways</code> (default: false).<br />
-     * Always recompile prepared statements.
-     */
-    public static final boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
-    // DbSettings
-
-    /**
-     * System property <code>h2.reconnectCheckDelay</code> (default: 200).<br />
-     * Check the .lock.db file every this many milliseconds to detect that the
-     * database was changed. The process writing to the database must first
-     * notify a change in the .lock.db file, then wait twice this many
-     * milliseconds before updating the database.
-     */
-    public static final int RECONNECT_CHECK_DELAY = getIntSetting("h2.reconnectCheckDelay", 200);
-    // DbSettings
 
     /**
      * System property <code>h2.returnLobObjects</code> (default: true).<br />
@@ -630,17 +475,6 @@ public class SysProperties {
      */
     public static String getScriptDirectory() {
         return getStringSetting(H2_SCRIPT_DIRECTORY, "");
-    }
-
-    /**
-     * System property <code>h2.collatorCacheSize</code> (default: 32000).<br />
-     * The cache size for collation keys (in elements). Used when a collator has
-     * been set for the database.
-     *
-     * @return the current value
-     */
-    public static int getCollatorCacheSize() {
-        return getIntSetting(H2_COLLATOR_CACHE_SIZE, 32000);
     }
 
 }

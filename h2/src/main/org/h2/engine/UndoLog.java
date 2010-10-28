@@ -162,10 +162,10 @@ public class UndoLog {
                     file = database.openFile(fileName, "rw", false);
                     file.setLength(FileStore.HEADER_LENGTH);
                 }
-                Data buff = Data.create(database, SysProperties.PAGE_SIZE);
+                Data buff = Data.create(database, Constants.DEFAULT_PAGE_SIZE);
                 for (int i = 0; i < records.size(); i++) {
                     UndoLogRecord r = records.get(i);
-                    buff.checkCapacity(SysProperties.PAGE_SIZE);
+                    buff.checkCapacity(Constants.DEFAULT_PAGE_SIZE);
                     r.append(buff, this);
                     if (i == records.size() - 1 || buff.length() > Constants.UNDO_BLOCK_SIZE) {
                         storedEntriesPos.add(file.getFilePointer());
@@ -188,7 +188,7 @@ public class UndoLog {
                     String fileName = database.createTempFile();
                     file = database.openFile(fileName, "rw", false);
                     file.seek(FileStore.HEADER_LENGTH);
-                    rowBuff = Data.create(database, SysProperties.PAGE_SIZE);
+                    rowBuff = Data.create(database, Constants.DEFAULT_PAGE_SIZE);
                     Data buff = rowBuff;
                     for (int i = 0; i < records.size(); i++) {
                         UndoLogRecord r = records.get(i);

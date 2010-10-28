@@ -34,6 +34,8 @@ import org.h2.store.PageStore;
  */
 public class PageDataLeaf extends PageData {
 
+    private final boolean optimizeUpdate;
+
     /**
      * The row offsets.
      */
@@ -72,6 +74,7 @@ public class PageDataLeaf extends PageData {
 
     private PageDataLeaf(PageDataIndex index, int pageId, Data data) {
         super(index, pageId, data);
+        this.optimizeUpdate = index.getDatabase().getSettings().optimizeUpdate;
     }
 
     /**
@@ -183,7 +186,7 @@ public class PageDataLeaf extends PageData {
         if (entryCount == 0) {
             x = 0;
         } else {
-            if (!SysProperties.OPTIMIZE_UPDATE) {
+            if (!optimizeUpdate) {
                 readAllRows();
             }
             x = findInsertionPoint(row.getKey());
@@ -199,7 +202,7 @@ public class PageDataLeaf extends PageData {
         rows = insert(rows, entryCount, x, row);
         entryCount++;
         index.getPageStore().update(this);
-        if (SysProperties.OPTIMIZE_UPDATE) {
+        if (optimizeUpdate) {
             if (writtenData && offset >= start) {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount - 1] + rowLength;
@@ -267,7 +270,7 @@ public class PageDataLeaf extends PageData {
         index.getPageStore().logUndo(this, data);
         written = false;
         changeCount = index.getPageStore().getChangeCount();
-        if (!SysProperties.OPTIMIZE_UPDATE) {
+        if (!optimizeUpdate) {
             readAllRows();
         }
         Row r = getRowAt(i);
@@ -288,7 +291,7 @@ public class PageDataLeaf extends PageData {
         int keyOffsetPairLen = 2 + Data.getVarLongLen(keys[i]);
         int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[i];
-        if (SysProperties.OPTIMIZE_UPDATE) {
+        if (optimizeUpdate) {
             if (writtenData) {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount];
@@ -481,7 +484,7 @@ public class PageDataLeaf extends PageData {
         if (written) {
             return;
         }
-        if (!SysProperties.OPTIMIZE_UPDATE) {
+        if (!optimizeUpdate) {
             readAllRows();
         }
         writeHead();
@@ -493,7 +496,7 @@ public class PageDataLeaf extends PageData {
             data.writeVarLong(keys[i]);
             data.writeShortInt(offsets[i]);
         }
-        if (!writtenData || !SysProperties.OPTIMIZE_UPDATE) {
+        if (!writtenData || !optimizeUpdate) {
             for (int i = 0; i < entryCount; i++) {
                 data.setPos(offsets[i]);
                 Row r = getRowAt(i);

@@ -41,7 +41,7 @@ public class CompareMode {
         int cacheSize = 0;
         if (collator != null) {
             this.collator.setStrength(strength);
-            cacheSize = SysProperties.getCollatorCacheSize();
+            cacheSize = SysProperties.COLLATOR_CACHE_SIZE;
         }
         if (cacheSize != 0) {
             collationKeys = SmallLRUCache.newInstance(cacheSize);

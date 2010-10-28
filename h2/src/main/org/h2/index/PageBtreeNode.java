@@ -37,6 +37,8 @@ public class PageBtreeNode extends PageBtree {
     private static final int CHILD_OFFSET_PAIR_LENGTH = 6;
     private static final int MAX_KEY_LENGTH = 10;
 
+    private final boolean pageStoreInternalCount;
+
     /**
      * The page ids of the children.
      */
@@ -48,6 +50,7 @@ public class PageBtreeNode extends PageBtree {
 
     private PageBtreeNode(PageBtreeIndex index, int pageId, Data data) {
         super(index, pageId, data);
+        this.pageStoreInternalCount = index.getDatabase().getSettings().pageStoreInternalCount;
     }
 
     /**
@@ -80,7 +83,7 @@ public class PageBtreeNode extends PageBtree {
         // 4 bytes for the rightmost child page id
         p.start = p.data.length() + 4;
         p.rows = SearchRow.EMPTY_ARRAY;
-        if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+        if (p.pageStoreInternalCount) {
             p.rowCount = 0;
         }
         return p;
@@ -180,7 +183,7 @@ public class PageBtreeNode extends PageBtree {
         add(offsets, x + 1, entryCount + 1, -rowLength);
         childPageIds = insert(childPageIds, entryCount + 1, x + 1, childPageId);
         start += CHILD_OFFSET_PAIR_LENGTH;
-        if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+        if (pageStoreInternalCount) {
             if (rowCount != UNKNOWN_ROWCOUNT) {
                 rowCount += offset;
             }
@@ -278,7 +281,7 @@ public class PageBtreeNode extends PageBtree {
         rows = SearchRow.EMPTY_ARRAY;
         offsets = Utils.EMPTY_INT_ARRAY;
         addChild(0, page2.getPos(), pivot);
-        if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+        if (pageStoreInternalCount) {
             rowCount = page1.getRowCount() + page2.getRowCount();
         }
         check();
@@ -375,7 +378,7 @@ public class PageBtreeNode extends PageBtree {
     }
 
     void setRowCountStored(int rowCount) {
-        if (rowCount < 0 && SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+        if (rowCount < 0 && pageStoreInternalCount) {
             return;
         }
         this.rowCount = rowCount;
@@ -446,7 +449,7 @@ public class PageBtreeNode extends PageBtree {
     private void removeChild(int i) {
         readAllRows();
         entryCount--;
-        if (SysProperties.PAGE_STORE_INTERNAL_COUNT) {
+        if (pageStoreInternalCount) {
             updateRowCount(-index.getPage(childPageIds[i]).getRowCount());
         }
         written = false;

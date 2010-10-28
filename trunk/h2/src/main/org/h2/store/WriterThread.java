@@ -8,7 +8,7 @@ package org.h2.store;
 
 import java.lang.ref.WeakReference;
 import java.security.AccessControlException;
-import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -79,7 +79,7 @@ public class WriterThread implements Runnable {
             int wait = writeDelay;
             try {
                 if (database.isFileLockSerialized()) {
-                    wait = SysProperties.MIN_WRITE_DELAY;
+                    wait = Constants.MIN_WRITE_DELAY;
                     database.checkpointIfRequired();
                 } else {
                     database.flush();
@@ -93,9 +93,9 @@ public class WriterThread implements Runnable {
 
             // TODO log writer: could also flush the dirty cache when there is
             // low activity
-            if (wait < SysProperties.MIN_WRITE_DELAY) {
+            if (wait < Constants.MIN_WRITE_DELAY) {
                 // wait 0 mean wait forever, which is not what we want
-                wait = SysProperties.MIN_WRITE_DELAY;
+                wait = Constants.MIN_WRITE_DELAY;
             }
             try {
                 Thread.sleep(wait);

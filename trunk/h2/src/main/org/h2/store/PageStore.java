@@ -134,7 +134,7 @@ public class PageStore implements CacheWriter {
     private String fileName;
     private FileStore file;
     private String accessMode;
-    private int pageSize = SysProperties.PAGE_SIZE;
+    private int pageSize = Constants.DEFAULT_PAGE_SIZE;
     private int pageSizeShift;
     private long writeCountBase, writeCount, readCount;
     private int logKey, logFirstTrunkPage, logFirstDataPage;
@@ -445,7 +445,7 @@ public class PageStore implements CacheWriter {
      * TransactionCommand.SHUTDOWN_COMPACT or TransactionCommand.SHUTDOWN_DEFRAG
      */
     public void compact(int compactMode) {
-        if (!SysProperties.PAGE_STORE_TRIM) {
+        if (!database.getSettings().pageStoreTrim) {
             return;
         }
         // find the last used page
@@ -478,8 +478,8 @@ public class PageStore implements CacheWriter {
             isCompactFully = isDefrag = true;
         }
 
-        int maxCompactTime = SysProperties.MAX_COMPACT_TIME;
-        int maxMove = SysProperties.MAX_COMPACT_COUNT;
+        int maxCompactTime = database.getSettings().maxCompactTime;
+        int maxMove = database.getSettings().maxCompactCount;
 
         if (isCompactFully || isDefrag) {
             maxCompactTime = Integer.MAX_VALUE;

@@ -167,13 +167,15 @@ public class Database implements DataHandler {
     private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
     private LobStorage lobStorage;
-    private int pageSize = SysProperties.PAGE_SIZE;
+    private int pageSize = Constants.DEFAULT_PAGE_SIZE;
     private int defaultTableType = Table.TYPE_CACHED;
-    private DbSettings dbSettings;
+    private final DbSettings dbSettings;
+    private final int reconnectCheckDelay;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
+        this.reconnectCheckDelay = dbSettings.reconnectCheckDelay;
         this.compareMode = CompareMode.getInstance(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
@@ -186,7 +188,7 @@ public class Database implements DataHandler {
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.cacheSize = ci.getProperty("CACHE_SIZE", Constants.CACHE_SIZE_DEFAULT);
-        this.pageSize = ci.getProperty("PAGE_SIZE", SysProperties.PAGE_SIZE);
+        this.pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }
@@ -315,7 +317,7 @@ public class Database implements DataHandler {
                         lock.setProperty("logPos", pos);
                         lock.save();
                     }
-                    reconnectCheckNext = now + SysProperties.RECONNECT_CHECK_DELAY;
+                    reconnectCheckNext = now + reconnectCheckDelay;
                 }
                 return true;
             }
@@ -325,7 +327,7 @@ public class Database implements DataHandler {
                     return false;
                 }
                 getTrace().debug("wait before writing");
-                Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
+                Thread.sleep((int) (reconnectCheckDelay * 1.1));
                 Properties now = lock.load();
                 if (!now.equals(old)) {
                     // somebody else was faster
@@ -341,11 +343,11 @@ public class Database implements DataHandler {
             }
             // ensure that the writer thread will
             // not reset the flag before we are done
-            reconnectCheckNext = System.currentTimeMillis() + 2 * SysProperties.RECONNECT_CHECK_DELAY;
+            reconnectCheckNext = System.currentTimeMillis() + 2 * reconnectCheckDelay;
             old = lock.save();
             if (pending) {
                 getTrace().debug("wait before writing again");
-                Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
+                Thread.sleep((int) (reconnectCheckDelay * 1.1));
                 Properties now = lock.load();
                 if (!now.equals(old)) {
                     // somebody else was faster
@@ -356,7 +358,7 @@ public class Database implements DataHandler {
             }
             reconnectLastLock = old;
             reconnectChangePending = pending;
-            reconnectCheckNext = System.currentTimeMillis() + SysProperties.RECONNECT_CHECK_DELAY;
+            reconnectCheckNext = System.currentTimeMillis() + reconnectCheckDelay;
             return true;
         } catch (Exception e) {
             getTrace().error("pending:"+ pending, e);
@@ -1146,7 +1148,7 @@ public class Database implements DataHandler {
                 // wait before deleting the .lock file,
                 // otherwise other connections can not detect that
                 try {
-                    Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
+                    Thread.sleep((int) (reconnectCheckDelay * 1.1));
                 } catch (InterruptedException e) {
                     traceSystem.getTrace(Trace.DATABASE).error("close", e);
                 }
@@ -1623,7 +1625,7 @@ public class Database implements DataHandler {
         if (writer != null) {
             writer.setWriteDelay(value);
             // TODO check if MIN_WRITE_DELAY is a good value
-            flushOnEachCommit = writeDelay < SysProperties.MIN_WRITE_DELAY;
+            flushOnEachCommit = writeDelay < Constants.MIN_WRITE_DELAY;
         }
     }
 
@@ -2024,7 +2026,7 @@ public class Database implements DataHandler {
     public PageStore getPageStore() {
         if (pageStore == null) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
-            if (pageSize != SysProperties.PAGE_SIZE) {
+            if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
                 pageStore.setPageSize(pageSize);
             }
             if (!readOnly && fileLockMethod == FileLock.LOCK_FS) {
@@ -2072,7 +2074,7 @@ public class Database implements DataHandler {
         if (now < reconnectCheckNext) {
             return false;
         }
-        reconnectCheckNext = now + SysProperties.RECONNECT_CHECK_DELAY;
+        reconnectCheckNext = now + reconnectCheckDelay;
         if (lock == null) {
             lock = new FileLock(traceSystem, databaseName + Constants.SUFFIX_LOCK_FILE, Constants.LOCK_SLEEP);
         }
@@ -2085,7 +2087,7 @@ public class Database implements DataHandler {
                 if (prop.getProperty("changePending", null) == null) {
                     break;
                 }
-                if (System.currentTimeMillis() > now + SysProperties.RECONNECT_CHECK_DELAY * 10) {
+                if (System.currentTimeMillis() > now + reconnectCheckDelay * 10) {
                     if (first.equals(prop)) {
                         // the writing process didn't update the file -
                         // it may have terminated
@@ -2095,7 +2097,7 @@ public class Database implements DataHandler {
                     }
                 }
                 getTrace().debug("delay (change pending)");
-                Thread.sleep(SysProperties.RECONNECT_CHECK_DELAY);
+                Thread.sleep(reconnectCheckDelay);
                 prop = lock.load();
             }
             reconnectLastLock = prop;
@@ -2118,7 +2120,7 @@ public class Database implements DataHandler {
             return;
         }
         long now = System.currentTimeMillis();
-        if (now > reconnectCheckNext + SysProperties.RECONNECT_CHECK_DELAY) {
+        if (now > reconnectCheckNext + reconnectCheckDelay) {
             if (SysProperties.CHECK && checkpointAllowed < 0) {
                 DbException.throwInternalError();
             }

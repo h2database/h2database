@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.zip.CRC32;
 import org.h2.compress.CompressLZF;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
@@ -381,7 +380,7 @@ public class Recover extends Tool implements DataHandler {
                     " writeVersion: " + writeVersion +
                     " readVersion: " + readVersion);
             if (pageSize < PageStore.PAGE_SIZE_MIN || pageSize > PageStore.PAGE_SIZE_MAX) {
-                pageSize = SysProperties.PAGE_SIZE;
+                pageSize = Constants.DEFAULT_PAGE_SIZE;
                 writer.println("-- ERROR: page size; using " + pageSize);
             }
             long pageCount = length / pageSize;

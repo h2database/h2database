@@ -11,7 +11,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.constant.SysProperties;
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -29,16 +28,17 @@ public class DirectInsert {
     public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");
         DeleteDbFiles.execute("~", "test", true);
-        Connection conn = DriverManager.getConnection("jdbc:h2:~/test;LOG=0", "sa", "");
-        Statement stat = conn.createStatement();
-        initialInsert(conn, stat, 200000);
+        String url = "jdbc:h2:~/test";
+        initialInsert(url, 200000);
         for (int i = 0; i < 3; i++) {
-            createAsSelect(stat, true);
-            createAsSelect(stat, false);
+            createAsSelect(url, true);
+            createAsSelect(url, false);
         }
     }
 
-    private static void initialInsert(Connection conn, Statement stat, int len) throws SQLException {
+    private static void initialInsert(String url, int len) throws SQLException {
+        Connection conn = DriverManager.getConnection(url + ";LOG=0");
+        Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, 'Test' || SPACE(100))");
@@ -53,16 +53,19 @@ public class DirectInsert {
             prep.execute();
         }
         conn.commit();
+        conn.close();
     }
 
-    private static void createAsSelect(Statement stat, boolean optimize) throws SQLException {
-        SysProperties.optimizeInsertFromSelect = optimize;
+    private static void createAsSelect(String url, boolean optimize) throws SQLException {
+        Connection conn = DriverManager.getConnection(url + ";OPTIMIZE_INSERT_FROM_SELECT=" + optimize);
+        Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST2");
         System.out.println("CREATE TABLE ... AS SELECT " + (optimize ? "(optimized)" : ""));
         long time = System.currentTimeMillis();
         stat.execute("CREATE TABLE TEST2 AS SELECT * FROM TEST");
         System.out.printf("%.3f sec.\n", (System.currentTimeMillis() - time) / 1000.0);
         stat.execute("INSERT INTO TEST2 SELECT * FROM TEST2");
+        conn.close();
     }
 
 }

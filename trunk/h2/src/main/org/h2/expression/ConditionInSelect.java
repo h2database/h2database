@@ -8,7 +8,6 @@ package org.h2.expression;
 
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
@@ -121,7 +120,7 @@ public class ConditionInSelect extends Condition {
     }
 
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!SysProperties.OPTIMIZE_IN_LIST) {
+        if (!session.getDatabase().getSettings().optimizeInList) {
             return;
         }
         if (!(left instanceof ExpressionColumn)) {

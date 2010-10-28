@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
-import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.CompressTool;
@@ -132,7 +132,7 @@ public class TestCompress extends TestBase {
         }
         conn.close();
         Compressor compress = new CompressLZF();
-        int pageSize = SysProperties.PAGE_SIZE;
+        int pageSize = Constants.DEFAULT_PAGE_SIZE;
         byte[] buff = new byte[pageSize];
         byte[] test = new byte[2 * pageSize];
         compress.compress(buff, pageSize, test, 0);

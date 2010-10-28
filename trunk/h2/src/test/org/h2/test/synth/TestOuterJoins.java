@@ -16,7 +16,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-import org.h2.constant.SysProperties;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -42,7 +41,7 @@ public class TestOuterJoins extends TestBase {
     }
 
     public void test() throws Exception {
-        if (!SysProperties.NESTED_JOINS) {
+        if (!config.nestedJoins) {
             return;
         }
         deleteDb("outerJoins");

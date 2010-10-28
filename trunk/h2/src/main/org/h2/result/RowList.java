@@ -7,7 +7,6 @@
 package org.h2.result;
 
 import java.util.ArrayList;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -88,7 +87,7 @@ public class RowList {
             String fileName = db.createTempFile();
             file = db.openFile(fileName, "rw", false);
             file.seek(FileStore.HEADER_LENGTH);
-            rowBuff = Data.create(db, SysProperties.PAGE_SIZE);
+            rowBuff = Data.create(db, Constants.DEFAULT_PAGE_SIZE);
             file.seek(FileStore.HEADER_LENGTH);
         }
         Data buff = rowBuff;

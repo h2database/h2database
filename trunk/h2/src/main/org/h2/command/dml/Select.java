@@ -548,7 +548,7 @@ public class Select extends Query {
         }
         int columnCount = expressions.size();
         LocalResult result = null;
-        if (!SysProperties.optimizeInsertFromSelect || target == null) {
+        if (target == null || !session.getDatabase().getSettings().optimizeInsertFromSelect) {
             result = createLocalResult(result);
         }
         if (sort != null && (!sortUsingIndex || distinct)) {
@@ -795,7 +795,7 @@ public class Select extends Query {
             }
         }
         cost = preparePlan();
-        if (SysProperties.OPTIMIZE_DISTINCT && distinct && !isGroupQuery && filters.size() == 1 && expressions.size() == 1 && condition == null) {
+        if (distinct && session.getDatabase().getSettings().optimizeDistinct && !isGroupQuery && filters.size() == 1 && expressions.size() == 1 && condition == null) {
             Expression expr = expressions.get(0);
             expr = expr.getNonAliasExpression();
             if (expr instanceof ExpressionColumn) {
@@ -910,7 +910,7 @@ public class Select extends Query {
             Expression on = f.getJoinCondition();
             if (on != null) {
                 if (!on.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
-                    if (SysProperties.NESTED_JOINS) {
+                    if (session.getDatabase().getSettings().nestedJoins) {
                         // need to check that all added are bound to a table
                         on = on.optimize(session);
                         if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
@@ -1177,7 +1177,7 @@ public class Select extends Query {
             break;
         }
         case ExpressionVisitor.EVALUATABLE: {
-            if (!SysProperties.OPTIMIZE_EVALUATABLE_SUBQUERIES) {
+            if (!session.getDatabase().getSettings().optimizeEvaluatableSubqueries) {
                 return false;
             }
             break;

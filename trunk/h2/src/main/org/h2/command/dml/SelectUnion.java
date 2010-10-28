@@ -126,7 +126,7 @@ public class SelectUnion extends Query {
             }
             limitExpr = ValueExpression.get(ValueInt.get(maxrows));
         }
-        if (SysProperties.optimizeInsertFromSelect) {
+        if (session.getDatabase().getSettings().optimizeInsertFromSelect) {
             if (unionType == UNION_ALL && target != null) {
                 if (sort == null && !distinct && maxrows == 0 && offsetExpr == null && limitExpr == null) {
                     left.query(0, target);

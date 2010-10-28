@@ -8,7 +8,6 @@ package org.h2.command;
 
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -110,7 +109,7 @@ public abstract class Prepared {
         }
         // parser: currently, compiling every create/drop/... twice
         // because needRecompile return true even for the first execution
-        return SysProperties.RECOMPILE_ALWAYS || prepareAlways || modificationMetaId < db.getModificationMetaId();
+        return prepareAlways || modificationMetaId < db.getModificationMetaId() || db.getSettings().recompileAlways;
     }
 
     /**

@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: webAllowOthers and webSSL were swapped if they didn't exist in the properties file. Issue 244.
+<ul><li>The Recover tool did not work with compressed lob files (set compress_lob lzf).
+    Also, sometimes the Recover tool was very slow, specially using a 64-bit JVM, because
+    it tried to de-compress lob files even if they were not compressed 
+    (which could allocate a lot of memory).
+</li><li>H2 Console: webAllowOthers and webSSL were swapped if they didn't exist in the properties file. Issue 244.
 </li><li>When the system property h2.lobInDatabase is set, CREATE TABLE ... AS SELECT
     with a LOB column did not always work.
 </li><li>Some system properties are not supported any longer, because they can 

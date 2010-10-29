@@ -32,7 +32,40 @@ public class TestRecovery extends TestBase {
     }
 
     public void test() throws SQLException {
+        testCompressedAndUncompressed();
         testRunScript();
+    }
+
+    private void testCompressedAndUncompressed() throws SQLException {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        org.h2.Driver.load();
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, data clob)");
+        stat.execute("insert into test values(1, space(10000))");
+        stat.execute("set compress_lob lzf");
+        stat.execute("insert into test values(2, space(10000))");
+        conn.close();
+        Recover rec = new Recover();
+        rec.runTool("-dir", getBaseDir(), "-db", "recovery");
+        Connection conn2 = getConnection("recovery2", "diff", "");
+        Statement stat2 = conn2.createStatement();
+        String name = "recovery.h2.sql";
+        stat2.execute("runscript from '" + getBaseDir() + "/" + name + "'");
+        stat2.execute("select * from test");
+        stat2.execute("drop user diff");
+        conn2.close();
+
+        conn = getConnection("recovery");
+        stat = conn.createStatement();
+        conn2 = getConnection("recovery2");
+        stat2 = conn2.createStatement();
+
+        assertEqualDatabases(stat, stat2);
+        conn.close();
+        conn2.close();
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        DeleteDbFiles.execute(getBaseDir(), "recovery2", true);
     }
 
     private void testRunScript() throws SQLException {
@@ -84,7 +117,6 @@ public class TestRecovery extends TestBase {
         IOUtils.delete(getBaseDir() + "/recovery.h2.sql");
         String dir = getBaseDir() + "/recovery.lobs.db";
         FileSystem.getInstance(dir).deleteRecursive(dir, false);
-
     }
 
 }

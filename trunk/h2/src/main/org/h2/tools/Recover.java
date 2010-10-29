@@ -237,7 +237,6 @@ public class Recover extends Tool implements DataHandler {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
                 dumpPageStore(fileName);
             } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                dumpLob(fileName, true);
                 dumpLob(fileName, false);
             }
         }
@@ -319,10 +318,12 @@ public class Recover extends Tool implements DataHandler {
             byte[] small = lob.getSmall();
             if (small == null) {
                 String file = lob.getFileName();
-                if (lob.getType() == Value.BLOB) {
-                    return "READ_BLOB('" + file + ".txt')";
+                String type = lob.getType() == Value.BLOB ? "BLOB" : "CLOB";
+                if (lob.useCompression()) {
+                    dumpLob(file, true);
+                    file += ".comp";
                 }
-                return "READ_CLOB('" + file + ".txt')";
+                return "READ_" + type + "('" + file + ".txt')";
             }
         } else if (v instanceof ValueLobDb) {
             ValueLobDb lob = (ValueLobDb) v;

@@ -64,10 +64,10 @@ public class JdbcStatement extends TraceObject implements Statement {
             if (isDebugEnabled()) {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "executeQuery(" + quote(sql) + ")");
             }
-            checkClosed();
-            closeOldResultSet();
-            sql = conn.translateSQL(sql, escapeProcessing);
             synchronized (session) {
+                checkClosed();
+                closeOldResultSet();
+                sql = conn.translateSQL(sql, escapeProcessing);
                 CommandInterface command = conn.prepareCommand(sql, fetchSize);
                 ResultInterface result;
                 boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
@@ -234,9 +234,11 @@ public class JdbcStatement extends TraceObject implements Statement {
     public void close() throws SQLException {
         try {
             debugCodeCall("close");
-            closeOldResultSet();
-            if (conn != null) {
-                conn = null;
+            synchronized (session) {
+                closeOldResultSet();
+                if (conn != null) {
+                    conn = null;
+                }
             }
         } catch (Exception e) {
             throw logAndConvert(e);

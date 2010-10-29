@@ -82,8 +82,11 @@ public class TestConcurrent extends TestBase {
             conn.close();
             t.join();
             SQLException e = ex[0];
-            if (e != null && ErrorCode.OBJECT_CLOSED != e.getErrorCode()) {
-                throw e;
+            if (e != null) {
+                if (ErrorCode.OBJECT_CLOSED != e.getErrorCode() &&
+                        ErrorCode.STATEMENT_WAS_CANCELED != e.getErrorCode()) {
+                    throw e;
+                }
             }
         }
     }

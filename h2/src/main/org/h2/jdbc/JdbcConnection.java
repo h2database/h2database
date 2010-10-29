@@ -297,11 +297,15 @@ public class JdbcConnection extends TraceObject implements Connection {
             if (session == null) {
                 return;
             }
-            synchronized (session) {
-                if (executingStatement != null) {
+            session.cancel();
+            if (executingStatement != null) {
+                try {
                     executingStatement.cancel();
+                } catch (NullPointerException e) {
+                    // ignore
                 }
-                session.cancel();
+            }
+            synchronized (session) {
                 try {
                     if (!session.isClosed()) {
                         try {

@@ -15,7 +15,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import org.h2.constant.SysProperties;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
@@ -96,12 +95,12 @@ public class TestLinkedTable extends TestBase {
     }
 
     private void testHiddenSQL() throws SQLException {
-        if (config.memory || !SysProperties.SHARE_LINKED_CONNECTIONS) {
+        if (config.memory) {
             return;
         }
         org.h2.Driver.load();
         deleteDb("linkedTable");
-        Connection conn = getConnection("linkedTable");
+        Connection conn = getConnection("linkedTable;SHARE_LINKED_CONNECTIONS=TRUE");
         try {
             conn.createStatement().execute(
                     "create linked table test(null, 'jdbc:h2:mem:', 'sa', 'pwd', 'DUAL2')");
@@ -140,12 +139,12 @@ public class TestLinkedTable extends TestBase {
 //    }
 
     private void testNestedQueriesToSameTable() throws SQLException {
-        if (config.memory || !SysProperties.SHARE_LINKED_CONNECTIONS) {
+        if (config.memory) {
             return;
         }
         org.h2.Driver.load();
         deleteDb("linkedTable");
-        String url = getURL("linkedTable", true);
+        String url = getURL("linkedTable;SHARE_LINKED_CONNECTIONS=TRUE", true);
         String user = getUser();
         String password = getPassword();
         Connection ca = getConnection(url, user, password);
@@ -161,12 +160,12 @@ public class TestLinkedTable extends TestBase {
     }
 
     private void testSharedConnection() throws SQLException {
-        if (config.memory || !SysProperties.SHARE_LINKED_CONNECTIONS) {
+        if (config.memory) {
             return;
         }
         org.h2.Driver.load();
         deleteDb("linkedTable");
-        String url = getURL("linkedTable", true);
+        String url = getURL("linkedTable;SHARE_LINKED_CONNECTIONS=TRUE", true);
         String user = getUser();
         String password = getPassword();
         Connection ca = getConnection(url, user, password);

@@ -1995,7 +1995,7 @@ public class Database implements DataHandler {
         if (linkConnections == null) {
             linkConnections = New.hashMap();
         }
-        return TableLinkConnection.open(linkConnections, driver, url, user, password);
+        return TableLinkConnection.open(linkConnections, driver, url, user, password, dbSettings.shareLinkedConnections);
     }
 
     public String toString() {

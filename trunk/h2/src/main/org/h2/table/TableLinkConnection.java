@@ -9,12 +9,10 @@ package org.h2.table;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
-
-import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
-import org.h2.util.Utils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * A connection for a linked table. The same connection may be used for multiple
@@ -59,11 +57,12 @@ public class TableLinkConnection {
      * @param url the database URL
      * @param user the user name
      * @param password the password
+     * @param shareLinkedConnections if connections should be shared
      * @return a connection
      */
-    public static TableLinkConnection open(HashMap<TableLinkConnection, TableLinkConnection> map, String driver, String url, String user, String password) {
+    public static TableLinkConnection open(HashMap<TableLinkConnection, TableLinkConnection> map, String driver, String url, String user, String password, boolean shareLinkedConnections) {
         TableLinkConnection t = new TableLinkConnection(map, driver, url, user, password);
-        if (!SysProperties.SHARE_LINKED_CONNECTIONS) {
+        if (!shareLinkedConnections) {
             t.open();
             return t;
         }

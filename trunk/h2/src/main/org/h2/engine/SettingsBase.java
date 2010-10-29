@@ -21,6 +21,13 @@ public class SettingsBase {
         this.settings = s;
     }
 
+    /**
+     * Get the setting for the given key.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the setting
+     */
     protected boolean get(String key, boolean defaultValue) {
         String s = get(key, "" + defaultValue);
         try {
@@ -30,6 +37,13 @@ public class SettingsBase {
         }
     }
 
+    /**
+     * Get the setting for the given key.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the setting
+     */
     protected int get(String key, int defaultValue) {
         String s = get(key, "" + defaultValue);
         try {
@@ -39,6 +53,13 @@ public class SettingsBase {
         }
     }
 
+    /**
+     * Get the setting for the given key.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the setting
+     */
     protected String get(String key, String defaultValue) {
         StringBuilder buff = new StringBuilder("h2.");
         boolean nextUpper = false;
@@ -54,19 +75,27 @@ public class SettingsBase {
         String sysProperty = buff.toString();
         String v = settings.get(key);
         if (v == null) {
-            v = System.getProperty(sysProperty);
-        }
-        if (v == null) {
-            settings.put(key, defaultValue);
-            v = defaultValue;
+            v = System.getProperty(sysProperty, defaultValue);
+            settings.put(key, v);
         }
         return v;
     }
 
+    /**
+     * Check if the settings contains the given key.
+     *
+     * @param k the key
+     * @return true if they do
+     */
     public boolean containsKey(String k) {
         return settings.containsKey(k);
     }
 
+    /**
+     * Get all settings.
+     *
+     * @return the settings
+     */
     public HashMap<String, String> getSettings() {
         return settings;
     }

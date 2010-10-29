@@ -140,6 +140,7 @@ public class TestPowerOff extends TestBase {
                 }
             }
         }
+        SysProperties.runFinalize = true;
     }
 
     private void testShutdown() throws SQLException {

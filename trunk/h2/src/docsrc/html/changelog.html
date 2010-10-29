@@ -22,10 +22,24 @@ Change Log
 </li><li>When the system property h2.lobInDatabase is set, CREATE TABLE ... AS SELECT
     with a LOB column did not always work.
 </li><li>Some system properties are not supported any longer, because they can 
-    already be set in the database URL. Those settings are:
-    h2.cacheSizeDefault, h2.cacheTypeDefault
+    already be set in the database URL. The constants are:
+    CACHE_SIZE_DEFAULT, CACHE_TYPE_DEFAULT, DEFAULT_LOCK_MODE, 
+    LOCK_MODE_READ_COMMITTED, DEFAULT_MAX_LENGTH_INPLACE_LOB, 
+    DEFAULT_MAX_LENGTH_INPLACE_LOB2, DEFAULT_MAX_MEMORY_UNDO, 
+    DEFAULT_MAX_OPERATION_MEMORY, DEFAULT_PAGE_SIZE, 
+    DEFAULT_RESULT_SET_CONCURRENCY, MIN_WRITE_DELAY.
 </li><li>Various system properties have been replaced with database level settings:
-    ALIAS_COLUMN_NAME, ANALYZE_AUTO, ANALYZE_SAMPLE, DATABASE_TO_UPPER,...
+    ALIAS_COLUMN_NAME, ANALYZE_AUTO, ANALYZE_SAMPLE, DATABASE_TO_UPPER, 
+    DEFAULT_ESCAPE, DEFRAG_ALWAYS, DROP_RESTRICT, 
+    ESTIMATED_FUNCTION_TABLE_ROWS, FUNCTIONS_IN_SCHEMA, 
+    LARGE_RESULT_BUFFER_SIZE, LARGE_TRANSACTIONS, MAX_COMPACT_COUNT, 
+    MAX_COMPACT_TIME, MAX_MEMORY_ROWS_DISTINCT, MAX_QUERY_TIMEOUT, 
+    NESTED_JOINS, OPTIMIZE_DISTINCT, OPTIMIZE_EVALUATABLE_SUBQUERIES, 
+    OPTIMIZE_INSERT_FROM_SELECT, OPTIMIZE_IN_LIST, OPTIMIZE_IS_NULL, 
+    OPTIMIZE_OR, OPTIMIZE_SUBQUERY_CACHE, OPTIMIZE_TWO_EQUALS, 
+    OPTIMIZE_UPDATE, PAGE_STORE_INTERNAL_COUNT, PAGE_STORE_TRIM, 
+    QUERY_CACHE_SIZE, RECOMPILE_ALWAYS, RECONNECT_CHECK_DELAY, 
+    SELECT_FOR_UPDATE_MVCC, SHARE_LINKED_CONNECTIONS.
     See the Javadoc documentation of DbSettings for details.
     The system properties are still supported for backward compatibility.
 </li><li>When the system property h2.nestedJoins was enabled, some outer joins returned the wrong result.

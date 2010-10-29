@@ -138,22 +138,6 @@ public class DbSettings extends SettingsBase {
     public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT", Integer.MAX_VALUE);
 
     /**
-     * Database setting <code>h2.nestedJoins</code> (default: false).<br />
-     * Whether nested joins should be supported.
-     */
-    public final boolean nestedJoins = get("NESTED_JOINS", false);
-
-    /**
-     * Database setting <code>QUERY_CACHE_SIZE</code> (default: 0).<br />
-     * The size of the query cache. Each session has it's own cache with the
-     * given size. The cache is only used if the SQL statement and all
-     * parameters match. Only the last returned result per query is cached. Only
-     * SELECT statements are cached (excluding UNION and FOR UPDATE statements).
-     * This works for both statements and prepared statement.
-     */
-    public final int queryCacheSize = get("QUERY_CACHE_SIZE", 0);
-
-    /**
      * Database setting <code>MAX_QUERY_TIMEOUT</code> (default: 0).<br />
      * The maximum timeout of a query in milliseconds. The default is 0, meaning
      * no limit. Please note the actual query timeout may be set to a lower
@@ -162,12 +146,10 @@ public class DbSettings extends SettingsBase {
     public int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
 
     /**
-     * Database setting <code>OPTIMIZE_INSERT_FROM_SELECT</code>
-     * (default: false).<br />
-     * Insert into table from query directly bypassing temporary disk storage.
-     * This also applies to create table as select.
+     * Database setting <code>h2.nestedJoins</code> (default: false).<br />
+     * Whether nested joins should be supported.
      */
-    public final boolean optimizeInsertFromSelect = get("OPTIMIZE_INSERT_FROM_SELECT", false);
+    public final boolean nestedJoins = get("NESTED_JOINS", false);
 
     /**
      * Database setting <code>OPTIMIZE_DISTINCT</code> (default: true).<br />
@@ -184,18 +166,19 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeDistinct = get("OPTIMIZE_DISTINCT", true);
 
     /**
-     * Database setting <code>OPTIMIZE_UPDATE</code> (default: true).<br />
-     * Speed up inserts, updates, and deletes by not reading all rows from a
-     * page unless necessary.
-     */
-    public final boolean optimizeUpdate = get("OPTIMIZE_UPDATE", true);
-
-    /**
      * Database setting <code>OPTIMIZE_EVALUATABLE_SUBQUERIES</code> (default:
      * true).<br />
      * Optimize subqueries that are not dependent on the outer query.
      */
     public final boolean optimizeEvaluatableSubqueries = get("OPTIMIZE_EVALUATABLE_SUBQUERIES", true);
+
+    /**
+     * Database setting <code>OPTIMIZE_INSERT_FROM_SELECT</code>
+     * (default: false).<br />
+     * Insert into table from query directly bypassing temporary disk storage.
+     * This also applies to create table as select.
+     */
+    public final boolean optimizeInsertFromSelect = get("OPTIMIZE_INSERT_FROM_SELECT", false);
 
     /**
      * Database setting <code>OPTIMIZE_IN_LIST</code> (default: true).<br />
@@ -230,10 +213,11 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeTwoEquals = get("OPTIMIZE_TWO_EQUALS", true);
 
     /**
-     * Database setting <code>PAGE_STORE_TRIM</code> (default: true).<br />
-     * Trim the database size when closing.
+     * Database setting <code>OPTIMIZE_UPDATE</code> (default: true).<br />
+     * Speed up inserts, updates, and deletes by not reading all rows from a
+     * page unless necessary.
      */
-    public final boolean pageStoreTrim = get("PAGE_STORE_TRIM", true);
+    public final boolean optimizeUpdate = get("OPTIMIZE_UPDATE", true);
 
     /**
      * Database setting <code>PAGE_STORE_INTERNAL_COUNT</code> (default: false).<br />
@@ -242,11 +226,26 @@ public class DbSettings extends SettingsBase {
     public final boolean pageStoreInternalCount = get("PAGE_STORE_INTERNAL_COUNT", false);
 
     /**
+     * Database setting <code>PAGE_STORE_TRIM</code> (default: true).<br />
+     * Trim the database size when closing.
+     */
+    public final boolean pageStoreTrim = get("PAGE_STORE_TRIM", true);
+
+    /**
+     * Database setting <code>QUERY_CACHE_SIZE</code> (default: 0).<br />
+     * The size of the query cache. Each session has it's own cache with the
+     * given size. The cache is only used if the SQL statement and all
+     * parameters match. Only the last returned result per query is cached. Only
+     * SELECT statements are cached (excluding UNION and FOR UPDATE statements).
+     * This works for both statements and prepared statement.
+     */
+    public final int queryCacheSize = get("QUERY_CACHE_SIZE", 0);
+
+    /**
      * Database setting <code>RECOMPILE_ALWAYS</code> (default: false).<br />
      * Always recompile prepared statements.
      */
     public final boolean recompileAlways = get("RECOMPILE_ALWAYS", false);
-    // DbSettings
 
     /**
      * Database setting <code>RECONNECT_CHECK_DELAY</code> (default: 200).<br />
@@ -256,8 +255,21 @@ public class DbSettings extends SettingsBase {
      * milliseconds before updating the database.
      */
     public final int reconnectCheckDelay = get("RECONNECT_CHECK_DELAY", 200);
-    // DbSettings
 
+    /**
+     * Database setting <code>SELECT_FOR_UPDATE_MVCC</code> (default: false).<br />
+     * If set, SELECT .. FOR UPDATE queries lock only the selected rows when using MVCC.
+     */
+    public final boolean selectForUpdateMvcc = get("SELECT_FOR_UPDATE_MVCC", false);
+
+    /**
+     * Database setting <code>SHARE_LINKED_CONNECTIONS</code>
+     * (default: true).<br />
+     * Linked connections should be shared, that means connections to the same
+     * database should be used for all linked tables that connect to the same
+     * database.
+     */
+    public final boolean shareLinkedConnections = get("SHARE_LINKED_CONNECTIONS", true);
 
     private DbSettings(HashMap<String, String> s) {
         super(s);
@@ -267,7 +279,7 @@ public class DbSettings extends SettingsBase {
      * INTERNAL.
      * Get the settings for the given properties (may be null).
      *
-     * @param p the properties
+     * @param s the settings
      * @return the settings
      */
     public static DbSettings getInstance(HashMap<String, String> s) {

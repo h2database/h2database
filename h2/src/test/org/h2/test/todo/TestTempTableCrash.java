@@ -35,15 +35,13 @@ public class TestTempTableCrash {
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.check2", "false");
         System.setProperty("h2.lobInDatabase", "true");
-        System.setProperty("h2.analyzeAuto", "100");
-        System.setProperty("h2.pageSize", "64");
         RecordingFileSystem.register();
         System.setProperty("reopenShift", "4");
         TestReopen reopen = new TestReopen();
         RecordingFileSystem.setRecorder(reopen);
 
         String url = "jdbc:h2:" + RecordingFileSystem.PREFIX +
-                "memFS:data;PAGE_SIZE=64";
+                "memFS:data;PAGE_SIZE=64;ANALYZE_AUTO=100";
         // String url = "jdbc:h2:" + RecordingFileSystem.PREFIX +
         //      "data/test;PAGE_SIZE=64";
 

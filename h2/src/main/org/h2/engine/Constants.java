@@ -7,12 +7,21 @@
 package org.h2.engine;
 
 import java.sql.ResultSet;
-import org.h2.constant.SysProperties;
 
 /**
  * Constants are fixed values that are used in the whole database code.
  */
 public class Constants {
+
+    /**
+     * The build date is updated for each public release.
+     */
+    public static final String BUILD_DATE = "2010-10-15";
+
+    /**
+     * The build date is updated for each public release.
+     */
+    public static final String BUILD_DATE_STABLE = "2010-09-18";
 
     /**
      * The build id is incremented for each public release.
@@ -33,16 +42,6 @@ public class Constants {
     public static final String BUILD_VENDOR_AND_VERSION = null;
 
     /**
-     * The build date is updated for each public release.
-     */
-    public static final String BUILD_DATE = "2010-10-15";
-
-    /**
-     * The build date is updated for each public release.
-     */
-    public static final String BUILD_DATE_STABLE = "2010-09-18";
-
-    /**
      * The TCP protocol version number 6.
      */
     public static final int TCP_PROTOCOL_VERSION_6 = 6;
@@ -58,12 +57,6 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_8 = 8;
 
     /**
-     * The TCP protocol version number. This protocol is used by the TCP
-     * server and remote JDBC client.
-     */
-    public static final int TCP_PROTOCOL_VERSION = TCP_PROTOCOL_VERSION_8;
-
-    /**
      * The major version of this database.
      */
     public static final int VERSION_MAJOR = 1;
@@ -72,6 +65,30 @@ public class Constants {
      * The minor version of this database.
      */
     public static final int VERSION_MINOR = 2;
+
+    /**
+     * The lock mode that means no locking is used at all.
+     */
+    public static final int LOCK_MODE_OFF = 0;
+
+    /**
+     * The lock mode that means read locks are acquired, but they are released
+     * immediately after the statement is executed.
+     */
+    public static final int LOCK_MODE_READ_COMMITTED = 3;
+
+    /**
+     * The lock mode that means table level locking is used for reads and
+     * writes.
+     */
+    public static final int LOCK_MODE_TABLE = 1;
+
+    /**
+     * The lock mode that means table level locking is used for reads and
+     * writes. If a table is locked, System.gc is called to close forgotten
+     * connections.
+     */
+    public static final int LOCK_MODE_TABLE_GC = 2;
 
     /**
      * Constant meaning both numbers and text is allowed in SQL statements.
@@ -90,9 +107,24 @@ public class Constants {
     public static final int ALLOW_LITERALS_NUMBERS = 1;
 
     /**
+     * Whether searching in Blob values should be supported.
+     */
+    public static final boolean BLOB_SEARCH = false;
+
+    /**
      * The minimum number of entries to keep in the cache.
      */
     public static final int CACHE_MIN_RECORDS = 16;
+
+    /**
+     * The default cache size in KB.
+     */
+    public static final int CACHE_SIZE_DEFAULT = 16 * 1024;
+
+    /**
+     * The default cache type.
+     */
+    public static final String CACHE_TYPE_DEFAULT = "LRU";
 
     /**
      * The value of the cluster setting if clustering is disabled.
@@ -137,6 +169,22 @@ public class Constants {
     public static final int DEFAULT_HTTP_PORT = 8082;
 
     /**
+     * The default value for the LOCK_MODE setting.
+     */
+    public static final int DEFAULT_LOCK_MODE = LOCK_MODE_READ_COMMITTED;
+
+    /**
+     * The default maximum length of an LOB that is stored in the database file.
+     */
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 4096;
+
+    /**
+     * The default maximum length of an LOB that is stored with the record itself.
+     * Only used if h2.lobInDatabase is enabled.
+     */
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB2 = 128;
+
+    /**
      * The default value for the maximum transaction log size.
      */
     public static final long DEFAULT_MAX_LOG_SIZE = 16 * 1024 * 1024;
@@ -145,6 +193,27 @@ public class Constants {
      * The default maximum number of rows to be kept in memory in a result set.
      */
     public static final int DEFAULT_MAX_MEMORY_ROWS = 10000;
+
+    /**
+     * The default value for the MAX_MEMORY_UNDO setting.
+     */
+    public static final int DEFAULT_MAX_MEMORY_UNDO = 50000;
+
+    /**
+     * The default for the setting MAX_OPERATION_MEMORY.
+     */
+    public static final int DEFAULT_MAX_OPERATION_MEMORY = 100000;
+
+    /**
+     * The default page size to use for new databases.
+     */
+    public static final int DEFAULT_PAGE_SIZE = 2048;
+
+    /**
+     * The default result set concurrency for statements created with
+     * Connection.createStatement() or prepareStatement(String sql).
+     */
+    public static final int DEFAULT_RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY;
 
     /**
      * The default port of the TCP server.
@@ -183,30 +252,6 @@ public class Constants {
      * The block size used to compress data in the LZFOutputStream.
      */
     public static final int IO_BUFFER_SIZE_COMPRESS = 128 * 1024;
-
-    /**
-     * The lock mode that means no locking is used at all.
-     */
-    public static final int LOCK_MODE_OFF = 0;
-
-    /**
-     * The lock mode that means read locks are acquired, but they are released
-     * immediately after the statement is executed.
-     */
-    public static final int LOCK_MODE_READ_COMMITTED = 3;
-
-    /**
-     * The lock mode that means table level locking is used for reads and
-     * writes.
-     */
-    public static final int LOCK_MODE_TABLE = 1;
-
-    /**
-     * The lock mode that means table level locking is used for reads and
-     * writes. If a table is locked, System.gc is called to close forgotten
-     * connections.
-     */
-    public static final int LOCK_MODE_TABLE_GC = 2;
 
     /**
      * The number of milliseconds to wait between checking the .lock.db file
@@ -264,14 +309,9 @@ public class Constants {
     public static final int MEMORY_ROW = 40;
 
     /**
-     * The number of bytes in random salt that is used to hash passwords.
+     * The minimum write delay that causes commits to be delayed.
      */
-    public static final int SALT_LEN = 8;
-
-    /**
-     * The database URL prefix of this database.
-     */
-    public static final String START_URL = "jdbc:h2:";
+    public static final int MIN_WRITE_DELAY = 5;
 
     /**
      * The name prefix used for indexes that are not explicitly named.
@@ -293,6 +333,11 @@ public class Constants {
      * Every user belongs to this role.
      */
     public static final String PUBLIC_ROLE_NAME = "PUBLIC";
+
+    /**
+     * The number of bytes in random salt that is used to hash passwords.
+     */
+    public static final int SALT_LEN = 8;
 
     /**
      * The name of the default schema.
@@ -321,20 +366,14 @@ public class Constants {
     public static final long SLOW_QUERY_LIMIT_MS = 100;
 
     /**
-     * The file name suffix of page files.
+     * The database URL prefix of this database.
      */
-    public static final String SUFFIX_PAGE_FILE = ".h2.db";
+    public static final String START_URL = "jdbc:h2:";
 
     /**
      * The file name suffix of all database files.
      */
     public static final String SUFFIX_DB_FILE = ".db";
-
-    /**
-     * The file name suffix of file lock files that are used to make sure a
-     * database is open by only one process at any time.
-     */
-    public static final String SUFFIX_LOCK_FILE = ".lock.db";
 
     /**
      * The file name suffix of large object files.
@@ -346,6 +385,17 @@ public class Constants {
      * directory.
      */
     public static final String SUFFIX_LOBS_DIRECTORY = ".lobs.db";
+
+    /**
+     * The file name suffix of file lock files that are used to make sure a
+     * database is open by only one process at any time.
+     */
+    public static final String SUFFIX_LOCK_FILE = ".lock.db";
+
+    /**
+     * The file name suffix of page files.
+     */
+    public static final String SUFFIX_PAGE_FILE = ".h2.db";
 
     /**
      * The file name suffix of temporary files.
@@ -374,6 +424,11 @@ public class Constants {
     "{ {.|mem:}[name] | [file:]fileName | {tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";
 
     /**
+     * The package name of user defined classes.
+     */
+    public static final String USER_PACKAGE = "org.h2.dynamic";
+
+    /**
      * Name of the character encoding format.
      */
     public static final String UTF8 = "UTF8";
@@ -389,70 +444,6 @@ public class Constants {
      * used as tables).
      */
     public static final int VIEW_INDEX_CACHE_SIZE = 64;
-
-    /**
-     * Whether searching in Blob values should be supported.
-     */
-    public static final boolean BLOB_SEARCH = false;
-
-    /**
-     * The package name of user defined classes.
-     */
-    public static final String USER_PACKAGE = "org.h2.dynamic";
-
-    int sortByNameAndDocument;
-
-    /**
-     * The default page size to use for new databases.
-     */
-    public static final int DEFAULT_PAGE_SIZE = 2048;
-
-    /**
-     * The minimum write delay that causes commits to be delayed.
-     */
-    public static final int MIN_WRITE_DELAY = 5;
-
-    /**
-     * The default result set concurrency for statements created with
-     * Connection.createStatement() or prepareStatement(String sql).
-     */
-    public static final int DEFAULT_RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY;
-
-    /**
-     * The default maximum length of an LOB that is stored with the record itself.
-     * Only used if h2.lobInDatabase is enabled.
-     */
-    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB2 = 128;
-
-    /**
-     * The default value for the LOCK_MODE setting.
-     */
-    public static final int DEFAULT_LOCK_MODE = LOCK_MODE_READ_COMMITTED;
-
-    /**
-     * The default value for the MAX_MEMORY_UNDO setting.
-     */
-    public static final int DEFAULT_MAX_MEMORY_UNDO = 50000;
-
-    /**
-     * The default maximum length of an LOB that is stored in the database file.
-     */
-    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 4096;
-
-    /**
-     * The default cache size in KB.
-     */
-    public static final int CACHE_SIZE_DEFAULT = 16 * 1024;
-
-    /**
-     * The default cache type.
-     */
-    public static final String CACHE_TYPE_DEFAULT = "LRU";
-
-    /**
-     * The default for the setting MAX_OPERATION_MEMORY.
-     */
-    public static final int DEFAULT_MAX_OPERATION_MEMORY = 100000;
 
     private Constants() {
         // utility class

@@ -6,6 +6,7 @@
  */
 package org.h2.constant;
 
+import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.util.MathUtils;
 
@@ -198,7 +199,7 @@ public class SysProperties {
      * System property <code>h2.lobInDatabase</code> (default: false).<br />
      * Store LOB files in the database.
      */
-    public static final boolean LOB_IN_DATABASE = getBooleanSetting("h2.lobInDatabase", false);
+    public static final boolean LOB_IN_DATABASE = getBooleanSetting("h2.lobInDatabase", Constants.VERSION_MINOR < 3 ? false : true);
 
     /**
      * System property <code>h2.lobClientMaxSizeMemory</code> (default: 65536).<br />
@@ -314,13 +315,6 @@ public class SysProperties {
     public static boolean runFinalize = getBooleanSetting("h2.runFinalize", true);
 
     /**
-     * System property <code>h2.selectForUpdateMvcc</code> (default: false).<br />
-     * If set, SELECT .. FOR UPDATE queries lock the rows when using MVCC.
-     */
-    public static final boolean SELECT_FOR_UPDATE_MVCC = getBooleanSetting("h2.selectForUpdateMvcc", false);
-    // DbSettings
-
-    /**
      * System property <code>h2.serverCachedObjects</code> (default: 64).<br />
      * TCP Server: number of cached objects per session.
      */
@@ -332,16 +326,6 @@ public class SysProperties {
      * The default result set fetch size when using the server mode.
      */
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
-
-    /**
-     * System property <code>h2.shareLinkedConnections</code>
-     * (default: true).<br />
-     * Linked connections should be shared, that means connections to the same
-     * database should be used for all linked tables that connect to the same
-     * database.
-     */
-    public static final boolean SHARE_LINKED_CONNECTIONS = getBooleanSetting("h2.shareLinkedConnections", true);
-    // DbSettings
 
     /**
      * System property <code>h2.socketConnectRetry</code> (default: 16).<br />

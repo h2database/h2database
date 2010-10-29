@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 /**
@@ -30,7 +29,6 @@ public class TestMvcc2 extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        System.setProperty("h2.selectForUpdateMvcc", "true");
         TestBase test = TestBase.createCaller().init();
         test.config.mvcc = true;
         test.test();
@@ -134,11 +132,8 @@ public class TestMvcc2 extends TestBase {
     }
 
     private void testSelectForUpdate() throws SQLException {
-        if (!SysProperties.SELECT_FOR_UPDATE_MVCC) {
-            return;
-        }
-        Connection conn = getConnection();
-        Connection conn2 = getConnection();
+        Connection conn = getConnection("mvcc2;SELECT_FOR_UPDATE_MVCC=true");
+        Connection conn2 = getConnection("mvcc2;SELECT_FOR_UPDATE_MVCC=true");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");
         conn.setAutoCommit(false);

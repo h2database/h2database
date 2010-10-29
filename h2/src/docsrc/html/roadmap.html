@@ -24,7 +24,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Version 1.3.x: Planned Changes</h2>
 <ul><li>Enable h2.lobInDatabase (store CLOB and BLOB in the database file).
-</li><li>Set h2.analyzeAuto to 2000 (automatic ANALYZE).
+</li><li>Set AUTO_ANALYZE to 2000 (automatic ANALYZE).
 </li><li>Enable h2.functionsInSchema (allow to store functions in a schema).
 </li><li>Enable h2.selectForUpdateMvcc (MVCC and SELECT FOR UPDATE).
 </li><li>Enable h2.largeTransactions (support for very large transactions).
@@ -60,6 +60,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
+</li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
+    DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
 </li><li>Full outer joins.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
@@ -70,8 +72,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
 </li><li>Add a migration guide (list differences between databases).
-</li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
-    DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer.
 </li><li>Rebuild index functionality to shrink index size and improve performance.

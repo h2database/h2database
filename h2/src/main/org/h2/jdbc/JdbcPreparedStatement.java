@@ -85,20 +85,20 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "executeQuery()");
             }
-            checkClosed();
-            closeOldResultSet();
-            ResultInterface result;
-            boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
-            boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
             synchronized (session) {
+                checkClosed();
+                closeOldResultSet();
+                ResultInterface result;
+                boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
+                boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                 try {
                     setExecutingStatement(command);
                     result = command.executeQuery(maxRows, scrollable);
                 } finally {
                     setExecutingStatement(null);
                 }
+                resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
             }
-            resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
             return resultSet;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -165,9 +165,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             }
             checkClosedForWrite();
             try {
-                closeOldResultSet();
                 boolean returnsResultSet;
                 synchronized (conn.getSession()) {
+                    closeOldResultSet();
                     try {
                         setExecutingStatement(command);
                         if (command.isQuery()) {

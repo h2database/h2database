@@ -294,15 +294,15 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             debugCodeCall("close");
             openStackTrace = null;
-            if (executingStatement != null) {
-                executingStatement.cancel();
-            }
             if (session == null) {
                 return;
             }
-            session.cancel();
-            try {
-                synchronized (session) {
+            synchronized (session) {
+                if (executingStatement != null) {
+                    executingStatement.cancel();
+                }
+                session.cancel();
+                try {
                     if (!session.isClosed()) {
                         try {
                             // roll back unless that would require to re-connect
@@ -316,9 +316,9 @@ public class JdbcConnection extends TraceObject implements Connection {
                             session.close();
                         }
                     }
+                } finally {
+                    session = null;
                 }
-            } finally {
-                session = null;
             }
         } catch (Exception e) {
             throw logAndConvert(e);

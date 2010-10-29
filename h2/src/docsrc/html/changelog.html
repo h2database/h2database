@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The Recover tool did not work with compressed lob files (set compress_lob lzf).
+<ul><li>Closing a Statement or PreparedStatement at the same time as executing a statement
+    could throw a strange exception. Issue 241.
+</li><li>The Recover tool did not work with compressed lob files (set compress_lob lzf).
     Also, sometimes the Recover tool was very slow, specially using a 64-bit JVM, because
     it tried to de-compress lob files even if they were not compressed 
     (which could allocate a lot of memory).

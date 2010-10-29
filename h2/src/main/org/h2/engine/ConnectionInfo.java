@@ -49,7 +49,8 @@ public class ConnectionInfo implements Cloneable {
     /**
      * Create a connection info object.
      *
-     * @param name the database name (including tags)
+     * @param name the database name (including tags), but without the
+     *            "jdbc:h2:" prefix
      */
     public ConnectionInfo(String name) {
         this.name = name;

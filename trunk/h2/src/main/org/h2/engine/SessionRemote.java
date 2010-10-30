@@ -610,7 +610,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     public FileStore openFile(String name, String mode, boolean mustExist) {
         if (mustExist && !IOUtils.exists(name)) {
-            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, name);
+            throw DbException.get(ErrorCode.FILE_NOT_FOUND_1, name);
         }
         FileStore store;
         if (cipher == null) {

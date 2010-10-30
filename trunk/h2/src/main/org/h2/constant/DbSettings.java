@@ -7,6 +7,7 @@
 package org.h2.constant;
 
 import java.util.HashMap;
+import org.h2.engine.Constants;
 import org.h2.engine.SettingsBase;
 
 /**
@@ -47,7 +48,7 @@ public class DbSettings extends SettingsBase {
      * starting the database. It is not run on local temporary tables, and
      * tables that have a trigger on SELECT.
      */
-    public final int analyzeAuto = get("ANALYZE_AUTO", 0);
+    public final int analyzeAuto = get("ANALYZE_AUTO", Constants.VERSION_MINOR >= 3 ? 2000 : 0);
 
     /**
      * Database setting <code>ANALYZE_SAMPLE</code> (default: 10000).<br />
@@ -56,12 +57,19 @@ public class DbSettings extends SettingsBase {
     public final int analyzeSample = get("ANALYZE_SAMPLE", 10000);
 
     /**
-     * Database setting <code>databaseToUpper</code> (default: true).<br />
+     * Database setting <code>DATABASE_TO_UPPER</code> (default: true).<br />
      * Database short names are converted to uppercase for the DATABASE()
      * function, and in the CATALOG column of all database meta data methods.
      * Setting this to "false" is experimental.
      */
+//    public final boolean databaseToUpper = get("DATABASE_TO_UPPER", Constants.VERSION_MINOR < 3);
     public final boolean databaseToUpper = get("DATABASE_TO_UPPER", true);
+
+    /**
+     * Database setting <code>DB_CLOSE_ON_EXIT</code> (default: true).<br />
+     * Close the database when the virtual machine exits normally, using a shutdown hook.
+     */
+    public final boolean dbCloseOnExit = get("DB_CLOSE_ON_EXIT", Constants.VERSION_MINOR < 3);
 
     /**
      * Database setting <code>DEFAULT_ESCAPE</code> (default: \).<br />
@@ -83,7 +91,7 @@ public class DbSettings extends SettingsBase {
      * with older versions of H2 the default action is currently CASCADE. This will
      * change in a future version of H2.
      */
-    public final boolean dropRestrict = get("DROP_RESTRICT", false);
+    public final boolean dropRestrict = get("DROP_RESTRICT", Constants.VERSION_MINOR >= 3);
 
     /**
      * Database setting <code>ESTIMATED_FUNCTION_TABLE_ROWS</code> (default:
@@ -100,7 +108,7 @@ public class DbSettings extends SettingsBase {
      * will always include the schema name in the CREATE ALIAS statement.
      * This is not backward compatible with H2 versions 1.2.134 and older.
      */
-    public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", false);
+    public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", Constants.VERSION_MINOR >= 3);
 
     /**
      * Database setting <code>LARGE_RESULT_BUFFER_SIZE</code> (default: 4096).<br />
@@ -113,7 +121,7 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>LARGE_TRANSACTIONS</code> (default: false).<br />
      * Support very large transactions
      */
-    public final boolean largeTransactions = get("LARGE_TRANSACTIONS", false);
+    public final boolean largeTransactions = get("LARGE_TRANSACTIONS", Constants.VERSION_MINOR >= 3);
 
     /**
      * Database setting <code>MAX_COMPACT_COUNT</code>
@@ -135,7 +143,7 @@ public class DbSettings extends SettingsBase {
      * more than this number of rows are in a result set, a temporary table is
      * used.
      */
-    public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT", Integer.MAX_VALUE);
+    public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT", Constants.VERSION_MINOR >= 3 ? 10000 : Integer.MAX_VALUE);
 
     /**
      * Database setting <code>MAX_QUERY_TIMEOUT</code> (default: 0).<br />
@@ -146,10 +154,10 @@ public class DbSettings extends SettingsBase {
     public int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
 
     /**
-     * Database setting <code>h2.nestedJoins</code> (default: false).<br />
+     * Database setting <code>NESTED_JOINS</code> (default: false).<br />
      * Whether nested joins should be supported.
      */
-    public final boolean nestedJoins = get("NESTED_JOINS", false);
+    public final boolean nestedJoins = get("NESTED_JOINS", Constants.VERSION_MINOR >= 3);
 
     /**
      * Database setting <code>OPTIMIZE_DISTINCT</code> (default: true).<br />
@@ -178,7 +186,7 @@ public class DbSettings extends SettingsBase {
      * Insert into table from query directly bypassing temporary disk storage.
      * This also applies to create table as select.
      */
-    public final boolean optimizeInsertFromSelect = get("OPTIMIZE_INSERT_FROM_SELECT", false);
+    public final boolean optimizeInsertFromSelect = get("OPTIMIZE_INSERT_FROM_SELECT", Constants.VERSION_MINOR >= 3);
 
     /**
      * Database setting <code>OPTIMIZE_IN_LIST</code> (default: true).<br />
@@ -197,7 +205,7 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>OPTIMIZE_OR</code> (default: false).<br />
      * Convert (C=? OR C=?) to (C IN(?, ?)).
      */
-    public final boolean optimizeOr = get("OPTIMIZE_OR", false);
+    public final boolean optimizeOr = get("OPTIMIZE_OR", Constants.VERSION_MINOR >= 3);
 
     /**
      * Database setting <code>OPTIMIZE_SUBQUERY_CACHE</code> (default: true).<br />
@@ -239,7 +247,7 @@ public class DbSettings extends SettingsBase {
      * SELECT statements are cached (excluding UNION and FOR UPDATE statements).
      * This works for both statements and prepared statement.
      */
-    public final int queryCacheSize = get("QUERY_CACHE_SIZE", 0);
+    public final int queryCacheSize = get("QUERY_CACHE_SIZE", Constants.VERSION_MINOR >= 3 ? 8 : 0);
 
     /**
      * Database setting <code>RECOMPILE_ALWAYS</code> (default: false).<br />
@@ -260,7 +268,7 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>SELECT_FOR_UPDATE_MVCC</code> (default: false).<br />
      * If set, SELECT .. FOR UPDATE queries lock only the selected rows when using MVCC.
      */
-    public final boolean selectForUpdateMvcc = get("SELECT_FOR_UPDATE_MVCC", false);
+    public final boolean selectForUpdateMvcc = get("SELECT_FOR_UPDATE_MVCC", Constants.VERSION_MINOR >= 3);
 
     /**
      * Database setting <code>SHARE_LINKED_CONNECTIONS</code>

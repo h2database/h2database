@@ -133,9 +133,7 @@ public class Build extends BuildBase {
             } else {
                 SwitchSource.main("-dir", "src", "-version", version, check, noCheck);
             }
-            if (System.getProperty("lucene") != null) {
-                SwitchSource.main("-dir", "src", "-LUCENE2", "-LUCENE3", "+LUCENE" + getLuceneVersion());
-            }
+            SwitchSource.main("-dir", "src", "-LUCENE2", "-LUCENE3", "+LUCENE" + getLuceneVersion());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -260,7 +258,11 @@ public class Build extends BuildBase {
     }
 
     private int getLuceneVersion() {
-        return Integer.parseInt(System.getProperty("lucene", "2"));
+        // use Lucene 2 for H2 1.2.x, and Lucene 3 for H2 1.3.x.
+        String s = new String(readFile(new File("src/main/org/h2/engine/Constants.java")));
+        int idx = s.indexOf("VERSION_MINOR") + "VERSION_MINOR".length() + 3;
+        int version = Integer.parseInt(s.substring(idx, idx + 1));
+        return Integer.parseInt(System.getProperty("lucene", "" + version));
     }
 
     private String getJarSuffix() {

@@ -200,7 +200,7 @@ public class Database implements DataHandler {
             setEventListenerClass(listener);
         }
         this.multiVersion = ci.getProperty("MVCC", false);
-        boolean closeAtVmShutdown = ci.getProperty("DB_CLOSE_ON_EXIT", true);
+        boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);

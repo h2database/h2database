@@ -325,7 +325,7 @@ java org.h2.test.TestAll timer
 
         int initialTest;
         // System.setProperty("h2.lobInDatabase", "true");
-         test.nestedJoins = true;
+        // test.nestedJoins = true;
         // System.setProperty("h2.largeTransactions", "true");
         // System.setProperty("h2.analyzeAuto", "100");
         // System.setProperty("h2.optimizeOr", "true");

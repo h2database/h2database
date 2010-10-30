@@ -199,7 +199,7 @@ public class SysProperties {
      * System property <code>h2.lobInDatabase</code> (default: false).<br />
      * Store LOB files in the database.
      */
-    public static final boolean LOB_IN_DATABASE = getBooleanSetting("h2.lobInDatabase", Constants.VERSION_MINOR < 3 ? false : true);
+    public static final boolean LOB_IN_DATABASE = getBooleanSetting("h2.lobInDatabase", Constants.VERSION_MINOR >= 3);
 
     /**
      * System property <code>h2.lobClientMaxSizeMemory</code> (default: 65536).<br />

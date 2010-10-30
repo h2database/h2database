@@ -24,27 +24,28 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Version 1.3.x: Planned Changes</h2>
 <ul><li>Enable h2.lobInDatabase (store CLOB and BLOB in the database file).
-</li><li>Set AUTO_ANALYZE to 2000 (automatic ANALYZE).
-</li><li>Enable h2.functionsInSchema (allow to store functions in a schema).
-</li><li>Enable h2.selectForUpdateMvcc (MVCC and SELECT FOR UPDATE).
-</li><li>Enable h2.largeTransactions (support for very large transactions).
+</li><li>Set ANALYZE_AUTO to 2000 (automatic ANALYZE).
+</li><li>Enable FUNCTIONS_IN_SCHEMA (allow to store functions in a schema).
+</li><li>Enable SELECT_FOR_UPDATE_MVCC (MVCC and SELECT FOR UPDATE).
+</li><li>Enable LARGE_TRANSACTIONS (support for very large transactions).
     Change documentation for MAX_MEMORY_UNDO in help.csv, because
     now changes to tables without a primary key can be buffered to disk.
     Later, change MAX_MEMORY_UNDO to reflect number of bytes instead of record
     (also remove Constants.UNDO_BLOCK_SIZE).
     Later, change undo log file format (fillAligned no longer required; var int).
-</li><li>Enable h2.nestedJoins (nested joins and right outer joins).
-</li><li>Enable h2.optimizeOr (convert OR conditions to IN(..) if possible).
-</li><li>Disable h2.databaseToUpper (database short names are converted to uppercase).
-</li><li>Enable h2.dropRestrict (default action for DROP is RESTRICT).
+</li><li>Enable NESTED_JOINS (nested joins and right outer joins).
+</li><li>Enable OPTIMIZE_OR (convert OR conditions to IN(..) if possible).
+</li><li>Disable DATABASE_TO_UPPER (database short names are converted to uppercase).
+</li><li>Enable DROP_RESTRICT (default action for DROP is RESTRICT).
     Change documentation.
+</li><li>Set MAX_MEMORY_ROWS_DISTINCT to a lower value.
+</li><li>Enable OPTIMIZE_INSERT_FROM_SELECT (speed up CREATE TABLE ... AS SELECT).
+</li><li>Possibly enable QUERY_CACHE_SIZE.
+</li><li>Disable DB_CLOSE_ON_EXIT (the shutdown hook) by default.
+</li><li>For RUNSCRIPT and SCRIPT (commands and tools), use UTF-8 by default
+    (ScriptCommand.charset).
+
 </li><li>Use Lucene 3 by default.
-</li><li>For RUNSCRIPT and SCRIPT (commands and tools), use UTF-8 by default.
-</li><li>Set h2.maxMemoryRowsDistinct to a lower value.
-</li><li>Enable h2.optimizeInsertFromSelect (speed up CREATE TABLE ... AS SELECT).
-</li><li>Possibly enable h2.queryCacheSize.
-</li><li>Possibly enable h2.databaseToUpper.
-</li><li>Disable the shutdown hook by default.
 </li></ul>
 
 <h2>Priority 1</h2>

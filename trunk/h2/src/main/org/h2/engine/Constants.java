@@ -65,6 +65,7 @@ public class Constants {
      * The minor version of this database.
      */
     public static final int VERSION_MINOR = 2;
+    // Build.getLuceneVersion() uses an ugly hack to read this value
 
     /**
      * The lock mode that means no locking is used at all.

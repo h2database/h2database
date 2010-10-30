@@ -30,6 +30,7 @@ public class TestView extends TestBase {
     }
 
     public void test() throws SQLException {
+        testChangeSchemaSearchPath();
         testParameterizedView();
         testCache();
         testCacheFunction(true);
@@ -38,6 +39,19 @@ public class TestView extends TestBase {
         testUnionReconnect();
         testManyViews();
         deleteDb("view");
+    }
+
+    private void testChangeSchemaSearchPath() throws SQLException {
+        deleteDb("view");
+        Connection conn = getConnection("view;FUNCTIONS_IN_SCHEMA=TRUE");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS X AS $$ int x() { return 1; } $$;");
+        stat.execute("CREATE SCHEMA S");
+        stat.execute("CREATE VIEW S.TEST AS SELECT X() FROM DUAL");
+        stat.execute("SET SCHEMA=S");
+        stat.execute("SET SCHEMA_SEARCH_PATH=S");
+        stat.execute("SELECT * FROM TEST");
+        conn.close();
     }
 
     private void testParameterizedView() throws SQLException {
@@ -71,12 +85,12 @@ public class TestView extends TestBase {
         deleteDb("view");
         Connection conn = getConnection("view");
         Statement stat = conn.createStatement();
+        x = 8;
         stat.execute("CREATE ALIAS GET_X " +
                 (deterministic ? "DETERMINISTIC" : "") +
                 " FOR \"" + getClass().getName() + ".getX\"");
         stat.execute("CREATE VIEW V AS SELECT * FROM (SELECT GET_X())");
         ResultSet rs;
-        x = 8;
         rs = stat.executeQuery("SELECT * FROM V");
         rs.next();
         assertEquals(8, rs.getInt(1));

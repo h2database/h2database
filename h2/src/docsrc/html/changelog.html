@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved error message if the LOB files are already deleted on the client side.
+<ul><li>Views now store the schema for Java functions if "functions in schemas" is enabled
+    (system property h2.functionsInSchema).
+</li><li>Improved error message if the LOB files are already deleted on the client side.
 </li><li>Closing a Statement or PreparedStatement at the same time as executing a statement
     could throw a strange exception. Issue 241.
 </li><li>The Recover tool did not work with compressed lob files (set compress_lob lzf).

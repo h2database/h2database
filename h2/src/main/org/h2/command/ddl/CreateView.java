@@ -108,7 +108,8 @@ public class CreateView extends SchemaCommand {
             if (params != null && params.size() > 0) {
                 throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "parameters in views");
             }
-            querySQL = TraceObject.toString(select.getSQL(), select.getParameters());
+//            querySQL = TraceObject.toString(select.getSQL(), select.getParameters());
+            querySQL = TraceObject.toString(select.getPlanSQL(), select.getParameters());
         }
         Session sysSession = db.getSystemSession();
         TableView view;

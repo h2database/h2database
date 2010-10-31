@@ -97,10 +97,16 @@ public class WriterThread implements Runnable {
                 // wait 0 mean wait forever, which is not what we want
                 wait = Constants.MIN_WRITE_DELAY;
             }
-            try {
-                Thread.sleep(wait);
-            } catch (InterruptedException e) {
-                // ignore
+            int w = wait;
+            while (!stop && w >= 0) {
+                // only wait 100 ms at a time
+                int n = Math.min(w, 100);
+                try {
+                    Thread.sleep(n);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+                w -= n;
             }
         }
         databaseRef = null;

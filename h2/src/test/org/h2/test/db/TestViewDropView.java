@@ -52,12 +52,12 @@ public class TestViewDropView extends TestBase {
         stat.execute("create table test(id int)");
         stat.execute("alter view test_view recompile");
         stat.execute("select * from test_view");
-        stat.execute("drop table test_view, test");
+        stat.execute("drop table test_view, test cascade");
         stat.execute("create force view test_view as select * from test where 1=0");
         stat.execute("create table test(id int)");
         stat.execute("alter view test_view recompile");
         stat.execute("select * from test_view");
-        stat.execute("drop table test_view, test");
+        stat.execute("drop table test_view, test cascade");
     }
 
     private void testDropViewDefaultBehaviour() throws SQLException {
@@ -167,7 +167,7 @@ public class TestViewDropView extends TestBase {
             assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
         }
 
-        stat.execute("drop table test");
+        stat.execute("drop table test cascade");
     }
 
     private void createTestData() throws SQLException {
@@ -197,7 +197,7 @@ public class TestViewDropView extends TestBase {
         assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
 
-        stat.execute("drop table test");
+        stat.execute("drop table test cascade");
 
         ResultSet d = conn.getMetaData().getTables(null, null, null, null);
         while (d.next()) {

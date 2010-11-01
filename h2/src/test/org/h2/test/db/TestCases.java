@@ -733,7 +733,7 @@ public class TestCases extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
         stat.execute("create view abc as select * from test");
-        stat.execute("drop table test");
+        stat.execute("drop table test cascade");
         conn.close();
         conn = getConnection("cases");
         stat = conn.createStatement();

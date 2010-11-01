@@ -90,7 +90,7 @@ public class TestViewAlterTable extends TestBase {
         } catch (SQLException e) {
             assertEquals(ErrorCode.VIEW_IS_INVALID_2, e.getErrorCode());
         }
-        stat.execute("drop table test");
+        stat.execute("drop table test cascade");
     }
 
     private void testAlterTableAddColumnWithView() throws SQLException {
@@ -185,7 +185,7 @@ public class TestViewAlterTable extends TestBase {
         assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
 
-        stat.execute("drop table test");
+        stat.execute("drop table test cascade");
 
         ResultSet d = conn.getMetaData().getTables(null, null, null, null);
         while (d.next()) {

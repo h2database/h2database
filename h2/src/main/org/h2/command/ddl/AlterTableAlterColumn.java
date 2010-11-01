@@ -180,7 +180,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
         }
         String tableName = table.getName();
-        execute("DROP TABLE " + table.getSQL(), true);
+        execute("DROP TABLE " + table.getSQL() + " CASCADE", true);
         db.renameSchemaObject(session, newTable, tableName);
         for (DbObject child : newTable.getChildren()) {
             if (child instanceof Sequence) {

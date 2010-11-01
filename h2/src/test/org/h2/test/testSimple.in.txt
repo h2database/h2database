@@ -646,7 +646,7 @@ select remarks from information_schema.tables where table_name = 'TEST_VIEW';
 @reconnect;
 select remarks from information_schema.tables where table_name = 'TEST_VIEW';
 > abc;
-drop table test;
+drop table test cascade;
 @reconnect;
 
 create table test(a int);

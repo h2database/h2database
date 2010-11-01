@@ -206,7 +206,7 @@ and not the alias name. If you need the alias name, use
 <a href="http://java.sun.com/javase/6/docs/api/java/sql/ResultSetMetaData.html#getColumnLabel(int)"><code>ResultSetMetaData.getColumnLabel()</code></a>.
 Some other database don't work like this yet (they don't follow the JDBC specification).
 If you need compatibility with those databases, use the <a href="features.html#compatibility">Compatibility Mode</a>,
-or set the system property <a href="../javadoc/org/h2/constant/SysProperties.html#h2.aliasColumnName"><code>h2.aliasColumnName</code></a>.
+or append <a href="../javadoc/org/h2/constant/DbSettings.html#ALIAS_COLUMN_NAME"><code>;ALIAS_COLUMN_NAME=TRUE</code></a> to the database URL.
 </p>
 <p>
 This also applies to DatabaseMetaData calls that return a result set.

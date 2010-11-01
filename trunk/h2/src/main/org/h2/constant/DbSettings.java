@@ -13,8 +13,8 @@ import org.h2.engine.SettingsBase;
 /**
  * This class contains various database-level settings. To override the
  * documented default value for a database, append the setting in the database
- * URL: "jdbc:h2:test;ALIAS_COLUMN_NAME=TRUE" when opening the first connection to
- * the database. The settings can not be changed once the database is open.
+ * URL: "jdbc:h2:test;ALIAS_COLUMN_NAME=TRUE" when opening the first connection
+ * to the database. The settings can not be changed once the database is open.
  * <p>
  * Some settings are a last resort and temporary solution to work around a
  * problem in the application or database engine. Also, there are system
@@ -62,12 +62,12 @@ public class DbSettings extends SettingsBase {
      * function, and in the CATALOG column of all database meta data methods.
      * Setting this to "false" is experimental.
      */
-//    public final boolean databaseToUpper = get("DATABASE_TO_UPPER", Constants.VERSION_MINOR < 3);
     public final boolean databaseToUpper = get("DATABASE_TO_UPPER", true);
 
     /**
      * Database setting <code>DB_CLOSE_ON_EXIT</code> (default: true).<br />
-     * Close the database when the virtual machine exits normally, using a shutdown hook.
+     * Close the database when the virtual machine exits normally, using a
+     * shutdown hook.
      */
     public final boolean dbCloseOnExit = get("DB_CLOSE_ON_EXIT", Constants.VERSION_MINOR < 3);
 
@@ -228,7 +228,8 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeUpdate = get("OPTIMIZE_UPDATE", true);
 
     /**
-     * Database setting <code>PAGE_STORE_INTERNAL_COUNT</code> (default: false).<br />
+     * Database setting <code>PAGE_STORE_INTERNAL_COUNT</code>
+     * (default: false).<br />
      * Update the row counts on a node level.
      */
     public final boolean pageStoreInternalCount = get("PAGE_STORE_INTERNAL_COUNT", false);
@@ -265,8 +266,10 @@ public class DbSettings extends SettingsBase {
     public final int reconnectCheckDelay = get("RECONNECT_CHECK_DELAY", 200);
 
     /**
-     * Database setting <code>SELECT_FOR_UPDATE_MVCC</code> (default: false).<br />
-     * If set, SELECT .. FOR UPDATE queries lock only the selected rows when using MVCC.
+     * Database setting <code>SELECT_FOR_UPDATE_MVCC</code>
+     * (default: false).<br />
+     * If set, SELECT .. FOR UPDATE queries lock only the selected rows when
+     * using MVCC.
      */
     public final boolean selectForUpdateMvcc = get("SELECT_FOR_UPDATE_MVCC", Constants.VERSION_MINOR >= 3);
 

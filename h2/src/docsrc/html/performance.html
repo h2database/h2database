@@ -495,8 +495,9 @@ queries of the form <code>SELECT COUNT(*) FROM table</code>.
 
 <h3>Updating Optimizer Statistics / Column Selectivity</h3>
 <p>
-When executing a query, at most one index per joined table can be used.
-If the same table is joined multiple times, for each join only one index is used.
+When executing a query, at most one index per join can be used.
+If the same table is joined multiple times, for each join only one index is used
+(the same index could be used for both joins, or each join could use a different index).
 Example: for the query
 <code>SELECT * FROM TEST T1, TEST T2 WHERE T1.NAME='A' AND T2.ID=T1.ID</code>,
 two index can be used, in this case the index on NAME for T1 and the index on ID for T2.

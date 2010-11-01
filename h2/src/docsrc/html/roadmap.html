@@ -536,7 +536,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     Possibly using the DatabaseEventListener API, or a new API.
 </li><li>Support ALTER TABLE ADD COLUMN IF NOT EXISTS.
 </li><li>Document the database file format.
-</li><li>Support reading LOBs 
+</li><li>Support reading LOBs.
+</li><li>Require appending DANGEROUS=TRUE when using certain dangerous settings such as
+    LOG=0, LOG=1, LOCK_MODE=0, disabling FILE_LOCK, 
 </li></ul>
 
 <h2>Not Planned</h2>

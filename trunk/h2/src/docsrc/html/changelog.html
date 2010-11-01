@@ -19,7 +19,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>A new String cache is now created at most once every 5 second, so that out of memory exceptions
-    are not artifically delayed.
+    are not artificially delayed.
 </li><li>After closing a database, the writer thread will stop after 100 ms at the latest (instead of 1 second).
 </li><li>Opening a large database could fail in theory if the process was killed and then
     not fully compacted (because the unique transaction log key was re-used).

@@ -583,7 +583,7 @@ public class PageStore implements CacheWriter {
         // truncate the log
         recoveryRunning = true;
         try {
-            setLogFirstPage(0, 0, 0);
+            setLogFirstPage(++logKey, 0, 0);
         } finally {
             recoveryRunning = false;
         }

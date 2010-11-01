@@ -138,11 +138,11 @@ public class SysProperties {
      */
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
 
-     /**
-      * System property <code>h2.collatorCacheSize</code> (default: 32000).<br />
-      * The cache size for collation keys (in elements). Used when a collator has
-      * been set for the database.
-      */
+    /**
+     * System property <code>h2.collatorCacheSize</code> (default: 32000).<br />
+     * The cache size for collation keys (in elements). Used when a collator has
+     * been set for the database.
+     */
     public static final int COLLATOR_CACHE_SIZE = getIntSetting("h2.collatorCacheSize", 32000);
 
     /**

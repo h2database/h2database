@@ -35,7 +35,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     Later, change undo log file format (fillAligned no longer required; var int).
 </li><li>Enable NESTED_JOINS (nested joins and right outer joins).
 </li><li>Enable OPTIMIZE_OR (convert OR conditions to IN(..) if possible).
-</li><li>Disable DATABASE_TO_UPPER (database short names are converted to uppercase).
 </li><li>Enable DROP_RESTRICT (default action for DROP is RESTRICT).
     Change documentation.
 </li><li>Set MAX_MEMORY_ROWS_DISTINCT to a lower value.
@@ -538,7 +537,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Document the database file format.
 </li><li>Support reading LOBs.
 </li><li>Require appending DANGEROUS=TRUE when using certain dangerous settings such as
-    LOG=0, LOG=1, LOCK_MODE=0, disabling FILE_LOCK, 
+    LOG=0, LOG=1, LOCK_MODE=0, disabling FILE_LOCK,
 </li></ul>
 
 <h2>Not Planned</h2>

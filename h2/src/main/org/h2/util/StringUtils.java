@@ -21,6 +21,7 @@ import org.h2.message.DbException;
 public class StringUtils {
 
     private static SoftReference<String[]> softCache = new SoftReference<String[]>(null);
+    private static long softCacheCreated;
     private static final char[] HEX = "0123456789abcdef".toCharArray();
 
     private StringUtils() {
@@ -38,13 +39,19 @@ public class StringUtils {
                 return cache;
             }
         }
-        try {
-            cache = new String[SysProperties.OBJECT_CACHE_SIZE];
-        } catch (OutOfMemoryError e) {
+        // create a new cache at most every 5 seconds
+        // so that out of memory exceptions are not delayed
+        long time = System.currentTimeMillis();
+        if (softCacheCreated != 0 && time - softCacheCreated < 5000) {
             return null;
         }
-        softCache = new SoftReference<String[]>(cache);
-        return cache;
+        try {
+            cache = new String[SysProperties.OBJECT_CACHE_SIZE];
+            softCache = new SoftReference<String[]>(cache);
+            return cache;
+        } finally {
+            softCacheCreated = System.currentTimeMillis();
+        }
     }
 
     /**

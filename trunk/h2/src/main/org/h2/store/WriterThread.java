@@ -90,24 +90,21 @@ public class WriterThread implements Runnable {
                     traceSystem.getTrace(Trace.LOG).error("flush", e);
                 }
             }
+            // TODO log writer: could also flush the dirty cache
+            // when there is low activity
 
-            // TODO log writer: could also flush the dirty cache when there is
-            // low activity
-            if (wait < Constants.MIN_WRITE_DELAY) {
-                // wait 0 mean wait forever, which is not what we want
-                wait = Constants.MIN_WRITE_DELAY;
-            }
-            int w = wait;
-            while (!stop && w >= 0) {
-                // only wait 100 ms at a time
-                int n = Math.min(w, 100);
+            // wait 0 mean wait forever, which is not what we want
+            wait = Math.max(wait, Constants.MIN_WRITE_DELAY);
+            do {
+                // wait 100 ms at a time
+                int w = Math.min(wait, 100);
                 try {
-                    Thread.sleep(n);
+                    Thread.sleep(w);
                 } catch (InterruptedException e) {
                     // ignore
                 }
-                w -= n;
-            }
+                wait -= w;
+            } while (wait > 0 && !stop);
         }
         databaseRef = null;
     }

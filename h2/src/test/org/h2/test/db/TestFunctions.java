@@ -492,6 +492,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(null, rs.getString(1));
         assertFalse(rs.next());
 
+        stat.execute("CREATE ALIAS RESULT_WITH_NULL FOR \"" + getClass().getName() + ".resultSetWithNull\"");
+        rs = stat.executeQuery("CALL RESULT_WITH_NULL()");
+        assertEquals(1, rs.getMetaData().getColumnCount());
+        rs.next();
+        assertEquals(null, rs.getString(1));
+        assertFalse(rs.next());
+
         conn.close();
     }
 
@@ -633,9 +640,19 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return the result set
      */
-    public static ResultSet nullResultSet(Connection conn) throws SQLException {
+    public static ResultSet resultSetWithNull(Connection conn) throws SQLException {
         PreparedStatement statement = conn.prepareStatement("select null from system_range(1,1)");
         return statement.executeQuery();
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @return the result set
+     */
+    public static ResultSet nullResultSet(Connection conn) throws SQLException {
+        return null;
     }
 
     /**

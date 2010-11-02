@@ -286,7 +286,7 @@ public abstract class TestBase {
         if (config.diskUndo && admin) {
             url += ";MAX_MEMORY_UNDO=3";
         }
-        if (config.big && admin) {
+        if (config.big && admin && url.indexOf(";MAX_OPERATION_MEMORY=") <= 0) {
             // force operations to disk
             url += ";MAX_OPERATION_MEMORY=1";
         }

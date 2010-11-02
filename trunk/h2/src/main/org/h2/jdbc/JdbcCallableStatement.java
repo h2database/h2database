@@ -1442,7 +1442,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
-    public void setNCharacterStream(String parameterName, Reader x) throws SQLException {
+    public void setNCharacterStream(String parameterName, Reader x)
+            throws SQLException {
         setNCharacterStream(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
@@ -1457,7 +1458,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
-    public void setNClob(String parameterName, Reader x) throws SQLException {
+    public void setNClob(String parameterName, Reader x)
+            throws SQLException {
         setNClob(getIndexForName(parameterName), x);
     }
 //## Java 1.6 end ##
@@ -1466,7 +1468,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported] Sets the value of a parameter as a SQLXML object.
      */
 //## Java 1.6 begin ##
-    public void setSQLXML(String parameterName, SQLXML x) throws SQLException {
+    public void setSQLXML(String parameterName, SQLXML x)
+            throws SQLException {
         throw unsupported("SQLXML");
     }
 //## Java 1.6 end ##

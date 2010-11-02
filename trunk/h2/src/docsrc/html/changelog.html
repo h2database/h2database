@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.145 (2010-11-02)</h2>
 <ul><li>A new String cache is now created at most once every 5 second, so that out of memory exceptions
     are not artificially delayed.
 </li><li>After closing a database, the writer thread will stop after 100 ms at the latest (instead of 1 second).
@@ -828,69 +832,6 @@ Change Log
 </li><li>Improved error message when casting a value failed:
     the column name and type is included in the message.
 </li><li>Improved support for GAE for Java thanks to Vince Bonfanti.
-</li></ul>
-
-<h2>Version 1.2.122 (2009-10-28)</h2>
-<ul><li>The native fulltext search now supports streaming CLOB data.
-</li><li>If the database URL ends with ;PAGE_STORE=TRUE and a database in
-    the old format exists, it is automatically converted to the new page store format
-    if possible. A backup of the database is created first. Automatic conversion is not supported
-    if the database was not closed normally (if it contains uncommitted transactions).
-</li><li>Dropping the current user is now allowed if another admin user exists.
-</li><li>Values of type BINARY or BLOB could not be converted to the data type OTHER.
-</li><li>SHUTDOWN COMPACT now fully compacts the database.
-</li><li>New system properties h2.maxCompactCount and h2.maxCompactTime
-    to allow changing the default behavior (at most 2 seconds compacting when closing the database).
-</li><li>New sorted insert optimization (see Performance / Database Performance Tuning).
-</li><li>Issue 116: The files h2*-sources.jar and h2*-javadoc.jar are
-    now in the Maven repository.
-</li><li>Page store: opening a large database was slow if it was not closed before.
-</li><li>Page store: new write and read counters in the meta data table. Use
-    SELECT * FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN(
-    'info.FILE_WRITE_TOTAL', 'info.FILE_WRITE', 'info.FILE_READ',
-    'info.CACHE_MAX_SIZE', 'info.CACHE_SIZE')
-</li><li>The SQL syntax is documented using (railroad) diagrams.
-    The diagrams are HTML.
-</li><li>The documentation is no longer available in Japanese because the
-    translation was too much out of sync. Please use the Google translation instead.
-</li><li>Certain queries were not sorted if subselect queries were involved
-</li><li>More bugs in the server-less multi-connection mode have been fixed:
-    90097 The database is read only, caches must be cleared on reconnect, etc.
-</li></ul>
-
-<h2>Version 1.2.121 (2009-10-11)</h2>
-<ul><li>Better support GaeVFS (Google App Engine Virtual File System) thanks to Thanks to Vince Bonfanti.
-</li><li>CSVREAD didn't close the file. Thanks to Vince Bonfanti for the patch!
-</li><li>If a database in the old format exists, it is now used.
-    The system property is used for new databases, or if databases exist
-    in both formats. In any case, the flag in the URL overrides this logic.
-</li><li>Page store bugs were fixed. Large values in indexed columns could corrupt the index.
-</li><li>The page store did not work when using Retrotranslator (because the Retrotranslator doesn't
-    support Integer.reverse and Long.reverse).
-</li><li>New system property h2.pageStoreTrim to disable shrinking the database when closing
-    (disabled by default, meaning by default the database is trimmed).
-</li></ul>
-
-<h2>Version 1.2.120 (2009-10-04)</h2>
-<ul><li>This is a beta version.
-</li><li>Large updates could throw an ArrayIndexOutOfBoundsException in RowList.writeRow.
-</li><li>In version 1.2, the following system properties are now enabled by default:
-    h2.pageStore, h2.nullConcatIsNull, h2.optimizeInList. The default value for
-    h2.defaultMaxLengthInplaceLob is now 4096 (it was 1024 with version 1.1).
-</li><li>New databases are now stored in the new 'page store' file format.
-    Existing databases are kept in the old file format. To use the old file format,
-    append ;PAGE_STORE=FALSE to the database URL or set the system property h2.pageStore to false.
-</li><li>Issue 125: Renaming primary keys was not persistent. Fixed.
-    Unfortunately, databases created by this version can not be opened with older versions because of this change.
-</li><li>Issue 124: Hibernate schema validation failed for decimal/numeric columns.
-    This problem is fixed in the Hibernate dialect that is included with H2
-    (src/tools/org/hibernate/dialect/H2Dialect.java.txt), but not in Hibernate yet.
-</li><li>PostgreSQL compatibility: function LASTVAL() as an alias for IDENTITY().
-</li><li>Linked tables now support default values when inserting, updating or merging.
-</li><li>Bugfixes in the page store.
-</li><li>Possibility to set a vendor id in Constants.java, so that unofficial builds are distinguishable
-    from official releases.
-</li><li>Allow writing to linked tables in readonly databases.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

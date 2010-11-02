@@ -65,7 +65,7 @@ public class Call extends Prepared {
     public ResultInterface query(int maxrows) {
         setCurrentRowNumber(1);
         Value v = expression.getValue(session);
-        switch (expression.getType()) {
+        switch (v.getType()) {
         case Value.RESULT_SET:
             ResultSet rs = ((ValueResultSet) v).getResultSet();
             return LocalResult.read(session, rs, maxrows);

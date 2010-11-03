@@ -72,7 +72,7 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             int value = getIntValue();
             if (value < 0 || value > 2) {
-                throw DbException.getInvalidValueException("" + getIntValue(), "ALLOW_LITERALS");
+                throw DbException.getInvalidValueException("ALLOW_LITERALS", getIntValue());
             }
             database.setAllowLiterals(value);
             addOrUpdateSetting(name, null, value);
@@ -181,7 +181,7 @@ public class Set extends Prepared {
                 database.setExclusiveSession(session, true);
                 break;
             default:
-                throw DbException.getInvalidValueException("" + value, "EXCLUSIVE");
+                throw DbException.getInvalidValueException("EXCLUSIVE", value);
             }
             break;
         }
@@ -201,7 +201,7 @@ public class Set extends Prepared {
         case SetTypes.LOG: {
             int value = getIntValue();
             if (value < 0 || value > 2) {
-                throw DbException.getInvalidValueException("" + getIntValue(), "LOG");
+                throw DbException.getInvalidValueException("LOG", getIntValue());
             }
             if (value == 0) {
                 session.getUser().checkAdmin();
@@ -211,7 +211,7 @@ public class Set extends Prepared {
         }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {
             if (getIntValue() < 0) {
-                throw DbException.getInvalidValueException("" + getIntValue(), "MAX_LENGTH_INPLACE_LOB");
+                throw DbException.getInvalidValueException("MAX_LENGTH_INPLACE_LOB", getIntValue());
             }
             session.getUser().checkAdmin();
             database.setMaxLengthInplaceLob(getIntValue());
@@ -231,7 +231,7 @@ public class Set extends Prepared {
         }
         case SetTypes.MAX_MEMORY_UNDO: {
             if (getIntValue() < 0) {
-                throw DbException.getInvalidValueException("" + getIntValue(), "MAX_MEMORY_UNDO");
+                throw DbException.getInvalidValueException("MAX_MEMORY_UNDO", getIntValue());
             }
             session.getUser().checkAdmin();
             database.setMaxMemoryUndo(getIntValue());
@@ -282,7 +282,7 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             int value = getIntValue();
             if (value < 0 || value > 1) {
-                throw DbException.getInvalidValueException("" + getIntValue(), "REFERENTIAL_INTEGRITY");
+                throw DbException.getInvalidValueException("REFERENTIAL_INTEGRITY", getIntValue());
             }
             database.setReferentialIntegrity(value == 1);
             break;
@@ -323,7 +323,7 @@ public class Set extends Prepared {
         }
         case SetTypes.THROTTLE: {
             if (getIntValue() < 0) {
-                throw DbException.getInvalidValueException("" + getIntValue(), "THROTTLE");
+                throw DbException.getInvalidValueException("THROTTLE", getIntValue());
             }
             session.setThrottle(getIntValue());
             break;
@@ -331,7 +331,7 @@ public class Set extends Prepared {
         case SetTypes.UNDO_LOG: {
             int value = getIntValue();
             if (value < 0 || value > 1) {
-                throw DbException.getInvalidValueException("" + getIntValue(), "UNDO_LOG");
+                throw DbException.getInvalidValueException("UNDO_LOG", getIntValue());
             }
             session.setUndoLogEnabled(value == 1);
             break;

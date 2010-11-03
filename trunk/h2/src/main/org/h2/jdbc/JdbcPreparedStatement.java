@@ -1256,7 +1256,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         parameterIndex--;
         ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
         if (parameterIndex < 0 || parameterIndex >= parameters.size()) {
-            throw DbException.getInvalidValueException("" + (parameterIndex + 1), "parameterIndex");
+            throw DbException.getInvalidValueException("parameterIndex", parameterIndex + 1);
         }
         ParameterInterface param = parameters.get(parameterIndex);
         // can only delete old temp files if they are not in the batch

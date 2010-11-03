@@ -205,7 +205,7 @@ implements ParameterMetaData
     private ParameterInterface getParameter(int param) throws SQLException {
         checkClosed();
         if (param < 1 || param > paramCount) {
-            throw DbException.getInvalidValueException("" + param, "param");
+            throw DbException.getInvalidValueException("param", param);
         }
         return parameters.get(param - 1);
     }

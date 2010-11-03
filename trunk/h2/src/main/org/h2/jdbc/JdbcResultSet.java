@@ -709,7 +709,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getBigDecimal(" + StringUtils.quoteJavaString(columnLabel)+", "+scale+");");
             }
             if (scale < 0) {
-                throw DbException.getInvalidValueException("" + scale, "scale");
+                throw DbException.getInvalidValueException("scale", scale);
             }
             BigDecimal bd = get(columnLabel).getBigDecimal();
             return bd == null ? null : MathUtils.setScale(bd, scale);
@@ -734,7 +734,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getBigDecimal(" + columnIndex + ", " + scale + ");");
             }
             if (scale < 0) {
-                throw DbException.getInvalidValueException("" + scale, "scale");
+                throw DbException.getInvalidValueException("scale", scale);
             }
             BigDecimal bd = get(columnIndex).getBigDecimal();
             return bd == null ? null : MathUtils.setScale(bd, scale);
@@ -2377,14 +2377,13 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("setFetchSize", rows);
             checkClosed();
-
             if (rows < 0) {
-                throw DbException.getInvalidValueException("" + rows, "rows");
+                throw DbException.getInvalidValueException("rows", rows);
             } else if (rows > 0) {
                 if (stat != null) {
                     int maxRows = stat.getMaxRows();
                     if (maxRows > 0 && rows > maxRows) {
-                        throw DbException.getInvalidValueException("" + rows, "rows");
+                        throw DbException.getInvalidValueException("rows", rows);
                     }
                 }
             } else {
@@ -2914,7 +2913,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private void checkColumnIndex(int columnIndex) throws SQLException {
         checkClosed();
         if (columnIndex < 1 || columnIndex > columnCount) {
-            throw DbException.getInvalidValueException("" + columnIndex, "columnIndex");
+            throw DbException.getInvalidValueException("columnIndex", columnIndex);
         }
     }
 

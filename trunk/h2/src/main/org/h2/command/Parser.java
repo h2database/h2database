@@ -2287,7 +2287,7 @@ public class Parser {
                 }
                 int index = currentValue.getInt() - 1;
                 if (index < 0 || index >= Constants.MAX_PARAMETER_INDEX) {
-                    throw DbException.getInvalidValueException("" + index, "Parameter Index");
+                    throw DbException.getInvalidValueException("parameter index", index);
                 }
                 if (indexedParameterList.size() <= index) {
                     indexedParameterList.ensureCapacity(index + 1);
@@ -2544,7 +2544,7 @@ public class Parser {
     private int getPositiveInt() {
         int v = getInt();
         if (v < 0) {
-            throw DbException.getInvalidValueException("" + v, "positive integer");
+            throw DbException.getInvalidValueException("positive integer", v);
         }
         return v;
     }

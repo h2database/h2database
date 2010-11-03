@@ -386,7 +386,7 @@ public class Select extends Query {
         ArrayList<Column> sortColumns = New.arrayList();
         for (int idx : sort.getIndexes()) {
             if (idx < 0 || idx >= expressions.size()) {
-                throw DbException.getInvalidValueException("" + (idx + 1), "ORDER BY");
+                throw DbException.getInvalidValueException("ORDER BY", idx + 1);
             }
             Expression expr = expressions.get(idx);
             expr = expr.getNonAliasExpression();

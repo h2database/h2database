@@ -66,7 +66,7 @@ public class ConnectionInfo implements Cloneable {
     public ConnectionInfo(String u, Properties info) {
         this.originalURL = u;
         if (!u.startsWith(Constants.START_URL)) {
-            throw DbException.getInvalidValueException(u, "url");
+            throw DbException.getInvalidValueException("url", u);
         }
         this.url = u;
         readProperties(info);

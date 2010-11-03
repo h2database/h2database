@@ -398,12 +398,12 @@ public class PageLog {
             }
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.FILE_CORRUPTED_1) {
-                trace.debug("log recovery stopped: " + e.toString());
+                trace.debug("log recovery stopped");
             } else {
                 throw e;
             }
         } catch (IOException e) {
-            trace.debug("log recovery stopped: " + e.toString());
+            trace.debug("log recovery completed");
         }
         undo = new BitField();
         if (stage == RECOVERY_STAGE_REDO) {
@@ -575,7 +575,7 @@ public class PageLog {
         buffer.writeVarInt(session.getId());
         buffer.writeString(transaction);
         if (buffer.length()  >= PageStreamData.getCapacity(pageSize)) {
-            throw DbException.getInvalidValueException(transaction, "transaction name (too long)");
+            throw DbException.getInvalidValueException("transaction name (too long)", transaction);
         }
         write(buffer);
         // store it on a separate log page

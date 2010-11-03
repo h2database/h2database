@@ -20,6 +20,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.value.DataType;
@@ -152,29 +153,50 @@ public class FunctionTable extends Table {
     }
 
     /**
-     * Read the result set from the function.
+     * Read the result from the function. This method caches the result.
      *
      * @param session the session
-     * @return the result set
+     * @return the result
      */
-    public LocalResult getResult(Session session) {
-        functionExpr = functionExpr.optimize(session);
-        Value v = functionExpr.getValue(session);
+    public ResultInterface getResult(Session session) {
+        ValueResultSet v = getValueResultSet(session);
+        if (v == null) {
+            return null;
+        }
         if (cachedResult != null && cachedValue == v) {
             cachedResult.reset();
             return cachedResult;
         }
-        if (v == ValueNull.INSTANCE) {
-            return new LocalResult();
-        }
-        ValueResultSet value = (ValueResultSet) v;
-        ResultSet rs = value.getResultSet();
-        LocalResult result = LocalResult.read(session,  rs, 0);
+        LocalResult result = LocalResult.read(session,  v.getResultSet(), 0);
         if (function.isDeterministic()) {
             cachedResult = result;
             cachedValue = v;
         }
         return result;
+    }
+
+    /**
+     * Read the result set from the function. This method doesn't cache.
+     *
+     * @param session the session
+     * @return the result set
+     */
+    public ResultSet getResultSet(Session session) {
+        ValueResultSet v = getValueResultSet(session);
+        return v == null ? null : v.getResultSet();
+    }
+
+    private ValueResultSet getValueResultSet(Session session) {
+        functionExpr = functionExpr.optimize(session);
+        Value v = functionExpr.getValue(session);
+        if (v == ValueNull.INSTANCE) {
+            return null;
+        }
+        return (ValueResultSet) v;
+    }
+
+    public boolean isFast() {
+        return function.isFast();
     }
 
     public long getMaxDataModificationId() {

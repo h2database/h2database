@@ -470,5 +470,4 @@ public class FunctionAlias extends SchemaObjectBase {
         }
     }
 
-
 }

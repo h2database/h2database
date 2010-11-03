@@ -40,4 +40,10 @@ class FunctionInfo {
      * If this function always returns the same value for the same parameters.
      */
     boolean deterministic;
+
+    /**
+     * Whether the function is fast, meaning the result shouldn't be cached.
+     */
+    boolean fast;
+
 }

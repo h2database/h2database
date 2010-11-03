@@ -425,7 +425,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
     private void checkColumnIndex(int columnIndex) throws SQLException {
         checkClosed();
         if (columnIndex < 1 || columnIndex > columnCount) {
-            throw DbException.getInvalidValueException("" + columnIndex, "columnIndex");
+            throw DbException.getInvalidValueException("columnIndex", columnIndex);
         }
     }
 

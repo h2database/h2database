@@ -205,12 +205,12 @@ public class DbException extends RuntimeException {
     /**
      * Gets a SQL exception meaning this value is invalid.
      *
-     * @param value the value passed
      * @param param the name of the parameter
+     * @param value the value passed
      * @return the IllegalArgumentException object
      */
-    public static DbException getInvalidValueException(String value, String param) {
-        return get(ErrorCode.INVALID_VALUE_2, value, param);
+    public static DbException getInvalidValueException(String param, Object value) {
+        return get(ErrorCode.INVALID_VALUE_2, value == null ? "null" : value.toString(), param);
     }
 
     /**

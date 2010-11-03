@@ -70,7 +70,7 @@ public class AlterSequence extends SchemaCommand {
         if (increment != null) {
             long incrementValue = increment.optimize(session).getValue(session).getLong();
             if (incrementValue == 0) {
-                throw DbException.get(ErrorCode.INVALID_VALUE_2, "0", "INCREMENT");
+                throw DbException.getInvalidValueException("INCREMENT", 0);
             }
             sequence.setIncrement(incrementValue);
         }

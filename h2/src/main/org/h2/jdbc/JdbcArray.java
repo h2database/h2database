@@ -251,12 +251,12 @@ public class JdbcArray extends TraceObject implements Array {
     private Object[] get(long index, int count) {
         Object[] array = get();
         if (count < 0 || count > array.length) {
-            throw DbException.getInvalidValueException("" + count, "count (1.."
-                    + array.length + ")");
+            throw DbException.getInvalidValueException("count (1.."
+                    + array.length + ")", count);
         }
         if (index < 1 || index > array.length) {
-            throw DbException.getInvalidValueException("" + index, "index (1.."
-                    + array.length + ")");
+            throw DbException.getInvalidValueException("index (1.."
+                    + array.length + ")", index);
         }
         Object[] subset = new Object[count];
         System.arraycopy(array, (int) (index - 1), subset, 0, count);

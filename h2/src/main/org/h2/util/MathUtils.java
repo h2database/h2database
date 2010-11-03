@@ -253,10 +253,8 @@ public class MathUtils {
      * @return the scaled value
      */
     public static BigDecimal setScale(BigDecimal bd, int scale) {
-        if (scale > BIG_DECIMAL_SCALE_MAX) {
-            throw DbException.getInvalidValueException("" + scale, "scale");
-        } else if (scale < -BIG_DECIMAL_SCALE_MAX) {
-            throw DbException.getInvalidValueException("" + scale, "scale");
+        if (scale > BIG_DECIMAL_SCALE_MAX || scale < -BIG_DECIMAL_SCALE_MAX) {
+            throw DbException.getInvalidValueException("scale", scale);
         }
         return bd.setScale(scale, BigDecimal.ROUND_HALF_UP);
     }

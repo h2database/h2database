@@ -6,7 +6,6 @@
  */
 package org.h2.schema;
 
-import org.h2.constant.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -50,7 +49,7 @@ public class Sequence extends SchemaObjectBase {
 
     public void setIncrement(long inc) {
         if (inc == 0) {
-            throw DbException.get(ErrorCode.INVALID_VALUE_2, "0", "INCREMENT");
+            throw DbException.getInvalidValueException("INCREMENT", 0);
         }
         this.increment = inc;
     }

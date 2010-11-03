@@ -1797,7 +1797,7 @@ public class Database implements DataHandler {
         case Constants.LOCK_MODE_TABLE_GC:
             break;
         default:
-            throw DbException.getInvalidValueException("lock mode", "" + lockMode);
+            throw DbException.getInvalidValueException("lock mode", lockMode);
         }
         this.lockMode = lockMode;
     }

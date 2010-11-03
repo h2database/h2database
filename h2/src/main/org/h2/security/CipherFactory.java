@@ -79,7 +79,7 @@ public class CipherFactory {
         if ("SHA256".equalsIgnoreCase(algorithm)) {
             return new SHA256();
         }
-        throw DbException.getInvalidValueException(algorithm, "algorithm");
+        throw DbException.getInvalidValueException("algorithm", algorithm);
     }
 
     /**

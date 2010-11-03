@@ -378,7 +378,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("setMaxRows", maxRows);
             checkClosed();
             if (maxRows < 0) {
-                throw DbException.getInvalidValueException("" + maxRows, "maxRows");
+                throw DbException.getInvalidValueException("maxRows", maxRows);
             }
             this.maxRows = maxRows;
         } catch (Exception e) {
@@ -402,7 +402,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("setFetchSize", rows);
             checkClosed();
             if (rows < 0 || (rows > 0 && maxRows > 0 && rows > maxRows)) {
-                throw DbException.getInvalidValueException("" + rows, "rows");
+                throw DbException.getInvalidValueException("rows", rows);
             }
             if (rows == 0) {
                 rows = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
@@ -570,7 +570,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("setQueryTimeout", seconds);
             checkClosed();
             if (seconds < 0) {
-                throw DbException.getInvalidValueException("" + seconds, "seconds");
+                throw DbException.getInvalidValueException("seconds", seconds);
             }
             conn.setQueryTimeout(seconds);
         } catch (Exception e) {
@@ -695,7 +695,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 // nothing to do
                 break;
             default:
-                throw DbException.getInvalidValueException("" + current, "current");
+                throw DbException.getInvalidValueException("current", current);
             }
             return false;
         } catch (Exception e) {

@@ -629,7 +629,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 lockMode = Constants.LOCK_MODE_TABLE;
                 break;
             default:
-                throw DbException.getInvalidValueException("" + level, "level");
+                throw DbException.getInvalidValueException("level", level);
             }
             commit();
             setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
@@ -1142,7 +1142,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     String translateSQL(String sql, boolean escapeProcessing) {
         if (sql == null) {
-            throw DbException.getInvalidValueException(sql, "SQL");
+            throw DbException.getInvalidValueException("SQL", sql);
         }
         if (!escapeProcessing) {
             return sql;
@@ -1275,14 +1275,14 @@ public class JdbcConnection extends TraceObject implements Connection {
         case ResultSet.TYPE_SCROLL_SENSITIVE:
             break;
         default:
-            throw DbException.getInvalidValueException("" + resultSetType, "resultSetType");
+            throw DbException.getInvalidValueException("resultSetType", resultSetType);
         }
         switch (resultSetConcurrency) {
         case ResultSet.CONCUR_READ_ONLY:
         case ResultSet.CONCUR_UPDATABLE:
             break;
         default:
-            throw DbException.getInvalidValueException("" + resultSetConcurrency, "resultSetConcurrency");
+            throw DbException.getInvalidValueException("resultSetConcurrency", resultSetConcurrency);
         }
     }
 
@@ -1292,7 +1292,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         //## Java 1.4 begin ##
         if (resultSetHoldability != ResultSet.HOLD_CURSORS_OVER_COMMIT
                 && resultSetHoldability != ResultSet.CLOSE_CURSORS_AT_COMMIT) {
-            throw DbException.getInvalidValueException("" + resultSetHoldability, "resultSetHoldability");
+            throw DbException.getInvalidValueException("resultSetHoldability", resultSetHoldability);
         }
         //## Java 1.4 end ##
     }

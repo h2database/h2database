@@ -68,7 +68,7 @@ public class CacheLRU implements Cache {
         if (CacheLRU.TYPE_NAME.equals(cacheType)) {
             cache = new CacheLRU(writer, cacheSize);
         } else {
-            throw DbException.getInvalidValueException(cacheType, "CACHE_TYPE");
+            throw DbException.getInvalidValueException("CACHE_TYPE", cacheType);
         }
         if (secondLevel != null) {
             cache = new CacheSecondLevel(cache, secondLevel);

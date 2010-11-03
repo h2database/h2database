@@ -151,7 +151,7 @@ public class ValueTimestamp extends Value {
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         if (targetScale < 0 || targetScale > DEFAULT_SCALE) {
             // TODO convertScale for Timestamps: may throw an exception?
-            throw DbException.getInvalidValueException("" + targetScale, "scale");
+            throw DbException.getInvalidValueException("scale", targetScale);
         }
         int nanos = value.getNanos();
         BigDecimal bd = BigDecimal.valueOf(nanos);

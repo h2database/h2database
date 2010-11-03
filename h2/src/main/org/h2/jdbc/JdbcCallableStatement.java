@@ -1485,7 +1485,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     private void checkIndexBounds(int parameterIndex) throws SQLException {
         checkClosed();
         if (parameterIndex < 1 || parameterIndex > maxOutParameters) {
-            throw DbException.getInvalidValueException("" + parameterIndex, "parameterIndex");
+            throw DbException.getInvalidValueException("parameterIndex", parameterIndex);
         }
     }
 
@@ -1513,7 +1513,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
         try {
             checkIndexBounds(parameterIndex);
             if (!outParameters.get(parameterIndex - 1)) {
-                throw DbException.getInvalidValueException("" + parameterIndex, "parameterIndex");
+                throw DbException.getInvalidValueException("parameterIndex", parameterIndex);
             }
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1534,7 +1534,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
             }
             Integer index = namedParameters.get(parameterName);
             if (index == null) {
-                throw DbException.getInvalidValueException(parameterName, "parameterName");
+                throw DbException.getInvalidValueException("parameterName", parameterName);
             }
             return index;
         } catch (Exception e) {

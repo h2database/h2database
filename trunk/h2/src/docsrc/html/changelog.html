@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>For an invalid value exception, the parameter name and value was 
+    switched in some cases.
+</li><li>When using trace level 3, opening a database no longer prints 
+    there is a EOFException (because that is the expected behavior).
+</li><li>CALL calling a Java function with return type ResultSet and 
+    return value null threw a ClassCastException.
+</li><li>SELECT ... FROM CSVREAD no longer creates a temporary file.
 </li></ul>
 
 <h2>Version 1.2.145 (2010-11-02)</h2>

@@ -8,7 +8,6 @@ package org.h2.index;
 
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.FunctionTable;
@@ -20,8 +19,7 @@ import org.h2.table.IndexColumn;
  */
 public class FunctionIndex extends BaseIndex {
 
-    private FunctionTable functionTable;
-    private ResultInterface result;
+    private final FunctionTable functionTable;
 
     public FunctionIndex(FunctionTable functionTable, IndexColumn[] columns) {
         initBaseIndex(functionTable, 0, null, columns, IndexType.createNonUnique(true));
@@ -41,10 +39,11 @@ public class FunctionIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        // TODO sometimes result.reset() would be enough (but not when
-        // parameters are used)
-        result = functionTable.getResult(session);
-        return new FunctionCursor(result);
+        if (functionTable.isFast()) {
+            return new FunctionCursorResultSet(session, functionTable.getResultSet(session));
+        } else {
+            return new FunctionCursor(functionTable.getResult(session));
+        }
     }
 
     public double getCost(Session session, int[] masks) {

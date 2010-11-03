@@ -303,8 +303,8 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
         addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET, 2, Value.STRING);
-        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
-        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false);
+        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, true);
+        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED, 0, Value.INT);
         addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE, 0, Value.INT);
@@ -315,8 +315,8 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
         addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
         addFunction("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
-        addFunction("SET", SET, 2, Value.NULL, false, false);
-        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, true);
+        addFunction("SET", SET, 2, Value.NULL, false, false, false);
+        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, true, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
 
         // TableFunction
@@ -335,7 +335,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static void addFunction(String name, int type, int parameterCount, int dataType,
-            boolean nullIfParameterIsNull, boolean deterministic) {
+            boolean nullIfParameterIsNull, boolean deterministic, boolean fast) {
         FunctionInfo info = new FunctionInfo();
         info.name = name;
         info.type = type;
@@ -343,19 +343,20 @@ public class Function extends Expression implements FunctionCall {
         info.dataType = dataType;
         info.nullIfParameterIsNull = nullIfParameterIsNull;
         info.deterministic = deterministic;
+        info.fast = fast;
         FUNCTIONS.put(name, info);
     }
 
     private static void addFunctionNotDeterministic(String name, int type, int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, true, false);
+        addFunction(name, type, parameterCount, dataType, true, false, false);
     }
 
     private static void addFunction(String name, int type, int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, true, true);
+        addFunction(name, type, parameterCount, dataType, true, true, false);
     }
 
     private static void addFunctionWithNull(String name, int type, int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, false, true);
+        addFunction(name, type, parameterCount, dataType, false, true, false);
     }
 
     /**
@@ -1224,7 +1225,7 @@ public class Function extends Expression implements FunctionCall {
     private static int getDatePart(String part) {
         Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         if (p == null) {
-            throw DbException.get(ErrorCode.INVALID_VALUE_2, "date part", part);
+            throw DbException.getInvalidValueException("date part", part);
         }
         return p.intValue();
     }
@@ -1984,6 +1985,10 @@ public class Function extends Expression implements FunctionCall {
 
     public boolean isDeterministic() {
         return info.deterministic;
+    }
+
+    public boolean isFast() {
+        return info.fast;
     }
 
 }

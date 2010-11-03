@@ -164,4 +164,9 @@ public class JavaFunction extends Expression implements FunctionCall {
         }
         return super.getExpressionColumns(session);
     }
+
+    public boolean isFast() {
+        return false;
+    }
+
 }

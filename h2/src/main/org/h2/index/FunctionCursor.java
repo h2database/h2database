@@ -13,11 +13,11 @@ import org.h2.result.SearchRow;
 import org.h2.value.Value;
 
 /**
- * A cursor for a function that returns a result set.
+ * A cursor for a function that returns a result.
  */
 public class FunctionCursor implements Cursor {
 
-    private ResultInterface result;
+    private final ResultInterface result;
     private Value[] values;
     private Row row;
 
@@ -41,7 +41,7 @@ public class FunctionCursor implements Cursor {
 
     public boolean next() {
         row = null;
-        if (result.next()) {
+        if (result != null && result.next()) {
             values = result.currentRow();
         } else {
             values = null;

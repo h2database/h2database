@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>For an invalid value exception, the parameter name and value was 
+<ul><li>Connection-created Clob and Blob objects can now be filled using 
+    Clob.setCharacterStream(1), Clob.setString(1, s), Blob.setBytes(1, x), Blob.setBinaryStream(1).
+    Issue 235.
+</li><li>Trying to convert a very small CLOB to a BLOB or a very small CLOB to a BLOB threw a NullPointerException.
+</li><li>INFORMATION_SCHEMA.SETTINGS: now the current page count can be queried using
+    select * from information_schema.settings where name = 'info.PAGE_COUNT'.
+</li><li>For an invalid value exception, the parameter name and value was 
     switched in some cases.
 </li><li>When using trace level 3, opening a database no longer prints 
     there is a EOFException (because that is the expected behavior).

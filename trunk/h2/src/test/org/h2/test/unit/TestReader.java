@@ -35,7 +35,7 @@ public class TestReader extends TestBase {
         InputStream in = new ReaderInputStream(r);
         byte[] buff = IOUtils.readBytesAndClose(in, 0);
         InputStream in2 = new ByteArrayInputStream(buff);
-        Reader r2 = IOUtils.getReader(in2);
+        Reader r2 = IOUtils.getBufferedReader(in2);
         String s2 = IOUtils.readStringAndClose(r2, Integer.MAX_VALUE);
         assertEquals(s, s2);
     }

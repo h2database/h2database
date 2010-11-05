@@ -388,7 +388,7 @@ public class TraceObject {
             synchronized (TraceObject.class) {
                 // e.printStackTrace();
                 try {
-                    Writer writer = IOUtils.getWriter(IOUtils.openFileOutputStream(SysProperties.LOG_ALL_ERRORS_FILE, true));
+                    Writer writer = IOUtils.getBufferedWriter(IOUtils.openFileOutputStream(SysProperties.LOG_ALL_ERRORS_FILE, true));
                     PrintWriter p = new PrintWriter(writer);
                     e.printStackTrace(p);
                     p.close();

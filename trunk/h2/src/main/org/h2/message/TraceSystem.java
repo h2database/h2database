@@ -282,7 +282,7 @@ public class TraceSystem implements TraceWriter {
                     // can't be opened
                     return false;
                 }
-                fileWriter = IOUtils.getWriter(IOUtils.openFileOutputStream(fileName, true));
+                fileWriter = IOUtils.getBufferedWriter(IOUtils.openFileOutputStream(fileName, true));
                 printWriter = new PrintWriter(fileWriter, true);
             } catch (Exception e) {
                 logWritingError(e);

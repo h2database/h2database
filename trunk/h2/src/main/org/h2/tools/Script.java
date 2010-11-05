@@ -188,7 +188,7 @@ public class Script extends Tool {
         Statement stat = null;
         try {
             stat = conn.createStatement();
-            PrintWriter writer = new PrintWriter(IOUtils.getWriter(o));
+            PrintWriter writer = new PrintWriter(IOUtils.getBufferedWriter(o));
             ResultSet rs = stat.executeQuery("SCRIPT");
             while (rs.next()) {
                 String s = rs.getString(1);

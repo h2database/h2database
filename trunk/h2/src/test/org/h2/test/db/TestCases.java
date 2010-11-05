@@ -779,11 +779,11 @@ public class TestCases extends TestBase {
         int len = getSize(1000, 66000);
         char[] buff = new char[len];
 
+        // Unicode problem:
         // The UCS code values 0xd800-0xdfff (UTF-16 surrogates)
         // as well as 0xfffe and 0xffff (UCS non-characters)
         // should not appear in conforming UTF-8 streams.
         // (String.getBytes("UTF-8") only returns 1 byte for 0xd800-0xdfff)
-
         Random random = new Random();
         random.setSeed(1);
         for (int i = 0; i < len; i++) {

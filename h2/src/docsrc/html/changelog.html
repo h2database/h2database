@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Connection-created Clob and Blob objects can now be filled using 
+<ul><li>In the MySQL mode, SHOW TABLES didn't work, and meta data tables were not
+    case insensitive. Updateable result sets didn't work as expected. Issue 249.
+</li><li>Connection-created Clob and Blob objects can now be filled using 
     Clob.setCharacterStream(1), Clob.setString(1, s), Blob.setBytes(1, x), Blob.setBinaryStream(1).
     Issue 235.
 </li><li>Trying to convert a very small CLOB to a BLOB or a very small CLOB to a BLOB threw a NullPointerException.
@@ -30,7 +32,8 @@ Change Log
     there is a EOFException (because that is the expected behavior).
 </li><li>CALL calling a Java function with return type ResultSet and 
     return value null threw a ClassCastException.
-</li><li>SELECT ... FROM CSVREAD no longer creates a temporary file.
+</li><li>SELECT ... FROM CSVREAD no longer creates a temporary file. 
+    Some large imports are now twice as fast.
 </li></ul>
 
 <h2>Version 1.2.145 (2010-11-02)</h2>

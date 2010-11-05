@@ -77,19 +77,26 @@ public class UpdatableRow {
             // system table
             return;
         }
+        String table = rs.getString("TABLE_NAME");
+        // if the table name in the database meta data is lower case,
+        // but the table in the result set meta data is not, then the column
+        // in the database meta data is also lower case
+        boolean toUpper = !table.equals(tableName) && table.equalsIgnoreCase(tableName);
         key = New.arrayList();
         rs = meta.getPrimaryKeys(null,
                 JdbcUtils.escapeMetaDataPattern(schemaName),
                 tableName);
         while (rs.next()) {
-            key.add(rs.getString("COLUMN_NAME"));
+            String c = rs.getString("COLUMN_NAME");
+            key.add(toUpper ? StringUtils.toUpperEnglish(c) : c);
         }
         if (key.size() == 0) {
             rs = meta.getIndexInfo(null,
                     JdbcUtils.escapeMetaDataPattern(schemaName),
                     tableName, true, true);
             while (rs.next()) {
-                key.add(rs.getString("COLUMN_NAME"));
+                String c = rs.getString("COLUMN_NAME");
+                key.add(toUpper ? StringUtils.toUpperEnglish(c) : c);
             }
         }
         isUpdatable = key.size() > 0;

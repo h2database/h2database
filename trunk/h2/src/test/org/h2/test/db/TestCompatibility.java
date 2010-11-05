@@ -153,7 +153,7 @@ public class TestCompatibility extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("SELECT 1");
         stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World')");
         org.h2.mode.FunctionsMySQL.register(conn);
         assertResult("1196418619", stat, "SELECT UNIX_TIMESTAMP('2007-11-30 10:30:19Z')");
@@ -161,6 +161,21 @@ public class TestCompatibility extends TestBase {
         assertResult("2007 November", stat, "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
         assertResult("2003-12-31", stat, "SELECT DATE('2003-12-31 11:02:03')");
 
+        if (config.memory) {
+            return;
+        }
+        // need to reconnect, because meta data tables may be initialized
+        conn.close();
+        conn = getConnection("compatibility;MODE=MYSQL");
+        stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        assertResult("test", stat, "SHOW TABLES");
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        rs.next();
+        rs.updateString(2, "Hallo");
+        rs.updateRow();
+
+        conn.close();
+        conn = getConnection("compatibility");
     }
 
     private void testPlusSignAsConcatOperator() throws SQLException {

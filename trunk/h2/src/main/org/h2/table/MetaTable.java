@@ -61,6 +61,7 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
+import org.h2.value.ValueStringIgnoreCase;
 
 /**
  * This class is responsible to build the database meta data pseudo tables.
@@ -529,7 +530,7 @@ public class MetaTable extends Table {
             int dataType;
             String name;
             if (idx < 0) {
-                dataType = Value.STRING;
+                dataType = database.getMode().lowerCaseIdentifiers ? Value.STRING_IGNORECASE : Value.STRING;
                 name = nameType;
             } else {
                 dataType = DataType.getTypeByName(nameType.substring(idx + 1)).type;
@@ -580,12 +581,19 @@ public class MetaTable extends Table {
             return true;
         }
         Database db = session.getDatabase();
-        Value v = ValueString.get(value);
-        if (indexFrom != null && db.compare(v, indexFrom) < 0) {
-            return false;
-        }
-        if (indexTo != null && db.compare(v, indexTo) > 0) {
-            return false;
+        if (database.getMode().lowerCaseIdentifiers) {
+            Value v = ValueStringIgnoreCase.get(value);
+            if (indexFrom.equals(indexTo) && db.compare(v, indexFrom) != 0) {
+                return false;
+            }
+        } else {
+            Value v = ValueString.get(value);
+            if (indexFrom != null && db.compare(v, indexFrom) < 0) {
+                return false;
+            }
+            if (indexTo != null && db.compare(v, indexTo) > 0) {
+                return false;
+            }
         }
         return true;
     }

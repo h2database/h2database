@@ -6,23 +6,24 @@
  */
 package org.h2.jdbc;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.sql.Clob;
+import java.sql.NClob;
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
+import org.h2.util.CallThread;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
-
-//## Java 1.6 begin ##
-import java.sql.NClob;
-//## Java 1.6 end ##
 
 /**
  * Represents a CLOB value.
@@ -33,7 +34,7 @@ public class JdbcClob extends TraceObject implements Clob
 //## Java 1.6 end ##
 {
 
-    private Value value;
+    Value value;
     private JdbcConnection conn;
 
     /**
@@ -126,10 +127,48 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * [Not supported] Returns a writer starting from a given position.
+     * Get a writer to update the Clob. This is only supported for new, empty
+     * Clob objects that were created with Connection.createClob() or
+     * createNClob(). The Clob is created in a separate thread, and the object
+     * is only updated when Writer.close() is called. The position must be 1,
+     * meaning the whole Clob data is set.
+     *
+     * @param pos where to start writing (the first character is at position 1)
+     * @return a writer
      */
     public Writer setCharacterStream(long pos) throws SQLException {
-        throw unsupported("LOB update");
+        try {
+            if (pos != 1) {
+                throw DbException.getInvalidValueException("pos", pos);
+            }
+            if (value.getPrecision() != 0) {
+                throw DbException.getInvalidValueException("length", value.getPrecision());
+            }
+            final JdbcConnection c = conn;
+            // PipedReader / PipedWriter are a lot slower
+            // than PipedInputStream / PipedOutputStream
+            // (Sun/Oracle Java 1.6.0_20)
+            final PipedInputStream in = new PipedInputStream();
+            final CallThread<Value> call = new CallThread<Value>() {
+                public Value call() {
+                    return c.createClob(IOUtils.getReader(in), -1);
+                }
+            };
+            PipedOutputStream out = new PipedOutputStream(in) {
+                public void close() throws IOException {
+                    super.close();
+                    try {
+                        value = call.get();
+                    } catch (Exception e) {
+                        throw DbException.convertToIOException(e);
+                    }
+                }
+            };
+            call.execute();
+            return IOUtils.getBufferedWriter(out);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -144,10 +183,10 @@ public class JdbcClob extends TraceObject implements Clob
             debugCode("getSubString(" + pos + ", " + length + ");");
             checkClosed();
             if (pos < 1) {
-                throw DbException.getInvalidValueException("pos", "" + pos);
+                throw DbException.getInvalidValueException("pos", pos);
             }
             if (length < 0) {
-                throw DbException.getInvalidValueException("length", "" + length);
+                throw DbException.getInvalidValueException("length", length);
             }
             StringBuilder buff = new StringBuilder(Math.min(4096, length));
             Reader reader = value.getReader();
@@ -170,10 +209,24 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * [Not supported] Sets a substring.
+     * Fills the Clob. This is only supported for new, empty Clob objects that
+     * were created with Connection.createClob() or createNClob(). The position
+     * must be 1, meaning the whole Clob data is set.
+     *
+     * @param pos where to start writing (the first character is at position 1)
+     * @param str the string to add
+     * @return the length of the added text
      */
     public int setString(long pos, String str) throws SQLException {
-        throw unsupported("LOB update");
+        try {
+            if (pos != 1) {
+                throw DbException.getInvalidValueException("pos", pos);
+            }
+            value = conn.createClob(new StringReader(str), -1);
+            return str.length();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

@@ -7,16 +7,21 @@
 package org.h2.jdbc;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
+import org.h2.util.CallThread;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
 
@@ -25,7 +30,7 @@ import org.h2.value.Value;
  */
 public class JdbcBlob extends TraceObject implements Blob {
 
-    private Value value;
+    Value value;
     private JdbcConnection conn;
 
     /**
@@ -117,16 +122,24 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * [Not supported] Sets some bytes of the object.
+     * Fills the Blob. This is only supported for new, empty Blob objects that
+     * were created with Connection.createBlob(). The position
+     * must be 1, meaning the whole Blob data is set.
      *
-     * @param pos the write position
+     * @param pos where to start writing (the first byte is at position 1)
      * @param bytes the bytes to set
-     * @return how many bytes have been written
-     * @throws SQLException
+     * @return the length of the added data
      */
     public int setBytes(long pos, byte[] bytes) throws SQLException {
-        debugCode("setBytes("+pos+", bytes);");
-        throw unsupported("LOB update");
+        try {
+            if (pos != 1) {
+                throw DbException.getInvalidValueException("pos", pos);
+            }
+            value = conn.createBlob(new ByteArrayInputStream(bytes), -1);
+            return bytes.length;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -160,14 +173,45 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * [Not supported] Returns an output stream.
+     * Get a writer to update the Blob. This is only supported for new, empty
+     * Blob objects that were created with Connection.createBlob(). The Blob is
+     * created in a separate thread, and the object is only updated when
+     * OutputStream.close() is called. The position must be 1, meaning the whole
+     * Blob data is set.
      *
-     * @param pos where to start writing
-     * @return the output stream to write into
-     * @throws SQLException
+     * @param pos where to start writing (the first byte is at position 1)
+     * @return an output stream
      */
     public OutputStream setBinaryStream(long pos) throws SQLException {
-        throw unsupported("LOB update");
+        try {
+            if (pos != 1) {
+                throw DbException.getInvalidValueException("pos", pos);
+            }
+            if (value.getPrecision() != 0) {
+                throw DbException.getInvalidValueException("length", value.getPrecision());
+            }
+            final JdbcConnection c = conn;
+            final PipedInputStream in = new PipedInputStream();
+            final CallThread<Value> call = new CallThread<Value>() {
+                public Value call() {
+                    return c.createBlob(in, -1);
+                }
+            };
+            PipedOutputStream out = new PipedOutputStream(in) {
+                public void close() throws IOException {
+                    super.close();
+                    try {
+                        value = call.get();
+                    } catch (Exception e) {
+                        throw DbException.convertToIOException(e);
+                    }
+                }
+            };
+            call.execute();
+            return new BufferedOutputStream(out);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

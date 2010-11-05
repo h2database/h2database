@@ -148,7 +148,7 @@ public class SourceCompiler {
         File classFile = new File(dir, className + ".class");
         try {
             OutputStream f = IOUtils.openFileOutputStream(javaFile.getAbsolutePath(), false);
-            PrintWriter out = new PrintWriter(IOUtils.getWriter(f));
+            PrintWriter out = new PrintWriter(IOUtils.getBufferedWriter(f));
             classFile.delete();
             int endImport = source.indexOf("@CODE");
             String importCode = "import java.util.*;\n" +

@@ -261,7 +261,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     }
 
     public Reader getReader() {
-        return IOUtils.getReader(getInputStream());
+        return IOUtils.getBufferedReader(getInputStream());
     }
 
     public InputStream getInputStream() {

@@ -339,8 +339,29 @@ public class IOUtils {
     }
 
     /**
+     * Create a buffered reader to read from an input stream using the UTF-8
+     * format. If the input stream is null, this method returns null. The
+     * InputStreamReader that is used here is not exact, that means it may read
+     * some additional bytes when buffering.
+     *
+     * @param in the input stream or null
+     * @return the reader
+     */
+    public static Reader getBufferedReader(InputStream in) {
+        try {
+            //
+            return in == null ? null : new BufferedReader(new InputStreamReader(in, Constants.UTF8));
+        } catch (Exception e) {
+            // UnsupportedEncodingException
+            throw DbException.convert(e);
+        }
+    }
+
+    /**
      * Create a reader to read from an input stream using the UTF-8 format. If
-     * the input stream is null, this method returns null.
+     * the input stream is null, this method returns null. The InputStreamReader
+     * that is used here is not exact, that means it may read some additional
+     * bytes when buffering.
      *
      * @param in the input stream or null
      * @return the reader
@@ -362,7 +383,7 @@ public class IOUtils {
      * @param out the output stream or null
      * @return the writer
      */
-    public static Writer getWriter(OutputStream out) {
+    public static Writer getBufferedWriter(OutputStream out) {
         try {
             return out == null ? null : new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
         } catch (Exception e) {

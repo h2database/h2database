@@ -139,6 +139,10 @@ public class ValueLob extends Value {
      */
     public static ValueLob createClob(Reader in, long length, DataHandler handler) {
         try {
+            if (handler == null) {
+                String s = IOUtils.readStringAndClose(in, (int) length);
+                return createSmallLob(Value.CLOB, StringUtils.utf8Encode(s));
+            }
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
             long remaining = Long.MAX_VALUE;
             if (length >= 0 && length < remaining) {
@@ -336,6 +340,10 @@ public class ValueLob extends Value {
      */
     public static ValueLob createBlob(InputStream in, long length, DataHandler handler) {
         try {
+            if (handler == null) {
+                byte[] data = IOUtils.readBytesAndClose(in, (int) length);
+                return createSmallLob(Value.BLOB, data);
+            }
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
             if (length >= 0 && length < remaining) {
@@ -600,7 +608,7 @@ public class ValueLob extends Value {
     }
 
     public Reader getReader() {
-        return IOUtils.getReader(getInputStream());
+        return IOUtils.getBufferedReader(getInputStream());
     }
 
     public InputStream getInputStream() {

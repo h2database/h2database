@@ -40,6 +40,7 @@ public class TestLob extends TestBase {
         conn = getConnection("lob");
         stat = conn.createStatement();
         stat.execute("create table test(id int, x blob)");
+        //## Java 1.6 begin ##
         testBlob(0);
         testBlob(1);
         testBlob(100);
@@ -50,9 +51,12 @@ public class TestLob extends TestBase {
         testClob(1);
         testClob(100);
         testClob(100000);
+        //## Java 1.6 end ##
+        stat.execute("drop table test");
         conn.close();
     }
 
+    //## Java 1.6 begin ##
     private void testBlob(int length) throws Exception {
         Random r = new Random(length);
         byte[] data = new byte[length];
@@ -129,5 +133,6 @@ public class TestLob extends TestBase {
         s2 = c2.getSubString(1, length);
         assertEquals(s, s2);
     }
+    //## Java 1.6 end ##
 
 }

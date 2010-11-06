@@ -29,7 +29,6 @@ public abstract class Task implements Runnable {
     /**
      * The method to be implemented.
      *
-     * @return the value, or null
      * @throws Exception any exception is wrapped in a RuntimeException
      */
     public abstract void call() throws Exception;
@@ -56,7 +55,8 @@ public abstract class Task implements Runnable {
     }
 
     /**
-     * Calling this method will set the stop flag and wait until the thread is stopped.
+     * Calling this method will set the stop flag and wait until the thread is
+     * stopped.
      *
      * @return the result, or null
      * @throws RuntimeException if an exception in the method call occurs

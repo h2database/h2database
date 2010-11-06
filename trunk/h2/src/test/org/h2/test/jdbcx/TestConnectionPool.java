@@ -16,6 +16,7 @@ import java.sql.Statement;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * This class tests the JdbcConnectionPool.
@@ -48,17 +49,16 @@ public class TestConnectionPool extends TestBase {
         man.setLoginTimeout(1);
         man.setMaxConnections(2);
         Connection conn = man.getConnection();
-        final boolean[] stop = { false };
-        Thread t = new Thread() {
-            public void run() {
-                while (!stop[0]) {
+        Task t = new Task() {
+            public void call() {
+                while (!stop) {
                     // this calls notifyAll
                     man.setMaxConnections(1);
                     man.setMaxConnections(2);
                 }
             }
         };
-        t.start();
+        t.execute();
         long time = System.currentTimeMillis();
         try {
             man.getConnection();
@@ -69,8 +69,7 @@ public class TestConnectionPool extends TestBase {
             assertTrue("timeout after " + time + " ms", time > 1000);
         } finally {
             conn.close();
-            stop[0] = true;
-            t.join();
+            t.get();
         }
 
         man.dispose();

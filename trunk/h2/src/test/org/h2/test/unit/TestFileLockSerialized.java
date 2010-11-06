@@ -20,6 +20,7 @@ import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
+import org.h2.util.Task;
 
 /**
  * Test the serialized (server-less) mode.
@@ -162,24 +163,19 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         final String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
-        final boolean[] stop = { false };
         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
         conn.createStatement().execute("create table test(id identity) as select x from system_range(1, 100)");
         conn.close();
-        new Thread() {
-            public void run() {
-                while (!stop[0]) {
-                    try {
-                        Thread.sleep(10);
-                        Connection c = DriverManager.getConnection(writeUrl, "sa", "sa");
-                        c.createStatement().execute("select * from test");
-                        c.close();
-                    } catch (Exception e) {
-                        // ignore
-                    }
+        Task task = new Task() {
+            public void call() throws Exception {
+                while (!stop) {
+                    Thread.sleep(10);
+                    Connection c = DriverManager.getConnection(writeUrl, "sa", "sa");
+                    c.createStatement().execute("select * from test");
+                    c.close();
                 }
             }
-        }.start();
+        }.execute();
         Thread.sleep(20);
         for (int i = 0; i < 2; i++) {
             conn = DriverManager.getConnection(writeUrl, "sa", "sa");
@@ -189,11 +185,11 @@ public class TestFileLockSerialized extends TestBase {
             conn.createStatement().execute("select * from test");
             conn.close();
         }
-        stop[0] = true;
         Thread.sleep(100);
         conn = DriverManager.getConnection(writeUrl, "sa", "sa");
         conn.createStatement().execute("select * from test");
         conn.close();
+        task.get();
     }
 
     private void testPendingWrite() throws Exception {
@@ -538,60 +534,47 @@ public class TestFileLockSerialized extends TestBase {
 
         final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;CACHE_SIZE=" + cacheSizeKb;
         final boolean[] importFinished = { false };
-        final Exception[] ex = { null };
-        final Thread importUpdate = new Thread() {
-            public void run() {
-                try {
-                    Connection conn = DriverManager.getConnection(url);
-                    Statement stat = conn.createStatement();
-                    stat.execute("create table test(id int, id2 int)");
-                    for (int i = 0; i < howMuchRows; i++) {
-                        stat.execute("insert into test values(" + i + ", " + i + ")");
-                    }
-                    importFinished[0] = true;
-                    Thread.sleep(5000);
-                    stat.execute("update test set id2=999 where id=500");
-                    conn.close();
-                } catch (Exception e) {
-                    ex[0] = e;
-                } finally {
-                    importFinished[0] = true;
+        final Task importUpdate = new Task() {
+            public void call() throws Exception {
+                Connection conn = DriverManager.getConnection(url);
+                Statement stat = conn.createStatement();
+                stat.execute("create table test(id int, id2 int)");
+                for (int i = 0; i < howMuchRows; i++) {
+                    stat.execute("insert into test values(" + i + ", " + i + ")");
                 }
+                importFinished[0] = true;
+                Thread.sleep(5000);
+                stat.execute("update test set id2=999 where id=500");
+                conn.close();
+                importFinished[0] = true;
             }
         };
-        importUpdate.start();
+        importUpdate.execute();
 
-        Thread select = new Thread() {
-            public void run() {
-                try {
-                    Connection conn = DriverManager.getConnection(url);
-                    Statement stat = conn.createStatement();
-                    while (!importFinished[0]) {
-                        Thread.sleep(100);
-                    }
-                    Thread.sleep(1000);
-                    ResultSet rs = stat.executeQuery("select id2 from test where id=500");
-                    assertTrue(rs.next());
-                    assertEquals(500, rs.getInt(1));
-                    rs.close();
-                    importUpdate.join();
-                    Thread.sleep(1000);
-                    rs = stat.executeQuery("select id2 from test where id=500");
-                    assertTrue(rs.next());
-                    assertEquals(999, rs.getInt(1));
-                    rs.close();
-                    conn.close();
-                } catch (Exception e) {
-                    ex[0] = e;
+        Task select = new Task() {
+            public void call() throws Exception {
+                Connection conn = DriverManager.getConnection(url);
+                Statement stat = conn.createStatement();
+                while (!importFinished[0]) {
+                    Thread.sleep(100);
                 }
+                Thread.sleep(1000);
+                ResultSet rs = stat.executeQuery("select id2 from test where id=500");
+                assertTrue(rs.next());
+                assertEquals(500, rs.getInt(1));
+                rs.close();
+                importUpdate.get();
+                Thread.sleep(1000);
+                rs = stat.executeQuery("select id2 from test where id=500");
+                assertTrue(rs.next());
+                assertEquals(999, rs.getInt(1));
+                rs.close();
+                conn.close();
             }
         };
-        select.start();
-        importUpdate.join();
-        select.join();
-        if (ex[0] != null) {
-            throw ex[0];
-        }
+        select.execute();
+        importUpdate.get();
+        select.get();
         deleteDb("fileLockSerialized");
     }
 

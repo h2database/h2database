@@ -16,6 +16,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.Recover;
+import org.h2.util.Task;
 import org.h2.util.IOUtils;
 
 /**
@@ -52,46 +53,32 @@ public class TestRunscript extends TestBase implements Trigger {
         // need to wait a bit (throttle is only used every 50 ms)
         Thread.sleep(200);
         final String dir = getBaseDir();
-        final SQLException[] ex = new SQLException[1];
-        Thread thread;
-        SQLException e;
-        thread = new Thread() {
-            public void run() {
-                try {
-                    stat.execute("script simple drop to '"+dir+"/backup2.sql'");
-                } catch (SQLException e) {
-                    ex[0] = e;
-                }
+        Task task;
+        task = new Task() {
+            public void call() throws SQLException {
+                stat.execute("script simple drop to '"+dir+"/backup2.sql'");
             }
         };
-        thread.start();
+        task.execute();
         Thread.sleep(200);
         stat.cancel();
-        thread.join();
-        e = ex[0];
+        SQLException e = (SQLException) task.getException();
         assertTrue(e != null);
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
 
-        ex[0] = null;
         stat.execute("set throttle 1000");
         // need to wait a bit (throttle is only used every 50 ms)
         Thread.sleep(100);
 
-        thread = new Thread() {
-            public void run() {
-                try {
-                    stat.execute("runscript from '"+dir+"/backup.sql'");
-                } catch (SQLException e) {
-                    ex[0] = e;
-                }
+        task = new Task() {
+            public void call() throws SQLException {
+                stat.execute("runscript from '"+dir+"/backup.sql'");
             }
         };
-        thread.start();
+        task.execute();
         Thread.sleep(100);
         stat.cancel();
-        thread.join();
-        e = ex[0];
-        assertTrue(e != null);
+        e = (SQLException) task.getException();
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
 
         conn.close();

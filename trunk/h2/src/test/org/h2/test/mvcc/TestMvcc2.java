@@ -10,8 +10,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
@@ -59,33 +61,29 @@ public class TestMvcc2 extends TestBase {
         stat2.execute("set lock_timeout 1000");
         stat.execute("create table test(id int primary key, name varchar)");
         conn.setAutoCommit(false);
-        final boolean[] committed = { false };
-        final SQLException[] ex = { null };
-        Thread t = new Thread() {
-            public void run() {
+        final AtomicBoolean committed = new AtomicBoolean(false);
+        Task t = new Task() {
+            public void call() throws SQLException {
                 try {
 //System.out.println("insert2 hallo");
                     stat2.execute("insert into test values(0, 'Hallo')");
 //System.out.println("insert2 hallo done");
                 } catch (SQLException e) {
 //System.out.println("insert2 hallo e " + e);
-                    if (!committed[0]) {
-                        ex[0] = e;
+                    if (!committed.get()) {
+                        throw e;
                     }
                 }
             }
         };
 //System.out.println("insert hello");
         stat.execute("insert into test values(0, 'Hello')");
-        t.start();
+        t.execute();
         Thread.sleep(500);
 //System.out.println("insert hello commit");
-        committed[0] = true;
+        committed.set(true);
         conn.commit();
-        t.join();
-        if (ex[0] != null) {
-            throw ex[0];
-        }
+        t.get();
         ResultSet rs;
         rs = stat.executeQuery("select name from test");
         rs.next();
@@ -104,24 +102,16 @@ public class TestMvcc2 extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(0, 'Hello')");
         conn.setAutoCommit(false);
-        final SQLException[] ex = { null };
-        Thread t = new Thread() {
-            public void run() {
-                try {
-                    stat2.execute("update test set name = 'Hallo'");
-                } catch (SQLException e) {
-                    ex[0] = e;
-                }
+        Task t = new Task() {
+            public void call() throws SQLException {
+                stat2.execute("update test set name = 'Hallo'");
             }
         };
         stat.execute("update test set name = 'Hi'");
-        t.start();
+        t.execute();
         Thread.sleep(500);
         conn.commit();
-        t.join();
-        if (ex[0] != null) {
-            throw ex[0];
-        }
+        t.get();
         ResultSet rs;
         rs = stat.executeQuery("select name from test");
         rs.next();

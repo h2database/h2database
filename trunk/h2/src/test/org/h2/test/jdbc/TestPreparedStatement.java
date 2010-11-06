@@ -23,6 +23,7 @@ import java.util.UUID;
 import org.h2.api.Trigger;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Tests for the PreparedStatement implementation.
@@ -272,21 +273,15 @@ public class TestPreparedStatement extends TestBase {
         final PreparedStatement prep = conn.prepareStatement("SELECT SLEEP(?) FROM SYSTEM_RANGE(1, 10000) LIMIT ?");
         prep.setInt(1, 1);
         prep.setInt(2, 10000);
-        final SQLException[] ex = new SQLException[1];
-        Thread t = new Thread() {
-            public void run() {
-                try {
-                    prep.execute();
-                } catch (SQLException e) {
-                    ex[0] = e;
-                }
+        Task t = new Task() {
+            public void call() throws SQLException {
+                prep.execute();
             }
         };
-        t.start();
+        t.execute();
         Thread.sleep(100);
         prep.cancel();
-        t.join();
-        SQLException e = ex[0];
+        SQLException e = (SQLException) t.getException();
         assertTrue(e != null);
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
         prep.setInt(1, 1);

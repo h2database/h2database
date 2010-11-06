@@ -15,13 +15,15 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
 import java.sql.Clob;
+//## Java 1.6 begin ##
 import java.sql.NClob;
+//## Java 1.6 end ##
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.CallThread;
+import org.h2.util.Task;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
 
@@ -149,22 +151,22 @@ public class JdbcClob extends TraceObject implements Clob
             // than PipedInputStream / PipedOutputStream
             // (Sun/Oracle Java 1.6.0_20)
             final PipedInputStream in = new PipedInputStream();
-            final CallThread<Value> call = new CallThread<Value>() {
-                public Value call() {
-                    return c.createClob(IOUtils.getReader(in), -1);
+            final Task task = new Task() {
+                public void call() {
+                    value = c.createClob(IOUtils.getReader(in), -1);
                 }
             };
             PipedOutputStream out = new PipedOutputStream(in) {
                 public void close() throws IOException {
                     super.close();
                     try {
-                        value = call.get();
+                        task.get();
                     } catch (Exception e) {
                         throw DbException.convertToIOException(e);
                     }
                 }
             };
-            call.execute();
+            task.execute();
             return IOUtils.getBufferedWriter(out);
         } catch (Exception e) {
             throw logAndConvert(e);

@@ -17,6 +17,7 @@ import java.util.StringTokenizer;
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Fulltext search tests.
@@ -109,10 +110,8 @@ public class TestFullText extends TestBase {
         final String prefix = lucene ? "FTL" : "FT";
         trace("Testing multithreaded " + prefix);
         deleteDb("fullText");
-        final boolean[] stop = { false };
-        final Exception[] exception = { null };
         int len = 2;
-        Thread[] threads = new Thread[len];
+        Task[] task = new Task[len];
         for (int i = 0; i < len; i++) {
             // final Connection conn =
             // getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
@@ -126,58 +125,48 @@ public class TestFullText extends TestBase {
             final String tableName = "TEST" + i;
             stat.execute("CREATE TABLE " + tableName + "(ID INT PRIMARY KEY, DATA VARCHAR)");
             stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', '" + tableName + "', NULL)");
-            threads[i] = new Thread() {
-                public void run() {
+            task[i] = new Task() {
+                public void call() throws SQLException {
                     trace("starting thread " + Thread.currentThread());
-                    try {
-                        PreparedStatement prep = conn.prepareStatement("INSERT INTO " + tableName + " VALUES(?, ?)");
-                        Statement stat = conn.createStatement();
-                        Random random = new Random();
-                        int x = 0;
-                        while (!stop[0]) {
-                            trace("stop[0] = " + stop[0] + " for " + Thread.currentThread());
-                            StringBuilder buff = new StringBuilder();
-                            for (int j = 0; j < 1000; j++) {
-                                buff.append(" ").append(random.nextInt(10000));
-                                buff.append(" x").append(j);
-                                buff.append(" ").append(KNOWN_WORDS[j % KNOWN_WORDS.length]);
-                            }
-                            prep.setInt(1, x);
-                            prep.setString(2, buff.toString());
-                            prep.execute();
-                            x++;
-                            for (String knownWord : KNOWN_WORDS) {
-                                trace("searching for " + knownWord + " with " + Thread.currentThread());
-                                ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('" + knownWord + "', 0, 0)");
-                                assertTrue(rs.next());
-                            }
+                    PreparedStatement prep = conn.prepareStatement("INSERT INTO " + tableName + " VALUES(?, ?)");
+                    Statement stat = conn.createStatement();
+                    Random random = new Random();
+                    int x = 0;
+                    while (!stop) {
+                        trace("stop = " + stop + " for " + Thread.currentThread());
+                        StringBuilder buff = new StringBuilder();
+                        for (int j = 0; j < 1000; j++) {
+                            buff.append(" ").append(random.nextInt(10000));
+                            buff.append(" x").append(j);
+                            buff.append(" ").append(KNOWN_WORDS[j % KNOWN_WORDS.length]);
                         }
-                        trace("closing connection");
-                        conn.close();
-                    } catch (SQLException e) {
-                        exception[0] = e;
-                    } finally {
-                        trace("completed thread " + Thread.currentThread());
+                        prep.setInt(1, x);
+                        prep.setString(2, buff.toString());
+                        prep.execute();
+                        x++;
+                        for (String knownWord : KNOWN_WORDS) {
+                            trace("searching for " + knownWord + " with " + Thread.currentThread());
+                            ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('" + knownWord + "', 0, 0)");
+                            assertTrue(rs.next());
+                        }
                     }
+                    trace("closing connection");
+                    conn.close();
+                    trace("completed thread " + Thread.currentThread());
                 }
             };
         }
-        for (Thread t : threads) {
-            t.setDaemon(true);
-            t.start();
+        for (Task t : task) {
+            t.execute();
         }
         trace("sleeping");
         Thread.sleep(1000);
 
         trace("setting stop to true");
-        stop[0] = true;
-        for (Thread t : threads) {
+        for (Task t : task) {
             trace("joining " + t);
-            t.join();
+            t.get();
             trace("done joining " + t);
-        }
-        if (exception[0] != null) {
-            throw exception[0];
         }
     }
 

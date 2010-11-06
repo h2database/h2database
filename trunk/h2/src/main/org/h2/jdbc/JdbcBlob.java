@@ -21,7 +21,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.CallThread;
+import org.h2.util.Task;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
 
@@ -192,22 +192,22 @@ public class JdbcBlob extends TraceObject implements Blob {
             }
             final JdbcConnection c = conn;
             final PipedInputStream in = new PipedInputStream();
-            final CallThread<Value> call = new CallThread<Value>() {
-                public Value call() {
-                    return c.createBlob(in, -1);
+            final Task task = new Task() {
+                public void call() {
+                    value = c.createBlob(in, -1);
                 }
             };
             PipedOutputStream out = new PipedOutputStream(in) {
                 public void close() throws IOException {
                     super.close();
                     try {
-                        value = call.get();
+                        task.get();
                     } catch (Exception e) {
                         throw DbException.convertToIOException(e);
                     }
                 }
             };
-            call.execute();
+            task.execute();
             return new BufferedOutputStream(out);
         } catch (Exception e) {
             throw logAndConvert(e);

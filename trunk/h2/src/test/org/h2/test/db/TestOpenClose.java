@@ -16,6 +16,7 @@ import java.sql.Statement;
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
+import org.h2.util.Task;
 import org.h2.util.IOUtils;
 
 /**
@@ -139,30 +140,26 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         // but for Ubuntu, the default ulimit is 1024,
         // which breaks the test
         int len = getSize(10, 50);
-        Thread[] threads = new Thread[len];
+        Task[] tasks = new Task[len];
         for (int i = 0; i < len; i++) {
-            threads[i] = new Thread() {
-                public void run() {
-                    try {
-                        Connection c = DriverManager.getConnection(url, user, password);
-                        PreparedStatement prep = c.prepareStatement("insert into employee values(?, ?, 0)");
-                        int id = getNextId();
-                        prep.setInt(1, id);
-                        prep.setString(2, "employee " + id);
-                        prep.execute();
-                        c.close();
-                    } catch (Throwable e) {
-                        TestBase.logError("insert", e);
-                    }
+            tasks[i] = new Task() {
+                public void call() throws SQLException {
+                    Connection c = DriverManager.getConnection(url, user, password);
+                    PreparedStatement prep = c.prepareStatement("insert into employee values(?, ?, 0)");
+                    int id = getNextId();
+                    prep.setInt(1, id);
+                    prep.setString(2, "employee " + id);
+                    prep.execute();
+                    c.close();
                 }
             };
-            threads[i].start();
+            tasks[i].execute();
         }
         // for(int i=0; i<len; i++) {
         // threads[i].start();
         // }
         for (int i = 0; i < len; i++) {
-            threads[i].join();
+            tasks[i].get();
         }
         conn = DriverManager.getConnection(url, user, password);
         ResultSet rs = conn.createStatement().executeQuery("select count(*) from employee");

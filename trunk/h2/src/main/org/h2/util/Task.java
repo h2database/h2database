@@ -9,18 +9,22 @@ package org.h2.util;
 /**
  * A method call that is executed in a separate thread. If the method throws an
  * exception, it is wrapped in a RuntimeException.
- *
- * @param <R> the return value
  */
-public abstract class CallThread<R> extends Thread {
+public abstract class Task implements Runnable {
 
     /**
      * A flag indicating the get() method has been called.
      */
     protected volatile boolean stop;
 
+    /**
+     * The result, if any.
+     */
+    protected Object result;
+
+    private Thread thread;
+
     private Exception ex;
-    private R result;
 
     /**
      * The method to be implemented.
@@ -28,11 +32,11 @@ public abstract class CallThread<R> extends Thread {
      * @return the value, or null
      * @throws Exception any exception is wrapped in a RuntimeException
      */
-    public abstract R call() throws Exception;
+    public abstract void call() throws Exception;
 
     public void run() {
         try {
-            result = call();
+            call();
         } catch (Exception e) {
             this.ex = e;
         }
@@ -43,30 +47,44 @@ public abstract class CallThread<R> extends Thread {
      *
      * @return this
      */
-    public CallThread<R> execute() {
-        setDaemon(true);
-        setName(getClass().getName());
-        start();
+    public Task execute() {
+        thread = new Thread(this);
+        thread.setDaemon(true);
+        thread.setName(getClass().getName());
+        thread.start();
         return this;
     }
 
     /**
      * Calling this method will set the stop flag and wait until the thread is stopped.
      *
-     * @return the return value, or null
+     * @return the result, or null
      * @throws RuntimeException if an exception in the method call occurs
      */
-    public R get() {
+    public Object get() {
+        Exception e = getException();
+        if (e != null) {
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+
+    /**
+     * Get the exception that was thrown in the call (if any).
+     *
+     * @return the exception or null
+     */
+    public Exception getException() {
         stop = true;
         try {
-            join();
+            thread.join();
         } catch (InterruptedException e) {
             // ignore
         }
         if (ex != null) {
-            throw new RuntimeException(ex);
+            return ex;
         }
-        return result;
+        return null;
     }
 
 }

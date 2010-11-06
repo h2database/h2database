@@ -9,8 +9,10 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Test for the exclusive mode.
@@ -43,30 +45,19 @@ public class TestExclusive extends TestBase {
         Connection conn2 = getConnection("exclusive");
         final Statement stat2 = conn2.createStatement();
         stat.execute("set exclusive true");
-        final int[] state = { 0 };
-        Thread t = new Thread() {
-            public void run() {
-                try {
-                    stat2.execute("select * from dual");
-                    if (state[0] != 1) {
-                        new Error("unexpected state: " + state[0]).printStackTrace();
-                    }
-                    state[0] = 2;
-                } catch (Exception e) {
-                    e.printStackTrace();
+        final AtomicInteger state = new AtomicInteger(0);
+        Task task = new Task() {
+            public void call() throws SQLException {
+                stat2.execute("select * from dual");
+                if (state.get() != 1) {
+                    new Error("unexpected state: " + state.get()).printStackTrace();
                 }
             }
         };
-        t.start();
-        state[0] = 1;
+        task.execute();
+        state.set(1);
         stat.execute("set exclusive false");
-        for (int i = 0; i < 20; i++) {
-            Thread.sleep(100);
-            if (state[0] == 2) {
-                break;
-            }
-        }
-        assertEquals(2, state[0]);
+        task.get();
         stat.execute("set exclusive true");
         conn.close();
 

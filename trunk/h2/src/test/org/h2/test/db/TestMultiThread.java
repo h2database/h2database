@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.Random;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Multi-threaded tests.
@@ -61,30 +62,22 @@ public class TestMultiThread extends TestBase implements Runnable {
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id bigint primary key) as select x from system_range(1, 1000)");
-        final Exception[] ex = new Exception[1];
-        Thread t = new Thread() {
-            public void run() {
-                try {
-                    Connection conn2;
-                    conn2 = getConnection(url);
-                    for (int i = 0; i < 1000; i++) {
-                        conn2.createStatement().execute("analyze");
-                    }
-                    conn2.close();
-                } catch (Exception e) {
-                    ex[0] = e;
+        Task t = new Task() {
+            public void call() throws SQLException {
+                Connection conn2;
+                conn2 = getConnection(url);
+                for (int i = 0; i < 1000; i++) {
+                    conn2.createStatement().execute("analyze");
                 }
+                conn2.close();
             }
         };
-        t.start();
+        t.execute();
         Thread.yield();
         for (int i = 0; i < 1000; i++) {
             conn.createStatement().execute("analyze");
         }
-        t.join();
-        if (ex[0] != null) {
-            throw ex[0];
-        }
+        t.get();
         stat.execute("drop table test");
         conn.close();
         deleteDb("concurrentAnalyze");

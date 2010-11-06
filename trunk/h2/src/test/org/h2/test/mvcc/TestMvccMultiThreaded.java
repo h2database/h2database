@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Multi-threaded MVCC (multi version concurrency) test cases.
@@ -44,33 +45,25 @@ public class TestMvccMultiThreaded extends TestBase {
         }
         Connection conn = connList[0];
         conn.createStatement().execute("create table test(id int primary key, name varchar)");
-        final SQLException[] ex = { null };
-        Thread[] threads = new Thread[len];
+        Task[] tasks = new Task[len];
         final boolean[] stop = { false };
         for (int i = 0; i < len; i++) {
             final Connection c = connList[i];
             c.setAutoCommit(false);
-            threads[i] = new Thread() {
-                public void run() {
-                    while (!stop[0]) {
-                        try {
-                            c.createStatement().execute("merge into test values(1, 'x')");
-                            c.commit();
-                        } catch (SQLException e) {
-                            ex[0] = e;
-                        }
+            tasks[i] = new Task() {
+                public void call() throws SQLException {
+                    while (!stop) {
+                        c.createStatement().execute("merge into test values(1, 'x')");
+                        c.commit();
                     }
                 }
             };
-            threads[i].start();
+            tasks[i].execute();
         }
         Thread.sleep(1000);
         stop[0] = true;
         for (int i = 0; i < len; i++) {
-            threads[i].join();
-        }
-        if (ex[0] != null) {
-            throw ex[0];
+            tasks[i].get();
         }
         for (int i = 0; i < len; i++) {
             connList[i].close();
@@ -88,35 +81,26 @@ public class TestMvccMultiThreaded extends TestBase {
         Connection conn = connList[0];
         conn.createStatement().execute("create table test(id int primary key, value int)");
         conn.createStatement().execute("insert into test values(0, 0)");
-        final Exception[] ex = { null };
         final int count = 1000;
-        Thread[] threads = new Thread[len];
+        Task[] tasks = new Task[len];
 
         final CountDownLatch latch = new CountDownLatch(len);
 
         for (int i = 0; i < len; i++) {
             final int x = i;
-            threads[i] = new Thread() {
-                public void run() {
+            tasks[i] = new Task() {
+                public void call() throws Exception {
                     for (int a = 0; a < count; a++) {
-                        try {
-                            connList[x].createStatement().execute("update test set value=value+1");
-                            latch.countDown();
-                            latch.await();
-                        } catch (Exception e) {
-                            ex[0] = e;
-                            break;
-                        }
+                        connList[x].createStatement().execute("update test set value=value+1");
+                        latch.countDown();
+                        latch.await();
                     }
                 }
             };
-            threads[i].start();
+            tasks[i].execute();
         }
         for (int i = 0; i < len; i++) {
-            threads[i].join();
-        }
-        if (ex[0] != null) {
-            throw ex[0];
+            tasks[i].get();
         }
         ResultSet rs = conn.createStatement().executeQuery("select value from test");
         rs.next();

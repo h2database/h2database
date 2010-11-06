@@ -13,6 +13,7 @@ import java.sql.Statement;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Multi-connection tests.
@@ -45,21 +46,14 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         stat1.execute("CREATE ALIAS SLEEP FOR \"java.lang.Thread.sleep(long)\"");
         final Statement stat2 = conn2.createStatement();
         stat1.execute("SET THROTTLE 100");
-        new Thread() {
-            public void run() {
-                try {
-                    stat2.executeQuery("CALL SLEEP(100)");
-                    try {
-                        Thread.sleep(10);
-                    } catch (Exception e) {
-                        // ignore
-                    }
-                    stat2.executeQuery("CALL SLEEP(100)");
-                } catch (SQLException e) {
-                    // ignore
-                }
+        Task t = new Task() {
+            public void call() throws Exception {
+                stat2.executeQuery("CALL SLEEP(100)");
+                Thread.sleep(10);
+                stat2.executeQuery("CALL SLEEP(100)");
             }
-        } .start();
+        };
+        t.execute();
         Thread.sleep(50);
         stat1.execute("SHUTDOWN");
         conn1.close();
@@ -68,6 +62,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         } catch (SQLException e) {
             // ignore
         }
+        t.get();
     }
 
     private void testThreeThreads() throws Exception {

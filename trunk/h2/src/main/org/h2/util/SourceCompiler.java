@@ -216,23 +216,19 @@ public class SourceCompiler {
     }
 
     private void copyInThread(final InputStream in, final OutputStream out) {
-        new Thread() {
-            public void run() {
-                try {
-                    while (true) {
-                        int x = in.read();
-                        if (x < 0) {
-                            return;
-                        }
-                        if (out != null) {
-                            out.write(x);
-                        }
+        new Task() {
+            public void call() throws IOException {
+                while (true) {
+                    int x = in.read();
+                    if (x < 0) {
+                        return;
                     }
-                } catch (Exception e) {
-                    throw DbException.convert(e);
+                    if (out != null) {
+                        out.write(x);
+                    }
                 }
             }
-        } .start();
+        }.execute();
     }
 
     private void javacSun(File javaFile) {

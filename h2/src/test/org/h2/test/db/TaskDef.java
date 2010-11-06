@@ -14,7 +14,7 @@ import org.h2.test.utils.SelfDestructor;
 /**
  * A task that can be run as a separate process.
  */
-public abstract class Task {
+public abstract class TaskDef {
 
     /**
      * Run the class. This method is called by the task framework, and should
@@ -24,10 +24,10 @@ public abstract class Task {
      */
     public static void main(String... args) {
         SelfDestructor.startCountdown(60);
-        Task task;
+        TaskDef task;
         try {
             String className = args[0];
-            task = (Task) Class.forName(className).newInstance();
+            task = (TaskDef) Class.forName(className).newInstance();
             System.out.println("running");
         } catch (Throwable t) {
             System.out.println("init error: " + t);

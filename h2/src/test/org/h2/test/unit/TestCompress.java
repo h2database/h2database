@@ -19,6 +19,7 @@ import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.CompressTool;
 import org.h2.util.New;
+import org.h2.util.Task;
 
 /**
  * Data compression tests.
@@ -62,40 +63,26 @@ public class TestCompress extends TestBase {
     }
 
     private void testMultiThreaded() throws Exception {
-        Thread[] threads = new Thread[3];
-        final boolean[] stop = { false };
-        final Exception[] ex = { null };
-        for (int i = 0; i < threads.length; i++) {
-            Thread t = new Thread() {
-                public void run() {
+        Task[] tasks = new Task[3];
+        for (int i = 0; i < tasks.length; i++) {
+            Task t = new Task() {
+                public void call() {
                     CompressTool tool = CompressTool.getInstance();
                     byte[] buff = new byte[1024];
                     Random r = new Random();
-                    while (!stop[0]) {
+                    while (!stop) {
                         r.nextBytes(buff);
-                        try {
-                            byte[] test = tool.expand(tool.compress(buff, "LZF"));
-                            assertEquals(buff, test);
-                        } catch (Exception e) {
-                            ex[0] = e;
-                        }
+                        byte[] test = tool.expand(tool.compress(buff, "LZF"));
+                        assertEquals(buff, test);
                     }
                 }
             };
-            threads[i] = t;
-            t.start();
+            tasks[i] = t;
+            t.execute();
         }
-        try {
-            Thread.sleep(1000);
-            stop[0] = true;
-            for (Thread t : threads) {
-                t.join();
-            }
-        } catch (InterruptedException e) {
-            // ignore
-        }
-        if (ex[0] != null) {
-            throw ex[0];
+        Thread.sleep(1000);
+        for (Task t : tasks) {
+            t.get();
         }
     }
 

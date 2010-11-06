@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Row level locking tests.
@@ -82,19 +83,15 @@ public class TestRowLocks extends TestBase {
         assertEquals("Hallo", getSingleValue(s2, "SELECT NAME FROM TEST WHERE ID=1"));
 
         s2.execute("UPDATE TEST SET NAME='H1' WHERE ID=1");
-        Thread thread = new Thread() {
-            public void run() {
-                try {
-                    s1.execute("UPDATE TEST SET NAME='H2' WHERE ID=1");
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+        Task task = new Task() {
+            public void call() throws SQLException {
+                s1.execute("UPDATE TEST SET NAME='H2' WHERE ID=1");
             }
         };
-        thread.start();
+        task.execute();
         Thread.sleep(100);
         c2.commit();
-        thread.join();
+        task.get();
         c1.commit();
         assertEquals("H2", getSingleValue(s1, "SELECT NAME FROM TEST WHERE ID=1"));
         assertEquals("H2", getSingleValue(s2, "SELECT NAME FROM TEST WHERE ID=1"));

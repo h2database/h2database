@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.test.TestBase;
 import org.h2.util.NetUtils;
+import org.h2.util.Task;
 
 /**
  * Test the network utilities.
@@ -42,9 +43,9 @@ public class TestNetUtils extends TestBase {
     private void testFrequentConnections(boolean ssl, int count) throws Exception {
         final ServerSocket serverSocket = NetUtils.createServerSocket(PORT, ssl);
         final AtomicInteger counter = new AtomicInteger(count);
-        Thread serverThread = new Thread() {
-            public void run() {
-                while (!isInterrupted()) {
+        Task serverThread = new Task() {
+            public void call() {
+                while (!stop) {
                     try {
                         Socket socket = serverSocket.accept();
                         // System.out.println("opened " + counter);
@@ -57,7 +58,7 @@ public class TestNetUtils extends TestBase {
 
             }
         };
-        serverThread.start();
+        serverThread.execute();
         try {
             Set<ConnectWorker> workers = new HashSet<ConnectWorker>();
             for (int i = 0; i < WORKER_COUNT; i++) {
@@ -81,8 +82,7 @@ public class TestNetUtils extends TestBase {
             } catch (Exception e) {
                 // ignore
             }
-            serverThread.interrupt();
-            serverThread.join();
+            serverThread.get();
         }
     }
 

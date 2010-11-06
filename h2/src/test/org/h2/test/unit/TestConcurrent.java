@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Test concurrent access to JDBC objects.
@@ -46,42 +47,36 @@ public class TestConcurrent extends TestBase {
                 break;
             }
             final PreparedStatement prep = conn.prepareStatement(sql);
-            final SQLException[] ex = new SQLException[1];
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        while (!conn.isClosed()) {
-                            switch (x % 6) {
-                            case 0:
-                                prep.executeQuery();
-                                break;
-                            case 1:
-                                prep.execute();
-                                break;
-                            case 2:
-                                prep.executeUpdate();
-                                break;
-                            case 3:
-                                stat.executeQuery("select 1");
-                                break;
-                            case 4:
-                                stat.execute("select 1");
-                                break;
-                            case 5:
-                                stat.execute("delete from test");
-                                break;
-                            }
+            Task t = new Task() {
+                public void call() throws SQLException {
+                    while (!conn.isClosed()) {
+                        switch (x % 6) {
+                        case 0:
+                            prep.executeQuery();
+                            break;
+                        case 1:
+                            prep.execute();
+                            break;
+                        case 2:
+                            prep.executeUpdate();
+                            break;
+                        case 3:
+                            stat.executeQuery("select 1");
+                            break;
+                        case 4:
+                            stat.execute("select 1");
+                            break;
+                        case 5:
+                            stat.execute("delete from test");
+                            break;
                         }
-                    } catch (SQLException e) {
-                        ex[0] = e;
                     }
                 }
             };
-            t.start();
+            t.execute();
             Thread.sleep(100);
             conn.close();
-            t.join();
-            SQLException e = ex[0];
+            SQLException e = (SQLException) t.getException();
             if (e != null) {
                 if (ErrorCode.OBJECT_CLOSED != e.getErrorCode() &&
                         ErrorCode.STATEMENT_WAS_CANCELED != e.getErrorCode()) {

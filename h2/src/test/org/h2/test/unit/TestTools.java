@@ -40,6 +40,7 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.Server;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Task;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 
@@ -221,20 +222,16 @@ public class TestTools extends TestBase {
             assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
         }
         final ServerSocket serverSocket = new ServerSocket(9001);
-        Thread thread = new Thread() {
-            public void run() {
-                try {
-                    Socket socket = serverSocket.accept();
-                    byte[] data = new byte[1024];
-                    data[0] = 'x';
-                    socket.getOutputStream().write(data);
-                    socket.close();
-                } catch (Exception e) {
-                    // ignore
-                }
+        Task task = new Task() {
+            public void call() throws Exception {
+                Socket socket = serverSocket.accept();
+                byte[] data = new byte[1024];
+                data[0] = 'x';
+                socket.getOutputStream().write(data);
+                socket.close();
             }
         };
-        thread.start();
+        task.execute();
         Thread.sleep(100);
         try {
             Connection conn = getConnection("jdbc:h2:tcp://localhost:9001/test");
@@ -244,7 +241,7 @@ public class TestTools extends TestBase {
             assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
         }
         serverSocket.close();
-        thread.join();
+        task.get();
     }
 
     private void testDeleteFiles() throws SQLException {

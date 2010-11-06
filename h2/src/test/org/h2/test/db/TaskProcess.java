@@ -17,6 +17,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.test.utils.SelfDestructor;
+import org.h2.util.Task;
 import org.h2.util.StringUtils;
 
 /**
@@ -25,7 +26,7 @@ import org.h2.util.StringUtils;
  * process is directly send to the standard error stream of this process.
  */
 public class TaskProcess {
-    private final Task taskDef;
+    private final TaskDef taskDef;
     private Process process;
     private BufferedReader reader;
     private BufferedWriter writer;
@@ -35,7 +36,7 @@ public class TaskProcess {
      *
      * @param taskDef the task
      */
-    public TaskProcess(Task taskDef) {
+    public TaskProcess(TaskDef taskDef) {
         this.taskDef = taskDef;
     }
 
@@ -52,7 +53,7 @@ public class TaskProcess {
             list.add(selfDestruct);
             list.add("-cp");
             list.add("bin" + File.pathSeparator + ".");
-            list.add(Task.class.getName());
+            list.add(TaskDef.class.getName());
             list.add(taskDef.getClass().getName());
             if (args != null && args.length > 0) {
                 list.addAll(Arrays.asList(args));
@@ -78,23 +79,19 @@ public class TaskProcess {
     }
 
     private void copyInThread(final InputStream in, final OutputStream out) {
-        new Thread() {
-            public void run() {
-                try {
-                    while (true) {
-                        int x = in.read();
-                        if (x < 0) {
-                            return;
-                        }
-                        if (out != null) {
-                            out.write(x);
-                        }
+        new Task() {
+            public void call() throws IOException {
+                while (true) {
+                    int x = in.read();
+                    if (x < 0) {
+                        return;
                     }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    if (out != null) {
+                        out.write(x);
+                    }
                 }
             }
-        } .start();
+        }.execute();
     }
 
     /**

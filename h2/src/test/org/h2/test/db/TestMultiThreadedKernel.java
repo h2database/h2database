@@ -9,12 +9,14 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
+import org.h2.util.Task;
 
 /**
  * A multi-threaded test case.
@@ -90,10 +92,9 @@ public class TestMultiThreadedKernel extends TestBase {
     }
 
     private void testConcurrentRead() throws Exception {
-        ArrayList<Thread> list = New.arrayList();
+        ArrayList<Task> list = New.arrayList();
         int size = 2;
         final int count = 1000;
-        final boolean[] stopped = { false };
         String url = getURL("multiThreadedKernel;MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
         for (int i = 0; i < size; i++) {
             final Connection conn = DriverManager.getConnection(url, getUser(), getPassword());
@@ -104,35 +105,29 @@ public class TestMultiThreadedKernel extends TestBase {
                         + "as select x, x || space(10) from system_range(1, " + count + ")");
             }
             final Random random = new Random(i);
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        PreparedStatement prep = conn.prepareStatement(
-                                "select * from test where id = ?");
-                        while (!stopped[0]) {
-                            prep.setInt(1, random.nextInt(count));
-                            prep.execute();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            Task t = new Task() {
+                public void call() throws Exception {
+                    PreparedStatement prep = conn.prepareStatement(
+                            "select * from test where id = ?");
+                    while (!stop) {
+                        prep.setInt(1, random.nextInt(count));
+                        prep.execute();
                     }
                 }
             };
-            t.start();
+            t.execute();
             list.add(t);
         }
         Thread.sleep(1000);
-        stopped[0] = true;
-        for (Thread t : list) {
-            t.join();
+        for (Task t : list) {
+            t.get();
         }
     }
 
     private void testCache() throws Exception {
-        ArrayList<Thread> list = New.arrayList();
+        ArrayList<Task> list = New.arrayList();
         int size = 3;
         final int count = 100;
-        final boolean[] stopped = { false };
         String url = getURL("multiThreadedKernel;MULTI_THREADED=TRUE;CACHE_SIZE=1", true);
         for (int i = 0; i < size; i++) {
             final Connection conn = DriverManager.getConnection(url, getUser(), getPassword());
@@ -143,27 +138,22 @@ public class TestMultiThreadedKernel extends TestBase {
                         + "as select x, space(3000) from system_range(1, " + count + ")");
             }
             final Random random = new Random(i);
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        PreparedStatement prep = conn.prepareStatement(
-                                "select * from test where id = ?");
-                        while (!stopped[0]) {
-                            prep.setInt(1, random.nextInt(count));
-                            prep.execute();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            Task t = new Task() {
+                public void call() throws SQLException {
+                    PreparedStatement prep = conn.prepareStatement(
+                            "select * from test where id = ?");
+                    while (!stop) {
+                        prep.setInt(1, random.nextInt(count));
+                        prep.execute();
                     }
                 }
             };
-            t.start();
+            t.execute();
             list.add(t);
         }
         Thread.sleep(1000);
-        stopped[0] = true;
-        for (Thread t : list) {
-            t.join();
+        for (Task t : list) {
+            t.get();
         }
     }
 

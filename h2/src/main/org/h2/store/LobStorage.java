@@ -44,10 +44,16 @@ public class LobStorage {
      */
     public static final int TABLE_TEMP = -2;
 
+    /**
+     * The name of the lob data table. If this table exists, then lob storage is used.
+     */
+    public static final String LOB_DATA_TABLE = "LOB_DATA";
 
-    private static final String LOBS = "INFORMATION_SCHEMA.LOBS";
-    private static final String LOB_MAP = "INFORMATION_SCHEMA.LOB_MAP";
-    private static final String LOB_DATA = "INFORMATION_SCHEMA.LOB_DATA";
+    private static final String LOB_SCHEMA = "INFORMATION_SCHEMA";
+
+    private static final String LOBS = LOB_SCHEMA + ".LOBS";
+    private static final String LOB_MAP = LOB_SCHEMA + ".LOB_MAP";
+    private static final String LOB_DATA = LOB_SCHEMA + "." + LOB_DATA_TABLE;
 
     private static final int BLOCK_LENGTH = 20000;
 

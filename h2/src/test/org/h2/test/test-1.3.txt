@@ -2483,10 +2483,10 @@ create table address(id identity, name varchar check instr(value, '@') > 1);
 create table address(id identity, name varchar check instr(name, '@') > 1);
 > ok
 
-drop table address;
+drop view if exists address_view;
 > ok
 
-drop view if exists address_view;
+drop table address;
 > ok
 
 create memory table a(k10 blob(10k), m20 blob(20m), g30 clob(30g));

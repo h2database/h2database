@@ -443,7 +443,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Scripting language support (Javascript).
 </li><li>The network client should better detect if the server is not an H2 server and fail early.
 </li><li>H2 Console: support CLOB/BLOB upload.
-</li><li>Move away from system properties where possible.
+</li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
 </li><li>Database file lock: detect hibernate / standby / very slow threads (compare system time).
 </li><li>Automatic detection of redundant indexes.
 </li><li>Maybe reject join without "on" (except natural join).
@@ -477,7 +477,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Indexes of temporary tables are currently kept in-memory. Is this how it should be?
 </li><li>The Shell tool should support the same built-in commands as the H2 Console.
 </li><li>Maybe use PhantomReference instead of finalize.
-</li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
 </li><li>Database file name suffix: should only have one dot by default. Example: .h2db
 </li><li>Issue 196: Function based indexes
 </li><li>Fix the disk space leak (killing the process at the exact right moment will increase

@@ -199,6 +199,10 @@ public class Database implements DataHandler {
             listener = StringUtils.trim(listener, true, true, "'");
             setEventListenerClass(listener);
         }
+        String modeName = ci.removeProperty("MODE", null);
+        if (modeName != null) {
+            this.mode = Mode.getInstance(modeName);
+        }
         this.multiVersion = ci.getProperty("MVCC", false);
         boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
@@ -1053,11 +1057,14 @@ public class Database implements DataHandler {
         }
         // remove all session variables
         if (persistent) {
-            try {
-                getLobStorage();
-                lobStorage.removeAllForTable(LobStorage.TABLE_ID_SESSION_VARIABLE);
-            } catch (DbException e) {
-                traceSystem.getTrace(Trace.DATABASE).error("close", e);
+            boolean lobStorageIsUsed = infoSchema.findTableOrView(systemSession, LobStorage.LOB_DATA_TABLE) != null;
+            if (lobStorageIsUsed) {
+                try {
+                    getLobStorage();
+                    lobStorage.removeAllForTable(LobStorage.TABLE_ID_SESSION_VARIABLE);
+                } catch (DbException e) {
+                    traceSystem.getTrace(Trace.DATABASE).error("close", e);
+                }
             }
         }
         tempFileDeleter.deleteAll();

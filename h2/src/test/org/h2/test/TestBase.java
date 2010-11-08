@@ -881,7 +881,7 @@ public abstract class TestBase {
             String actual = rs.getString(1);
             assertEquals(expected, actual);
         } else {
-            assertEquals(null, expected);
+            assertEquals(expected, null);
         }
     }
 

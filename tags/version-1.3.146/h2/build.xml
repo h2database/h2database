@@ -1,0 +1,154 @@
+<project name="h2" default="all" basedir=".">
+
+	<target name="all" depends="jar">
+	</target>
+
+	<target name="clean" depends="init">
+		<mkdir dir="bin"/>
+		<mkdir dir="docs"/>
+		<delete includeemptydirs="true">
+			<fileset dir="." includes="*.sql,*.txt,*.lock,**/*.db,node*"/>
+			<fileset dir="bin" includes="**/*" excludes="**/*.bat,**/*.sh"/>
+			<fileset dir="docs" includes="**/*"/>
+		</delete>
+	</target>
+
+	<target name="compile" depends="switchSourceAuto, resources, download">
+		<javac destdir="bin" debug="true" debuglevel="lines,source" >
+			<classpath location="ext/servlet-api-2.4.jar" />
+		    <classpath location="ext/lucene-core-2.2.0.jar" />
+		    <classpath location="ext/slf4j-api-1.5.0.jar" />
+		    <classpath location="ext/org.osgi.core-1.2.0.jar" />
+		    <src path="src/main"/>
+	       	<src path="src/test"/>
+	       	<src path="src/tools"/>
+	    </javac>
+		<copy todir="bin" overwrite="true">
+			<fileset dir="src/main" includes="META-INF/services/*"/>
+			<fileset dir="src/installer" includes="*.bat"/>
+			<fileset dir="src/installer" includes="*.sh"/>
+			<fileset dir="src/test" excludes="**/*.java,**/package.html"/>
+		</copy>
+	</target>
+
+    <target name="compileCoverage" depends="compile">
+		<copy todir="bin" overwrite="true">
+			<fileset dir="src/main"/>
+		</copy>
+		<java classname="org.h2.test.coverage.Coverage" classpath="." dir="bin" fork="true">
+			<arg line="-r org/h2"/>
+		</java>
+		<javac srcdir="bin" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/**"/>
+    </target>
+
+    <target name="download" depends="init" unless="ext.present">
+        <get dest="ext/servlet-api-2.4.jar"
+            src="http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar" />
+        <get dest="ext/lucene-core-2.2.0.jar"
+            src="http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar" />
+        <get dest="ext/slf4j-api-1.5.0.jar"
+            src="http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.5.0/slf4j-api-1.5.0.jar" />
+        <get dest="ext/org.osgi.core-1.2.0.jar"
+            src="http://repo1.maven.org/maven2/org/apache/felix/org.osgi.core/1.2.0/org.osgi.core-1.2.0.jar" />
+    </target>
+
+	<target name="init">
+		<mkdir dir="ext"/>
+	    <condition property="ext.present">
+			<and>
+	  			<available file="ext/servlet-api-2.4.jar"/>
+	  			<available file="ext/lucene-core-2.2.0.jar"/>
+	  			<available file="ext/slf4j-api-1.5.0.jar"/>
+	  			<available file="ext/org.osgi.core-1.2.0.jar"/>
+			</and>
+		</condition>
+	</target>
+
+	<target name="jar" depends="compile, manifest">
+		<manifest file="bin/META-INF/MANIFEST.MF" mode="update">
+			<attribute name="Main-Class" value="org.h2.tools.Console"/>
+		</manifest>
+		<jar jarfile="bin/h2.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
+			<include name="**/*.*"/>
+			<exclude name="org/h2/build/**/*.*"/>
+			<exclude name="org/h2/dev/**/*.*"/>
+			<exclude name="org/h2/samples/**/*.*"/>
+			<exclude name="org/h2/test/**/*.*"/>
+			<exclude name="**/*.bat"/>
+			<exclude name="**/*.sh"/>
+			<exclude name="**/*.txt"/>
+		</jar>
+	</target>
+
+    <target name="manifest">
+		<mkdir dir="bin/META-INF"/>
+		<manifest file="bin/META-INF/MANIFEST.MF">
+			<attribute name="Implementation-Title" value="H2 Database Engine"/>
+			<attribute name="Implementation-URL" value="http://www.h2database.com"/>
+			<attribute name="Build-Jdk" value="${java.specification.version}"/>
+		</manifest>
+	</target>
+
+	<target name="resources" depends="clean">
+	    <mkdir dir="bin/org/h2/util"/>
+	    <zip destfile="bin/org/h2/util/data.zip"
+	        basedir="src/main"
+	        compress="false"
+	        excludes="**/*.java,**/package.html,**/java.sql.Driver" />
+	</target>
+
+	<target name="switchSourcePrepare" depends="clean">
+		<javac source="1.5" srcdir="src/tools" destdir="bin"
+		    debug="true" debuglevel="lines,source"
+		    includes="org/h2/build/code/SwitchSource.java"/>
+	</target>
+
+    <target name="switchSourceAndroid" depends="switchSourcePrepare">
+		<java classname="org.h2.build.code.SwitchSource" classpath="bin">
+			<arg line="-version 1.3 -AWT -dir src/main/org/h2"/>
+		</java>
+	</target>
+
+	<target name="switchSourceAuto" depends="switchSourcePrepare">
+		<java classname="org.h2.build.code.SwitchSource" classpath="bin">
+			<arg line="-auto -dir src/main/org/h2"/>
+		</java>
+	</target>
+
+	<target name="switchSourceJdk13" depends="switchSourcePrepare">
+		<java classname="org.h2.build.code.SwitchSource" classpath="bin">
+			<arg line="-version 1.3 +AWT -dir src/main/org/h2"/>
+		</java>
+	</target>
+
+	<target name="switchSourceJdk14" depends="switchSourcePrepare">
+		<java classname="org.h2.build.code.SwitchSource" classpath="bin">
+			<arg line="-version 1.4 +AWT -dir src/main/org/h2"/>
+		</java>
+	</target>
+
+	<target name="switchSourceJdk16" depends="switchSourcePrepare">
+		<java classname="org.h2.build.code.SwitchSource" classpath="bin">
+			<arg line="-version 1.6 +AWT -dir src/main/org/h2"/>
+		</java>
+	</target>
+
+    <target name="test" depends="compile">
+        <java classname="org.h2.test.TestAll" fork="true">
+            <classpath>
+                <pathelement location="ext/servlet-api-2.4.jar" />
+                <pathelement location="ext/lucene-core-2.2.0.jar" />
+                <pathelement location="ext/slf4j-api-1.5.0.jar" />
+                <pathelement location="ext/org.osgi.core-1.2.0.jar" />
+                <pathelement path="bin"/>
+            </classpath>
+        </java>
+    </target>
+
+	<target name="testCoverage" depends="compileCoverage">
+		<java classname="org.h2.test.TestAll" fork="true" classpath="." dir="bin">
+			<arg line="codeCoverage"/>
+		</java>
+	</target>
+
+</project>

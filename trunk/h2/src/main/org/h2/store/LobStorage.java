@@ -45,7 +45,8 @@ public class LobStorage {
     public static final int TABLE_TEMP = -2;
 
     /**
-     * The name of the lob data table. If this table exists, then lob storage is used.
+     * The name of the lob data table. If this table exists, then lob storage is
+     * used.
      */
     public static final String LOB_DATA_TABLE = "LOB_DATA";
 

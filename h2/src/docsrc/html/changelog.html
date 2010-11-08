@@ -18,7 +18,27 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When the system property h2.lobInDatabase is set, the lob tables were always
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.146 Beta (2010-11-08)</h2>
+<ul><li>This is a beta version. The next version will be 1.2.147. The differences between 1.2.x and 1.3.x are:
+</li><li>In version 1.3.x, h2.lobInDatabase (store CLOB and BLOB in the database file) is enabled by default.
+</li><li>In version 1.3.x, ANALYZE_AUTO is 2000 (automatic ANALYZE).
+</li><li>In version 1.3.x, DB_CLOSE_ON_EXIT (the shutdown hook) is disabled by default.
+</li><li>In version 1.3.x, DROP_RESTRICT (default action for DROP is RESTRICT) is enabled.
+</li><li>In version 1.3.x, FUNCTIONS_IN_SCHEMA (allow to store functions in a schema) is enabled.
+</li><li>In version 1.3.x, LARGE_TRANSACTIONS (support for very large transactions) is enabled.
+    Changes to tables without a primary key can be buffered to disk.
+</li><li>In version 1.3.x, MAX_MEMORY_ROWS_DISTINCT is set to a 10000.
+</li><li>In version 1.3.x, NESTED_JOINS (nested joins and right outer joins) is enabled.
+</li><li>In version 1.3.x, OPTIMIZE_INSERT_FROM_SELECT (speed up CREATE TABLE ... AS SELECT) is enabled.
+</li><li>In version 1.3.x, OPTIMIZE_OR (convert OR conditions to IN(..) if possible) is enabled.
+</li><li>In version 1.3.x, QUERY_CACHE_SIZE is enabled.
+</li><li>In version 1.3.x, SELECT_FOR_UPDATE_MVCC (MVCC and SELECT FOR UPDATE) is enabled.
+</li><li>In version 1.3.x, RUNSCRIPT and SCRIPT (commands and tools), use UTF-8 by default (ScriptCommand.charset).
+</li><li>In version 1.3.x, Lucene 3 is used by default. Issue 147.
+</li><li>When the system property h2.lobInDatabase is set, the lob tables were always
     created when closing the database, even if the tables were not needed.
 </li><li>In the MySQL mode, SHOW TABLES didn't work, and meta data tables were not
     case insensitive. Updatable result sets didn't work as expected. Issue 249.
@@ -828,27 +848,6 @@ Change Log
 </li><li>Inserting LOBs got slower each time the process was restarted. It could loop endlessly after about 1000 process restarts.
 </li><li>Issue 117: Multi-version concurrency: concurrent MERGE statements now work.
 </li><li>Improved read-only database detection.
-</li></ul>
-
-<h2>Version 1.2.123 (2009-11-08)</h2>
-<ul><li>Page store: new databases can not be opened with older versions.
-</li><li>Page store: updating large rows (rows with more than 2000 bytes of data)
-    could corrupt the database.
-</li><li>Page store: inserting very large rows failed with ArrayIndexOutOfBoundsException.
-</li><li>When using multi-threaded kernel mode, setting disabling locking (LOCK_MODE=0)
-    will now throw an exception. At this time this combination will result in corruption when
-    multiple threads try to update the same table.
-</li><li>The fulltext search methods and fields are now protected instead of private,
-    to make the classes more easily extensible.
-</li><li>The Lucene fulltext search now also returns the score.
-</li><li> New function SCOPE_IDENTITY() to avoid problems when inserting
-    rows in a trigger.
-</li><li>Statement.getGeneratedKeys() returned the wrong value if a trigger
-    changed the identity value after inserting the row.
-</li><li>Improved error messages: identifiers and values are now quoted.
-</li><li>Improved error message when casting a value failed:
-    the column name and type is included in the message.
-</li><li>Improved support for GAE for Java thanks to Vince Bonfanti.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

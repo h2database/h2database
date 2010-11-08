@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>In the MySQL mode, SHOW TABLES didn't work, and meta data tables were not
+<ul><li>When the system property h2.lobInDatabase is set, the lob tables were always
+    created when closing the database, even if the tables were not needed.
+</li><li>In the MySQL mode, SHOW TABLES didn't work, and meta data tables were not
     case insensitive. Updatable result sets didn't work as expected. Issue 249.
 </li><li>Connection-created Clob and Blob objects can now be filled using
     Clob.setCharacterStream(1), Clob.setString(1, s), Blob.setBytes(1, x), Blob.setBinaryStream(1).

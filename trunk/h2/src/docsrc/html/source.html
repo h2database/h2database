@@ -22,6 +22,8 @@ Initial Developer: H2 Group
         } else if (key == 'build') {
             if (value == 64) {
                 tag = 'tags/version-1.0.' + value;
+            } else if (value == 146) {
+                tag = 'tags/version-1.3.' + build + '/h2';
             } else if (value >= 120) {
                 tag = 'tags/version-1.2.' + value + '/h2';
             } else if (value >= 100) {

@@ -242,7 +242,10 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     protected int compareSecure(Value v, CompareMode mode) {
         if (v instanceof ValueLobDb) {
             ValueLobDb v2 = (ValueLobDb) v;
-            if (lobId == v2.lobId) {
+            if (v == this) {
+                return 0;
+            }
+            if (lobId == v2.lobId && small == null && v2.small == null) {
                 return 0;
             }
         }

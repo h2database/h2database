@@ -23,6 +23,7 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileSystem;
@@ -49,6 +50,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testUniqueIndex();
         testConvert();
         testCreateAsSelect();
         testDropAllObjects();
@@ -83,6 +85,30 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testUniqueIndex() throws Exception {
+        deleteDb("lob");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("lob");
+        stat = conn.createStatement();
+        stat.execute("create table test(x clob unique)");
+        stat.execute("insert into test values('hello')");
+        stat.execute("insert into test values('world')");
+        try {
+            stat.execute("insert into test values('world')");
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
+        }
+        stat.execute("insert into test values(space(10000) || 'a')");
+        try {
+            stat.execute("insert into test values(space(10000) || 'a')");
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
+        }
+        stat.execute("insert into test values(space(10000) || 'b')");
+        conn.close();
     }
 
     private void testConvert() throws Exception {

@@ -449,7 +449,7 @@ public class WebServer implements Service {
     }
 
     public String getType() {
-        return "Web";
+        return "Web Console";
     }
 
     public String getName() {

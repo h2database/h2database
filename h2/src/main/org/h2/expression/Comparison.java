@@ -356,14 +356,12 @@ public class Comparison extends Condition {
             return;
         }
         if (l == null) {
-            ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
-            visitor.setResolver(filter);
+            ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
             if (!left.isEverything(visitor)) {
                 return;
             }
         } else if (r == null) {
-            ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
-            visitor.setResolver(filter);
+            ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
             if (!right.isEverything(visitor)) {
                 return;
             }

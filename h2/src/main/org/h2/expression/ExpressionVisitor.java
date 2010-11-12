@@ -7,10 +7,7 @@
 package org.h2.expression;
 
 import java.util.HashSet;
-
-import org.h2.constant.SysProperties;
 import org.h2.engine.DbObject;
-import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 
@@ -98,15 +95,29 @@ public class ExpressionVisitor {
      */
     public static final ExpressionVisitor QUERY_COMPARABLE_VISITOR = new ExpressionVisitor(QUERY_COMPARABLE);
 
-    private int queryLevel;
-    private Table table;
-    private int type;
-    private long maxDataModificationId;
-    private ColumnResolver resolver;
-    private HashSet<DbObject> dependencies;
+    private final int type;
+    private final int queryLevel;
+    private final HashSet<DbObject> dependencies;
+    private final Table table;
+    private final long[] maxDataModificationId;
+    private final ColumnResolver resolver;
+
+    private ExpressionVisitor(int type, int queryLevel, HashSet<DbObject> dependencies, Table table, ColumnResolver resolver, long[] maxDataModificationId) {
+        this.type = type;
+        this.queryLevel = queryLevel;
+        this.dependencies = dependencies;
+        this.table = table;
+        this.resolver = resolver;
+        this.maxDataModificationId = maxDataModificationId;
+    }
 
     private ExpressionVisitor(int type) {
         this.type = type;
+        this.queryLevel = 0;
+        this.dependencies = null;
+        this.table = null;
+        this.resolver = null;
+        this.maxDataModificationId = null;
     }
 
     /**
@@ -115,18 +126,22 @@ public class ExpressionVisitor {
      * @param type the visitor type
      * @return the new visitor
      */
-    public static ExpressionVisitor get(int type) {
-        if (SysProperties.CHECK) {
-            switch (type) {
-            case INDEPENDENT:
-            case DETERMINISTIC:
-            case EVALUATABLE:
-            case READONLY:
-            case QUERY_COMPARABLE:
-                throw DbException.throwInternalError("Singleton not used");
-            }
-        }
-        return new ExpressionVisitor(type);
+
+
+    public static ExpressionVisitor getDependenciesVisitor(HashSet<DbObject> dependencies) {
+        return new ExpressionVisitor(GET_DEPENDENCIES, 0, dependencies, null, null, null);
+    }
+
+    public static ExpressionVisitor getOptimizableVisitor(Table table) {
+        return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null, table, null, null);
+    }
+
+    public static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
+        return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, resolver, null);
+    }
+
+    public static ExpressionVisitor getMaxModificationIdVisitor() {
+        return new ExpressionVisitor(SET_MAX_DATA_MODIFICATION_ID, 0, null, null, null, new long[1]);
     }
 
     /**
@@ -150,22 +165,13 @@ public class ExpressionVisitor {
     }
 
     /**
-     * Set all dependencies.
-     * This is used for GET_DEPENDENCIES visitors.
-     *
-     * @param dependencies the dependency set
-     */
-    public void setDependencies(HashSet<DbObject> dependencies) {
-        this.dependencies = dependencies;
-    }
-
-    /**
      * Increment or decrement the query level.
      *
      * @param offset 1 to increment, -1 to decrement
+     * @return a clone of this expression visitor, with the changed query level
      */
-    public void incrementQueryLevel(int offset) {
-        queryLevel += offset;
+    public ExpressionVisitor incrementQueryLevel(int offset) {
+        return new ExpressionVisitor(type, queryLevel + offset, dependencies, table, resolver, maxDataModificationId);
     }
 
     /**
@@ -179,16 +185,6 @@ public class ExpressionVisitor {
     }
 
     /**
-     * Set the column resolver.
-     * This is used for NOT_FROM_RESOLVER visitors.
-     *
-     * @param resolver the column resolver
-     */
-    public void setResolver(ColumnResolver resolver) {
-        this.resolver = resolver;
-    }
-
-    /**
      * Update the field maxDataModificationId if this value is higher
      * than the current value.
      * This is used for SET_MAX_DATA_MODIFICATION_ID visitors.
@@ -196,7 +192,10 @@ public class ExpressionVisitor {
      * @param value the data modification id
      */
     public void addDataModificationId(long value) {
-        maxDataModificationId = Math.max(maxDataModificationId, value);
+        long m = maxDataModificationId[0];
+        if (value > m) {
+            maxDataModificationId[0] = value;
+        }
     }
 
     /**
@@ -206,25 +205,11 @@ public class ExpressionVisitor {
      * @return the maximum modification id
      */
     public long getMaxDataModificationId() {
-        return maxDataModificationId;
+        return maxDataModificationId[0];
     }
 
     int getQueryLevel() {
         return queryLevel;
-    }
-
-    void setQueryLevel(int queryLevel) {
-        this.queryLevel = queryLevel;
-    }
-
-    /**
-     * Set the table.
-     * This is used for OPTIMIZABLE_MIN_MAX_COUNT_ALL visitors.
-     *
-     * @param table the table
-     */
-    public void setTable(Table table) {
-        this.table = table;
     }
 
     /**

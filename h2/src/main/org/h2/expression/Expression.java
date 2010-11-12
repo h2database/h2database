@@ -129,18 +129,6 @@ public abstract class Expression {
     public abstract int getCost();
 
     /**
-     * Check if this expression and all sub-expressions can fulfill a criteria.
-     * This is a convenience function.
-     *
-     * @param expressionVisitorType the visitor type
-     * @return if the criteria can be fulfilled
-     */
-    public final boolean isEverything(int expressionVisitorType) {
-        ExpressionVisitor visitor = ExpressionVisitor.get(expressionVisitorType);
-        return isEverything(visitor);
-    }
-
-    /**
      * If it is possible, return the negated expression. This is used
      * to optimize NOT expressions: NOT ID>10 can be converted to
      * ID&lt;=10. Returns null if negating is not possible.

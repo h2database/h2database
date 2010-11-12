@@ -789,8 +789,8 @@ public class Select extends Query {
         }
         if (isGroupQuery && groupIndex == null && havingIndex < 0 && filters.size() == 1) {
             if (condition == null) {
-                ExpressionVisitor optimizable = ExpressionVisitor.get(ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL);
-                optimizable.setTable((filters.get(0)).getTable());
+                Table t = filters.get(0).getTable();
+                ExpressionVisitor optimizable = ExpressionVisitor.getOptimizableVisitor(t);
                 isQuickAggregateQuery = isEverything(optimizable);
             }
         }
@@ -1193,22 +1193,21 @@ public class Select extends Query {
         }
         default:
         }
-        visitor.incrementQueryLevel(1);
+        ExpressionVisitor v2 = visitor.incrementQueryLevel(1);
         boolean result = true;
         for (int i = 0, size = expressions.size(); i < size; i++) {
             Expression e = expressions.get(i);
-            if (!e.isEverything(visitor)) {
+            if (!e.isEverything(v2)) {
                 result = false;
                 break;
             }
         }
-        if (result && condition != null && !condition.isEverything(visitor)) {
+        if (result && condition != null && !condition.isEverything(v2)) {
             result = false;
         }
-        if (result && having != null && !having.isEverything(visitor)) {
+        if (result && having != null && !having.isEverything(v2)) {
             result = false;
         }
-        visitor.incrementQueryLevel(-1);
         return result;
     }
 

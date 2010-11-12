@@ -297,8 +297,7 @@ public abstract class Table extends SchemaObjectBase {
                 dependencies.add(s);
             }
         }
-        ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.GET_DEPENDENCIES);
-        visitor.setDependencies(dependencies);
+        ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
         for (Column col : columns) {
             col.isEverything(visitor);
         }

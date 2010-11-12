@@ -165,6 +165,7 @@ public class ExpressionColumn extends Expression {
         }
         Value value = columnResolver.getValue(column);
         if (value == null) {
+            columnResolver.getValue(column);
             throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         return value;

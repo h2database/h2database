@@ -427,20 +427,9 @@ public abstract class Query extends Prepared {
     }
 
     public final long getMaxDataModificationId() {
-        ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID);
+        ExpressionVisitor visitor = ExpressionVisitor.getMaxModificationIdVisitor();
         isEverything(visitor);
         return visitor.getMaxDataModificationId();
-    }
-
-    /**
-     * Visit all expressions and subqueries in this query using the visitor pattern.
-     *
-     * @param expressionVisitorType the visitor type
-     * @return true if no component returned false
-     */
-    public final boolean isEverything(int expressionVisitorType) {
-        ExpressionVisitor visitor = ExpressionVisitor.get(expressionVisitorType);
-        return isEverything(visitor);
     }
 
 }

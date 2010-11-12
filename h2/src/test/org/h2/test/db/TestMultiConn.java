@@ -62,7 +62,11 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         } catch (SQLException e) {
             // ignore
         }
-        t.get();
+        try {
+            t.get();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     private void testThreeThreads() throws Exception {

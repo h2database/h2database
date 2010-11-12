@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Concurrently preparing a statement and altering a table could throw a table not found exception.
+<ul><li>When using multi-version concurrency, re-running a prepared statement with the same parameters 
+    would sometimes give the same result even if another connection committed a change (the previous result was sometimes 
+    re-used incorrectly).
+</li><li>When using SELECT_FOR_UPDATE_MVCC (lock only the selected rows when using MVCC),
+    the selected rows were sometimes not locked correctly.
+</li><li>When using Lucene 3, the index files were not always closed when the database was closed.
+</li><li>Concurrently preparing a statement and altering a table could throw a table not found exception.
 <li><li>When concurrently preparing many statements with a subquery, in some cases the query didn't run
     (Column "..." must be in the GROUP BY list).
 </li><li>CallableStatement: now the syntax "{? = CALL...}" is supported as well.

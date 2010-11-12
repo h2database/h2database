@@ -201,13 +201,12 @@ public class TestRunscript extends TestBase implements Trigger {
             Recover.execute(getBaseDir(), "runscript");
 
             deleteDb("runscriptRestoreRecover");
-            Connection conn3 = getConnection("runscriptRestoreRecover", "tempUser", getPassword());
+            Connection conn3 = getConnection("runscriptRestoreRecover");
             Statement stat3 = conn3.createStatement();
             stat3.execute("runscript from '" + getBaseDir() + "/runscript.h2.sql'");
             conn3.close();
             conn3 = getConnection("runscriptRestoreRecover");
             stat3 = conn3.createStatement();
-            stat3.execute("drop user tempUser");
 
             if (config.cipher != null) {
                 ChangeFileEncryption.execute(getBaseDir(), "runscript", config.cipher, null, getFilePassword().toCharArray(), true);

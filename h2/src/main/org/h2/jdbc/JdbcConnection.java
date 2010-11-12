@@ -1195,7 +1195,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                     level--;
                     break;
                 } else if (chars[i] == '?') {
-                    chars[i++] = ' ';
+                    i++;
                     checkRunOver(i, len, sql);
                     while (Character.isSpaceChar(chars[i])) {
                         i++;
@@ -1204,7 +1204,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                     if (sql.charAt(i) != '=') {
                         throw DbException.getSyntaxError(sql, i, "=");
                     }
-                    chars[i++] = ' ';
+                    i++;
                     checkRunOver(i, len, sql);
                     while (Character.isSpaceChar(chars[i])) {
                         i++;
@@ -1368,11 +1368,11 @@ public class JdbcConnection extends TraceObject implements Connection {
             return;
         }
         if (session != null && openStackTrace != null) {
-            trace.error("Connection not closed", openStackTrace);
+            trace.error(openStackTrace, "connection not closed");
             try {
                 close();
             } catch (SQLException e) {
-                trace.debug("finalize", e);
+                trace.debug(e, "finalize");
             }
         }
     }

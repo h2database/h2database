@@ -47,9 +47,9 @@ public class TestNativeSQL extends TestBase {
 
             "{call TEST('}')}", " call TEST('}') ",
 
-            "{?= call TEST('}')}", "    call TEST('}') ",
+            "{?= call TEST('}')}", " ?= call TEST('}') ",
 
-            "{? = call TEST('}')}", "     call TEST('}') ",
+            "{? = call TEST('}')}", " ? = call TEST('}') ",
 
             "{{{{this is a bug}", null, };
 

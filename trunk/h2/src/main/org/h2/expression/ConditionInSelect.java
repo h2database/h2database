@@ -130,8 +130,7 @@ public class ConditionInSelect extends Condition {
         if (filter != l.getTableFilter()) {
             return;
         }
-        ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
-        visitor.setResolver(filter);
+        ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
         if (!query.isEverything(visitor)) {
             return;
         }

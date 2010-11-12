@@ -110,8 +110,7 @@ public class ConditionIn extends Condition {
             return;
         }
         if (session.getDatabase().getSettings().optimizeInList) {
-            ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
-            visitor.setResolver(filter);
+            ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
             for (Expression e : valueList) {
                 if (!e.isEverything(visitor)) {
                     return;

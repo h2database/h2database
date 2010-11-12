@@ -77,7 +77,7 @@ public class PageDataIndex extends PageIndex {
             rowCount = root.getRowCount();
         }
         if (trace.isDebugEnabled()) {
-            trace.debug(this + " opened rows:" + rowCount);
+            trace.debug("{0} opened rows: {1}", this, rowCount);
         }
         table.setRowCount(rowCount);
         // estimate the memory usage as follows:
@@ -118,7 +118,7 @@ public class PageDataIndex extends PageIndex {
         // when using auto-generated values, it's possible that multiple
         // tries are required (specially if there was originally a primary key)
         if (trace.isDebugEnabled()) {
-            trace.debug(getName() + " add " + row);
+            trace.debug("{0} add {1}", getName(), row);
         }
         long add = 0;
         while (true) {
@@ -163,7 +163,7 @@ public class PageDataIndex extends PageIndex {
                 break;
             }
             if (trace.isDebugEnabled()) {
-                trace.debug(this + " split");
+                trace.debug("{0} split", this);
             }
             long pivot = splitPoint == 0 ? row.getKey() : root.getKey(splitPoint - 1);
             PageData page1 = root;
@@ -312,7 +312,7 @@ public class PageDataIndex extends PageIndex {
             }
         }
         if (trace.isDebugEnabled()) {
-            trace.debug(getName() + " remove " + row);
+            trace.debug("{0} remove {1}", getName(), row);
         }
         if (rowCount == 1) {
             removeAllRows();
@@ -344,7 +344,7 @@ public class PageDataIndex extends PageIndex {
 
     public void remove(Session session) {
         if (trace.isDebugEnabled()) {
-            trace.debug(this + " remove");
+            trace.debug("{0} remove", this);
         }
         removeAllRows();
         store.free(rootPageId);
@@ -353,7 +353,7 @@ public class PageDataIndex extends PageIndex {
 
     public void truncate(Session session) {
         if (trace.isDebugEnabled()) {
-            trace.debug(this + " truncate");
+            trace.debug("{0} truncate", this);
         }
         store.logTruncate(session, tableData.getId());
         removeAllRows();
@@ -448,7 +448,7 @@ public class PageDataIndex extends PageIndex {
 
     public void close(Session session) {
         if (trace.isDebugEnabled()) {
-            trace.debug(this + " close");
+            trace.debug("{0} close", this);
         }
         if (delta != null) {
             delta.clear();

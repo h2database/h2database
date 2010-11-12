@@ -83,7 +83,7 @@ public class DatabaseCloser extends Thread {
                 // if loading classes is no longer allowed
                 // it would throw an IllegalStateException
                 try {
-                    trace.error("Could not close the database", e);
+                    trace.error(e, "could not close the database");
                     // if this was successful, we ignore the exception
                     // otherwise not
                 } catch (RuntimeException e2) {

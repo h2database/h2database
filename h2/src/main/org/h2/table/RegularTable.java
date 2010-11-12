@@ -137,7 +137,7 @@ public class RegularTable extends TableBase {
                 // this could happen, for example on failure in the storage
                 // but if that is not the case it means there is something wrong
                 // with the database
-                trace.error("Could not undo operation", e);
+                trace.error(e2, "could not undo operation");
                 throw e2;
             }
             DbException de = DbException.convert(e);
@@ -259,7 +259,7 @@ public class RegularTable extends TableBase {
                     // this could happen, for example on failure in the storage
                     // but if that is not the case it means
                     // there is something wrong with the database
-                    trace.error("Could not remove index", e);
+                    trace.error(e2, "could not remove index");
                     throw e2;
                 }
                 throw e;
@@ -364,7 +364,7 @@ public class RegularTable extends TableBase {
                 // this could happen, for example on failure in the storage
                 // but if that is not the case it means there is something wrong
                 // with the database
-                trace.error("Could not undo operation", e);
+                trace.error(e2, "could not undo operation");
                 throw e2;
             }
             throw DbException.convert(e);
@@ -590,7 +590,7 @@ public class RegularTable extends TableBase {
 
     private void traceLock(Session session, boolean exclusive, String s) {
         if (traceLock.isDebugEnabled()) {
-            traceLock.debug(session.getId() + " " + (exclusive ? "exclusive write lock" : "shared read lock") + " " + s + " " + getName());
+            traceLock.debug("{0} {1} {2} {3}", session.getId(), exclusive ? "exclusive write lock" : "shared read lock", s, getName());
         }
     }
 

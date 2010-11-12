@@ -529,11 +529,11 @@ implements XAConnection, XAResource
             Trace trace = getTrace();
             try {
                 if (!isClosed()) {
-                    trace.error("Pooled connection not closed", openStackTrace);
+                    trace.error(openStackTrace, "pooled connection not closed");
                     JdbcXAConnection.this.close();
                 }
             } catch (SQLException e) {
-                trace.debug("finalize", e);
+                trace.debug(e, "finalize");
             }
         }
 

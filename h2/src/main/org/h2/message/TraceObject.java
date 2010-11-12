@@ -403,9 +403,9 @@ public class TraceObject {
         } else {
             int errorCode = e.getErrorCode();
             if (errorCode >= 23000 && errorCode < 24000) {
-                trace.info("SQLException", e);
+                trace.info(e, "exception");
             } else {
-                trace.error("SQLException", e);
+                trace.error(e, "exception");
             }
         }
         return e;

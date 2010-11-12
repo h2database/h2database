@@ -423,7 +423,7 @@ public class PageStore implements CacheWriter {
                     freed.clear(i);
                 } else if (!freed.get(i)) {
                     if (trace.isDebugEnabled()) {
-                        trace.debug("free " + i);
+                        trace.debug("free {0}", i);
                     }
                     file.seek((long) i << pageSizeShift);
                     file.readFully(test, 0, 16);
@@ -601,7 +601,7 @@ public class PageStore implements CacheWriter {
         pageCount = newPageCount;
         // the easiest way to remove superfluous entries
         freeLists.clear();
-        trace.debug("pageCount:" + pageCount);
+        trace.debug("pageCount:{0}", pageCount);
         long newLength = (long) pageCount << pageSizeShift;
         if (file.length() != newLength) {
             file.setLength(newLength);
@@ -629,7 +629,7 @@ public class PageStore implements CacheWriter {
         if (f != null) {
             DbException.throwInternalError("not free: " + f);
         }
-        trace.debug("swap " + a + " and " + b + " via " + free);
+        trace.debug("swap {0} and {1} via {2}", a, b, free);
         Page pageA = null;
         if (isUsed(a)) {
             pageA = getPage(a);
@@ -674,7 +674,7 @@ public class PageStore implements CacheWriter {
                 freePage(full);
             }
         } else {
-            trace.debug("move " + p.getPos() + " to " + free);
+            trace.debug("move {0} to {1}", p.getPos(), free);
             try {
                 p.moveTo(systemSession, free);
             } finally {
@@ -900,7 +900,7 @@ public class PageStore implements CacheWriter {
      */
     void setLogFirstPage(int logKey, int trunkPageId, int dataPageId) {
         if (trace.isDebugEnabled()) {
-            trace.debug("setLogFirstPage key: " + logKey + " trunk: " + trunkPageId + " data: " + dataPageId);
+            trace.debug("setLogFirstPage key: {0} trunk: {1} data: {2}", logKey, trunkPageId, dataPageId);
         }
         this.logKey = logKey;
         this.logFirstTrunkPage = trunkPageId;
@@ -977,7 +977,7 @@ public class PageStore implements CacheWriter {
     public void writeBack(CacheObject obj) {
         Page record = (Page) obj;
         if (trace.isDebugEnabled()) {
-            trace.debug("writeBack " + record);
+            trace.debug("writeBack {0}", record);
         }
         synchronized (database) {
             record.write();
@@ -1019,7 +1019,7 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
                 if (!page.isChanged()) {
-                    trace.debug("updateRecord " + page.toString());
+                    trace.debug("updateRecord {0}", page.toString());
                 }
             }
             checkOpen();
@@ -1214,7 +1214,7 @@ public class PageStore implements CacheWriter {
      */
     void freeUnused(int pageId) {
         if (trace.isDebugEnabled()) {
-            trace.debug("freeUnused " + pageId);
+            trace.debug("freeUnused {0}", pageId);
         }
         synchronized (database) {
             cache.remove(pageId);
@@ -1336,7 +1336,7 @@ public class PageStore implements CacheWriter {
         if (reservedPages != null) {
             for (int r : reservedPages.keySet()) {
                 if (trace.isDebugEnabled()) {
-                    trace.debug("reserve " + r);
+                    trace.debug("reserve {0}", r);
                 }
                 allocatePage(r);
             }
@@ -1586,7 +1586,7 @@ public class PageStore implements CacheWriter {
         String[] ops = StringUtils.arraySplit(options, ',', false);
         Index meta;
         if (trace.isDebugEnabled()) {
-            trace.debug("addMeta id=" + id + " type=" + type + " root=" + rootPageId + " parent=" + parent + " columns=" + columnList);
+            trace.debug("addMeta id={0} type={1} root={2} parent={3} columns={4}", id, type, rootPageId, parent, columnList);
         }
         if (redo && rootPageId != 0) {
             // ensure the page is empty, but not used by regular data

@@ -151,7 +151,7 @@ public class ResultRemote implements ResultInterface {
                 transfer.writeInt(SessionRemote.RESULT_CLOSE).writeInt(id);
             }
         } catch (IOException e) {
-            trace.error("close", e);
+            trace.error(e, "close");
         } finally {
             transfer = null;
             session = null;
@@ -164,7 +164,7 @@ public class ResultRemote implements ResultInterface {
                 try {
                     v.close();
                 } catch (DbException e) {
-                    trace.error("delete lob " + v.getTraceSQL(), e);
+                    trace.error(e, "delete lob {0}", v.getTraceSQL());
                 }
             }
             lobValues = null;

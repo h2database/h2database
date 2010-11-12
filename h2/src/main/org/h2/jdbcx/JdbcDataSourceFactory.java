@@ -59,7 +59,7 @@ implements ObjectFactory
 //## Java 1.4 begin ##
     public synchronized Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable< ? , ? > environment) {
         if (trace.isDebugEnabled()) {
-            trace.debug("getObjectInstance obj=" + obj + " name=" + name + " nameCtx=" + nameCtx + " environment=" + environment);
+            trace.debug("getObjectInstance obj={0} name={1} nameCtx={2} environment={3}", obj, name, nameCtx, environment);
         }
         if (obj instanceof Reference) {
             Reference ref = (Reference) obj;

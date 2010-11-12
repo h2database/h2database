@@ -6,6 +6,7 @@
  */
 package org.h2.message;
 
+import java.text.MessageFormat;
 import org.h2.constant.SysProperties;
 import org.h2.util.StringUtils;
 
@@ -53,11 +54,6 @@ public class Trace {
      * The trace module name for locks.
      */
     public static final String LOCK = "lock";
-
-    /**
-     * The trace module name for the transaction log.
-     */
-    public static final String LOG = "log";
 
     /**
      * The trace module name for schemas.
@@ -148,11 +144,25 @@ public class Trace {
     /**
      * Write a message with trace level ERROR to the trace system.
      *
-     * @param s the message
      * @param t the exception
+     * @param s the message
      */
-    public void error(String s, Throwable t) {
+    public void error(Throwable t, String s) {
         if (isEnabled(TraceSystem.ERROR)) {
+            traceWriter.write(TraceSystem.ERROR, module, s, t);
+        }
+    }
+
+    /**
+     * Write a message with trace level ERROR to the trace system.
+     *
+     * @param t the exception
+     * @param s the message
+     * @param params the parameters
+     */
+    public void error(Throwable t, String s, Object... params) {
+        if (isEnabled(TraceSystem.ERROR)) {
+            s = MessageFormat.format(s, (Object[]) params);
             traceWriter.write(TraceSystem.ERROR, module, s, t);
         }
     }
@@ -172,9 +182,22 @@ public class Trace {
      * Write a message with trace level INFO to the trace system.
      *
      * @param s the message
-     * @param t the exception
+     * @param params the parameters
      */
-    void info(String s, Throwable t) {
+    public void info(String s, Object... params) {
+        if (isEnabled(TraceSystem.INFO)) {
+            s = MessageFormat.format(s, (Object[]) params);
+            traceWriter.write(TraceSystem.INFO, module, s, null);
+        }
+    }
+
+    /**
+     * Write a message with trace level INFO to the trace system.
+     *
+     * @param t the exception
+     * @param s the message
+     */
+    void info(Throwable t, String s) {
         if (isEnabled(TraceSystem.INFO)) {
             traceWriter.write(TraceSystem.INFO, module, s, t);
         }
@@ -228,6 +251,20 @@ public class Trace {
      * Write a message with trace level DEBUG to the trace system.
      *
      * @param s the message
+     * @param params the parameters
+     */
+    public void debug(String s, Object... params) {
+        if (isEnabled(TraceSystem.DEBUG)) {
+            s = MessageFormat.format(s, (Object[]) params);
+            traceWriter.write(TraceSystem.DEBUG, module, s, null);
+        }
+    }
+
+    /**
+     * Write a message with trace level DEBUG to the trace system.
+     *
+     * @param s the message
+     * @param params the parameters
      */
     public void debug(String s) {
         if (isEnabled(TraceSystem.DEBUG)) {
@@ -237,15 +274,15 @@ public class Trace {
 
     /**
      * Write a message with trace level DEBUG to the trace system.
-     *
-     * @param s the message
      * @param t the exception
+     * @param s the message
      */
-    public void debug(String s, Throwable t) {
+    public void debug(Throwable t, String s) {
         if (isEnabled(TraceSystem.DEBUG)) {
             traceWriter.write(TraceSystem.DEBUG, module, s, t);
         }
     }
+
 
     /**
      * Write Java source code with trace level INFO to the trace system.

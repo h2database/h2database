@@ -12,12 +12,13 @@ import java.io.Writer;
 import java.sql.DriverManager;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.IOUtils;
-import org.h2.util.SmallLRUCache;
+import org.h2.util.New;
 
 /**
  * The trace mechanism is the logging facility of this database. There is
@@ -83,7 +84,7 @@ public class TraceSystem implements TraceWriter {
     private int levelMax;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     private String fileName;
-    private SmallLRUCache<String, Trace> traces;
+    private HashMap<String, Trace> traces;
     private SimpleDateFormat dateFormat;
     private Writer fileWriter;
     private PrintWriter printWriter;
@@ -119,14 +120,19 @@ public class TraceSystem implements TraceWriter {
     }
 
     /**
-     * Get or create a trace object for this module.
+     * Get or create a trace object for this module. Trace modules with names
+     * such as "JDBC[1]" are not cached (modules where the name ends with "]").
+     * All others are cached.
      *
      * @param module the module name
      * @return the trace object
      */
     public synchronized Trace getTrace(String module) {
+        if (module.endsWith("]")) {
+            new Trace(writer, module);
+        }
         if (traces == null) {
-            traces = SmallLRUCache.newInstance(16);
+            traces = New.hashMap(16);
         }
         Trace t = traces.get(module);
         if (t == null) {

@@ -67,13 +67,13 @@ public class PageBtreeIndex extends PageIndex {
             }
         }
         if (trace.isDebugEnabled()) {
-            trace.debug("opened " + getName() +" rows:"+ rowCount);
+            trace.debug("opened {0} rows: {1}", getName() , rowCount);
         }
     }
 
     public void add(Session session, Row row) {
         if (trace.isDebugEnabled()) {
-            trace.debug(getName() + " add " + row);
+            trace.debug("{0} add {1}", getName(), row);
         }
         // safe memory
         SearchRow newRow = getSearchRow(row);
@@ -92,7 +92,7 @@ public class PageBtreeIndex extends PageIndex {
                 break;
             }
             if (trace.isDebugEnabled()) {
-                trace.debug("split " + splitPoint);
+                trace.debug("split {0}", splitPoint);
             }
             SearchRow pivot = root.getRow(splitPoint - 1);
             store.logUndo(root, root.data);
@@ -214,7 +214,7 @@ public class PageBtreeIndex extends PageIndex {
 
     public void remove(Session session, Row row) {
         if (trace.isDebugEnabled()) {
-            trace.debug(getName() + " remove " + row);
+            trace.debug("{0} remove {1}", getName(), row);
         }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0, len = row.getColumnCount(); i < len; i++) {

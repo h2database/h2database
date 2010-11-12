@@ -117,6 +117,7 @@ public class Database implements DataHandler {
     private WriterThread writer;
     private boolean starting;
     private TraceSystem traceSystem;
+    private Trace trace;
     private int fileLockMethod;
     private Role publicRole;
     private long modificationDataId;
@@ -238,7 +239,7 @@ public class Database implements DataHandler {
                     SQLException e2 = (SQLException) e;
                     if (e2.getErrorCode() != ErrorCode.DATABASE_ALREADY_OPEN_1) {
                         // only write if the database is not already in use
-                        traceSystem.getTrace(Trace.DATABASE).error("opening " + databaseName, e);
+                        trace.error(e, "opening {0}", databaseName);
                     }
                 }
                 traceSystem.close();
@@ -330,7 +331,7 @@ public class Database implements DataHandler {
                 if (old.getProperty("changePending") != null) {
                     return false;
                 }
-                getTrace().debug("wait before writing");
+                trace.debug("wait before writing");
                 Thread.sleep((int) (reconnectCheckDelay * 1.1));
                 Properties now = lock.load();
                 if (!now.equals(old)) {
@@ -350,7 +351,7 @@ public class Database implements DataHandler {
             reconnectCheckNext = System.currentTimeMillis() + 2 * reconnectCheckDelay;
             old = lock.save();
             if (pending) {
-                getTrace().debug("wait before writing again");
+                trace.debug("wait before writing again");
                 Thread.sleep((int) (reconnectCheckDelay * 1.1));
                 Properties now = lock.load();
                 if (!now.equals(old)) {
@@ -365,7 +366,7 @@ public class Database implements DataHandler {
             reconnectCheckNext = System.currentTimeMillis() + reconnectCheckDelay;
             return true;
         } catch (Exception e) {
-            getTrace().error("pending:"+ pending, e);
+            trace.error(e, "pending {0}", pending);
             return false;
         }
     }
@@ -514,8 +515,8 @@ public class Database implements DataHandler {
             }
             traceSystem.setLevelFile(traceLevelFile);
             traceSystem.setLevelSystemOut(traceLevelSystemOut);
-            traceSystem.getTrace(Trace.DATABASE)
-                    .info("opening " + databaseName + " (build " + Constants.BUILD_ID + ")");
+            trace = traceSystem.getTrace(Trace.DATABASE);
+            trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
             if (autoServerMode) {
                 if (readOnly || fileLockMethod == FileLock.LOCK_NO || fileLockMethod == FileLock.LOCK_SERIALIZED || fileLockMethod == FileLock.LOCK_FS) {
                     throw DbException.getUnsupportedException("autoServerMode && (readOnly || fileLockMethod == NO" +
@@ -548,6 +549,7 @@ public class Database implements DataHandler {
             writer = WriterThread.create(this, writeDelay);
         } else {
             traceSystem = new TraceSystem(null);
+            trace = traceSystem.getTrace(Trace.DATABASE);
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);
@@ -607,7 +609,7 @@ public class Database implements DataHandler {
             }
         }
         systemSession.commit(true);
-        traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
+        trace.info("opened {0}", databaseName);
         afterWriting();
     }
 
@@ -923,7 +925,7 @@ public class Database implements DataHandler {
         }
         Session session = new Session(this, user, ++nextSessionId);
         userSessions.add(session);
-        traceSystem.getTrace(Trace.SESSION).info("connecting #" + session.getId() + " to " + databaseName);
+        trace.info("connecting session #{0} to {1}", session.getId(), databaseName);
         if (delayedCloser != null) {
             delayedCloser.reset();
             delayedCloser = null;
@@ -943,7 +945,7 @@ public class Database implements DataHandler {
             }
             userSessions.remove(session);
             if (session != systemSession) {
-                traceSystem.getTrace(Trace.SESSION).info("disconnecting #" + session.getId());
+                trace.info("disconnecting session #{0}", session.getId());
             }
         }
         if (userSessions.size() == 0 && session != systemSession) {
@@ -959,7 +961,7 @@ public class Database implements DataHandler {
             }
         }
         if (session != systemSession && session != null) {
-            traceSystem.getTrace(Trace.SESSION).info("disconnected #" + session.getId());
+            trace.info("disconnected session #{0}", session.getId());
         }
     }
 
@@ -974,7 +976,7 @@ public class Database implements DataHandler {
                     s.rollback();
                     s.close();
                 } catch (DbException e) {
-                    traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);
+                    trace.error(e, "disconnecting session #{0}", s.getId());
                 }
             }
         }
@@ -1007,10 +1009,10 @@ public class Database implements DataHandler {
             if (!fromShutdownHook) {
                 return;
             }
-            traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName + " from shutdown hook");
+            trace.info("closing {0} from shutdown hook", databaseName);
             closeAllSessionsException(null);
         }
-        traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName);
+        trace.info("closing {0}", databaseName);
         if (eventListener != null) {
             // allow the event listener to connect to the database
             closing = false;
@@ -1044,7 +1046,7 @@ public class Database implements DataHandler {
                     try {
                         trigger.close();
                     } catch (SQLException e) {
-                        traceSystem.getTrace(Trace.DATABASE).error("close", e);
+                        trace.error(e, "close");
                     }
                 }
                 if (powerOffCount != -1) {
@@ -1053,7 +1055,7 @@ public class Database implements DataHandler {
                 }
             }
         } catch (DbException e) {
-            traceSystem.getTrace(Trace.DATABASE).error("close", e);
+            trace.error(e, "close");
         }
         // remove all session variables
         if (persistent) {
@@ -1063,7 +1065,7 @@ public class Database implements DataHandler {
                     getLobStorage();
                     lobStorage.removeAllForTable(LobStorage.TABLE_ID_SESSION_VARIABLE);
                 } catch (DbException e) {
-                    traceSystem.getTrace(Trace.DATABASE).error("close", e);
+                    trace.error(e, "close");
                 }
             }
         }
@@ -1071,9 +1073,9 @@ public class Database implements DataHandler {
         try {
             closeOpenFilesAndUnlock(true);
         } catch (DbException e) {
-            traceSystem.getTrace(Trace.DATABASE).error("close", e);
+            trace.error(e, "close");
         }
-        traceSystem.getTrace(Trace.DATABASE).info("closed");
+        trace.info("closed");
         traceSystem.close();
         if (closeOnExit != null) {
             closeOnExit.reset();
@@ -1126,12 +1128,12 @@ public class Database implements DataHandler {
                             e.printStackTrace();
                         }
                     }
-                    traceSystem.getTrace(Trace.DATABASE).error("close", e);
+                    trace.error(e, "close");
                 } catch (Throwable t) {
                     if (SysProperties.CHECK2) {
                         t.printStackTrace();
                     }
-                    traceSystem.getTrace(Trace.DATABASE).error("close", t);
+                    trace.error(t, "close");
                 }
             }
         }
@@ -1157,7 +1159,7 @@ public class Database implements DataHandler {
                 try {
                     Thread.sleep((int) (reconnectCheckDelay * 1.1));
                 } catch (InterruptedException e) {
-                    traceSystem.getTrace(Trace.DATABASE).error("close", e);
+                    trace.error(e, "close");
                 }
             }
             lock.unlock();
@@ -1174,7 +1176,7 @@ public class Database implements DataHandler {
                 }
             }
         } catch (DbException e) {
-            traceSystem.getTrace(Trace.DATABASE).error("close", e);
+            trace.error(e, "close");
         }
     }
 
@@ -2026,10 +2028,6 @@ public class Database implements DataHandler {
         return tempFileDeleter;
     }
 
-    public Trace getTrace() {
-        return getTrace(Trace.DATABASE);
-    }
-
     public PageStore getPageStore() {
         if (pageStore == null) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
@@ -2103,14 +2101,14 @@ public class Database implements DataHandler {
                         break;
                     }
                 }
-                getTrace().debug("delay (change pending)");
+                trace.debug("delay (change pending)");
                 Thread.sleep(reconnectCheckDelay);
                 prop = lock.load();
             }
             reconnectLastLock = prop;
         } catch (Exception e) {
             // DbException, InterruptedException
-            getTrace().error("readOnly:" + readOnly, e);
+            trace.error(e, "readOnly {0}", readOnly);
             // ignore
         }
         return true;
@@ -2138,11 +2136,11 @@ public class Database implements DataHandler {
                 checkpointRunning = true;
             }
             synchronized (this) {
-                getTrace().debug("checkpoint start");
+                trace.debug("checkpoint start");
                 flushSequences();
                 checkpoint();
                 reconnectModified(false);
-                getTrace().debug("checkpoint end");
+                trace.debug("checkpoint end");
             }
             synchronized (reconnectSync) {
                 checkpointRunning = false;
@@ -2262,7 +2260,7 @@ public class Database implements DataHandler {
                     pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
                 // write the log mode in the trace file when enabling or
                 // disabling a dangerous mode
-                getTrace().error("log=" + log, null);
+                trace.error(null, "log {0}", log);
             }
             pageStore.setLogMode(log);
         }

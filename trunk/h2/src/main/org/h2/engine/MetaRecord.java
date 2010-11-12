@@ -59,7 +59,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
         } catch (DbException e) {
             e = e.addSQL(sql);
             SQLException s = e.getSQLException();
-            db.getTrace(Trace.DATABASE).error(sql, s);
+            db.getTrace(Trace.DATABASE).error(s, sql);
             if (listener != null) {
                 listener.exceptionThrown(s, sql);
                 // continue startup in this case

@@ -163,7 +163,7 @@ public class FileLock implements Runnable {
                 serverSocket.close();
             }
         } catch (Exception e) {
-            trace.debug("unlock", e);
+            trace.debug(e, "unlock");
         } finally {
             fileName = null;
             serverSocket = null;
@@ -174,7 +174,7 @@ public class FileLock implements Runnable {
                 watchdog.interrupt();
             }
         } catch (Exception e) {
-            trace.debug("unlock", e);
+            trace.debug(e, "unlock");
         }
     }
 
@@ -208,7 +208,7 @@ public class FileLock implements Runnable {
             }
             lastWrite = fs.getLastModified(fileName);
             if (trace.isDebugEnabled()) {
-                trace.debug("save " + properties);
+                trace.debug("save {0}", properties);
             }
             return properties;
         } catch (IOException e) {
@@ -260,7 +260,7 @@ public class FileLock implements Runnable {
         try {
             Properties p2 = SortedProperties.loadProperties(fileName);
             if (trace.isDebugEnabled()) {
-                trace.debug("load " + p2);
+                trace.debug("load {0}", p2);
             }
             return p2;
         } catch (IOException e) {
@@ -278,7 +278,7 @@ public class FileLock implements Runnable {
                 try {
                     Thread.sleep(2 * sleep);
                 } catch (Exception e) {
-                    trace.debug("sleep", e);
+                    trace.debug(e, "sleep");
                 }
                 return;
             } else if (dist > TIME_GRANULARITY) {
@@ -287,7 +287,7 @@ public class FileLock implements Runnable {
             try {
                 Thread.sleep(SLEEP_GAP);
             } catch (Exception e) {
-                trace.debug("sleep", e);
+                trace.debug(e, "sleep");
             }
         }
         throw getExceptionFatal("Lock file recently modified", null);
@@ -395,7 +395,7 @@ public class FileLock implements Runnable {
                 } catch (BindException e) {
                     throw getExceptionFatal("Bind Exception", null);
                 } catch (ConnectException e) {
-                    trace.debug("Socket not connected to port " + port, e);
+                    trace.debug(e, "socket not connected to port " + port);
                 } catch (IOException e) {
                     throw getExceptionFatal("IOException", null);
                 }
@@ -415,7 +415,7 @@ public class FileLock implements Runnable {
             properties.setProperty("ipAddress", ipAddress);
             properties.setProperty("port", String.valueOf(port));
         } catch (Exception e) {
-            trace.debug("lock", e);
+            trace.debug(e, "lock");
             serverSocket = null;
             lockFile();
             return;
@@ -496,7 +496,7 @@ public class FileLock implements Runnable {
                 } catch (NullPointerException e) {
                     // ignore
                 } catch (Exception e) {
-                    trace.debug("watchdog", e);
+                    trace.debug(e, "watchdog");
                 }
             }
             while (serverSocket != null) {
@@ -505,11 +505,11 @@ public class FileLock implements Runnable {
                     Socket s = serverSocket.accept();
                     s.close();
                 } catch (Exception e) {
-                    trace.debug("watchdog", e);
+                    trace.debug(e, "watchdog");
                 }
             }
         } catch (Exception e) {
-            trace.debug("watchdog", e);
+            trace.debug(e, "watchdog");
         }
         trace.debug("watchdog end");
     }

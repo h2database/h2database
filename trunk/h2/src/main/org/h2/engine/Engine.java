@@ -14,7 +14,6 @@ import org.h2.constant.DbSettings;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
-import org.h2.message.Trace;
 import org.h2.store.FileLock;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -189,7 +188,6 @@ public class Engine implements SessionFactory {
         }
         session.setAllowLiterals(false);
         session.commit(true);
-        session.getDatabase().getTrace(Trace.SESSION).info("connected #" + session.getId());
         return session;
     }
 

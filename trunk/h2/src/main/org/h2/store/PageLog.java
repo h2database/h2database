@@ -179,7 +179,7 @@ public class PageLog {
      * @param atEnd whether only pages at the end of the file should be used
      */
     void openForWriting(int newFirstTrunkPage, boolean atEnd) {
-        trace.debug("log openForWriting firstPage:" + newFirstTrunkPage);
+        trace.debug("log openForWriting firstPage:{0}", newFirstTrunkPage);
         this.firstTrunkPage = newFirstTrunkPage;
         logKey++;
         pageOut = new PageOutputStream(store, newFirstTrunkPage, undoAll, logKey, atEnd);
@@ -252,7 +252,7 @@ public class PageLog {
      */
     void recover(int stage) {
         if (trace.isDebugEnabled()) {
-            trace.debug("log recover stage:" + stage);
+            trace.debug("log recover stage:{0}", stage);
         }
         if (stage == RECOVERY_STAGE_ALLOCATE) {
             PageInputStream in = new PageInputStream(store, logKey, firstTrunkPage, firstDataPage);
@@ -291,14 +291,14 @@ public class PageLog {
                     if (stage == RECOVERY_STAGE_UNDO) {
                         if (!undo.get(pageId)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log undo " + pageId);
+                                trace.debug("log undo {0}", pageId);
                             }
                             store.writePage(pageId, data);
                             undo.set(pageId);
                             undoAll.set(pageId);
                         } else {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log undo skip " + pageId);
+                                trace.debug("log undo skip {0}", pageId);
                             }
                         }
                     }
@@ -311,12 +311,12 @@ public class PageLog {
                     } else if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log redo + table:" + tableId + " s:" + sessionId + " " + row);
+                                trace.debug("log redo + table: {0} s:{1} {2}", tableId, sessionId, row);
                             }
                             store.redo(pos, tableId, row, true);
                         } else {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log ignore s:" + sessionId + " + table:" + tableId + " " + row);
+                                trace.debug("log ignore s:{0} + table:{1} {2}", sessionId, tableId, row);
                             }
                         }
                     }
@@ -327,12 +327,12 @@ public class PageLog {
                     if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log redo - table:" + tableId + " key:" + key);
+                                trace.debug("log redo - table:{0} key:{1}", tableId, key);
                             }
                             store.redoDelete(pos, tableId, key);
                         } else {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log ignore s:" + sessionId + " - table:" + tableId + " key:" + key);
+                                trace.debug("log ignore s:{0} - table:{1} key:{2}", sessionId, tableId, key);
                             }
                         }
                     }
@@ -342,12 +342,12 @@ public class PageLog {
                     if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log redo truncate table:" + tableId);
+                                trace.debug("log redo truncate table:{0}", tableId);
                             }
                             store.redoTruncate(tableId);
                         } else {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log ignore s:" + sessionId + " truncate table:" + tableId);
+                                trace.debug("log ignore s:{0} truncate table:{1}", sessionId, tableId);
                             }
                         }
                     }
@@ -355,7 +355,7 @@ public class PageLog {
                     int sessionId = in.readVarInt();
                     String transaction = in.readString();
                     if (trace.isDebugEnabled()) {
-                        trace.debug("log prepare commit " + sessionId + " " + transaction + " pos:" + pos);
+                        trace.debug("log prepare commit {0} {1} pos:{2}", sessionId, transaction, pos);
                     }
                     if (stage == RECOVERY_STAGE_UNDO) {
                         int page = pageIn.getDataPage();
@@ -364,13 +364,13 @@ public class PageLog {
                 } else if (x == ROLLBACK) {
                     int sessionId = in.readVarInt();
                     if (trace.isDebugEnabled()) {
-                        trace.debug("log rollback " + sessionId + " pos:" + pos);
+                        trace.debug("log rollback {0} pos:{1}", sessionId, pos);
                     }
                     // ignore - this entry is just informational
                 } else if (x == COMMIT) {
                     int sessionId = in.readVarInt();
                     if (trace.isDebugEnabled()) {
-                        trace.debug("log commit " + sessionId + " pos:" + pos);
+                        trace.debug("log commit {0} pos:{1}", sessionId, pos);
                     }
                     if (stage == RECOVERY_STAGE_UNDO) {
                         setLastCommitForSession(sessionId, logId, pos);
@@ -475,7 +475,7 @@ public class PageLog {
             return;
         }
         if (trace.isDebugEnabled()) {
-            trace.debug("log undo " + pageId);
+            trace.debug("log undo {0}", pageId);
         }
         if (SysProperties.CHECK) {
             if (page == null) {
@@ -513,7 +513,7 @@ public class PageLog {
 
     private void freeLogPages(IntArray pages) {
         if (trace.isDebugEnabled()) {
-            trace.debug("log frees " + pages.get(0) + ".." + pages.get(pages.size() - 1));
+            trace.debug("log frees {0}..{1}", pages.get(0), pages.get(pages.size() - 1));
         }
         Data buffer = getBuffer();
         buffer.writeByte((byte) FREE_LOG);
@@ -537,7 +537,7 @@ public class PageLog {
      */
     void commit(int sessionId) {
         if (trace.isDebugEnabled()) {
-            trace.debug("log commit s:" + sessionId);
+            trace.debug("log commit s:{0}", sessionId);
         }
         if (store.getDatabase().getPageStore() == null) {
             // database already closed
@@ -560,7 +560,7 @@ public class PageLog {
      */
     void prepareCommit(Session session, String transaction) {
         if (trace.isDebugEnabled()) {
-            trace.debug("log prepare commit s:" + session.getId() + " " + transaction);
+            trace.debug("log prepare commit s:{0}, {1}", session.getId(), transaction);
         }
         if (store.getDatabase().getPageStore() == null) {
             // database already closed
@@ -596,8 +596,7 @@ public class PageLog {
      */
     void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) {
         if (trace.isDebugEnabled()) {
-            trace.debug("log " + (add?"+":"-") + " s:" + session.getId() + " table:" + tableId +
-                    " row:" + row);
+            trace.debug("log {0} s:{1} table:{2} row:{3}", add ? "+" : "-", session.getId(), tableId, row);
         }
         session.addLogPos(logSectionId, logPos);
         logPos++;
@@ -641,7 +640,7 @@ public class PageLog {
      */
     void logTruncate(Session session, int tableId) {
         if (trace.isDebugEnabled()) {
-            trace.debug("log truncate s:" + session.getId() + " table:" + tableId);
+            trace.debug("log truncate s:{0} table:{1}", session.getId(), tableId);
         }
         session.addLogPos(logSectionId, logPos);
         logPos++;
@@ -714,7 +713,7 @@ public class PageLog {
      * @return the trunk page of the data page to keep
      */
     private int removeUntil(int trunkPage, int firstDataPageToKeep) {
-        trace.debug("log.removeUntil " + trunkPage + " " + firstDataPageToKeep);
+        trace.debug("log.removeUntil {0} {1}", trunkPage, firstDataPageToKeep);
         while (true) {
             Page p = store.getPage(trunkPage);
             PageStreamTrunk t = (PageStreamTrunk) p;

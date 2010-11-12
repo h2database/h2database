@@ -219,7 +219,7 @@ public class CommandRemote implements CommandInterface {
                 try {
                     transfer.writeInt(SessionRemote.COMMAND_CLOSE).writeInt(id);
                 } catch (IOException e) {
-                    trace.error("close", e);
+                    trace.error(e, "close");
                 }
             }
         }
@@ -232,7 +232,7 @@ public class CommandRemote implements CommandInterface {
                 }
             }
         } catch (DbException e) {
-            trace.error("close", e);
+            trace.error(e, "close");
         }
         parameters.clear();
     }

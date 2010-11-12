@@ -87,7 +87,7 @@ public class WriterThread implements Runnable {
             } catch (Exception e) {
                 TraceSystem traceSystem = database.getTraceSystem();
                 if (traceSystem != null) {
-                    traceSystem.getTrace(Trace.LOG).error("flush", e);
+                    traceSystem.getTrace(Trace.DATABASE).error(e, "flush");
                 }
             }
             // TODO log writer: could also flush the dirty cache

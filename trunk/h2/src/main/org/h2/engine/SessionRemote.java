@@ -145,7 +145,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 trans.writeInt(id);
                 trans.close();
             } catch (IOException e) {
-                trace.debug("Could not cancel statement", e);
+                trace.debug(e, "could not cancel statement");
             }
         }
     }
@@ -496,7 +496,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                         done(transfer);
                         transfer.close();
                     } catch (Exception e) {
-                        trace.error("close", e);
+                        trace.error(e, "close");
                     }
                 }
             }
@@ -580,7 +580,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
      */
     public void traceOperation(String operation, int id) {
         if (trace.isDebugEnabled()) {
-            trace.debug(operation + " " + id);
+            trace.debug("{0} {1}", operation, id);
         }
     }
 

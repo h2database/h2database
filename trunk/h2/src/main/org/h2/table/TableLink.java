@@ -415,7 +415,7 @@ public class TableLink extends Table {
      */
     public PreparedStatement getPreparedStatement(String sql, boolean exclusive) {
         if (trace.isDebugEnabled()) {
-            trace.debug(getName() + ":\n" + sql);
+            trace.debug("{0} :\n{1}", getName(), sql);
         }
         try {
             if (conn == null) {

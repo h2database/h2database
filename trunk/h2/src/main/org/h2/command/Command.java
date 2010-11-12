@@ -179,7 +179,7 @@ public abstract class Command implements CommandInterface {
         if (trace.isInfoEnabled()) {
             long time = System.currentTimeMillis() - startTime;
             if (time > Constants.SLOW_QUERY_LIMIT_MS) {
-                trace.info("slow query: " + time);
+                trace.info("slow query: {0} ms", time);
             }
         }
     }

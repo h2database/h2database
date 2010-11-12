@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>CallableStatement: now the syntax "{? = CALL...}" is supported as well.
+</li><li>Lob in databases: two small BLOB or CLOB values were always considered equal.
+    This also affected unique indexes.
+</li><li>The shutdown hook is (re-) enabled by default even for H2 version 1.3.x.
+</li><li>When creating a database from a recovery script, the same user can now be used
+    (CREATE USER now always includes IF EXISTS).
+</li><li>The H2 Console now prints a status message if started with parameters.
 </li></ul>
 
 <h2>Version 1.3.146 Beta (2010-11-08)</h2>

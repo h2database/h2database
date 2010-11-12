@@ -101,6 +101,7 @@ ShutdownHandler {
         boolean tcpStart = false, pgStart = false, webStart = false, toolStart = false;
         boolean browserStart = false;
         boolean startDefaultServers = true;
+        boolean printStatus = args != null && args.length > 0;
 
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
@@ -142,6 +143,9 @@ ShutdownHandler {
                 web = Server.createWebServer(args);
                 web.setShutdownHandler(this);
                 web.start();
+                if (printStatus) {
+                    out.println(web.getStatus());
+                }
                 webRunning = true;
             } catch (SQLException e) {
                 printProblem(e, web);
@@ -173,6 +177,9 @@ ShutdownHandler {
             try {
                 tcp = Server.createTcpServer(args);
                 tcp.start();
+                if (printStatus) {
+                    out.println(tcp.getStatus());
+                }
             } catch (SQLException e) {
                 printProblem(e, tcp);
                 if (startException == null) {
@@ -184,6 +191,9 @@ ShutdownHandler {
             try {
                 pg = Server.createPgServer(args);
                 pg.start();
+                if (printStatus) {
+                    out.println(pg.getStatus());
+                }
             } catch (SQLException e) {
                 printProblem(e, pg);
                 if (startException == null) {

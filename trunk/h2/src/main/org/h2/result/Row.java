@@ -31,6 +31,22 @@ public class Row implements SearchRow {
         this.memory = memory;
     }
 
+    /**
+     * Get a copy of the row that is distinct from (not equal to) this row.
+     * This is used for FOR UPDATE to allow pseudo-updating a row.
+     *
+     * @return a new row with the same data
+     */
+    public Row getCopy() {
+        Value[] d2 = new Value[data.length];
+        System.arraycopy(data, 0, d2, 0, data.length);
+        Row r2 = new Row(d2, memory);
+        r2.key = key;
+        r2.version = version + 1;
+        r2.sessionId = sessionId;
+        return r2;
+    }
+
     public void setKeyAndVersion(SearchRow row) {
         setKey(row.getKey());
         setVersion(row.getVersion());

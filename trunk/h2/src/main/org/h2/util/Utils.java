@@ -190,6 +190,9 @@ public class Utils {
      * @return the result of the comparison (-1, 1 or 0)
      */
     public static int compareNotNull(byte[] data1, byte[] data2) {
+        if (data1 == data2) {
+            return 0;
+        }
         int len = Math.min(data1.length, data2.length);
         for (int i = 0; i < len; i++) {
             byte b = data1[i];

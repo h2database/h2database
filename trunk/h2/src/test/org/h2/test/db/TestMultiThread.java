@@ -49,8 +49,31 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     public void test() throws Exception {
+        testConcurrentAlter();
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
+    }
+
+    private void testConcurrentAlter() throws Exception {
+        deleteDb("concurrentAlter");
+        final Connection conn = getConnection("concurrentAlter");
+        Statement stat = conn.createStatement();
+        Task t = new Task() {
+            public void call() throws Exception {
+                while (!stop) {
+                    conn.prepareStatement("select * from test");
+                }
+            }
+        };
+        stat.execute("create table test(id int)");
+        t.execute();
+        for (int i = 0; i < 200; i++) {
+            stat.execute("alter table test add column x int");
+            stat.execute("alter table test drop column x");
+        }
+        t.get();
+        conn.close();
+        deleteDb("concurrentAlter");
     }
 
     private void testConcurrentAnalyze() throws Exception {

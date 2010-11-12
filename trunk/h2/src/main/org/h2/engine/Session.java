@@ -370,7 +370,9 @@ public class Session extends SessionWithState {
     }
 
     public CommandInterface prepareCommand(String sql, int fetchSize) {
-        return prepareLocal(sql);
+        synchronized (database) {
+            return prepareLocal(sql);
+        }
     }
 
     /**

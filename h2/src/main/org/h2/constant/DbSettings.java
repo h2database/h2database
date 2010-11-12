@@ -69,7 +69,7 @@ public class DbSettings extends SettingsBase {
      * Close the database when the virtual machine exits normally, using a
      * shutdown hook.
      */
-    public final boolean dbCloseOnExit = get("DB_CLOSE_ON_EXIT", Constants.VERSION_MINOR < 3);
+    public final boolean dbCloseOnExit = get("DB_CLOSE_ON_EXIT", true);
 
     /**
      * Database setting <code>DEFAULT_ESCAPE</code> (default: \).<br />

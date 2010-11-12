@@ -157,6 +157,14 @@ public class RegularTable extends TableBase {
         analyzeIfRequired(session);
     }
 
+    public void commit(short operation, Row row) {
+        lastModificationId = database.getNextModificationDataId();
+        for (int i = 0, size = indexes.size(); i < size; i++) {
+            Index index = indexes.get(i);
+            index.commit(operation, row);
+        }
+    }
+
     private void checkRowCount(Session session, Index index, int offset) {
         if (SysProperties.CHECK && !database.isMultiVersion()) {
             if (!(index instanceof PageDelegateIndex)) {

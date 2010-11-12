@@ -6,10 +6,8 @@
  */
 package org.h2.engine;
 
-import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.store.Data;
@@ -255,11 +253,7 @@ public class UndoLogRecord {
      * It commits the change to the indexes.
      */
     public void commit() {
-        ArrayList<Index> indexes = table.getIndexes();
-        for (int i = 0, size = indexes.size(); i < size; i++) {
-            Index index = indexes.get(i);
-            index.commit(operation, row);
-        }
+        table.commit(operation, row);
     }
 
     /**

@@ -15,6 +15,7 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.util.New;
 
@@ -91,17 +92,21 @@ public class TestTransaction extends TestBase {
         Connection conn = getConnection("transaction");
         conn.setAutoCommit(false);
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key) as select 1");
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
         conn.commit();
-        PreparedStatement prep = conn.prepareStatement("select * from test for update");
+        PreparedStatement prep = conn.prepareStatement("select * from test where id = 1 for update");
         prep.execute();
         // releases the lock
         conn.commit();
         prep.execute();
         Connection conn2 = getConnection("transaction");
         conn2.setAutoCommit(false);
+        if (config.mvcc && Constants.VERSION_MINOR >= 3) {
+            conn2.createStatement().execute("update test set name = 'Welt' where id = 2");
+        }
         try {
-            conn2.createStatement().execute("select * from test");
+            conn2.createStatement().execute("update test set name = 'Hallo' where id = 1");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

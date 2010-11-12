@@ -7,6 +7,7 @@
 package org.h2.test.mvcc;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -61,6 +62,8 @@ public class TestMvcc1 extends TestBase {
         if (!config.mvcc) {
             return;
         }
+        ResultSet rs;
+
         // TODO Prio 1: document: exclusive table lock still used when altering
         //     tables, adding indexes, select ... for update; table level locks are
         //     checked
@@ -148,9 +151,9 @@ public class TestMvcc1 extends TestBase {
         s1.execute("create table test(id int primary key, name varchar(255))");
         s1.execute("insert into test values(1, 'y')");
         c1.commit();
-        s2.execute("select * from test for update");
+        s2.execute("select * from test where id = 1 for update");
         try {
-            s1.execute("insert into test values(2, 'x')");
+            s1.execute("delete from test");
             fail();
         } catch (SQLException e) {
             // lock timeout expected
@@ -195,10 +198,17 @@ public class TestMvcc1 extends TestBase {
         c1.commit();
         assertResult("1", s2, "SELECT COUNT(*) FROM TEST");
         s1.executeUpdate("DELETE FROM TEST");
+        PreparedStatement p2 = c2.prepareStatement("select count(*) from test");
+        rs = p2.executeQuery();
+        rs.next();
+        assertEquals(1, rs.getInt(1));
         assertResult("1", s2, "SELECT COUNT(*) FROM TEST");
         assertResult("0", s1, "SELECT COUNT(*) FROM TEST");
         c1.commit();
         assertResult("0", s2, "SELECT COUNT(*) FROM TEST");
+        rs = p2.executeQuery();
+        rs.next();
+        assertEquals(0, rs.getInt(1));
         c1.commit();
         c2.commit();
         s1.execute("DROP TABLE TEST");
@@ -378,7 +388,7 @@ public class TestMvcc1 extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        ResultSet rs = s1.executeQuery("select * from test order by id");
+        rs = s1.executeQuery("select * from test order by id");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));

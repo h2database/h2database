@@ -504,7 +504,7 @@ public class Select extends Query {
                     row[i] = expr.getValue(session);
                 }
                 if (isForUpdateMvcc) {
-                    topTableFilter.lockRow(forUpdateRows);
+                    topTableFilter.lockRowAdd(forUpdateRows);
                 }
                 result.addRow(row);
                 rowNumber++;

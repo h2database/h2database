@@ -898,7 +898,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @param rows the rows to lock
      */
-    public void lockRow(ArrayList<Row> rows) {
+    public void lockRowAdd(ArrayList<Row> rows) {
         if (state == FOUND) {
             rows.add(get());
         }
@@ -912,7 +912,8 @@ public class TableFilter implements ColumnResolver {
     public void lockRows(ArrayList<Row> forUpdateRows) {
         for (Row row : forUpdateRows) {
             table.removeRow(session, row);
-            table.addRow(session, row);
+            Row r2 = row.getCopy();
+            table.addRow(session, r2);
         }
     }
 

@@ -64,7 +64,6 @@ public class TestTools extends TestBase {
         if (config.networked) {
             return;
         }
-        testSimpleResultSet();
         org.h2.Driver.load();
         testJdbcDriverUtils();
         testWrongServer();
@@ -84,6 +83,7 @@ public class TestTools extends TestBase {
         testScriptRunscript();
         testBackupRestore();
         testRecover();
+        testSimpleResultSet();
         deleteDb("utils");
         IOUtils.delete(getBaseDir() + "/b2.sql");
         IOUtils.delete(getBaseDir() + "/b2.sql.txt");
@@ -473,7 +473,7 @@ public class TestTools extends TestBase {
             }
         }
 
-        conn = DriverManager.getConnection(url, "another", "another");
+        conn = DriverManager.getConnection(url);
         stat = conn.createStatement();
         String suffix = ".h2.sql";
         stat.execute("runscript from '" + getBaseDir() + "/toolsRecover" + suffix + "'");

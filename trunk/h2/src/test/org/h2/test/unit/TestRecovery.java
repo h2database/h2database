@@ -38,6 +38,7 @@ public class TestRecovery extends TestBase {
 
     private void testCompressedAndUncompressed() throws SQLException {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        DeleteDbFiles.execute(getBaseDir(), "recovery2", true);
         org.h2.Driver.load();
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
@@ -48,12 +49,11 @@ public class TestRecovery extends TestBase {
         conn.close();
         Recover rec = new Recover();
         rec.runTool("-dir", getBaseDir(), "-db", "recovery");
-        Connection conn2 = getConnection("recovery2", "diff", "");
+        Connection conn2 = getConnection("recovery2");
         Statement stat2 = conn2.createStatement();
         String name = "recovery.h2.sql";
         stat2.execute("runscript from '" + getBaseDir() + "/" + name + "'");
         stat2.execute("select * from test");
-        stat2.execute("drop user diff");
         conn2.close();
 
         conn = getConnection("recovery");
@@ -92,13 +92,12 @@ public class TestRecovery extends TestBase {
         String out = new String(buff.toByteArray());
         assertTrue(out.indexOf("Created file") >= 0);
 
-        Connection conn2 = getConnection("recovery2", "diff", "");
+        Connection conn2 = getConnection("recovery2");
         Statement stat2 = conn2.createStatement();
         String name = "recovery.h2.sql";
 
         stat2.execute("runscript from '" + getBaseDir() + "/" + name + "'");
         stat2.execute("select * from test");
-        stat2.execute("drop user diff");
         conn2.close();
 
         conn = getConnection("recovery");

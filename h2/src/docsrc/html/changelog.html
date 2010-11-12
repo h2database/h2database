@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>CallableStatement: now the syntax "{? = CALL...}" is supported as well.
+<ul><li>Concurrently preparing a statement and altering a table could throw a table not found exception.
+<li><li>When concurrently preparing many statements with a subquery, in some cases the query didn't run
+    (Column "..." must be in the GROUP BY list).
+</li><li>CallableStatement: now the syntax "{? = CALL...}" is supported as well.
 </li><li>Lob in databases: two small BLOB or CLOB values were always considered equal.
     This also affected unique indexes.
 </li><li>The shutdown hook is (re-) enabled by default even for H2 version 1.3.x.

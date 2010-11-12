@@ -54,6 +54,29 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     }
 
     /**
+     * Executes an arbitrary statement. If another result set exists for this
+     * statement, this will be closed (even if this statement fails). If auto
+     * commit is on, and the statement is not a select, this statement will be
+     * committed.
+     *
+     * @return true if a result set is available, false if not
+     * @throws SQLException if this object is closed or invalid
+     */
+    public boolean execute() throws SQLException {
+        try {
+            checkClosed();
+            if (command.isQuery()) {
+                super.executeQuery().next();
+                return true;
+            }
+            super.executeUpdate();
+            return false;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
      * Executes a statement (insert, update, delete, create, drop)
      * and returns the update count.
      * If another result set exists for this statement, this will be closed

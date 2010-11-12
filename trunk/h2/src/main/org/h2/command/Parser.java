@@ -138,6 +138,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -283,6 +284,15 @@ public class Parser {
         } else {
             char first = token.charAt(0);
             switch (first) {
+            case '?':
+                // read the ? as a parameter
+                readTerm();
+                // this is an 'out' parameter - set a dummy value
+                parameters.get(0).setValue(ValueNull.INSTANCE);
+                read("=");
+                read("CALL");
+                c = parseCall();
+                break;
             case '(':
                 c = parseSelect();
                 break;

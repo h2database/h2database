@@ -101,13 +101,13 @@ public class TestLob extends TestBase {
         } catch (SQLException e) {
             assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
         }
-        stat.execute("insert into test values(space(10000) || 'a')");
+        stat.execute("insert into test values(space(10000) || 'a')");
         try {
-            stat.execute("insert into test values(space(10000) || 'a')");
+            stat.execute("insert into test values(space(10000) || 'a')");
         } catch (SQLException e) {
             assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
         }
-        stat.execute("insert into test values(space(10000) || 'b')");
+        stat.execute("insert into test values(space(10000) || 'b')");
         conn.close();
     }
 

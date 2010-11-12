@@ -281,10 +281,11 @@ public class FullTextLucene extends FullText {
                     Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
                     IndexWriter writer = new IndexWriter(indexDir, analyzer,
                             recreate, IndexWriter.MaxFieldLength.UNLIMITED);
-                    //see http://wiki.apache.org/lucene-java/NearRealtimeSearch
+                    //see http://wiki.apache.org/lucene-java/NearRealtimeSearch              
                     IndexReader reader = writer.getReader();
                     access = new IndexAccess();
                     access.writer = writer;
+                    access.reader = reader;
                     access.searcher = new IndexSearcher(reader);
                     //## LUCENE3 end ##
                 } catch (IOException e) {
@@ -364,8 +365,9 @@ public class FullTextLucene extends FullText {
                 access.modifier.flush();
                 access.modifier.close();
                 ## LUCENE2 end ##*/
-                //## LUCENE3 begin ##
+                //## LUCENE3 begin ##      
                 access.searcher.close();
+                access.reader.close();
                 access.writer.close();
                 //## LUCENE3 end ##
             } catch (Exception e) {
@@ -670,7 +672,10 @@ public class FullTextLucene extends FullText {
                 indexAccess.writer.addDocument(doc);
                 indexAccess.writer.commit();
                 //Recreate Searcher with the IndexWriter's reader.
+                indexAccess.searcher.close();
+                indexAccess.reader.close();
                 IndexReader reader = indexAccess.writer.getReader();
+                indexAccess.reader = reader;
                 indexAccess.searcher = new IndexSearcher(reader);
             } catch (IOException e) {
                 throw convertException(e);
@@ -735,6 +740,13 @@ public class FullTextLucene extends FullText {
          */
         //## LUCENE3 begin ##
         IndexWriter writer;
+        //## LUCENE3 end ##
+        
+        /**
+         * The index reader.
+         */
+        //## LUCENE3 begin ##
+        IndexReader reader;
         //## LUCENE3 end ##
 
         /**

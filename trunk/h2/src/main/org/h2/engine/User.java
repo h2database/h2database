@@ -80,7 +80,7 @@ public class User extends RightOwner {
     }
 
     public String getCreateSQL() {
-        return getCreateSQL(true, false);
+        return getCreateSQL(true);
     }
 
     public String getDropSQL() {
@@ -149,14 +149,10 @@ public class User extends RightOwner {
      *
      * @param password true if the password (actually the salt and hash) should
      *            be returned
-     * @param ifNotExists true if IF NOT EXISTS should be used
      * @return the SQL statement
      */
-    public String getCreateSQL(boolean password, boolean ifNotExists) {
-        StringBuilder buff = new StringBuilder("CREATE USER ");
-        if (ifNotExists) {
-            buff.append("IF NOT EXISTS ");
-        }
+    public String getCreateSQL(boolean password) {
+        StringBuilder buff = new StringBuilder("CREATE USER IF NOT EXISTS ");
         buff.append(getSQL());
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));

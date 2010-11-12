@@ -142,7 +142,7 @@ public class ScriptCommand extends ScriptBase {
                 add("", true);
             }
             for (User user : db.getAllUsers()) {
-                add(user.getCreateSQL(passwords, true), false);
+                add(user.getCreateSQL(passwords), false);
             }
             for (Role role : db.getAllRoles()) {
                 add(role.getCreateSQL(true), false);

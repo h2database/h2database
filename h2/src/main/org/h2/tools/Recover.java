@@ -1021,6 +1021,9 @@ public class Recover extends Tool implements DataHandler {
                         int saltIndex = Utils.indexOf(s.getBytes(), "SALT ".getBytes(), off);
                         if (saltIndex >= 0) {
                             String userName = sql.substring("CREATE USER ".length(), sql.indexOf("SALT ") - 1);
+                            if (userName.startsWith("IF NOT EXISTS ")) {
+                                userName = userName.substring("IF NOT EXISTS ".length());
+                            }
                             if (userName.startsWith("\"")) {
                                 // TODO doesn't work for all cases ("" inside user name)
                                 userName = userName.substring(1, userName.length() - 1);

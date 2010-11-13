@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using multi-version concurrency, re-running a prepared statement with the same parameters 
+<ul><li>Creating a comment on a column didn't work if the schema name was equal the database name.
+</li><li>When using multi-version concurrency, re-running a prepared statement with the same parameters 
     would sometimes give the same result even if another connection committed a change (the previous result was sometimes 
     re-used incorrectly).
 </li><li>When using SELECT_FOR_UPDATE_MVCC (lock only the selected rows when using MVCC),

@@ -38,7 +38,7 @@ public class Script extends Tool {
      * <tr><td>[-script &lt;file&gt;]</td>
      * <td>The target script file name (default: backup.sql)</td></tr>
      * <tr><td>[-options ...]</td>
-     * <td>A list of options (only for embedded H2, see RUNSCRIPT)</td></tr>
+     * <td>A list of options (only for embedded H2, see SCRIPT)</td></tr>
      * <tr><td>[-quiet]</td>
      * <td>Do not print progress information</td></tr>
      * </table>

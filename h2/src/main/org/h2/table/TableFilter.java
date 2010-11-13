@@ -12,6 +12,7 @@ import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
@@ -911,9 +912,11 @@ public class TableFilter implements ColumnResolver {
      */
     public void lockRows(ArrayList<Row> forUpdateRows) {
         for (Row row : forUpdateRows) {
+            Row newRow = row.getCopy();
             table.removeRow(session, row);
-            Row r2 = row.getCopy();
-            table.addRow(session, r2);
+            session.log(table, UndoLogRecord.DELETE, row);
+            table.addRow(session, newRow);
+            session.log(table, UndoLogRecord.INSERT, newRow);
         }
     }
 

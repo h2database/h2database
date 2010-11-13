@@ -1086,18 +1086,34 @@ public class Parser {
             throw getSyntaxError();
         }
         SetComment command = new SetComment(session);
-        String objectName = readIdentifierWithSchema();
+        String objectName;
         if (column) {
-            String columnName = objectName;
-            objectName = schemaName;
+            // can't use readIdentifierWithSchema() because
+            // it wouldn't read schema.table.column correctly
+            // if the db name is equal to the schema name
+            ArrayList<String> list = New.arrayList();
+            do {
+                list.add(readUniqueIdentifier());
+            } while (readIf("."));
             schemaName = session.getCurrentSchemaName();
-            if (readIf(".")) {
-                schemaName = objectName;
-                objectName = columnName;
-                columnName = readUniqueIdentifier();
+            if (list.size() == 4) {
+                if (!equalsToken(database.getShortName(), list.get(0))) {
+                    throw DbException.getSyntaxError(sqlCommand, parseIndex, "database name");
+                }
+                list.remove(0);
             }
+            if (list.size() == 3) {
+                schemaName = list.get(0);
+                list.remove(0);
+            }
+            if (list.size() != 2) {
+                throw DbException.getSyntaxError(sqlCommand, parseIndex, "table.column");
+            }
+            objectName = list.get(0);
             command.setColumn(true);
-            command.setColumnName(columnName);
+            command.setColumnName(list.get(1));
+        } else {
+            objectName = readIdentifierWithSchema();
         }
         command.setSchemaName(schemaName);
         command.setObjectName(objectName);

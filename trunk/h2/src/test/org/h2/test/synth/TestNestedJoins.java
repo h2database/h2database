@@ -243,6 +243,32 @@ public class TestNestedJoins extends TestBase {
         String sql;
 
         /*
+        create table test(id int primary key, x int) as select x, x from system_range(1, 10);
+        create index on test(x);
+        create table o(id int primary key) as select x from system_range(1, 10);
+        explain select * from test a inner join test b on a.id=b.id left outer join o on o.id=a.id where b.x=1;
+        -- expected: no tableScan
+        explain select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1;
+        -- expected: no tableScan
+        drop table test;
+        drop table o;
+        */
+        stat.execute("create table test(id int primary key, x int) as select x, x from system_range(1, 10)");
+        stat.execute("create index on test(x)");
+        stat.execute("create table o(id int primary key) as select x from system_range(1, 10)");
+        rs = stat.executeQuery("explain select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1");
+        assertTrue(rs.next());
+        sql = rs.getString(1);
+        assertTrue("using table scan", sql.indexOf("tableScan") < 0);
+        rs = stat.executeQuery("explain select * from test a inner join test b on a.id=b.id left outer join o on o.id=a.id where b.x=1");
+        assertTrue(rs.next());
+        sql = rs.getString(1);
+        int todo;
+//        assertTrue("using table scan", sql.indexOf("tableScan") < 0);
+        stat.execute("drop table test");
+        stat.execute("drop table o");
+
+        /*
         create table test(id int primary key);
         insert into test values(1);
         select b.id from test a left outer join test b on a.id = b.id

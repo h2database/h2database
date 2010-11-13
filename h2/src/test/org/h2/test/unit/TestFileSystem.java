@@ -292,6 +292,7 @@ public class TestFileSystem extends TestBase {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             fail("Exception: " + e + "\n"+ buff.toString());
         }
         f.close();

@@ -37,6 +37,7 @@ public class TestCases extends TestBase {
 
     public void test() throws Exception {
         testOuterJoin();
+        testCommentOnColumnWithSchemaEqualDatabase();
         testColumnWithConstraintAndComment();
         testTruncateConstraintsDisabled();
         testPreparedSubquery2();
@@ -106,6 +107,17 @@ public class TestCases extends TestBase {
         ResultSet rs = stat.executeQuery("select * from parent left outer join child on p = pc where c is null");
         assertFalse(rs.next());
         stat.execute("drop all objects");
+        conn.close();
+    }
+
+    private void testCommentOnColumnWithSchemaEqualDatabase() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create schema cases");
+        stat.execute("create table cases.cases(cases int)");
+        stat.execute("comment on column cases.cases.cases is 'schema.table.column'");
+        stat.execute("comment on column cases.cases.cases.cases is 'db.schema.table.column'");
         conn.close();
     }
 

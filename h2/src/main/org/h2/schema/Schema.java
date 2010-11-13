@@ -398,11 +398,13 @@ public class Schema extends DbObjectBase {
      */
     public Table getTableOrView(Session session, String name) {
         Table table = tablesAndViews.get(name);
-        if (table == null && session != null) {
-            table = session.findLocalTempTable(name);
-        }
         if (table == null) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, name);
+            if (session != null) {
+                table = session.findLocalTempTable(name);
+            }
+            if (table == null) {
+                throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, name);
+            }
         }
         return table;
     }

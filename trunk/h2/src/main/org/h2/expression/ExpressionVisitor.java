@@ -121,21 +121,32 @@ public class ExpressionVisitor {
     }
 
     /**
-     * Create a new visitor object with the given type.
+     * Create a new visitor object to gather dependencies.
      *
-     * @param type the visitor type
+     * @param dependencies the dependencies set
      * @return the new visitor
      */
-
-
     public static ExpressionVisitor getDependenciesVisitor(HashSet<DbObject> dependencies) {
         return new ExpressionVisitor(GET_DEPENDENCIES, 0, dependencies, null, null, null);
     }
 
+    /**
+     * Create a new visitor to check if all aggregates are for the given table.
+     *
+     * @param table the table
+     * @return the new visitor
+     */
     public static ExpressionVisitor getOptimizableVisitor(Table table) {
         return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null, table, null, null);
     }
 
+    /**
+     * Create a new visitor to check if no expression depends on the given
+     * resolver.
+     *
+     * @param resolver the resolver
+     * @return the new visitor
+     */
     public static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
         return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, resolver, null);
     }

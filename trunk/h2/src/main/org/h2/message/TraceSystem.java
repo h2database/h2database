@@ -205,6 +205,10 @@ public class TraceSystem implements TraceWriter {
         updateLevel();
     }
 
+    public int getLevelFile() {
+        return levelFile;
+    }
+
     private synchronized String format(String module, String s) {
         if (dateFormat == null) {
             dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");

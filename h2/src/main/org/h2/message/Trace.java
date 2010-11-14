@@ -264,7 +264,6 @@ public class Trace {
      * Write a message with trace level DEBUG to the trace system.
      *
      * @param s the message
-     * @param params the parameters
      */
     public void debug(String s) {
         if (isEnabled(TraceSystem.DEBUG)) {

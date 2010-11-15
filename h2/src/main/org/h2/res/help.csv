@@ -18,7 +18,8 @@ INSERT INTO tableName [ ( columnName [,...] ) ]
 ","
 Inserts a new row / new rows into a table."
 "Commands (DML)","UPDATE","
-UPDATE tableName [ [ AS ] newTableAlias ] SET { columnName= { DEFAULT | expression } } [,...]
+UPDATE tableName [ [ AS ] newTableAlias ]
+SET { columnName= { DEFAULT | expression } } [,...]
 [ WHERE expression ]
 ","
 Updates data in a table."
@@ -45,14 +46,14 @@ MERGE INTO tableName [ ( columnName [,...] ) ]
 ","
 Updates existing rows, and insert rows that don't exist."
 "Commands (DML)","RUNSCRIPT","
-RUNSCRIPT FROM fileNameString [ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+RUNSCRIPT FROM fileNameString [ scriptCompression ]
 [ CIPHER cipher PASSWORD string ] [ CHARSET charsetString ]
 ","
 Runs a SQL script from a file."
 "Commands (DML)","SCRIPT","
 SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 [ DROP ] [ BLOCKSIZE blockSizeInt ]
-[ TO fileNameString [ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+[ TO fileNameString [ scriptCompression ]
     [ CIPHER cipher PASSWORD string ] ]
 [ CHARSET charsetString ]
 ","
@@ -633,6 +634,10 @@ REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
 [ ON UPDATE { CASCADE | SET { DEFAULT | NULL } } ]
 ","
 Defines a referential constraint."
+"Other Grammar","Script Compression","
+COMPRESSION { DEFLATE | LZF | ZIP | GZIP }
+","
+The compression algorithm to use for script files."
 "Other Grammar","Select Expression","
 * | expression [ [ AS ] columnAlias ] | tableAlias.*
 ","

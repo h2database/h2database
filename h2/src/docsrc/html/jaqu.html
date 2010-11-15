@@ -40,7 +40,7 @@ JaQu
 <h2 id="what_is_jaqu">What is JaQu</h2>
 <p>
 JaQu stands for Java Query and allows to access databases using pure Java.
-JaQu provides a fluent interface (or internal DSL) to access a database.
+JaQu provides a fluent interface (or internal DSL).
 JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a
 Microsoft .NET technology). The following JaQu code:
 </p>
@@ -60,21 +60,21 @@ WHERE P.UNITS_IN_STOCK = 0
 <h2 id="differences">Differences to Other Data Access Tools</h2>
 <p>
 Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java,
-auto-complete in the IDE and Javadoc and are supported. Type checking is performed by the compiler.
+auto-complete in the IDE is supported. Type checking is performed by the compiler.
 JaQu fully protects against SQL injection.
 </p>
 <p>
-JaQu is more a replacement for JDBC than it is a replacement for tools like Hibernate.
-With JaQu, you don't write SQL statements as Strings.
+JaQu is meant as replacement for JDBC and SQL and not as much as a replacement for tools like Hibernate.
+With JaQu, you don't write SQL statements as strings.
 JaQu is much smaller and simpler than other persistence frameworks such as Hibernate,
 but it also does not provide all the features of those.
 Unlike iBatis and Hibernate, no XML or annotation based configuration is required;
-instead the configuration (if required at all) is done in pure Java, in the application itself.
+instead the configuration (if required at all) is done in pure Java, within the application.
 </p>
 <p>
 JaQu does not require or contain any data caching mechanism. Like JDBC and iBatis,
 JaQu provides full control over when and what SQL statements are executed
-(but without having to write SQL statements as Strings).
+(but without having to write SQL statements as strings).
 </p>
 
 <h3>Restrictions</h3>
@@ -85,8 +85,9 @@ Use <code>java.lang.Boolean, Integer, Long, Double</code> instead.
 
 <h3>Why in Java?</h3>
 <p>
-Most people use Java in their application. Mixing Java and another language (for example Scala or Groovy)
-in the same application is complicated: you would need to split the application and database code.
+Most applications are written in Java. Mixing Java and another language (for example Scala or Groovy)
+in the same application is complicated: you would need to split the application and database code,
+and write adapter / wrapper code.
 </p>
 
 <h2 id="current_state">Current State</h2>
@@ -247,12 +248,14 @@ public class Test {
 
 <h2 id="configuration">Configuration</h2>
 <p>
-JaQu does not require any configuration when using the default mapping.
+JaQu does not require any configuration when using the default field to column mapping.
 To define table indices, or if you want to map a class to a table with a different name,
 or a field to a column with another name, create a function called <code>define</code> in the data class.
 Example:
 </p>
 <pre>
+import static org.h2.jaqu.Define.*;
+
 public class Product implements Table {
 
     public Integer productId;
@@ -274,15 +277,15 @@ The method <code>define()</code> contains the mapping definition. It is called o
 when the class is used for the first time. Like annotations, the mapping is defined in the class itself.
 Unlike when using annotations, the compiler can check the syntax even for multi-column
 objects (multi-column indexes, multi-column primary keys and so on).
-Because the definition is written in regular Java, the configuration can depend on the environment.
-This is not possible using annotations.
+Because the definition is written in Java, the configuration can be set at runtime,
+which is not possible using annotations.
 Unlike XML mapping configuration, the configuration is integrated in the class itself.
 </p>
 
 <h2 id="natural_syntax">Natural Syntax</h2>
 <p>The plan is to support more natural (pure Java) syntax in conditions.
 To do that, the condition class is de-compiled to a SQL condition.
-A proof of concept decompiler is included (but it doesn't work yet).
+A proof of concept decompiler is included (but it doesn't fully work yet; patches are welcome).
 The planned syntax is:
 </p>
 <pre>
@@ -301,7 +304,7 @@ long count = db.from(co).
 <h2 id="other_ideas">Other Ideas</h2>
 <p>
 This project has just been started, and nothing is fixed yet.
-Some ideas for what to implement are:
+Some ideas are:
 </p>
 <ul><li>Support queries on collections (instead of using a database).
 </li><li>Provide API level compatibility with JPA (so that JaQu can be used as an extension of JPA).

@@ -64,6 +64,8 @@ Tutorial
     Date and Time</a><br />
 <a href="#spring">
     Using Spring</a><br />
+<a href="#jmx">
+    Java Management Extension (JMX)</a><br />
 
 <h2 id="tutorial_starting_h2_console">Starting and Using the H2 Console</h2>
 <p>
@@ -1236,5 +1238,35 @@ Use the following configuration to start and stop the H2 TCP server using the Sp
 The <code>destroy-method</code> will help prevent exceptions on hot-redeployment or when restarting the server.
 </p>
 
+<h2 id="jmx">Java Management Extension (JMX)</h2>
+<p>
+Management over JMX is supported, but not enabled by default.
+To enable JMX, append <code>;JMX=TRUE</code> to the database URL when opening the database.
+Various tools support JMX, one such tool is the <code>jconsole</code>.
+When opening the <code>jconsole</code>, connect to the process where the database is open
+(when using the server mode, you need to connect to the server process). Then go to the <code>MBeans</code> section.
+Under <code>org.h2</code> you will find one entry per database. The object name of the entry
+is the database short name, plus the path (each colon is replaced with an underscore character).
+</p>
+<p>
+The following attributes and operations are supported:
+</p>
+<ul><li><code>CacheSize</code>: the cache size currently in use in KB.
+</li><li><code>CacheSizeMax</code> (read/write): the maximum cache size in KB.
+</li><li><code>Exclusive</code>: whether this database is open in exclusive mode or not.
+</li><li><code>FileReadCount</code>: the number of file read operations since the database was opened.
+</li><li><code>FileSize</code>: the file size in KB.
+</li><li><code>FileWriteCount</code>: the number of file write operations since the database was opened.
+</li><li><code>FileWriteCountTotal</code>: the number of file write operations since the database was created.
+</li><li><code>LogMode</code> (read/write): the current transaction log mode. See <code>SET LOG</code> for details.
+</li><li><code>Mode</code>: the compatibility mode (<code>REGULAR</code> if no compatibility mode is used).
+</li><li><code>MultiThreaded</code>: true if multi-threaded is enabled.
+</li><li><code>Mvcc</code>: true if <code>MVCC</code> is enabled.
+</li><li><code>ReadOnly</code>: true if the database is read-only.
+</li><li><code>TraceLevel</code> (read/write): the file trace level.
+</li><li><code>Version</code>: the database version in use.
+</li><li><code>listSettings</code>: list the database settings.
+</li><li><code>listSessions</code>: list the open sessions, including currently executing statement (if any) and locked tables (if any).
+</li></ul>
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
 

@@ -51,7 +51,8 @@ INSERT INTO TEST VALUES(1, 'Hello')
 "
 
 "Commands (DML)","UPDATE","
-UPDATE tableName [ [ AS ] newTableAlias ] SET { columnName= { DEFAULT | expression } } [,...]
+UPDATE tableName [ [ AS ] newTableAlias ]
+SET { columnName= { DEFAULT | expression } } [,...]
 [ WHERE expression ]
 ","
 Updates data in a table.
@@ -111,7 +112,7 @@ MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 "
 
 "Commands (DML)","RUNSCRIPT","
-RUNSCRIPT FROM fileNameString [ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+RUNSCRIPT FROM fileNameString [ scriptCompression ]
 [ CIPHER cipher PASSWORD string ] [ CHARSET charsetString ]
 ","
 Runs a SQL script from a file. The script is a text file containing SQL
@@ -131,7 +132,7 @@ RUNSCRIPT FROM 'backup'
 "Commands (DML)","SCRIPT","
 SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 [ DROP ] [ BLOCKSIZE blockSizeInt ]
-[ TO fileNameString [ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+[ TO fileNameString [ scriptCompression ]
     [ CIPHER cipher PASSWORD string ] ]
 [ CHARSET charsetString ]
 ","
@@ -1828,6 +1829,15 @@ The required indexes are automatically created if required.
 Some tables may not be referenced, such as metadata tables.
 ","
 FOREIGN KEY(ID) REFERENCES TEST(ID)
+"
+
+"Other Grammar","Script Compression","
+COMPRESSION { DEFLATE | LZF | ZIP | GZIP }
+","
+The compression algorithm to use for script files.
+LZF is faster but uses more space.
+","
+COMPRESSION LZF
 "
 
 "Other Grammar","Select Expression","

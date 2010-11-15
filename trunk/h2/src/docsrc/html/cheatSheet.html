@@ -11,22 +11,23 @@ H2 Database Engine
 </title>
 <style type="text/css">
 td, input, select, textarea, body, td, th {
-    font: 9pt Tahoma, Arial, Helvetica, sans-serif;
+    font: 10pt Tahoma, Arial, Helvetica, sans-serif;
     font-weight: normal;
 }
 h1, h2, h3, h4, h5 {
-    font: 9pt Tahoma, Arial, Helvetica, sans-serif;
+    font: 10pt Tahoma, Arial, Helvetica, sans-serif;
     font-weight: bold;
 }
 h1 {
     background-color: #0000bb;
     padding: 2px 4px 2px 4px;
+    margin-bottom: 0px;
     color: #fff;
-    font-size: 15pt;
+    font-size: 19pt;
     line-height: normal;
 }
 h2 {
-    font-size: 10pt;
+    font-size: 13pt;
 }
 a.link {
     text-decoration: underline;
@@ -45,16 +46,32 @@ a:hover {
     color: blue;
 }
 td, input, select, textarea, body, code, pre {
-    font-size: 9pt;
+    font-size: 10pt;
 }
 pre {
     background-color: #ece9d8;
-    border: 1px solid rgb(172, 168, 153);
-    padding: 4px;
+    border: 1px solid #aca899;
+    padding: 6px;
+
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    border-radius: 4px;
+
+    -moz-box-shadow: 2px 2px 2px #aca899;
+    -webkit-box-shadow: 2px 2px 2px #aca899;
+    -khtml-box-shadow: 2px 2px 2px #aca899;
+    -o-box-shadow: 2px 2px 2px #aca899;
+    box-shadow: 2px 2px 2px #aca899;
 }
 code {
     background-color: #ece9d8;
-    padding: 0px 2px;
+    padding: 0px 4px;
+
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    border-radius: 4px;
 }
 table {
     background-color: #ffffff;
@@ -84,10 +101,10 @@ li {
 </style>
 </head><body>
 
-<div style="width:660px; margin:0 auto;">
+<div style="width:780px; margin:0 auto;">
 
 <h1>H2 Database Engine Cheat Sheet</h1>
-<div style="float:left; margin:5px; width:320px;">
+<div style="float:left; margin:5px; width:370px;">
 
 <h2>Using H2</h2>
 <ul><li><a href="http://h2database.com">H2</a> is
@@ -147,7 +164,7 @@ Reference:
 </p>
 
 </div>
-<div style="float:right; padding:5px; width:320px;">
+<div style="float:right; padding:5px; width:370px;">
 
 <h2><a href="tutorial.html#connecting_using_jdbc">Using the JDBC API</a></h2>
 <pre>

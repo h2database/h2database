@@ -243,12 +243,16 @@ public class TestNestedJoins extends TestBase {
         String sql;
 
         /*
-        create table test(id int primary key, x int) as select x, x from system_range(1, 10);
+        create table test(id int primary key, x int)
+        as select x, x from system_range(1, 10);
         create index on test(x);
-        create table o(id int primary key) as select x from system_range(1, 10);
-        explain select * from test a inner join test b on a.id=b.id left outer join o on o.id=a.id where b.x=1;
+        create table o(id int primary key)
+        as select x from system_range(1, 10);
+        explain select * from test a inner join test b
+        on a.id=b.id left outer join o on o.id=a.id where b.x=1;
         -- expected: no tableScan
-        explain select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1;
+        explain select * from test a inner join test b
+        on a.id=b.id inner join o on o.id=a.id where b.x=1;
         -- expected: no tableScan
         drop table test;
         drop table o;

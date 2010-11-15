@@ -6,7 +6,7 @@
  */
 
 td, input, select, textarea, body, code, pre, td, th {
-    font: 9pt/130% Tahoma, Arial, Helvetica, sans-serif;
+    font: 10pt/130% Tahoma, Arial, Helvetica, sans-serif;
     font-weight: normal;
 }
 
@@ -24,17 +24,18 @@ body {
 h1 {
     background-color: #0000bb;
     padding: 2px 4px 2px 4px;
+    margin-top: 11px;
     color: #fff;
-    font-size: 15pt;
+    font-size: 19pt;
     line-height: normal;
 }
 
 h2 {
-    font-size: 13pt;
+    font-size: 16pt;
 }
 
 h3 {
-    font-size: 11pt;
+    font-size: 13pt;
 }
 
 h4 {
@@ -101,7 +102,6 @@ td.method {
 
 .itemTitle {
 }
-/*    font-weight: bold; */
 
 .item {
     margin: 0px 0px 0px 20px;

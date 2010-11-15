@@ -121,7 +121,7 @@ public class ExpressionVisitor {
     }
 
     /**
-     * Create a new visitor object to gather dependencies.
+     * Create a new visitor object to collect dependencies.
      *
      * @param dependencies the dependencies set
      * @return the new visitor

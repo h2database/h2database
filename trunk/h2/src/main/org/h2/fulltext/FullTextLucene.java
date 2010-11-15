@@ -281,7 +281,7 @@ public class FullTextLucene extends FullText {
                     Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
                     IndexWriter writer = new IndexWriter(indexDir, analyzer,
                             recreate, IndexWriter.MaxFieldLength.UNLIMITED);
-                    //see http://wiki.apache.org/lucene-java/NearRealtimeSearch              
+                    //see http://wiki.apache.org/lucene-java/NearRealtimeSearch
                     IndexReader reader = writer.getReader();
                     access = new IndexAccess();
                     access.writer = writer;
@@ -365,7 +365,7 @@ public class FullTextLucene extends FullText {
                 access.modifier.flush();
                 access.modifier.close();
                 ## LUCENE2 end ##*/
-                //## LUCENE3 begin ##      
+                //## LUCENE3 begin ##
                 access.searcher.close();
                 access.reader.close();
                 access.writer.close();
@@ -741,7 +741,7 @@ public class FullTextLucene extends FullText {
         //## LUCENE3 begin ##
         IndexWriter writer;
         //## LUCENE3 end ##
-        
+
         /**
          * The index reader.
          */

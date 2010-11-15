@@ -471,7 +471,9 @@ public abstract class TestBase {
      * @param s the message
      */
     static void printlnWithTime(long millis, String s) {
-        System.out.println(formatTime(millis) + " " + s);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        s = dateFormat.format(new java.util.Date()) + " " + formatTime(millis) + " " + s;
+        System.out.println(s);
     }
 
     /**

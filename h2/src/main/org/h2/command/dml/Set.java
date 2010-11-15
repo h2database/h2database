@@ -200,12 +200,7 @@ public class Set extends Prepared {
             break;
         case SetTypes.LOG: {
             int value = getIntValue();
-            if (value < 0 || value > 2) {
-                throw DbException.getInvalidValueException("LOG", getIntValue());
-            }
-            if (value == 0) {
-                session.getUser().checkAdmin();
-            }
+            session.getUser().checkAdmin();
             database.setLogMode(value);
             break;
         }

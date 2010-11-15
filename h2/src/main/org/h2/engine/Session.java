@@ -1069,11 +1069,19 @@ public class Session extends SessionWithState {
     }
 
     public Table[] getLocks() {
-        synchronized (database) {
-            Table[] list = new Table[locks.size()];
-            locks.toArray(list);
-            return list;
+        // copy the data without synchronizing
+        ArrayList<Table> copy = New.arrayList();
+        for (int i = 0; i < locks.size(); i++) {
+            try {
+                copy.add(locks.get(i));
+            } catch (Exception e) {
+                // ignore
+                break;
+            }
         }
+        Table[] list = new Table[copy.size()];
+        copy.toArray(list);
+        return list;
     }
 
     /**

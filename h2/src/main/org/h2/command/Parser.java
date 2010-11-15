@@ -123,8 +123,8 @@ import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableView;
 import org.h2.table.TableFilter.TableFilterVisitor;
+import org.h2.table.TableView;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -1089,7 +1089,7 @@ public class Parser {
         String objectName;
         if (column) {
             // can't use readIdentifierWithSchema() because
-            // it wouldn't read schema.table.column correctly
+            // it would not read schema.table.column correctly
             // if the db name is equal to the schema name
             ArrayList<String> list = New.arrayList();
             do {
@@ -4368,6 +4368,10 @@ public class Parser {
             read();
             return new NoOperation(session);
         } else if (readIf("OPEN_NEW")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
+        } else if (readIf("JMX")) {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);

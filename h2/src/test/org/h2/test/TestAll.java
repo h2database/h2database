@@ -126,6 +126,7 @@ import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
+import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestNetUtils;
 import org.h2.test.unit.TestOldVersion;
@@ -353,7 +354,7 @@ create table test(id identity, name varchar(100) default space(100));
 delete from test;
 
 documentation: review package and class level javadocs
-documentation: rolling review at jaqu.html
+documentation: rolling review at main.html
 
 -------------
 
@@ -647,6 +648,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
+        new TestJmx().runTest(this);
         new TestMathUtils().runTest(this);
         new TestOldVersion().runTest(this);
         new TestNetUtils().runTest(this);

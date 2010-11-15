@@ -200,8 +200,10 @@ public class Set extends Prepared {
             break;
         case SetTypes.LOG: {
             int value = getIntValue();
-            session.getUser().checkAdmin();
-            database.setLogMode(value);
+            if (database.isPersistent() && value != database.getLogMode()) {
+                session.getUser().checkAdmin();
+                database.setLogMode(value);
+            }
             break;
         }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {

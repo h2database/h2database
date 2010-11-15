@@ -173,7 +173,7 @@ public class TestRights extends TestBase {
         executeSuccess("GRANT SELECT, INSERT, UPDATE ON TEST TO PASS_READER");
         conn.close();
 
-        conn = getConnection("rights", "PASS_READER", getPassword("abc"));
+        conn = getConnection("rights;LOG=2", "PASS_READER", getPassword("abc"));
         stat = conn.createStatement();
         executeSuccess("SELECT * FROM PASS_NAME");
         executeSuccess("SELECT * FROM (SELECT * FROM PASS_NAME)");
@@ -241,7 +241,7 @@ public class TestRights extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        conn = getConnection("rights", "TEST", getPassword("def"));
+        conn = getConnection("rights;LOG=2", "TEST", getPassword("def"));
         stat = conn.createStatement();
 
         executeError("SET DEFAULT_TABLE_TYPE MEMORY");

@@ -84,7 +84,7 @@ public class ConnectionInfo implements Cloneable {
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
                 "INIT", "PASSWORD", "RECOVER", "USER", "AUTO_SERVER",
-                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH" };
+                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX" };
         for (String key : connectionTime) {
             if (SysProperties.CHECK && set.contains(key)) {
                 DbException.throwInternalError(key);
@@ -338,7 +338,7 @@ public class ConnectionInfo implements Cloneable {
      *
      * @return the database name
      */
-    String getName() {
+    public String getName() {
         if (persistent) {
             if (nameNormalized == null) {
                 String suffix = Constants.SUFFIX_PAGE_FILE;

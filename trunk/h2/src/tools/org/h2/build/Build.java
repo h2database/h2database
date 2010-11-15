@@ -380,6 +380,7 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jdbcx/*").
             exclude("temp/org/h2/jcr/*").
+            exclude("temp/org/h2/jmx/*").
             exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
             exclude("temp/org/h2/server/*").
@@ -546,7 +547,7 @@ public class Build extends BuildBase {
     private void resources(boolean clientOnly, boolean basicOnly) {
         if (!clientOnly) {
             java("org.h2.build.doc.GenerateHelp", null);
-            javadoc("-sourcepath", "src/main", "org.h2.tools",
+            javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
                     "-docletpath", "bin" + File.pathSeparator + "temp",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }

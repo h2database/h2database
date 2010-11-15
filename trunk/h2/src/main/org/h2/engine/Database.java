@@ -2255,6 +2255,9 @@ public class Database implements DataHandler {
     }
 
     public void setLogMode(int log) {
+        if (log < 0 || log > 2) {
+            throw DbException.getInvalidValueException("LOG", log);
+        }
         if (pageStore != null) {
             if (log != PageStore.LOG_MODE_SYNC ||
                     pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {

@@ -18,6 +18,7 @@ import org.h2.store.FileLock;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * The engine contains a map of all open databases.
@@ -30,6 +31,7 @@ public class Engine implements SessionFactory {
 
     private final HashMap<String, Database> databases = New.hashMap();
     private volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
+    private boolean jmx;
 
     public static Engine getInstance() {
         return INSTANCE;
@@ -95,6 +97,15 @@ public class Engine implements SessionFactory {
             }
             checkClustering(ci, database);
             Session session = database.createSession(user);
+            if (ci.getProperty("JMX", false)) {
+                try {
+                    Utils.callStaticMethod("org.h2.jmx.DatabaseInfo.registerMBean", ci, database);
+                } catch (Exception e) {
+                    database.removeSession(session);
+                    throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
+                }
+                jmx = true;
+            }
             return session;
         }
     }
@@ -218,6 +229,13 @@ public class Engine implements SessionFactory {
      * @param name the database name
      */
     public void close(String name) {
+        if (jmx) {
+            try {
+                Utils.callStaticMethod("org.h2.jmx.DatabaseInfo.unregisterMBean", name);
+            } catch (Exception e) {
+                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
+            }
+        }
         databases.remove(name);
     }
 

@@ -9,6 +9,7 @@ package org.h2.jmx;
 import java.lang.management.ManagementFactory;
 
 import java.sql.Timestamp;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.management.JMException;
@@ -46,12 +47,17 @@ public class DatabaseInfo implements DatabaseInfoMBean {
      * Returns a JMX new ObjectName instance.
      *
      * @param name name of the MBean
+     * @param path the path
      * @return a new ObjectName instance
      * @throws JMException if the ObjectName could not be created
      */
-    private static ObjectName getObjectName(String name) throws JMException {
+    private static ObjectName getObjectName(String name, String path) throws JMException {
         name = name.replace(':', '_');
-        return new ObjectName("org.h2", "name", name);
+        path = path.replace(':', '_');
+        Hashtable<String, String> map = new Hashtable<String, String>();
+        map.put("name", name);
+        map.put("path", path);
+        return new ObjectName("org.h2", map);
     }
 
     /**
@@ -61,12 +67,12 @@ public class DatabaseInfo implements DatabaseInfoMBean {
      * @param database database
      */
     public static void registerMBean(ConnectionInfo connectionInfo, Database database) throws JMException {
-        String name = connectionInfo.getName();
-        if (!MBEANS.containsKey(name)) {
+        String path = connectionInfo.getName();
+        if (!MBEANS.containsKey(path)) {
             MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
-            String mbeanName = database.getShortName() + " (" + name + ")";
-            ObjectName mbeanObjectName = getObjectName(mbeanName);
-            MBEANS.put(name, mbeanObjectName);
+            String name = database.getShortName();
+            ObjectName mbeanObjectName = getObjectName(name, path);
+            MBEANS.put(path, mbeanObjectName);
             DatabaseInfo info = new DatabaseInfo(database);
             Object mbean = new DocumentedMBean(info, DatabaseInfoMBean.class);
             mbeanServer.registerMBean(mbean, mbeanObjectName);

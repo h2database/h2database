@@ -10,6 +10,7 @@ import java.lang.instrument.Instrumentation;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 
 /**
@@ -145,7 +146,7 @@ public class Profiler implements Runnable {
                 }
                 if (!ignoreThis && !el.equals(last)) {
                     last = el;
-                    buff.append("at ").append(el).append('\n');
+                    buff.append("at ").append(el).append(SysProperties.LINE_SEPARATOR);
                     j++;
                 }
             }
@@ -186,7 +187,7 @@ public class Profiler implements Runnable {
         stopCollecting();
         StringBuilder buff = new StringBuilder();
         buff.append("Profiler: top ").append(count).append(" stack trace(s) of ").append(time).
-            append(" ms [build-").append(Constants.BUILD_ID).append("]:\n");
+            append(" ms [build-").append(Constants.BUILD_ID).append("]:").append(SysProperties.LINE_SEPARATOR);
         if (counts.size() == 0) {
             buff.append("(none)");
         }

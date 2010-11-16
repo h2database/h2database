@@ -48,7 +48,7 @@ public class TestJmx extends TestBase {
         conn = getConnection("mem:jmx;jmx=true");
         stat = conn.createStatement();
 
-        name = new ObjectName("org.h2", "name", "JMX (mem_jmx)");
+        name = new ObjectName("org.h2:name=JMX,path=mem_jmx");
         info = mbeanServer.getMBeanInfo(name);
         assertEquals("0", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
         // cache size is ignored for in-memory databases
@@ -103,7 +103,7 @@ public class TestJmx extends TestBase {
         conn = getConnection("jmx;jmx=true");
         stat = conn.createStatement();
 
-        name = new ObjectName("org.h2", "name", "JMX*");
+        name = new ObjectName("org.h2:name=JMX,*");
         Set<ObjectName> set = mbeanServer.queryNames(name, null);
         name = set.iterator().next();
 

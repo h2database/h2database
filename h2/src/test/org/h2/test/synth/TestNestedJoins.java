@@ -243,6 +243,22 @@ public class TestNestedJoins extends TestBase {
         String sql;
 
         /*
+        create table a(id int);
+        create table b(id int);
+        create table c(id int);
+        select * from a inner join b inner join c on c.id = b.id on b.id = a.id;
+        drop table a, b, c;
+         */
+        stat.execute("create table a(id int)");
+        stat.execute("create table b(id int)");
+        stat.execute("create table c(id int)");
+        rs = stat.executeQuery("explain select * from a inner join b inner join c on c.id = b.id on b.id = a.id");
+        assertTrue(rs.next());
+        sql = rs.getString(1);
+        assertTrue("nested", sql.indexOf("(") >= 0);
+        stat.execute("drop table a, b, c");
+
+        /*
         create table test(id int primary key, x int)
         as select x, x from system_range(1, 10);
         create index on test(x);
@@ -268,7 +284,7 @@ public class TestNestedJoins extends TestBase {
         assertTrue(rs.next());
         sql = rs.getString(1);
         int todo;
-//        assertTrue("using table scan", sql.indexOf("tableScan") < 0);
+        // assertTrue("using table scan", sql.indexOf("tableScan") < 0);
         stat.execute("drop table test");
         stat.execute("drop table o");
 

@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>JMX (the Java management extension) is now supported. Issue 253.
+<ul><li>Nested outer joins without brackets were not working as expected. Example:
+    select * from a inner join b inner join c on c.id = b.id on b.id = a.id;
+</li><li>JMX (the Java management extension) is now supported. Issue 253.
 </li><li>Creating a comment on a column didn't work if the schema name was equal the database name.
 </li><li>When using multi-version concurrency, re-running a prepared statement with the same parameters
     would sometimes give the same result even if another connection committed a change (the previous result was sometimes

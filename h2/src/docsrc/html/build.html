@@ -122,6 +122,17 @@ To create the file <code>h2client.jar</code>, go to the directory <code>h2</code
 build jarClient
 </pre>
 
+<h3>Using Lucene 2 / 3</h3>
+<p>
+Both Apache Lucene 2 and Lucene 3 are supported.
+Currently Apache Lucene version 2.x is used by default for H2 version 1.2.x,
+and Lucene version 3.x is used by default for H2 version 1.3.x.
+To use a different version of Lucene when compiling, it needs to be specified as follows:
+</p>
+<pre>
+build -Dlucene=2 clean compile
+</pre>
+
 <h2 id="maven2">Using Maven 2</h2>
 <h3>Using a Central Repository</h3>
 <p>

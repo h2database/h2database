@@ -1132,7 +1132,8 @@ org.h2.fulltext.FullText.searchData(conn, text, limit, offset);
 <h3>Using the Lucene Fulltext Search</h3>
 <p>
 To use the Lucene full text search, you need the Lucene library in the classpath.
-Currently only Apache Lucene version 2.x is supported.
+Currently Apache Lucene version 2.x is used by default for H2 version 1.2.x, 
+and Lucene version 3.x is used by default for H2 version 1.3.x.
 How to do that depends on the application; if you use the H2 Console, you can add the Lucene
 jar file to the environment variables <code>H2DRIVERS</code> or
 <code>CLASSPATH</code>.

@@ -610,7 +610,6 @@ public class Parser {
         return schema;
     }
 
-
     private Schema getSchema() {
         return getSchema(schemaName);
     }
@@ -980,14 +979,12 @@ public class Parser {
             } else {
                 TableFilter top;
                 if (database.getSettings().nestedJoins) {
-                    String joinTable = Constants.PREFIX_JOIN + parseIndex;
-                    top = new TableFilter(session, getDualTable(true), joinTable, rightsChecked, currentSelect);
-                    TableFilter n = readTableFilter(false);
-                    n = readJoin(n, currentSelect, false);
-                    top.addJoin(n, false, true, null);
+                    top = readTableFilter(false);
+                    top = readJoin(top, currentSelect, false, false);
+                    top = getNested(top);
                 } else {
                     top = readTableFilter(fromOuter);
-                    top = readJoin(top, currentSelect, fromOuter);
+                    top = readJoin(top, currentSelect, false, fromOuter);
                 }
                 read(")");
                 alias = readFromAlias(null);
@@ -1257,25 +1254,25 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readJoin(TableFilter top, Select command, boolean fromOuter) {
+    private TableFilter readJoin(TableFilter top, Select command, boolean nested, boolean fromOuter) {
+        boolean joined = false;
         TableFilter last = top;
         boolean nestedJoins = database.getSettings().nestedJoins;
         while (true) {
             if (readIf("RIGHT")) {
                 readIf("OUTER");
                 read("JOIN");
+                joined = true;
                 // the right hand side is the 'inner' table usually
                 TableFilter newTop = readTableFilter(fromOuter);
-                newTop = readJoin(newTop, command, true);
+                newTop = readJoin(newTop, command, nested, true);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
                 if (nestedJoins) {
-                    String joinTable = Constants.PREFIX_JOIN + parseIndex;
-                    TableFilter nt = new TableFilter(session, getDualTable(true), joinTable, rightsChecked, currentSelect);
-                    nt.addJoin(top, false, true, null);
-                    newTop.addJoin(nt, true, false, on);
+                    top = getNested(top);
+                    newTop.addJoin(top, true, false, on);
                 } else {
                     newTop.addJoin(top, true, false, on);
                 }
@@ -1284,8 +1281,13 @@ public class Parser {
             } else if (readIf("LEFT")) {
                 readIf("OUTER");
                 read("JOIN");
+                joined = true;
                 TableFilter join = readTableFilter(true);
-                top = readJoin(top, command, true);
+                if (nestedJoins) {
+                    join = readJoin(join, command, true, true);
+                } else {
+                    top = readJoin(top, command, false, true);
+                }
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1296,8 +1298,9 @@ public class Parser {
                 throw getSyntaxError();
             } else if (readIf("INNER")) {
                 read("JOIN");
+                joined = true;
                 TableFilter join = readTableFilter(fromOuter);
-                top = readJoin(top, command, false);
+                top = readJoin(top, command, false, false);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1309,8 +1312,9 @@ public class Parser {
                 }
                 last = join;
             } else if (readIf("JOIN")) {
+                joined = true;
                 TableFilter join = readTableFilter(fromOuter);
-                top = readJoin(top, command, false);
+                top = readJoin(top, command, false, false);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1323,6 +1327,7 @@ public class Parser {
                 last = join;
             } else if (readIf("CROSS")) {
                 read("JOIN");
+                joined = true;
                 TableFilter join = readTableFilter(fromOuter);
                 if (nestedJoins) {
                     top.addJoin(join, false, false, null);
@@ -1332,6 +1337,7 @@ public class Parser {
                 last = join;
             } else if (readIf("NATURAL")) {
                 read("JOIN");
+                joined = true;
                 TableFilter join = readTableFilter(fromOuter);
                 Column[] tableCols = last.getTable().getColumns();
                 Column[] joinCols = join.getTable().getColumns();
@@ -1358,7 +1364,7 @@ public class Parser {
                     }
                 }
                 if (nestedJoins) {
-                    top.addJoin(join, false, false, on);
+                    top.addJoin(join, false, nested, on);
                 } else {
                     top.addJoin(join, fromOuter, false, on);
                 }
@@ -1367,6 +1373,16 @@ public class Parser {
                 break;
             }
         }
+        if (nested && joined) {
+            top = getNested(top);
+        }
+        return top;
+    }
+
+    private TableFilter getNested(TableFilter n) {
+        String joinTable = Constants.PREFIX_JOIN + parseIndex;
+        TableFilter top = new TableFilter(session, getDualTable(true), joinTable, rightsChecked, currentSelect);
+        top.addJoin(n, false, true, null);
         return top;
     }
 
@@ -1606,7 +1622,7 @@ public class Parser {
     }
 
     private void parseJoinTableFilter(TableFilter top, final Select command) {
-        top = readJoin(top, command, top.isJoinOuter());
+        top = readJoin(top, command, false, top.isJoinOuter());
         command.addTableFilter(top, true);
         boolean isOuter = false;
         while (true) {
@@ -2025,7 +2041,7 @@ public class Parser {
     private JavaFunction readJavaFunction(Schema schema, String functionName) {
         FunctionAlias functionAlias = null;
         if (schema != null) {
-            functionAlias =  schema.findFunction(functionName);
+            functionAlias = schema.findFunction(functionName);
         } else {
             functionAlias = findFunctionAlias(session.getCurrentSchemaName(), functionName);
         }
@@ -2051,7 +2067,7 @@ public class Parser {
         ArrayList<Expression> params = New.arrayList();
         do {
             params.add(readExpression());
-        } while(readIf(","));
+        } while (readIf(","));
         read(")");
         Expression[] list = new Expression[params.size()];
         params.toArray(list);

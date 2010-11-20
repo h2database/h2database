@@ -9,6 +9,7 @@ package org.h2.value;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
 
@@ -178,6 +179,20 @@ public class ValueTimestamp extends Value {
 
     public boolean equals(Object other) {
         return other instanceof ValueTimestamp && value.equals(((ValueTimestamp) other).value);
+    }
+
+    public Value add(Value v) {
+        long zeroTime = ValueTime.get(new Time(0)).getDate().getTime();
+        long t = value.getTime() - zeroTime + v.getTimestamp().getTime();
+        Timestamp ts = new Timestamp(t);
+        return ValueTimestamp.get(ts);
+    }
+
+    public Value subtract(Value v) {
+        long zeroTime = ValueTime.get(new Time(0)).getDate().getTime();
+        long t = value.getTime() + zeroTime - v.getTimestamp().getTime();
+        Timestamp ts = new Timestamp(t);
+        return ValueTimestamp.get(ts);
     }
 
 }

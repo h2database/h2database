@@ -117,4 +117,28 @@ public class ValueTime extends Value {
         return other instanceof ValueTime && value.equals(((ValueTime) other).value);
     }
 
+    public Value add(Value v) {
+        Time t = new Time(value.getTime() + v.getTime().getTime());
+        return ValueTime.get(t);
+    }
+
+    public Value subtract(Value v) {
+        Time t = new Time(value.getTime() - v.getTime().getTime());
+        return ValueTime.get(t);
+    }
+
+    public Value multiply(Value v) {
+        long zeroTime = ValueTime.get(new Time(0)).getDate().getTime();
+        long t = value.getTime() - zeroTime;
+        t = (long) (t * v.getDouble()) + zeroTime;
+        return ValueTime.get(new Time(t));
+    }
+
+    public Value divide(Value v) {
+        long zeroTime = ValueTime.get(new Time(0)).getDate().getTime();
+        long t = value.getTime() - zeroTime;
+        t = (long) (t / v.getDouble()) + zeroTime;
+        return ValueTime.get(new Time(t));
+    }
+
 }

@@ -14,7 +14,7 @@ FROM tableExpression [,...] [ WHERE expression ]
 Selects data from a table or multiple tables."
 "Commands (DML)","INSERT","
 INSERT INTO tableName [ ( columnName [,...] ) ]
-{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | select }
+{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | [ DIRECT ] [ SORTED ] select }
 ","
 Inserts a new row / new rows into a table."
 "Commands (DML)","UPDATE","

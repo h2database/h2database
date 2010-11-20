@@ -19,7 +19,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>New feature INSERT INTO ... DIRECT SELECT, mainly to speed up loading tables
-    from a CSV file. When using DIRECT, then the results from the query are directly applied 
+    from a CSV file. When using DIRECT, then the results from the query are directly applied
     in the target table without any intermediate step (without temporary file).
 </li><li>Converting binary data to UUID was incorrect when the converting more than 31 bytes.
     Now always the first 16 bytes are used.

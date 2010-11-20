@@ -921,6 +921,9 @@ public class Parser {
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
+        if (readIf("DIRECT")) {
+            command.setInsertFromSelect(true);
+        }
         if (readIf("SORTED")) {
             command.setSortedInsertMode(true);
         }
@@ -2277,7 +2280,6 @@ public class Parser {
                     throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
                 }
                 schema = objectName;
-                objectName = name;
                 return readFunction(database.getSchema(schema), name);
             } else if (readIf(".")) {
                 String databaseName = schema;

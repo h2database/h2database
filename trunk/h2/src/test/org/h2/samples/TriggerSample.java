@@ -47,6 +47,8 @@ public class TriggerSample {
         rs = stat.executeQuery("SELECT AMOUNT FROM INVOICE_SUM");
         rs.next();
         System.out.println("The sum is " + rs.getBigDecimal(1));
+        rs.close();
+        stat.close();
         conn.close();
     }
 

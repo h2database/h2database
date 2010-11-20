@@ -85,6 +85,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
+                maxWait++;
                 // ignore
             }
         }
@@ -409,17 +410,17 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
     private Object getRandomParam(Class<?> type) {
         if (type == int.class) {
-            return new Integer(random.getRandomInt());
+            return random.getRandomInt();
         } else if (type == byte.class) {
-            return new Byte((byte) random.getRandomInt());
+            return (byte) random.getRandomInt();
         } else if (type == short.class) {
-            return new Short((short) random.getRandomInt());
+            return (short) random.getRandomInt();
         } else if (type == long.class) {
-            return new Long(random.getRandomLong());
+            return random.getRandomLong();
         } else if (type == float.class) {
-            return new Float(random.getRandomDouble());
+            return (float) random.getRandomDouble();
         } else if (type == boolean.class) {
-            return new Boolean(random.nextBoolean());
+            return random.nextBoolean();
         } else if (type == double.class) {
             return new Double(random.getRandomDouble());
         } else if (type == String.class) {

@@ -29,7 +29,7 @@ public class TestRecursiveQueries extends TestBase {
     public void test() throws Exception {
         deleteDb("recursiveQueries");
         Connection conn = getConnection("recursiveQueries");
-        Statement stat = conn.createStatement();
+        Statement stat;
         PreparedStatement prep, prep2;
         ResultSet rs;
 

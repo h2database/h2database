@@ -41,6 +41,7 @@ public class HelloWorld {
         while (rs.next()) {
             System.out.println(rs.getString("name"));
         }
+        stat.close();
         conn.close();
     }
 

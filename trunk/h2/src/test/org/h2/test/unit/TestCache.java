@@ -115,7 +115,7 @@ public class TestCache extends TestBase implements CacheWriter {
     /**
      * A simple cache object
      */
-    class Obj extends CacheObject {
+    static class Obj extends CacheObject {
 
         Obj(int pos) {
             setPos(pos);

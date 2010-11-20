@@ -141,7 +141,7 @@ public class TestJoin extends TestBase {
             String sql = buff.toString();
             Object[] params = new Object[paramCount];
             for (int j = 0; j < paramCount; j++) {
-                params[j] = random.nextInt(4) == 1 ? null : new Integer(random.nextInt(10) - 3);
+                params[j] = random.nextInt(4) == 1 ? null : random.nextInt(10) - 3;
             }
             try {
                 execute(sql, params);

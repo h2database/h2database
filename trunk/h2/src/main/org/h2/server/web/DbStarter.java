@@ -8,6 +8,7 @@ package org.h2.server.web;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.Statement;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -70,7 +71,9 @@ public class DbStarter implements ServletContextListener {
 
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
         try {
-            conn.createStatement().execute("SHUTDOWN");
+            Statement stat = conn.createStatement();
+            stat.execute("SHUTDOWN");
+            stat.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

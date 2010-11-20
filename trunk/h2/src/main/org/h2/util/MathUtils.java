@@ -123,6 +123,7 @@ public class MathUtils {
                 }
             } catch (Exception e) {
                 // nanoTime not found, this is ok (only exists for JDK 1.5 and higher)
+                out.writeUTF(e.toString());
             }
 
             // memory

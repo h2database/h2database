@@ -400,12 +400,12 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT, DATA BINARY, JAVA OTHER)");
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
         prep.setInt(1, 1);
-        prep.setObject(2, new Integer(11));
+        prep.setObject(2, 11);
         prep.setObject(3, null);
         prep.execute();
         prep.setInt(1, 2);
-        prep.setObject(2, new Integer(101), Types.OTHER);
-        prep.setObject(3, new Integer(103), Types.OTHER);
+        prep.setObject(2, 101, Types.OTHER);
+        prep.setObject(3, 103, Types.OTHER);
         prep.execute();
         PreparedStatement p2 = conn.prepareStatement("SELECT * FROM TEST ORDER BY ID");
         ResultSet rs = p2.executeQuery();
@@ -678,7 +678,7 @@ public class TestPreparedStatement extends TestBase {
         // some databases don't allow calling setObject with null (no data type)
         prep.executeUpdate();
         prep.setInt(1, 9);
-        prep.setObject(2, new Integer(-4), Types.VARCHAR);
+        prep.setObject(2, -4, Types.VARCHAR);
         prep.executeUpdate();
         prep.setInt(1, 10);
         prep.setObject(2, "5", Types.INTEGER);
@@ -797,7 +797,7 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(rs.getObject(1).equals(new Boolean(true)));
         assertTrue(rs.getObject(2).equals("Abc"));
         assertTrue(rs.getObject(3).equals(new BigDecimal("10.2")));
-        assertTrue(rs.getObject(4).equals(new Byte((byte) 0xff)));
+        assertTrue(rs.getObject(4).equals((byte) 0xff));
         assertTrue(rs.getObject(5).equals(new Short(Short.MAX_VALUE)));
         assertTrue(rs.getObject(6).equals(new Integer(Integer.MIN_VALUE)));
         assertTrue(rs.getObject(7).equals(new Long(Long.MAX_VALUE)));
@@ -809,7 +809,7 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(rs.getObject(12).equals(java.sql.Timestamp.valueOf("2001-02-03 04:05:06.123456789")));
         assertTrue(rs.getObject(13).equals(java.sql.Timestamp.valueOf("2001-02-03 00:00:00")));
         assertEquals(new byte[] { 10, 20, 30 }, (byte[]) rs.getObject(14));
-        assertTrue(rs.getObject(15).equals(new Character('a')));
+        assertTrue(rs.getObject(15).equals('a'));
         assertTrue(rs.getObject(16).equals(java.sql.Date.valueOf("2001-01-02")));
         assertTrue(rs.getObject(17) == null && rs.wasNull());
         assertTrue(rs.getObject(18).equals(new Double(3.725)));

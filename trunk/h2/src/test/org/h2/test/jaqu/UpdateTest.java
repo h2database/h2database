@@ -56,7 +56,7 @@ public class UpdateTest extends TestBase {
         Product p2 = new Product();
         Product pChang2 = db.from(p2).where(p2.productName).is("Chang").selectFirst();
         assertEquals(19.5, pChang2.unitPrice);
-        assertEquals(new Integer(16), pChang2.unitsInStock);
+        assertEquals(16, pChang2.unitsInStock.intValue());
 
         // undo update
         pChang.unitPrice = 19.0;
@@ -90,7 +90,7 @@ public class UpdateTest extends TestBase {
         Product p2 = new Product();
         Product pChang2 = db.from(p2).where(p2.productName).is("Chang").selectFirst();
         assertEquals(19.5, pChang2.unitPrice);
-        assertEquals(new Integer(16), pChang2.unitsInStock);
+        assertEquals(16, pChang2.unitsInStock.intValue());
 
         // undo update
         pChang.unitPrice = 19.0;

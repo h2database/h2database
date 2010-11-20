@@ -79,11 +79,11 @@ public class Value {
     }
 
     private static Double randomDouble(TestSynth config) {
-        return new Double(config.random().getInt(100) / 10.);
+        return config.random().getInt(100) / 10.;
     }
 
     private static Long randomLong(TestSynth config) {
-        return new Long(config.random().getInt(1000));
+        return Long.valueOf(config.random().getInt(1000));
     }
 
     private static Time randomTime(TestSynth config) {
@@ -147,10 +147,10 @@ public class Value {
         switch (type) {
         case Types.REAL:
         case Types.DOUBLE:
-            data = new Double(rs.getDouble(index));
+            data = rs.getDouble(index);
             break;
         case Types.BIGINT:
-            data = new Long(rs.getLong(index));
+            data = rs.getLong(index);
             break;
         case Types.DECIMAL:
         case Types.NUMERIC:
@@ -179,7 +179,7 @@ public class Value {
             data = rs.getTimestamp(index);
             break;
         case Types.INTEGER:
-            data = new Integer(rs.getInt(index));
+            data = rs.getInt(index);
             break;
         case Types.NULL:
             data = null;
@@ -260,7 +260,7 @@ public class Value {
         } else {
             value = config.random().getRandomInt();
         }
-        return new Integer(value);
+        return value;
     }
 
     private static byte[] randomBytes(TestSynth config, int max) {

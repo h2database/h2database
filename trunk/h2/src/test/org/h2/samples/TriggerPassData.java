@@ -49,6 +49,7 @@ public class TriggerPassData implements Trigger {
         stat.execute("INSERT INTO TEST VALUES(1)");
         stat.execute("CALL TRIGGER_SET('T1', 'World')");
         stat.execute("INSERT INTO TEST VALUES(2)");
+        stat.close();
         conn.close();
     }
 

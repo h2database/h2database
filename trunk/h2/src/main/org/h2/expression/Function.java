@@ -102,8 +102,6 @@ public class Function extends Expression implements FunctionCall {
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = New.hashMap();
     private static final HashMap<String, Integer> DATE_PART = New.hashMap();
-    private static final SimpleDateFormat FORMAT_DAYNAME = new SimpleDateFormat("EEEE", Locale.ENGLISH);
-    private static final SimpleDateFormat FORMAT_MONTHNAME = new SimpleDateFormat("MMMM", Locale.ENGLISH);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected Expression[] args;
@@ -605,9 +603,8 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(StringUtils.xmlText(v0.getString()));
             break;
         case DAY_NAME: {
-            synchronized (FORMAT_DAYNAME) {
-                result = ValueString.get(FORMAT_DAYNAME.format(v0.getDateNoCopy()));
-            }
+            SimpleDateFormat dayName = new SimpleDateFormat("EEEE", Locale.ENGLISH);
+            result = ValueString.get(dayName.format(v0.getDateNoCopy()));
             break;
         }
         case DAY_OF_MONTH:
@@ -629,9 +626,8 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.MONTH));
             break;
         case MONTH_NAME: {
-            synchronized (FORMAT_MONTHNAME) {
-                result = ValueString.get(FORMAT_MONTHNAME.format(v0.getDateNoCopy()));
-            }
+            SimpleDateFormat monthName = new SimpleDateFormat("MMMM", Locale.ENGLISH);
+            result = ValueString.get(monthName.format(v0.getDateNoCopy()));
             break;
         }
         case QUARTER:

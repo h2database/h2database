@@ -115,7 +115,7 @@ public class PageStreamTrunk extends Page {
         if (index >= pageIds.length) {
             return -1;
         }
-        return pageIds[index++];
+        return pageIds[index];
     }
 
     public void write() {

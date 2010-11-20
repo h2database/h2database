@@ -276,7 +276,7 @@ public class FileLock implements Runnable {
                 // lock file modified in the future -
                 // wait for a bit longer than usual
                 try {
-                    Thread.sleep(2 * sleep);
+                    Thread.sleep(2 * (long) sleep);
                 } catch (Exception e) {
                     trace.debug(e, "sleep");
                 }

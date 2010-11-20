@@ -216,7 +216,7 @@ public class TestCluster extends TestBase {
 
         // try to connect in standalone mode - should fail
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:"+port1+"/test", user, password);
+            DriverManager.getConnection("jdbc:h2:tcp://localhost:"+port1+"/test", user, password);
             fail("should not be able to connect in standalone mode");
         } catch (SQLException e) {
             assertKnownException(e);

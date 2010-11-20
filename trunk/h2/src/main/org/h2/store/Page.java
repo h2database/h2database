@@ -100,10 +100,9 @@ public abstract class Page extends CacheObject {
      * @return the (new) array
      */
     @SuppressWarnings("unchecked")
-    public
-    static <T> T[] insert(T[] old, int oldSize, int pos, T x) {
+    public static <T> T[] insert(T[] old, int oldSize, int pos, T x) {
         T[] result;
-        if (old != null && old.length > oldSize) {
+        if (old.length > oldSize) {
             result = old;
         } else {
             // according to a test, this is as fast as "new Row[..]"
@@ -112,7 +111,7 @@ public abstract class Page extends CacheObject {
                 System.arraycopy(old, 0, result, 0, pos);
             }
         }
-        if (old != null && oldSize - pos > 0) {
+        if (oldSize - pos > 0) {
             System.arraycopy(old, pos, result, pos + 1, oldSize - pos);
         }
         result[pos] = x;

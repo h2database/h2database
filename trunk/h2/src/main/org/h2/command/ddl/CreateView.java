@@ -177,7 +177,7 @@ public class CreateView extends SchemaCommand {
      * work with TableViews directly because they become invalid when we drop
      * the parent view.
      */
-    private class DependentView {
+    private static class DependentView {
         String viewName;
         String createSql;
         String createForceSql;

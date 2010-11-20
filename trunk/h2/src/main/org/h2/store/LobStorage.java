@@ -100,6 +100,7 @@ public class LobStorage {
             rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
             rs.next();
             nextBlock = rs.getLong(1) + 1;
+            stat.close();
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
@@ -602,11 +603,7 @@ public class LobStorage {
             PreparedStatement prep = prepare("UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?");
             prep.setInt(1, table);
             prep.setLong(2, lobId);
-            int updateCount = prep.executeUpdate();
-            if (updateCount != 1) {
-                // can be zero when recovering
-                // throw DbException.throwInternalError("count: " + updateCount);
-            }
+            prep.executeUpdate();
         } catch (SQLException e) {
             throw DbException.convert(e);
         }

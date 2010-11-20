@@ -53,6 +53,8 @@ public class DirectInsert {
             prep.execute();
         }
         conn.commit();
+        prep.close();
+        stat.close();
         conn.close();
     }
 
@@ -65,6 +67,7 @@ public class DirectInsert {
         stat.execute("CREATE TABLE TEST2 AS SELECT * FROM TEST");
         System.out.printf("%.3f sec.\n", (System.currentTimeMillis() - time) / 1000.0);
         stat.execute("INSERT INTO TEST2 SELECT * FROM TEST2");
+        stat.close();
         conn.close();
     }
 

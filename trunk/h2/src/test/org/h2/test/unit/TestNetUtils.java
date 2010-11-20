@@ -89,7 +89,7 @@ public class TestNetUtils extends TestBase {
     /**
      * A worker thread to test connecting.
      */
-    private class ConnectWorker extends Thread {
+    private static class ConnectWorker extends Thread {
 
         private final boolean ssl;
         private final AtomicInteger counter;

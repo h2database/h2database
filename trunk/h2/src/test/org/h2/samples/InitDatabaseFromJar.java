@@ -42,6 +42,7 @@ public class InitDatabaseFromJar {
         stat.execute("CREATE TABLE TEST(NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES('Hello World')");
         stat.execute("SCRIPT TO 'script.sql'");
+        stat.close();
         conn.close();
     }
 
@@ -57,10 +58,13 @@ public class InitDatabaseFromJar {
                     + getClass().getPackage().getName());
         } else {
             RunScript.execute(conn, new InputStreamReader(in));
-            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
+            Statement stat = conn.createStatement();
+            ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
             while (rs.next()) {
                 System.out.println(rs.getString(1));
             }
+            rs.close();
+            stat.close();
             conn.close();
         }
     }

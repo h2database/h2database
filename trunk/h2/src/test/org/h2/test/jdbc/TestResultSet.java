@@ -1066,8 +1066,9 @@ public class TestResultSet extends TestBase {
         prep.setObject(2, new Object[] { new Integer(1), new Integer(2) });
         prep.execute();
         prep.setInt(1, 2);
-        prep.setObject(2, new Object[] { new Integer(11), new Integer(12) });
+        prep.setObject(2, new Object[] { 11, 12 });
         prep.execute();
+        prep.close();
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
         assertEquals(1, rs.getInt(1));

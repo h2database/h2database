@@ -69,7 +69,7 @@ public class FunctionMultiReturn {
             System.out.println("(r=" + r + " a=" + a + ") : (x=" + x + ", y=" + y + ")");
         }
 
-        rs = conn.createStatement().executeQuery("SELECT R, A, ARRAY_GET(E, 1), ARRAY_GET(E, 2) FROM (SELECT R, A, P2C_A(R, A) E FROM TEST)");
+        rs = stat.executeQuery("SELECT R, A, ARRAY_GET(E, 1), ARRAY_GET(E, 2) FROM (SELECT R, A, P2C_A(R, A) E FROM TEST)");
         while (rs.next()) {
             double r = rs.getDouble(1);
             double a = rs.getDouble(2);
@@ -77,7 +77,9 @@ public class FunctionMultiReturn {
             double y = rs.getDouble(4);
             System.out.println("(r="+r+" a="+a+") : (x=" + x + ", y="+y+")");
         }
+        rs.close();
 
+        prep.close();
         conn.close();
     }
 

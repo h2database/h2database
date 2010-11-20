@@ -110,6 +110,7 @@ public class Player {
             }
             runLine(line.trim());
         }
+        reader.close();
     }
 
     /**

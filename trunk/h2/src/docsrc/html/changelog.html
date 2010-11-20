@@ -18,7 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Nested outer joins without brackets were not working as expected. Example:
+<ul><li>New feature INSERT INTO ... DIRECT SELECT, mainly to speed up loading tables
+    from a CSV file. When using DIRECT, then the results from the query are directly applied 
+    in the target table without any intermediate step (without temporary file).
+</li><li>Converting binary data to UUID was incorrect when the converting more than 31 bytes.
+    Now always the first 16 bytes are used.
+</li><li>Improved date / time arithmetics. Now supported are
+    multiplying and dividing a time with / by a number,
+    adding and subtracting a time to / from a time or date,
+    subtracting a time or timestamp from a timestamp.
+</li><li>The Ant build script has been removed because it is no longer up to date.
+</li><li>Nested outer joins without brackets were not working as expected. Example:
     select * from a inner join b inner join c on c.id = b.id on b.id = a.id;
 </li><li>JMX (the Java management extension) is now supported. Issue 253.
 </li><li>Creating a comment on a column didn't work if the schema name was equal the database name.

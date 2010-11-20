@@ -43,9 +43,13 @@ SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
 
 "Commands (DML)","INSERT","
 INSERT INTO tableName [ ( columnName [,...] ) ]
-{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | select }
+{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | [ DIRECT ] [ SORTED ] select }
 ","
 Inserts a new row / new rows into a table.
+
+When using DIRECT, then the results from the query are directly applied in the target table without any intermediate step.
+
+When using SORTED, b-tree pages are split at the insertion point. This can improve performance and reduce disk usage.
 ","
 INSERT INTO TEST VALUES(1, 'Hello')
 "

@@ -247,6 +247,7 @@ public class TestPageStoreCoverage extends TestBase {
         f.setFileLength(16);
         // create a new database
         conn = getConnection("pageStore");
+        conn.close();
         deleteDb("pageStore");
     }
 

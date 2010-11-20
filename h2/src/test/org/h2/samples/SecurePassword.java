@@ -56,11 +56,15 @@ public class SecurePassword {
         prep = conn.prepareStatement("insert into account(name) values(?)");
         prep.setString(1, "Joe");
         prep.execute();
+        prep.close();
+
         prep = conn.prepareStatement(
                 "update account set hash=hash('SHA256', stringtoutf8(salt||?), 10) where name=?");
         prep.setString(1, "secret");
         prep.setString(2, "Joe");
         prep.execute();
+        prep.close();
+
         prep = conn.prepareStatement(
                 "select * from account where name=? and hash=hash('SHA256', stringtoutf8(salt||?), 10)");
         prep.setString(1, "Joe");
@@ -69,6 +73,9 @@ public class SecurePassword {
         while (rs.next()) {
             System.out.println(rs.getString("name"));
         }
+        rs.close();
+        prep.close();
+        stat.close();
         conn.close();
     }
 

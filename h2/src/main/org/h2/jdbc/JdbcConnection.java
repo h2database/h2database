@@ -1142,7 +1142,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     String translateSQL(String sql, boolean escapeProcessing) {
         if (sql == null) {
-            throw DbException.getInvalidValueException("SQL", sql);
+            throw DbException.getInvalidValueException("SQL", null);
         }
         if (!escapeProcessing) {
             return sql;

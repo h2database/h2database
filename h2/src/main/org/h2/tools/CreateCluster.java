@@ -107,7 +107,9 @@ public class CreateCluster extends Tool {
             boolean exists = true;
             try {
                 connTarget = DriverManager.getConnection(urlTarget + ";IFEXISTS=TRUE;CLUSTER=" + Constants.CLUSTERING_ENABLED, user, password);
-                connTarget.createStatement().execute("DROP ALL OBJECTS DELETE FILES");
+                Statement stat = connTarget.createStatement();
+                stat.execute("DROP ALL OBJECTS DELETE FILES");
+                stat.close();
                 exists = false;
                 connTarget.close();
             } catch (SQLException e) {

@@ -101,7 +101,6 @@ public class TestJmx extends TestBase {
         conn.close();
 
         conn = getConnection("jmx;jmx=true");
-        stat = conn.createStatement();
 
         name = new ObjectName("org.h2:name=JMX,*");
         Set<ObjectName> set = mbeanServer.queryNames(name, null);

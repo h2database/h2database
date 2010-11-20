@@ -1150,7 +1150,7 @@ public abstract class TestBase {
      */
     protected void assertEquals(Integer expected, Integer actual) {
         if (expected == null || actual == null) {
-            assertTrue(expected == actual);
+            assertTrue(expected == null && actual == null);
         } else {
             assertEquals(expected.intValue(), actual.intValue());
         }
@@ -1247,8 +1247,6 @@ public abstract class TestBase {
         }
         // silly code - makes sure there are no warnings
         reserve[0] = reserve[1];
-        // actually it is anyway garbage collected
-        reserve = null;
     }
 
     /**

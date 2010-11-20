@@ -146,7 +146,6 @@ public class TestTransaction extends TestBase {
         if (!config.memory) {
             conn.close();
             conn = getConnection("transaction");
-            stat = conn.createStatement();
         }
         stat = conn.createStatement();
         try {
@@ -194,7 +193,6 @@ public class TestTransaction extends TestBase {
         if (!config.memory) {
             conn.close();
             conn = getConnection("transaction");
-            stat = conn.createStatement();
         }
         stat = conn.createStatement();
         try {

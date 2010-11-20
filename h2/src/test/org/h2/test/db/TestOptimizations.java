@@ -496,8 +496,8 @@ public class TestOptimizations extends TestBase {
                 } else {
                     int value = random.nextInt();
                     stat.execute("insert into test values(" + i + ", " + value + ")");
-                    map.put(new Integer(i), new Integer(value));
-                    set.add(new Integer(value));
+                    map.put(i, value);
+                    set.add(value);
                 }
                 break;
             case 6:

@@ -86,7 +86,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * Statistic data
      */
-    class Stats {
+    static class Stats {
 
         /**
          * The empty space in bytes in a data leaf pages.

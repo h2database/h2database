@@ -183,16 +183,16 @@ class Parser {
         } else if (tokenType == NUMBER) {
             String number = readToken().toLowerCase();
             if (number.endsWith("f")) {
-                Float v = new Float(Float.parseFloat(number));
+                Float v = Float.parseFloat(number);
                 return new Arg(float.class, v);
             } else if (number.endsWith("d") || number.indexOf("e") >= 0 || number.indexOf(".") >= 0) {
-                Double v = new Double(Double.parseDouble(number));
+                Double v = Double.parseDouble(number);
                 return new Arg(double.class, v);
             } else if (number.endsWith("L") || number.endsWith("l")) {
-                Long v = new Long(Long.parseLong(number.substring(0, number.length() - 1)));
+                Long v = Long.parseLong(number.substring(0, number.length() - 1));
                 return new Arg(long.class, v);
             } else {
-                Integer v = new Integer(Integer.parseInt(number));
+                Integer v = Integer.parseInt(number);
                 return new Arg(int.class, v);
             }
         } else if (tokenType == NAME) {
@@ -241,7 +241,7 @@ class Parser {
             read("short");
             read(")");
             String number = readToken();
-            return new Arg(short.class, new Short(Short.parseShort(number)));
+            return new Arg(short.class, Short.parseShort(number));
         } else {
             throw new RuntimeException("Value expected, got: " + readToken() + " in "
                     + line);

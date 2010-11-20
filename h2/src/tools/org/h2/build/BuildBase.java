@@ -220,10 +220,10 @@ public class BuildBase {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            if (line.length() == 0) {
-                line = last;
-            } else if (line.equals("exit") || line.equals("quit")) {
+            if (line == null || line.equals("exit") || line.equals("quit")) {
                 break;
+            } else if (line.length() == 0) {
+                line = last;
             }
             long time = System.currentTimeMillis();
             try {

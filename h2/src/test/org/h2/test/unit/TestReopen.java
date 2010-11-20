@@ -153,7 +153,8 @@ public class TestReopen extends TestBase implements Recorder {
             database.removeSession(null);
         } catch (Exception e) {
             int errorCode = 0;
-            if (e instanceof SQLException) {
+            if (e instanceof DbException) {
+                e = ((DbException) e).getSQLException();
                 errorCode = ((SQLException) e).getErrorCode();
             }
             if (errorCode == ErrorCode.WRONG_USER_OR_PASSWORD) {

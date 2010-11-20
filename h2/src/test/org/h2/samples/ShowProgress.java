@@ -80,6 +80,8 @@ public class ShowProgress implements DatabaseEventListener {
         conn = DriverManager.getConnection("jdbc:h2:test;DATABASE_EVENT_LISTENER='" + getClass().getName() + "'", "sa", "");
         time = System.currentTimeMillis() - time;
         System.out.println("Done after " + time + " ms");
+        prep.close();
+        stat.close();
         conn.close();
 
     }

@@ -380,7 +380,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("CALL ADD_ROW(2, 'World')");
+        stat.executeQuery("CALL ADD_ROW(2, 'World')");
 
         stat.execute("CREATE ALIAS SELECT_F FOR \"" + getClass().getName() + ".select\"");
         rs = stat.executeQuery("CALL SELECT_F('SELECT * FROM TEST ORDER BY ID')");
@@ -631,7 +631,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @return the test array
      */
     public static Object[] getArray() {
-        return new Object[] { new Integer(0), "Hello" };
+        return new Object[] { 0, "Hello" };
     }
 
     /**

@@ -51,14 +51,14 @@ public class Function {
         PreparedStatement prep;
         prep = conn.prepareStatement("SELECT * FROM TABLE(X INT=?, O INT=?) J " +
                 "INNER JOIN TEST T ON J.X=T.ID ORDER BY J.O");
-        prep.setObject(1,
-                new Integer[] { new Integer(30), new Integer(20) });
-        prep.setObject(2,
-                new Integer[] { new Integer(1), new Integer(2) });
+        prep.setObject(1, new Integer[] { 30, 20 });
+        prep.setObject(2, new Integer[] { 1, 2 });
         rs = prep.executeQuery();
         while (rs.next()) {
             System.out.println(rs.getInt(1));
         }
+        prep.close();
+        rs.close();
 
         // Using a custom function like table
         stat.execute("CREATE ALIAS MATRIX FOR \"org.h2.samples.Function.getMatrix\" ");
@@ -69,7 +69,8 @@ public class Function {
         while (rs.next()) {
             System.out.println(rs.getInt(1) + "/" + rs.getInt(2));
         }
-
+        prep.close();
+        stat.close();
         conn.close();
     }
 

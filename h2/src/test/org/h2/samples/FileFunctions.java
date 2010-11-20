@@ -40,6 +40,7 @@ public class FileFunctions {
         rs.next();
         String text = rs.getString(1);
         System.out.println("text: " + text);
+        stat.close();
         conn.close();
     }
 

@@ -224,13 +224,13 @@ public class TestRights extends TestBase {
         conn.close();
 
         try {
-            conn = getConnection("rights", "Test", getPassword("abc"));
+            getConnection("rights", "Test", getPassword("abc"));
             fail("mixed case user name");
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
-            conn = getConnection("rights", "TEST", getPassword("abc"));
+            getConnection("rights", "TEST", getPassword("abc"));
             fail("wrong password");
         } catch (SQLException e) {
             assertKnownException(e);

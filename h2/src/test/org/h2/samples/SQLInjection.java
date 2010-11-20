@@ -212,6 +212,8 @@ public class SQLInjection {
         } else {
             System.out.println("Access denied!");
         }
+        rs.close();
+        prep.close();
     }
 
     /**
@@ -250,6 +252,8 @@ public class SQLInjection {
             } else {
                 System.out.println("Access denied!");
             }
+            rs.close();
+            prep.close();
         } catch (SQLException e) {
             System.out.println(e);
         }
@@ -274,6 +278,8 @@ public class SQLInjection {
             } else {
                 System.out.println("Access denied!");
             }
+            rs.close();
+            prep.close();
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -364,9 +370,11 @@ public class SQLInjection {
             while (rs.next()) {
                 System.out.println(rs.getString(1) + ": " + rs.getString(2));
             }
+            rs.close();
         } catch (Exception e) {
             System.out.println(e);
         }
+        prep.close();
     }
 
     /**
@@ -402,7 +410,10 @@ public class SQLInjection {
             System.out.println("salt: " + rs.getString("SALT"));
             System.out.println("hash: " + rs.getString("HASH"));
         }
+        rs.close();
+        prep.close();
         stat.execute("SET ALLOW_LITERALS ALL");
+        stat.close();
     }
 
     /**

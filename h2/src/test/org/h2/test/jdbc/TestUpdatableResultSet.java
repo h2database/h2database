@@ -275,7 +275,7 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateDouble("DB", 1.725);
         rs.updateFloat("R", (float) 2.5);
         rs.updateLong("L", Long.MAX_VALUE);
-        rs.updateObject("O_I", new Integer(10));
+        rs.updateObject("O_I", 10);
         rs.updateShort("SH", Short.MIN_VALUE);
         // auml, ouml, uuml
         rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), 0);

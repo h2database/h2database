@@ -36,6 +36,7 @@ public class Compact {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');");
+        stat.close();
         conn.close();
         System.out.println("Compacting...");
         compact("data", "test", "sa", "");

@@ -389,7 +389,7 @@ public class TestFullText extends TestBase {
 
         conn = getConnection("fullText");
         stat = conn.createStatement();
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0)");
+        stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0)");
 
         stat.execute("CALL " + prefix + "DROP_ALL()");
 

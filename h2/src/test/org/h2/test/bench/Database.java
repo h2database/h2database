@@ -404,7 +404,7 @@ class Database {
      */
     void log(String action, String scale, int value) {
         if (test.collect) {
-            results.add(new Object[] { action, scale, new Integer(value) });
+            results.add(new Object[] { action, scale, Integer.valueOf(value) });
         }
     }
 

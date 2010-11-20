@@ -31,7 +31,8 @@ public class TestQueryCache extends TestBase {
         Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar) as select x, space(100) from system_range(1, 1000)");
-        PreparedStatement prep = conn.prepareStatement("select count(*) from test t1, test t2");
+        PreparedStatement prep;
+        conn.prepareStatement("select count(*) from test t1, test t2");
         long time;
         ResultSet rs;
         long first = 0;
@@ -42,7 +43,7 @@ public class TestQueryCache extends TestBase {
             // stat.execute("drop table x");
             time = System.currentTimeMillis();
             prep = conn.prepareStatement("select count(*) from test t1, test t2");
-            rs = prep.executeQuery();
+            prep.executeQuery();
             rs = stat.executeQuery("select count(*) from test t1, test t2");
             rs.next();
             int c = rs.getInt(1);

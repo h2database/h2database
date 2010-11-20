@@ -715,7 +715,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         Random random = new Random(seed);
         for (int i = 0; i < len; i++) {
             int op = random.nextInt(3);
-            Integer x = new Integer(random.nextInt(100));
+            Integer x = random.nextInt(100);
             switch (op) {
             case 0:
                 if (!rows.contains(x)) {

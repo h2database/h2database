@@ -668,7 +668,7 @@ public class TestTools extends TestBase {
                         "-baseDir", getBaseDir(),
                         "-tcpPort", "9192").start();
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
+            DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
             fail("should not be able to create new db");
         } catch (SQLException e) {
             assertKnownException(e);
@@ -707,7 +707,7 @@ public class TestTools extends TestBase {
         conn.close();
 
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
+            DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
             fail("Should throw an exception!");
         } catch (Throwable e) {
             // Expected

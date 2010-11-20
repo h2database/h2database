@@ -211,7 +211,7 @@ public class Profiler implements Runnable {
                 min = best.getValue();
             }
             buff.append(best.getValue()).append('/').append(total).
-                append('\n').append(best.getKey());
+                append(SysProperties.LINE_SEPARATOR).append(best.getKey());
         }
         buff.append('.');
         return buff.toString();

@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.2.147 (2010-11-21)</h2>
 <ul><li>H2 Console: the server properties directory can now be set on the command line using
     java ... -properties &lt;directory&gt;. Issue 159.
 </li><li>New feature INSERT INTO ... DIRECT SELECT, mainly to speed up loading tables
@@ -854,31 +858,6 @@ Change Log
     the database could get corrupt otherwise.
 </li><li>Better error message if both AUTO_SERVER and SERIALIZED parameters are set to TRUE.
 </li><li>Drop table did not delete lob files in old file store (not PAGE_STORE).
-</li></ul>
-
-<h2>Version 1.2.124 (2009-11-20)</h2>
-<ul><li>Clustering: there is now a way to detect which cluster instances are running.
-</li><li>ConvertTraceFile: the SQL statement statistics are better formatted (newline are removed).
-</li><li>The file lock thread is now stopped when the database is closed.
-</li><li>Issue 140: the Script tool now supports writing to a stream.
-</li><li>Issue 138: the trace output of Statement.execute(String, int) and executeUpdate was incorrect.
-</li><li>Page store: new databases can not be opened with older versions.
-</li><li>Page store: multi-column indexes didn't work if the cache was very small.
-</li><li>Page store: opening a database could theoretically result in an endless loop.
-</li><li>Page store: adding large indexed columns could get very slow.
-</li><li>Page store: after a duplicate key exception, an ArrayIndexOutOfBoundsException could be thrown (only for very large rows).
-</li><li>Page store: the recover tool sometimes generated a script file that contained duplicate data.
-</li><li>Page store: sometimes opening a read-only database failed.
-</li><li>Page store: opening a database sometimes failed if large rows where updated, or if a table was truncated before.
-</li><li>Page store: when using a very small page size (128 bytes or smaller), writing a large row could result in an endless recursion. This is only a theoretical problem, as the page size is 2 KB.
-</li><li>Page store: getting the min value from a descending index with NULL entries could return the wrong result.
-</li><li>Page store: improved auto-recovery after power failure.
-</li><li>The JDBC client did not detect that it was not talking to an H2 server. This could result in strange exceptions when trying to connect to another kind of server.
-</li><li>User defined functions can be created with source code. Example: CREATE ALIAS HI AS 'String hi() { return "Hello"; }'
-</li><li>Database file lock: the exception "lock file modified in the future" is no longer thrown; instead, opening the file will be delayed by 2 seconds.
-</li><li>Inserting LOBs got slower each time the process was restarted. It could loop endlessly after about 1000 process restarts.
-</li><li>Issue 117: Multi-version concurrency: concurrent MERGE statements now work.
-</li><li>Improved read-only database detection.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

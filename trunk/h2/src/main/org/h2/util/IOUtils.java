@@ -488,21 +488,6 @@ public class IOUtils {
     }
 
     /**
-     * Get the absolute file path of a file in the user home directory.
-     *
-     * @param fileName the file name
-     * @return the absolute path
-     */
-    public static String getFileInUserHome(String fileName) {
-        String userDir = SysProperties.USER_HOME;
-        if (userDir == null) {
-            return fileName;
-        }
-        File file = new File(userDir, fileName);
-        return file.getAbsolutePath();
-    }
-
-    /**
      * Get the file name (without directory part).
      *
      * @param name the directory and file name

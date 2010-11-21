@@ -356,9 +356,14 @@ public class Constants {
     public static final int SELECTIVITY_DISTINCT_COUNT = 10000;
 
     /**
-     * The name of the server properties file.
+     * The default directory name of the server properties file for the H2 Console.
      */
-    public static final String SERVER_PROPERTIES_FILE = ".h2.server.properties";
+    public static final String SERVER_PROPERTIES_DIR = "~";
+
+    /**
+     * The name of the server properties file for the H2 Console.
+     */
+    public static final String SERVER_PROPERTIES_NAME = ".h2.server.properties";
 
     /**
      * Queries that take longer than this number of milliseconds are written to

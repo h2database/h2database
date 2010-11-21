@@ -94,6 +94,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Use a daemon thread</td></tr>
      * <tr><td>[-pgPort &lt;port&gt;]</td>
      * <td>The port (default: 5435)</td></tr>
+     * <tr><td>[-properties "&lt;dir&gt;"]</td>
+     * <td>The server properties directory (default: ~)</td></tr>
      * <tr><td>[-baseDir &lt;dir&gt;]</td>
      * <td>The base directory for H2 databases (all servers)</td></tr>
      * <tr><td>[-ifExists]</td>
@@ -182,6 +184,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else {
                     throwUnsupportedOption(arg);
                 }
+            } else if ("-properties".equals(arg)) {
+                i++;
             } else if ("-trace".equals(arg)) {
                 // no parameters
             } else if ("-ifExists".equals(arg)) {

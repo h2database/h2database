@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.ScriptReader;
@@ -50,6 +49,7 @@ public class Shell extends Tool implements Runnable {
     private char boxVertical = '|';
     private ArrayList<String> history = New.arrayList();
     private boolean stopHide;
+    private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
 
     /**
      * Options are case sensitive. Supported options are:
@@ -66,6 +66,8 @@ public class Shell extends Tool implements Runnable {
      * <td>The JDBC driver class to use (not required in most cases)</td></tr>
      * <tr><td>[-sql "&lt;statements&gt;"]</td>
      * <td>Execute the SQL statements and exit</td></tr>
+     * <tr><td>[-properties "&lt;dir&gt;"]</td>
+     * <td>Load the server properties from this directory</td></tr>
      * </table>
      * If special characters don't work as expected, you may need to use
      * -Dfile.encoding=UTF-8 (Mac OS X) or CP850 (Windows).
@@ -127,6 +129,8 @@ public class Shell extends Tool implements Runnable {
                 Utils.loadUserClass(driver);
             } else if (arg.equals("-sql")) {
                 sql = args[++i];
+            } else if (arg.equals("-properties")) {
+                serverPropertiesDir = args[++i];
             } else if (arg.equals("-help") || arg.equals("-?")) {
                 showUsage();
                 return;
@@ -346,12 +350,11 @@ public class Shell extends Tool implements Runnable {
     }
 
     private void connect() throws IOException, SQLException {
-        String propertiesFileName = IOUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
         String url = "jdbc:h2:~/test";
         String user = "sa";
         String driver = null;
         try {
-            Properties prop = SortedProperties.loadProperties(propertiesFileName);
+            Properties prop = SortedProperties.loadProperties(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME);
             String data = null;
             boolean found = false;
             for (int i = 0;; i++) {

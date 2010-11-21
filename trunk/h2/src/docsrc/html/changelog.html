@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New feature INSERT INTO ... DIRECT SELECT, mainly to speed up loading tables
+<ul><li>H2 Console: the server properties directory can now be set on the command line using
+    java ... -properties &lt;directory&gt;. Issue 159.
+</li><li>New feature INSERT INTO ... DIRECT SELECT, mainly to speed up loading tables
     from a CSV file. When using DIRECT, then the results from the query are directly applied
     in the target table without any intermediate step (without temporary file).
 </li><li>Converting binary data to UUID was incorrect when the converting more than 31 bytes.

@@ -124,7 +124,6 @@ Section "All"
     SetOutPath "$INSTDIR"
     File /r /x CVS /x .cvsignore ..\..\build.bat
     File /r /x CVS /x .cvsignore ..\..\build.sh
-    File /r /x CVS /x .cvsignore ..\..\build.xml
 
     WriteRegStr HKCU "Software\H2" "" $INSTDIR
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\H2" "DisplayName" "H2"

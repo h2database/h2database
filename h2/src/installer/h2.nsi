@@ -95,7 +95,7 @@
     !insertmacro MUI_LANGUAGE "Breton"
     !insertmacro MUI_LANGUAGE "Belarusian"
     !insertmacro MUI_LANGUAGE "Icelandic"
-    !insertmacro MUI_LANGUAGE "Malaysian"
+    !insertmacro MUI_LANGUAGE "Malay"
     !insertmacro MUI_LANGUAGE "Bosnian"
     !insertmacro MUI_LANGUAGE "Kurdish"
 

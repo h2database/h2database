@@ -130,8 +130,8 @@ public class WebServer implements Service {
     private boolean ifExists;
     private boolean trace;
     private TranslateThread translateThread;
-
     private boolean allowChunked = true;
+    private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
 
     /**
      * Read the given file from the file system or from the resources.
@@ -251,7 +251,12 @@ public class WebServer implements Service {
     }
 
     public void init(String... args) {
-        // TODO web: support using a different properties file
+        // set the serverPropertiesDir, because it's used in loadProperties()
+        for (int i = 0; args != null && i < args.length; i++) {
+            if (args[i].equals("-properties")) {
+                serverPropertiesDir = args[++i];
+            }
+        }
         Properties prop = loadProperties();
         port = SortedProperties.getIntProperty(prop, "webPort", Constants.DEFAULT_HTTP_PORT);
         ssl = SortedProperties.getBooleanProperty(prop, "webSSL", false);
@@ -271,6 +276,9 @@ public class WebServer implements Service {
                 SysProperties.setBaseDir(baseDir);
             } else if ("-ifExists".equals(a)) {
                 ifExists = true;
+            } else if (args[i].equals("-properties")) {
+                // already set
+                i++;
             } else if ("-trace".equals(a)) {
                 trace = true;
             }
@@ -509,15 +517,9 @@ public class WebServer implements Service {
         connInfoMap.remove(name);
     }
 
-    private String getPropertiesFileName() {
-        // store the properties in the user directory
-        return IOUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
-    }
-
     private Properties loadProperties() {
-        String fileName = getPropertiesFileName();
         try {
-            return SortedProperties.loadProperties(fileName);
+            return SortedProperties.loadProperties(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME);
         } catch (Exception e) {
             TraceSystem.traceThrowable(e);
             return new Properties();
@@ -593,8 +595,7 @@ public class WebServer implements Service {
                     prop.setProperty(String.valueOf(len - i - 1), info.getString());
                 }
             }
-            String fileName = getPropertiesFileName();
-            OutputStream out = IOUtils.openFileOutputStream(fileName, false);
+            OutputStream out = IOUtils.openFileOutputStream(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME, false);
             prop.store(out, "H2 Server Properties");
             out.close();
         } catch (Exception e) {

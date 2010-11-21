@@ -317,7 +317,7 @@ java org.h2.test.TestAll timer
     }
 
     private static void run(String... args) throws Exception {
-        SelfDestructor.startCountdown(6 * 60);
+        SelfDestructor.startCountdown(2 * 60);
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();

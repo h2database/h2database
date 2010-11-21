@@ -43,7 +43,7 @@ public class CipherFactory {
      * The default password to use for the .h2.keystore file
      */
     public static final String KEYSTORE_PASSWORD = "h2pass";
-    private static final String KEYSTORE = ".h2.keystore";
+    private static final String KEYSTORE = "~/.h2.keystore";
     private static final String KEYSTORE_KEY = "javax.net.ssl.keyStore";
     private static final String KEYSTORE_PASSWORD_KEY = "javax.net.ssl.keyStorePassword";
     private static final String ANONYMOUS_CIPHER_SUITE = "SSL_DH_anon_WITH_RC4_128_MD5";
@@ -190,7 +190,7 @@ public class CipherFactory {
     private static void setKeystore() throws IOException {
         Properties p = System.getProperties();
         if (p.getProperty(KEYSTORE_KEY) == null) {
-            String fileName = IOUtils.getFileInUserHome(KEYSTORE);
+            String fileName = KEYSTORE;
             byte[] data = getKeyStoreBytes(getKeyStore(KEYSTORE_PASSWORD), KEYSTORE_PASSWORD);
             boolean needWrite = true;
             if (IOUtils.exists(fileName) && IOUtils.length(fileName) == data.length) {

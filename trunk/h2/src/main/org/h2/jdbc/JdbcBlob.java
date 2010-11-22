@@ -98,7 +98,9 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public byte[] getBytes(long pos, int length) throws SQLException {
         try {
-            debugCode("getBytes("+pos+", "+length+");");
+            if (isDebugEnabled()) {
+                debugCode("getBytes("+pos+", "+length+");");
+            }
             checkClosed();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             InputStream in = value.getInputStream();
@@ -132,6 +134,10 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public int setBytes(long pos, byte[] bytes) throws SQLException {
         try {
+            if (isDebugEnabled()) {
+                debugCode("setBytes("+pos+", "+quoteBytes(bytes)+");");
+            }
+            checkClosed();
             if (pos != 1) {
                 throw DbException.getInvalidValueException("pos", pos);
             }
@@ -184,6 +190,10 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public OutputStream setBinaryStream(long pos) throws SQLException {
         try {
+            if (isDebugEnabled()) {
+                debugCode("setBinaryStream("+pos+");");
+            }
+            checkClosed();
             if (pos != 1) {
                 throw DbException.getInvalidValueException("pos", pos);
             }
@@ -223,10 +233,12 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @throws SQLException
      */
     public long position(byte[] pattern, long start) throws SQLException {
-        debugCode("position(pattern, "+start+");");
+        if (isDebugEnabled()) {
+            debugCode("position("+quoteBytes(pattern)+", "+start+");");
+        }
         if (Constants.BLOB_SEARCH) {
             try {
-                debugCode("position(pattern, " + start + ");");
+                checkClosed();
                 if (pattern == null) {
                     return -1;
                 }
@@ -276,10 +288,12 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @throws SQLException
      */
     public long position(Blob blobPattern, long start) throws SQLException {
-        debugCode("position(blobPattern, "+start+");");
+        if (isDebugEnabled()) {
+            debugCode("position(blobPattern, "+start+");");
+        }
         if (Constants.BLOB_SEARCH) {
             try {
-                debugCode("position(blobPattern, " + start + ");");
+                checkClosed();
                 if (blobPattern == null) {
                     return -1;
                 }
@@ -331,7 +345,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * INTERNAL
      */
     public String toString() {
-        return getTraceObjectName() + ": " + value.getTraceSQL();
+        return getTraceObjectName() + ": " + value == null ? "null" : value.getTraceSQL();
     }
 
 }

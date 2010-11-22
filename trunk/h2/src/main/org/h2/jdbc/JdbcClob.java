@@ -140,6 +140,10 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public Writer setCharacterStream(long pos) throws SQLException {
         try {
+            if (isDebugEnabled()) {
+                debugCodeCall("setCharacterStream(" + pos + ");");
+            }
+            checkClosed();
             if (pos != 1) {
                 throw DbException.getInvalidValueException("pos", pos);
             }
@@ -182,7 +186,9 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public String getSubString(long pos, int length) throws SQLException {
         try {
-            debugCode("getSubString(" + pos + ", " + length + ");");
+            if (isDebugEnabled()) {
+                debugCode("getSubString(" + pos + ", " + length + ");");
+            }
             checkClosed();
             if (pos < 1) {
                 throw DbException.getInvalidValueException("pos", pos);
@@ -221,6 +227,10 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public int setString(long pos, String str) throws SQLException {
         try {
+            if (isDebugEnabled()) {
+                debugCode("setString(" + pos + ", " + quote(str) + ");");
+            }
+            checkClosed();
             if (pos != 1) {
                 throw DbException.getInvalidValueException("pos", pos);
             }
@@ -280,7 +290,7 @@ public class JdbcClob extends TraceObject implements Clob
      * INTERNAL
      */
     public String toString() {
-        return getTraceObjectName() + ": " + value.getTraceSQL();
+        return getTraceObjectName() + ": " + value == null ? "null" : value.getTraceSQL();
     }
 
 }

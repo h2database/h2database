@@ -196,7 +196,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      */
     public Connection getConnection() throws SQLException {
         long max = System.currentTimeMillis() + timeout * 1000;
-        while (System.currentTimeMillis() <= max) {
+        do {
             synchronized (this) {
                 if (activeConnections < maxConnections) {
                     return getConnectionNow();
@@ -207,7 +207,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
                     // ignore
                 }
             }
-        }
+        } while (System.currentTimeMillis() <= max);
         throw new SQLException("Login timeout", "08001", 8001);
     }
 

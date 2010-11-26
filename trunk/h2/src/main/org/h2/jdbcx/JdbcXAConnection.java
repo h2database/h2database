@@ -12,14 +12,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Properties;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.XAConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-import org.h2.Driver;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
@@ -51,7 +49,6 @@ implements XAConnection, XAResource
     private static int nextTransactionId;
 
     private JdbcDataSourceFactory factory;
-    private String url, user;
 
     // This connection is kept open as long as the XAConnection is alive
     private JdbcConnection physicalConn;
@@ -66,15 +63,10 @@ implements XAConnection, XAResource
         org.h2.Driver.load();
     }
 
-    JdbcXAConnection(JdbcDataSourceFactory factory, int id, String url, String user, char[] password) throws SQLException {
+    JdbcXAConnection(JdbcDataSourceFactory factory, int id, JdbcConnection physicalConn) throws SQLException {
         this.factory = factory;
         setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
-        this.url = url;
-        this.user = user;
-        Properties info = new Properties();
-        info.setProperty("user", user);
-        info.put("password", StringUtils.cloneCharArray(password));
-        physicalConn = (JdbcConnection) Driver.load().connect(url, info);
+        this.physicalConn = physicalConn;
     }
 //## Java 1.4 end ##
 
@@ -422,7 +414,7 @@ implements XAConnection, XAResource
      */
 //## Java 1.4 begin ##
     public String toString() {
-        return getTraceObjectName() + ": url=" + url + " user=" + user;
+        return getTraceObjectName() + ": " + physicalConn;
     }
 
     private XAException convertException(SQLException e) {

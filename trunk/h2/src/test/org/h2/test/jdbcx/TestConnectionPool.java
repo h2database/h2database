@@ -34,6 +34,7 @@ public class TestConnectionPool extends TestBase {
 
     public void test() throws Exception {
         deleteDb("connectionPool");
+        testWrongUrl();
         testTimeout();
         testUncommittedTransaction();
         testPerformance();
@@ -43,11 +44,22 @@ public class TestConnectionPool extends TestBase {
         deleteDb("connectionPool");
     }
 
+    private void testWrongUrl() throws SQLException {
+        JdbcConnectionPool cp = JdbcConnectionPool.create("jdbc:wrong:url", "", "");
+        try {
+            cp.getConnection();
+        } catch (SQLException e) {
+            assertEquals(8001, e.getErrorCode());
+        }
+        cp.dispose();
+    }
+
     private void testTimeout() throws Exception {
         String url = getURL("connectionPool", true), user = getUser(), password = getPassword();
         final JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
         man.setLoginTimeout(1);
         man.setMaxConnections(2);
+        // connection 1 (of 2)
         Connection conn = man.getConnection();
         Task t = new Task() {
             public void call() {
@@ -61,10 +73,13 @@ public class TestConnectionPool extends TestBase {
         t.execute();
         long time = System.currentTimeMillis();
         try {
+            // connection 2 (of 1 or 2) may fail
             man.getConnection();
+            // connection 3 (of 1 or 2) must fail
             man.getConnection();
             fail();
         } catch (SQLException e) {
+            assertTrue(e.toString().toLowerCase().indexOf("timeout") >= 0);
             time = System.currentTimeMillis() - time;
             assertTrue("timeout after " + time + " ms", time > 1000);
         } finally {

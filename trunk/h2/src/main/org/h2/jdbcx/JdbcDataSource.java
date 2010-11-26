@@ -177,7 +177,13 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         Properties info = new Properties();
         info.setProperty("user", user);
         info.put("password", password);
-        return (JdbcConnection) Driver.load().connect(url, info);
+        Connection conn = Driver.load().connect(url, info);
+        if (conn == null) {
+            throw new SQLException("No suitable driver found for " + url, "08001", 8001);
+        } else if (!(conn instanceof JdbcConnection)) {
+            throw new SQLException("Unsupported connection type " + conn.getClass().getName(), "08001", 8001);
+        }
+        return (JdbcConnection) conn;
     }
 
     /**
@@ -308,7 +314,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     public XAConnection getXAConnection() throws SQLException {
         debugCodeCall("getXAConnection");
         int id = getNextId(XA_DATA_SOURCE);
-        return new JdbcXAConnection(factory, id, url, userName, passwordChars);
+        return new JdbcXAConnection(factory, id, getJdbcConnection(userName, StringUtils.cloneCharArray(passwordChars)));
     }
 //## Java 1.4 end ##
 
@@ -326,7 +332,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
             debugCode("getXAConnection("+quote(user)+", \"\");");
         }
         int id = getNextId(XA_DATA_SOURCE);
-        return new JdbcXAConnection(factory, id, url, user, convertToCharArray(password));
+        return new JdbcXAConnection(factory, id, getJdbcConnection(user, convertToCharArray(password)));
     }
 //## Java 1.4 end ##
 

@@ -23,8 +23,6 @@ Frequently Asked Questions
     Are there Known Bugs? When is the Next Release?</a><br />
 <a href="#open_source">
     Is this Database Engine Open Source?</a><br />
-<a href="#query_slow">
-    My Query is Slow</a><br />
 <a href="#create_database">
     How to Create a New Database?</a><br />
 <a href="#connect">
@@ -37,6 +35,10 @@ Frequently Asked Questions
     Is it Reliable?</a><br />
 <a href="#slow_open">
     Why is Opening my Database Slow?</a><br />
+<a href="#query_slow">
+    My Query is Slow</a><br />
+<a href="#database_slow">
+    H2 is Very Slow</a><br />
 <a href="#column_names_incorrect">
     Column Names are Incorrect?</a><br />
 <a href="#float_is_double">
@@ -84,21 +86,6 @@ For a complete list, see <a href="http://code.google.com/p/h2database/issues/lis
 Yes. It is free to use and distribute, and the source code is included.
 See also under license.
 </p>
-
-<h3 id="query_slow">My Query is Slow</h3>
-<p>
-Slow <code>SELECT</code> (or <code>DELETE, UPDATE, MERGE</code>)
-statement can have multiple reasons. Follow this checklist:
-</p>
-<ul>
-<li>Run <code>ANALYZE</code> (see documentation for details).
-</li><li>Run the query with <code>EXPLAIN</code> and check if indexes are used
-    (see documentation for details).
-</li><li>If required, create additional indexes and try again using
-    <code>ANALYZE</code> and <code>EXPLAIN</code>.
-</li><li>If it doesn't help please report the problem.
-</li>
-</ul>
 
 <h3 id="create_database">How to Create a New Database?</h3>
 <p>
@@ -193,6 +180,43 @@ In this case, use a backup of the database or the Recover tool. Please report su
 The plan is that the database automatically recovers in all situations.
 </p>
 
+<h3 id="slow_open">Why is Opening my Database Slow?</h3>
+<p>
+To find out what the problem is, use the H2 Console and click on "Test Connection"
+instead of "Login". After the "Login Successful" appears, click on it (it's a link).
+This will list the top stack traces. Then either analyze this yourself, or
+post those stack traces in the Google Group.
+</p>
+<p>
+Other possible reasons are: the database is very big (many GB), or contains linked tables
+that are slow to open.
+</p>
+
+<h3 id="query_slow">My Query is Slow</h3>
+<p>
+Slow <code>SELECT</code> (or <code>DELETE, UPDATE, MERGE</code>)
+statement can have multiple reasons. Follow this checklist:
+</p>
+<ul>
+<li>Run <code>ANALYZE</code> (see documentation for details).
+</li><li>Run the query with <code>EXPLAIN</code> and check if indexes are used
+    (see documentation for details).
+</li><li>If required, create additional indexes and try again using
+    <code>ANALYZE</code> and <code>EXPLAIN</code>.
+</li><li>If it doesn't help please report the problem.
+</li>
+</ul>
+
+
+<h3 id="database_slow">H2 is Very Slow</h3>
+<p>
+By default, H2 closes the database when the last connection is closed.
+If your application closes the only connection after each operation,
+the database is opened and closed a lot, which is quite slow.
+There are multiple ways to solve this problem, see 
+<a href="performance.html#database_performance_tuning">Database Performance Tuning</a>.
+</p>
+
 <h3 id="column_names_incorrect">Column Names are Incorrect?</h3>
 <p>
 For the query <code>SELECT ID AS X FROM TEST</code> the method
@@ -225,18 +249,6 @@ is equivalent to <code>DOUBLE</code>, and both are mapped to <code>java.lang.Dou
 See also
 <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jdbc/getstart/mapping.html#1055162">
 Mapping SQL and Java Types - 8.3.10 FLOAT</a>.</p>
-
-<h3 id="slow_open">Why is Opening my Database Slow?</h3>
-<p>
-To find out what the problem is, use the H2 Console and click on "Test Connection"
-instead of "Login". After the "Login Successful" appears, click on it (it's a link).
-This will list the top stack traces. Then either analyze this yourself, or
-post those stack traces in the Google Group.
-</p>
-<p>
-Other possible reasons are: the database is very big (many GB), or contains linked tables
-that are slow to open.
-</p>
 
 <h3 id="gcj">Is the GCJ Version Stable? Faster?</h3>
 <p>

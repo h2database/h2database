@@ -47,7 +47,7 @@ public class Driver implements java.sql.Driver {
      *
      * @param url the database URL
      * @param info the connection properties
-     * @return the new connection
+     * @return the new connection or null if the URL is not supported
      */
     public Connection connect(String url, Properties info) throws SQLException {
         try {

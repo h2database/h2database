@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Using the java.sql.Blob or java.sql.Clob interfaces could throw the wrong
+<ul><li>Connection pool / DataSource: a NullPointerException was thrown when
+    using a database URL that doesn't start with "jdbc:h2:".
+</li><li>Using the java.sql.Blob or java.sql.Clob interfaces could throw the wrong
     exception after the object was closed.
 </li></ul>
 

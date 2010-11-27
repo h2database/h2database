@@ -110,7 +110,7 @@ public class TestDataSource extends TestBase {
         XAConnection xaConn = ds.getXAConnection();
 
         int traceId = ((JdbcXAConnection) xaConn).getTraceId();
-        assertEquals("xads" + traceId + ": url=" + url + " user=" + user, xaConn.toString());
+        assertTrue(xaConn.toString().startsWith("xads" + traceId + ": conn1: url="));
 
         xaConn.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {

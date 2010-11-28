@@ -164,6 +164,7 @@ public class Shell extends Tool implements Runnable {
         println("maxwidth       Set maximum column width (default is 100)");
         println("show           List all tables");
         println("describe       Describe a table");
+        println("autocommit     Enable or disable autocommit");
         println("history        Show the last 20 statements");
         println("quit or exit   Close the connection and exit");
         println("");
@@ -276,6 +277,16 @@ public class Shell extends Tool implements Runnable {
                     } finally {
                         JdbcUtils.closeSilently(rs);
                     }
+                } else if (upper.startsWith("AUTOCOMMIT")) {
+                    upper = upper.substring("AUTOCOMMIT".length()).trim();
+                    if ("TRUE".equals(upper)) {
+                        conn.setAutoCommit(true);
+                    } else if ("FALSE".equals(upper)) {
+                        conn.setAutoCommit(false);
+                    } else {
+                        println("Usage: autocommit [true|false]");
+                    }
+                    println("Autocommit is now " + conn.getAutoCommit());
                 } else if (upper.startsWith("MAXWIDTH")) {
                     upper = upper.substring("MAXWIDTH".length()).trim();
                     try {

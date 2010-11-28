@@ -35,9 +35,55 @@ public class TestCluster extends TestBase {
     }
 
     public void test() throws Exception {
+        testRollback();
         testCase();
         testCreateClusterAtRuntime();
         testStartStopCluster();
+    }
+
+    private void testRollback() throws SQLException {
+        if (config.memory || config.networked || config.cipher != null) {
+            return;
+        }
+        int port1 = 9191, port2 = 9192;
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
+        deleteFiles();
+
+        org.h2.Driver.load();
+        String user = getUser(), password = getPassword();
+        Connection conn;
+        Statement stat;
+        ResultSet rs;
+
+        String url1 = "jdbc:h2:tcp://localhost:" + port1 + "/test";
+        String url2 = "jdbc:h2:tcp://localhost:" + port2 + "/test";
+        String urlCluster = "jdbc:h2:tcp://" + serverList + "/test";
+
+        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
+        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
+
+        CreateCluster.main("-urlSource", url1, "-urlTarget", url2, "-user", user, "-password", password, "-serverList",
+                serverList);
+
+        conn = DriverManager.getConnection(urlCluster, user, password);
+        stat = conn.createStatement();
+        assertTrue(conn.getAutoCommit());
+        stat.execute("create table test(id int, name varchar)");
+        assertTrue(conn.getAutoCommit());
+        stat.execute("set autocommit false");
+        // issue 259
+        // assertFalse(conn.getAutoCommit());
+        conn.setAutoCommit(false);
+        assertFalse(conn.getAutoCommit());
+        stat.execute("insert into test values(1, 'Hello')");
+        stat.execute("rollback");
+        rs = stat.executeQuery("select * from test order by id");
+        assertFalse(rs.next());
+        conn.close();
+
+        n1.stop();
+        n2.stop();
+        deleteFiles();
     }
 
     private void testCase() throws SQLException {
@@ -52,6 +98,8 @@ public class TestCluster extends TestBase {
         String user = getUser(), password = getPassword();
         Connection conn;
         Statement stat;
+        ResultSet rs;
+
         String url1 = "jdbc:h2:tcp://localhost:" + port1 + "/test";
         String url2 = "jdbc:h2:tcp://localhost:" + port2 + "/test";
         String urlCluster = "jdbc:h2:tcp://" + serverList + "/test";
@@ -73,6 +121,9 @@ public class TestCluster extends TestBase {
         stat.execute("insert into test values(2)");
         assertFalse(conn.getAutoCommit());
         conn.rollback();
+        rs = stat.executeQuery("select * from test order by name");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
         conn.close();
 
         // stop server 2, and test if only one server is available
@@ -80,7 +131,7 @@ public class TestCluster extends TestBase {
 
         conn = DriverManager.getConnection(urlCluster, user, password);
         stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from test");
+        rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         conn.close();

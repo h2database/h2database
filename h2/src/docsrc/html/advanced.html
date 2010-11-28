@@ -373,6 +373,10 @@ When using the cluster modes, result sets are read fully in memory by the client
 there is no problem if the server dies that executed the query. Result sets must fit in memory
 on the client side.
 </p>
+<p>
+The SQL statement <code>SET AUTOCOMMIT FALSE</code> is not supported in the cluster mode.
+To disable autocommit, the method <code>Connection.setAutoCommit(false)</code> needs to be called.
+</p>
 
 <h2 id="two_phase_commit">Two Phase Commit</h2>
 <p>

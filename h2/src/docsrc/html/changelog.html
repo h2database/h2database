@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Connection pool / DataSource: a NullPointerException was thrown when
+<ul><li>The Shell tool can now enable, disable, and display the current autocommit mode.
+</li><li>There is a limitation in the cluster mode: 
+    The SQL statement SET AUTOCOMMIT FALSE doesn't work.
+    To disable autocommit, the method Connection.setAutoCommit(false) needs to be called.
+    This is now documented. See also issue 259.
+</li><li>Connection pool / DataSource: a NullPointerException was thrown when
     using a database URL that doesn't start with "jdbc:h2:".
 </li><li>Using the java.sql.Blob or java.sql.Clob interfaces could throw the wrong
     exception after the object was closed.

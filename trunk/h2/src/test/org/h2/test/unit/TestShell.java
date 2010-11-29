@@ -88,6 +88,7 @@ public class TestShell extends TestBase {
         read("maxwidth");
         read("show");
         read("describe");
+        read("autocommit");
         read("history");
         read("quit or exit");
         read("");

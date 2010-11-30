@@ -21,10 +21,6 @@ public class RuleRepeat implements Rule {
         this.comma = comma;
     }
 
-    public String toString() {
-        return "...";
-    }
-
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleRepeat(comma, rule);
     }
@@ -37,36 +33,18 @@ public class RuleRepeat implements Rule {
         // rule.setLinks(ruleMap);
     }
 
-    public boolean matchRemove(Sentence sentence) {
+    public boolean autoComplete(Sentence sentence) {
         if (sentence.shouldStop()) {
             return false;
         }
-        String query = sentence.getQuery();
-        if (query.length() == 0) {
-            return false;
+        while (rule.autoComplete(sentence)) {
+            // nothing to do
         }
-        while (true) {
-            if (!rule.matchRemove(sentence)) {
-                return true;
-            }
-            if (sentence.getQuery().length() == 0) {
-                return true;
-            }
-        }
+        return true;
     }
 
-    public void addNextTokenList(Sentence sentence) {
-        if (sentence.shouldStop()) {
-            return;
-        }
-        String old = sentence.getQuery();
-        while (true) {
-            rule.addNextTokenList(sentence);
-            if (!rule.matchRemove(sentence) || old.equals(sentence.getQuery())) {
-                break;
-            }
-        }
-        sentence.setQuery(old);
+    public String toString() {
+        return rule.toString();
     }
 
 }

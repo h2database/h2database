@@ -280,7 +280,9 @@ public class Bnf {
                 continue;
             }
             sentence.start();
-            head.getRule().addNextTokenList(sentence);
+            if (head.getRule().autoComplete(sentence)) {
+                break;
+            }
         }
         return sentence.getNext();
     }

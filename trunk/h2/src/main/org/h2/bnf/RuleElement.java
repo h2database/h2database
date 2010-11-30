@@ -29,10 +29,6 @@ public class RuleElement implements Rule {
         this.type = topic.startsWith("function") ? Sentence.FUNCTION : Sentence.KEYWORD;
     }
 
-    public String toString() {
-        return name;
-    }
-
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleElement(keyword, name, link);
     }
@@ -60,16 +56,14 @@ public class RuleElement implements Rule {
         throw new AssertionError("Unknown " + name + "/" + test);
     }
 
-    public boolean matchRemove(Sentence sentence) {
+    public boolean autoComplete(Sentence sentence) {
         if (sentence.shouldStop()) {
             return false;
         }
-        String query = sentence.getQuery();
-        if (query.length() == 0) {
-            return false;
-        }
         if (keyword) {
-            String up = sentence.getQueryUpper();
+            String query = sentence.getQuery();
+            String q = query.trim();
+            String up = sentence.getQueryUpper().trim();
             if (up.startsWith(name)) {
                 query = query.substring(name.length());
                 while (!"_".equals(name) && query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
@@ -77,38 +71,18 @@ public class RuleElement implements Rule {
                 }
                 sentence.setQuery(query);
                 return true;
-            }
-            return false;
-        }
-        if (!link.matchRemove(sentence)) {
-            return false;
-        }
-        if (name != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
-            query = sentence.getQuery();
-            while (query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
-                query = query.substring(1);
-            }
-            sentence.setQuery(query);
-        }
-        return true;
-    }
-
-    public void addNextTokenList(Sentence sentence) {
-        if (sentence.shouldStop()) {
-            return;
-        }
-        if (keyword) {
-            String query = sentence.getQuery();
-            String q = query.trim();
-            String up = sentence.getQueryUpper().trim();
-            if (q.length() == 0 || name.startsWith(up)) {
+            } else if (q.length() == 0 || name.startsWith(up)) {
                 if (q.length() < name.length()) {
                     sentence.add(name, name.substring(q.length()), type);
                 }
             }
-            return;
+            return false;
         }
-        link.addNextTokenList(sentence);
+        return link.autoComplete(sentence);
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

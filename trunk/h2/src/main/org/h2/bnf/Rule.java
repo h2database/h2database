@@ -28,23 +28,13 @@ public interface Rule {
     void setLinks(HashMap<String, RuleHead> ruleMap);
 
     /**
-     * Add the next possible token for a query.
-     * Used for autocomplete support.
+     * Add the next possible token(s). If there was a match, the query in the
+     * sentence is updated (the matched token is removed).
      *
      * @param sentence the sentence context
+     * @return true if a full match
      */
-    void addNextTokenList(Sentence sentence);
-
-    /**
-     * Remove a token from a sentence. Used for autocomplete support.
-     * If there was a match, the query in the sentence is updated
-     * (the matched token is removed).
-     *
-     * @param sentence
-     *            the sentence context
-     * @return false if not a match or a partial match, true if a full match
-     */
-    boolean matchRemove(Sentence sentence);
+    boolean autoComplete(Sentence sentence);
 
     /**
      * Call the visit method in the given visitor.

@@ -64,7 +64,7 @@ public class Constants {
     /**
      * The minor version of this database.
      */
-    public static final int VERSION_MINOR = 2;
+    public static final int VERSION_MINOR = 3;
     // Build.getLuceneVersion() uses an ugly hack to read this value
 
     /**

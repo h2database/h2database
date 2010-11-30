@@ -37,9 +37,6 @@ public class DbStarter implements ServletContextListener {
             String user = getParameter(servletContext, "db.user", "sa");
             String password = getParameter(servletContext, "db.password", "sa");
 
-            conn = DriverManager.getConnection(url, user, password);
-            servletContext.setAttribute("connection", conn);
-
             // Start the server if configured to do so
             String serverParams = getParameter(servletContext, "db.tcpServer", null);
             if (serverParams != null) {
@@ -47,9 +44,11 @@ public class DbStarter implements ServletContextListener {
                 server = Server.createTcpServer(params);
                 server.start();
             }
+
             // To access the database in server mode, use the database URL:
             // jdbc:h2:tcp://localhost/~/test
-
+            conn = DriverManager.getConnection(url, user, password);
+            servletContext.setAttribute("connection", conn);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1459,7 +1459,7 @@ SET WRITE_DELAY 2000
 "
 
 "Commands (Other)","SHUTDOWN","
-SHUTDOWN [ IMMEDIATELY | COMPACT ]
+SHUTDOWN [ IMMEDIATELY | COMPACT | DEFRAG ]
 ","
 This statement closes all open connections to the database and closes the
 database. This command is usually not required, as the database is
@@ -1473,6 +1473,8 @@ If the database is closed normally (using SHUTDOWN or by closing all connections
 but only for at most the time defined by the system property ""h2.maxCompactTime"" (see there).
 
 SHUTDOWN IMMEDIATELY closes the database files without any cleanup and without compacting.
+
+SHUTDOWN DEFRAG re-orders the pages when closing the database so that table scans are faster.
 
 Admin rights are required to execute this command.
 ","

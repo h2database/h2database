@@ -62,6 +62,11 @@ public class TestWeb extends TestBase {
             result = client.get(url, "query.do?sql=@HISTORY");
             result = client.get(url, "getHistory.do?id=4");
             assertContains(result, "select * from test");
+
+            result = client.get(url, "autoCompleteList.do?query=select 'abc");
+            // expected: '
+            assertContains(result, "%27");
+
             result = client.get(url, "autoCompleteList.do?query=se");
 
     //        long time = System.currentTimeMillis();
@@ -81,6 +86,8 @@ public class TestWeb extends TestBase {
             assertContains(result, "id");
             result = client.get(url, "autoCompleteList.do?query=select id x from test te where t");
             assertContains(result, "te");
+            result = client.get(url, "autoCompleteList.do?query=select * from test where name = '");
+            assertContains(result, "%27");
 
             result = client.get(url, "query.do?sql=delete from test");
             result = client.get(url, "query.do?sql=@LOOP 10 @STATEMENT insert into test values(?, 'Hello')");
@@ -116,9 +123,8 @@ public class TestWeb extends TestBase {
             client.get(url, "admin.do");
             // this would also stop the server
             // client.get(url, "adminShutdown.do");
-            server.stop();
         } finally {
-//            server.stop();
+            server.stop();
         }
     }
 

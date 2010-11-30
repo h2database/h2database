@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The Shell tool can now enable, disable, and display the current autocommit mode.
+<ul><li>H2 Console: improved autocomplete feature (also simplified the source code for this feature).
+</li><li>The DbStarter servlet context listener now starts the server before opening a connection,
+    so that connecting using the server mode works.
+</li><li>The Shell tool can now enable, disable, and display the current autocommit mode.
 </li><li>There is a limitation in the cluster mode: 
     The SQL statement SET AUTOCOMMIT FALSE doesn't work.
     To disable autocommit, the method Connection.setAutoCommit(false) needs to be called.

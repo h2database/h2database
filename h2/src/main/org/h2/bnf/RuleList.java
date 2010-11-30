@@ -9,7 +9,6 @@ package org.h2.bnf;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.h2.util.New;
-import org.h2.util.StatementBuilder;
 
 /**
  * Represents a sequence of BNF rules, or a list of alternative rules.
@@ -35,24 +34,6 @@ public class RuleList implements Rule {
         this.or = or;
     }
 
-    public String toString() {
-        StatementBuilder buff = new StatementBuilder();
-        if (or) {
-            buff.append('{');
-            for (Rule r : list) {
-                buff.appendExceptFirst("|");
-                buff.append(r.toString());
-            }
-            buff.append('}');
-        } else {
-            for (Rule r : list) {
-                buff.appendExceptFirst(" ");
-                buff.append(r.toString());
-            }
-        }
-        return buff.toString();
-    }
-
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleList(or, list);
     }
@@ -70,43 +51,32 @@ public class RuleList implements Rule {
         }
     }
 
-    public boolean matchRemove(Sentence sentence) {
-        String query = sentence.getQuery();
-        if (query.length() == 0) {
+    public boolean autoComplete(Sentence sentence) {
+        if (sentence.shouldStop()) {
             return false;
         }
-        if (or) {
-            for (Rule r : list) {
-                if (r.matchRemove(sentence)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        for (Rule r : list) {
-            if (!r.matchRemove(sentence)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void addNextTokenList(Sentence sentence) {
         String old = sentence.getQuery();
         if (or) {
             for (Rule r : list) {
                 sentence.setQuery(old);
-                r.addNextTokenList(sentence);
-            }
-        } else {
-            for (Rule r : list) {
-                r.addNextTokenList(sentence);
-                if (!r.matchRemove(sentence)) {
-                    break;
+                if (r.autoComplete(sentence)) {
+                    return true;
                 }
             }
+            return false;
+        } else {
+            for (Rule r : list) {
+                if (!r.autoComplete(sentence)) {
+                    sentence.setQuery(old);
+                    return false;
+                }
+            }
+            return true;
         }
-        sentence.setQuery(old);
+    }
+
+    public String toString() {
+        return or ? "or: " : "" + list.toString();
     }
 
 }

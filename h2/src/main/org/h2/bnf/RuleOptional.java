@@ -19,10 +19,6 @@ public class RuleOptional implements Rule {
         this.rule = rule;
     }
 
-    public String toString() {
-        return "[" + rule.toString() + "]";
-    }
-
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleOptional(rule);
     }
@@ -37,26 +33,16 @@ public class RuleOptional implements Rule {
             mapSet = true;
         }
     }
-
-    public boolean matchRemove(Sentence sentence) {
+    public boolean autoComplete(Sentence sentence) {
         if (sentence.shouldStop()) {
             return false;
         }
-        String query = sentence.getQuery();
-        if (query.length() == 0) {
-            return true;
-        }
-        if (!rule.matchRemove(sentence)) {
-            return true;
-        }
+        rule.autoComplete(sentence);
         return true;
     }
 
-    public void addNextTokenList(Sentence sentence) {
-        if (sentence.shouldStop()) {
-            return;
-        }
-        rule.addNextTokenList(sentence);
+    public String toString() {
+        return rule.toString();
     }
 
 }

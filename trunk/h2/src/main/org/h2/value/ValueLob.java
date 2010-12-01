@@ -241,6 +241,9 @@ public class ValueLob extends Value {
 
     private int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
+        if ((path != null) && (path.length() == 0)) {
+            path = new File(System.getProperty("java.io.tmpdir"), SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
+        }
         int newId = 0;
         int lobsPerDir = SysProperties.LOB_FILES_PER_DIRECTORY;
         while (true) {
@@ -381,8 +384,12 @@ public class ValueLob extends Value {
         String compressionAlgorithm = h.getLobCompressionAlgorithm(type);
         this.compression = compressionAlgorithm != null;
         synchronized (h) {
+            String path = h.getDatabasePath();
+            if ((path != null) && (path.length() == 0)) {
+                path = new File(System.getProperty("java.io.tmpdir"), SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
+            }
             objectId = getNewObjectId(h);
-            fileName = getFileNamePrefix(h.getDatabasePath(), objectId) + Constants.SUFFIX_TEMP_FILE;
+            fileName = getFileNamePrefix(path, objectId) + Constants.SUFFIX_TEMP_FILE;
             tempFile = h.openFile(fileName, "rw", false);
             tempFile.autoDelete();
         }

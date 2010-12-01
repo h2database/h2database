@@ -511,7 +511,13 @@ public class WebApp {
 
     private int addIndexes(boolean mainSchema, DatabaseMetaData meta, String table, String schema, StringBuilder buff, int treeIndex)
             throws SQLException {
-        ResultSet rs = meta.getIndexInfo(null, schema, table, false, true);
+        ResultSet rs;
+        try {
+            rs = meta.getIndexInfo(null, schema, table, false, true);
+        } catch (SQLException e) {
+            // SQLite
+            return treeIndex;
+        }
         HashMap<String, IndexInfo> indexMap = New.hashMap();
         while (rs.next()) {
             String name = rs.getString("INDEX_NAME");

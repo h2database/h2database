@@ -921,12 +921,6 @@ public class Parser {
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
-        if (readIf("DIRECT")) {
-            command.setInsertFromSelect(true);
-        }
-        if (readIf("SORTED")) {
-            command.setSortedInsertMode(true);
-        }
         if (readIf("(")) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
@@ -935,6 +929,12 @@ public class Parser {
             }
             Column[] columns = parseColumnList(table);
             command.setColumns(columns);
+        }
+        if (readIf("DIRECT")) {
+            command.setInsertFromSelect(true);
+        }
+        if (readIf("SORTED")) {
+            command.setSortedInsertMode(true);
         }
         if (readIf("DEFAULT")) {
             read("VALUES");

@@ -30,6 +30,9 @@ Change Log
     using a database URL that doesn't start with "jdbc:h2:".
 </li><li>Using the java.sql.Blob or java.sql.Clob interfaces could throw the wrong
     exception after the object was closed.
+</li><li>LOB: in server mode, if the feature "LOBs in database" is disabled,
+the temporary files are now created in the temp directory (the same as
+when "LOBs in database" is enabled).
 </li></ul>
 
 <h2>Version 1.2.147 (2010-11-21)</h2>

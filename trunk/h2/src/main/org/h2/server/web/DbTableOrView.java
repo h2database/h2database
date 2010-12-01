@@ -60,7 +60,7 @@ public class DbTableOrView {
         ResultSet rs = meta.getColumns(null, schema.name, name, null);
         ArrayList<DbColumn> list = New.arrayList();
         while (rs.next()) {
-            DbColumn column = new DbColumn(rs);
+            DbColumn column = new DbColumn(rs, schema.contents.isSQLite);
             list.add(column);
         }
         rs.close();

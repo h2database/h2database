@@ -158,7 +158,7 @@ public class DbContents {
     }
 
     private String[] getSchemaNames(DatabaseMetaData meta) throws SQLException {
-        if (isMySQL) {
+        if (isMySQL || isSQLite) {
             return new String[] { "" };
         } else if (isFirebird) {
             return new String[] { null };

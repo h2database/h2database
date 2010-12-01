@@ -27,11 +27,11 @@ class DbColumn {
      */
     String dataType;
 
-    DbColumn(ResultSet rs) throws SQLException {
+    DbColumn(ResultSet rs, boolean isSQLite) throws SQLException {
         name = rs.getString("COLUMN_NAME");
         String type = rs.getString("TYPE_NAME");
         int size = rs.getInt(DbContents.findColumn(rs, "COLUMN_SIZE", 7));
-        if (size > 0) {
+        if (size > 0 && !isSQLite) {
             type += "(" + size;
             int prec = rs.getInt(DbContents.findColumn(rs, "DECIMAL_DIGITS", 9));
             if (prec > 0) {

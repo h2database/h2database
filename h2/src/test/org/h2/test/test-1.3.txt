@@ -1,4 +1,19 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int primary key);
+> ok
+
+insert into test(id) direct sorted select x from system_range(1, 100);
+> update count: 100
+
+explain insert into test(id) direct sorted select x from system_range(1, 100);
+> PLAN
+> -----------------------------------------------------------------------------------------------------
+> INSERT INTO PUBLIC.TEST(ID) DIRECT SORTED SELECT X FROM SYSTEM_RANGE(1, 100) /* PUBLIC.RANGE_INDEX */
+> rows: 1
+
+drop table test;
+> ok
+
 create table test(d date, t time, ts timestamp);
 > ok
 

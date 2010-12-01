@@ -179,6 +179,12 @@ public class Insert extends Prepared implements ResultTarget {
             buff.append(c.getSQL());
         }
         buff.append(")\n");
+        if (insertFromSelect) {
+            buff.append("DIRECT ");
+        }
+        if (sortedInsertMode) {
+            buff.append("SORTED ");
+        }
         if (list.size() > 0) {
             buff.append("VALUES ");
             int row = 0;

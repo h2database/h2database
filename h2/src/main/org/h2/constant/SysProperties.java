@@ -39,6 +39,11 @@ public class SysProperties {
     public static final String H2_SCRIPT_DIRECTORY = "h2.scriptDirectory";
 
     /**
+     * INTERNAL
+     */
+    public static final String H2_BROWSER = "h2.browser";
+
+    /**
      * System property <code>file.encoding</code> (default: Cp1252).<br />
      * It is usually set by the system and is the default encoding used for the
      * RunScript and CSV tool.
@@ -91,7 +96,7 @@ public class SysProperties {
      * For Mac OS, if the default browser is not Safari and you want to use Safari,
      * use: <code>java -Dh2.browser="open,-a,Safari,%url" ...</code>.
      */
-    public static final String BROWSER = getStringSetting("h2.browser", null);
+    public static final String BROWSER = getStringSetting(H2_BROWSER, null);
 
     /**
      * System property <code>h2.enableAnonymousSSL</code> (default: true).<br />

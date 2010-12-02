@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: improved autocomplete feature (also simplified the source code for this feature).
+<ul><li>When starting the H2 Console, the properties file can now be completely disabled.
+</li><li>Server.openBrowser no longer writes to System.out directly if opening the URL failed.
+</li><li>The INSERT optimizations (INSERT ... DIRECT SORTED SELECT) were not parsed correctly when using a column list.
+</li><li>H2 Console: the tables and columns are now listed for SQLite as well.
+</li><li>H2 Console: improved autocomplete feature (also simplified the source code for this feature).
 </li><li>The DbStarter servlet context listener now starts the server before opening a connection,
     so that connecting using the server mode works.
 </li><li>The Shell tool can now enable, disable, and display the current autocommit mode.

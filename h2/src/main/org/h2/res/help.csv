@@ -466,7 +466,7 @@ SET WRITE_DELAY int
 ","
 Set the maximum delay between a commit and flushing the log, in milliseconds."
 "Commands (Other)","SHUTDOWN","
-SHUTDOWN [ IMMEDIATELY | COMPACT ]
+SHUTDOWN [ IMMEDIATELY | COMPACT | DEFRAG ]
 ","
 This statement closes all open connections to the database and closes the
 database."

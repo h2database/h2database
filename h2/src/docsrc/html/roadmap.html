@@ -461,6 +461,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 163: Allow to create foreign keys on metadata types.
 </li><li>Logback: write a native DBAppender.
 </li><li>Cache size: don't use more cache than what is available.
+</li><li>Allow to defragment at runtime (similar to SHUTDOWN DEFRAG) in a background thread.
 </li><li>Tree index: Instead of an AVL tree, use a general balanced trees or a scapegoat tree.
 </li><li>User defined functions: allow to store the bytecode (of just the class, or the jar file of the extension) in the database.
 </li><li>Compatibility: ResultSet.getObject() on a CLOB (TEXT) should return String for PostgreSQL and MySQL.
@@ -535,7 +536,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support reading LOBs.
 </li><li>Require appending DANGEROUS=TRUE when using certain dangerous settings such as
     LOG=0, LOG=1, LOCK_MODE=0, disabling FILE_LOCK,...
-</li><li>Allow to defragment at runtime (similar to SHUTDOWN DEFRAG) in a background thread.
 </li><li>Support for Thread.interrupt to cancel running statements.
 </li><li>Oracle compatibility: support INSERT ALL.
 </li></ul>

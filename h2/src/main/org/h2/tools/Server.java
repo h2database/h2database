@@ -6,7 +6,6 @@
  */
 package org.h2.tools;
 
-import java.io.IOException;
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -21,6 +20,7 @@ import org.h2.server.pg.PgServer;
 import org.h2.server.web.WebServer;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
+import org.h2.util.Utils;
 
 /**
  * Starts the H2 Console (web-) server, TCP, and PG server.
@@ -31,6 +31,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     private Service service;
     private Server web, tcp, pg;
     private ShutdownHandler shutdownHandler;
+    private boolean started;
 
     public Server() {
         // nothing to do
@@ -95,7 +96,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <tr><td>[-pgPort &lt;port&gt;]</td>
      * <td>The port (default: 5435)</td></tr>
      * <tr><td>[-properties "&lt;dir&gt;"]</td>
-     * <td>The server properties directory (default: ~)</td></tr>
+     * <td>Server properties (default: ~, disable: null)</td></tr>
      * <tr><td>[-baseDir &lt;dir&gt;]</td>
      * <td>The base directory for H2 databases (all servers)</td></tr>
      * <tr><td>[-ifExists]</td>
@@ -139,8 +140,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webSSL".equals(arg)) {
                     // no parameters
                 } else if ("-webPort".equals(arg)) {
-                    i++;
-                } else if ("-webScript".equals(arg)) {
                     i++;
                 } else {
                     throwUnsupportedOption(arg);
@@ -221,7 +220,11 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             // because some people don't look at the output,
             // but are wondering why nothing happens
             if (browserStart) {
-                Server.openBrowser(web.getURL());
+                try {
+                    openBrowser(web.getURL());
+                } catch (Exception e) {
+                    out.println(e.getMessage());
+                }
             }
             if (result != null) {
                 throw result;
@@ -269,7 +272,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      */
     public String getStatus() {
         StringBuilder buff = new StringBuilder();
-        if (isRunning(false)) {
+        if (!started) {
+            buff.append("Not started");
+        } else if (isRunning(false)) {
             buff.append(service.getType()).
                 append(" server running on ").
                 append(service.getURL()).
@@ -344,6 +349,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      */
     public Server start() throws SQLException {
         try {
+            started = true;
             service.start();
             Thread t = new Thread(this);
             t.setDaemon(service.isDaemon());
@@ -404,6 +410,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * Stops the server.
      */
     public void stop() {
+        started = false;
         service.stop();
     }
 
@@ -468,13 +475,16 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      *
      * @param url the URL to open
      */
-    public static void openBrowser(String url) {
-        String osName = SysProperties.getStringSetting("os.name", "linux").toLowerCase();
-        Runtime rt = Runtime.getRuntime();
+    public static void openBrowser(String url) throws Exception {
         try {
-            String browser = SysProperties.BROWSER;
+            String osName = SysProperties.getStringSetting("os.name", "linux").toLowerCase();
+            Runtime rt = Runtime.getRuntime();
+            String browser = System.getProperty(SysProperties.H2_BROWSER);
             if (browser != null) {
-                if (browser.indexOf("%url") >= 0) {
+                if (browser.startsWith("call:")) {
+                    browser = browser.substring("call:".length());
+                    Utils.callStaticMethod(browser, url);
+                } else if (browser.indexOf("%url") >= 0) {
                     String[] args = StringUtils.arraySplit(browser, ',', false);
                     for (int i = 0; i < args.length; i++) {
                         args[i] = StringUtils.replaceAll(args[i], "%url", url);
@@ -525,12 +535,11 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 }
                 if (!ok) {
                     // No success in detection.
-                    System.out.println("Please open a browser and go to " + url);
+                    throw new Exception("Browser detection failed and system property " + SysProperties.H2_BROWSER + " not set");
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Failed to start a browser to open the URL " + url);
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new Exception("Failed to start a browser to open the URL " + url + ": " + e.getMessage());
         }
     }
 
@@ -550,13 +559,13 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         server.web = web;
         webServer.setShutdownHandler(server);
         String url = webServer.addSession(conn);
-        Server.openBrowser(url);
-        while (!webServer.isStopped()) {
-            try {
+        try {
+            Server.openBrowser(url);
+            while (!webServer.isStopped()) {
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                // ignore
             }
+        } catch (Exception e) {
+            // ignore
         }
     }
 

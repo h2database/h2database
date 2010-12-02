@@ -46,11 +46,12 @@ public class WebClient {
      * Read the session ID from a URL.
      *
      * @param url the URL
+     * @return the session id
      */
-    void readSessionId(String url) {
+    String readSessionId(String url) {
         int idx = url.indexOf("jsessionid=");
         String id = url.substring(idx + "jsessionid=".length());
-        for (int i = 0; i < url.length(); i++) {
+        for (int i = 0; i < id.length(); i++) {
             char ch = id.charAt(i);
             if (!Character.isLetterOrDigit(ch)) {
                 id = id.substring(0, i);
@@ -58,6 +59,7 @@ public class WebClient {
             }
         }
         this.sessionId = id;
+        return id;
     }
 
     /**
@@ -81,6 +83,15 @@ public class WebClient {
         }
         url += page;
         return get(url);
+    }
+
+    String getBaseUrl(String url) {
+        int idx = url.indexOf("//");
+        idx = url.indexOf("/", idx + 2);
+        if (idx >= 0) {
+            return url.substring(0, idx);
+        }
+        return url;
     }
 
 }

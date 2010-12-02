@@ -253,7 +253,7 @@ public class WebServer implements Service {
     public void init(String... args) {
         // set the serverPropertiesDir, because it's used in loadProperties()
         for (int i = 0; args != null && i < args.length; i++) {
-            if (args[i].equals("-properties")) {
+            if ("-properties".equals(args[i])) {
                 serverPropertiesDir = args[++i];
             }
         }
@@ -276,7 +276,7 @@ public class WebServer implements Service {
                 SysProperties.setBaseDir(baseDir);
             } else if ("-ifExists".equals(a)) {
                 ifExists = true;
-            } else if (args[i].equals("-properties")) {
+            } else if ("-properties".equals(args[i])) {
                 // already set
                 i++;
             } else if ("-trace".equals(a)) {
@@ -519,6 +519,9 @@ public class WebServer implements Service {
 
     private Properties loadProperties() {
         try {
+            if ("null".equals(serverPropertiesDir)) {
+                return new Properties();
+            }
             return SortedProperties.loadProperties(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME);
         } catch (Exception e) {
             TraceSystem.traceThrowable(e);
@@ -595,9 +598,11 @@ public class WebServer implements Service {
                     prop.setProperty(String.valueOf(len - i - 1), info.getString());
                 }
             }
-            OutputStream out = IOUtils.openFileOutputStream(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME, false);
-            prop.store(out, "H2 Server Properties");
-            out.close();
+            if (!"null".equals(serverPropertiesDir)) {
+                OutputStream out = IOUtils.openFileOutputStream(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME, false);
+                prop.store(out, "H2 Server Properties");
+                out.close();
+            }
         } catch (Exception e) {
             TraceSystem.traceThrowable(e);
         }

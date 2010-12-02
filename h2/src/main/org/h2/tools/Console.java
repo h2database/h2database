@@ -170,7 +170,7 @@ ShutdownHandler {
         // because some people don't look at the output,
         // but are wondering why nothing happens
         if (browserStart) {
-            Server.openBrowser(web.getURL());
+            openBrowser(web.getURL());
         }
 
         if (tcpStart) {
@@ -421,11 +421,19 @@ ShutdownHandler {
             long now = System.currentTimeMillis();
             if (lastOpen == 0 || lastOpen + 100 < now) {
                 lastOpen = now;
-                Server.openBrowser(url);
+                openBrowser(url);
             }
         }
     }
 //## AWT end ##
+
+    private void openBrowser(String url) {
+        try {
+            Server.openBrowser(url);
+        } catch (Exception e) {
+            out.println(e.getMessage());
+        }
+    }
 
     /**
      * INTERNAL

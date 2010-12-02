@@ -60,10 +60,10 @@ public class LinkChecker {
                 }
                 if (OPEN_EXTERNAL_LINKS) {
                     System.out.println(link);
-                    Server.openBrowser(link);
                     try {
+                        Server.openBrowser(link);
                         Thread.sleep(100);
-                    } catch (InterruptedException e) {
+                    } catch (Exception e) {
                         // ignore
                     }
                 }

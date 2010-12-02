@@ -39,11 +39,11 @@ import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
-//## LUCENE2 begin ##
+/*## LUCENE2 begin ##
 import org.apache.lucene.index.IndexModifier;
 import org.apache.lucene.search.Hits;
-//## LUCENE2 end ##
-/*## LUCENE3 begin ##
+## LUCENE2 end ##*/
+//## LUCENE3 begin ##
 import java.io.File;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -51,7 +51,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Version;
 import org.apache.lucene.index.IndexWriter;
-## LUCENE3 end ##*/
+//## LUCENE3 end ##
 
 /**
  * This class implements the full text search based on Apache Lucene.
@@ -268,13 +268,13 @@ public class FullTextLucene extends FullText {
             IndexAccess access = INDEX_ACCESS.get(path);
             if (access == null) {
                 try {
-                    //## LUCENE2 begin ##
+                    /*## LUCENE2 begin ##
                     boolean recreate = !IndexReader.indexExists(path);
                     Analyzer analyzer = new StandardAnalyzer();
                     access = new IndexAccess();
                     access.modifier = new IndexModifier(path, analyzer, recreate);
-                    //## LUCENE2 end ##
-                    /*## LUCENE3 begin ##
+                    ## LUCENE2 end ##*/
+                    //## LUCENE3 begin ##
                     File f = new File(path);
                     Directory indexDir = FSDirectory.open(f);
                     boolean recreate = !IndexReader.indexExists(indexDir);
@@ -287,7 +287,7 @@ public class FullTextLucene extends FullText {
                     access.writer = writer;
                     access.reader = reader;
                     access.searcher = new IndexSearcher(reader);
-                    ## LUCENE3 end ##*/
+                    //## LUCENE3 end ##
                 } catch (IOException e) {
                     throw convertException(e);
                 }
@@ -361,15 +361,15 @@ public class FullTextLucene extends FullText {
         synchronized (INDEX_ACCESS) {
             try {
                 INDEX_ACCESS.remove(indexPath);
-                //## LUCENE2 begin ##
+                /*## LUCENE2 begin ##
                 access.modifier.flush();
                 access.modifier.close();
-                //## LUCENE2 end ##
-                /*## LUCENE3 begin ##
+                ## LUCENE2 end ##*/
+                //## LUCENE3 begin ##
                 access.searcher.close();
                 access.reader.close();
                 access.writer.close();
-                ## LUCENE3 end ##*/
+                //## LUCENE3 end ##
             } catch (Exception e) {
                 throw convertException(e);
             }
@@ -397,7 +397,7 @@ public class FullTextLucene extends FullText {
         }
         try {
             IndexAccess access = getIndexAccess(conn);
-            //## LUCENE2 begin ##
+            /*## LUCENE2 begin ##
             access.modifier.flush();
             String path = getIndexPath(conn);
             IndexReader reader = IndexReader.open(path);
@@ -413,8 +413,8 @@ public class FullTextLucene extends FullText {
             for (int i = 0; i < limit && i + offset < max; i++) {
                 Document doc = hits.doc(i + offset);
                 float score = hits.score(i + offset);
-                //## LUCENE2 end ##
-            /*## LUCENE3 begin ##
+                ## LUCENE2 end ##*/
+            //## LUCENE3 begin ##
             // take a reference as the searcher may change
             Searcher searcher = access.searcher;
             // reuse the same analyzer; it's thread-safe;
@@ -438,7 +438,7 @@ public class FullTextLucene extends FullText {
                 ScoreDoc sd = docs.scoreDocs[i + offset];
                 Document doc = searcher.doc(sd.doc);
                 float score = sd.score;
-                ## LUCENE3 end ##*/
+                //## LUCENE3 end ##
                 String q = doc.get(LUCENE_FIELD_QUERY);
                 if (data) {
                     int idx = q.indexOf(" WHERE ");
@@ -461,10 +461,10 @@ public class FullTextLucene extends FullText {
                     result.addRow(q, score);
                 }
             }
-            //## LUCENE2 begin ##
+            /*## LUCENE2 begin ##
             // TODO keep it open if possible
             reader.close();
-            //## LUCENE2 end ##
+            ## LUCENE2 end ##*/
         } catch (Exception e) {
             throw convertException(e);
         }
@@ -607,7 +607,7 @@ public class FullTextLucene extends FullText {
          * @param row the row
          */
         protected void insert(Object[] row) throws SQLException {
-            //## LUCENE2 begin ##
+            /*## LUCENE2 begin ##
             String query = getQuery(row);
             Document doc = new Document();
             doc.add(new Field(LUCENE_FIELD_QUERY, query,
@@ -639,8 +639,8 @@ public class FullTextLucene extends FullText {
             } catch (IOException e) {
                 throw convertException(e);
             }
-            //## LUCENE2 end ##
-            /*## LUCENE3 begin ##
+            ## LUCENE2 end ##*/
+            //## LUCENE3 begin ##
             String query = getQuery(row);
             Document doc = new Document();
             doc.add(new Field(LUCENE_FIELD_QUERY, query,
@@ -680,7 +680,7 @@ public class FullTextLucene extends FullText {
             } catch (IOException e) {
                 throw convertException(e);
             }
-            ## LUCENE3 end ##*/
+            //## LUCENE3 end ##
         }
 
         /**
@@ -692,12 +692,12 @@ public class FullTextLucene extends FullText {
             String query = getQuery(row);
             try {
                 Term term = new Term(LUCENE_FIELD_QUERY, query);
-                //## LUCENE2 begin ##
+                /*## LUCENE2 begin ##
                 indexAccess.modifier.deleteDocuments(term);
-                //## LUCENE2 end ##
-                /*## LUCENE3 begin ##
+                ## LUCENE2 end ##*/
+                //## LUCENE3 begin ##
                 indexAccess.writer.deleteDocuments(term);
-                ## LUCENE3 end ##*/
+                //## LUCENE3 end ##
             } catch (IOException e) {
                 throw convertException(e);
             }
@@ -731,30 +731,30 @@ public class FullTextLucene extends FullText {
         /**
          * The index modified.
          */
-        //## LUCENE2 begin ##
+        /*## LUCENE2 begin ##
         IndexModifier modifier;
-        //## LUCENE2 end ##
+        ## LUCENE2 end ##*/
 
         /**
          * The index writer.
          */
-        /*## LUCENE3 begin ##
+        //## LUCENE3 begin ##
         IndexWriter writer;
-        ## LUCENE3 end ##*/
+        //## LUCENE3 end ##
 
         /**
          * The index reader.
          */
-        /*## LUCENE3 begin ##
+        //## LUCENE3 begin ##
         IndexReader reader;
-        ## LUCENE3 end ##*/
+        //## LUCENE3 end ##
 
         /**
          * The index searcher.
          */
-        /*## LUCENE3 begin ##
+        //## LUCENE3 begin ##
         Searcher searcher;
-        ## LUCENE3 end ##*/
+        //## LUCENE3 end ##
     }
 
 }

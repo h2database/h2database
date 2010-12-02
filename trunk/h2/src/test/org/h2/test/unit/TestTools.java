@@ -40,9 +40,9 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.Server;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.Task;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.Task;
 
 /**
  * Tests the database tools.

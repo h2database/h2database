@@ -14,13 +14,6 @@ import java.util.HashMap;
 public interface Rule {
 
     /**
-     * Get the name of the rule.
-     *
-     * @return the name
-     */
-    String name();
-
-    /**
      * Update cross references.
      *
      * @param ruleMap the reference map

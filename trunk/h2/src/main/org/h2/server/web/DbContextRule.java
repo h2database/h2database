@@ -34,29 +34,6 @@ public class DbContextRule implements Rule {
         this.type = type;
     }
 
-    public String toString() {
-        switch (type) {
-        case SCHEMA:
-            return "schema";
-        case TABLE:
-            return "table";
-        case NEW_TABLE_ALIAS:
-            return "nt";
-        case TABLE_ALIAS:
-            return "t";
-        case COLUMN_ALIAS:
-            return "c";
-        case COLUMN:
-            return "column";
-        default:
-            return "?";
-        }
-    }
-
-    public String name() {
-        return null;
-    }
-
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // nothing to do
     }

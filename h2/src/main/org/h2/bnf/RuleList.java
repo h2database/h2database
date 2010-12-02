@@ -38,10 +38,6 @@ public class RuleList implements Rule {
         visitor.visitRuleList(or, list);
     }
 
-    public String name() {
-        return null;
-    }
-
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (!mapSet) {
             for (Rule r : list) {
@@ -73,10 +69,6 @@ public class RuleList implements Rule {
             }
             return true;
         }
-    }
-
-    public String toString() {
-        return or ? "or: " : "" + list.toString();
     }
 
 }

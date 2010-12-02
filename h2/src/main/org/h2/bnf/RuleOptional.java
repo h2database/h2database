@@ -23,10 +23,6 @@ public class RuleOptional implements Rule {
         visitor.visitRuleOptional(rule);
     }
 
-    public String name() {
-        return null;
-    }
-
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (!mapSet) {
             rule.setLinks(ruleMap);
@@ -39,10 +35,6 @@ public class RuleOptional implements Rule {
         }
         rule.autoComplete(sentence);
         return true;
-    }
-
-    public String toString() {
-        return rule.toString();
     }
 
 }

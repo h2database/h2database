@@ -33,10 +33,6 @@ public class RuleFixed implements Rule {
         visitor.visitRuleFixed(type);
     }
 
-    public String name() {
-        return "type="+type;
-    }
-
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // nothing to do
     }
@@ -199,10 +195,6 @@ public class RuleFixed implements Rule {
             return true;
         }
         return false;
-    }
-
-    public String toString() {
-        return name();
     }
 
 }

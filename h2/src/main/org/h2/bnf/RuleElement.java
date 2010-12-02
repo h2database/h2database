@@ -33,10 +33,6 @@ public class RuleElement implements Rule {
         visitor.visitRuleElement(keyword, name, link);
     }
 
-    public String name() {
-        return name;
-    }
-
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (link != null) {
             link.setLinks(ruleMap);
@@ -79,10 +75,6 @@ public class RuleElement implements Rule {
             return false;
         }
         return link.autoComplete(sentence);
-    }
-
-    public String toString() {
-        return name;
     }
 
 }

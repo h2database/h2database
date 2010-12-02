@@ -25,10 +25,6 @@ public class RuleRepeat implements Rule {
         visitor.visitRuleRepeat(comma, rule);
     }
 
-    public String name() {
-        return rule.name();
-    }
-
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // rule.setLinks(ruleMap);
     }
@@ -41,10 +37,6 @@ public class RuleRepeat implements Rule {
             // nothing to do
         }
         return true;
-    }
-
-    public String toString() {
-        return rule.toString();
     }
 
 }

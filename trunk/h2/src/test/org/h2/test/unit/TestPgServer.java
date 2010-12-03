@@ -36,8 +36,11 @@ public class TestPgServer extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("test");
-        Server server = Server.createPgServer("-baseDir", getBaseDir(), "-pgPort", "5535");
+        Server server = Server.createPgServer("-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
+        assertEquals(5535, server.getPort());
+        assertEquals("Not started", server.getStatus());
         server.start();
+        assertStartsWith(server.getStatus(), "PG server running on pg://");
         try {
             Class.forName("org.postgresql.Driver");
             testPgClient();
@@ -70,6 +73,7 @@ public class TestPgServer extends TestBase {
         stat.execute("deallocate test");
 
         stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("create index idx_test_name on test(name, id)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
         ParameterMetaData meta = prep.getParameterMetaData();
         assertEquals(2, meta.getParameterCount());
@@ -139,7 +143,73 @@ public class TestPgServer extends TestBase {
         rs.next();
         assertEquals(rs.getString(2), rs.getString(3));
         assertFalse(rs.next());
+        rs.close();
 
+        rs = stat.executeQuery("select currtid2('x', 1)");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+
+        rs = stat.executeQuery("select has_table_privilege('TEST', 'READ')");
+        rs.next();
+        assertTrue(rs.getBoolean(1));
+
+        rs = stat.executeQuery("select has_database_privilege(1, 'READ')");
+        rs.next();
+        assertTrue(rs.getBoolean(1));
+
+
+        rs = stat.executeQuery("select pg_get_userbyid(-1)");
+        rs.next();
+        assertEquals(null, rs.getString(1));
+
+        rs = stat.executeQuery("select pg_encoding_to_char(0)");
+        rs.next();
+        assertEquals("SQL_ASCII", rs.getString(1));
+
+        rs = stat.executeQuery("select pg_encoding_to_char(6)");
+        rs.next();
+        assertEquals("UTF8", rs.getString(1));
+
+        rs = stat.executeQuery("select pg_encoding_to_char(8)");
+        rs.next();
+        assertEquals("LATIN1", rs.getString(1));
+
+        rs = stat.executeQuery("select pg_encoding_to_char(20)");
+        rs.next();
+        assertEquals("UTF8", rs.getString(1));
+
+        rs = stat.executeQuery("select pg_encoding_to_char(40)");
+        rs.next();
+        assertEquals("", rs.getString(1));
+
+        rs = stat.executeQuery("select pg_get_oid('\"WRONG\"')");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+
+        rs = stat.executeQuery("select pg_get_oid('TEST')");
+        rs.next();
+        assertTrue(rs.getInt(1) > 0);
+
+        rs = stat.executeQuery("select pg_get_indexdef(0, 0, false)");
+        rs.next();
+        assertEquals("", rs.getString(1));
+
+        rs = stat.executeQuery("select id from information_schema.indexes where index_name='IDX_TEST_NAME'");
+        rs.next();
+        int indexId = rs.getInt(1);
+
+        rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 0, false)");
+        rs.next();
+        assertEquals("CREATE INDEX PUBLIC.IDX_TEST_NAME ON PUBLIC.TEST(NAME, ID)", rs.getString(1));
+        rs = stat.executeQuery("select pg_get_indexdef("+indexId+", null, false)");
+        rs.next();
+        assertEquals("CREATE INDEX PUBLIC.IDX_TEST_NAME ON PUBLIC.TEST(NAME, ID)", rs.getString(1));
+        rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 1, false)");
+        rs.next();
+        assertEquals("NAME", rs.getString(1));
+        rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 2, false)");
+        rs.next();
+        assertEquals("ID", rs.getString(1));
 
         conn.close();
     }

@@ -659,7 +659,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 //        new TestPattern().runTest(this);
         new TestPgServer().runTest(this);
 //        new TestReader().runTest(this);
-//        new TestRecovery().runTest(this);
+        new TestRecovery().runTest(this);
 //        new TestSampleApps().runTest(this);
 //        new TestScriptReader().runTest(this);
 //        runTest("org.h2.test.unit.TestServlet");

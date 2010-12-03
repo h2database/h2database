@@ -247,6 +247,10 @@ public class Build extends BuildBase {
         download("ext/h2-1.2.127.jar",
                 "http://repo1.maven.org/maven2/com/h2database/h2/1.2.127/h2-1.2.127.jar",
                 "056e784c7cf009483366ab9cd8d21d02fe47031a");
+        // for TestPgServer
+        download("ext/postgresql-8.3-603.jdbc3.jar",
+                "http://repo1.maven.org/maven2/postgresql/postgresql/8.3-603.jdbc3/postgresql-8.3-603.jdbc3.jar",
+                "33d531c3c53055ddcbea3d88bfa093466ffef924");
     }
 
     private String getVersion() {

@@ -88,8 +88,8 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * @return -1, 0, or 1
      */
     public int compareTo(MetaRecord other) {
-        int c1 = getCreateOrder(getObjectType());
-        int c2 = getCreateOrder(other.getObjectType());
+        int c1 = getCreateOrder();
+        int c2 = other.getCreateOrder();
         if (c1 != c2) {
             return c1 - c2;
         }
@@ -100,11 +100,10 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * Get the sort order id for this object type. Objects are created in this
      * order when opening a database.
      *
-     * @param type the database object type
      * @return the sort index
      */
-    private int getCreateOrder(int type) {
-        switch(type) {
+    private int getCreateOrder() {
+        switch(objectType) {
         case DbObject.SETTING:
             return 0;
         case DbObject.USER:
@@ -136,7 +135,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
         case DbObject.COMMENT:
             return 14;
         default:
-            throw DbException.throwInternalError("type="+type);
+            throw DbException.throwInternalError("type="+objectType);
         }
     }
 

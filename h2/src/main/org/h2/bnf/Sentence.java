@@ -70,11 +70,12 @@ public class Sentence {
     /**
      * Check if it's time to stop processing.
      * Processing auto-complete shouldn't take more than a few milliseconds.
-     *
-     * @return true if it's time to stop processing
+     * If processing is stopped, this methods throws an IllegalStateException
      */
-    boolean shouldStop() {
-        return System.currentTimeMillis() > stopAt;
+    void stopIfRequired() {
+        if (System.currentTimeMillis() > stopAt) {
+            throw new IllegalStateException();
+        }
     }
 
     /**

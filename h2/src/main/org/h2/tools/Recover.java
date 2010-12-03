@@ -476,7 +476,7 @@ public class Recover extends Tool implements DataHandler {
             boolean last = (type & Page.FLAG_LAST) != 0;
             type &= ~Page.FLAG_LAST;
             if (!PageStore.checksumTest(s.getBytes(), (int) page, pageSize)) {
-                writer.println("-- ERROR: page " + page + " checksum mismatch type: " + type);
+                writeDataError(writer, "checksum mismatch type: " + type, s.getBytes());
             }
             s.readShortInt();
             switch (type) {

@@ -240,7 +240,6 @@ public class Bnf {
         syntax = StringUtils.replaceAll(syntax, "||", "@concat@");
         syntax = StringUtils.replaceAll(syntax, "a-z|_", "@az_@");
         syntax = StringUtils.replaceAll(syntax, "A-Z|_", "@az_@");
-        syntax = StringUtils.replaceAll(syntax, "a-f", "@af@");
         syntax = StringUtils.replaceAll(syntax, "A-F", "@af@");
         syntax = StringUtils.replaceAll(syntax, "0-9", "@digit@");
         syntax = StringUtils.replaceAll(syntax, "'['", "@openBracket@");
@@ -275,14 +274,18 @@ public class Bnf {
     public HashMap<String, String> getNextTokenList(String query) {
         Sentence sentence = new Sentence();
         sentence.setQuery(query);
-        for (RuleHead head : statements) {
-            if (!head.getSection().startsWith("Commands")) {
-                continue;
+        try {
+            for (RuleHead head : statements) {
+                if (!head.getSection().startsWith("Commands")) {
+                    continue;
+                }
+                sentence.start();
+                if (head.getRule().autoComplete(sentence)) {
+                    break;
+                }
             }
-            sentence.start();
-            if (head.getRule().autoComplete(sentence)) {
-                break;
-            }
+        } catch (IllegalStateException e) {
+            // ignore
         }
         return sentence.getNext();
     }

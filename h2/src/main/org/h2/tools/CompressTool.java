@@ -90,7 +90,7 @@ public class CompressTool {
     public int compress(byte[] in, int len, Compressor compress, byte[] out) {
         int newLen = 0;
         out[0] = (byte) compress.getAlgorithm();
-        int start = 1 + writeInt(out, 1, len);
+        int start = 1 + writeVariableInt(out, 1, len);
         newLen = compress.compress(in, len, out, start);
         if (newLen > len + start || newLen <= 0) {
             out[0] = Compressor.NO;
@@ -111,8 +111,8 @@ public class CompressTool {
         int algorithm = in[0];
         Compressor compress = getCompressor(algorithm);
         try {
-            int len = readInt(in, 1);
-            int start = 1 + getLength(len);
+            int len = readVariableInt(in, 1);
+            int start = 1 + getVariableIntLength(len);
             byte[] buff = Utils.newBytes(len);
             compress.expand(in, start, in.length - start, buff, 0, len);
             return buff;
@@ -128,15 +128,22 @@ public class CompressTool {
         int algorithm = in[0];
         Compressor compress = getCompressor(algorithm);
         try {
-            int len = readInt(in, 1);
-            int start = 1 + getLength(len);
+            int len = readVariableInt(in, 1);
+            int start = 1 + getVariableIntLength(len);
             compress.expand(in, start, in.length - start, out, outPos, len);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.COMPRESSION_ERROR, e);
         }
     }
 
-    private int readInt(byte[] buff, int pos) {
+    /**
+     * Read a variable size integer using Rice coding.
+     *
+     * @param buff the buffer
+     * @param pos the position
+     * @return the integer
+     */
+    public static int readVariableInt(byte[] buff, int pos) {
         int x = buff[pos++] & 0xff;
         if (x < 0x80) {
             return x;
@@ -155,7 +162,16 @@ public class CompressTool {
                 + (buff[pos] & 0xff);
     }
 
-    private int writeInt(byte[] buff, int pos, int x) {
+    /**
+     * Write a variable size integer using Rice coding.
+     * Negative values need 5 bytes.
+     *
+     * @param buff the buffer
+     * @param pos the position
+     * @param x the value
+     * @return the number of bytes written (0-5)
+     */
+    public static int writeVariableInt(byte[] buff, int pos, int x) {
         if (x < 0) {
             buff[pos++] = (byte) 0xf0;
             buff[pos++] = (byte) (x >> 24);
@@ -191,7 +207,14 @@ public class CompressTool {
         }
     }
 
-    private int getLength(int x) {
+    /**
+     * Get a variable size integer length using Rice coding.
+     * Negative values need 5 bytes.
+     *
+     * @param x the value
+     * @return the number of bytes needed (0-5)
+     */
+    public static int getVariableIntLength(int x) {
         if (x < 0) {
             return 5;
         } else if (x < 0x80) {

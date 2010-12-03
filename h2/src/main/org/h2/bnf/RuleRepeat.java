@@ -26,13 +26,11 @@ public class RuleRepeat implements Rule {
     }
 
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
-        // rule.setLinks(ruleMap);
+        // not required, because it's already linked
     }
 
     public boolean autoComplete(Sentence sentence) {
-        if (sentence.shouldStop()) {
-            return false;
-        }
+        sentence.stopIfRequired();
         while (rule.autoComplete(sentence)) {
             // nothing to do
         }

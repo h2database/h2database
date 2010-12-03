@@ -13,6 +13,7 @@ import java.sql.Connection;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
+import org.h2.util.StringUtils;
 import org.h2.util.Task;
 
 /**
@@ -92,20 +93,47 @@ public class TestWeb extends TestBase {
         result = client.get(url, "query.do?sql=@HISTORY");
         result = client.get(url, "getHistory.do?id=4");
         assertContains(result, "select * from test");
-
         result = client.get(url, "autoCompleteList.do?query=select 'abc");
-        // expected: '
-        assertContains(result, "%27");
-
+        assertContains(StringUtils.urlDecode(result), "'");
+        result = client.get(url, "autoCompleteList.do?query=select 'abc''");
+        assertContains(StringUtils.urlDecode(result), "'");
+        result = client.get(url, "autoCompleteList.do?query=select 'abc' ");
+        assertContains(StringUtils.urlDecode(result), "||");
+        result = client.get(url, "autoCompleteList.do?query=select 'abc' |");
+        assertContains(StringUtils.urlDecode(result), "|");
+        result = client.get(url, "autoCompleteList.do?query=select 'abc' || ");
+        assertContains(StringUtils.urlDecode(result), "'");
+        result = client.get(url, "autoCompleteList.do?query=call timestamp '2");
+        assertContains(result, "20");
+        result = client.get(url, "autoCompleteList.do?query=call time '1");
+        assertContains(StringUtils.urlDecode(result), "12:00:00");
+        result = client.get(url, "autoCompleteList.do?query=call timestamp '2001-01-01 12:00:00.");
+        assertContains(result, "nanoseconds");
+        result = client.get(url, "autoCompleteList.do?query=call timestamp '2001-01-01 12:00:00.00");
+        assertContains(result, "nanoseconds");
+        result = client.get(url, "autoCompleteList.do?query=call $$ hello world");
+        assertContains(StringUtils.urlDecode(result), "$$");
+        result = client.get(url, "autoCompleteList.do?query=alter index ");
+        assertContains(StringUtils.urlDecode(result), "character");
+        result = client.get(url, "autoCompleteList.do?query=alter index idx");
+        assertContains(StringUtils.urlDecode(result), "character");
+        result = client.get(url, "autoCompleteList.do?query=alter index \"IDX_");
+        assertContains(StringUtils.urlDecode(result), "\"");
+        result = client.get(url, "autoCompleteList.do?query=alter index \"IDX_\"\"");
+        assertContains(StringUtils.urlDecode(result), "\"");
+        result = client.get(url, "autoCompleteList.do?query=help ");
+        assertContains(result, "anything");
+        result = client.get(url, "autoCompleteList.do?query=help select");
+        assertContains(result, "anything");
+        result = client.get(url, "autoCompleteList.do?query=call ");
+        assertContains(result, "0x");
+        result = client.get(url, "autoCompleteList.do?query=call 0");
+        assertContains(result, "0x");
+        result = client.get(url, "autoCompleteList.do?query=call 0x");
+        assertContains(result, "hex character");
+        result = client.get(url, "autoCompleteList.do?query=call 0x123");
+        assertContains(result, "hex character");
         result = client.get(url, "autoCompleteList.do?query=se");
-
-//        long time = System.currentTimeMillis();
-//        for (int i=0; i<1000; i++) {
-//            if(System.currentTimeMillis()-time > 15000) {
-//                break;
-//            }
-//        result = client.get(url, "autoCompleteList.do?query=select * from ");
-
         assertContains(result, "select");
         assertContains(result, "set");
         result = client.get(url, "tables.do");
@@ -117,7 +145,9 @@ public class TestWeb extends TestBase {
         result = client.get(url, "autoCompleteList.do?query=select id x from test te where t");
         assertContains(result, "te");
         result = client.get(url, "autoCompleteList.do?query=select * from test where name = '");
-        assertContains(result, "%27");
+        assertContains(StringUtils.urlDecode(result), "'");
+        result = client.get(url, "autoCompleteList.do?query=select * from information_schema.columns where columns.");
+        assertContains(result, "column_name");
 
         result = client.get(url, "query.do?sql=delete from test");
         result = client.get(url, "query.do?sql=@LOOP 10 @STATEMENT insert into test values(?, 'Hello')");

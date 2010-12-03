@@ -116,7 +116,7 @@ public class FileSystemZip extends FileSystem {
                 return true;
             }
             ZipFile file = openZipFile(fileName);
-            Enumeration< ? extends ZipEntry> en = file.entries();
+            Enumeration<? extends ZipEntry> en = file.entries();
             while (en.hasMoreElements()) {
                 ZipEntry entry = en.nextElement();
                 String n = entry.getName();
@@ -165,7 +165,7 @@ public class FileSystemZip extends FileSystem {
             ZipFile file = openZipFile(path);
             String dirName = getEntryName(path);
             String prefix = path.substring(0, path.length() - dirName.length());
-            Enumeration< ? extends ZipEntry> en = file.entries();
+            Enumeration<? extends ZipEntry> en = file.entries();
             ArrayList<String> list = New.arrayList();
             while (en.hasMoreElements()) {
                 ZipEntry entry = en.nextElement();

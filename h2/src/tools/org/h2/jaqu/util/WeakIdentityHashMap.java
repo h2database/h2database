@@ -218,7 +218,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         throw new UnsupportedOperationException();
     }
 
-    public void putAll(Map< ? extends K, ? extends V> m) {
+    public void putAll(Map<? extends K, ? extends V> m) {
         throw new UnsupportedOperationException();
     }
 

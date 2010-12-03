@@ -202,7 +202,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             debugCodeCall("clearParameters");
             checkClosed();
-            ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
+            ArrayList<? extends ParameterInterface> parameters = command.getParameters();
             for (int i = 0, size = parameters.size(); i < size; i++) {
                 ParameterInterface param = parameters.get(i);
                 // can only delete old temp files if they are not in the batch
@@ -1077,7 +1077,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             try {
                 for (int i = 0; i < size; i++) {
                     Value[] set = batchParameters.get(i);
-                    ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
+                    ArrayList<? extends ParameterInterface> parameters = command.getParameters();
                     for (int j = 0; j < set.length; j++) {
                         Value value = set[j];
                         ParameterInterface param = parameters.get(j);
@@ -1123,7 +1123,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             debugCodeCall("addBatch");
             checkClosedForWrite();
             try {
-                ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
+                ArrayList<? extends ParameterInterface> parameters = command.getParameters();
                 int size = parameters.size();
                 Value[] set = new Value[size];
                 for (int i = 0; i < size; i++) {
@@ -1254,7 +1254,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     private void setParameter(int parameterIndex, Value value) throws SQLException {
         checkClosed();
         parameterIndex--;
-        ArrayList< ? extends ParameterInterface> parameters = command.getParameters();
+        ArrayList<? extends ParameterInterface> parameters = command.getParameters();
         if (parameterIndex < 0 || parameterIndex >= parameters.size()) {
             throw DbException.getInvalidValueException("parameterIndex", parameterIndex + 1);
         }
@@ -1496,9 +1496,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     protected boolean checkClosed(boolean write) throws SQLException {
         if (super.checkClosed(write)) {
             // if the session was re-connected, re-prepare the statement
-            ArrayList< ? extends ParameterInterface> oldParams = command.getParameters();
+            ArrayList<? extends ParameterInterface> oldParams = command.getParameters();
             command = conn.prepareCommand(sqlStatement, fetchSize);
-            ArrayList< ? extends ParameterInterface> newParams = command.getParameters();
+            ArrayList<? extends ParameterInterface> newParams = command.getParameters();
             for (int i = 0, size = oldParams.size(); i < size; i++) {
                 ParameterInterface old = oldParams.get(i);
                 Value value = old.getParamValue();

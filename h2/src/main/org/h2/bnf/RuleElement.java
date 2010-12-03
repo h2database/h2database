@@ -53,9 +53,7 @@ public class RuleElement implements Rule {
     }
 
     public boolean autoComplete(Sentence sentence) {
-        if (sentence.shouldStop()) {
-            return false;
-        }
+        sentence.stopIfRequired();
         if (keyword) {
             String query = sentence.getQuery();
             String q = query.trim();

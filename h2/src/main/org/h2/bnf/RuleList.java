@@ -48,9 +48,7 @@ public class RuleList implements Rule {
     }
 
     public boolean autoComplete(Sentence sentence) {
-        if (sentence.shouldStop()) {
-            return false;
-        }
+        sentence.stopIfRequired();
         String old = sentence.getQuery();
         if (or) {
             for (Rule r : list) {

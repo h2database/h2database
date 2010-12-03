@@ -38,14 +38,12 @@ public class RuleFixed implements Rule {
     }
 
     public boolean autoComplete(Sentence sentence) {
-        if (sentence.shouldStop()) {
-            return false;
-        }
+        sentence.stopIfRequired();
         String query = sentence.getQuery();
         String s = query;
         switch(type) {
         case YMD:
-            while (s.length() > 0 && "0123456789- ".indexOf(s.charAt(0)) >= 0) {
+            while (s.length() > 0 && "0123456789-".indexOf(s.charAt(0)) >= 0) {
                 s = s.substring(1);
             }
             if (s.length() == 0) {
@@ -53,7 +51,7 @@ public class RuleFixed implements Rule {
             }
             break;
         case HMS:
-            while (s.length() > 0 && "0123456789:. ".indexOf(s.charAt(0)) >= 0) {
+            while (s.length() > 0 && "0123456789:".indexOf(s.charAt(0)) >= 0) {
                 s = s.substring(1);
             }
             if (s.length() == 0) {
@@ -85,11 +83,8 @@ public class RuleFixed implements Rule {
             }
             break;
         case ANY_EXCEPT_2_DOLLAR:
-            while (true) {
-                while (s.length() > 0 && !s.startsWith("$$")) {
-                    s = s.substring(1);
-                }
-                break;
+            while (s.length() > 0 && !s.startsWith("$$")) {
+                s = s.substring(1);
             }
             if (s.length() == 0) {
                 sentence.add("anything", "Hello World", Sentence.KEYWORD);
@@ -113,20 +108,20 @@ public class RuleFixed implements Rule {
             }
             break;
         case ANY_WORD:
-            while (s.length() > 0 && Character.isWhitespace(s.charAt(0))) {
+            while (s.length() > 0 && !Character.isWhitespace(s.charAt(0))) {
                 s = s.substring(1);
+            }
+            if (s.length() == 0) {
+                sentence.add("anything", "anything", Sentence.KEYWORD);
             }
             break;
         case HEX_START:
             if (s.startsWith("0X") || s.startsWith("0x")) {
                 s = s.substring(2);
-            } else if (s.startsWith("0")) {
-                s = s.substring(1);
-            }
-            if (s.length() == 0) {
-                sentence.add("0x", "0x", Sentence.KEYWORD);
             } else if ("0".equals(s)) {
                 sentence.add("0x", "x", Sentence.KEYWORD);
+            } else if (s.length() == 0) {
+                sentence.add("0x", "0x", Sentence.KEYWORD);
             }
             break;
         case CONCAT:
@@ -136,11 +131,6 @@ public class RuleFixed implements Rule {
                 s = s.substring(2);
             } else if (s.length() == 0) {
                 sentence.add("||", "||", Sentence.KEYWORD);
-            }
-            break;
-        case ANY_UNTIL_EOL:
-            while (s.length() > 0 && s.charAt(0) != '\n') {
-                s = s.substring(1);
             }
             break;
         case AZ_UNDERSCORE:
@@ -184,6 +174,10 @@ public class RuleFixed implements Rule {
                 sentence.add("]", "]", Sentence.KEYWORD);
             }
             break;
+        // no autocomplete support for comments
+        // (comments are not reachable in the bnf tree)
+        case ANY_UNTIL_EOL:
+        case ANY_UNTIL_END:
         default:
             throw new AssertionError("type="+type);
         }

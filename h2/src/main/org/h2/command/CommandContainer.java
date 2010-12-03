@@ -26,7 +26,7 @@ public class CommandContainer extends Command {
         this.prepared = prepared;
     }
 
-    public ArrayList< ? extends ParameterInterface> getParameters() {
+    public ArrayList<? extends ParameterInterface> getParameters() {
         return prepared.getParameters();
     }
 

@@ -30,9 +30,7 @@ public class RuleOptional implements Rule {
         }
     }
     public boolean autoComplete(Sentence sentence) {
-        if (sentence.shouldStop()) {
-            return false;
-        }
+        sentence.stopIfRequired();
         rule.autoComplete(sentence);
         return true;
     }

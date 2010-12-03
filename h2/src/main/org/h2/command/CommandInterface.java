@@ -466,7 +466,7 @@ public interface CommandInterface {
      *
      * @return the parameters
      */
-    ArrayList< ? extends ParameterInterface> getParameters();
+    ArrayList<? extends ParameterInterface> getParameters();
 
     /**
      * Execute the query.

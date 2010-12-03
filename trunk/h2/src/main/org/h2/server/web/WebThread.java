@@ -94,7 +94,7 @@ class WebThread extends WebApp implements Runnable {
                     break;
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             TraceSystem.traceThrowable(e);
         }
         IOUtils.closeSilently(output);

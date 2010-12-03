@@ -162,7 +162,17 @@ public class FileObjectDiskMapped implements FileObject {
         checkFileSizeLimit(newLength);
         int oldPos = pos;
         unMap();
-        IOUtils.setLength(file, newLength);
+        for (int i = 0;; i++) {
+            try {
+                IOUtils.setLength(file, newLength);
+                break;
+            } catch (IOException e) {
+                if (i > 16 || e.toString().indexOf("user-mapped section open") < 0) {
+                    throw e;
+                }
+            }
+            System.gc();
+        }
         reMap();
         pos = (int) Math.min(newLength, oldPos);
     }

@@ -136,7 +136,9 @@ public class TestShell extends TestBase {
         read("(1 row,");
         testOut.println("select error;");
         read("sql> Error:");
-        read("select error");
+        if (read("").startsWith("Column \"ERROR\" not found")) {
+            read("");
+        }
         testOut.println("create table test(id int primary key, name varchar)\n;");
         read("sql> ...>");
         testOut.println("show public");

@@ -386,7 +386,7 @@ public class Shell extends Tool implements Runnable {
         }
         println("[Enter]   " + url);
         print("URL       ");
-        url = readLine(url);
+        url = readLine(url).trim();
         if (driver == null) {
             driver = JdbcUtils.getDriver(url);
         }
@@ -394,7 +394,7 @@ public class Shell extends Tool implements Runnable {
             println("[Enter]   " + driver);
         }
         print("Driver    ");
-        driver = readLine(driver);
+        driver = readLine(driver).trim();
         println("[Enter]   " + user);
         print("User      ");
         user = readLine(user);

@@ -634,7 +634,7 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    private void remove(ArrayList< ? extends DbObject> list, DbObject obj) {
+    private void remove(ArrayList<? extends DbObject> list, DbObject obj) {
         if (list != null) {
             int i = list.indexOf(obj);
             if (i >= 0) {

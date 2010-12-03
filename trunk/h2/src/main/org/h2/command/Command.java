@@ -71,7 +71,7 @@ public abstract class Command implements CommandInterface {
      *
      * @return the list of parameters
      */
-    public abstract ArrayList< ? extends ParameterInterface> getParameters();
+    public abstract ArrayList<? extends ParameterInterface> getParameters();
 
     /**
      * Check if this command is read only.

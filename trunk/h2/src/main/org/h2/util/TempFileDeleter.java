@@ -89,7 +89,7 @@ public class TempFileDeleter {
      */
     public void deleteUnused() {
         while (queue != null) {
-            Reference< ? extends Object> ref = queue.poll();
+            Reference<? extends Object> ref = queue.poll();
             if (ref == null) {
                 break;
             }

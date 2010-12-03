@@ -256,9 +256,6 @@ public class Shell extends Tool implements Runnable {
                             }
                             rs = prep.executeQuery();
                             printResult(rs, false);
-                        } catch (SQLException e) {
-                            println("Exception: " + e.toString());
-                            e.printStackTrace(err);
                         } finally {
                             JdbcUtils.closeSilently(rs);
                             JdbcUtils.closeSilently(prep);
@@ -271,9 +268,6 @@ public class Shell extends Tool implements Runnable {
                                 "SELECT CAST(TABLE_SCHEMA AS VARCHAR(32)) AS \"Schema\", TABLE_NAME AS \"Table Name\" " +
                                 "FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_SCHEMA, TABLE_NAME");
                         printResult(rs, false);
-                    } catch (SQLException e) {
-                        println("Exception: " + e.toString());
-                        e.printStackTrace(err);
                     } finally {
                         JdbcUtils.closeSilently(rs);
                     }
@@ -365,7 +359,12 @@ public class Shell extends Tool implements Runnable {
         String user = "sa";
         String driver = null;
         try {
-            Properties prop = SortedProperties.loadProperties(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME);
+            Properties prop;
+            if ("null".equals(serverPropertiesDir)) {
+                prop = new Properties();
+            } else {
+                prop = SortedProperties.loadProperties(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME);
+            }
             String data = null;
             boolean found = false;
             for (int i = 0;; i++) {
@@ -481,33 +480,28 @@ public class Shell extends Tool implements Runnable {
 
     private void execute(String sql) {
         long time = System.currentTimeMillis();
-        boolean result;
         try {
-            result = stat.execute(sql);
+            ResultSet rs = null;
+            try {
+                if (stat.execute(sql)) {
+                    rs = stat.getResultSet();
+                    int rowCount = printResult(rs, listMode);
+                    time = System.currentTimeMillis() - time;
+                    println("(" + rowCount + (rowCount == 1 ? " row, " : " rows, ") + time + " ms)");
+                } else {
+                    int updateCount = stat.getUpdateCount();
+                    time = System.currentTimeMillis() - time;
+                    println("(Update count: " + updateCount + ", " + time + " ms)");
+                }
+            } finally {
+                JdbcUtils.closeSilently(rs);
+            }
         } catch (SQLException e) {
             println("Error: " + e.toString());
             if (listMode) {
                 e.printStackTrace(err);
             }
             return;
-        }
-        ResultSet rs = null;
-        try {
-            if (result) {
-                rs = stat.getResultSet();
-                int rowCount = printResult(rs, listMode);
-                time = System.currentTimeMillis() - time;
-                println("(" + rowCount + (rowCount == 1 ? " row, " : " rows, ") + time + " ms)");
-            } else {
-                int updateCount = stat.getUpdateCount();
-                time = System.currentTimeMillis() - time;
-                println("(Update count: " + updateCount + ", " + time + " ms)");
-            }
-        } catch (SQLException e) {
-            println("Error: " + e.toString());
-            e.printStackTrace(err);
-        } finally {
-            JdbcUtils.closeSilently(rs);
         }
     }
 

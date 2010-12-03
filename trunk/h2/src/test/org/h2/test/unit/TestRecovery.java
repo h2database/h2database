@@ -7,10 +7,14 @@
 package org.h2.test.unit;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.engine.Constants;
+import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
@@ -31,9 +35,78 @@ public class TestRecovery extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
+        testCorrupt();
+        testWithTransactionLog();
         testCompressedAndUncompressed();
         testRunScript();
+    }
+
+    private void testCorrupt() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, name varchar) as select 1, 'Hello World1'");
+        conn.close();
+        FileObject f = FileSystem.getInstance(getBaseDir()).openFileObject(getBaseDir() + "/recovery.h2.db", "rw");
+        byte[] buff = new byte[Constants.DEFAULT_PAGE_SIZE];
+        while (f.getFilePointer() < f.length()) {
+            f.readFully(buff, 0, buff.length);
+            if (new String(buff).indexOf("Hello World1") >= 0) {
+                buff[buff.length - 1]++;
+                f.seek(f.getFilePointer() - buff.length);
+                f.write(buff, 0, buff.length);
+            }
+        }
+        f.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        String script = IOUtils.readStringAndClose(new InputStreamReader(IOUtils.openFileInputStream(getBaseDir() + "/recovery.h2.sql")), -1);
+        assertContains(script, "checksum mismatch");
+        assertContains(script, "dump:");
+        assertContains(script, "Hello World2");
+    }
+
+    private void testWithTransactionLog() throws SQLException {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table truncate(id int primary key) as select x from system_range(1, 1000)");
+        stat.execute("create table test(id int primary key, data int, text varchar)");
+        stat.execute("create index on test(data, id)");
+        stat.execute("insert into test direct select x, 0, null from system_range(1, 1000)");
+        stat.execute("insert into test values(-1, -1, space(10000))");
+        stat.execute("checkpoint");
+        stat.execute("delete from test where id = -1");
+        stat.execute("truncate table truncate");
+        conn.setAutoCommit(false);
+        long base = 0;
+        while (true) {
+            ResultSet rs = stat.executeQuery("select value from information_schema.settings where name = 'info.FILE_WRITE'");
+            rs.next();
+            long count = rs.getLong(1);
+            if (base == 0) {
+                base = count;
+            } else if (count > base + 10) {
+                break;
+            }
+            stat.execute("update test set data=0");
+            stat.execute("update test set text=space(10000) where id = 0");
+            stat.execute("update test set data=1, text = null");
+            conn.commit();
+        }
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (Exception e) {
+            // expected
+        }
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        conn = getConnection("recovery");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery", "-removePassword");
+        conn = getConnection("recovery", getUser(), "");
+        conn.close();
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
     }
 
     private void testCompressedAndUncompressed() throws SQLException {
@@ -74,10 +147,12 @@ public class TestRecovery extends TestBase {
         org.h2.Driver.load();
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
+        stat.execute("create table \"Joe\"\"s Table\" as select 1");
         stat.execute("create table test as select * from system_range(1, 100)");
+        stat.execute("create view \"TEST VIEW OF TABLE TEST\" as select * from test");
         stat.execute("create table a(id int primary key) as select * from system_range(1, 100)");
         stat.execute("create table b(id int references a(id)) as select * from system_range(1, 100)");
-        stat.execute("create table c(d clob) as select space(10000) || 'end'");
+        stat.execute("create table lob(c clob, b blob) as select space(10000) || 'end', SECURE_RAND(10000)");
         stat.execute("create table d(d varchar) as select space(10000) || 'end'");
         stat.execute("alter table a add foreign key(id) references b(id)");
         // all rows have the same value - so that SCRIPT can't re-order the rows

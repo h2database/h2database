@@ -24,7 +24,7 @@ public class CommandList extends Command {
         this.remaining = remaining;
     }
 
-    public ArrayList< ? extends ParameterInterface> getParameters() {
+    public ArrayList<? extends ParameterInterface> getParameters() {
         return command.getParameters();
     }
 

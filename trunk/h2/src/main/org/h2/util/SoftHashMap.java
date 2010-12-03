@@ -33,7 +33,7 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
     @SuppressWarnings("unchecked")
     private void processQueue() {
         while (true) {
-            Reference< ? extends V> o = queue.poll();
+            Reference<? extends V> o = queue.poll();
             if (o == null) {
                 return;
             }

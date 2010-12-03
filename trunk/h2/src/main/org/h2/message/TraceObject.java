@@ -429,7 +429,7 @@ public class TraceObject {
     /**
      * INTERNAL
      */
-    public static String toString(String sql, ArrayList< ? extends ParameterInterface> params) {
+    public static String toString(String sql, ArrayList<? extends ParameterInterface> params) {
         StatementBuilder buff = new StatementBuilder(sql);
         if (params != null && params.size() > 0) {
             buff.append(" {");

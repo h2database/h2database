@@ -208,7 +208,7 @@ public class TcpServerThread implements Runnable {
 
     private void setParameters(Command command) throws IOException {
         int len = transfer.readInt();
-        ArrayList< ? extends ParameterInterface> params = command.getParameters();
+        ArrayList<? extends ParameterInterface> params = command.getParameters();
         for (int i = 0; i < len; i++) {
             Parameter p = (Parameter) params.get(i);
             p.setValue(transfer.readValue());
@@ -227,7 +227,7 @@ public class TcpServerThread implements Runnable {
             boolean readonly = command.isReadOnly();
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
-            ArrayList< ? extends ParameterInterface> params = command.getParameters();
+            ArrayList<? extends ParameterInterface> params = command.getParameters();
             transfer.writeInt(getState(old)).writeBoolean(isQuery).writeBoolean(readonly)
                     .writeInt(params.size());
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {

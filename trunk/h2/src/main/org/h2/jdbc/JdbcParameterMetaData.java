@@ -29,7 +29,7 @@ implements ParameterMetaData
 
     private JdbcPreparedStatement prep;
     private int paramCount;
-    private ArrayList< ? extends ParameterInterface> parameters;
+    private ArrayList<? extends ParameterInterface> parameters;
 
     JdbcParameterMetaData(Trace trace, JdbcPreparedStatement prep, CommandInterface command, int id) {
         setTrace(trace, TraceObject.PARAMETER_META_DATA, id);

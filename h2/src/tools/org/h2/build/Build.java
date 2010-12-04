@@ -106,6 +106,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
             File.pathSeparator + "ext/servlet-api-2.4.jar" +
             File.pathSeparator + "ext/" + getLuceneJar() +
+            File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.5.0.jar";
         exec("java", args("-Xmx128m", "-cp", cp, "emma", "run",

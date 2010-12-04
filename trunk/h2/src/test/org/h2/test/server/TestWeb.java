@@ -7,6 +7,8 @@
 package org.h2.test.server;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.Connection;
@@ -33,6 +35,7 @@ public class TestWeb extends TestBase {
     }
 
     public void test() throws Exception {
+        testTransfer();
         testAlreadyRunning();
         testStartWebServerWithConnection();
         testAutoComplete();
@@ -52,6 +55,28 @@ public class TestWeb extends TestBase {
             assertTrue(server2.getStatus().indexOf("could not be started") >= 0);
         }
         server.stop();
+    }
+
+    private void testTransfer() throws Exception {
+        Server server = new Server();
+        server.setOut(new PrintStream(new ByteArrayOutputStream()));
+        server.runTool("-web", "-webPort", "8182", "-properties", "null");
+        File transfer = new File("transfer");
+        transfer.mkdirs();
+        try {
+            FileOutputStream f = new FileOutputStream("transfer/test.txt");
+            f.write("Hello World".getBytes());
+            f.close();
+            WebClient client = new WebClient();
+            String url = "http://localhost:8182";
+            String result = client.get(url);
+            client.readSessionId(result);
+            String test = client.get(url, "transfer/test.txt");
+            assertEquals("Hello World", test);
+            server.shutdown();
+        } finally {
+            transfer.delete();
+        }
     }
 
     private void testAutoComplete() throws Exception {

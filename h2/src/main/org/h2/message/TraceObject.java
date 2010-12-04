@@ -8,10 +8,7 @@ package org.h2.message;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Map;
-import org.h2.expression.ParameterInterface;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -358,18 +355,7 @@ public class TraceObject {
         if (map.size() == 0) {
             return "new Map()";
         }
-        StringBuilder buff = new StringBuilder("new Map() /* ");
-        try {
-            for (Map.Entry<String, Class <?>> entry : map.entrySet()) {
-                String key = entry.getKey();
-                Class<?> clazz = entry.getValue();
-                buff.append(key).append(':').append(clazz.getName());
-            }
-        } catch (Exception e) {
-            buff.append(e.toString()).append(": ").append(map.toString());
-        }
-        buff.append("*/");
-        return buff.toString();
+        return "new Map() /* " + map.toString() + " */";
     }
 
     /**
@@ -406,34 +392,6 @@ public class TraceObject {
         } catch (Exception e) {
             throw logAndConvert(e);
         }
-    }
-
-    /**
-     * INTERNAL
-     */
-    public static String toString(String sql, ArrayList<? extends ParameterInterface> params) {
-        StatementBuilder buff = new StatementBuilder(sql);
-        if (params != null && params.size() > 0) {
-            buff.append(" {");
-            int i = 0;
-            for (ParameterInterface p : params) {
-                i++;
-                try {
-                    buff.appendExceptFirst(", ");
-                    buff.append(i).append(": ");
-                    if (p == null || p.getParamValue() == null) {
-                        buff.append('-');
-                    } else {
-                        buff.append(p.getParamValue().getSQL());
-                    }
-                } catch (Exception e) {
-                    buff.append("/* ").append(i).append(": ").append(e.toString()).append("*/ ");
-                }
-            }
-            buff.append("};");
-        }
-        return buff.toString();
-
     }
 
 }

@@ -15,7 +15,6 @@ import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 
 /**
@@ -265,7 +264,7 @@ public abstract class Command implements CommandInterface {
     }
 
     public String toString() {
-        return TraceObject.toString(sql, getParameters());
+        return sql + getParameters();
     }
 
     public boolean isCacheable() {

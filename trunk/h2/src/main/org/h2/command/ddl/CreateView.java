@@ -6,6 +6,8 @@
  */
 package org.h2.command.ddl;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
@@ -16,13 +18,9 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
-import org.h2.message.TraceObject;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.table.TableView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class represents the statement
@@ -108,7 +106,7 @@ public class CreateView extends SchemaCommand {
             if (params != null && params.size() > 0) {
                 throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "parameters in views");
             }
-            querySQL = TraceObject.toString(select.getPlanSQL(), select.getParameters());
+            querySQL = select.getPlanSQL();
         }
         Session sysSession = db.getSystemSession();
         TableView view;

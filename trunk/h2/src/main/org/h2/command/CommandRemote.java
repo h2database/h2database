@@ -14,7 +14,6 @@ import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultRemote;
 import org.h2.util.New;
@@ -245,7 +244,7 @@ public class CommandRemote implements CommandInterface {
     }
 
     public String toString() {
-        return TraceObject.toString(sql, getParameters());
+        return sql + getParameters();
     }
 
     public int getCommandType() {

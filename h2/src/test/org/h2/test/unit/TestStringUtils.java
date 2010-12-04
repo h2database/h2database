@@ -178,10 +178,6 @@ public class TestStringUtils extends TestBase {
         assertEquals("abc def", StringUtils.replaceAll("abc def", "xyz", "abc"));
         assertEquals("", StringUtils.replaceAll("abcabcabc", "abc", ""));
         assertEquals("abcabcabc", StringUtils.replaceAll("abcabcabc", "aBc", ""));
-        assertEquals("d", StringUtils.replaceAllIgnoreCase("abcd", "aBc", ""));
-        assertEquals("d", StringUtils.replaceAllIgnoreCase("abcd", "abc", ""));
-        assertEquals("D", StringUtils.replaceAllIgnoreCase("abcD", "aBc", ""));
-        assertEquals("D", StringUtils.replaceAllIgnoreCase("abcD", "abc", ""));
     }
 
 }

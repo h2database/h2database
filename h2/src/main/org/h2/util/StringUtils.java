@@ -715,24 +715,7 @@ public class StringUtils {
      * @return the string with the before string replaced
      */
     public static String replaceAll(String s, String before, String after) {
-        return replaceAll(s, s, before, after);
-    }
-
-    /**
-     * Replace all occurrences of the "before" string with the "after" string.
-     * A case-insensitive comparison is made.
-     *
-     * @param s the string
-     * @param before the old text
-     * @param after the new text
-     * @return the string with the before string replaced
-     */
-    public static String replaceAllIgnoreCase(String s, String before, String after) {
-        return replaceAll(s, toUpperEnglish(s), toUpperEnglish(before), after);
-    }
-
-    private static String replaceAll(String s, String test, String before, String after) {
-        int next = test.indexOf(before);
+        int next = s.indexOf(before);
         if (next < 0) {
             return s;
         }
@@ -741,7 +724,7 @@ public class StringUtils {
         while (true) {
             buff.append(s.substring(index, next)).append(after);
             index = next + before.length();
-            next = test.indexOf(before, index);
+            next = s.indexOf(before, index);
             if (next < 0) {
                 buff.append(s.substring(index));
                 break;

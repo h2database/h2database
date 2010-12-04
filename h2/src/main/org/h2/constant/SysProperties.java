@@ -214,19 +214,6 @@ public class SysProperties {
     public static final int LOB_CLIENT_MAX_SIZE_MEMORY = getIntSetting("h2.lobClientMaxSizeMemory", 65536);
 
     /**
-     * System property <code>h2.logAllErrors</code> (default: false).<br />
-     * Write stack traces of any kind of error to a file.
-     */
-    public static final boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
-
-    /**
-     * System property <code>h2.logAllErrorsFile</code> (default:
-     * h2errors.txt).<br />
-     * File name to log errors.
-     */
-    public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
-
-    /**
      * System property <code>h2.maxFileRetry</code> (default: 16).<br />
      * Number of times to retry file delete and rename. in Windows, files can't
      * be deleted if they are open. Waiting a bit can help (sometimes the

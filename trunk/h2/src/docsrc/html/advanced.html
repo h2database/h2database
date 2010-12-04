@@ -1446,14 +1446,14 @@ renamed from
 by default. Also, the temporary script will be written to the database directory instead of a temporary directory.
 Both defaults can be customized via
 <ul>
-<li><code>org.h2.upgrade.DbUpgradeNonPageStoreToCurrent.setDeleteOldDb(boolean)</code>
-</li><li><code>org.h2.upgrade.DbUpgradeNonPageStoreToCurrent.setScriptInTmpDir(boolean)</code>
+<li><code>org.h2.upgrade.DbUpgrade.setDeleteOldDb(boolean)</code>
+</li><li><code>org.h2.upgrade.DbUpgrade.setScriptInTmpDir(boolean)</code>
 </li></ul>
 prior opening a database connection.
 </p>
 <p>
-Since version 1.2.140 it is possible to let the old h2 classes (v 1.2.128) connect to the database. The automatic upgrade .jar file must be present, and the url
-must contain NO_UPGRADE=TRUE.
+Since version 1.2.140 it is possible to let the old h2 classes (v 1.2.128) connect to the database. 
+The automatic upgrade .jar file must be present, and the URL must start with <code>jdbc:h2v1_1:</code>.
 </p>
 
 <h2 id="limits_limitations">Limits and Limitations</h2>

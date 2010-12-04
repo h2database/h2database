@@ -10,14 +10,16 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Hashtable;
-import java.util.Map;
+import java.sql.Statement;
 import java.util.Properties;
+import java.util.UUID;
+import org.h2.engine.ConnectionInfo;
+import org.h2.engine.Database;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
-import org.h2.store.fs.FileSystemDisk;
-import org.h2.util.StringUtils;
+import org.h2.upgrade.v1_1.util.StringUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 
 /**
@@ -27,11 +29,11 @@ import org.h2.util.Utils;
 public class DbUpgrade {
 
     private static boolean upgradeClassesPresent;
-    private static Map<String, DbUpgradeFromVersion1> runningConversions;
+    private static boolean scriptInTempDir;
+    private static boolean deleteOldDb;
 
     static {
         upgradeClassesPresent = Utils.isClassPresent("org.h2.upgrade.v1_1.Driver");
-        runningConversions = Collections.synchronizedMap(new Hashtable<String, DbUpgradeFromVersion1>(1));
     }
 
     /**
@@ -44,82 +46,127 @@ public class DbUpgrade {
      * @param info the properties
      * @return the connection if NO_UPGRADE is set
      */
-    public static synchronized Connection connectOrUpgrade(String url, Properties info) throws SQLException {
+    public static Connection connectOrUpgrade(String url, Properties info) throws SQLException {
         if (!upgradeClassesPresent) {
             return null;
         }
-        if (StringUtils.toUpperEnglish(url).indexOf(";NO_UPGRADE=TRUE") >= 0) {
-            url = StringUtils.replaceAllIgnoreCase(url, ";NO_UPGRADE=TRUE", "");
-            return connectWithOldVersion(url, info);
+        Properties i2 = new Properties();
+        i2.putAll(info);
+        // clone so that the password (if set as a char array) is not cleared
+        Object o = info.get("password");
+        if (o != null && o instanceof char[]) {
+            i2.put("password", StringUtils.cloneCharArray((char[]) o));
         }
-        upgrade(url, info);
-        return null;
+        info = i2;
+        ConnectionInfo ci = new ConnectionInfo(url, info);
+        if (ci.isRemote() || !ci.isPersistent()) {
+            return null;
+        }
+        String name = ci.getName();
+        if (Database.exists(name)) {
+            return null;
+        }
+        if (!IOUtils.exists(name + ".data.db")) {
+            return null;
+        }
+        synchronized (DbUpgrade.class) {
+            upgrade(ci, info);
+            return null;
+        }
+    }
+
+
+    /**
+     * The conversion script file will per default be created in the db
+     * directory. Use this method to change the directory to the temp
+     * directory.
+     *
+     * @param scriptInTempDir true if the conversion script should be
+     *        located in the temp directory.
+     */
+    public static void setScriptInTempDir(boolean scriptInTempDir) {
+        DbUpgrade.scriptInTempDir = scriptInTempDir;
     }
 
     /**
-     * Connects to an old (version 1.1) database.
+     * Old files will be renamed to .backup after a successful conversion. To
+     * delete them after the conversion, use this method with the parameter
+     * 'true'.
      *
-     * @param url The connection string
-     * @param info The connection properties
-     * @return the connection via the upgrade classes
-     * @throws SQLException
+     * @param deleteOldDb if true, the old db files will be deleted.
      */
-    private static Connection connectWithOldVersion(String url, Properties info) throws SQLException {
+    public static void setDeleteOldDb(boolean deleteOldDb) {
+        DbUpgrade.deleteOldDb = deleteOldDb;
+    }
+
+    private static void upgrade(ConnectionInfo ci, Properties info) throws SQLException {
+        String name = ci.getName();
+        String data = name + ".data.db";
+        String index = name + ".index.db";
+        String lobs = name + ".lobs.db";
+        String backupData = data + ".backup";
+        String backupIndex = index + ".backup";
+        String backupLobs = lobs + ".backup";
+        String script = null;
         try {
-            String oldStartUrlPrefix = (String) Utils.getStaticField("org.h2.upgrade.v1_1.engine.Constants.START_URL");
-            url = StringUtils.replaceAll(url, org.h2.engine.Constants.START_URL, oldStartUrlPrefix);
-            url = StringUtils.replaceAllIgnoreCase(url, ";IGNORE_UNKNOWN_SETTINGS=TRUE", "");
-            url = StringUtils.replaceAllIgnoreCase(url, ";IGNORE_UNKNOWN_SETTINGS=FALSE", "");
-            url = StringUtils.replaceAllIgnoreCase(url, ";PAGE_STORE=TRUE", "");
-            url += ";IGNORE_UNKNOWN_SETTINGS=TRUE";
-            Object ci = Utils.newInstance("org.h2.upgrade.v1_1.engine.ConnectionInfo", url, info);
-            boolean isRemote = (Boolean) Utils.callMethod(ci, "isRemote");
-            boolean isPersistent = (Boolean) Utils.callMethod(ci, "isPersistent");
-            String dbName = (String) Utils.callMethod(ci, "getName");
-            // remove stackable file systems
-            int colon = dbName.indexOf(':');
-            while (colon != -1) {
-                String fileSystemPrefix = dbName.substring(0, colon+1);
-                FileSystem fs = FileSystem.getInstance(fileSystemPrefix);
-                if (fs == null || fs instanceof FileSystemDisk) {
-                    break;
-                }
-                dbName = dbName.substring(colon+1);
-                colon = dbName.indexOf(':');
-            }
-            File oldDataFile = new File(dbName + ".data.db");
-            if (!isRemote && isPersistent && oldDataFile.exists()) {
-                Utils.callStaticMethod("org.h2.upgrade.v1_1.Driver.load");
-                Connection connection = DriverManager.getConnection(url, info);
-                return connection;
+            if (scriptInTempDir) {
+                script = File.createTempFile("h2dbmigration", "backup.sql").getAbsolutePath();
             } else {
-                return null;
+                script = name + ".script.sql";
             }
-        } catch (Exception e) {
+            String oldUrl = "jdbc:h2v1_1:" + name + ";UNDO_LOG=0;LOG=0;LOCK_MODE=0";
+            String cipher = ci.getProperty("CIPHER", null);
+            if (cipher != null) {
+                oldUrl += ";CIPHER=" + cipher;
+            }
+            Connection conn = DriverManager.getConnection(oldUrl, info);
+            Statement stat = conn.createStatement();
+            String uuid = UUID.randomUUID().toString();
+            if (cipher != null) {
+                stat.execute("script to '" + script + "' cipher aes password '" + uuid + "' --hide--");
+            } else {
+                stat.execute("script to '" + script + "'");
+            }
+            conn.close();
+            IOUtils.rename(data, backupData);
+            IOUtils.rename(index, backupIndex);
+            if (IOUtils.exists(lobs)) {
+                IOUtils.rename(lobs, backupLobs);
+            }
+            ci.removeProperty("IFEXISTS", false);
+            conn = new JdbcConnection(ci, true);
+            stat = conn.createStatement();
+            if (cipher != null) {
+                stat.execute("runscript from '" + script + "' cipher aes password '" + uuid + "' --hide--");
+            } else {
+                stat.execute("runscript from '" + script + "'");
+            }
+            stat.execute("analyze");
+            stat.execute("shutdown compact");
+            stat.close();
+            conn.close();
+            if (deleteOldDb) {
+                IOUtils.delete(backupData);
+                IOUtils.delete(backupIndex);
+                IOUtils.delete(backupData);
+                FileSystem.getInstance(name).deleteRecursive(backupLobs, false);
+            }
+        } catch (Exception e)  {
+            if (IOUtils.exists(backupData)) {
+                IOUtils.rename(backupData, data);
+            }
+            if (IOUtils.exists(backupData)) {
+                IOUtils.rename(backupData, data);
+            }
+            if (IOUtils.exists(backupData)) {
+                IOUtils.rename(backupData, data);
+            }
+            IOUtils.delete(name + ".h2.db");
             throw DbException.toSQLException(e);
-        }
-    }
-
-    /**
-     * Starts the conversion if the respective classes are found. Is automatically
-     * called on connect.
-     *
-     * @param url The connection string
-     * @param info The connection properties
-     * @throws SQLException
-     */
-    private static synchronized void upgrade(String url, Properties info) throws SQLException {
-        if (runningConversions.containsKey(url)) {
-            // do not migrate, because we are currently migrating, and this is
-            // the connection where "runscript from" will be executed
-            return;
-        }
-        try {
-            DbUpgradeFromVersion1 instance = new DbUpgradeFromVersion1(url, info);
-            runningConversions.put(url, instance);
-            instance.upgrade();
         } finally {
-            runningConversions.remove(url);
+            if (script != null) {
+                IOUtils.delete(script);
+            }
         }
     }
 

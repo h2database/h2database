@@ -180,7 +180,7 @@ public class ConnectionInfo implements Cloneable {
      *
      * @return true if it is
      */
-    boolean isPersistent() {
+    public boolean isPersistent() {
         return persistent;
     }
 

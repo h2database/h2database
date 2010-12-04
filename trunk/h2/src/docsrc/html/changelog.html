@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When starting the H2 Console, the properties file can now be completely disabled.
+<ul><li>The database upgrade (to upgrade from H2 version 1.1.x) has been simplified.
+    The setting NO_UPGRADE is no longer supported, instead use the database URL jdbc:h2v1_1:
+</li><li>The feature to log all errors (system properties h2.logAllErrors and h2.logAllErrorsFile) has been removed.
+</li><li>When starting the H2 Console, the properties file can now be completely disabled.
 </li><li>Server.openBrowser no longer writes to System.out directly if opening the URL failed.
 </li><li>The INSERT optimizations (INSERT ... DIRECT SORTED SELECT) were not parsed correctly when using a column list.
 </li><li>H2 Console: the tables and columns are now listed for SQLite as well.

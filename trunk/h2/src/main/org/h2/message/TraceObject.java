@@ -6,15 +6,11 @@
  */
 package org.h2.message;
 
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map;
-import org.h2.constant.SysProperties;
 import org.h2.expression.ParameterInterface;
-import org.h2.util.IOUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
@@ -384,20 +380,6 @@ public class TraceObject {
      */
     protected SQLException logAndConvert(Exception ex) {
         SQLException e = DbException.toSQLException(ex);
-        if (SysProperties.LOG_ALL_ERRORS) {
-            synchronized (TraceObject.class) {
-                // e.printStackTrace();
-                try {
-                    Writer writer = IOUtils.getBufferedWriter(IOUtils.openFileOutputStream(SysProperties.LOG_ALL_ERRORS_FILE, true));
-                    PrintWriter p = new PrintWriter(writer);
-                    e.printStackTrace(p);
-                    p.close();
-                    writer.close();
-                } catch (Exception e2) {
-                    e2.printStackTrace();
-                }
-            }
-        }
         if (trace == null) {
             TraceSystem.traceThrowable(e);
         } else {

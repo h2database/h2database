@@ -243,6 +243,10 @@ public class Build extends BuildBase {
     }
 
     private void downloadTest() {
+        // for TestUpgrade
+        download("ext/h2mig_pagestore_addon.jar",
+                "http://h2database.com/h2mig_pagestore_addon.jar",
+                "6dfafe1b86959c3ba4f7cf03e99535e8b9719965");
         // for TestOldVersion
         download("ext/h2-1.2.127.jar",
                 "http://repo1.maven.org/maven2/com/h2database/h2/1.2.127/h2-1.2.127.jar",

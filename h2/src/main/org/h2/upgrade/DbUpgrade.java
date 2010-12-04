@@ -18,8 +18,8 @@ import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
-import org.h2.upgrade.v1_1.util.StringUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**

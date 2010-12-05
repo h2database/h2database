@@ -6,12 +6,13 @@
  */
 package org.h2.test.server;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import java.util.UUID;
 import org.h2.util.IOUtils;
 
 /**
@@ -20,6 +21,7 @@ import org.h2.util.IOUtils;
 public class WebClient {
 
     private String sessionId;
+    private String acceptLanguage;
 
     /**
      * Open an URL and get the HTML data.
@@ -28,18 +30,52 @@ public class WebClient {
      * @return the HTML as a string
      */
     String get(String url) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setRequestMethod("GET");
-        connection.setInstanceFollowRedirects(true);
-        connection.connect();
-        int code = connection.getResponseCode();
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod("GET");
+        conn.setInstanceFollowRedirects(true);
+        if (acceptLanguage != null) {
+            conn.setRequestProperty("accept-language", acceptLanguage);
+        }
+        conn.connect();
+        int code = conn.getResponseCode();
         if (code != HttpURLConnection.HTTP_OK) {
             throw new IOException("Result code: " + code);
         }
-        InputStream in = connection.getInputStream();
+        InputStream in = conn.getInputStream();
         String result = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
-        connection.disconnect();
+        conn.disconnect();
         return result;
+    }
+
+    String upload(String url, String fileName, InputStream in) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setUseCaches(false);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Connection", "Keep-Alive");
+        String boundary = UUID.randomUUID().toString();
+        conn.setRequestProperty("Content-Type", "multipart/form-data;boundary="+boundary);
+        conn.connect();
+        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+        out.writeBytes("--" + boundary + "--\r\n");
+        out.writeBytes("Content-Disposition: form-data; name=\"upload\";"
+                + " filename=\"" + fileName +"\"\r\n\r\n");
+        IOUtils.copyAndCloseInput(in, out);
+        out.writeBytes("\r\n--" + boundary + "--\r\n");
+        out.close();
+        int code = conn.getResponseCode();
+        if (code != HttpURLConnection.HTTP_OK) {
+            throw new IOException("Result code: " + code);
+        }
+        in = conn.getInputStream();
+        String result = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
+        conn.disconnect();
+        return result;
+    }
+
+    void setAcceptLanguage(String acceptLanguage) {
+        this.acceptLanguage = acceptLanguage;
     }
 
     /**

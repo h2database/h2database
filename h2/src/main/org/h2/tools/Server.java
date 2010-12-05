@@ -411,7 +411,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      */
     public void stop() {
         started = false;
-        service.stop();
+        if (service != null) {
+            service.stop();
+        }
     }
 
     /**

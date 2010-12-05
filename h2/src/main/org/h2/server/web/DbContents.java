@@ -234,25 +234,4 @@ public class DbContents {
         return StringUtils.toUpperEnglish(identifier);
     }
 
-    /**
-     * Check whether an identifier from the database meta data needs to be
-     * quoted. This depends on how the database stores the identifiers ("test"
-     * doesn't need to be quoted if the database stores identifiers lowercase)
-     *
-     * @param identifier the identifier
-     * @return true if the identifier needs to be quoted
-     */
-    boolean needsQuotes(String identifier) {
-        if (storedUpperCaseIdentifiers) {
-            if (identifier.equals(identifier.toUpperCase())) {
-                return false;
-            }
-        } else {
-            if (identifier.equals(identifier.toLowerCase())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 }

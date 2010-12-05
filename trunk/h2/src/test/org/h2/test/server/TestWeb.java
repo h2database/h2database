@@ -62,6 +62,9 @@ public class TestWeb extends TestBase {
     }
 
     private void testTools() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb("web");
         Connection conn = getConnection("web");
         conn.createStatement().execute("create table test(id int) as select 1");

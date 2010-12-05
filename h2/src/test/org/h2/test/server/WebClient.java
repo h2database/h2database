@@ -22,6 +22,7 @@ public class WebClient {
 
     private String sessionId;
     private String acceptLanguage;
+    private String contentType;
 
     /**
      * Open an URL and get the HTML data.
@@ -38,6 +39,7 @@ public class WebClient {
         }
         conn.connect();
         int code = conn.getResponseCode();
+        contentType = conn.getContentType();
         if (code != HttpURLConnection.HTTP_OK) {
             throw new IOException("Result code: " + code);
         }
@@ -76,6 +78,10 @@ public class WebClient {
 
     void setAcceptLanguage(String acceptLanguage) {
         this.acceptLanguage = acceptLanguage;
+    }
+
+    String getContentType() {
+        return contentType;
     }
 
     /**

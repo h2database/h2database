@@ -10,11 +10,11 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 
 /**
@@ -22,7 +22,7 @@ import org.h2.test.TestBase;
  */
 public class TestLob extends TestBase {
 
-    private Connection conn;
+    private JdbcConnection conn;
     private Statement stat;
 
     /**
@@ -37,10 +37,9 @@ public class TestLob extends TestBase {
 
     public void test() throws Exception {
         deleteDb("lob");
-        conn = getConnection("lob");
+        conn = (JdbcConnection) getConnection("lob");
         stat = conn.createStatement();
         stat.execute("create table test(id int, x blob)");
-        //## Java 1.6 begin ##
         testBlob(0);
         testBlob(1);
         testBlob(100);
@@ -51,12 +50,10 @@ public class TestLob extends TestBase {
         testClob(1);
         testClob(100);
         testClob(100000);
-        //## Java 1.6 end ##
         stat.execute("drop table test");
         conn.close();
     }
 
-    //## Java 1.6 begin ##
     private void testBlob(int length) throws Exception {
         Random r = new Random(length);
         byte[] data = new byte[length];
@@ -133,6 +130,5 @@ public class TestLob extends TestBase {
         s2 = c2.getSubString(1, length);
         assertEquals(s, s2);
     }
-    //## Java 1.6 end ##
 
 }

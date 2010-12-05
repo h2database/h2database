@@ -142,7 +142,16 @@ public class TestWeb extends TestBase {
         result = client.get(url);
         client.readSessionId(result);
         result = client.get(url, "login.jsp");
+        assertEquals("text/html", client.getContentType());
         assertContains(result, "Einstellung");
+        client.get(url, "favicon.ico");
+        assertEquals("image/x-icon", client.getContentType());
+        client.get(url, "ico_ok.gif");
+        assertEquals("image/gif", client.getContentType());
+        client.get(url, "tree.js");
+        assertEquals("text/javascript", client.getContentType());
+        client.get(url, "stylesheet.css");
+        assertEquals("text/css", client.getContentType());
 
         client = new WebClient();
         result = client.get(url);

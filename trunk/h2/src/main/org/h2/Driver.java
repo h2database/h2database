@@ -6,7 +6,6 @@
  */
 package org.h2;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
@@ -47,7 +46,7 @@ public class Driver implements java.sql.Driver {
      * @param info the connection properties
      * @return the new connection or null if the URL is not supported
      */
-    public Connection connect(String url, Properties info) throws SQLException {
+    public JdbcConnection connect(String url, Properties info) throws SQLException {
         try {
             if (info == null) {
                 info = new Properties();
@@ -55,10 +54,7 @@ public class Driver implements java.sql.Driver {
             if (!acceptsURL(url)) {
                 return null;
             }
-            Connection conn = DbUpgrade.connectOrUpgrade(url, info);
-            if (conn != null) {
-                return conn;
-            }
+            DbUpgrade.upgradeIfRequired(url, info);
             return new JdbcConnection(url, info);
         } catch (Exception e) {
             throw DbException.toSQLException(e);

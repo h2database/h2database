@@ -44,11 +44,10 @@ public class DbUpgrade {
      *
      * @param url the database URL
      * @param info the properties
-     * @return the connection if NO_UPGRADE is set
      */
-    public static Connection connectOrUpgrade(String url, Properties info) throws SQLException {
+    public static void upgradeIfRequired(String url, Properties info) throws SQLException {
         if (!upgradeClassesPresent) {
-            return null;
+            return;
         }
         Properties i2 = new Properties();
         i2.putAll(info);
@@ -60,21 +59,20 @@ public class DbUpgrade {
         info = i2;
         ConnectionInfo ci = new ConnectionInfo(url, info);
         if (ci.isRemote() || !ci.isPersistent()) {
-            return null;
+            return;
         }
         String name = ci.getName();
         if (Database.exists(name)) {
-            return null;
+            return;
         }
         if (!IOUtils.exists(name + ".data.db")) {
-            return null;
+            return;
         }
         synchronized (DbUpgrade.class) {
             upgrade(ci, info);
-            return null;
+            return;
         }
     }
-
 
     /**
      * The conversion script file will per default be created in the db
@@ -148,18 +146,17 @@ public class DbUpgrade {
             if (deleteOldDb) {
                 IOUtils.delete(backupData);
                 IOUtils.delete(backupIndex);
-                IOUtils.delete(backupData);
                 FileSystem.getInstance(name).deleteRecursive(backupLobs, false);
             }
         } catch (Exception e)  {
             if (IOUtils.exists(backupData)) {
                 IOUtils.rename(backupData, data);
             }
-            if (IOUtils.exists(backupData)) {
-                IOUtils.rename(backupData, data);
+            if (IOUtils.exists(backupIndex)) {
+                IOUtils.rename(backupIndex, index);
             }
-            if (IOUtils.exists(backupData)) {
-                IOUtils.rename(backupData, data);
+            if (IOUtils.exists(backupLobs)) {
+                IOUtils.rename(backupLobs, lobs);
             }
             IOUtils.delete(name + ".h2.db");
             throw DbException.toSQLException(e);

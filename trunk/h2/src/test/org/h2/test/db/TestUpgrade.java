@@ -53,6 +53,7 @@ public class TestUpgrade extends TestBase {
         assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.data.db"));
         assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.index.db"));
         DbUpgrade.setDeleteOldDb(true);
+        DbUpgrade.setScriptInTempDir(true);
         conn = getConnection("upgrade");
         assertFalse(IOUtils.exists(getBaseDir() + "/upgrade.data.db"));
         assertFalse(IOUtils.exists(getBaseDir() + "/upgrade.index.db"));
@@ -60,6 +61,8 @@ public class TestUpgrade extends TestBase {
         rs.next();
         assertEquals(new String(new char[100000]).replace((char) 0, ' '), rs.getString(1));
         conn.close();
+        DbUpgrade.setDeleteOldDb(false);
+        DbUpgrade.setScriptInTempDir(false);
         deleteDb("upgrade");
     }
 

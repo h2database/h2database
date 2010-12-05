@@ -6,8 +6,10 @@
  */
 package org.h2.test.server;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -15,6 +17,7 @@ import java.sql.Connection;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
+import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
 
@@ -35,6 +38,7 @@ public class TestWeb extends TestBase {
     }
 
     public void test() throws Exception {
+        testTools();
         testTransfer();
         testAlreadyRunning();
         testStartWebServerWithConnection();
@@ -57,6 +61,44 @@ public class TestWeb extends TestBase {
         server.stop();
     }
 
+    private void testTools() throws Exception {
+        deleteDb("web");
+        Connection conn = getConnection("web");
+        conn.createStatement().execute("create table test(id int) as select 1");
+        conn.close();
+        Server server = new Server();
+        server.setOut(new PrintStream(new ByteArrayOutputStream()));
+        server.runTool("-web", "-webPort", "8182", "-properties", "null", "-tcp", "-tcpPort", "9001");
+        try {
+            String url = "http://localhost:8182";
+            WebClient client;
+            String result;
+            client = new WebClient();
+            result = client.get(url);
+            client.readSessionId(result);
+            result = client.get(url, "tools.jsp");
+            IOUtils.delete(getBaseDir() + "/backup.zip");
+            result = client.get(url, "tools.do?tool=Backup&args=-dir," + getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
+            deleteDb("web");
+            assertTrue(IOUtils.exists(getBaseDir() + "/backup.zip"));
+            result = client.get(url, "tools.do?tool=DeleteDbFiles&args=-dir," + getBaseDir() + ",-db,web");
+            assertFalse(IOUtils.exists(getBaseDir() + "/web.h2.db"));
+            result = client.get(url, "tools.do?tool=Restore&args=-dir," + getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
+            assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.db"));
+            IOUtils.delete(getBaseDir() + "/web.h2.sql");
+            IOUtils.delete(getBaseDir() + "/backup.zip");
+            result = client.get(url, "tools.do?tool=Recover&args=-dir," + getBaseDir() + ",-db,web");
+            assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.sql"));
+            IOUtils.delete(getBaseDir() + "/web.h2.sql");
+            result = client.get(url, "tools.do?tool=RunScript&args=-script," + getBaseDir() + "/web.h2.sql,-url," + getURL("web", true) + ",-user," + getUser() + ",-password," + getPassword());
+            IOUtils.delete(getBaseDir() + "/web.h2.sql");
+            assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.db"));
+            deleteDb("web");
+        } finally {
+            server.shutdown();
+        }
+    }
+
     private void testTransfer() throws Exception {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
@@ -73,8 +115,13 @@ public class TestWeb extends TestBase {
             client.readSessionId(result);
             String test = client.get(url, "transfer/test.txt");
             assertEquals("Hello World", test);
-            server.shutdown();
+            new File("transfer/testUpload.txt").delete();
+            client.upload(url + "/transfer/testUpload.txt", "testUpload.txt", new ByteArrayInputStream("Hallo Welt".getBytes()));
+            byte[] d = IOUtils.readBytesAndClose(new FileInputStream("transfer/testUpload.txt"), -1);
+            assertEquals("Hallo Welt", new String(d));
+            new File("transfer/testUpload.txt").delete();
         } finally {
+            server.shutdown();
             transfer.delete();
         }
     }
@@ -84,8 +131,17 @@ public class TestWeb extends TestBase {
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
         server.runTool("-web", "-webPort", "8182", "-properties", "null", "-tcp", "-tcpPort", "9001");
         String url = "http://localhost:8182";
-        WebClient client = new WebClient();
-        String result = client.get(url);
+        WebClient client;
+        String result;
+        client = new WebClient();
+        client.setAcceptLanguage("de-de,de;q=0.5");
+        result = client.get(url);
+        client.readSessionId(result);
+        result = client.get(url, "login.jsp");
+        assertContains(result, "Einstellung");
+
+        client = new WebClient();
+        result = client.get(url);
         client.readSessionId(result);
         client.get(url, "login.jsp");
         client.get(url, "stylesheet.css");
@@ -115,6 +171,16 @@ public class TestWeb extends TestBase {
         result = client.get(url, "query.do?sql=@LOOP 1000 insert into test values(?, 'Hello ' || ?/*RND*/)");
         assertContains(result, "1000 * (Prepared)");
         result = client.get(url, "query.do?sql=select * from test");
+        result = client.get(url, "query.do?sql=@list select * from test");
+        assertContains(result, "Row #");
+        result = client.get(url, "query.do?sql=@parameter_meta select * from test where id = ?");
+        assertContains(result, "INTEGER");
+        result = client.get(url, "query.do?sql=@edit select * from test");
+        assertContains(result, "editResult.do");
+        result = client.get(url, "query.do?sql=" + StringUtils.urlEncode("select space(100001) a, 1 b"));
+        assertContains(result, "...");
+        result = client.get(url, "query.do?sql=" + StringUtils.urlEncode("call '<&>'"));
+        assertContains(result, "&lt;&amp;&gt;");
         result = client.get(url, "query.do?sql=@HISTORY");
         result = client.get(url, "getHistory.do?id=4");
         assertContains(result, "select * from test");
@@ -203,6 +269,9 @@ public class TestWeb extends TestBase {
         assertContains(result, "getCatalog");
 
         result = client.get(url, "logout.do");
+        result = client.get(url, "login.do?driver=org.h2.Driver&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
+
+        result = client.get(url, "logout.do");
         result = client.get(url, "settingRemove.do?name=_test_");
 
         client.get(url, "admin.do");
@@ -255,6 +324,7 @@ public class TestWeb extends TestBase {
             } else {
                 System.clearProperty(SysProperties.H2_BROWSER);
             }
+            deleteDb("testWeb");
         }
     }
 

@@ -371,7 +371,7 @@ class WebThread extends WebApp implements Runnable {
         f.seek(f.length() - testSize);
         f.readFully(bytes, 0, testSize);
         String s = new String(bytes, "ASCII");
-        int x = s.indexOf(boundary);
+        int x = s.lastIndexOf(boundary);
         f.setLength(f.length() - testSize + x - 2);
         f.close();
     }

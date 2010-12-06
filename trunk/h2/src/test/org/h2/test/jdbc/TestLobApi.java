@@ -20,7 +20,7 @@ import org.h2.test.TestBase;
 /**
  * Test the Blob, Clob, and NClob implementations.
  */
-public class TestLob extends TestBase {
+public class TestLobApi extends TestBase {
 
     private JdbcConnection conn;
     private Statement stat;

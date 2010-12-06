@@ -72,6 +72,7 @@ import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestDriver;
+import org.h2.test.jdbc.TestLobApi;
 import org.h2.test.jdbc.TestManyJdbcObjects;
 import org.h2.test.jdbc.TestMetaData;
 import org.h2.test.jdbc.TestNativeSQL;
@@ -588,7 +589,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestCancel().runTest(this);
         new TestDatabaseEventListener().runTest(this);
         new TestDriver().runTest(this);
-        new TestLob().runTest(this);
+        new TestLobApi().runTest(this);
         new TestManyJdbcObjects().runTest(this);
         new TestMetaData().runTest(this);
         new TestNativeSQL().runTest(this);

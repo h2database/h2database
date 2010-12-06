@@ -9,15 +9,19 @@ package org.h2.test.unit;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.UUID;
 import org.h2.test.TestBase;
+import org.h2.tools.SimpleResultSet;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
+import org.h2.value.ValueResultSet;
 import org.h2.value.ValueUuid;
+import org.hsqldb.types.Types;
 
 /**
  * Tests features of values.
@@ -33,11 +37,34 @@ public class TestValue extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() {
+    public void test() throws SQLException {
+        testValueResultSet();
         testDataType();
         testUUID();
         testDouble(false);
         testDouble(true);
+    }
+
+    private void testValueResultSet() throws SQLException {
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("ID", Types.INTEGER, 0, 0);
+        rs.addColumn("NAME", Types.VARCHAR, 255, 0);
+        rs.addRow(1, "Hello");
+        rs.addRow(2, "World");
+        rs.addRow(3, "Peace");
+        ValueResultSet v = ValueResultSet.getCopy(rs, 2);
+        rs.beforeFirst();
+        ResultSet rs2 = v.getResultSet();
+        rs2.next();
+        rs.next();
+        assertEquals(rs.getInt(1), rs2.getInt(1));
+        assertEquals(rs.getString(2), rs2.getString(2));
+        rs2.next();
+        rs.next();
+        assertEquals(rs.getInt(1), rs2.getInt(1));
+        assertEquals(rs.getString(2), rs2.getString(2));
+        assertFalse(rs2.next());
+        assertTrue(rs.next());
     }
 
     private void testDataType() {

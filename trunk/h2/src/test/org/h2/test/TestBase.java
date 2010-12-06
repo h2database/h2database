@@ -567,6 +567,10 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     public void assertEquals(byte[] expected, byte[] actual) {
+        if (expected == null || actual == null) {
+            assertTrue(expected == actual);
+            return;
+        }
         assertEquals(expected.length, actual.length);
         for (int i = 0; i < expected.length; i++) {
             if (expected[i] != actual[i]) {

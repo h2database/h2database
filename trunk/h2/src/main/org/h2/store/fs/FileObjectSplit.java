@@ -6,6 +6,7 @@
  */
 package org.h2.store.fs;
 
+import java.io.EOFException;
 import java.io.IOException;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
@@ -55,6 +56,9 @@ public class FileObjectSplit implements FileObject {
     }
 
     public void readFully(byte[] b, int off, int len) throws IOException {
+        if (filePointer + len > length) {
+            throw new EOFException();
+        }
         while (true) {
             int l = read(b, off, len);
             len -= l;
@@ -149,7 +153,7 @@ public class FileObjectSplit implements FileObject {
     }
 
     public String getName() {
-        return name;
+        return FileSystemSplit.PREFIX + name;
     }
 
     public boolean tryLock() {

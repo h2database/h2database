@@ -128,9 +128,9 @@ public class FileSystemMemory extends FileSystem {
 
     public String normalize(String fileName) {
         fileName = fileName.replace('\\', '/');
-        int idx = fileName.indexOf(":/");
-        if (idx > 0) {
-            fileName = fileName.substring(0, idx + 1) + fileName.substring(idx + 2);
+        int idx = fileName.indexOf(':') + 1;
+        if (fileName.length() >= idx && fileName.charAt(idx) != '/') {
+            fileName = fileName.substring(0, idx) + "/" + fileName.substring(idx);
         }
         return fileName;
     }
@@ -196,7 +196,7 @@ public class FileSystemMemory extends FileSystem {
     public OutputStream openFileOutputStream(String fileName, boolean append) {
         try {
             FileObjectMemoryData obj = getMemoryFile(fileName);
-            FileObjectMemory m = new FileObjectMemory(obj);
+            FileObjectMemory m = new FileObjectMemory(obj, false);
             return new FileObjectOutputStream(m, append);
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
@@ -205,13 +205,13 @@ public class FileSystemMemory extends FileSystem {
 
     public InputStream openFileInputStream(String fileName) {
         FileObjectMemoryData obj = getMemoryFile(fileName);
-        FileObjectMemory m = new FileObjectMemory(obj);
+        FileObjectMemory m = new FileObjectMemory(obj, true);
         return new FileObjectInputStream(m);
     }
 
     public FileObject openFileObject(String fileName, String mode) {
         FileObjectMemoryData obj = getMemoryFile(fileName);
-        return new FileObjectMemory(obj);
+        return new FileObjectMemory(obj, "r".equals(mode));
     }
 
     private FileObjectMemoryData getMemoryFile(String fileName) {

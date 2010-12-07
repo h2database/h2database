@@ -17,14 +17,16 @@ import org.h2.util.Utils;
  */
 public class FileObjectDatabase implements FileObject {
 
-    private FileSystemDatabase db;
-    private String fileName;
+    private final FileSystemDatabase db;
+    private final boolean readOnly;
+    private final String fileName;
     private byte[] data;
     private int pos, length;
     private boolean changed;
 
-    FileObjectDatabase(FileSystemDatabase db, String fileName, byte[] data, boolean changed) {
+    FileObjectDatabase(FileSystemDatabase db, String fileName, byte[] data, boolean changed, boolean readOnly) {
         this.db = db;
+        this.readOnly = readOnly;
         this.fileName = fileName;
         this.data = data;
         this.length = data.length;
@@ -55,7 +57,10 @@ public class FileObjectDatabase implements FileObject {
         this.pos = (int) newPos;
     }
 
-    public void setFileLength(long newLength) {
+    public void setFileLength(long newLength) throws IOException {
+        if (readOnly) {
+            throw new IOException("read only");
+        }
         this.length = (int) newLength;
         if (length != data.length) {
             byte[] n = Utils.newBytes(length);
@@ -73,7 +78,10 @@ public class FileObjectDatabase implements FileObject {
         }
     }
 
-    public void write(byte[] b, int off, int len) {
+    public void write(byte[] b, int off, int len) throws IOException {
+        if (readOnly) {
+            throw new IOException("read only");
+        }
         if (pos + len > data.length) {
             int newLen = Math.max(data.length * 2, pos + len);
             byte[] n = Utils.newBytes(newLen);

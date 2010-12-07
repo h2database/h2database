@@ -152,8 +152,8 @@ class FileObjectMemoryData {
     /**
      * Update the last modified time.
      */
-    void touch() throws IOException {
-        if (isReadOnly) {
+    void touch(boolean openReadOnly) throws IOException {
+        if (isReadOnly || openReadOnly) {
             throw new IOException("Read only");
         }
         lastModified = System.currentTimeMillis();

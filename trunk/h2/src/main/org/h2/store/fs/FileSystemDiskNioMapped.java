@@ -14,7 +14,7 @@ import java.io.IOException;
  */
 public class FileSystemDiskNioMapped extends FileSystemDiskNio {
 
-    private static final String PREFIX = "nioMapped:";
+    static final String PREFIX = "nioMapped:";
 
     static {
         FileSystem.register(new FileSystemDiskNioMapped());

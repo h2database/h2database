@@ -15,11 +15,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Properties;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
-import org.hsqldb.types.Types;
 
 /**
  * Tests the compatibility with older versions

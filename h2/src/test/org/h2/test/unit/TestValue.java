@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.UUID;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
@@ -21,7 +22,6 @@ import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueUuid;
-import org.hsqldb.types.Types;
 
 /**
  * Tests features of values.

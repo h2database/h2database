@@ -378,9 +378,9 @@ public class FileSystemDatabase extends FileSystem {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 IOUtils.copyAndClose(in, out);
                 byte[] data = out.toByteArray();
-                return new FileObjectDatabase(this, fileName, data, false);
+                return new FileObjectDatabase(this, fileName, data, false, "r".equals(mode));
             }
-            return new FileObjectDatabase(this, fileName, new byte[0], true);
+            return new FileObjectDatabase(this, fileName, new byte[0], true, "r".equals(mode));
         } catch (SQLException e) {
             throw convert(e);
         }

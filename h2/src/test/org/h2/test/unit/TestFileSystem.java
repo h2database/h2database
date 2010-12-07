@@ -8,6 +8,7 @@ package org.h2.test.unit;
 
 import java.io.EOFException;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -43,7 +44,8 @@ public class TestFileSystem extends TestBase {
         testDatabaseInMemFileSys();
         testDatabaseInJar();
         // set default part size to 1 << 10
-        FileSystem.getInstance("split:10:" + getBaseDir() + "/fs");
+        String f = "split:10:" + getBaseDir() + "/fs";
+        FileSystem.getInstance(f).getAbsolutePath(f);
         testFileSystem(getBaseDir() + "/fs");
         testFileSystem(FileSystemMemory.PREFIX);
         FileSystemDatabase fs = FileSystemDatabase.register("jdbc:h2:mem:fs");
@@ -55,9 +57,16 @@ public class TestFileSystem extends TestBase {
         try {
             if (!config.splitFileSystem) {
                 testFileSystem("split:" + getBaseDir() + "/fs");
+                testFileSystem("nio:" + getBaseDir() + "/fs");
                 testFileSystem("nioMapped:" + getBaseDir() + "/fs");
                 testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        } catch (Error e) {
+            e.printStackTrace();
+            throw e;
         } finally {
             IOUtils.delete(getBaseDir() + "/fs");
         }
@@ -160,9 +169,33 @@ public class TestFileSystem extends TestBase {
         random.nextBytes(buffer);
         fo.write(buffer, 0, 10000);
         fo.seek(20000);
+        assertEquals(20000, fo.getFilePointer());
         try {
             fo.readFully(buffer, 0, 1);
+            fail();
         } catch (EOFException e) {
+            // expected
+        }
+        assertEquals(fsBase + "/test", fo.getName());
+        assertEquals("test", fs.getFileName(fo.getName()));
+        assertEquals(fsBase, fs.getParent(fo.getName()));
+        fo.tryLock();
+        fo.releaseLock();
+        fo.close();
+        fo = fs.openFileObject(fsBase + "/test", "r");
+        byte[] test = new byte[10000];
+        fo.readFully(test, 0, 10000);
+        assertEquals(buffer, test);
+        try {
+            fo.write(test, 0, 10);
+            fail();
+        } catch (IOException e) {
+            // expected
+        }
+        try {
+            fo.setFileLength(10);
+            fail();
+        } catch (IOException e) {
             // expected
         }
         fo.close();

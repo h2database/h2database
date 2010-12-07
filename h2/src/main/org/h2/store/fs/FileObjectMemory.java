@@ -14,10 +14,12 @@ import java.io.IOException;
 public class FileObjectMemory implements FileObject {
 
     private final FileObjectMemoryData data;
+    private final boolean readOnly;
     private long pos;
 
-    FileObjectMemory(FileObjectMemoryData data) {
+    FileObjectMemory(FileObjectMemoryData data, boolean readOnly) {
         this.data = data;
+        this.readOnly = readOnly;
     }
 
     public long length() {
@@ -25,7 +27,7 @@ public class FileObjectMemory implements FileObject {
     }
 
     public void setFileLength(long newLength) throws IOException {
-        data.touch();
+        data.touch(readOnly);
         if (newLength < length()) {
             pos = Math.min(pos, newLength);
         }
@@ -37,7 +39,7 @@ public class FileObjectMemory implements FileObject {
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-        data.touch();
+        data.touch(readOnly);
         pos = data.readWrite(pos, b, off, len, true);
     }
 
@@ -57,16 +59,8 @@ public class FileObjectMemory implements FileObject {
         // do nothing
     }
 
-    public void setName(String name) {
-        data.setName(name);
-    }
-
     public String getName() {
         return data.getName();
-    }
-
-    public long getLastModified() {
-        return data.getLastModified();
     }
 
     public boolean tryLock() {

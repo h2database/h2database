@@ -15,7 +15,7 @@ import java.io.InputStream;
  */
 public class FileSystemDiskNio extends FileSystemDisk {
 
-    private static final String PREFIX = "nio:";
+    static final String PREFIX = "nio:";
 
     static {
         FileSystem.register(new FileSystemDiskNio());

@@ -6,12 +6,13 @@
  */
 package org.h2.store.fs;
 
-import java.io.FileNotFoundException;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.NonWritableChannelException;
 
 /**
  * File which uses NIO FileChannel.
@@ -19,17 +20,21 @@ import java.nio.channels.FileLock;
 public class FileObjectDiskChannel implements FileObject {
 
     private final String name;
-    private FileChannel channel;
+    private final RandomAccessFile file;
+    private final FileChannel channel;
     private FileLock lock;
+    private long length;
 
-    FileObjectDiskChannel(String fileName, String mode) throws FileNotFoundException {
+    FileObjectDiskChannel(String fileName, String mode) throws IOException {
         this.name = fileName;
-        RandomAccessFile file = new RandomAccessFile(fileName, mode);
+        file = new RandomAccessFile(fileName, mode);
         channel = file.getChannel();
+        length = file.length();
     }
 
     public void close() throws IOException {
         channel.close();
+        file.close();
     }
 
     public long getFilePointer() throws IOException {
@@ -37,7 +42,7 @@ public class FileObjectDiskChannel implements FileObject {
     }
 
     public String getName() {
-        return name;
+        return FileSystemDiskNio.PREFIX + name;
     }
 
     public long length() throws IOException {
@@ -48,10 +53,9 @@ public class FileObjectDiskChannel implements FileObject {
         if (len == 0) {
             return;
         }
-        // reading the size can reduce the performance
-        // if (channel.size() <= off + len) {
-        //    throw new java.io.EOFException();
-        // }
+        if (channel.position() + len > length) {
+            throw new EOFException();
+        }
         ByteBuffer buf = ByteBuffer.wrap(b);
         buf.position(off);
         buf.limit(off + len);
@@ -65,7 +69,11 @@ public class FileObjectDiskChannel implements FileObject {
     public void setFileLength(long newLength) throws IOException {
         if (newLength <= channel.size()) {
             long oldPos = channel.position();
-            channel.truncate(newLength);
+            try {
+                channel.truncate(newLength);
+            } catch (NonWritableChannelException e) {
+                throw new IOException("read only");
+            }
             if (oldPos > newLength) {
                 oldPos = newLength;
             }
@@ -75,6 +83,7 @@ public class FileObjectDiskChannel implements FileObject {
             ByteBuffer b = ByteBuffer.allocate(1);
             channel.write(b, newLength - 1);
         }
+        length = newLength;
     }
 
     public void sync() throws IOException {
@@ -85,7 +94,11 @@ public class FileObjectDiskChannel implements FileObject {
         ByteBuffer buf = ByteBuffer.wrap(b);
         buf.position(off);
         buf.limit(off + len);
-        channel.write(buf);
+        try {
+            channel.write(buf);
+        } catch (NonWritableChannelException e) {
+            throw new IOException("read only");
+        }
     }
 
     public synchronized boolean tryLock() {

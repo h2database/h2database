@@ -129,7 +129,7 @@ public class FileSystemMemory extends FileSystem {
     public String normalize(String fileName) {
         fileName = fileName.replace('\\', '/');
         int idx = fileName.indexOf(':') + 1;
-        if (fileName.length() >= idx && fileName.charAt(idx) != '/') {
+        if (fileName.length() > idx && fileName.charAt(idx) != '/') {
             fileName = fileName.substring(0, idx) + "/" + fileName.substring(idx);
         }
         return fileName;

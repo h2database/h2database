@@ -45,9 +45,9 @@ public class DbUpgrade {
      * @param url the database URL
      * @param info the properties
      */
-    public static void upgradeIfRequired(String url, Properties info) throws SQLException {
+    public static Connection connctOrUpgrade(String url, Properties info) throws SQLException {
         if (!upgradeClassesPresent) {
-            return;
+            return null;
         }
         Properties i2 = new Properties();
         i2.putAll(info);
@@ -59,18 +59,21 @@ public class DbUpgrade {
         info = i2;
         ConnectionInfo ci = new ConnectionInfo(url, info);
         if (ci.isRemote() || !ci.isPersistent()) {
-            return;
+            return null;
         }
         String name = ci.getName();
         if (Database.exists(name)) {
-            return;
+            return null;
         }
         if (!IOUtils.exists(name + ".data.db")) {
-            return;
+            return null;
+        }
+        if (ci.removeProperty("NO_UPGRADE", false)) {
+            return connectWithOldVersion(url, info);
         }
         synchronized (DbUpgrade.class) {
             upgrade(ci, info);
-            return;
+            return null;
         }
     }
 
@@ -95,6 +98,11 @@ public class DbUpgrade {
      */
     public static void setDeleteOldDb(boolean deleteOldDb) {
         DbUpgrade.deleteOldDb = deleteOldDb;
+    }
+
+    private static Connection connectWithOldVersion(String url, Properties info) throws SQLException {
+        url = "jdbc:h2v1_1:" + url.substring("jdbc:h2:".length()) + ";IGNORE_UNKNOWN_SETTINGS=TRUE";
+        return DriverManager.getConnection(url, info);
     }
 
     private static void upgrade(ConnectionInfo ci, Properties info) throws SQLException {

@@ -40,6 +40,7 @@ public class Engine implements SessionFactory {
     private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) {
         String name = ci.getName();
         Database database;
+        ci.removeProperty("NO_UPGRADE", false);
         boolean openNew = ci.getProperty("OPEN_NEW", false);
         if (openNew || ci.isUnnamedInMemory()) {
             database = null;

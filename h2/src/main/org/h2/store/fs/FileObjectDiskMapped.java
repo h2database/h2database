@@ -130,7 +130,7 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     public String getName() {
-        return FileSystemDiskNioMapped.PREFIX + name;
+        return FileSystemDiskNioMapped.PREFIX + name.replace('\\', '/');
     }
 
     public long length() throws IOException {

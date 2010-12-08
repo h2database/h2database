@@ -177,11 +177,13 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         Properties info = new Properties();
         info.setProperty("user", user);
         info.put("password", password);
-        JdbcConnection conn = Driver.load().connect(url, info);
+        Connection conn = Driver.load().connect(url, info);
         if (conn == null) {
             throw new SQLException("No suitable driver found for " + url, "08001", 8001);
+        } else if (!(conn instanceof JdbcConnection)) {
+            throw new SQLException("Connecting with old version is not supported: " + url, "08001", 8001);
         }
-        return conn;
+        return (JdbcConnection) conn;
     }
 
     /**

@@ -93,10 +93,7 @@ public class TestUpgrade extends TestBase {
         assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.h2.db"));
         deleteDb("upgrade");
 
-        conn = getConnection("jdbc:h2v1_1:" + getBaseDir() + "/upgrade");
-        conn.close();
-
-        conn = getConnection("upgrade");
+        conn = getConnection("upgrade;NO_UPGRADE=TRUE");
         conn.close();
         assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.h2.db"));
         deleteDb("upgrade");

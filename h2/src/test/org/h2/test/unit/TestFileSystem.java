@@ -176,9 +176,9 @@ public class TestFileSystem extends TestBase {
         } catch (EOFException e) {
             // expected
         }
-        assertEquals(fsBase + "/test", fo.getName());
+        assertEquals(fsBase + "/test", fo.getName().replace('\\', '/'));
         assertEquals("test", fs.getFileName(fo.getName()));
-        assertEquals(fsBase, fs.getParent(fo.getName()));
+        assertEquals(fsBase, fs.getParent(fo.getName()).replace('\\', '/'));
         fo.tryLock();
         fo.releaseLock();
         fo.close();

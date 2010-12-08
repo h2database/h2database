@@ -46,7 +46,7 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
     }
 
     public String getName() {
-        return name.replace('\\', '/');
+        return name;
     }
 
     public synchronized boolean tryLock() {

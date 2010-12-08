@@ -42,7 +42,7 @@ public class FileObjectDiskChannel implements FileObject {
     }
 
     public String getName() {
-        return FileSystemDiskNio.PREFIX + name.replace('\\', '/');
+        return FileSystemDiskNio.PREFIX + name;
     }
 
     public long length() throws IOException {

@@ -47,14 +47,14 @@ implements Xid
     /**
      * INTERNAL
      */
-    public String getAsString() {
+    public static String toString(Xid xid) {
         StringBuilder buff = new StringBuilder(PREFIX);
         buff.append('_').
-            append(formatId).
+            append(xid.getFormatId()).
             append('_').
-            append(StringUtils.convertBytesToString(branchQualifier)).
+            append(StringUtils.convertBytesToString(xid.getBranchQualifier())).
             append('_').
-            append(StringUtils.convertBytesToString(globalTransactionId));
+            append(StringUtils.convertBytesToString(xid.getGlobalTransactionId()));
         return buff.toString();
     }
 
@@ -92,7 +92,7 @@ implements Xid
      * INTERNAL
      */
     public String toString() {
-        return getTraceObjectName() + ": " + getAsString();
+        return getTraceObjectName() + ": " + toString(this);
     }
 
 }

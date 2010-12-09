@@ -215,10 +215,10 @@ public class TestXA extends TestBase {
             Xid xid2 = null;
 
             if (useOneDatabase) {
-                xid1 = new TestXid(1);
-                xid2 = new TestXid(2);
+                xid1 = SimpleXid.createRandom();
+                xid2 = SimpleXid.createRandom();
             } else {
-                xid1 = new TestXid(1);
+                xid1 = SimpleXid.createRandom();
                 xid2 = xid1;
             }
 

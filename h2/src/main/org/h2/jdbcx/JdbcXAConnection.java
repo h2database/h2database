@@ -46,8 +46,6 @@ implements XAConnection, XAResource
 {
 
 //## Java 1.4 begin ##
-    private static int nextTransactionId;
-
     private JdbcDataSourceFactory factory;
 
     // This connection is kept open as long as the XAConnection is alive
@@ -57,7 +55,6 @@ implements XAConnection, XAResource
     private volatile PooledJdbcConnection handleConn;
     private ArrayList<ConnectionEventListener> listeners = New.arrayList();
     private Xid currentTransaction;
-    private int currentTransactionId;
 
     static {
         org.h2.Driver.load();
@@ -258,8 +255,7 @@ implements XAConnection, XAResource
         Statement stat = null;
         try {
             stat = physicalConn.createStatement();
-            currentTransactionId = nextTransactionId++;
-            stat.execute("PREPARE COMMIT TX_" + currentTransactionId);
+            stat.execute("PREPARE COMMIT " + JdbcXid.toString(xid));
         } catch (SQLException e) {
             throw convertException(e);
         } finally {
@@ -297,6 +293,15 @@ implements XAConnection, XAResource
         try {
             physicalConn.rollback();
             physicalConn.setAutoCommit(true);
+            Statement stat = null;
+            try {
+                stat = physicalConn.createStatement();
+                stat.execute("ROLLBACK TRANSACTION " + JdbcXid.toString(xid));
+            } catch (SQLException e) {
+                // ignore (not a two phase commit)
+            } finally {
+                JdbcUtils.closeSilently(stat);
+            }
         } catch (SQLException e) {
             throw convertException(e);
         }
@@ -375,7 +380,7 @@ implements XAConnection, XAResource
                 physicalConn.commit();
             } else {
                 stat = physicalConn.createStatement();
-                stat.execute("COMMIT TRANSACTION TX_" + currentTransactionId);
+                stat.execute("COMMIT TRANSACTION " + JdbcXid.toString(xid));
             }
             physicalConn.setAutoCommit(true);
         } catch (SQLException e) {

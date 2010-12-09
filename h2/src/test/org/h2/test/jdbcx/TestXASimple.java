@@ -7,12 +7,15 @@
 package org.h2.test.jdbcx;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.sql.Statement;
 import javax.sql.XAConnection;
-
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
+import org.h2.util.JdbcUtils;
 
 /**
  * A simple XA test.
@@ -28,7 +31,83 @@ public class TestXASimple extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
+        testTwoPhase();
+        testSimple();
+    }
+
+    private void testTwoPhase() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        int todo;
+        // testTwoPhase(false, true);
+        // testTwoPhase(false, false);
+        testTwoPhase(true, true);
+        testTwoPhase(true, false);
+    }
+
+    private void testTwoPhase(boolean shutdown, boolean commit) throws Exception {
+        deleteDb("xaSimple");
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setPassword(getPassword());
+        ds.setUser("sa");
+        // ds.setURL(getURL("xaSimple", true) + ";trace_level_system_out=3");
+        ds.setURL(getURL("xaSimple", true));
+
+        XAConnection xa;
+        xa = ds.getXAConnection();
+        Connection conn;
+
+        conn = xa.getConnection();
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar(255))");
+        Xid xid = SimpleXid.createRandom();
+        xa.getXAResource().start(xid, XAResource.TMNOFLAGS);
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values(1, 'Hello')");
+        xa.getXAResource().end(xid, XAResource.TMSUCCESS);
+        xa.getXAResource().prepare(xid);
+        if (shutdown) {
+            shutdown(ds);
+        }
+        JdbcUtils.closeSilently(xa);
+
+        xa = ds.getXAConnection();
+        Xid[] list = xa.getXAResource().recover(XAResource.TMSTARTRSCAN);
+        assertEquals(1, list.length);
+        assertTrue(xid.equals(list[0]));
+        if (commit) {
+            xa.getXAResource().commit(list[0], false);
+        } else {
+            xa.getXAResource().rollback(list[0]);
+        }
+        if (shutdown) {
+            shutdown(ds);
+        }
+        JdbcUtils.closeSilently(xa);
+
+        xa = ds.getXAConnection();
+        list = xa.getXAResource().recover(XAResource.TMSTARTRSCAN);
+        assertEquals(0, list.length);
+        conn = xa.getConnection();
+        ResultSet rs;
+        rs = conn.createStatement().executeQuery("select * from test");
+        if (commit) {
+            assertTrue(rs.next());
+        } else {
+            assertFalse(rs.next());
+        }
+        JdbcUtils.closeSilently(xa);
+    }
+
+    private void shutdown(JdbcDataSource ds) throws SQLException {
+        Connection conn = ds.getConnection();
+        conn.createStatement().execute("shutdown immediately");
+        JdbcUtils.closeSilently(conn);
+    }
+
+    public void testSimple() throws SQLException {
 
         deleteDb("xaSimple1");
         deleteDb("xaSimple2");
@@ -74,4 +153,5 @@ public class TestXASimple extends TestBase {
         deleteDb("xaSimple2");
 
     }
+
 }

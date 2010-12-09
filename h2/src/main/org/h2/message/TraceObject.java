@@ -87,20 +87,25 @@ public class TraceObject {
     protected static final int XA_DATA_SOURCE = 13;
 
     /**
+     * The trace type id  for XA resources.
+     */
+    protected static final int XA_RESOURCE = 14;
+
+    /**
      * The trace type id  for transaction ids.
      */
-    protected static final int XID = 14;
+    protected static final int XID = 15;
 
     /**
      * The trace type id  for array objects.
      */
-    protected static final int ARRAY = 15;
+    protected static final int ARRAY = 16;
 
     private static final int LAST = ARRAY + 1;
     private static final int[] ID = new int[LAST];
     private static final String[] PREFIX = {
         "call", "conn", "dbMeta", "prep", "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta",
-        "ds", "xads", "xid", "ar"
+        "ds", "xads", "xares", "xid", "ar"
     };
 
     private Trace trace;

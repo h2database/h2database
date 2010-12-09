@@ -246,7 +246,7 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     public int prepare(Xid xid) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("prepare("+quoteXid(xid)+");");
+            debugCode("prepare("+JdbcXid.toString(xid)+");");
         }
         checkOpen();
         if (!currentTransaction.equals(xid)) {
@@ -274,7 +274,7 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     public void forget(Xid xid) {
         if (isDebugEnabled()) {
-            debugCode("forget("+quoteXid(xid)+");");
+            debugCode("forget("+JdbcXid.toString(xid)+");");
         }
     }
 //## Java 1.4 end ##
@@ -288,7 +288,7 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     public void rollback(Xid xid) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("rollback("+quoteXid(xid)+");");
+            debugCode("rollback("+JdbcXid.toString(xid)+");");
         }
         try {
             physicalConn.rollback();
@@ -319,7 +319,7 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     public void end(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("end("+quoteXid(xid)+", "+quoteFlags(flags)+");");
+            debugCode("end("+JdbcXid.toString(xid)+", "+quoteFlags(flags)+");");
         }
         // TODO transaction end: implement this method
         if (flags == TMSUSPEND) {
@@ -341,7 +341,7 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     public void start(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("start("+quoteXid(xid)+", "+quoteFlags(flags)+");");
+            debugCode("start("+JdbcXid.toString(xid)+", "+quoteFlags(flags)+");");
         }
         if (flags == TMRESUME) {
             return;
@@ -372,7 +372,7 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     public void commit(Xid xid, boolean onePhase) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("commit("+quoteXid(xid)+", "+onePhase+");");
+            debugCode("commit("+JdbcXid.toString(xid)+", "+onePhase+");");
         }
         Statement stat = null;
         try {
@@ -426,20 +426,6 @@ implements XAConnection, XAResource
         XAException xa = new XAException(e.getMessage());
         xa.initCause(e);
         return xa;
-    }
-
-    private String quoteXid(Xid xid) {
-        StringBuilder buff = new StringBuilder();
-        buff.append("\"f:").
-            append(xid.getFormatId()).
-            append(",bq:").
-            append(StringUtils.convertBytesToString(xid.getBranchQualifier())).
-            append(",gx:").
-            append(StringUtils.convertBytesToString(xid.getGlobalTransactionId())).
-            append(",c:").
-            append(xid.getClass().getName()).
-            append("\"");
-        return buff.toString();
     }
 
     private String quoteFlags(int flags) {

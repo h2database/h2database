@@ -37,7 +37,7 @@ public class TestXASimple extends TestBase {
     }
 
     private void testTwoPhase() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.networked) {
             return;
         }
         int todo;

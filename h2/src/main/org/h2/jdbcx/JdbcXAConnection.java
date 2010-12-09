@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
+import javax.sql.StatementEventListener;
 import javax.sql.XAConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
@@ -21,18 +22,11 @@ import javax.transaction.xa.Xid;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.util.JdbcUtils;
-import org.h2.util.New;
-import org.h2.util.StringUtils;
-//## Java 1.4 end ##
-
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
-
-//## Java 1.6 begin ##
-import javax.sql.StatementEventListener;
-//## Java 1.6 end ##
+import org.h2.util.JdbcUtils;
+import org.h2.util.New;
 
 /**
  * This class provides support for distributed transactions.

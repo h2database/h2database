@@ -88,11 +88,4 @@ implements Xid
         return globalTransactionId;
     }
 
-    /**
-     * INTERNAL
-     */
-    public String toString() {
-        return getTraceObjectName() + ": " + toString(this);
-    }
-
 }

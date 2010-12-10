@@ -406,6 +406,18 @@ public class Utils {
                 throw DbException.get(ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
             }
         }
+        // the following code might be better for OSGi (need to verify):
+        /*
+        try {
+            return Utils.class.getClassLoader().loadClass(className);
+        } catch (Throwable e) {
+            try {
+                return Thread.currentThread().getContextClassLoader().loadClass(className);
+            } catch (Throwable e2) {
+                DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+            }
+        }
+        */
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {

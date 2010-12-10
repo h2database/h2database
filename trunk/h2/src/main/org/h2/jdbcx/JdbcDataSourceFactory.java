@@ -78,7 +78,10 @@ implements ObjectFactory
     }
 //## Java 1.4 end ##
 
-    private TraceSystem getTraceSystem() {
+    /**
+     * INTERNAL
+     */
+    public static TraceSystem getTraceSystem() {
         synchronized (JdbcDataSourceFactory.class) {
             if (cachedTraceSystem == null) {
                 cachedTraceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE);

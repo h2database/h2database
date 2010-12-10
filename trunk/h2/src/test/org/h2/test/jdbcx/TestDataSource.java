@@ -22,6 +22,7 @@ import javax.transaction.xa.Xid;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.jdbcx.JdbcDataSourceFactory;
 import org.h2.jdbcx.JdbcXAConnection;
+import org.h2.message.TraceSystem;
 import org.h2.test.TestBase;
 
 /**
@@ -63,6 +64,11 @@ public class TestDataSource extends TestBase {
 //     }
 
     public void test() throws Exception {
+        if (config.traceLevelFile > 0) {
+            TraceSystem sys = JdbcDataSourceFactory.getTraceSystem();
+            sys.setFileName(getBaseDir() + "/test/trace");
+            sys.setLevelFile(3);
+        }
         testDataSourceFactory();
         testDataSource();
         testXAConnection();
@@ -82,6 +88,7 @@ public class TestDataSource extends TestBase {
         ref.add(new StringRefAddr("description", "test"));
         JdbcDataSource ds = (JdbcDataSource) factory.getObjectInstance(ref, null, null, null);
         assertEquals(1, ds.getLoginTimeout());
+        assertEquals("test", ds.getDescription());
         assertEquals("jdbc:h2:mem:", ds.getURL());
         assertEquals("u", ds.getUser());
         assertEquals("p", ds.getPassword());
@@ -97,17 +104,31 @@ public class TestDataSource extends TestBase {
     }
 
     private void testXAConnection() throws Exception {
+        testXAConnection(false);
+        testXAConnection(true);
+    }
+
+    private void testXAConnection(boolean userInDataSource) throws Exception {
         deleteDb("dataSource");
         JdbcDataSource ds = new JdbcDataSource();
         String url = getURL("dataSource", true);
         String user = getUser();
         ds.setURL(url);
-        ds.setUser(user);
-        ds.setPassword(getPassword());
-
-        assertEquals("ds" + ds.getTraceId() + ": url=" + url + " user=" + user, ds.toString());
-
-        XAConnection xaConn = ds.getXAConnection();
+        if (userInDataSource) {
+            ds.setUser(user);
+            ds.setPassword(getPassword());
+        }
+        if (userInDataSource) {
+            assertEquals("ds" + ds.getTraceId() + ": url=" + url + " user=" + user, ds.toString());
+        } else {
+            assertEquals("ds" + ds.getTraceId() + ": url=" + url + " user=", ds.toString());
+        }
+        XAConnection xaConn;
+        if (userInDataSource) {
+            xaConn = ds.getXAConnection();
+        } else {
+            xaConn = ds.getXAConnection(user, getPassword());
+        }
 
         int traceId = ((JdbcXAConnection) xaConn).getTraceId();
         assertTrue(xaConn.toString().startsWith("xads" + traceId + ": conn"));
@@ -129,6 +150,7 @@ public class TestDataSource extends TestBase {
         assertFalse(res.isSameRM(null));
 
         Connection conn = xaConn.getConnection();
+        assertEquals(user.toUpperCase(), conn.getMetaData().getUserName());
         Xid[] list = res.recover(XAResource.TMSTARTRSCAN);
         assertEquals(0, list.length);
         Statement stat = conn.createStatement();
@@ -146,10 +168,15 @@ public class TestDataSource extends TestBase {
         ds.setURL(getURL("dataSource", true));
         ds.setUser(getUser());
         ds.setPassword(getPassword());
-        Connection conn = ds.getConnection();
-        Statement stat = conn.createStatement();
+        Connection conn;
+        conn = ds.getConnection();
+        Statement stat;
+        stat = conn.createStatement();
         stat.execute("SELECT * FROM DUAL");
         conn.close();
+        conn = ds.getConnection(getUser(), getPassword());
+        stat = conn.createStatement();
+        stat.execute("SELECT * FROM DUAL");
     }
 
 }

@@ -34,6 +34,7 @@ public class TestConnectionPool extends TestBase {
 
     public void test() throws Exception {
         deleteDb("connectionPool");
+        testShutdown();
         testWrongUrl();
         testTimeout();
         testUncommittedTransaction();
@@ -42,6 +43,21 @@ public class TestConnectionPool extends TestBase {
         testConnect();
         testThreads();
         deleteDb("connectionPool");
+        deleteDb("connectionPool2");
+    }
+
+    private void testShutdown() throws SQLException {
+        String url = getURL("connectionPool2", true), user = getUser(), password = getPassword();
+        JdbcConnectionPool cp = JdbcConnectionPool.create(url, user, password);
+        StringWriter w = new StringWriter();
+        cp.setLogWriter(new PrintWriter(w));
+        Connection conn1 = cp.getConnection();
+        Connection conn2 = cp.getConnection();
+        conn1.close();
+        conn2.createStatement().execute("shutdown immediately");
+        cp.dispose();
+        assertTrue(w.toString().length() > 0);
+        cp.dispose();
     }
 
     private void testWrongUrl() throws SQLException {
@@ -58,6 +74,12 @@ public class TestConnectionPool extends TestBase {
         String url = getURL("connectionPool", true), user = getUser(), password = getPassword();
         final JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
         man.setLoginTimeout(1);
+        try {
+            man.setMaxConnections(-1);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
         man.setMaxConnections(2);
         // connection 1 (of 2)
         Connection conn = man.getConnection();
@@ -129,8 +151,8 @@ public class TestConnectionPool extends TestBase {
         for (int i = 0; i < len; i++) {
             man.getConnection().close();
         }
-        trace((int) (System.currentTimeMillis() - time));
         man.dispose();
+        trace((int) (System.currentTimeMillis() - time));
         time = System.currentTimeMillis();
         for (int i = 0; i < len; i++) {
             DriverManager.getConnection(url, user, password).close();
@@ -203,12 +225,24 @@ public class TestConnectionPool extends TestBase {
     }
 
     private void testConnect() throws SQLException {
-        JdbcConnectionPool man = getConnectionPool(3);
+        JdbcConnectionPool pool = getConnectionPool(3);
         for (int i = 0; i < 100; i++) {
-            Connection conn = man.getConnection();
+            Connection conn = pool.getConnection();
             conn.close();
         }
-        man.dispose();
+        pool.dispose();
+        try {
+            pool.getConnection();
+            fail();
+        } catch (IllegalStateException e) {
+            // expected
+        }
+        try {
+            pool.getConnection(null, null);
+            fail();
+        } catch (UnsupportedOperationException e) {
+            // expected
+        }
     }
 
 }

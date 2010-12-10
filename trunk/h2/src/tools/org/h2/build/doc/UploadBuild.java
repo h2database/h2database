@@ -12,13 +12,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -26,8 +25,8 @@ import java.util.zip.ZipOutputStream;
 import org.h2.dev.ftp.FtpClient;
 import org.h2.engine.Constants;
 import org.h2.test.utils.OutputCatcher;
-import org.h2.tools.RunScript;
 import org.h2.util.IOUtils;
+import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
 /**
@@ -43,30 +42,6 @@ public class UploadBuild {
      */
     public static void main(String... args) throws Exception {
         System.setProperty("h2.socketConnectTimeout", "30000");
-        byte[] data = IOUtils.readBytesAndClose(new FileInputStream("coverage/index.html"), -1);
-        String index = new String(data, "ISO-8859-1");
-        boolean coverageFailed = index.indexOf("CLASS=\"h\"") >= 0;
-        while (true) {
-            int idx = index.indexOf("<A HREF=\"");
-            if (idx < 0) {
-                break;
-            }
-            int end = index.indexOf('>', idx) + 1;
-            index = index.substring(0, idx) + index.substring(end);
-            idx = index.indexOf("</A>");
-            index = index.substring(0, idx) + index.substring(idx + "</A>".length());
-        }
-        index = StringUtils.replaceAll(index, "[all", "");
-        index = StringUtils.replaceAll(index, "classes]", "");
-        FileOutputStream out = new FileOutputStream("coverage/overview.html");
-        out.write(index.getBytes("ISO-8859-1"));
-        out.close();
-        new File("details").mkdir();
-        zip("details/coverage_files.zip", "coverage", true);
-        zip("coverage.zip", "details", false);
-        IOUtils.delete("coverage.txt");
-        IOUtils.delete("details/coverage_files.zip");
-        IOUtils.delete("details");
         String password = System.getProperty("h2.ftpPassword");
         if (password == null) {
             return;
@@ -74,12 +49,52 @@ public class UploadBuild {
         FtpClient ftp = FtpClient.open("h2database.com");
         ftp.login("h2database", password);
         ftp.changeWorkingDirectory("/httpdocs");
-        if (ftp.exists("/httpdocs", "coverage")) {
-            ftp.removeDirectoryRecursive("/httpdocs/coverage");
+        boolean coverage = new File("coverage/index.html").exists();
+        boolean coverageFailed;
+        if (coverage) {
+            byte[] data = IOUtils.readBytesAndClose(new FileInputStream("coverage/index.html"), -1);
+            String index = new String(data, "ISO-8859-1");
+            coverageFailed = index.indexOf("CLASS=\"h\"") >= 0;
+            while (true) {
+                int idx = index.indexOf("<A HREF=\"");
+                if (idx < 0) {
+                    break;
+                }
+                int end = index.indexOf('>', idx) + 1;
+                index = index.substring(0, idx) + index.substring(end);
+                idx = index.indexOf("</A>");
+                index = index.substring(0, idx) + index.substring(idx + "</A>".length());
+            }
+            index = StringUtils.replaceAll(index, "[all", "");
+            index = StringUtils.replaceAll(index, "classes]", "");
+            FileOutputStream out = new FileOutputStream("coverage/overview.html");
+            out.write(index.getBytes("ISO-8859-1"));
+            out.close();
+            new File("details").mkdir();
+            zip("details/coverage_files.zip", "coverage", true);
+            zip("coverage.zip", "details", false);
+            IOUtils.delete("coverage.txt");
+            IOUtils.delete("details/coverage_files.zip");
+            IOUtils.delete("details");
+            if (ftp.exists("/httpdocs", "coverage")) {
+                ftp.removeDirectoryRecursive("/httpdocs/coverage");
+            }
+            ftp.makeDirectory("/httpdocs/coverage");
+        } else {
+            coverageFailed = true;
         }
-        ftp.makeDirectory("/httpdocs/coverage");
-        String testOutput = IOUtils.readStringAndClose(new FileReader("docs/html/testOutput.html"), -1);
-        boolean error = testOutput.indexOf(OutputCatcher.START_ERROR) >= 0;
+        String testOutput;
+        boolean error;
+        if (new File("docs/html/testOutput.html").exists()) {
+            testOutput = IOUtils.readStringAndClose(new FileReader("docs/html/testOutput.html"), -1);
+            error = testOutput.indexOf(OutputCatcher.START_ERROR) >= 0;
+        } else if (new File("log.txt").exists()) {
+            testOutput = IOUtils.readStringAndClose(new FileReader("log.txt"), -1);
+            error = true;
+        } else {
+            testOutput = "No log.txt";
+            error = true;
+        }
         if (!ftp.exists("/httpdocs", "automated")) {
             ftp.makeDirectory("/httpdocs/automated");
         }
@@ -106,26 +121,44 @@ public class UploadBuild {
             " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>" +
             " - <a href=\"http://www.h2database.com/automated/h2-latest.jar\">Jar</a>');\n";
         buildSql += sql;
-        Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:mem:");
-        RunScript.execute(conn, new StringReader(buildSql));
-        InputStream in = new FileInputStream("src/tools/org/h2/build/doc/buildNewsfeed.sql");
-        ResultSet rs = RunScript.execute(conn, new InputStreamReader(in, "ISO-8859-1"));
-        in.close();
+        Connection conn;
+        try {
+            Class.forName("org.h2.Driver");
+            conn = DriverManager.getConnection("jdbc:h2:mem:");
+        } catch (Exception e) {
+            Class.forName("org.h2.upgrade.v1_1.Driver");
+            conn = DriverManager.getConnection("jdbc:h2v1_1:mem:");
+        }
+        conn.createStatement().execute(buildSql);
+        String newsfeed = IOUtils.readStringAndClose(new FileReader("src/tools/org/h2/build/doc/buildNewsfeed.sql"), -1);
+        ScriptReader r = new ScriptReader(new StringReader(newsfeed));
+        Statement stat = conn.createStatement();
+        ResultSet rs = null;
+        while (true) {
+            String s = r.readStatement();
+            if (s == null) {
+                break;
+            }
+            if (stat.execute(s)) {
+                rs = stat.getResultSet();
+            }
+        }
         rs.next();
         String content = rs.getString("content");
         conn.close();
         ftp.store("/httpdocs/automated/history.sql", new ByteArrayInputStream(buildSql.getBytes()));
         ftp.store("/httpdocs/automated/news.xml", new ByteArrayInputStream(content.getBytes()));
         ftp.store("/httpdocs/html/testOutput.html", new ByteArrayInputStream(testOutput.getBytes()));
-        ftp.store("/httpdocs/coverage/overview.html", new FileInputStream("coverage/overview.html"));
         String jarFileName = "bin/h2-" + Constants.getVersion() + ".jar";
         if (IOUtils.exists(jarFileName)) {
             ftp.store("/httpdocs/automated/h2-latest.jar", new FileInputStream(jarFileName));
         }
-        ftp.store("/httpdocs/coverage/coverage.zip", new FileInputStream("coverage.zip"));
+        if (coverage) {
+            ftp.store("/httpdocs/coverage/overview.html", new FileInputStream("coverage/overview.html"));
+            ftp.store("/httpdocs/coverage/coverage.zip", new FileInputStream("coverage.zip"));
+            IOUtils.delete("coverage.zip");
+        }
         ftp.close();
-        IOUtils.delete("coverage.zip");
     }
 
     private static void zip(String destFile, String directory, boolean storeOnly) throws IOException {

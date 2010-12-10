@@ -673,7 +673,14 @@ public class Build extends BuildBase {
         if (password == null) {
             throw new RuntimeException("h2.ftpPassword not set");
         }
-        String cp = "bin" + File.pathSeparator + "temp";
+        downloadTest();
+        FileList files = files("src/tools").keep("*/UploadBuild.java");
+        StringList args = args("-d", "temp", "-sourcepath", "src/tools" +
+                File.pathSeparator + "src/test" + File.pathSeparator + "src/main");
+        mkdir("temp");
+        javac(args, files);
+        String cp = "bin" + File.pathSeparator + "temp" +
+                File.pathSeparator + "ext/h2mig_pagestore_addon.jar";
         exec("java", args("-Xmx128m", "-cp", cp,
                 "-Dh2.ftpPassword=" + password,
                 "org.h2.build.doc.UploadBuild"));

@@ -40,20 +40,19 @@ public class TestXASimple extends TestBase {
         if (config.memory || config.networked) {
             return;
         }
-        int todo;
         // testTwoPhase(false, true);
         // testTwoPhase(false, false);
-        testTwoPhase(true, true);
-        testTwoPhase(true, false);
+        testTwoPhase("xaSimple2a", true, true);
+        testTwoPhase("xaSimple2b", true, false);
     }
 
-    private void testTwoPhase(boolean shutdown, boolean commit) throws Exception {
-        deleteDb("xaSimple");
+    private void testTwoPhase(String db, boolean shutdown, boolean commit) throws Exception {
+        deleteDb(db);
         JdbcDataSource ds = new JdbcDataSource();
         ds.setPassword(getPassword());
         ds.setUser("sa");
         // ds.setURL(getURL("xaSimple", true) + ";trace_level_system_out=3");
-        ds.setURL(getURL("xaSimple", true));
+        ds.setURL(getURL(db, true));
 
         XAConnection xa;
         xa = ds.getXAConnection();

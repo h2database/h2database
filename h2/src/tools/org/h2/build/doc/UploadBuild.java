@@ -45,6 +45,7 @@ public class UploadBuild {
         System.setProperty("h2.socketConnectTimeout", "30000");
         byte[] data = IOUtils.readBytesAndClose(new FileInputStream("coverage/index.html"), -1);
         String index = new String(data, "ISO-8859-1");
+        boolean coverageFailed = index.indexOf("CLASS=\"h\"") >= 0;
         while (true) {
             int idx = index.indexOf("<A HREF=\"");
             if (idx < 0) {
@@ -98,7 +99,9 @@ public class UploadBuild {
                 now += " (" + result + " op/s)";
             }
         }
-        String sql = "insert into item(title, issued, desc) values('Build " + now + (error ? " FAILED" : "") +
+        String sql = "insert into item(title, issued, desc) values('Build " + now +
+            (error ? " [FAILED]" : "") +
+            (coverageFailed ? " [COVERAGE]" : "") +
             "', '" + ts + "', '<a href=\"http://www.h2database.com/html/testOutput.html\">Output</a>" +
             " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>" +
             " - <a href=\"http://www.h2database.com/automated/h2-latest.jar\">Jar</a>');\n";

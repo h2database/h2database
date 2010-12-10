@@ -79,7 +79,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
         this.dataSource = dataSource;
         try {
             logWriter = dataSource.getLogWriter();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             // ignore
         }
     }
@@ -159,25 +159,15 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
 
     /**
      * Closes all unused pooled connections.
+     * Exceptions while closing are written to the log stream (if set).
      */
-    public synchronized void dispose() throws SQLException {
+    public synchronized void dispose() {
         if (isDisposed) {
             return;
         }
         isDisposed = true;
-        SQLException e = null;
         while (!recycledConnections.isEmpty()) {
-            PooledConnection pc = recycledConnections.pop();
-            try {
-                pc.close();
-            } catch (SQLException e2) {
-                if (e == null) {
-                    e = e2;
-                }
-            }
-        }
-        if (e != null) {
-            throw e;
+            closeConnection(recycledConnections.pop());
         }
     }
 
@@ -211,6 +201,13 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
         throw new SQLException("Login timeout", "08001", 8001);
     }
 
+    /**
+     * INTERNAL
+     */
+    public Connection getConnection(String user, String password) {
+        throw new UnsupportedOperationException();
+    }
+
     private Connection getConnectionNow() throws SQLException {
         if (isDisposed) {
             throw new IllegalStateException("Connection pool has been disposed.");
@@ -235,15 +232,11 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      * @param pc the pooled connection
      */
     synchronized void recycleConnection(PooledConnection pc) {
-        if (isDisposed) {
-            disposeConnection(pc);
-            return;
-        }
         if (activeConnections <= 0) {
             throw new AssertionError();
         }
         activeConnections--;
-        if (activeConnections < maxConnections) {
+        if (!isDisposed && activeConnections < maxConnections) {
             recycledConnections.push(pc);
         } else {
             closeConnection(pc);
@@ -255,34 +248,9 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
         try {
             pc.close();
         } catch (SQLException e) {
-            log("Error while closing database connection: " + e.toString());
-        }
-    }
-
-    /**
-     * Close the connection, and don't add it back to the pool.
-     *
-     * @param pc the pooled connection
-     */
-    synchronized void disposeConnection(PooledConnection pc) {
-        if (activeConnections <= 0) {
-            throw new AssertionError();
-        }
-        activeConnections--;
-        notifyAll();
-        closeConnection(pc);
-    }
-
-    private void log(String msg) {
-        String s = getClass().getName() + ": " + msg;
-        try {
-            if (logWriter == null) {
-                System.err.println(s);
-            } else {
-                logWriter.println(s);
+            if (logWriter != null) {
+                e.printStackTrace(logWriter);
             }
-        } catch (Exception e) {
-            // ignore
         }
     }
 
@@ -299,9 +267,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      * INTERNAL
      */
     public void connectionErrorOccurred(ConnectionEvent event) {
-        PooledConnection pc = (PooledConnection) event.getSource();
-        pc.removeConnectionEventListener(this);
-        disposeConnection(pc);
+        // not used
     }
 
     /**
@@ -314,13 +280,6 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      */
     public synchronized int getActiveConnections() {
         return activeConnections;
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Connection getConnection(String username, String password) {
-        throw new UnsupportedOperationException();
     }
 
     /**

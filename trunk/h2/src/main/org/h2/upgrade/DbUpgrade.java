@@ -14,7 +14,6 @@ import java.sql.Statement;
 import java.util.Properties;
 import java.util.UUID;
 import org.h2.engine.ConnectionInfo;
-import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileSystem;
@@ -44,6 +43,7 @@ public class DbUpgrade {
      *
      * @param url the database URL
      * @param info the properties
+     * @return the connection if connected with the old version (NO_UPGRADE)
      */
     public static Connection connctOrUpgrade(String url, Properties info) throws SQLException {
         if (!upgradeClassesPresent) {
@@ -62,7 +62,7 @@ public class DbUpgrade {
             return null;
         }
         String name = ci.getName();
-        if (Database.exists(name)) {
+        if (IOUtils.exists(name + ".h2.db")) {
             return null;
         }
         if (!IOUtils.exists(name + ".data.db")) {

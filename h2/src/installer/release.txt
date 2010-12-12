@@ -2,6 +2,8 @@ Update Constants.java - change version and build number
 Update changelog.html - add new version, remove oldest
 Update newsfeed.sql - add new version, remove oldest
 Minor version change: change sourceError.html and source.html
+If a beta, change download.html: Version ${version} (${versionDate}), Beta
+If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta
 Benchmark: use latest versions of other dbs, change version(s) in performance.html
 Run ./buildRelease.sh / buildRelease.bat
 

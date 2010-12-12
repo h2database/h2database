@@ -49,6 +49,14 @@ public class WebClient {
         return result;
     }
 
+    /**
+     * Upload a file.
+     *
+     * @param url the target URL
+     * @param fileName the file name to post
+     * @param in the input stream
+     * @return the result
+     */
     String upload(String url, String fileName, InputStream in) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setDoOutput(true);
@@ -127,6 +135,12 @@ public class WebClient {
         return get(url);
     }
 
+    /**
+     * Get the base URL (the host name and port).
+     *
+     * @param url the complete URL
+     * @return the host name and port
+     */
     String getBaseUrl(String url) {
         int idx = url.indexOf("//");
         idx = url.indexOf("/", idx + 2);

@@ -15,6 +15,9 @@ import java.io.InputStream;
  */
 public class FileSystemDiskNio extends FileSystemDisk {
 
+    /**
+     * The prefix for the file system that uses java.nio.channels.FileChannel.
+     */
     static final String PREFIX = "nio:";
 
     static {

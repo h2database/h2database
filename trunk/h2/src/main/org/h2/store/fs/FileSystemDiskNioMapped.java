@@ -14,6 +14,9 @@ import java.io.IOException;
  */
 public class FileSystemDiskNioMapped extends FileSystemDiskNio {
 
+    /**
+     * The prefix for the file system that uses memory mapped files.
+     */
     static final String PREFIX = "nioMapped:";
 
     static {

@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.148 Beta (2010-12-12)</h2>
 <ul><li>The built-in connection pool was simplified a bit.
     The dispose() method no longer throws an exception (it only logs it).
 </li><li>The database upgrade (to upgrade from H2 version 1.1.x) has been simplified.
@@ -30,7 +34,7 @@ Change Log
 </li><li>The DbStarter servlet context listener now starts the server before opening a connection,
     so that connecting using the server mode works.
 </li><li>The Shell tool can now enable, disable, and display the current autocommit mode.
-</li><li>There is a limitation in the cluster mode: 
+</li><li>There is a limitation in the cluster mode:
     The SQL statement SET AUTOCOMMIT FALSE doesn't work.
     To disable autocommit, the method Connection.setAutoCommit(false) needs to be called.
     This is now documented. See also issue 259.

@@ -28,6 +28,11 @@ public class SimpleXid implements Xid {
         this.globalTransactionId = globalTransactionId;
     }
 
+    /**
+     * Create a new random xid.
+     *
+     * @return the new object
+     */
     public static SimpleXid createRandom() {
         int formatId = next.getAndIncrement();
         byte[] bq = new byte[MAXBQUALSIZE];

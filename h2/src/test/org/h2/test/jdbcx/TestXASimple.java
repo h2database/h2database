@@ -106,7 +106,7 @@ public class TestXASimple extends TestBase {
         JdbcUtils.closeSilently(conn);
     }
 
-    public void testSimple() throws SQLException {
+    private void testSimple() throws SQLException {
 
         deleteDb("xaSimple1");
         deleteDb("xaSimple2");

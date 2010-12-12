@@ -1,7 +1,8 @@
 /*
- * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License, Version
- * 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.android;
 
@@ -24,14 +25,14 @@ public interface H2CursorDriver {
 
     /**
      * The query was re-run.
-     * 
+     *
      * @param cursor the old cursor
      */
     void cursorRequeried(Cursor cursor);
 
     /**
      * Execute the query.
-     * 
+     *
      * @param factory the cursor factory
      * @param bindArgs the parameter values
      * @return the cursor
@@ -40,7 +41,7 @@ public interface H2CursorDriver {
 
     /**
      * Set the parameter values.
-     * 
+     *
      * @param bindArgs the parameter values.
      */
     void setBindArguments(String[] bindArgs);

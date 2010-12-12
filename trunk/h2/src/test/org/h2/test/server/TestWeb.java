@@ -416,7 +416,7 @@ public class TestWeb extends TestBase {
             try {
                 client.get(url, "logout.do");
             } catch (Exception e) {
-                // the server stopps on logout
+                // the server stops on logout
             }
             t.get();
         } finally {

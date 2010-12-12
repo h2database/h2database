@@ -55,7 +55,7 @@ public class Driver implements java.sql.Driver {
             if (!acceptsURL(url)) {
                 return null;
             }
-            Connection c = DbUpgrade.connctOrUpgrade(url, info);
+            Connection c = DbUpgrade.connectOrUpgrade(url, info);
             if (c != null) {
                 return c;
             }

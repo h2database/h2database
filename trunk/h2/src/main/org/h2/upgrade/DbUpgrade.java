@@ -45,7 +45,7 @@ public class DbUpgrade {
      * @param info the properties
      * @return the connection if connected with the old version (NO_UPGRADE)
      */
-    public static Connection connctOrUpgrade(String url, Properties info) throws SQLException {
+    public static Connection connectOrUpgrade(String url, Properties info) throws SQLException {
         if (!upgradeClassesPresent) {
             return null;
         }

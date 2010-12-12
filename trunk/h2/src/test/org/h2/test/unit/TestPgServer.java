@@ -145,7 +145,7 @@ public class TestPgServer extends TestBase {
         assertFalse(rs.next());
         rs.close();
 
-        rs = stat.executeQuery("select currtid2('x', 1)");
+        rs = stat.executeQuery("select currTid2('x', 1)");
         rs.next();
         assertEquals(1, rs.getInt(1));
 

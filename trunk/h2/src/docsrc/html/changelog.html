@@ -31,13 +31,13 @@ Change Log
 </li><li>The INSERT optimizations (INSERT ... DIRECT SORTED SELECT) were not parsed correctly when using a column list.
 </li><li>H2 Console: the tables and columns are now listed for SQLite as well.
 </li><li>H2 Console: improved autocomplete feature (also simplified the source code for this feature).
-</li><li>The DbStarter servlet context listener now starts the server before opening a connection,
+</li><li>Issue 260: the DbStarter servlet context listener now starts the server before opening a connection,
     so that connecting using the server mode works.
 </li><li>The Shell tool can now enable, disable, and display the current autocommit mode.
-</li><li>There is a limitation in the cluster mode:
+</li><li>Issue 259: there is a limitation in the cluster mode:
     The SQL statement SET AUTOCOMMIT FALSE doesn't work.
     To disable autocommit, the method Connection.setAutoCommit(false) needs to be called.
-    This is now documented. See also issue 259.
+    This is now documented.
 </li><li>Connection pool / DataSource: a NullPointerException was thrown when
     using a database URL that doesn't start with "jdbc:h2:".
 </li><li>Using the java.sql.Blob or java.sql.Clob interfaces could throw the wrong
@@ -74,7 +74,7 @@ when "LOBs in database" is enabled).
 </li><li>When concurrently preparing many statements with a subquery, in some cases the query didn't run
     (Column "..." must be in the GROUP BY list).
 </li><li>CallableStatement: now the syntax "{? = CALL...}" is supported as well.
-</li><li>Lob in databases: two small BLOB or CLOB values were always considered equal.
+</li><li>Issue Lob in databases: two small BLOB or CLOB values were always considered equal.
     This also affected unique indexes.
 </li><li>The shutdown hook is (re-) enabled by default even for H2 version 1.3.x.
 </li><li>When creating a database from a recovery script, the same user can now be used

@@ -1,7 +1,8 @@
 /*
- * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License, Version
- * 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+ * Copyright 2004-2010 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.android;
 
@@ -18,7 +19,7 @@ public class H2Query extends H2Program {
 
     /**
      * Set the specified parameter value.
-     * 
+     *
      * @param index the parameter index (0, 1,...)
      * @param value the new value
      */
@@ -28,7 +29,7 @@ public class H2Query extends H2Program {
 
     /**
      * Set the specified parameter value.
-     * 
+     *
      * @param index the parameter index (0, 1,...)
      * @param value the new value
      */
@@ -38,7 +39,7 @@ public class H2Query extends H2Program {
 
     /**
      * Set the specified parameter to NULL.
-     * 
+     *
      * @param index the parameter index (0, 1,...)
      */
     public void bindNull(int index) {
@@ -47,7 +48,7 @@ public class H2Query extends H2Program {
 
     /**
      * Set the specified parameter value.
-     * 
+     *
      * @param index the parameter index (0, 1,...)
      * @param value the new value
      */

@@ -23,7 +23,7 @@ public class H2QueryBuilder {
     /**
      * Append the column to the string builder. The columns are separated by
      * comma.
-     * 
+     *
      * @param s the target string builder
      * @param columns the columns
      */
@@ -38,7 +38,7 @@ public class H2QueryBuilder {
 
     /**
      * Return the SELECT statement for the given parameters.
-     * 
+     *
      * @param distinct if only distinct rows should be returned
      * @param tables the list of tables
      * @param columns the list of columns
@@ -78,7 +78,7 @@ public class H2QueryBuilder {
 
     /**
      * Append the text to the where clause.
-     * 
+     *
      * @param inWhere the text to append
      */
     void appendWhere(CharSequence inWhere) {
@@ -87,7 +87,7 @@ public class H2QueryBuilder {
 
     /**
      * Append the text to the where clause. The text is escaped.
-     * 
+     *
      * @param inWhere the text to append
      */
     void appendWhereEscapeString(String inWhere) {
@@ -96,7 +96,7 @@ public class H2QueryBuilder {
 
     /**
      * Return the SELECT UNION statement for the given parameters.
-     * 
+     *
      * @param projectionIn TODO
      * @param selection TODO
      * @param selectionArgs TODO
@@ -113,7 +113,7 @@ public class H2QueryBuilder {
 
     /**
      * Return the SELECT UNION statement for the given parameters.
-     * 
+     *
      * @param subQueries TODO
      * @param orderBy the order by list or null
      * @param limit the limit or null
@@ -126,7 +126,7 @@ public class H2QueryBuilder {
 
     /**
      * Return the SELECT UNION statement for the given parameters.
-     * 
+     *
      * @param typeDiscriminatorColumn TODO
      * @param unionColumns TODO
      * @param columnsPresentInTable TODO
@@ -147,7 +147,7 @@ public class H2QueryBuilder {
 
     /**
      * Get the list of tables.
-     * 
+     *
      * @return the list of tables
      */
     String getTables() {
@@ -156,7 +156,7 @@ public class H2QueryBuilder {
 
     /**
      * Run the query for the given parameters.
-     * 
+     *
      * @param db the connection
      * @param projectionIn TODO
      * @param selection TODO
@@ -173,7 +173,7 @@ public class H2QueryBuilder {
 
     /**
      * Run the query for the given parameters.
-     * 
+     *
      * @param db the connection
      * @param projectionIn TODO
      * @param selection TODO
@@ -191,7 +191,7 @@ public class H2QueryBuilder {
 
     /**
      * Set the cursor factory.
-     * 
+     *
      * @param factory the new value
      */
     void setCursorFactory(H2Database.CursorFactory factory) {
@@ -200,7 +200,7 @@ public class H2QueryBuilder {
 
     /**
      * Enable or disable the DISTINCT flag.
-     * 
+     *
      * @param distinct the new value
      */
     void setDistinct(boolean distinct) {
@@ -209,7 +209,7 @@ public class H2QueryBuilder {
 
     /**
      * TODO
-     * 
+     *
      * @param columnMap TODO
      */
     void setProjectionMap(Map<String, String> columnMap) {
@@ -218,7 +218,7 @@ public class H2QueryBuilder {
 
     /**
      * Set the list of tables.
-     * 
+     *
      * @param inTables the list of tables
      */
     void setTables(String inTables) {

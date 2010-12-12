@@ -32,7 +32,7 @@ public class H2Statement extends H2Program {
 
     /**
      * Execute the insert statement and return the id of the inserted row.
-     * 
+     *
      * @return the id of the inserted row
      */
     public long executeInsert() {
@@ -42,7 +42,7 @@ public class H2Statement extends H2Program {
     /**
      * Execute the query and return the value of the first column and row as a
      * long.
-     * 
+     *
      * @return the value
      */
     public long simpleQueryForLong() {
@@ -52,7 +52,7 @@ public class H2Statement extends H2Program {
     /**
      * Execute the query and return the value of the first column and row as a
      * string.
-     * 
+     *
      * @return the value
      */
     public String simpleQueryForString() {

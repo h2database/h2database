@@ -397,6 +397,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility: Java functions with SQLJ Part1 http://www.acm.org/sigmod/record/issues/9912/standards.pdf.gz
 </li><li>Compatibility: Java functions with SQL/PSM (Persistent Stored Modules) - need to find the documentation.
 </li><li>CACHE_SIZE: automatically use a fraction of Runtime.maxMemory - maybe automatically the second level cache.
+</li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
 </li><li>Support date/time/timestamp as documented in http://en.wikipedia.org/wiki/ISO_8601
 </li><li>PostgreSQL compatibility: when in PG mode, treat BYTEA data like PG.
 </li><li>Support =ANY(array) as in PostgreSQL. See also http://www.postgresql.org/docs/8.0/interactive/arrays.html
@@ -441,7 +442,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Scripting language support (Javascript).
 </li><li>The network client should better detect if the server is not an H2 server and fail early.
 </li><li>H2 Console: support CLOB/BLOB upload.
-</li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
 </li><li>Database file lock: detect hibernate / standby / very slow threads (compare system time).
 </li><li>Automatic detection of redundant indexes.
 </li><li>Maybe reject join without "on" (except natural join).

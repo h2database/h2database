@@ -9,13 +9,14 @@ package org.h2.store;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import org.h2.util.IOUtils;
 
 /**
  * This class is backed by an input stream and supports reading values and
  * variable size data.
  */
-public class DataReader {
+public class DataReader extends Reader {
 
     private static final EOFException EOF = new EOFException();
     private InputStream in;
@@ -34,7 +35,7 @@ public class DataReader {
      *
      * @return the byte
      */
-    public byte read() throws IOException {
+    public byte readByte() throws IOException {
         int x = in.read();
         if (x < 0) {
             throw EOF;
@@ -48,26 +49,26 @@ public class DataReader {
      * @return the value
      */
     public int readVarInt() throws IOException {
-        int b = read();
+        int b = readByte();
         if (b >= 0) {
             return b;
         }
         int x = b & 0x7f;
-        b = read();
+        b = readByte();
         if (b >= 0) {
             return x | (b << 7);
         }
         x |= (b & 0x7f) << 7;
-        b = read();
+        b = readByte();
         if (b >= 0) {
             return x | (b << 14);
         }
         x |= (b & 0x7f) << 14;
-        b = read();
+        b = readByte();
         if (b >= 0) {
             return x | b << 21;
         }
-        return x | ((b & 0x7f) << 21) | (read() << 28);
+        return x | ((b & 0x7f) << 21) | (readByte() << 28);
     }
 
     /**
@@ -76,13 +77,13 @@ public class DataReader {
      * @return the value
      */
     public long readVarLong() throws IOException {
-        long x = read();
+        long x = readByte();
         if (x >= 0) {
             return x;
         }
         x &= 0x7f;
         for (int s = 7;; s += 7) {
-            long b = read();
+            long b = readByte();
             x |= (b & 0x7f) << s;
             if (b >= 0) {
                 return x;
@@ -136,16 +137,42 @@ public class DataReader {
     private String readString(int len) throws IOException {
         char[] chars = new char[len];
         for (int i = 0; i < len; i++) {
-            int x = read() & 0xff;
-            if (x < 0x80) {
-                chars[i] = (char) x;
-            } else if (x >= 0xe0) {
-                chars[i] = (char) (((x & 0xf) << 12) + ((read() & 0x3f) << 6) + (read() & 0x3f));
-            } else {
-                chars[i] = (char) (((x & 0x1f) << 6) + (read() & 0x3f));
-            }
+            chars[i] = readChar();
         }
         return new String(chars);
+    }
+
+    /**
+     * Read one character from the input stream.
+     *
+     * @param in the input stream
+     * @return the character
+     */
+    private char readChar() throws IOException {
+        int x = readByte() & 0xff;
+        if (x < 0x80) {
+            return (char) x;
+        } else if (x >= 0xe0) {
+            return (char) (((x & 0xf) << 12) + ((readByte() & 0x3f) << 6) + (readByte() & 0x3f));
+        } else {
+            return (char) (((x & 0x1f) << 6) + (readByte() & 0x3f));
+        }
+    }
+
+    public void close() throws IOException {
+        // ignore
+    }
+
+    public int read(char[] buff, int off, int len) throws IOException {
+        int i = 0;
+        try {
+            for (; i < len; i++) {
+                buff[i] = readChar();
+            }
+            return len;
+        } catch (EOFException e) {
+            return i;
+        }
     }
 
 }

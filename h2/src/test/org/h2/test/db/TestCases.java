@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testUnicode();
         testOuterJoin();
         testCommentOnColumnWithSchemaEqualDatabase();
         testColumnWithConstraintAndComment();
@@ -84,6 +85,27 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testUnicode() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id identity, name text)");
+        String[] data = { "\uff1e", "\ud848\udf1e" };
+        PreparedStatement prep = conn.prepareStatement("insert into test(name) values(?)");
+        for (int i = 0; i < data.length; i++) {
+            prep.setString(1, data[i]);
+            prep.execute();
+        }
+        prep = conn.prepareStatement("select * from test order by id");
+        ResultSet rs = prep.executeQuery();
+        for (int i = 0; i < data.length; i++) {
+            assertTrue(rs.next());
+            assertEquals(data[i], rs.getString(2));
+        }
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testCheckConstraintWithFunction() throws SQLException {

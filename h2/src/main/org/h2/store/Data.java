@@ -8,6 +8,10 @@
  * but stored in reverse order (least significant bits in the first byte).
  */
 package org.h2.store;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
@@ -237,6 +241,25 @@ public class Data {
         byte[] buff = data;
         for (int i = 0; i < len; i++) {
             int c = s.charAt(i);
+            if (c < 0x80) {
+                buff[p++] = (byte) c;
+            } else if (c >= 0x800) {
+                buff[p++] = (byte) (0xe0 | (c >> 12));
+                buff[p++] = (byte) (((c >> 6) & 0x3f));
+                buff[p++] = (byte) (c & 0x3f);
+            } else {
+                buff[p++] = (byte) (0xc0 | (c >> 6));
+                buff[p++] = (byte) (c & 0x3f);
+            }
+        }
+        pos = p;
+    }
+
+    private void writeStringWithoutLength(char[] chars, int len) {
+        int p = pos;
+        byte[] buff = data;
+        for (int i = 0; i < len; i++) {
+            int c = chars[i];
             if (c < 0x80) {
                 buff[p++] = (byte) c;
             } else if (c >= 0x800) {
@@ -1093,6 +1116,20 @@ public class Data {
         pos = len;
         if (data.length < len) {
             checkCapacity(len - data.length);
+        }
+    }
+
+    public static void copyString(Reader source, OutputStream target) throws IOException {
+        char[] buff = new char[Constants.IO_BUFFER_SIZE];
+        Data d = new Data(null, new byte[3 * Constants.IO_BUFFER_SIZE]);
+        while (true) {
+            int l = source.read(buff);
+            if (l < 0) {
+                break;
+            }
+            d.writeStringWithoutLength(buff, l);
+            target.write(d.data, 0, d.pos);
+            d.reset();
         }
     }
 

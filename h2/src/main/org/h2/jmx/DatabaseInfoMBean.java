@@ -10,7 +10,7 @@ package org.h2.jmx;
  * Information and management operations for the given database.
  * @h2.resource
  *
- * @author <a href="mailto:edong@adconion.com">Eric Dong</a>
+ * @author Eric Dong
  * @author Thomas Mueller
  */
 public interface DatabaseInfoMBean {

@@ -26,7 +26,7 @@ import org.h2.util.New;
 /**
  * The MBean implementation.
  *
- * @author <a href="mailto:edong@adconion.com">Eric Dong</a>
+ * @author Eric Dong
  * @author Thomas Mueller
  */
 public class DatabaseInfo implements DatabaseInfoMBean {

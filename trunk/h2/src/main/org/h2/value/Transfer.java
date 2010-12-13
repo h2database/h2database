@@ -8,15 +8,10 @@ package org.h2.value;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.Writer;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -31,9 +26,10 @@ import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
+import org.h2.store.Data;
+import org.h2.store.DataReader;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.ExactUTF8InputStreamReader;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
@@ -392,20 +388,7 @@ public class Transfer {
             }
             writeLong(length);
             Reader reader = v.getReader();
-            // below, writer.flush needs to be called to ensure the buffer is written
-            // but, this will also flush the output stream, and this slows things down
-            // so construct an output stream that will ignore this chained flush call
-            OutputStream out2 = new FilterOutputStream(out) {
-                public void flush() {
-                    // do nothing
-                }
-            };
-            Writer writer = new BufferedWriter(new OutputStreamWriter(out2, Constants.UTF8));
-            long written = IOUtils.copyAndCloseInput(reader, writer);
-            if (written != length) {
-                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "length:" + length + " written:" + written);
-            }
-            writer.flush();
+            Data.copyString(reader, out);
             writeInt(LOB_MAGIC);
             break;
         }
@@ -519,7 +502,7 @@ public class Transfer {
         }
         case Value.CLOB: {
             long length = readLong();
-            Value v = session.getDataHandler().getLobStorage().createClob(new ExactUTF8InputStreamReader(in), length);
+            Value v = session.getDataHandler().getLobStorage().createClob(new DataReader(in), length);
             int magic = readInt();
             if (magic != LOB_MAGIC) {
                 throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);

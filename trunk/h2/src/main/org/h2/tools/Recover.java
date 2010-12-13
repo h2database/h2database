@@ -562,7 +562,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("---- Transaction log ----------");
         CompressLZF compress = new CompressLZF();
         while (true) {
-            int x = in.read();
+            int x = in.readByte();
             if (x < 0) {
                 break;
             }

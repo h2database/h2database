@@ -267,7 +267,7 @@ public class PageLog {
         try {
             int pos = 0;
             while (true) {
-                int x = in.read();
+                int x = in.readByte();
                 if (x < 0) {
                     break;
                 }

@@ -69,6 +69,7 @@ public class PageBtreeIndex extends PageIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("opened {0} rows: {1}", getName() , rowCount);
         }
+        memoryPerPage = (Constants.MEMORY_PAGE_DATA + store.getPageSize()) >> 2;
     }
 
     public void add(Session session, Row row) {

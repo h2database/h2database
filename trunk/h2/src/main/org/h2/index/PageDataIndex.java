@@ -80,9 +80,6 @@ public class PageDataIndex extends PageIndex {
             trace.debug("{0} opened rows: {1}", this, rowCount);
         }
         table.setRowCount(rowCount);
-        // estimate the memory usage as follows:
-        // the less column, the more memory is required,
-        // because the more rows fit in a page
         memoryPerPage = (Constants.MEMORY_PAGE_DATA + store.getPageSize()) >> 2;
     }
 

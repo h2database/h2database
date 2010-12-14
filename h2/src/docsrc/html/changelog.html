@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Server: CLOB data with unicode characters between character code 0xd800 and 0xdfff
+<ul><li>More accurate calculation of variance and standard deviation for large number of samples with low variance
+    (now using Welford's method).
+</li><li>Server: CLOB data with unicode characters between character code 0xd800 and 0xdfff
     were not transferred correctly. In many cases, the thread was stuck afterwards.
 </li><li>Issue 264: the Hibernate dialect in src/tools was removed because it is outdated.
 </li><li>Cache size limit could be exceeded for certain queries, leading to an OutOfMemoryError

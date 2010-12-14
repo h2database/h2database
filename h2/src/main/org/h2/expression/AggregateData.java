@@ -31,7 +31,7 @@ class AggregateData {
     private IntIntHashMap distinctHashes;
     private ValueHashMap<AggregateData> distinctValues;
     private Value value;
-    private double sum, vpn;
+    private double m2, mean;
     private ArrayList<Value> list;
 
     AggregateData(int aggregateType, int dataType) {
@@ -55,7 +55,7 @@ class AggregateData {
             int size = distinctHashes.size();
             if (size > Constants.SELECTIVITY_DISTINCT_COUNT) {
                 distinctHashes = new IntIntHashMap();
-                sum += size;
+                m2 += size;
             }
             int hash = v.hashCode();
             // the value -1 is not supported
@@ -117,16 +117,17 @@ class AggregateData {
         case Aggregate.STDDEV_SAMP:
         case Aggregate.VAR_POP:
         case Aggregate.VAR_SAMP: {
+            // Using Welford's method, see also
             // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
             // http://www.johndcook.com/standard_deviation.html
             double x = v.getDouble();
             if (count == 1) {
-                sum = x;
-                vpn = 0;
+                mean = x;
+                m2 = 0;
             } else {
-                double xs = sum - (x * (count - 1));
-                vpn += (xs * xs) / count / (count - 1);
-                sum += x;
+                double delta = x - mean;
+                mean += delta / count;
+                m2 += delta * (x - mean);
             }
             break;
         }
@@ -174,9 +175,9 @@ class AggregateData {
             if (count == 0) {
                 s = 0;
             } else {
-                sum += distinctHashes.size();
-                sum = 100 * sum / count;
-                s = (int) sum;
+                m2 += distinctHashes.size();
+                m2 = 100 * m2 / count;
+                s = (int) m2;
                 s = s <= 0 ? 1 : s > 100 ? 100 : s;
             }
             v = ValueInt.get(s);
@@ -204,28 +205,28 @@ class AggregateData {
             if (count < 1) {
                 return ValueNull.INSTANCE;
             }
-            v = ValueDouble.get(Math.sqrt(vpn / count));
+            v = ValueDouble.get(Math.sqrt(m2 / count));
             break;
         }
         case Aggregate.STDDEV_SAMP: {
             if (count < 2) {
                 return ValueNull.INSTANCE;
             }
-            v = ValueDouble.get(Math.sqrt(vpn / (count - 1)));
+            v = ValueDouble.get(Math.sqrt(m2 / (count - 1)));
             break;
         }
         case Aggregate.VAR_POP: {
             if (count < 1) {
                 return ValueNull.INSTANCE;
             }
-            v = ValueDouble.get(vpn / count);
+            v = ValueDouble.get(m2 / count);
             break;
         }
         case Aggregate.VAR_SAMP: {
             if (count < 2) {
                 return ValueNull.INSTANCE;
             }
-            v = ValueDouble.get(vpn / (count - 1));
+            v = ValueDouble.get(m2 / (count - 1));
             break;
         }
         default:

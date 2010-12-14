@@ -7509,6 +7509,12 @@ select stddev_pop(x) s_px, stddev_samp(x) s_sx, var_pop(x) v_px, var_samp(x) v_s
 stddev_pop(y) s_py, stddev_samp(y) s_sy, var_pop(y) v_py, var_samp(y) v_sy from t;
 > ok
 
+select var(100000000.1) z from system_range(1, 1000000);
+> Z
+> ---
+> 0.0
+> rows: 1
+
 select * from s;
 > S_PX S_SX V_PX V_SX S_PY S_SY V_PY V_SY
 > ---- ---- ---- ---- ---- ---- ---- ----
@@ -7561,9 +7567,9 @@ insert into t values(1000000016, 16);
 > update count: 1
 
 select * from s;
-> S_PX              S_SX              V_PX               V_SX S_PY              S_SY              V_PY               V_SY
-> ----------------- ----------------- ------------------ ---- ----------------- ----------------- ------------------ ----
-> 4.874423042781576 5.449770637375485 23.759999999999998 29.7 4.874423042781576 5.449770637375485 23.759999999999998 29.7
+> S_PX              S_SX              V_PX              V_SX               S_PY              S_SY              V_PY  V_SY
+> ----------------- ----------------- ----------------- ------------------ ----------------- ----------------- ----- ------------------
+> 4.874423036912116 5.449770630813229 23.75999994277954 29.699999928474426 4.874423042781577 5.449770637375485 23.76 29.700000000000003
 > rows: 1
 
 select stddev_pop(distinct x) s_px, stddev_samp(distinct x) s_sx, var_pop(distinct x) v_px, var_samp(distinct x) v_sx,

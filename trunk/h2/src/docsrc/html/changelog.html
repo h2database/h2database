@@ -21,6 +21,8 @@ Change Log
 <ul><li>Server: CLOB data with unicode characters between character code 0xd800 and 0xdfff
     were not transferred correctly. In many cases, the thread was stuck afterwards.
 </li><li>Issue 264: the Hibernate dialect in src/tools was removed because it is outdated.
+</li><li>Cache size limit could be exceeded for certain queries, leading to an OutOfMemoryError
+    in some cases. Fixed.
 </li></ul>
 
 <h2>Version 1.3.148 Beta (2010-12-12)</h2>

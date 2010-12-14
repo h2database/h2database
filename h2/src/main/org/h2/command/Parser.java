@@ -3422,7 +3422,8 @@ public class Parser {
         } else if (readIf("NULL")) {
             column.setNullable(true);
         } else {
-            column.setNullable(defaultNullable);
+            // domains may be defined as not nullable
+            column.setNullable(defaultNullable & column.isNullable());
         }
         if (readIf("AS")) {
             if (isIdentity) {

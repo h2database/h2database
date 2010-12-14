@@ -1,4 +1,19 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create domain x as int not null;
+> ok
+
+create table test(id x);
+> ok
+
+insert into test values(null);
+> exception
+
+drop table test;
+> ok
+
+drop domain x;
+> ok
+
 create table test(id int primary key);
 > ok
 
@@ -2480,13 +2495,13 @@ create domain string_x as string3;
 create memory table test(a string, b string1, c string2, d string3);
 > ok
 
-insert into test() values();
+insert into test(c) values('x');
 > update count: 1
 
 select * from test;
-> A B    C    D
-> - ---- ---- -------
->   null null <empty>
+> A B    C D
+> - ---- - -------
+>   null x <empty>
 > rows: 1
 
 select DOMAIN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, CHECK_CONSTRAINT, REMARKS, SQL from information_schema.domains;
@@ -2515,7 +2530,7 @@ script nodata nopasswords nosettings;
 > CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>';
 > CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>';
 > CREATE MEMORY TABLE PUBLIC.ADDRESS(     ID INT NOT NULL,     NAME VARCHAR(200) CHECK (POSITION('@', NAME) > 1),     NAME2 VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) );
-> CREATE MEMORY TABLE PUBLIC.TEST(     A VARCHAR(255) DEFAULT '',     B VARCHAR,     C VARCHAR,     D VARCHAR DEFAULT '<empty>' );
+> CREATE MEMORY TABLE PUBLIC.TEST(     A VARCHAR(255) DEFAULT '' NOT NULL,     B VARCHAR,     C VARCHAR NOT NULL,     D VARCHAR DEFAULT '<empty>' );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 13
 

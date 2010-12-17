@@ -334,6 +334,9 @@ public class DbException extends RuntimeException {
      * @return the IO exception
      */
     public static IOException convertToIOException(Throwable e) {
+        if (e instanceof IOException) {
+            return (IOException) e;
+        }
         if (e instanceof JdbcSQLException) {
             JdbcSQLException e2 = (JdbcSQLException) e;
             if (e2.getOriginalCause() != null) {

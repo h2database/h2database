@@ -951,9 +951,9 @@ public class Select extends Query {
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
         Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
-        StatementBuilder buff = new StatementBuilder("SELECT ");
+        StatementBuilder buff = new StatementBuilder("SELECT");
         if (distinct) {
-            buff.append("DISTINCT ");
+            buff.append(" DISTINCT");
         }
         for (int i = 0; i < visibleColumnCount; i++) {
             buff.appendExceptFirst(",");

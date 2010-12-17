@@ -259,7 +259,16 @@ public class TestScript extends TestBase {
         if (s == null) {
             return "null";
         }
-        return s.replace('\n', ' ');
+        s = s.replace('\n', ' ');
+        s = StringUtils.replaceAll(s, "    ", " ");
+        while (true) {
+            String s2 = StringUtils.replaceAll(s, "  ", " ");
+            if (s2.length() == s.length()) {
+                break;
+            }
+            s = s2;
+        }
+        return s;
     }
 
     private void writeResultSet(String sql, ResultSet rs) throws Exception {

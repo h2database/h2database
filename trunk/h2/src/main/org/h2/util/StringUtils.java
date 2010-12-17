@@ -582,20 +582,23 @@ public class StringUtils {
 
     /**
      * Indents a string with 4 spaces.
+     *
      * @param s the string
      * @return the indented string
      */
-    private static String indent(String s) {
-        return indent(s, 4);
+    public static String indent(String s) {
+        return indent(s, 4, true);
     }
 
     /**
      * Indents a string with spaces.
+     *
      * @param s the string
      * @param spaces the number of spaces
+     * @param newline append a newline if there is none
      * @return the indented string
      */
-    private static String indent(String s, int spaces) {
+    public static String indent(String s, int spaces, boolean newline) {
         StringBuilder buff = new StringBuilder(s.length() + spaces);
         for (int i = 0; i < s.length();) {
             for (int j = 0; j < spaces; j++) {
@@ -606,7 +609,7 @@ public class StringUtils {
             buff.append(s.substring(i, n));
             i = n;
         }
-        if (!s.endsWith("\n")) {
+        if (newline && !s.endsWith("\n")) {
             buff.append('\n');
         }
         return buff.toString();

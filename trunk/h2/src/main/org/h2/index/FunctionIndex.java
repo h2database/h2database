@@ -91,4 +91,8 @@ public class FunctionIndex extends BaseIndex {
         return functionTable.getRowCountApproximation();
     }
 
+    public String getPlanSQL() {
+        return "function";
+    }
+
 }

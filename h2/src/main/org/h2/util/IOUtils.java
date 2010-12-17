@@ -48,7 +48,7 @@ public class IOUtils {
             try {
                 trace("closeSilently", null, out);
                 out.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -64,12 +64,16 @@ public class IOUtils {
      * @throws IOException if an IO exception occurred while skipping
      */
     public static void skipFully(InputStream in, long skip) throws IOException {
-        while (skip > 0) {
-            long skipped = in.skip(skip);
-            if (skipped <= 0) {
-                throw new EOFException();
+        try {
+            while (skip > 0) {
+                long skipped = in.skip(skip);
+                if (skipped <= 0) {
+                    throw new EOFException();
+                }
+                skip -= skipped;
             }
-            skip -= skipped;
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         }
     }
 
@@ -83,12 +87,16 @@ public class IOUtils {
      * @throws IOException if an IO exception occurred while skipping
      */
     public static void skipFully(Reader reader, long skip) throws IOException {
-        while (skip > 0) {
-            long skipped = reader.skip(skip);
-            if (skipped <= 0) {
-                throw new EOFException();
+        try {
+            while (skip > 0) {
+                long skipped = reader.skip(skip);
+                if (skipped <= 0) {
+                    throw new EOFException();
+                }
+                skip -= skipped;
             }
-            skip -= skipped;
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         }
     }
 
@@ -105,6 +113,8 @@ public class IOUtils {
             long len = copyAndCloseInput(in, out);
             out.close();
             return len;
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         } finally {
             closeSilently(out);
         }
@@ -121,6 +131,8 @@ public class IOUtils {
     public static long copyAndCloseInput(InputStream in, OutputStream out) throws IOException {
         try {
             return copy(in, out);
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         } finally {
             closeSilently(in);
         }
@@ -135,17 +147,21 @@ public class IOUtils {
      * @return the number of bytes copied
      */
     public static long copy(InputStream in, OutputStream out) throws IOException {
-        long written = 0;
-        byte[] buffer = new byte[4 * 1024];
-        while (true) {
-            int len = in.read(buffer);
-            if (len < 0) {
-                break;
+        try {
+            long written = 0;
+            byte[] buffer = new byte[4 * 1024];
+            while (true) {
+                int len = in.read(buffer);
+                if (len < 0) {
+                    break;
+                }
+                out.write(buffer, 0, len);
+                written += len;
             }
-            out.write(buffer, 0, len);
-            written += len;
+            return written;
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         }
-        return written;
     }
 
     /**
@@ -157,8 +173,8 @@ public class IOUtils {
      * @return the number of characters copied
      */
     public static long copyAndCloseInput(Reader in, Writer out) throws IOException {
-        long written = 0;
         try {
+            long written = 0;
             char[] buffer = new char[4 * 1024];
             while (true) {
                 int len = in.read(buffer);
@@ -168,10 +184,12 @@ public class IOUtils {
                 out.write(buffer, 0, len);
                 written += len;
             }
+            return written;
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         } finally {
             in.close();
         }
-        return written;
     }
 
     /**
@@ -184,7 +202,7 @@ public class IOUtils {
             try {
                 trace("closeSilently", null, in);
                 in.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -199,7 +217,7 @@ public class IOUtils {
         if (reader != null) {
             try {
                 reader.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -215,7 +233,7 @@ public class IOUtils {
             try {
                 writer.flush();
                 writer.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -247,6 +265,8 @@ public class IOUtils {
                 length -= len;
             }
             return out.toByteArray();
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         } finally {
             in.close();
         }
@@ -295,18 +315,22 @@ public class IOUtils {
      * @return the number of bytes read, 0 meaning EOF
      */
     public static int readFully(InputStream in, byte[] buffer, int off, int max) throws IOException {
-        int len = Math.min(max, buffer.length);
-        int result = 0;
-        while (len > 0) {
-            int l = in.read(buffer, off, len);
-            if (l < 0) {
-                break;
+        try {
+            int len = Math.min(max, buffer.length);
+            int result = 0;
+            while (len > 0) {
+                int l = in.read(buffer, off, len);
+                if (l < 0) {
+                    break;
+                }
+                result += l;
+                off += l;
+                len -= l;
             }
-            result += l;
-            off += l;
-            len -= l;
+            return result;
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         }
-        return result;
     }
 
     /**
@@ -320,22 +344,26 @@ public class IOUtils {
      * @return the number of characters read
      */
     public static int readFully(Reader in, char[] buffer, int max) throws IOException {
-        int off = 0, len = Math.min(max, buffer.length);
-        if (len == 0) {
-            return 0;
-        }
-        while (true) {
-            int l = len - off;
-            if (l <= 0) {
-                break;
+        try {
+            int off = 0, len = Math.min(max, buffer.length);
+            if (len == 0) {
+                return 0;
             }
-            l = in.read(buffer, off, l);
-            if (l < 0) {
-                break;
+            while (true) {
+                int l = len - off;
+                if (l <= 0) {
+                    break;
+                }
+                l = in.read(buffer, off, l);
+                if (l < 0) {
+                    break;
+                }
+                off += l;
             }
-            off += l;
+            return off <= 0 ? -1 : off;
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
         }
-        return off <= 0 ? -1 : off;
     }
 
     /**
@@ -713,7 +741,7 @@ public class IOUtils {
                 return false;
             }
             return canonicalFileName.startsWith(canonicalDirName);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return false;
         }
     }

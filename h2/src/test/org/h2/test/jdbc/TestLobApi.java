@@ -6,10 +6,14 @@
  */
 package org.h2.test.jdbc;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.Writer;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -37,6 +41,8 @@ public class TestLobApi extends TestBase {
 
     public void test() throws Exception {
         deleteDb("lob");
+        testInputStreamThrowsException(true);
+        testInputStreamThrowsException(false);
         conn = (JdbcConnection) getConnection("lob");
         stat = conn.createStatement();
         stat.execute("create table test(id int, x blob)");
@@ -50,6 +56,69 @@ public class TestLobApi extends TestBase {
         testClob(1);
         testClob(100);
         testClob(100000);
+        stat.execute("drop table test");
+        conn.close();
+    }
+
+    private void testInputStreamThrowsException(final boolean ioException) throws Exception {
+        Connection conn = getConnection("lob");
+        stat = conn.createStatement();
+        stat.execute("create table test(id identity, c clob, b blob)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(null, ?, ?)");
+        try {
+            prep.setCharacterStream(1, new Reader() {
+                int pos;
+                public int read(char[] cbuf, int off, int len) throws IOException {
+                    pos += len;
+                    if (pos > 100001) {
+                        if (ioException) {
+                            throw new IOException("");
+                        } else {
+                            throw new IllegalStateException();
+                        }
+                    }
+                    return len;
+                }
+                public void close() throws IOException {
+                    // nothing to do
+                }
+            });
+            fail();
+        } catch (Exception e) {
+            // expected
+        }
+        prep.setString(1, new String(new char[10000]));
+        prep.setBytes(2, new byte[0]);
+        prep.execute();
+        prep.setString(1, "");
+        try {
+            prep.setBinaryStream(2, new InputStream() {
+                int pos;
+                public int read() throws IOException {
+                    pos++;
+                    if (pos > 100001) {
+                        if (ioException) {
+                            throw new IOException("");
+                        } else {
+                            throw new IllegalStateException();
+                        }
+                    }
+                    return 0;
+                }
+            });
+            fail();
+        } catch (Exception e) {
+            // expected
+        }
+        prep.setBytes(2, new byte[10000]);
+        prep.execute();
+        ResultSet rs = stat.executeQuery("select c, b from test order by id");
+        rs.next();
+        assertEquals(new String(new char[10000]), rs.getString(1));
+        assertEquals(new byte[0], rs.getBytes(2));
+        rs.next();
+        assertEquals("", rs.getString(1));
+        assertEquals(new byte[10000], rs.getBytes(2));
         stat.execute("drop table test");
         conn.close();
     }

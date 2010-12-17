@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import org.h2.test.TestBase;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.value.ValueInt;
 
 /**
  * Tests if Tomcat would clear static fields when re-loading a web application.
@@ -28,9 +29,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.util.StringUtils.softCache",
         "org.h2.value.Value.softCache",
         "org.h2.jdbcx.JdbcDataSourceFactory.cachedTraceSystem",
-        "org.h2.store.fs.FileObjectMemory.cachedCompressedEmptyBlock",
         "org.h2.tools.CompressTool.cachedBuffer",
-        "org.h2.util.MemoryUtils.reserveMemory",
         "org.h2.util.NetUtils.cachedLocalAddress",
         "org.h2.util.MathUtils.cachedSecureRandom",
         "org.h2.value.CompareMode.lastUsed",
@@ -48,17 +47,35 @@ public class TestClearReferences extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws Exception {
-        // initialize the known classes
-        MathUtils.secureRandomLong();
-
+    private void clear() throws Exception {
         ArrayList<Class <?>> classes = New.arrayList();
         check(classes, new File("bin/org/h2"));
+        check(classes, new File("temp/org/h2"));
         for (Class<?> clazz : classes) {
             clearClass(clazz);
         }
+    }
+
+    public void test() throws Exception {
+        // initialize the known classes
+        MathUtils.secureRandomLong();
+        ValueInt.get(1);
+        Class.forName("org.h2.store.fs.FileObjectMemoryData");
+
+        clear();
+
         if (hasError) {
             fail("Tomcat may clear the field above when reloading the web app");
+        }
+        for (String s : KNOWN_REFRESHED) {
+            String className = s.substring(0, s.lastIndexOf('.'));
+            String fieldName = s.substring(s.lastIndexOf('.') + 1);
+            Class<?> clazz = Class.forName(className);
+            try {
+                clazz.getDeclaredField(fieldName);
+            } catch (Exception e) {
+                fail(s);
+            }
         }
     }
 

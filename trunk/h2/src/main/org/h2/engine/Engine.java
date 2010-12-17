@@ -28,8 +28,8 @@ import org.h2.util.Utils;
 public class Engine implements SessionFactory {
 
     private static final Engine INSTANCE = new Engine();
+    private static final HashMap<String, Database> DATABASES = New.hashMap();
 
-    private final HashMap<String, Database> databases = New.hashMap();
     private volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
     private boolean jmx;
 
@@ -45,7 +45,7 @@ public class Engine implements SessionFactory {
         if (openNew || ci.isUnnamedInMemory()) {
             database = null;
         } else {
-            database = databases.get(name);
+            database = DATABASES.get(name);
         }
         User user = null;
         boolean opened = false;
@@ -64,7 +64,7 @@ public class Engine implements SessionFactory {
                 database.setMasterUser(user);
             }
             if (!ci.isUnnamedInMemory()) {
-                databases.put(name, database);
+                DATABASES.put(name, database);
             }
         }
         synchronized (database) {
@@ -237,7 +237,7 @@ public class Engine implements SessionFactory {
                 throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
             }
         }
-        databases.remove(name);
+        DATABASES.remove(name);
     }
 
     /**

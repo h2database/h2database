@@ -46,10 +46,10 @@ public class ConditionAndOr extends Condition {
         String sql;
         switch (andOrType) {
         case AND:
-            sql = left.getSQL() + " AND " + right.getSQL();
+            sql = left.getSQL() + "\n    AND " + right.getSQL();
             break;
         case OR:
-            sql = left.getSQL() + " OR " + right.getSQL();
+            sql = left.getSQL() + "\n    OR " + right.getSQL();
             break;
         default:
             throw DbException.throwInternalError("andOrType=" + andOrType);

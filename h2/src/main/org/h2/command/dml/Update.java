@@ -140,14 +140,14 @@ public class Update extends Prepared {
 
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(tableFilter.getPlanSQL(false)).append("\nSET ");
+        buff.append(tableFilter.getPlanSQL(false)).append("\nSET\n    ");
         Table table = tableFilter.getTable();
         int columnCount = table.getColumns().length;
         for (int i = 0; i < columnCount; i++) {
             Expression newExpr = expressions[i];
             if (newExpr != null) {
                 Column column = table.getColumn(i);
-                buff.appendExceptFirst(",\n");
+                buff.appendExceptFirst(",\n    ");
                 buff.append(column.getName()).append(" = ").append(newExpr.getSQL());
             }
         }

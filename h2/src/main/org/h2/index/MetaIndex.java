@@ -97,4 +97,8 @@ public class MetaIndex extends BaseIndex {
         return MetaTable.ROW_COUNT_APPROXIMATION;
     }
 
+    public String getPlanSQL() {
+        return "meta";
+    }
+
 }

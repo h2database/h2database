@@ -15,6 +15,7 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -101,7 +102,7 @@ public class ConditionInSelect extends Condition {
     }
 
     public String getSQL() {
-        return "(" + left.getSQL() + " IN(" + query.getPlanSQL() + "))";
+        return "(" + left.getSQL() + " IN(\n" + StringUtils.indent(query.getPlanSQL(), 4, false) + "))";
     }
 
     public void updateAggregate(Session session) {

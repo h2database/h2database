@@ -616,13 +616,16 @@ public class TableFilter implements ColumnResolver {
             }
         }
         if (nestedJoin != null) {
-            buff.append("(\n");
+            StringBuffer buffNested = new StringBuffer();
             TableFilter n = nestedJoin;
             do {
-                buff.append(n.getPlanSQL(n != nestedJoin));
-                buff.append("\n");
+                buffNested.append(n.getPlanSQL(n != nestedJoin));
+                buffNested.append("\n");
                 n = (TableFilter) n.getJoin();
             } while (n != null);
+
+            buff.append("(\n");
+            buff.append(StringUtils.indent(buffNested.toString(), 4, false));
             buff.append(") ON ");
             if (joinCondition == null) {
                 // need to have a ON expression,
@@ -638,21 +641,24 @@ public class TableFilter implements ColumnResolver {
             buff.append(' ').append(Parser.quoteIdentifier(alias));
         }
         if (index != null) {
-            buff.append(" /* ");
+            buff.append("\n");
             StatementBuilder planBuff = new StatementBuilder();
             planBuff.append(index.getPlanSQL());
             if (indexConditions.size() > 0) {
                 planBuff.append(": ");
                 for (IndexCondition condition : indexConditions) {
-                    planBuff.appendExceptFirst(" AND ");
+                    planBuff.appendExceptFirst("\n    AND ");
                     planBuff.append(condition.getSQL());
                 }
             }
             String plan = StringUtils.quoteRemarkSQL(planBuff.toString());
-            buff.append(plan).append(" */");
+            if (plan.indexOf('\n') >= 0) {
+                plan += "\n";
+            }
+            buff.append(StringUtils.indent("/* " + plan + " */", 4, false));
         }
         if (isJoin) {
-            buff.append(" ON ");
+            buff.append("\n    ON ");
             if (joinCondition == null) {
                 // need to have a ON expression, otherwise the nesting is
                 // unclear
@@ -662,13 +668,13 @@ public class TableFilter implements ColumnResolver {
             }
         }
         if (filterCondition != null) {
-            buff.append(" /* WHERE ");
+            buff.append("\n");
             String condition = StringUtils.unEnclose(filterCondition.getSQL());
-            condition = StringUtils.quoteRemarkSQL(condition);
-            buff.append(condition).append(" */");
+            condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
+            buff.append(StringUtils.indent(condition, 4, false));
         }
         if (scanCount > 0) {
-            buff.append(" /* scanCount: ").append(scanCount).append(" */");
+            buff.append("\n    /* scanCount: ").append(scanCount).append(" */");
         }
         return buff.toString();
     }

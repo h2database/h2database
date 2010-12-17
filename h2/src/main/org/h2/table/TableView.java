@@ -269,7 +269,7 @@ public class TableView extends Table {
 
     public String getSQL() {
         if (isTemporary()) {
-            return "(" + querySQL + ")";
+            return "(\n" + StringUtils.indent(querySQL) + ")";
         }
         return super.getSQL();
     }

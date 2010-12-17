@@ -26,6 +26,12 @@ explain insert into test(id) direct sorted select x from system_range(1, 100);
 > INSERT INTO PUBLIC.TEST(ID) DIRECT SORTED SELECT X FROM SYSTEM_RANGE(1, 100) /* PUBLIC.RANGE_INDEX */
 > rows: 1
 
+explain select * from test limit 10 sample_size 10;
+> PLAN
+> -----------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ LIMIT 10 SAMPLE_SIZE 10
+> rows: 1
+
 drop table test;
 > ok
 
@@ -462,10 +468,10 @@ create memory table test(id int);
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> --------------------------------------------------
+> -----------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > CREATE DOMAIN INT AS VARCHAR;
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID VARCHAR );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID VARCHAR );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 4
 
@@ -816,7 +822,7 @@ script nopasswords nosettings;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------------------------------
 > -- 3 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT,     D DOUBLE,     F FLOAT );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT, D DOUBLE, F FLOAT );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, D, F) VALUES (0, POWER(0, -1), POWER(0, -1)), (1, (-POWER(0, -1)), (-POWER(0, -1))), (2, SQRT(-1), SQRT(-1));
 > rows: 4
@@ -861,8 +867,8 @@ insert into t2 select x from system_range(1, 1000);
 
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE T1.ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */)
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE T1.ID IN( SELECT DISTINCT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */)
 > rows: 1
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
@@ -1215,8 +1221,8 @@ explain select * from (select dir_num, count(*) as cnt from multi_pages  t, b_ho
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num) as x
 where cnt < 1000 order by dir_num asc;
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT X.DIR_NUM, X.CNT FROM (SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES.tableScan */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT X.DIR_NUM, X.CNT FROM ( SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES.tableScan */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM ) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
 > rows (ordered): 1
 
 select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
@@ -2044,7 +2050,7 @@ script nopasswords nosettings blocksize 10;
 > CALL SYSTEM_COMBINE_BLOB(-1);
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR "org.h2.command.dml.ScriptCommand.combineBlob";
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR "org.h2.command.dml.ScriptCommand.combineClob";
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     DATA CLOB );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, DATA CLOB );
 > CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART);
 > CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA BINARY);
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
@@ -2052,9 +2058,9 @@ script nopasswords nosettings blocksize 10;
 > DROP ALIAS IF EXISTS SYSTEM_COMBINE_CLOB;
 > DROP TABLE IF EXISTS SYSTEM_LOB_STREAM;
 > INSERT INTO PUBLIC.TEST(ID, DATA) VALUES (1, SYSTEM_COMBINE_CLOB(0));
-> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 0, 'abc       ', NULL);
-> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 1, '          ', NULL);
-> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 2, '   ', NULL);
+> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 0, 'abc ', NULL);
+> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 1, ' ', NULL);
+> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 2, ' ', NULL);
 > rows: 16
 
 drop table test;
@@ -2444,9 +2450,9 @@ insert into test values('AA');
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> -------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------
 > -- 2 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST(     NAME VARCHAR CHECK (NAME = UPPER(NAME)) );
+> CREATE MEMORY TABLE PUBLIC.TEST( NAME VARCHAR CHECK (NAME = UPPER(NAME)) );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 3
 
@@ -2518,7 +2524,7 @@ select DOMAIN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TY
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.ADDRESS ADD CONSTRAINT PUBLIC.CONSTRAINT_E PRIMARY KEY(ID);
@@ -2529,8 +2535,8 @@ script nodata nopasswords nosettings;
 > CREATE DOMAIN STRING2 AS VARCHAR NOT NULL;
 > CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>';
 > CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>';
-> CREATE MEMORY TABLE PUBLIC.ADDRESS(     ID INT NOT NULL,     NAME VARCHAR(200) CHECK (POSITION('@', NAME) > 1),     NAME2 VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) );
-> CREATE MEMORY TABLE PUBLIC.TEST(     A VARCHAR(255) DEFAULT '' NOT NULL,     B VARCHAR,     C VARCHAR NOT NULL,     D VARCHAR DEFAULT '<empty>' );
+> CREATE MEMORY TABLE PUBLIC.ADDRESS( ID INT NOT NULL, NAME VARCHAR(200) CHECK (POSITION('@', NAME) > 1), NAME2 VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) );
+> CREATE MEMORY TABLE PUBLIC.TEST( A VARCHAR(255) DEFAULT '' NOT NULL, B VARCHAR, C VARCHAR NOT NULL, D VARCHAR DEFAULT '<empty>' );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 13
 
@@ -2581,9 +2587,9 @@ create memory table a(k10 blob(10k), m20 blob(20m), g30 clob(30g));
 
 script NODATA NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.A;
-> CREATE MEMORY TABLE PUBLIC.A(     K10 BLOB(10240),     M20 BLOB(20971520),     G30 CLOB(32212254720) );
+> CREATE MEMORY TABLE PUBLIC.A( K10 BLOB(10240), M20 BLOB(20971520), G30 CLOB(32212254720) );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > DROP TABLE IF EXISTS PUBLIC.A;
 > rows: 4
@@ -2988,8 +2994,8 @@ where exists (select 1 from test t4 where t2.id=t4.id);
 
 explain select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID)
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE ID IN( SELECT DISTINCT ID FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID)
 > rows: 1
 
 select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
@@ -3027,8 +3033,8 @@ select * from test t1 where id in(id);
 
 explain select * from test t1 where id in(select id from test);
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
 > rows: 1
 
 select * from test t1 where id in(select id from test);
@@ -3593,11 +3599,11 @@ script NOPASSWORDS NOSETTINGS;
 > ALTER TABLE PUBLIC.SP2 ADD CONSTRAINT PUBLIC.CONSTRAINT_1417 PRIMARY KEY(S_NO, P_NO);
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_27 FOREIGN KEY(PARENT) REFERENCES PUBLIC.TEST(ID) NOCHECK;
-> CREATE MEMORY TABLE PUBLIC.P(     P_NO VARCHAR(5) NOT NULL,     DESCR VARCHAR(16),     COLOR VARCHAR(8) );
-> CREATE MEMORY TABLE PUBLIC.S(     S_NO VARCHAR(5) NOT NULL,     NAME VARCHAR(16),     CITY VARCHAR(16) );
-> CREATE MEMORY TABLE PUBLIC.SP1(     S_NO VARCHAR(5) NOT NULL,     P_NO VARCHAR(5) NOT NULL,     QTY INT );
-> CREATE MEMORY TABLE PUBLIC.SP2(     S_NO VARCHAR(5) NOT NULL,     P_NO VARCHAR(5) NOT NULL,     QTY INT );
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     PARENT INT );
+> CREATE MEMORY TABLE PUBLIC.P( P_NO VARCHAR(5) NOT NULL, DESCR VARCHAR(16), COLOR VARCHAR(8) );
+> CREATE MEMORY TABLE PUBLIC.S( S_NO VARCHAR(5) NOT NULL, NAME VARCHAR(16), CITY VARCHAR(16) );
+> CREATE MEMORY TABLE PUBLIC.SP1( S_NO VARCHAR(5) NOT NULL, P_NO VARCHAR(5) NOT NULL, QTY INT );
+> CREATE MEMORY TABLE PUBLIC.SP2( S_NO VARCHAR(5) NOT NULL, P_NO VARCHAR(5) NOT NULL, QTY INT );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, PARENT INT );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 20
 
@@ -3880,7 +3886,7 @@ script NOPASSWORDS NOSETTINGS drop;
 > -- 0 +/- SELECT COUNT(*) FROM S.TEST;
 > CREATE FORCE TRIGGER S.TEST_TRIGGER BEFORE INSERT ON S.TEST QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints";
 > CREATE INDEX S.INDEX_ID ON S.TEST(ID);
-> CREATE MEMORY TABLE S.TEST(     ID INT );
+> CREATE MEMORY TABLE S.TEST( ID INT );
 > CREATE SCHEMA IF NOT EXISTS S AUTHORIZATION SA;
 > CREATE SEQUENCE S.SEQ START WITH 10;
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
@@ -3916,7 +3922,7 @@ script NOPASSWORDS NOSETTINGS drop;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.ABC FOREIGN KEY(I) REFERENCES PUBLIC.TEST(I) NOCHECK;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(I);
 > CREATE INDEX PUBLIC.IDX_N_ID ON PUBLIC.TEST(NAME, I);
-> CREATE MEMORY TABLE PUBLIC.TEST(     I INT NOT NULL,     NAME VARCHAR(255),     Y INT AS (I + 1) );
+> CREATE MEMORY TABLE PUBLIC.TEST( I INT NOT NULL, NAME VARCHAR(255), Y INT AS (I + 1) );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > DROP TABLE IF EXISTS PUBLIC.TEST;
 > INSERT INTO PUBLIC.TEST(I, NAME, Y) VALUES (1, 'Hello', 2);
@@ -4259,10 +4265,10 @@ create sequence test_seq;
 
 script NODATA NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> ------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     IM_IE VARCHAR(10) );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, IM_IE VARCHAR(10) );
 > CREATE SEQUENCE PUBLIC.TEST_SEQ START WITH 1;
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > DROP SEQUENCE IF EXISTS PUBLIC.TEST_SEQ;
@@ -4947,10 +4953,10 @@ insert into test values(2, 'Cafe', X'cafe');
 
 script simple nopasswords nosettings;
 > SCRIPT
-> -------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------
 > -- 3 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     C CLOB,     B BLOB );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, C CLOB, B BLOB );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(0, NULL, NULL);
 > INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(1, '', X'');
@@ -5400,7 +5406,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > ---------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 4
 
@@ -5481,13 +5487,13 @@ SELECT * FROM TEST_SEQ ORDER BY ID;
 
 SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.TEST_SEQ;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
 > CREATE INDEX PUBLIC.IDXNAME ON PUBLIC.TEST(NAME);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) DEFAULT 1,     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP );
-> CREATE MEMORY TABLE PUBLIC.TEST_SEQ(     ID INT DEFAULT 20 NOT NULL,     DATA VARCHAR );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR(255) DEFAULT 1, CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, MODIFY_DATE TIMESTAMP );
+> CREATE MEMORY TABLE PUBLIC.TEST_SEQ( ID INT DEFAULT 20 NOT NULL, DATA VARCHAR );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFY_DATE) VALUES(1, 'Hi', '2001-01-01', NULL);
 > INSERT INTO PUBLIC.TEST_SEQ(ID, DATA) VALUES(-1, '-1');
@@ -5516,10 +5522,10 @@ DROP TABLE TEST_SEQ;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, MODIFY_DATE TIMESTAMP );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, CREATEDATE, MODIFY_DATE) VALUES (1, '2001-01-01', NULL);
 > rows: 5
@@ -5529,10 +5535,10 @@ ALTER TABLE TEST ADD NAME VARCHAR(255) NULL BEFORE CREATEDATE;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ----------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255),     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR(255), CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, MODIFY_DATE TIMESTAMP );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFY_DATE) VALUES (1, NULL, '2001-01-01', NULL);
 > rows: 5
@@ -5562,7 +5568,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > ---------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 4
 
@@ -5949,14 +5955,14 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */))
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN( SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */))
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;
@@ -7105,7 +7111,7 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
 > ----------------------------------------------------------------------------------------------------------------------------------
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT,     XT TIME,     XD DATE,     XTS TIMESTAMP );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT, XT TIME, XD DATE, XTS TIMESTAMP );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(0, TIME '00:00:00', DATE '0001-02-03', TIMESTAMP '0002-03-04 00:00:00.0');
 > INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(1, TIME '01:02:03', DATE '0004-05-06', TIMESTAMP '0007-08-09 00:01:02.0');
@@ -8013,8 +8019,8 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.PARENT;
 > ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.CONSTRAINT_3 FOREIGN KEY(PARENT_ID) REFERENCES PUBLIC.PARENT(ID) NOCHECK;
 > ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.CONSTRAINT_8 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.CHILD(     ID INT,     PARENT_ID INT );
-> CREATE MEMORY TABLE PUBLIC.PARENT(     ID INT NOT NULL );
+> CREATE MEMORY TABLE PUBLIC.CHILD( ID INT, PARENT_ID INT );
+> CREATE MEMORY TABLE PUBLIC.PARENT( ID INT NOT NULL );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 7
 
@@ -8074,7 +8080,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > ----------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.C1 FOREIGN KEY(A_INT) REFERENCES PUBLIC.TEST(B_INT) NOCHECK;
-> CREATE MEMORY TABLE PUBLIC.TEST(     A_INT INT NOT NULL,     B_INT INT NOT NULL );
+> CREATE MEMORY TABLE PUBLIC.TEST( A_INT INT NOT NULL, B_INT INT NOT NULL );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 4
 
@@ -8226,8 +8232,8 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.C3 FOREIGN KEY(B_INT) REFERENCES PUBLIC.A_TEST(A_INT) ON DELETE SET DEFAULT ON UPDATE SET DEFAULT NOCHECK;
 > ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_76 CHECK(LENGTH(B_VARCHAR) > 1) NOCHECK;
 > ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_760 PRIMARY KEY(B_INT);
-> CREATE MEMORY TABLE PUBLIC.A_TEST(     A_INT INT NOT NULL,     A_VARCHAR VARCHAR(255) DEFAULT 'x',     A_DATE DATE,     A_DECIMAL DECIMAL(10, 2) );
-> CREATE MEMORY TABLE PUBLIC.B_TEST(     B_INT INT DEFAULT -1 NOT NULL,     B_VARCHAR VARCHAR(255) DEFAULT NULL );
+> CREATE MEMORY TABLE PUBLIC.A_TEST( A_INT INT NOT NULL, A_VARCHAR VARCHAR(255) DEFAULT 'x', A_DATE DATE, A_DECIMAL DECIMAL(10, 2) );
+> CREATE MEMORY TABLE PUBLIC.B_TEST( B_INT INT DEFAULT -1 NOT NULL, B_VARCHAR VARCHAR(255) DEFAULT NULL );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.B_TEST(B_INT, B_VARCHAR) VALUES (-1, 'XX');
 > rows: 14
@@ -8324,9 +8330,9 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.PARENT_CHILD FOREIGN KEY(PARENTID, FAMILY_ID) REFERENCES PUBLIC.PARENT(ID, FAMILY_ID) ON DELETE SET NULL ON UPDATE CASCADE NOCHECK;
 > ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.PARENT_FAMILY FOREIGN KEY(FAMILY_ID) REFERENCES PUBLIC.FAMILY(ID) NOCHECK;
 > CREATE INDEX PUBLIC.FAMILY_ID_NAME ON PUBLIC.FAMILY(ID, NAME);
-> CREATE MEMORY TABLE PUBLIC.CHILD(     ID INT,     PARENTID INT,     FAMILY_ID INT,     NAME VARCHAR(20) );
-> CREATE MEMORY TABLE PUBLIC.FAMILY(     ID INT,     NAME VARCHAR(20) );
-> CREATE MEMORY TABLE PUBLIC.PARENT(     ID INT,     FAMILY_ID INT,     NAME VARCHAR(20) );
+> CREATE MEMORY TABLE PUBLIC.CHILD( ID INT, PARENTID INT, FAMILY_ID INT, NAME VARCHAR(20) );
+> CREATE MEMORY TABLE PUBLIC.FAMILY( ID INT, NAME VARCHAR(20) );
+> CREATE MEMORY TABLE PUBLIC.PARENT( ID INT, FAMILY_ID INT, NAME VARCHAR(20) );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(100, 3, 1, 'Simon');
 > INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(101, 3, 1, 'Sabine');
@@ -8348,9 +8354,9 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.CONSTRAINT_3 UNIQUE(ID, PARENTID);
 > ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.PARENT_FAMILY FOREIGN KEY(FAMILY_ID) REFERENCES PUBLIC.FAMILY(ID) NOCHECK;
 > CREATE INDEX PUBLIC.FAMILY_ID_NAME ON PUBLIC.FAMILY(ID, NAME);
-> CREATE MEMORY TABLE PUBLIC.CHILD(     ID INT,     PARENTID INT,     FAMILY_ID INT,     NAME VARCHAR(20) );
-> CREATE MEMORY TABLE PUBLIC.FAMILY(     ID INT,     NAME VARCHAR(20) );
-> CREATE MEMORY TABLE PUBLIC.PARENT(     ID INT,     FAMILY_ID INT,     NAME VARCHAR(20) );
+> CREATE MEMORY TABLE PUBLIC.CHILD( ID INT, PARENTID INT, FAMILY_ID INT, NAME VARCHAR(20) );
+> CREATE MEMORY TABLE PUBLIC.FAMILY( ID INT, NAME VARCHAR(20) );
+> CREATE MEMORY TABLE PUBLIC.PARENT( ID INT, FAMILY_ID INT, NAME VARCHAR(20) );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(100, 3, 1, 'Simon');
 > INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(101, 3, 1, 'Sabine');
@@ -8426,7 +8432,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > ------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 FOREIGN KEY(B) REFERENCES PUBLIC.TEST(A) NOCHECK;
-> CREATE MEMORY TABLE PUBLIC.TEST(     A INT,     B INT );
+> CREATE MEMORY TABLE PUBLIC.TEST( A INT, B INT );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 4
 
@@ -8472,13 +8478,13 @@ ALTER INDEX IDX_ID RENAME TO IDX_ID2;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST2;
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
 > CREATE INDEX PUBLIC.IDX_ID2 ON PUBLIC.TEST2(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) );
-> CREATE MEMORY TABLE PUBLIC.TEST2(     ID INT );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR(255) );
+> CREATE MEMORY TABLE PUBLIC.TEST2( ID INT );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > CREATE USER IF NOT EXISTS TEST PASSWORD '';
 > CREATE USER IF NOT EXISTS TEST2 PASSWORD '';
@@ -8654,7 +8660,7 @@ script nopasswords nosettings;
 > -------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR(255) );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, NAME) VALUES (2, STRINGDECODE('abcsond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'));
 > rows: 5
@@ -9020,9 +9026,9 @@ select ltrim(null) en, '>' || ltrim('a') || '<' ea, '>' || ltrim(' a ') || '<' e
 > rows: 1
 
 select TRIM(BOTH '_' FROM '__A__') A, TRIM(LEADING FROM '    B    ') BS, TRIM(TRAILING 'x' FROM 'xAx') XA from test;
-> A BS    XA
-> - ----- --
-> A B     xA
+> A BS XA
+> - -- --
+> A B  xA
 > rows: 1
 
 select rtrim(null) en, '>' || rtrim('a') || '<' ea, '>' || rtrim(' a ') || '<' es from test;
@@ -9067,8 +9073,8 @@ soundex('VanDeusen') V532, soundex('Ashcraft') A261 from test;
 
 select space(null) en, '>' || space(1) || '<' es, '>' || space(3) || '<' e2 from test;
 > EN   ES  E2
-> ---- --- -----
-> null > < >   <
+> ---- --- ---
+> null > < > <
 > rows: 1
 
 select substr(null, null) en, substr(null, null, null) e1, substr('bob', 2) e_ob, substr('bob', 2, 1) eo  from test;

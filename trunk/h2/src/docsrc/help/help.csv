@@ -92,7 +92,7 @@ CALL 15*25
 "
 
 "Commands (DML)","EXPLAIN","
-EXPLAIN { [ PLAN FOR ] | ANALYZE } { select | insert | update | delete }
+EXPLAIN { [ PLAN FOR ] | ANALYZE } { select | insert | update | delete | merge }
 ","
 Shows the execution plan for a statement.
 When using EXPLAIN ANALYZE, the statement is actually executed, and the query plan

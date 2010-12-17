@@ -36,7 +36,7 @@ CALL expression
 ","
 Calculates a simple expression."
 "Commands (DML)","EXPLAIN","
-EXPLAIN { [ PLAN FOR ] | ANALYZE } { select | insert | update | delete }
+EXPLAIN { [ PLAN FOR ] | ANALYZE } { select | insert | update | delete | merge }
 ","
 Shows the execution plan for a statement."
 "Commands (DML)","MERGE","

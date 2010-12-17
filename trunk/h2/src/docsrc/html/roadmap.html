@@ -254,6 +254,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights
+</li><li>Support opening a database that is in the classpath, maybe using a new file system. Workaround: detect jar file using getClass().getProtectionDomain().getCodeSource().getLocation().
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
 </li><li>Remember the user defined data type (domain) of a column
 </li><li>MVCC: support multi-threaded kernel with multi-version concurrency.
@@ -290,7 +291,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: real SQL statement for DESCRIBE TEST
 </li><li>Use a default delay of 1 second before closing a database.
 </li><li>Write (log) to system table before adding to internal data structures.
-</li><li>Support opening a database that is in the classpath, maybe using a new file system.
 </li><li>Doclet (javadocs): constructors are not listed.
 </li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);

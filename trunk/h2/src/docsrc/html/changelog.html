@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 266: Domains: a NOT NULL clause in a domain definition ignored.
+<ul><li>EXPLAIN SELECT didn't include the sample size if one was set.
+</li><li>Improved EXPLAIN plan formatting and documentation.
+</li><li>Issue 266: Domains: a NOT NULL clause in a domain definition ignored.
 </li><li>More accurate calculation of variance and standard deviation for large number of samples with low variance
     (now using Welford's method).
 </li><li>Server: CLOB data with unicode characters between character code 0xd800 and 0xdfff

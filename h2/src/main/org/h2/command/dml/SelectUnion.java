@@ -338,16 +338,16 @@ public class SelectUnion extends Query {
         buff.append('(').append(left.getPlanSQL()).append(')');
         switch (unionType) {
         case UNION_ALL:
-            buff.append(" UNION ALL ");
+            buff.append("\nUNION ALL\n");
             break;
         case UNION:
-            buff.append(" UNION ");
+            buff.append("\nUNION\n");
             break;
         case INTERSECT:
-            buff.append(" INTERSECT ");
+            buff.append("\nINTERSECT\n");
             break;
         case EXCEPT:
-            buff.append(" EXCEPT ");
+            buff.append("\nEXCEPT\n");
             break;
         default:
             DbException.throwInternalError("type=" + unionType);
@@ -355,16 +355,19 @@ public class SelectUnion extends Query {
         buff.append('(').append(right.getPlanSQL()).append(')');
         Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
         if (sort != null) {
-            buff.append(" ORDER BY ").append(sort.getSQL(exprList, exprList.length));
+            buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length));
         }
         if (limitExpr != null) {
-            buff.append(" LIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
+            buff.append("\nLIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
             if (offsetExpr != null) {
-                buff.append(" OFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
+                buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
             }
         }
+        if (sampleSize != 0) {
+            buff.append("\nSAMPLE_SIZE ").append(sampleSize);
+        }
         if (isForUpdate) {
-            buff.append(" FOR UPDATE");
+            buff.append("\nFOR UPDATE");
         }
         return buff.toString();
     }

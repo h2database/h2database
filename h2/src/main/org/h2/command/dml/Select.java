@@ -956,8 +956,9 @@ public class Select extends Query {
             buff.append("DISTINCT ");
         }
         for (int i = 0; i < visibleColumnCount; i++) {
-            buff.appendExceptFirst(", ");
-            buff.append(exprList[i].getSQL());
+            buff.appendExceptFirst(",");
+            buff.append("\n");
+            buff.append(StringUtils.indent(exprList[i].getSQL(), 4, false));
         }
         buff.append("\nFROM ");
         TableFilter filter = topTableFilter;
@@ -1024,6 +1025,9 @@ public class Select extends Query {
             if (offsetExpr != null) {
                 buff.append(" OFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
             }
+        }
+        if (sampleSize != 0) {
+            buff.append("\nSAMPLE_SIZE ").append(sampleSize);
         }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");

@@ -20,14 +20,16 @@ Performance
     Performance Comparison</a><br />
 <a href="#poleposition_benchmark">
     PolePosition Benchmark</a><br />
-<a href="#application_profiling">
-    Application Profiling</a><br />
-<a href="#database_profiling">
-    Database Profiling</a><br />
 <a href="#database_performance_tuning">
     Database Performance Tuning</a><br />
 <a href="#built_in_profiler">
     Using the Built-In Profiler</a><br />
+<a href="#application_profiling">
+    Application Profiling</a><br />
+<a href="#database_profiling">
+    Database Profiling</a><br />
+<a href="#explain_plan">
+    Statement Execution Plans</a><br />
 <a href="#fast_import">
     Fast Database Import</a><br />
 
@@ -305,89 +307,6 @@ To change that, use the database URL <code>jdbc:h2:file:data/h2/dbbench;DB_CLOSE
 Unfortunately, the PolePosition test does not take this into account.
 </li></ul>
 
-<h2 id="application_profiling">Application Profiling</h2>
-
-<h3>Analyze First</h3>
-<p>
-Before trying to optimize performance, it is important to understand where the problem is (what part of the application is slow).
-Blind optimization or optimization based on guesses should be avoided, because usually it is not an efficient strategy.
-There are various ways to analyze an application. Sometimes two implementations can be compared using
-<code>System.currentTimeMillis()</code>. But this does not work for complex applications with many modules, and for memory problems.
-</p>
-<p>
-A simple way to profile an application is to use the built-in profiling tool of java. Example:
-</p>
-<pre>
-java -Xrunhprof:cpu=samples,depth=16 com.acme.Test
-</pre>
-<p>
-Unfortunately, it is only possible to profile the application from start to end. Another solution is to create
-a number of full thread dumps. To do that, first run <code>jps -l</code> to get the process id, and then
-run <code>jstack &lt;pid&gt;</code> or <code>kill -QUIT &lt;pid&gt;</code> (Linux) or press
-Ctrl+C (Windows).
-</p>
-<p>
-A simple profiling tool is included in H2. To use it, the application needs to be changed slightly. Example:
-</p>
-<pre>
-import org.h2.util;
-...
-profiler = new Profiler();
-profiler.startCollecting();
-// application code
-profiler.stopCollecting();
-System.out.println(profiler.getTop(3));
-</pre>
-<p>
-The profiler is built into the H2 Console tool, to analyze databases that open slowly.
-To use it, run the H2 Console, and then click on 'Test Connection'.
-Afterwards, click on "Test successful" and you get the most common stack traces,
-which helps to find out why it took so long to connect. You will only get the stack traces
-if opening the database took more than a few seconds.
-</p>
-
-<h2 id="database_profiling">Database Profiling</h2>
-<p>
-The <code>ConvertTraceFile</code> tool generates SQL statement statistics at the end of the SQL script file.
-The format used is similar to the profiling data generated when using <code>java -Xrunhprof</code>.
-For this to work, the trace level needs to be 2 or higher (<code>TRACE_LEVEL_FILE=2</code>).
-The easiest way to set the trace level is to append the setting to the database URL, for example:
-<code>jdbc:h2:~/test;TRACE_LEVEL_FILE=2</code> or <code>jdbc:h2:tcp://localhost/~/test;TRACE_LEVEL_FILE=2</code>.
-As an example, execute the the following script using the H2 Console:
-</p>
-<pre>
-SET TRACE_LEVEL_FILE 2;
-DROP TABLE IF EXISTS TEST;
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
-@LOOP 1000 INSERT INTO TEST VALUES(?, ?);
-SET TRACE_LEVEL_FILE 0;
-</pre>
-<p>
-After running the test case, convert the <code>.trace.db</code> file using the <code>ConvertTraceFile</code> tool.
-The trace file is located in the same directory as the database file.
-</p>
-<pre>
-java -cp h2*.jar org.h2.tools.ConvertTraceFile
-    -traceFile "~/test.trace.db" -script "~/test.sql"
-</pre>
-<p>
-The generated file <code>test.sql</code> will contain the SQL statements as well as the
-following profiling data (results vary):
-</p>
-<pre>
------------------------------------------
--- SQL Statement Statistics
--- time: total time in milliseconds (accumulated)
--- count: how many times the statement ran
--- result: total update count or row count
------------------------------------------
--- self accu    time   count  result sql
---  62%  62%     158    1000    1000 INSERT INTO TEST VALUES(?, ?);
---  37% 100%      93       1       0 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
---   0% 100%       0       1       0 DROP TABLE IF EXISTS TEST;
---   0% 100%       0       1       0 SET TRACE_LEVEL_FILE 3;
-</pre>
-
 <h2 id="database_performance_tuning">Database Performance Tuning</h2>
 
 <h3>Keep Connections Open or Use a Connection Pool</h3>
@@ -606,6 +525,175 @@ prof.startCollecting();
 prof.stopCollecting();
 System.out.println(prof.getTop(3));
 </pre>
+
+<h2 id="application_profiling">Application Profiling</h2>
+
+<h3>Analyze First</h3>
+<p>
+Before trying to optimize performance, it is important to understand where the problem is (what part of the application is slow).
+Blind optimization or optimization based on guesses should be avoided, because usually it is not an efficient strategy.
+There are various ways to analyze an application. Sometimes two implementations can be compared using
+<code>System.currentTimeMillis()</code>. But this does not work for complex applications with many modules, and for memory problems.
+</p>
+<p>
+A simple way to profile an application is to use the built-in profiling tool of java. Example:
+</p>
+<pre>
+java -Xrunhprof:cpu=samples,depth=16 com.acme.Test
+</pre>
+<p>
+Unfortunately, it is only possible to profile the application from start to end. Another solution is to create
+a number of full thread dumps. To do that, first run <code>jps -l</code> to get the process id, and then
+run <code>jstack &lt;pid&gt;</code> or <code>kill -QUIT &lt;pid&gt;</code> (Linux) or press
+Ctrl+C (Windows).
+</p>
+<p>
+A simple profiling tool is included in H2. To use it, the application needs to be changed slightly. Example:
+</p>
+<pre>
+import org.h2.util;
+...
+profiler = new Profiler();
+profiler.startCollecting();
+// application code
+profiler.stopCollecting();
+System.out.println(profiler.getTop(3));
+</pre>
+<p>
+The profiler is built into the H2 Console tool, to analyze databases that open slowly.
+To use it, run the H2 Console, and then click on 'Test Connection'.
+Afterwards, click on "Test successful" and you get the most common stack traces,
+which helps to find out why it took so long to connect. You will only get the stack traces
+if opening the database took more than a few seconds.
+</p>
+
+<h2 id="database_profiling">Database Profiling</h2>
+<p>
+The <code>ConvertTraceFile</code> tool generates SQL statement statistics at the end of the SQL script file.
+The format used is similar to the profiling data generated when using <code>java -Xrunhprof</code>.
+For this to work, the trace level needs to be 2 or higher (<code>TRACE_LEVEL_FILE=2</code>).
+The easiest way to set the trace level is to append the setting to the database URL, for example:
+<code>jdbc:h2:~/test;TRACE_LEVEL_FILE=2</code> or <code>jdbc:h2:tcp://localhost/~/test;TRACE_LEVEL_FILE=2</code>.
+As an example, execute the the following script using the H2 Console:
+</p>
+<pre>
+SET TRACE_LEVEL_FILE 2;
+DROP TABLE IF EXISTS TEST;
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
+@LOOP 1000 INSERT INTO TEST VALUES(?, ?);
+SET TRACE_LEVEL_FILE 0;
+</pre>
+<p>
+After running the test case, convert the <code>.trace.db</code> file using the <code>ConvertTraceFile</code> tool.
+The trace file is located in the same directory as the database file.
+</p>
+<pre>
+java -cp h2*.jar org.h2.tools.ConvertTraceFile
+    -traceFile "~/test.trace.db" -script "~/test.sql"
+</pre>
+<p>
+The generated file <code>test.sql</code> will contain the SQL statements as well as the
+following profiling data (results vary):
+</p>
+<pre>
+-----------------------------------------
+-- SQL Statement Statistics
+-- time: total time in milliseconds (accumulated)
+-- count: how many times the statement ran
+-- result: total update count or row count
+-----------------------------------------
+-- self accu    time   count  result sql
+--  62%  62%     158    1000    1000 INSERT INTO TEST VALUES(?, ?);
+--  37% 100%      93       1       0 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
+--   0% 100%       0       1       0 DROP TABLE IF EXISTS TEST;
+--   0% 100%       0       1       0 SET TRACE_LEVEL_FILE 3;
+</pre>
+
+<h2 id="explain_plan">Statement Execution Plans</h2>
+<p>
+The SQL statement <code>EXPLAIN</code> displays the indexes and optimizations the database uses for a statement.
+The following statements support <code>EXPLAIN</code>: <code>SELECT, UPDATE, DELETE, MERGE, INSERT</code>.
+The following query shows that the database uses the primary key index to search for rows:
+</p>
+<pre>
+EXPLAIN SELECT * FROM TEST WHERE ID=1;
+SELECT
+    TEST.ID,
+    TEST.NAME
+FROM PUBLIC.TEST
+    /* PUBLIC.PRIMARY_KEY_2: ID = 1 */
+WHERE ID = 1
+</pre>
+<p>
+For joins, the tables in the execution plan are sorted in the order they are processed.
+The following query shows the database first processes the table <code>INVOICE</code> (using the primary key).
+For each row, it will additionally check that the value of the column <code>AMOUNT</code> is larger than zero,
+and for those rows the database will search in the table <code>CUSTOMER</code> (using the primary key).
+The query plan contains some redundancy so it is a valid statement.
+</p>
+<pre>
+CREATE TABLE CUSTOMER(ID IDENTITY, NAME VARCHAR);
+CREATE TABLE INVOICE(ID IDENTITY,
+    CUSTOMER_ID INT REFERENCES CUSTOMER(ID),
+    AMOUNT NUMBER);
+
+EXPLAIN SELECT I.ID, C.NAME FROM CUSTOMER C, INVOICE I
+WHERE I.ID=10 AND AMOUNT>0 AND C.ID=I.CUSTOMER_ID;
+
+SELECT
+    I.ID,
+    C.NAME
+FROM PUBLIC.INVOICE I
+    /* PUBLIC.PRIMARY_KEY_9: ID = 10 */
+    /* WHERE (I.ID = 10)
+        AND (AMOUNT > 0)
+    */
+INNER JOIN PUBLIC.CUSTOMER C
+    /* PUBLIC.PRIMARY_KEY_5: ID = I.CUSTOMER_ID */
+    ON 1=1
+WHERE (C.ID = I.CUSTOMER_ID)
+    AND ((I.ID = 10)
+    AND (AMOUNT > 0))
+</pre>
+
+<h3>Displaying the Scan Count</h3>
+<p>
+<code>EXPLAIN ANALYZE</code> additionally shows the scanned rows per table and pages read from disk per table or index.
+This will actually execute the query, unlike <code>EXPLAIN</code> which only prepares it.
+The following query scanned 1000 rows, and to do that had to read 85 pages from the data area of the table.
+Running the query twice will not list the pages read from disk, because they are now in the cache.
+The <code>tableScan</code> means this query doesn't use an index.
+</p>
+<pre>
+EXPLAIN ANALYZE SELECT * FROM TEST;
+SELECT
+    TEST.ID,
+    TEST.NAME
+FROM PUBLIC.TEST
+    /* PUBLIC.TEST.tableScan */
+    /* scanCount: 1000 */
+/*
+total: 85
+TEST.TEST_DATA read: 85 (100%)
+*/
+</pre>
+
+<h3>Special Optimizations</h3>
+<p>
+For certain queries, the database doesn't need to read all rows, or doesn't need to sort the result even if <code>ORDER BY</code> is used.
+</p><p>
+For queries of the form <code>SELECT COUNT(*), MIN(ID), MAX(ID) FROM TEST</code>, the query plan includes the line
+<code>/* direct lookup */</code> if the data can be read from an index.
+</p><p>
+For queries of the form <code>SELECT DISTINCT CUSTOMER_ID FROM INVOICE</code>, the query plan includes the line
+<code>/* distinct */</code> if there is an non-unique or multi-column index on this column, and if this column has a low selectivity.
+</p><p>
+For queries of the form <code>SELECT * FROM TEST ORDER BY ID</code>, the query plan includes the line
+<code>/* index sorted */</code> to indicate there is no separate sorting required.
+</p><p>
+For queries of the form <code>SELECT * FROM TEST GROUP BY ID ORDER BY ID</code>, the query plan includes the line
+<code>/* group sorted */</code> to indicate there is no separate sorting required.
+</p>
 
 <h2 id="fast_import">Fast Database Import</h2>
 <p>

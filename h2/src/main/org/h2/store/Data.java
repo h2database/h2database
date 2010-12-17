@@ -1119,6 +1119,12 @@ public class Data {
         }
     }
 
+    /**
+     * Copy a String from a reader to an output stream.
+     *
+     * @param source the reader
+     * @param target the output stream
+     */
     public static void copyString(Reader source, OutputStream target) throws IOException {
         char[] buff = new char[Constants.IO_BUFFER_SIZE];
         Data d = new Data(null, new byte[3 * Constants.IO_BUFFER_SIZE]);

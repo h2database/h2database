@@ -25,15 +25,17 @@ public class TestClearReferences extends TestBase {
 
     private static final String[] KNOWN_REFRESHED = {
         "org.h2.compress.CompressLZF.cachedHashTable",
-        "org.h2.util.DateTimeUtils.cachedCalendar",
-        "org.h2.util.StringUtils.softCache",
-        "org.h2.value.Value.softCache",
+        "org.h2.constant.DbSettings.defaultSettings",
+        "org.h2.engine.SessionRemote.sessionFactory",
         "org.h2.jdbcx.JdbcDataSourceFactory.cachedTraceSystem",
-        "org.h2.tools.CompressTool.cachedBuffer",
-        "org.h2.util.NetUtils.cachedLocalAddress",
-        "org.h2.util.MathUtils.cachedSecureRandom",
-        "org.h2.value.CompareMode.lastUsed",
         "org.h2.store.fs.FileSystem.tempRandom",
+        "org.h2.tools.CompressTool.cachedBuffer",
+        "org.h2.util.DateTimeUtils.cachedCalendar",
+        "org.h2.util.MathUtils.cachedSecureRandom",
+        "org.h2.util.NetUtils.cachedLocalAddress",
+        "org.h2.util.StringUtils.softCache",
+        "org.h2.value.CompareMode.lastUsed",
+        "org.h2.value.Value.softCache",
     };
 
     private boolean hasError;

@@ -1652,8 +1652,8 @@ drop table A, B, C, V cascade;
 
 explain select * from table(id int = (1, 2), name varchar=('Hello', 'World'));
 > PLAN
-> ------------------------------------------------------------------------------------------------------
-> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World')) /* PUBLIC."" */
+> -----------------------------------------------------------------------------------------------------
+> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World')) /* function */
 > rows: 1
 
 CREATE TABLE TEST(ID INT PRIMARY KEY, FLAG BOOLEAN, NAME VARCHAR);

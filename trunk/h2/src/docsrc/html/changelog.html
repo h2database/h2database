@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When creating a BLOB with in InputStream or a CLOB with a Reader, and the InputStream or Reader
+<ul><li>Improved date / time arithmetics. Adding and subtracting a 
+    floating point value from a date or timestamp is now supported.
+</li><li>When creating a BLOB with in InputStream or a CLOB with a Reader, and the InputStream or Reader
     threw an non-IOException, then the LOB storage was broken when storing LOBs in the database.
 </li><li>EXPLAIN SELECT didn't include the sample size if one was set.
 </li><li>Improved EXPLAIN plan formatting and documentation.

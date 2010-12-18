@@ -14,6 +14,7 @@ import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
@@ -210,6 +211,16 @@ public class Operation extends Expression {
                         f.setParameter(2, right);
                         f.doneWithParameters();
                         return f.optimize(session);
+                    } else if (l == Value.DECIMAL || l == Value.FLOAT || l == Value.DOUBLE) {
+                        // Oracle date add
+                        Function f = Function.getFunction(session.getDatabase(), "DATEADD");
+                        f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
+                        left = new Operation(Operation.MULTIPLY, ValueExpression.get(ValueInt
+                                .get(60 * 60 * 24)), left);
+                        f.setParameter(1, left);
+                        f.setParameter(2, right);
+                        f.doneWithParameters();
+                        return f.optimize(session);
                     } else if (l == Value.TIME && r == Value.TIME) {
                         dataType = Value.TIME;
                         return this;
@@ -222,6 +233,18 @@ public class Operation extends Expression {
                         // Oracle date subtract
                         Function f = Function.getFunction(session.getDatabase(), "DATEADD");
                         f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
+                        right = new Operation(NEGATE, right, null);
+                        right = right.optimize(session);
+                        f.setParameter(1, right);
+                        f.setParameter(2, left);
+                        f.doneWithParameters();
+                        return f.optimize(session);
+                    } else if ((l == Value.DATE || l == Value.TIMESTAMP) && (r == Value.DECIMAL || r == Value.FLOAT || r == Value.DOUBLE)) {
+                        // Oracle date subtract
+                        Function f = Function.getFunction(session.getDatabase(), "DATEADD");
+                        f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
+                        right = new Operation(Operation.MULTIPLY, ValueExpression.get(ValueInt
+                                .get(60 * 60 * 24)), right);
                         right = new Operation(NEGATE, right, null);
                         right = right.optimize(session);
                         f.setParameter(1, right);

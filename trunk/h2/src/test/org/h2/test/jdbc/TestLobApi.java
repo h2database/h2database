@@ -82,7 +82,7 @@ public class TestLobApi extends TestBase {
                 public void close() throws IOException {
                     // nothing to do
                 }
-            });
+            }, -1);
             fail();
         } catch (Exception e) {
             // expected
@@ -105,7 +105,7 @@ public class TestLobApi extends TestBase {
                     }
                     return 0;
                 }
-            });
+            }, -1);
             fail();
         } catch (Exception e) {
             // expected

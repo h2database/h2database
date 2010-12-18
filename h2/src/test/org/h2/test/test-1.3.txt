@@ -53,6 +53,24 @@ select ts + t + t - t x from test;
 > 2010-01-01 01:00:00.0
 > rows: 1
 
+select ts + t * 0.5 x from test;
+> X
+> ---------------------
+> 2010-01-01 00:30:00.0
+> rows: 1
+
+select ts + 0.5 x from test;
+> X
+> ---------------------
+> 2010-01-01 12:00:00.0
+> rows: 1
+
+select ts - 1.5 x from test;
+> X
+> ---------------------
+> 2009-12-30 12:00:00.0
+> rows: 1
+
 select ts + 0.5 * t + t - t x from test;
 > X
 > ---------------------

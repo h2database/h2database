@@ -26,12 +26,14 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.trace.Player;
 import org.h2.tools.Backup;
 import org.h2.tools.ChangeFileEncryption;
+import org.h2.tools.Console;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
@@ -49,6 +51,7 @@ import org.h2.util.Task;
  */
 public class TestTools extends TestBase {
 
+    private static String lastUrl;
     private Server server;
 
     /**
@@ -65,6 +68,7 @@ public class TestTools extends TestBase {
             return;
         }
         org.h2.Driver.load();
+        testConsole();
         testJdbcDriverUtils();
         testWrongServer();
         deleteDb("utils");
@@ -88,6 +92,34 @@ public class TestTools extends TestBase {
         IOUtils.delete(getBaseDir() + "/b2.sql");
         IOUtils.delete(getBaseDir() + "/b2.sql.txt");
         IOUtils.delete(getBaseDir() + "/b2.zip");
+    }
+
+    private void testConsole() throws Exception {
+        String old = System.getProperty(SysProperties.H2_BROWSER);
+        Console c = new Console();
+        c.setOut(new PrintStream(new ByteArrayOutputStream()));
+        try {
+            lastUrl = "-";
+            System.setProperty(SysProperties.H2_BROWSER, "call:" + TestTools.class.getName() + ".openBrowser");
+            c.runTool("-web", "-webPort", "9002", "-tool", "-browser", "-tcp", "-tcpPort", "9003", "-pg", "-pgPort", "9004", "-browser", "-quiet");
+            c.shutdown();
+            assertContains(lastUrl, ":9002");
+        } finally {
+            if (old != null) {
+                System.setProperty(SysProperties.H2_BROWSER, old);
+            } else {
+                System.clearProperty(SysProperties.H2_BROWSER);
+            }
+        }
+    }
+
+    /**
+     * This method is called via reflection.
+     *
+     * @param url the browser url
+     */
+    public static void openBrowser(String url) {
+        lastUrl = url;
     }
 
     private void testSimpleResultSet() throws Exception {

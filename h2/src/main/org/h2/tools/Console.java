@@ -50,10 +50,12 @@ ShutdownHandler {
 
 //## AWT begin ##
     private Frame frame;
-    private boolean trayIcon;
+    private boolean trayIconUsed;
     private Font font;
     private Button startBrowser;
     private TextField urlText;
+    private Object tray;
+    private Object trayIcon;
 //## AWT end ##
     private Server web, tcp, pg;
     private boolean isWindows;
@@ -229,16 +231,10 @@ ShutdownHandler {
     }
 
     /**
-     * INTERNAL
-     */
-    public void shutdown() {
-        stopAll();
-    }
-
-    /**
+     * INTERNAL.
      * Stop all servers that were started using the console.
      */
-    void stopAll() {
+    public void shutdown() {
         if (web != null && web.isRunning(false)) {
             web.stop();
             web = null;
@@ -256,8 +252,21 @@ ShutdownHandler {
             frame.dispose();
             frame = null;
         }
+        if (trayIconUsed) {
+            try {
+                // tray.remove(trayIcon);
+                Utils.callMethod(tray, "remove", trayIcon);
+            } catch (Exception e) {
+                // ignore
+            } finally {
+                trayIcon = null;
+                tray = null;
+                trayIconUsed = false;
+            }
+            System.gc();
+        }
 //## AWT end ##
-        System.exit(0);
+        // System.exit(0);
     }
 
 //## AWT begin ##
@@ -293,8 +302,8 @@ ShutdownHandler {
             itemExit.addActionListener(this);
             menuConsole.add(itemExit);
 
-            // SystemTray tray = SystemTray.getSystemTray();
-            Object tray = Utils.callStaticMethod("java.awt.SystemTray.getSystemTray");
+            // tray = SystemTray.getSystemTray();
+            tray = Utils.callStaticMethod("java.awt.SystemTray.getSystemTray");
 
             // Dimension d = tray.getTrayIconSize();
             Dimension d = (Dimension) Utils.callMethod(tray, "getTrayIconSize");
@@ -309,16 +318,16 @@ ShutdownHandler {
             }
             Image icon = loadImage(iconFile);
 
-            // TrayIcon ti = new TrayIcon(image, "H2 Database Engine", menuConsole);
-            Object ti = Utils.newInstance("java.awt.TrayIcon", icon, "H2 Database Engine", menuConsole);
+            // trayIcon = new TrayIcon(image, "H2 Database Engine", menuConsole);
+            trayIcon = Utils.newInstance("java.awt.TrayIcon", icon, "H2 Database Engine", menuConsole);
 
-            // ti.addMouseListener(this);
-            Utils.callMethod(ti, "addMouseListener", this);
+            // trayIcon.addMouseListener(this);
+            Utils.callMethod(trayIcon, "addMouseListener", this);
 
-            // tray.add(ti);
-            Utils.callMethod(tray, "add", ti);
+            // tray.add(trayIcon);
+            Utils.callMethod(tray, "add", trayIcon);
 
-            this.trayIcon = true;
+            this.trayIconUsed = true;
 
             return true;
         } catch (Exception e) {
@@ -442,7 +451,7 @@ ShutdownHandler {
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         if ("exit".equals(command)) {
-            stopAll();
+            shutdown();
         } else if ("console".equals(command)) {
             startBrowser();
         } else if ("status".equals(command)) {
@@ -506,11 +515,11 @@ ShutdownHandler {
      */
 //## AWT begin ##
     public void windowClosing(WindowEvent e) {
-        if (trayIcon) {
+        if (trayIconUsed) {
             frame.dispose();
             frame = null;
         } else {
-            stopAll();
+            shutdown();
         }
     }
 //## AWT end ##

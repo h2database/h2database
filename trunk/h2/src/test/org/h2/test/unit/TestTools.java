@@ -13,11 +13,13 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
@@ -123,7 +125,41 @@ public class TestTools extends TestBase {
     }
 
     private void testSimpleResultSet() throws Exception {
+
         SimpleResultSet rs;
+        rs = new SimpleResultSet();
+        rs.addColumn(null, 0, 0, 0);
+        rs.addRow(1);
+        try {
+            rs.addColumn(null, 0, 0, 0);
+            fail();
+        } catch (IllegalStateException e) {
+            // ignore
+        }
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        assertEquals("1", rs.getString(1));
+        assertEquals("1", rs.getString("C1"));
+        assertFalse(rs.wasNull());
+        assertEquals("C1", rs.getMetaData().getColumnLabel(1));
+        assertEquals("C1", rs.getColumnName(1));
+        assertEquals(ResultSetMetaData.columnNullableUnknown, rs.getMetaData().isNullable(1));
+        assertFalse(rs.getMetaData().isAutoIncrement(1));
+        assertTrue(rs.getMetaData().isCaseSensitive(1));
+        assertFalse(rs.getMetaData().isCurrency(1));
+        assertFalse(rs.getMetaData().isDefinitelyWritable(1));
+        assertTrue(rs.getMetaData().isReadOnly(1));
+        assertTrue(rs.getMetaData().isSearchable(1));
+        assertTrue(rs.getMetaData().isSigned(1));
+        assertFalse(rs.getMetaData().isWritable(1));
+        assertEquals(null, rs.getMetaData().getCatalogName(1));
+        assertEquals(null, rs.getMetaData().getColumnClassName(1));
+        assertEquals(null, rs.getMetaData().getColumnTypeName(1));
+        assertEquals(null, rs.getMetaData().getSchemaName(1));
+        assertEquals(null, rs.getMetaData().getTableName(1));
+        assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, rs.getHoldability());
+        assertEquals(1, rs.getColumnCount());
+
         rs = new SimpleResultSet();
         rs.addColumn("a", Types.BIGINT, 0, 0);
         rs.addColumn("b", Types.BINARY, 0, 0);
@@ -181,7 +217,11 @@ public class TestTools extends TestBase {
         Object[] a2 = (Object[]) rs.getArray(8).getArray();
         assertEquals(2, a2.length);
         assertTrue(a == a2);
-        a2 = (Object[]) rs.getArray("h").getArray();
+        Array array = rs.getArray("h");
+        assertEquals(Types.NULL, array.getBaseType());
+        assertEquals("NULL", array.getBaseTypeName());
+        a2 = (Object[]) array.getArray();
+        array.free();
         assertEquals(2, a2.length);
         assertTrue(a == a2);
 
@@ -190,6 +230,19 @@ public class TestTools extends TestBase {
 
         assertTrue(ts == rs.getTimestamp("j"));
         assertTrue(ts == rs.getTimestamp(10));
+
+        try {
+            rs.getString(11);
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.INVALID_VALUE_2, e.getErrorCode());
+        }
+        try {
+            rs.getString("NOT_FOUND");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
+        }
 
         // all 'updateX' methods are not supported
         for (Method m: rs.getClass().getMethods()) {
@@ -225,8 +278,10 @@ public class TestTools extends TestBase {
                 }
             }
         }
-
+        assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
+        assertEquals(0, rs.getFetchSize());
         assertEquals(ResultSet.TYPE_FORWARD_ONLY, rs.getType());
+        assertTrue(rs.getStatement() == null);
         assertFalse(rs.isClosed());
         rs.beforeFirst();
         assertEquals(0, rs.getRow());
@@ -234,6 +289,12 @@ public class TestTools extends TestBase {
         assertFalse(rs.isClosed());
         assertEquals(1, rs.getRow());
         assertFalse(rs.next());
+        try {
+            rs.getInt(1);
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.NO_DATA_AVAILABLE, e.getErrorCode());
+        }
         assertTrue(rs.isClosed());
         assertEquals(0, rs.getRow());
     }

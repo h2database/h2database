@@ -95,7 +95,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public static class SimpleArray implements Array {
 
-        private Object[] value;
+        private final Object[] value;
 
         SimpleArray(Object[] value) {
             this.value = value;

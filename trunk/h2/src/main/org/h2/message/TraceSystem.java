@@ -7,6 +7,7 @@
 package org.h2.message;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.sql.DriverManager;
@@ -92,6 +93,7 @@ public class TraceSystem implements TraceWriter {
     private boolean closed;
     private boolean writingErrorLogged;
     private TraceWriter writer = this;
+    private PrintStream sysOut = System.out;
 
     /**
      * Create a new trace system object.
@@ -105,6 +107,15 @@ public class TraceSystem implements TraceWriter {
 
     private void updateLevel() {
         levelMax = Math.max(levelSystemOut, levelFile);
+    }
+
+    /**
+     * Set the print stream to use instead of System.out.
+     *
+     * @param out the new print stream
+     */
+    public void setSysOut(PrintStream out) {
+        this.sysOut = out;
     }
 
     /**
@@ -220,9 +231,9 @@ public class TraceSystem implements TraceWriter {
         if (level <= levelSystemOut || level > this.levelMax) {
             // level <= levelSystemOut: the system out level is set higher
             // level > this.level: the level for this module is set higher
-            System.out.println(format(module, s));
+            sysOut.println(format(module, s));
             if (t != null && levelSystemOut == DEBUG) {
-                t.printStackTrace();
+                t.printStackTrace(sysOut);
             }
         }
         if (fileName != null) {
@@ -279,7 +290,7 @@ public class TraceSystem implements TraceWriter {
         Exception se = DbException.get(ErrorCode.TRACE_FILE_ERROR_2, e, fileName, e.toString());
         // print this error only once
         fileName = null;
-        System.out.println(se);
+        sysOut.println(se);
         se.printStackTrace();
     }
 

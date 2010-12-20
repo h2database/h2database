@@ -108,7 +108,8 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/" + getLuceneJar() +
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
-            File.pathSeparator + "ext/slf4j-api-1.5.0.jar";
+            File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
+            File.pathSeparator + "ext/slf4j-nop-1.6.0.jar";
         exec("java", args("-Xmx128m", "-cp", cp, "emma", "run",
                 "-cp", "temp",
                 "-sp", "src/main",
@@ -148,7 +149,7 @@ public class Build extends BuildBase {
         String classpath = "temp" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
-                File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
                 File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
         FileList files;
@@ -235,9 +236,9 @@ public class Build extends BuildBase {
                     "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar",
                     "47b6eee2e17bd68911e7045896a1c09de0b2dda8");
         }
-        download("ext/slf4j-api-1.5.0.jar",
-                "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.5.0/slf4j-api-1.5.0.jar",
-                "b2df265d02350ecfe87b6c1773c7c4fab2b33505");
+        download("ext/slf4j-api-1.6.0.jar",
+                "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.6.0/slf4j-api-1.6.0.jar",
+                "b353147a7d51fcfcd818d8aa6784839783db0915");
         download("ext/org.osgi.core-1.2.0.jar",
                 "http://repo1.maven.org/maven2/org/apache/felix/org.osgi.core/1.2.0/org.osgi.core-1.2.0.jar",
                 "3006beb1ca6a83449def6127dad3c060148a0209");
@@ -256,6 +257,10 @@ public class Build extends BuildBase {
         download("ext/postgresql-8.3-603.jdbc3.jar",
                 "http://repo1.maven.org/maven2/postgresql/postgresql/8.3-603.jdbc3/postgresql-8.3-603.jdbc3.jar",
                 "33d531c3c53055ddcbea3d88bfa093466ffef924");
+        // for TestTraceSystem
+        download("ext/slf4j-nop-1.6.0.jar",
+                "http://repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.6.0/slf4j-nop-1.6.0.jar",
+                "4da67bb4a6eea5dc273f99c50ad2333eadb46f86");
     }
 
     private String getVersion() {

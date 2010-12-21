@@ -95,16 +95,18 @@ public class WriterThread implements Runnable {
 
             // wait 0 mean wait forever, which is not what we want
             wait = Math.max(wait, Constants.MIN_WRITE_DELAY);
-            do {
-                // wait 100 ms at a time
-                int w = Math.min(wait, 100);
-                try {
-                    Thread.sleep(w);
-                } catch (InterruptedException e) {
-                    // ignore
+            synchronized (this) {
+                while (!stop && wait > 0) {
+                    // wait 100 ms at a time
+                    int w = Math.min(wait, 100);
+                    try {
+                        wait(w);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                    wait -= w;
                 }
-                wait -= w;
-            } while (wait > 0 && !stop);
+            }
         }
         databaseRef = null;
     }
@@ -114,6 +116,11 @@ public class WriterThread implements Runnable {
      */
     public void stopThread() {
         stop = true;
+        synchronized (this) {
+            notify();
+        }
+        // can't do thread.join(), because this thread might be holding
+        // a lock that the writer thread is waiting for
     }
 
     /**
@@ -122,7 +129,7 @@ public class WriterThread implements Runnable {
      */
     public void startThread() {
         thread.start();
-        this.thread = null;
+        thread = null;
     }
 
 }

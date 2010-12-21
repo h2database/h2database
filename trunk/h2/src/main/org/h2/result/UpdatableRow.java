@@ -90,16 +90,44 @@ public class UpdatableRow {
             String c = rs.getString("COLUMN_NAME");
             key.add(toUpper ? StringUtils.toUpperEnglish(c) : c);
         }
-        if (key.size() == 0) {
-            rs = meta.getIndexInfo(null,
-                    JdbcUtils.escapeMetaDataPattern(schemaName),
-                    tableName, true, true);
-            while (rs.next()) {
-                String c = rs.getString("COLUMN_NAME");
-                key.add(toUpper ? StringUtils.toUpperEnglish(c) : c);
+        if (isIndexUsable(key)) {
+            isUpdatable = true;
+            return;
+        }
+        key.clear();
+        rs = meta.getIndexInfo(null,
+                JdbcUtils.escapeMetaDataPattern(schemaName),
+                tableName, true, true);
+        while (rs.next()) {
+            int pos = rs.getShort("ORDINAL_POSITION");
+            if (pos == 1) {
+                // check the last key if there was any
+                if (isIndexUsable(key)) {
+                    isUpdatable = true;
+                    return;
+                }
+                key.clear();
+            }
+            String c = rs.getString("COLUMN_NAME");
+            key.add(toUpper ? StringUtils.toUpperEnglish(c) : c);
+        }
+        if (isIndexUsable(key)) {
+            isUpdatable = true;
+            return;
+        }
+        key = null;
+    }
+
+    private boolean isIndexUsable(ArrayList<String> indexColumns) {
+        if (indexColumns.size() == 0) {
+            return false;
+        }
+        for (String c : indexColumns) {
+            if (findColumnIndex(c) < 0) {
+                return false;
             }
         }
-        isUpdatable = key.size() > 0;
+        return true;
     }
 
     /**
@@ -111,14 +139,22 @@ public class UpdatableRow {
         return isUpdatable;
     }
 
-    private int getColumnIndex(String columnName) {
+    private int findColumnIndex(String columnName) {
         for (int i = 0; i < columnCount; i++) {
             String col = result.getColumnName(i);
             if (col.equals(columnName)) {
                 return i;
             }
         }
-        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+        return -1;
+    }
+
+    private int getColumnIndex(String columnName) {
+        int index = findColumnIndex(columnName);
+        if (index < 0) {
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+        }
+        return index;
     }
 
     private void appendColumnList(StatementBuilder buff, boolean set) {

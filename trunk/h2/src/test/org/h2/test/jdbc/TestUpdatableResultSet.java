@@ -38,12 +38,82 @@ public class TestUpdatableResultSet extends TestBase {
     }
 
     public void test() throws SQLException {
+        testDetectUpdatable();
         testUpdateLob();
         testScroll();
         testUpdateDeleteInsert();
         testUpdateDataType();
         testUpdateResetRead();
         deleteDb("updatableResultSet");
+    }
+
+    private void testDetectUpdatable() throws SQLException {
+        deleteDb("updatableResultSet");
+        Connection conn = getConnection("updatableResultSet");
+        Statement stat;
+        ResultSet rs;
+        stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+        stat.execute("create table test(id int primary key, name varchar)");
+        rs = stat.executeQuery("select * from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        rs = stat.executeQuery("select name from test");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        stat.execute("drop table test");
+
+        stat.execute("create table test(a int, b int, name varchar, primary key(a, b))");
+        rs = stat.executeQuery("select * from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        rs = stat.executeQuery("select a, name from test");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        rs = stat.executeQuery("select b, name from test");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        rs = stat.executeQuery("select b, name, a from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        stat.execute("drop table test");
+
+        stat.execute("create table test(a int, b int, name varchar)");
+        stat.execute("create unique index on test(b, a)");
+        rs = stat.executeQuery("select * from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        rs = stat.executeQuery("select a, name from test");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        rs = stat.executeQuery("select b, name from test");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        rs = stat.executeQuery("select b, name, a from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        stat.execute("drop table test");
+
+        stat.execute("create table test(a int, b int, c int unique, name varchar, primary key(a, b))");
+        rs = stat.executeQuery("select * from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        rs = stat.executeQuery("select a, name, c from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        rs = stat.executeQuery("select b, a, name, c from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int primary key, a int, b int, i int, j int, k int, name varchar)");
+        stat.execute("create unique index on test(b, a)");
+        stat.execute("create unique index on test(i, j)");
+        stat.execute("create unique index on test(a, j)");
+        rs = stat.executeQuery("select * from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        rs = stat.executeQuery("select a, name, b from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        rs = stat.executeQuery("select a, name, b from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        rs = stat.executeQuery("select i, b, k, name from test");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        rs = stat.executeQuery("select a, i, name from test");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        rs = stat.executeQuery("select b, i, k, name from test");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        rs = stat.executeQuery("select a, k, j, name from test");
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
+        stat.execute("drop table test");
+
+        conn.close();
     }
 
     private void testUpdateLob() throws SQLException {

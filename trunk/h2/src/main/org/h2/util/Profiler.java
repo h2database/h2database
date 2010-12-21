@@ -27,6 +27,7 @@ public class Profiler implements Runnable {
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
     private String[] ignoreThreads = StringUtils.arraySplit(
             "java.lang.Thread.dumpThreads," +
+            "java.lang.Thread.getThreads," +
             "java.net.PlainSocketImpl.socketAccept," +
             "java.net.SocketInputStream.socketRead0," +
             "java.net.SocketOutputStream.socketWrite0," +

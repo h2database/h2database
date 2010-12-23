@@ -204,6 +204,7 @@ ShutdownHandler {
             }
         }
         if (startException != null) {
+            shutdown();
             throw startException;
         }
     }

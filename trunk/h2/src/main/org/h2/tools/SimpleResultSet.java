@@ -62,6 +62,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     private boolean wasNull;
     private SimpleRowSource source;
     private ArrayList<Column> columns = New.arrayList();
+    private boolean autoClose = true;
 
     /**
      * This class holds the data of a result column.
@@ -318,7 +319,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
                 return true;
             }
         }
-        close();
+        if (autoClose) {
+            close();
+        }
         return false;
     }
 
@@ -2119,5 +2122,24 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         throw getUnsupportedException();
     }
 //## Java 1.6 end ##
+
+    /**
+     * Set the auto-close behavior. If enabled (the default), the result set is closed
+     * after reading the last row.
+     *
+     * @param autoClose the new value
+     */
+    public void setAutoClose(boolean autoClose) {
+        this.autoClose = autoClose;
+    }
+
+    /**
+     * Get the current auto-close behavior.
+     *
+     * @return the auto-close value
+     */
+    public boolean getAutoClose() {
+        return autoClose;
+    }
 
 }

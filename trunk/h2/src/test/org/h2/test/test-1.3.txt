@@ -1,4 +1,38 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int);
+> ok
+
+insert into test values(1), (2), (4);
+> update count: 3
+
+select a.id, a.id in(select 4) x  from test a, test b where a.id in (b.id, b.id - 1);
+> ID X
+> -- -----
+> 1  FALSE
+> 1  FALSE
+> 2  FALSE
+> 4  TRUE
+> rows: 4
+
+select a.id, a.id in(select 4) x  from test a, test b where a.id in (b.id, b.id - 1) group by a.id;
+> ID X
+> -- -----
+> 1  FALSE
+> 2  FALSE
+> 4  TRUE
+> rows: 3
+
+select a.id, 4 in(select a.id) x  from test a, test b where a.id in (b.id, b.id - 1) group by a.id;
+> ID X
+> -- -----
+> 1  FALSE
+> 2  FALSE
+> 4  TRUE
+> rows: 3
+
+drop table test;
+> ok
+
 create domain x as int not null;
 > ok
 

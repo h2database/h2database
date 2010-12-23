@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>After closing a database, the writer thread will stop almost immediately (instead of after at most 100 ms).
+<ul><li>The SimpleResultSet now has a feature to not close the result set after reading the last row.
+</li><li>Native fulltext search: the ignore list doesn't need to be all uppercase now.
+</li><li>Improved statistics output in the Recover tool.
+</li><li>Issue 269: GROUP BY queries with a column or having clause that contains IN(SELECT ...) 
+    could return the wrong values. Example: SELECT X IN(SELECT Y) FROM Z GROUP BY X.
+</li><li>After closing a database, the writer thread will stop almost immediately (instead of after at most 100 ms).
     This should avoid error messages in the Tomcat log file after a shutdown.
 </li><li>Issue 271: ResultSet.getConcurrency() did not correctly detect that the result set is not updatable.
 </li><li>The SLF4J 1.6 API is now used by default (this should not have any user visible effect).

@@ -29,6 +29,8 @@ import org.h2.value.ValueNull;
  */
 public class PageBtreeIndex extends PageIndex {
 
+    private static int memoryChangeRequired;
+
     private PageStore store;
     private RegularTable tableData;
     private boolean needRebuild;
@@ -446,6 +448,19 @@ public class PageBtreeIndex extends PageIndex {
         } else {
             memoryPerPage += (x > memoryPerPage ? 1 : -1) + ((x - memoryPerPage) / Constants.MEMORY_FACTOR);
         }
+    }
+
+    /**
+     * Check if calculating the memory is required.
+     *
+     * @return true if it is
+     */
+    public boolean isMemoryChangeRequired() {
+        if (memoryChangeRequired-- <= 0) {
+            memoryChangeRequired = 10;
+            return true;
+        }
+        return false;
     }
 
 }

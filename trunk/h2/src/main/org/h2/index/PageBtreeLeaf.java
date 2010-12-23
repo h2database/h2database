@@ -97,7 +97,9 @@ public class PageBtreeLeaf extends PageBtree {
     }
 
     int addRowTry(SearchRow row) {
-        return addRow(row, true);
+        int x = addRow(row, true);
+        memoryChange();
+        return x;
     }
 
     private int addRow(SearchRow row, boolean tryOnly) {
@@ -159,7 +161,6 @@ public class PageBtreeLeaf extends PageBtree {
         rows = insert(rows, entryCount, x, row);
         entryCount++;
         index.getPageStore().update(this);
-        memoryChange();
         return -1;
     }
 
@@ -190,7 +191,6 @@ public class PageBtreeLeaf extends PageBtree {
         offsets = remove(offsets, entryCount + 1, at);
         add(offsets, at, entryCount, rowLength);
         rows = remove(rows, entryCount + 1, at);
-        memoryChange();
     }
 
     int getEntryCount() {
@@ -204,6 +204,8 @@ public class PageBtreeLeaf extends PageBtree {
             p2.addRow(getRow(splitPoint), false);
             removeRow(splitPoint);
         }
+        memoryChange();
+        p2.memoryChange();
         return p2;
     }
 
@@ -227,6 +229,7 @@ public class PageBtreeLeaf extends PageBtree {
             return row;
         }
         removeRow(at);
+        memoryChange();
         index.getPageStore().update(this);
         if (at == entryCount) {
             // the last row changed
@@ -359,7 +362,10 @@ public class PageBtreeLeaf extends PageBtree {
         store.free(getPos());
     }
 
-    private void memoryChange() {
+    protected void memoryChange() {
+        if (!index.isMemoryChangeRequired()) {
+            return;
+        }
         int memory = Constants.MEMORY_PAGE_BTREE + index.getPageStore().getPageSize();
         if (rows != null) {
             memory += getEntryCount() * (4 + Constants.MEMORY_POINTER);

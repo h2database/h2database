@@ -172,12 +172,18 @@ public abstract class PageBtree extends Page {
         SearchRow row = rows[at];
         if (row == null) {
             row = index.readRow(data, offsets[at], onlyPosition, true);
+            memoryChange();
             rows[at] = row;
         } else if (!index.hasData(row)) {
             row = index.readRow(row.getKey());
+            memoryChange();
             rows[at] = row;
         }
         return row;
+    }
+
+    protected void memoryChange() {
+        // nothing to do
     }
 
     /**

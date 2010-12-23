@@ -40,7 +40,7 @@ public class TestPgServer extends TestBase {
         assertEquals(5535, server.getPort());
         assertEquals("Not started", server.getStatus());
         server.start();
-        assertStartsWith(server.getStatus(), "PG server running on pg://");
+        assertStartsWith(server.getStatus(), "PG server running at pg://");
         try {
             Class.forName("org.postgresql.Driver");
             testPgClient();

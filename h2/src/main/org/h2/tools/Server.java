@@ -276,7 +276,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             buff.append("Not started");
         } else if (isRunning(false)) {
             buff.append(service.getType()).
-                append(" server running on ").
+                append(" server running at ").
                 append(service.getURL()).
                 append(" (");
             if (service.getAllowOthers()) {
@@ -288,7 +288,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         } else {
             buff.append("The ").
                 append(service.getType()).
-                append(" server could not be started. Possible cause: another server is already running on ").
+                append(" server could not be started. Possible cause: another server is already running at ").
                 append(service.getURL());
         }
         return buff.toString();

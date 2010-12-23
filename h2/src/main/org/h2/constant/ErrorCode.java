@@ -991,7 +991,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90061</code> is thrown when
-     * trying to start a server if a server is already running on the same port.
+     * trying to start a server if a server is already running at the same port.
      * It could also be a firewall problem. To find out if another server is
      * already running, run the following command on Windows:
      * <pre>
@@ -1060,7 +1060,7 @@ public class ErrorCode {
     /**
      * The error with code <code>90067</code> is thrown when the client could
      * not connect to the database, or if the connection was lost. Possible
-     * reasons are: the database server is not running on the given port, the
+     * reasons are: the database server is not running at the given port, the
      * connection was closed due to a shutdown, or the server was stopped. Other
      * possible causes are: the server is not an H2 server, or the network
      * connection is broken.

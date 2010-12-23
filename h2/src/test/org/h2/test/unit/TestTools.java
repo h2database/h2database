@@ -6,6 +6,9 @@
  */
 package org.h2.test.unit;
 
+import java.awt.Button;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
@@ -101,11 +104,49 @@ public class TestTools extends TestBase {
         Console c = new Console();
         c.setOut(new PrintStream(new ByteArrayOutputStream()));
         try {
+
+            // start including browser
             lastUrl = "-";
             System.setProperty(SysProperties.H2_BROWSER, "call:" + TestTools.class.getName() + ".openBrowser");
-            c.runTool("-web", "-webPort", "9002", "-tool", "-browser", "-tcp", "-tcpPort", "9003", "-pg", "-pgPort", "9004", "-browser", "-quiet");
-            c.shutdown();
+            c.runTool("-web", "-webPort", "9002", "-tool", "-browser", "-tcp", "-tcpPort", "9003", "-pg", "-pgPort", "9004", "-quiet");
             assertContains(lastUrl, ":9002");
+            c.shutdown();
+
+            // check if starting the browser works
+            c.runTool("-web", "-webPort", "9002", "-tool", "-quiet");
+            lastUrl = "-";
+            c.actionPerformed(new ActionEvent(this, 0, "console"));
+            assertContains(lastUrl, ":9002");
+            lastUrl = "-";
+            // double-click prevention is 100 ms
+            Thread.sleep(200);
+            MouseEvent me = new MouseEvent(new Button(), 0, 0, 0, 0, 0, 0, false, MouseEvent.BUTTON1);
+            c.mouseClicked(me);
+            assertContains(lastUrl, ":9002");
+            lastUrl = "-";
+            // no delay - ignore because it looks like a double click
+            c.mouseClicked(me);
+            assertEquals("-", lastUrl);
+            // open the window
+            c.actionPerformed(new ActionEvent(this, 0, "status"));
+            c.actionPerformed(new ActionEvent(this, 0, "exit"));
+
+            // check if the service was stopped
+            c.runTool("-webPort", "9002", "-quiet");
+            c.shutdown();
+
+            // trying to use the same port for two services should fail,
+            // but also stop the first service
+            try {
+                c.runTool("-web", "-webPort", "9002", "-tcp", "-tcpPort", "9002", "-quiet");
+                fail();
+            } catch (SQLException e) {
+                assertEquals(ErrorCode.EXCEPTION_OPENING_PORT_2, e.getErrorCode());
+            }
+
+            c.runTool("-web", "-webPort", "9002", "-quiet");
+            c.shutdown();
+
         } finally {
             if (old != null) {
                 System.setProperty(SysProperties.H2_BROWSER, old);

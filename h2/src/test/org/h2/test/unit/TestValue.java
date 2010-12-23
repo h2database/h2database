@@ -52,8 +52,25 @@ public class TestValue extends TestBase {
         rs.addRow(1, "Hello");
         rs.addRow(2, "World");
         rs.addRow(3, "Peace");
-        ValueResultSet v = ValueResultSet.getCopy(rs, 2);
+
+        ValueResultSet v;
+        v = ValueResultSet.get(rs);
+        assertTrue(rs == v.getObject());
+
+        v = ValueResultSet.getCopy(rs, 2);
+        assertEquals(0, v.hashCode());
+        assertEquals(Integer.MAX_VALUE, v.getDisplaySize());
+        assertEquals(0, v.getPrecision());
+        assertEquals(0, v.getScale());
+        assertEquals("", v.getSQL());
+        assertEquals(Value.RESULT_SET, v.getType());
+        assertEquals("((1, Hello), (2, World))", v.getString());
         rs.beforeFirst();
+        ValueResultSet v2 = ValueResultSet.getCopy(rs, 2);
+        assertTrue(v.equals(v));
+        assertFalse(v.equals(v2));
+        rs.beforeFirst();
+
         ResultSet rs2 = v.getResultSet();
         rs2.next();
         rs.next();

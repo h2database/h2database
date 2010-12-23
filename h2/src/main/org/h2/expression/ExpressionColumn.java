@@ -150,9 +150,6 @@ public class ExpressionColumn extends Expression {
     }
 
     public Value getValue(Session session) {
-        // TODO refactor: simplify check if really part of an aggregated value /
-        // detection of
-        // usage of non-grouped by columns without aggregate function
         Select select = columnResolver.getSelect();
         if (select != null) {
             HashMap<Expression, Object> values = select.getCurrentGroup();

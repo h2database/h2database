@@ -106,10 +106,8 @@ public class ConditionInSelect extends Condition {
     }
 
     public void updateAggregate(Session session) {
-        // TODO exists: is it allowed that the subquery contains aggregates?
-        // probably not
-        // select id from test group by id having 1 in (select * from test2
-        // where id=count(test.id))
+        left.updateAggregate(session);
+        query.updateAggregate(session);
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {

@@ -39,6 +39,7 @@ public class TestFullText extends TestBase {
     }
 
     public void test() throws Exception {
+        testNativeFeatures();
         testTransaction(false);
         testCreateDrop();
         if (config.memory) {
@@ -69,6 +70,41 @@ public class TestFullText extends TestBase {
         FullText.closeAll();
         deleteDb("fullText");
         deleteDb("fullTextReopen");
+    }
+
+    private void testNativeFeatures() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("fullTextNative");
+        Connection conn = getConnection("fullTextNative");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
+        stat.execute("CALL FT_INIT()");
+        FullText.setIgnoreList(conn, "to,this");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Welcome to this world')");
+        stat.execute("CALL FT_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
+        ResultSet rs;
+        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Welcome', 0, 0)");
+        assertTrue(rs.next());
+        assertEquals("QUERY", rs.getMetaData().getColumnLabel(1));
+        assertEquals("SCORE", rs.getMetaData().getColumnLabel(2));
+        assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=1", rs.getString(1));
+        assertEquals("1.0", rs.getString(2));
+        rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('Welcome', 0, 0)");
+        assertTrue(rs.next());
+        assertEquals("SCHEMA", rs.getMetaData().getColumnLabel(1));
+        assertEquals("TABLE", rs.getMetaData().getColumnLabel(2));
+        assertEquals("COLUMNS", rs.getMetaData().getColumnLabel(3));
+        assertEquals("KEYS", rs.getMetaData().getColumnLabel(4));
+        assertEquals("PUBLIC", rs.getString(1));
+        assertEquals("TEST", rs.getString(2));
+        assertEquals("(ID)", rs.getString(3));
+        assertEquals("(1)", rs.getString(4));
+        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('this', 0, 0)");
+        assertFalse(rs.next());
+        conn.close();
     }
 
     private void testTransaction(boolean lucene) throws SQLException {

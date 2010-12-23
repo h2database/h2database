@@ -754,7 +754,7 @@ public class FullText {
         for (String word : list) {
             String converted = setting.convertWord(word);
             if (converted != null) {
-                set.add(word);
+                set.add(converted);
             }
         }
     }

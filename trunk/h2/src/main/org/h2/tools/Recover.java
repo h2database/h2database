@@ -442,16 +442,18 @@ public class Recover extends Tool implements DataHandler {
             } catch (IOException e) {
                 // ignore
             }
-            writer.println("---- Statistics ----------");
-            writer.println("-- page count: " + pageCount + " free: " + stat.free);
-            writer.println("-- page data head: " + stat.pageDataHead + " empty: " + stat.pageDataEmpty + " rows: " + stat.pageDataRows);
+            writer.println("---- Statistics ----");
+            writer.println("-- page count: " + pageCount + ", free: " + stat.free);
+            writer.println("-- page data bytes: head " + stat.pageDataHead +
+                    ", empty " + stat.pageDataEmpty +
+                    ", rows " + stat.pageDataRows +
+                    " (" + (100 - 100L * stat.pageDataEmpty / (stat.pageDataRows + stat.pageDataEmpty + stat.pageDataHead)) + "% full)");
             for (int i = 0; i < stat.pageTypeCount.length; i++) {
                 int count = stat.pageTypeCount[i];
                 if (count > 0) {
-                    writer.println("-- page count type: " + i + " " + (100 * count / pageCount) + "% count: " + count);
+                    writer.println("-- " + getPageType(i) + " " + (100 * count / pageCount) + "%, " + count + " page(s)");
                 }
             }
-
             writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
@@ -459,6 +461,30 @@ public class Recover extends Tool implements DataHandler {
             IOUtils.closeSilently(writer);
             closeSilently(store);
         }
+    }
+
+    private String getPageType(int type) {
+        switch (type) {
+        case 0:
+            return "free";
+        case Page.TYPE_DATA_LEAF:
+            return "data leaf";
+        case Page.TYPE_DATA_NODE:
+            return "data node";
+        case Page.TYPE_DATA_OVERFLOW:
+            return "data overflow";
+        case Page.TYPE_BTREE_LEAF:
+            return "btree leaf";
+        case Page.TYPE_BTREE_NODE:
+            return "btree node";
+        case Page.TYPE_FREE_LIST:
+            return "free list";
+        case Page.TYPE_STREAM_TRUNK:
+            return "stream trunk";
+        case Page.TYPE_STREAM_DATA:
+            return "stream data";
+        }
+        return "[" + type + "]";
     }
 
     private void dumpPageStore(PrintWriter writer, long pageCount) {
@@ -559,7 +585,7 @@ public class Recover extends Tool implements DataHandler {
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey, logFirstTrunkPage, logFirstDataPage, pageSize)
         );
-        writer.println("---- Transaction log ----------");
+        writer.println("---- Transaction log ----");
         CompressLZF compress = new CompressLZF();
         while (true) {
             int x = in.readByte();
@@ -1120,7 +1146,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void writeSchema(PrintWriter writer) {
-        writer.println("---- Schema ----------");
+        writer.println("---- Schema ----");
         Collections.sort(schema);
         for (MetaRecord m : schema) {
             int t = m.getObjectType();

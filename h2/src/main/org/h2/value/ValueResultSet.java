@@ -52,6 +52,7 @@ public class ValueResultSet extends Value {
             ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();
             SimpleResultSet simple = new SimpleResultSet();
+            simple.setAutoClose(false);
             ValueResultSet val = new ValueResultSet(simple);
             for (int i = 0; i < columnCount; i++) {
                 String name = meta.getColumnLabel(i + 1);

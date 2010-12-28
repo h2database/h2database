@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The SimpleResultSet now has a feature to not close the result set after reading the last row.
+<ul><li>When the system property h2.lobInDatabase is set, reading a BLOB is a bit faster
+    because the length is not read.
+</li><li>The SimpleResultSet now has a feature to not close the result set after reading the last row.
 </li><li>Native fulltext search: the ignore list doesn't need to be all uppercase now.
 </li><li>Improved statistics output in the Recover tool.
 </li><li>Issue 269: GROUP BY queries with a column or having clause that contains IN(SELECT ...) 

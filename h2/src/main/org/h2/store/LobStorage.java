@@ -174,21 +174,26 @@ public class LobStorage {
         private int seq;
         private CompressTool compress;
 
-        public LobInputStream(Connection conn, long lob) throws IOException {
+        public LobInputStream(Connection conn, long lob, long byteCount) throws IOException {
             this.conn = conn;
-            try {
-                this.lob = lob;
-                PreparedStatement prep = conn.prepareStatement(
-                        "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?");
-                prep.setLong(1, lob);
-                ResultSet rs = prep.executeQuery();
-                if (!rs.next()) {
-                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob: "+ lob).getSQLException();
+            this.lob = lob;
+            if (byteCount == -1) {
+                try {
+                    this.lob = lob;
+                    PreparedStatement prep = conn.prepareStatement(
+                            "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?");
+                    prep.setLong(1, lob);
+                    ResultSet rs = prep.executeQuery();
+                    if (!rs.next()) {
+                        throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob: "+ lob).getSQLException();
+                    }
+                    remainingBytes = rs.getLong(1);
+                    rs.close();
+                } catch (SQLException e) {
+                    throw DbException.convertToIOException(e);
                 }
-                remainingBytes = rs.getLong(1);
-                rs.close();
-            } catch (SQLException e) {
-                throw DbException.convertToIOException(e);
+            } else {
+                remainingBytes = byteCount;
             }
         }
 
@@ -310,11 +315,12 @@ public class LobStorage {
      * Get the input stream for the given lob.
      *
      * @param lobId the lob id
+     * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */
-    public InputStream getInputStream(long lobId) throws IOException {
+    public InputStream getInputStream(long lobId, long byteCount) throws IOException {
         init();
-        return new LobInputStream(conn, lobId);
+        return new LobInputStream(conn, lobId, byteCount);
     }
 
     private ValueLobDb addLob(InputStream in, long maxLength, int type) {

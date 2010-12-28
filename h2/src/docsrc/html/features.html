@@ -1114,12 +1114,16 @@ or <code>SET EXCLUSIVE 2</code>), then this connection will try to re-connect un
 Multiple processes can access the same database without having to start the server manually.
 To do that, append <code>;AUTO_SERVER=TRUE</code> to the database URL.
 You can use the same database URL independent of whether the database is already open or not.
-This feature doesn't work with in-memory databases.
+This feature doesn't work with in-memory databases. Example database URL:
 </p>
+<pre>
+jdbc:h2:/data/test;AUTO_SERVER=TRUE
+</pre>
 <p>
-When using this mode, the first connection to the database is made in embedded mode,
-and additionally a server is started internally (as a daemon thread).
-If the database is already open in another process, the server mode is used automatically.
+Use the same URL for all connections to this database. Behind the scenes, when using this mode, 
+the first connection to the database is made in embedded mode, and additionally a server 
+is started internally (as a daemon thread). If the database is already open in another process, 
+the server mode is used automatically.
 </p>
 <p>
 The application that opens the first connection to the database uses the embedded mode,

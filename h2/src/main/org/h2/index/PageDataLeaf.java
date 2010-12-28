@@ -510,7 +510,7 @@ public class PageDataLeaf extends PageData {
     }
 
     public String toString() {
-        return "page[" + getPos() + "] data leaf table:" + index.getId() +
+        return "page[" + getPos() + "] data leaf table:" + index.getId() + " " + index.getTable().getName() +
             " entries:" + entryCount + " parent:" + parentPageId +
             (firstOverflowPageId == 0 ? "" : " overflow:" + firstOverflowPageId) +
             " keys:" + Arrays.toString(keys) + " offsets:" + Arrays.toString(offsets);

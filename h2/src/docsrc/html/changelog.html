@@ -18,12 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When the system property h2.lobInDatabase is set, reading a BLOB is a bit faster
+<ul><li>Multi-version concurrency: SELECT ... FOR UPDATE threw a "concurrent update" exception immediately
+    instead of a "lock timeout" exception after the set lock timeout if the row was already locked by another connection.
+</li><li>Translation: the H2 Console and error messages have been translated to Czech by Hannibal (http://hannibal.cestiny.cz/). Thanks a lot!
+</li><li>When the system property h2.lobInDatabase is set, reading a BLOB is a bit faster
     because the length is not read.
 </li><li>The SimpleResultSet now has a feature to not close the result set after reading the last row.
 </li><li>Native fulltext search: the ignore list doesn't need to be all uppercase now.
 </li><li>Improved statistics output in the Recover tool.
-</li><li>Issue 269: GROUP BY queries with a column or having clause that contains IN(SELECT ...) 
+</li><li>Issue 269: GROUP BY queries with a column or having clause that contains IN(SELECT ...)
     could return the wrong values. Example: SELECT X IN(SELECT Y) FROM Z GROUP BY X.
 </li><li>After closing a database, the writer thread will stop almost immediately (instead of after at most 100 ms).
     This should avoid error messages in the Tomcat log file after a shutdown.
@@ -31,7 +34,7 @@ Change Log
 </li><li>The SLF4J 1.6 API is now used by default (this should not have any user visible effect).
 </li><li>The org.h2.tools.Console no longer calls System.exit on shutdown
     (this should not have any user visible effect, but should allow to integrate the tool easier into other applications).
-</li><li>Improved date / time arithmetics. Adding and subtracting a 
+</li><li>Improved date / time arithmetics. Adding and subtracting a
     floating point value from a date or timestamp is now supported.
 </li><li>When creating a BLOB with in InputStream or a CLOB with a Reader, and the InputStream or Reader
     threw an non-IOException, then the LOB storage was broken when storing LOBs in the database.

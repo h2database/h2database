@@ -68,7 +68,7 @@ public class TestLobApi extends TestBase {
         try {
             prep.setCharacterStream(1, new Reader() {
                 int pos;
-                public int read(char[] cbuf, int off, int len) throws IOException {
+                public int read(char[] buff, int off, int len) throws IOException {
                     pos += len;
                     if (pos > 100001) {
                         if (ioException) {

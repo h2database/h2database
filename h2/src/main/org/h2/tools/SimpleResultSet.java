@@ -2124,8 +2124,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 //## Java 1.6 end ##
 
     /**
-     * Set the auto-close behavior. If enabled (the default), the result set is closed
-     * after reading the last row.
+     * Set the auto-close behavior. If enabled (the default), the result set is
+     * closed after reading the last row.
      *
      * @param autoClose the new value
      */

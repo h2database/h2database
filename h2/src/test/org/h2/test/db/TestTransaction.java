@@ -15,6 +15,7 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -35,6 +36,7 @@ public class TestTransaction extends TestBase {
     }
 
     public void test() throws SQLException {
+        testConcurrentSelectForUpdate();
         testLogMode();
         testRollback();
         testRollback2();
@@ -84,6 +86,28 @@ public class TestTransaction extends TestBase {
         }
         assertFalse(rs.next());
         stat.execute("drop table test");
+        conn.close();
+    }
+
+    private void testConcurrentSelectForUpdate() throws SQLException {
+        deleteDb("transaction");
+        Connection conn = getConnection("transaction");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
+        conn.commit();
+        PreparedStatement prep = conn.prepareStatement("select * from test for update");
+        prep.execute();
+        Connection conn2 = getConnection("transaction");
+        conn2.setAutoCommit(false);
+        try {
+            conn2.createStatement().execute("select * from test for update");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.LOCK_TIMEOUT_1, e.getErrorCode());
+        }
+        conn2.close();
         conn.close();
     }
 

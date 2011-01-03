@@ -1120,9 +1120,9 @@ This feature doesn't work with in-memory databases. Example database URL:
 jdbc:h2:/data/test;AUTO_SERVER=TRUE
 </pre>
 <p>
-Use the same URL for all connections to this database. Behind the scenes, when using this mode, 
-the first connection to the database is made in embedded mode, and additionally a server 
-is started internally (as a daemon thread). If the database is already open in another process, 
+Use the same URL for all connections to this database. Internally, when using this mode,
+the first connection to the database is made in embedded mode, and additionally a server
+is started internally (as a daemon thread). If the database is already open in another process,
 the server mode is used automatically.
 </p>
 <p>

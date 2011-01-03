@@ -52,6 +52,7 @@ public class WebServer implements Service {
     private static final String DEFAULT_LANGUAGE = "en";
 
     private static final String[][] LANGUAGES = {
+        { "cs", "\u010ce\u0161tina" },
         { "de", "Deutsch" },
         { "en", "English" },
         { "es", "Espa\u00f1ol" },
@@ -98,13 +99,21 @@ public class WebServer implements Service {
      */
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000;
 
-//    static {
+//    public static void main(String... args) throws IOException {
+//        String s = IOUtils.readStringAndClose(new java.io.FileReader(
+//                // "src/main/org/h2/server/web/res/_text_cs.prop"), -1);
+//                "src/main/org/h2/res/_messages_cs.prop"), -1);
+//        System.out.println(StringUtils.javaEncode("Čeština"));
 //        String[] list = Locale.getISOLanguages();
 //        for (int i = 0; i < list.length; i++) {
 //            System.out.print(list[i] + " ");
 //        }
-//        String lang = new java.util.Locale("hu").
-//            getDisplayLanguage(new java.util.Locale("hu"));
+//        System.out.println();
+//        String l = "de";
+//        String lang = new java.util.Locale(l).
+//            getDisplayLanguage(new java.util.Locale(l));
+//        System.out.println(new java.util.Locale(l).getDisplayLanguage());
+//        System.out.println(lang);
 //        java.util.Locale.CHINESE.getDisplayLanguage(java.util.Locale.CHINESE);
 //        for (int i = 0; i < lang.length(); i++) {
 //            System.out.println(Integer.toHexString(lang.charAt(i)) + " ");

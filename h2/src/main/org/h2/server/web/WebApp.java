@@ -1561,7 +1561,7 @@ public class WebApp {
         } else {
             buff.append("<tr>");
             if (edit) {
-                buff.append("<th>Action</th>");
+                buff.append("<th>${text.resultEdit.action}</th>");
             }
             for (int i = 0; i < columns; i++) {
                 buff.append("<th>").

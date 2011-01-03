@@ -112,34 +112,6 @@ public abstract class Command implements CommandInterface {
     }
 
     /**
-     * Execute a query and return the result.
-     * This method prepares everything and calls {@link #query(int)} finally.
-     *
-     * @param maxrows the maximum number of rows to return
-     * @param scrollable if the result set must be scrollable (ignored)
-     * @return the result set
-     */
-    public ResultInterface executeQuery(int maxrows, boolean scrollable) {
-        startTime = 0;
-        Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
-        session.waitIfExclusiveModeEnabled();
-        synchronized (sync) {
-            try {
-                database.checkPowerOff();
-                session.setCurrentCommand(this);
-                return query(maxrows);
-            } catch (DbException e) {
-                e.addSQL(sql);
-                database.exceptionThrown(e.getSQLException(), sql);
-                throw e;
-            } finally {
-                stop();
-            }
-        }
-    }
-
-    /**
      * Start the stopwatch.
      */
     void start() {
@@ -183,6 +155,44 @@ public abstract class Command implements CommandInterface {
         }
     }
 
+    /**
+     * Execute a query and return the result.
+     * This method prepares everything and calls {@link #query(int)} finally.
+     *
+     * @param maxrows the maximum number of rows to return
+     * @param scrollable if the result set must be scrollable (ignored)
+     * @return the result set
+     */
+    public ResultInterface executeQuery(int maxrows, boolean scrollable) {
+        startTime = 0;
+        long start = 0;
+        Database database = session.getDatabase();
+        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
+        session.waitIfExclusiveModeEnabled();
+        synchronized (sync) {
+            database.checkPowerOff();
+            session.setCurrentCommand(this);
+            try {
+                while (true) {
+                    database.checkPowerOff();
+                    try {
+                        return query(maxrows);
+                    } catch (DbException e) {
+                        start = filterConcurrentUpdate(e, start);
+                    } catch (Throwable e) {
+                        throw DbException.convert(e);
+                    }
+                }
+            } catch (DbException e) {
+                e.addSQL(sql);
+                database.exceptionThrown(e.getSQLException(), sql);
+                throw e;
+            } finally {
+                stop();
+            }
+        }
+    }
+
     public int executeUpdate() {
         long start = 0;
         Database database = session.getDatabase();
@@ -199,27 +209,7 @@ public abstract class Command implements CommandInterface {
                     try {
                         return update();
                     } catch (DbException e) {
-                        if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
-                            long now = System.currentTimeMillis();
-                            if (start == 0) {
-                                start = now;
-                                continue;
-                            }
-                            if (now - start > session.getLockTimeout()) {
-                                throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
-                            }
-                            try {
-                                if (sync == database) {
-                                    database.wait(10);
-                                } else {
-                                    Thread.sleep(10);
-                                }
-                            } catch (InterruptedException e1) {
-                                // ignore
-                            }
-                            continue;
-                        }
-                        throw e;
+                        start = filterConcurrentUpdate(e, start);
                     } catch (Throwable e) {
                         throw DbException.convert(e);
                     }
@@ -253,6 +243,27 @@ public abstract class Command implements CommandInterface {
                 }
             }
         }
+    }
+
+    private long filterConcurrentUpdate(DbException e, long start) {
+        if (e.getErrorCode() != ErrorCode.CONCURRENT_UPDATE_1) {
+            throw e;
+        }
+        long now = System.currentTimeMillis();
+        if (now - start > session.getLockTimeout()) {
+            throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
+        }
+        try {
+            Database database = session.getDatabase();
+            if (database.isMultiThreaded()) {
+                Thread.sleep(10);
+            } else {
+                database.wait(10);
+            }
+        } catch (InterruptedException e1) {
+            // ignore
+        }
+        return start == 0 ? now : start;
     }
 
     public void close() {

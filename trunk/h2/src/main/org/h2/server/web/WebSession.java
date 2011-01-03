@@ -192,10 +192,10 @@ class WebSession {
         m.putAll(map);
         m.put("lastAccess", new Timestamp(lastAccess).toString());
         try {
-            m.put("url", conn == null ? "not connected" : conn.getMetaData().getURL());
+            m.put("url", conn == null ? "${text.admin.notConnected}" : conn.getMetaData().getURL());
             m.put("user", conn == null ? "-" : conn.getMetaData().getUserName());
             m.put("lastQuery", commandHistory.size() == 0 ? "" : commandHistory.get(0));
-            m.put("executing", executingStatement == null ? "no" : "yes");
+            m.put("executing", executingStatement == null ? "${text.admin.no}" : "${text.admin.yes}");
         } catch (SQLException e) {
             TraceSystem.traceThrowable(e);
         }

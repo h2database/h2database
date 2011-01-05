@@ -182,6 +182,7 @@ ShutdownHandler {
                 if (printStatus) {
                     out.println(tcp.getStatus());
                 }
+                tcp.setShutdownHandler(this);
             } catch (SQLException e) {
                 printProblem(e, tcp);
                 if (startException == null) {

@@ -29,6 +29,7 @@ import org.h2.message.TraceSystem;
 import org.h2.util.JdbcUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * The TCP server implements the native H2 database server protocol.
@@ -55,6 +56,7 @@ public class TcpServer implements Service {
     private boolean trace;
     private boolean ssl;
     private boolean stop;
+    private ShutdownHandler shutdownHandler;
     private ServerSocket serverSocket;
     private Set<TcpServerThread> running = Collections.synchronizedSet(new HashSet<TcpServerThread>());
     private String baseDir;
@@ -98,6 +100,19 @@ public class TcpServer implements Service {
             JdbcUtils.closeSilently(stat);
         }
         SERVERS.put(port, this);
+    }
+
+    /**
+     * Shut down this server.
+     */
+    void shutdown() {
+        if (shutdownHandler != null) {
+            shutdownHandler.shutdown();
+        }
+    }
+
+    public void setShutdownHandler(ShutdownHandler shutdownHandler) {
+        this.shutdownHandler = shutdownHandler;
     }
 
     /**
@@ -319,6 +334,7 @@ public class TcpServer implements Service {
         } else if (shutdownMode == SHUTDOWN_FORCE) {
             server.stop();
         }
+        server.shutdown();
     }
 
     /**
@@ -388,14 +404,12 @@ public class TcpServer implements Service {
     public static synchronized void shutdown(String url, String password, boolean force, boolean all) throws SQLException {
         try {
             int port = Constants.DEFAULT_TCP_PORT;
-            int idx = url.indexOf(':', "jdbc:h2:".length());
+            int idx = url.lastIndexOf(':');
             if (idx >= 0) {
                 String p = url.substring(idx + 1);
-                idx = p.indexOf('/');
-                if (idx >= 0) {
-                    p = p.substring(0, idx);
+                if (StringUtils.isNumber(p)) {
+                    port = Integer.decode(p);
                 }
-                port = Integer.decode(p);
             }
             String db = getManagementDbName(port);
             try {

@@ -27,6 +27,7 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
+import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
 
@@ -292,7 +293,7 @@ public class Shell extends Tool implements Runnable {
                 } else {
                     boolean addToHistory = true;
                     if (statement == null) {
-                        if (isNumber(line)) {
+                        if (StringUtils.isNumber(line)) {
                             int pos = Integer.parseInt(line);
                             if (pos == 0 || pos > history.size()) {
                                 println("Not found");
@@ -340,18 +341,6 @@ public class Shell extends Tool implements Runnable {
                 e.printStackTrace(err);
             }
         }
-    }
-
-    private boolean isNumber(String s) {
-        if (s.length() == 0) {
-            return false;
-        }
-        for (char c : s.toCharArray()) {
-            if (!Character.isDigit(c)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private void connect() throws IOException, SQLException {

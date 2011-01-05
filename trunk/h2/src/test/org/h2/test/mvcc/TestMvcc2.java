@@ -161,7 +161,7 @@ public class TestMvcc2 extends TestBase {
             conn2.createStatement().execute("select * from test where id = 3 for update");
             fail();
         } catch (SQLException e) {
-            assertEquals(ErrorCode.CONCURRENT_UPDATE_1, e.getErrorCode());
+            assertEquals(ErrorCode.LOCK_TIMEOUT_1, e.getErrorCode());
         }
         conn.close();
     }

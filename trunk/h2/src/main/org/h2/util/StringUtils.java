@@ -1003,4 +1003,24 @@ public class StringUtils {
         return new String(buff);
     }
 
+    /**
+     * Check if this string is a decimal number.
+     *
+     * @param s the string
+     * @return true if it is
+     */
+    public static boolean isNumber(String s) {
+        if (s.length() == 0) {
+            return false;
+        }
+        for (char c : s.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+
 }

@@ -170,7 +170,6 @@ public abstract class Command implements CommandInterface {
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         synchronized (sync) {
-            database.checkPowerOff();
             session.setCurrentCommand(this);
             try {
                 while (true) {
@@ -250,7 +249,7 @@ public abstract class Command implements CommandInterface {
             throw e;
         }
         long now = System.currentTimeMillis();
-        if (now - start > session.getLockTimeout()) {
+        if (start != 0 && now - start > session.getLockTimeout()) {
             throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
         }
         try {

@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Multi-version concurrency: SELECT ... FOR UPDATE threw a "concurrent update" exception immediately
+<ul><li>Server tool: the tcpShutdown feature now also stops other servers (web server and PostgreSQL server).
+</li><li>Server tool: the tcpShutdown url must now end with the port if the port is used.
+</li><li>Server tool: when starting one service fails, the started services are now stopped.
+</li><li>Multi-version concurrency: SELECT ... FOR UPDATE threw a "concurrent update" exception immediately
     instead of a "lock timeout" exception after the set lock timeout if the row was already locked by another connection.
 </li><li>Translation: the H2 Console and error messages have been translated to Czech by Hannibal (http://hannibal.cestiny.cz/). Thanks a lot!
 </li><li>When the system property h2.lobInDatabase is set, reading a BLOB is a bit faster

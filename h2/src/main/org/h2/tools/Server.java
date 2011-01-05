@@ -206,39 +206,45 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             out.println("Shutting down TCP Server at " + tcpShutdownServer);
             shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce, false);
         }
-        if (webStart) {
-            web = createWebServer(args);
-            web.setShutdownHandler(this);
-            SQLException result = null;
-            try {
-                web.start();
-            } catch (Exception e) {
-                result = DbException.toSQLException(e);
-            }
-            out.println(web.getStatus());
-            // start browser in any case (even if the server is already running)
-            // because some people don't look at the output,
-            // but are wondering why nothing happens
-            if (browserStart) {
+        try {
+            if (webStart) {
+                web = createWebServer(args);
+                web.setShutdownHandler(this);
+                SQLException result = null;
                 try {
-                    openBrowser(web.getURL());
+                    web.start();
                 } catch (Exception e) {
-                    out.println(e.getMessage());
+                    result = DbException.toSQLException(e);
+                }
+                out.println(web.getStatus());
+                // start browser in any case (even if the server is already running)
+                // because some people don't look at the output,
+                // but are wondering why nothing happens
+                if (browserStart) {
+                    try {
+                        openBrowser(web.getURL());
+                    } catch (Exception e) {
+                        out.println(e.getMessage());
+                    }
+                }
+                if (result != null) {
+                    throw result;
                 }
             }
-            if (result != null) {
-                throw result;
+            if (tcpStart) {
+                tcp = createTcpServer(args);
+                tcp.start();
+                out.println(tcp.getStatus());
+                tcp.setShutdownHandler(this);
             }
-        }
-        if (tcpStart) {
-            tcp = createTcpServer(args);
-            tcp.start();
-            out.println(tcp.getStatus());
-        }
-        if (pgStart) {
-            pg = createPgServer(args);
-            pg.start();
-            out.println(pg.getStatus());
+            if (pgStart) {
+                pg = createPgServer(args);
+                pg.start();
+                out.println(pg.getStatus());
+            }
+        } catch (SQLException e) {
+            stopAll();
+            throw e;
         }
     }
 
@@ -324,7 +330,10 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @return the server
      */
     public static Server createTcpServer(String... args) throws SQLException {
-        return new Server(new TcpServer(), args);
+        TcpServer service = new TcpServer();
+        Server server = new Server(service, args);
+        service.setShutdownHandler(server);
+        return server;
     }
 
     /**

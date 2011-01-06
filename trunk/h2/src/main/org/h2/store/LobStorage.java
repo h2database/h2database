@@ -107,7 +107,7 @@ public class LobStorage {
     }
 
     private long getNextLobId() throws SQLException {
-        PreparedStatement prep = prepare("SELECT MAX(ID) FROM " + LOBS);
+        PreparedStatement prep = prepare("SELECT MAX(LOB) FROM " + LOB_MAP);
         ResultSet rs = prep.executeQuery();
         rs.next();
         return rs.getLong(1) + 1;

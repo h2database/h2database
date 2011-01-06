@@ -182,6 +182,10 @@ public abstract class PageBtree extends Page {
         return row;
     }
 
+    /**
+     * The memory usage of this page was changed. Propagate the change if
+     * needed.
+     */
     protected void memoryChange() {
         // nothing to do
     }

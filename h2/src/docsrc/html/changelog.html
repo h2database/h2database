@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Server tool: the tcpShutdown feature now also stops other servers (web server and PostgreSQL server).
+<ul><li>Lob in database: after the process was killed while adding a lob,
+    inserting a lob could throw an exception (primary key violation in LOB_MAP).
+</li><li>Server tool: the tcpShutdown feature now also stops other servers (web server and PostgreSQL server).
 </li><li>Server tool: the tcpShutdown url must now end with the port if the port is used.
 </li><li>Server tool: when starting one service fails, the started services are now stopped.
 </li><li>Multi-version concurrency: SELECT ... FOR UPDATE threw a "concurrent update" exception immediately
@@ -106,7 +108,7 @@ when "LOBs in database" is enabled).
 </li><li>When concurrently preparing many statements with a subquery, in some cases the query didn't run
     (Column "..." must be in the GROUP BY list).
 </li><li>CallableStatement: now the syntax "{? = CALL...}" is supported as well.
-</li><li>Issue Lob in databases: two small BLOB or CLOB values were always considered equal.
+</li><li>Lob in databases: two small BLOB or CLOB values were always considered equal.
     This also affected unique indexes.
 </li><li>The shutdown hook is (re-) enabled by default even for H2 version 1.3.x.
 </li><li>When creating a database from a recovery script, the same user can now be used

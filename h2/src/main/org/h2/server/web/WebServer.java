@@ -103,7 +103,7 @@ public class WebServer implements Service {
 //        String s = IOUtils.readStringAndClose(new java.io.FileReader(
 //                // "src/main/org/h2/server/web/res/_text_cs.prop"), -1);
 //                "src/main/org/h2/res/_messages_cs.prop"), -1);
-//        System.out.println(StringUtils.javaEncode("Čeština"));
+//        System.out.println(StringUtils.javaEncode("..."));
 //        String[] list = Locale.getISOLanguages();
 //        for (int i = 0; i < list.length; i++) {
 //            System.out.print(list[i] + " ");

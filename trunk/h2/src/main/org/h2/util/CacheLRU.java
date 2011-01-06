@@ -41,7 +41,7 @@ public class CacheLRU implements Cache {
      */
     private int memory;
 
-    private CacheLRU(CacheWriter writer, int maxMemoryKb) {
+    CacheLRU(CacheWriter writer, int maxMemoryKb) {
         this.setMaxMemory(maxMemoryKb);
         this.writer = writer;
         this.len = MathUtils.nextPowerOf2(maxMemory / 64);

@@ -50,12 +50,47 @@ public class TestPowerOff extends TestBase {
             url = "memFS:/" + dbName;
         }
         url += ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
+        testLobCrash();
         testSummaryCrash();
         testCrash();
         testShutdown();
         testMemoryTables();
         testPersistentTables();
         deleteDb(dir, dbName);
+    }
+
+    private void testLobCrash() throws SQLException {
+        if (config.networked) {
+            return;
+        }
+        deleteDb(dir, dbName);
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id identity, data clob)");
+        conn.close();
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("set write_delay 0");
+        ((JdbcConnection) conn).setPowerOffCount(Integer.MAX_VALUE);
+        stat.execute("insert into test values(null, space(11000))");
+        int max = Integer.MAX_VALUE - ((JdbcConnection) conn).getPowerOffCount();
+        for (int i = 0; i < max + 10; i++) {
+            conn = getConnection(url);
+            stat = conn.createStatement();
+            stat.execute("insert into test values(null, space(11000))");
+            stat.execute("set write_delay 0");
+            ((JdbcConnection) conn).setPowerOffCount(i);
+            try {
+                stat.execute("insert into test values(null, space(11000))");
+            } catch (SQLException e) {
+                // ignore
+            }
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
     }
 
     private void testSummaryCrash() throws SQLException {

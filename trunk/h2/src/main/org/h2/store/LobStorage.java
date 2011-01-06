@@ -110,7 +110,12 @@ public class LobStorage {
         PreparedStatement prep = prepare("SELECT MAX(LOB) FROM " + LOB_MAP);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        return rs.getLong(1) + 1;
+        long x = rs.getLong(1) + 1;
+        prep = prepare("SELECT MAX(ID) FROM " + LOBS);
+        rs = prep.executeQuery();
+        rs.next();
+        x = Math.max(x, rs.getLong(1) + 1);
+        return x;
     }
 
     /**

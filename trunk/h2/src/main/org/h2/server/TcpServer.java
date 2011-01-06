@@ -432,7 +432,9 @@ public class TcpServer implements Service {
                         if (force) {
                             // ignore
                         } else {
-                            throw e;
+                            if (e.getErrorCode() != ErrorCode.CONNECTION_BROKEN_1) {
+                                throw e;
+                            }
                         }
                     }
                     break;

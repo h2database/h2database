@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.148 Beta (2010-12-12)</h2>
 <ul><li>Lob in database: after the process was killed while adding a lob,
     inserting a lob could throw an exception (primary key violation in LOB_MAP).
 </li><li>Server tool: the tcpShutdown feature now also stops other servers (web server and PostgreSQL server).
@@ -849,75 +853,6 @@ when "LOBs in database" is enabled).
 </li><li>Faster data conversion from BIGINT or INT to DECIMAL.
 </li><li>Server-less multi-connection mode: try to delete log files if switching between read/write operations.
 </li><li>CompressLZF: Faster decompress and improved javadocs
-</li></ul>
-
-<h2>Version 1.2.126 (2009-12-18)</h2>
-<ul><li>The ChangeFileEncryption tool will now fail with an exception
-    if the database is still in use. The Backup tool will also fail except when running in quiet mode.
-</li><li>CSVREAD: when reading the column names from the CSV file, column names that contain
-    no special characters are considered case insensitive now.
-</li><li>Optimization index conditions of the form 'column=NULL' (which is always false; unlike 'column IS NULL').
-</li><li>Script command and tool: the primary key constraint is now listed before inserting the data.
-    This will result in a smaller database when using the page store.
-</li><li>Statements with IN(SELECT..) conditions could produce the wrong result.
-    Example: index on id, name; query: select * from test where id between 1 and 3 and name in (select 'World').
-</li><li>Statements with IN(..) conditions could produce the wrong result when using views or nested select statements.
-    Example: index on id; index on name; query: select * from (select * from test) where id=1 and name in('a', 'b').
-    select * from (select * from test) where id=1 and name in('Hello', 'World').
-</li><li>Page store: a rollback of a relatively large transaction could fail with an ArrayIndexOutOfBoundsException
-    or a 'row not found' exception in the PageBtreeIndex in some cases.
-</li><li>JaQu: the decompiler has been improved, and a few test cases already work. It is still incomplete however.
-</li><li>LIKE: any letter is now allowed after the escape character (which is still '\' by default).
-    Previously, an exception was thrown (unlike other databases) if it was not the escape character, '_' or '%'.
-    If the escape character appears at the end of the pattern, the result is  it is ignored (like PostgreSQL and MS SQL Server).
-</li><li>The reserve heap memory is no longer used.
-</li><li>Database.checkpoint() could throw a NullPointerException.
-</li></ul>
-
-<h2>Version 1.2.125 (2009-12-06)</h2>
-<ul><li>Lucene fulltext search: the Lucene field names now match the table column names,
-    except if the column names start with _ (in which case another _ is prepended).
-    Unfortunately this change means existing fulltext indexes need to be re-built.
-</li><li>The shell tool now has a very simple statement history.
-</li><li>The zip file system implementation now supports the '~' home directory prefix.
-    Example database URL: jdbc:h2:zip:~/test.zip!/test
-</li><li>Right outer joins on tables that were already 'inner joined' was processed incorrectly.
-</li><li>Temporary files from LOB objects were not deleted early enough when using the server mode.
-</li><li>Trying to alter a temporary table threw a strange exception.
-    It is still not possible to do that, but the exception message is better now.
-</li><li>When the system property h2.maxMemoryRowsDistinct was set, and
-    using SELECT DISTINCT, the temporary table was not correctly dropped.
-    This could cause problems in recovery when the process was killed.
-</li><li>Trigger that are called before a select statement are now supported.
-    This allows to create tables that work like materialized views.
-</li><li>Non-row based triggers were called even if the action didn't match the
-    declared action (INSERT triggers were also called when deleting rows).
-    This has been changed. The MERGE statement calls both INSERT and DELETE triggers.
-</li><li>Statements with IN(..) conditions could produce the wrong result or a data conversion error (since version 1.2.120).
-    Examples: index on id, name, condition: id=1 and name in('Hello', 'x'); index on id, query:
-    select * from (select * from test) where id=1 and name in('Hello', 'World').
-</li><li>The CompressTool was not multithreading safe. Because of this, the following database
-    operations where also not multithreading safe (even when using different databases): the SCRIPT command
-    (only when using compression), the COMPRESS function, and storing CLOB or BLOB data (only when compression is enabled).
-</li><li>The compression algorithm "LZF" is now about 33% faster than before when compressing small block
-    (around 2 KB). It is much faster than Deflate, but the compression ratio is lower.
-    Some of the optimizations are from Sam Van Oort, thanks a lot!
-</li><li>Compressing large blocks of data didn't work when using the "Deflate" compression algorithm.
-    Compressing a lot of data could run out of heap memory.
-</li><li>The test cases don't access the file system directly, this simplifies GAE for Java testing.
-    Thanks to Vince Bonfanti.
-</li><li>More bugs in the server-less multi-connection mode have been fixed.
-</li><li>When running against an old database, the SCRIPT statement could generate a
-    SQL script that contained duplicate indexes (PRIMARY_KEY_E).
-</li><li>JdbcConnectionPool.getConnection() could throw a NullPointerException.
-</li><li>User defined functions: the source code is now available using
-    SELECT SOURCE FROM INFORMATION_SCHEMA.FUNCTION_ALIASES.
-</li><li>User defined functions with source code didn't work after re-opening the database.
-</li><li>The newsfeeds are now Atom 1.0 standard compliant.
-</li><li>The database is now closed after an out of memory exception, because
-    the database could get corrupt otherwise.
-</li><li>Better error message if both AUTO_SERVER and SERIALIZED parameters are set to TRUE.
-</li><li>Drop table did not delete lob files in old file store (not PAGE_STORE).
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

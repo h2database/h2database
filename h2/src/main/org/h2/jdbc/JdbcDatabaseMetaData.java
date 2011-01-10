@@ -275,8 +275,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>1 TABLE_CAT (String) table catalog </li>
      * <li>2 TABLE_SCHEM (String) table schema </li>
      * <li>3 TABLE_NAME (String) table name </li>
-     * <li>4 NON_UNIQUE (boolean) 'false' for unique, 'true' for non-unique
-     * </li>
+     * <li>4 NON_UNIQUE (boolean) 'true' if non-unique</li>
      * <li>5 INDEX_QUALIFIER (String) index catalog </li>
      * <li>6 INDEX_NAME (String) index name </li>
      * <li>7 TYPE (short) the index type (always tableIndexOther) </li>

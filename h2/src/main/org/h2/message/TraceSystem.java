@@ -140,7 +140,7 @@ public class TraceSystem implements TraceWriter {
      */
     public synchronized Trace getTrace(String module) {
         if (module.endsWith("]")) {
-            new Trace(writer, module);
+            return new Trace(writer, module);
         }
         if (traces == null) {
             traces = New.hashMap(16);

@@ -33,6 +33,7 @@ public class TestMemoryUsage extends TestBase {
     }
 
     public void test() throws SQLException {
+        testOpenCloseConnections();
         if (getBaseDir().indexOf(':') >= 0) {
             // can't test in-memory databases
             return;
@@ -48,6 +49,22 @@ public class TestMemoryUsage extends TestBase {
         insertUpdateSelectDelete();
         conn.close();
         deleteDb("memoryUsage");
+    }
+
+    private void testOpenCloseConnections() throws SQLException {
+        if (!config.big) {
+            return;
+        }
+        deleteDb("memoryUsage");
+        conn = getConnection("memoryUsage");
+        eatMemory(4000);
+        for (int i = 0; i < 40000; i++) {
+            Connection c2 = getConnection("memoryUsage");
+            c2.createStatement();
+            c2.close();
+        }
+        freeMemory();
+        conn.close();
     }
 
     private void testCreateDropLoop() throws SQLException {

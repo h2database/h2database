@@ -1633,11 +1633,18 @@ overrides this value (even if larger than the physical memory).
 To get the current used maximum cache size, use the query
 <code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'info.CACHE_MAX_SIZE'</code>
 </p><p>
-Also included is an experimental second level soft reference cache. Rows in this cache are only garbage collected
-on low memory. By default the second level cache is disabled. To enable it,
-use the prefix <code>SOFT_</code>. Example: <code>jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code>.
-The cache might not actually improve performance. If you plan to use it,
-please run your own test cases first.
+An experimental scan-resistant cache algorithm "Two Queue" (2Q) is available. 
+To enable it, append <code>;CACHE_TYPE=TQ</code> to the database URL.
+The cache might not actually improve performance. 
+If you plan to use it, please run your own test cases first.
+</p><p>
+Also included is an experimental second level soft reference cache. 
+Rows in this cache are only garbage collected on low memory. 
+By default the second level cache is disabled. 
+To enable it, use the prefix <code>SOFT_</code>. 
+Example: <code>jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code>.
+The cache might not actually improve performance. 
+If you plan to use it, please run your own test cases first.
 </p><p>
 To get information about page reads and writes, and the current caching algorithm in use,
 call <code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS</code>. The number of pages read / written

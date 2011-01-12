@@ -576,4 +576,8 @@ public class PageDataLeaf extends PageData {
         index.memoryChange((Constants.MEMORY_PAGE_DATA + memoryData + index.getPageStore().getPageSize()) >> 2);
     }
 
+    public boolean isStream() {
+        return firstOverflowPageId > 0;
+    }
+
 }

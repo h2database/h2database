@@ -258,4 +258,8 @@ public class PageDataOverflow extends Page {
         return true;
     }
 
+    public boolean isStream() {
+        return true;
+    }
+
 }

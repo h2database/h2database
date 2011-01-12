@@ -56,8 +56,9 @@ public interface Cache {
      * Remove an object from the cache.
      *
      * @param pos the unique key of the element
+     * @return true if the key was in the cache
      */
-    void remove(int pos);
+    boolean remove(int pos);
 
     /**
      * Get an element from the cache if it is available.

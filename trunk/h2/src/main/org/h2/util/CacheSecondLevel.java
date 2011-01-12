@@ -61,9 +61,10 @@ class CacheSecondLevel implements Cache {
         map.put(r.getPos(), r);
     }
 
-    public void remove(int pos) {
-        baseCache.remove(pos);
-        map.remove(pos);
+    public boolean remove(int pos) {
+        boolean result = baseCache.remove(pos);
+        result |= map.remove(pos) != null;
+        return result;
     }
 
     public void setMaxMemory(int size) {

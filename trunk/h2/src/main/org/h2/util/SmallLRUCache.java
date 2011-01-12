@@ -49,6 +49,10 @@ extends HashMap
         return new SmallLRUCache<K, V>(size);
     }
 
+    public void setMaxSize(int size) {
+        this.size = size;
+    }
+
 //## Java 1.4 begin ##
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return size() > size;

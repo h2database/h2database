@@ -80,4 +80,8 @@ public abstract class CacheObject implements Comparable<CacheObject> {
         return MathUtils.compareInt(getPos(), other.getPos());
     }
 
+    public boolean isStream() {
+        return false;
+    }
+
 }

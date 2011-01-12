@@ -21,6 +21,13 @@ public class CacheLRU implements Cache {
     static final String TYPE_NAME = "LRU";
 
     private final CacheWriter writer;
+
+    /**
+     * Use First-In-First-Out (don't move recently used items to the front of
+     * the queue).
+     */
+    private final boolean fifo;
+
     private final CacheObject head = new CacheHead();
     private final int mask;
     private CacheObject[] values;
@@ -41,9 +48,10 @@ public class CacheLRU implements Cache {
      */
     private int memory;
 
-    CacheLRU(CacheWriter writer, int maxMemoryKb) {
-        this.setMaxMemory(maxMemoryKb);
+    CacheLRU(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
+        this.fifo = fifo;
+        this.setMaxMemory(maxMemoryKb);
         this.len = MathUtils.nextPowerOf2(maxMemory / 64);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);
@@ -66,7 +74,9 @@ public class CacheLRU implements Cache {
         }
         Cache cache;
         if (CacheLRU.TYPE_NAME.equals(cacheType)) {
-            cache = new CacheLRU(writer, cacheSize);
+            cache = new CacheLRU(writer, cacheSize, false);
+        } else if (CacheTQ.TYPE_NAME.equals(cacheType)) {
+            cache = new CacheTQ(writer, cacheSize);
         } else {
             throw DbException.getInvalidValueException("CACHE_TYPE", cacheType);
         }
@@ -112,8 +122,10 @@ public class CacheLRU implements Cache {
                     DbException.throwInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
                 }
             }
-            removeFromLinkedList(rec);
-            addToFront(rec);
+            if (!fifo) {
+                removeFromLinkedList(rec);
+                addToFront(rec);
+            }
         }
         return old;
     }
@@ -132,7 +144,19 @@ public class CacheLRU implements Cache {
         int rc = recordCount;
         boolean flushed = false;
         CacheObject next = head.cacheNext;
-        while (mem * 4 > maxMemory * 3 && rc > Constants.CACHE_MIN_RECORDS) {
+        while (true) {
+            if (rc <= Constants.CACHE_MIN_RECORDS) {
+                break;
+            }
+            if (changed.size() == 0) {
+                if (mem <= maxMemory) {
+                    break;
+                }
+            } else {
+                if (mem * 4 <= maxMemory * 3) {
+                    break;
+                }
+            }
             CacheObject check = next;
             next = check.cacheNext;
             i++;
@@ -219,11 +243,11 @@ public class CacheLRU implements Cache {
         rec.cachePrevious = null;
     }
 
-    public void remove(int pos) {
+    public boolean remove(int pos) {
         int index = pos & mask;
         CacheObject rec = values[index];
         if (rec == null) {
-            return;
+            return false;
         }
         if (rec.getPos() == pos) {
             values[index] = rec.cacheChained;
@@ -233,7 +257,7 @@ public class CacheLRU implements Cache {
                 last = rec;
                 rec = rec.cacheChained;
                 if (rec == null) {
-                    return;
+                    return false;
                 }
             } while (rec.getPos() != pos);
             last.cacheChained = rec.cacheChained;
@@ -248,6 +272,7 @@ public class CacheLRU implements Cache {
                 DbException.throwInternalError("not removed: " + o);
             }
         }
+        return true;
     }
 
     public CacheObject find(int pos) {
@@ -261,8 +286,10 @@ public class CacheLRU implements Cache {
     public CacheObject get(int pos) {
         CacheObject rec = find(pos);
         if (rec != null) {
-            removeFromLinkedList(rec);
-            addToFront(rec);
+            if (!fifo) {
+                removeFromLinkedList(rec);
+                addToFront(rec);
+            }
         }
         return rec;
     }
@@ -334,65 +361,3 @@ public class CacheLRU implements Cache {
     }
 
 }
-
-// Unmaintained reference code (very old)
-//import java.util.Iterator;
-//import java.util.LinkedHashMap;
-//import java.util.Map;
-//
-//public class Cache extends LinkedHashMap {
-//
-//    final static int MAX_SIZE = 1 << 10;
-//    private CacheWriter writer;
-//
-//    public Cache(CacheWriter writer) {
-//        super(16, (float) 0.75, true);
-//        this.writer = writer;
-//    }
-//
-//    protected boolean removeEldestEntry(Map.Entry eldest) {
-//        if(size() <= MAX_SIZE) {
-//            return false;
-//        }
-//        Record entry = (Record) eldest.getValue();
-//        if(entry.getDeleted()) {
-//            return true;
-//        }
-//        if(entry.isChanged()) {
-//            try {
-////System.out.println("cache write "+entry.getPos());
-//                writer.writeBack(entry);
-//            } catch(SQLException e) {
-//                // printStackTrace not needed
-//                // if we use our own hashtable
-//                e.printStackTrace();
-//            }
-//        }
-//        return true;
-//    }
-//
-//    public void put(Record rec) {
-//        put(new Integer(rec.getPos()), rec);
-//    }
-//
-//    public Record get(int pos) {
-//        return (Record)get(new Integer(pos));
-//    }
-//
-//    public void remove(int pos) {
-//        remove(new Integer(pos));
-//    }
-//
-//    public ObjectArray getAllChanged() {
-//        Iterator it = values().iterator();
-//        ObjectArray list = New.arrayList();
-//        while(it.hasNext()) {
-//            Record rec = (Record)it.next();
-//            if(rec.isChanged()) {
-//                list.add(rec);
-//            }
-//        }
-//        return list;
-//    }
-//}
-

@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.util.ArrayList;
 
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.New;
@@ -239,14 +240,14 @@ public class FileSystemSplit extends FileSystem {
                 long l = o.length();
                 length += l;
                 if (l != maxLength) {
-                    throw new IOException("Expected file length: " + maxLength + " got: " + l + " for " + o.getName());
+                    throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "Expected file length: " + maxLength + " got: " + l + " for " + o.getName());
                 }
             }
             o = array[array.length - 1];
             long l = o.length();
             length += l;
             if (l > maxLength) {
-                throw new IOException("Expected file length: " + maxLength + " got: " + l + " for " + o.getName());
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "Expected file length: " + maxLength + " got: " + l + " for " + o.getName());
             }
         }
         FileObjectSplit fo = new FileObjectSplit(fileName, mode, array, length, maxLength);

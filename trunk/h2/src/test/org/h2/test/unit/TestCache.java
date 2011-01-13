@@ -65,7 +65,7 @@ public class TestCache extends TestBase implements CacheWriter {
         for (int i = 0; i < 10; i++) {
             prep.setInt(1, i);
             r.nextBytes(buff);
-            prep.setBinaryStream(2, new ByteArrayInputStream(buff));
+            prep.setBinaryStream(2, new ByteArrayInputStream(buff), -1);
             prep.execute();
         }
         stat.execute("create table if not exists test(id int primary key, data varchar)");

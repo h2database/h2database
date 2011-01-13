@@ -14,6 +14,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.constant.ErrorCode;
+import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
 import org.h2.util.Task;
@@ -36,11 +39,46 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testErrorMessageLocked();
+        testErrorMessageWrongSplit();
         testCloseDelay();
         testBackup();
         testCase();
         testReconnectFast();
         deleteDb("openClose");
+    }
+
+    private void testErrorMessageLocked() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("openClose");
+        Connection conn;
+        conn = DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS");
+        try {
+            DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS;OPEN_NEW=TRUE");
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
+        }
+        conn.close();
+    }
+
+    private void testErrorMessageWrongSplit() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("split:" + getBaseDir(), "openClose");
+        deleteDb("openClose");
+        Connection conn;
+        conn = DriverManager.getConnection("jdbc:h2:split:12:" + getBaseDir() + "/openClose");
+        conn.close();
+        FileObject f = FileSystem.getInstance(getBaseDir()).openFileObject(getBaseDir() + "/openClose.h2.db.1.part", "rw");
+        f.setFileLength(f.length() * 2);
+        try {
+            DriverManager.getConnection("jdbc:h2:split:12:" + getBaseDir() + "/openClose");
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.IO_EXCEPTION_2, e.getErrorCode());
+        }
     }
 
     private void testCloseDelay() throws Exception {

@@ -313,10 +313,15 @@ public class PageStore implements CacheWriter {
         try {
             file = database.openFile(fileName, accessMode, true);
         } catch (DbException e) {
-            // in Windows, you can't open a locked file
-            // (in other operating systems, you can)
             if (e.getErrorCode() == ErrorCode.IO_EXCEPTION_2) {
-                throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, e, fileName);
+                if (e.getMessage().indexOf("locked") >= 0) {
+                    // in Windows, you can't open a locked file
+                    // (in other operating systems, you can)
+                    // the exact error message is:
+                    // "The process cannot access the file because
+                    // another process has locked a portion of the file"
+                    throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, e, fileName);
+                }
             }
             throw e;
         }

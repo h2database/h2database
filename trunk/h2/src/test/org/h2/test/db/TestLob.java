@@ -46,7 +46,9 @@ public class TestLob extends TestBase {
      */
     public static void main(String... a) throws Exception {
         System.setProperty("h2.lobInDatabase", "true");
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.big = true;
+        test.test();
     }
 
     public void test() throws Exception {

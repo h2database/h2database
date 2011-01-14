@@ -234,6 +234,9 @@ public class FileSystemSplit extends FileSystem {
                 maxLength = defaultMaxSize;
             }
         } else {
+            if (maxLength == 0) {
+                closeAndThrow(array, array[0], maxLength);
+            }
             for (int i = 1; i < array.length - 1; i++) {
                 o = array[i];
                 long l = o.length();

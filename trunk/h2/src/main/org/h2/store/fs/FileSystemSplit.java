@@ -239,18 +239,25 @@ public class FileSystemSplit extends FileSystem {
                 long l = o.length();
                 length += l;
                 if (l != maxLength) {
-                    throw new IOException("Expected file length: " + maxLength + " got: " + l + " for " + o.getName());
+                    closeAndThrow(array, o, maxLength);
                 }
             }
             o = array[array.length - 1];
             long l = o.length();
             length += l;
             if (l > maxLength) {
-                throw new IOException("Expected file length: " + maxLength + " got: " + l + " for " + o.getName());
+                closeAndThrow(array, o, maxLength);
             }
         }
         FileObjectSplit fo = new FileObjectSplit(fileName, mode, array, length, maxLength);
         return fo;
+    }
+
+    private void closeAndThrow(FileObject[] array, FileObject o, long maxLength) throws IOException {
+        for (FileObject f : array) {
+            f.close();
+        }
+        throw new IOException("Expected file length: " + maxLength + " got: " + o.length() + " for " + o.getName());
     }
 
     public OutputStream openFileOutputStream(String fileName, boolean append) {

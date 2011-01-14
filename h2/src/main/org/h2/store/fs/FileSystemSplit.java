@@ -254,10 +254,11 @@ public class FileSystemSplit extends FileSystem {
     }
 
     private void closeAndThrow(FileObject[] array, FileObject o, long maxLength) throws IOException {
+        String message = "Expected file length: " + maxLength + " got: " + o.length() + " for " + o.getName();
         for (FileObject f : array) {
             f.close();
         }
-        throw new IOException("Expected file length: " + maxLength + " got: " + o.length() + " for " + o.getName());
+        throw new IOException(message);
     }
 
     public OutputStream openFileOutputStream(String fileName, boolean append) {

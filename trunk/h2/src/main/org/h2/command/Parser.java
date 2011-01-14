@@ -4770,14 +4770,13 @@ public class Parser {
         if (readIf("NO")) {
             read("ACTION");
             return ConstraintReferential.RESTRICT;
-        } else {
-            read("SET");
-            if (readIf("NULL")) {
-                return ConstraintReferential.SET_NULL;
-            }
-            read("DEFAULT");
-            return ConstraintReferential.SET_DEFAULT;
         }
+        read("SET");
+        if (readIf("NULL")) {
+            return ConstraintReferential.SET_NULL;
+        }
+        read("DEFAULT");
+        return ConstraintReferential.SET_DEFAULT;
     }
 
     private Integer parseCascadeOrRestrict() {

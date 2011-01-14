@@ -621,7 +621,7 @@ public class TableFilter implements ColumnResolver {
             do {
                 buffNested.append(n.getPlanSQL(n != nestedJoin));
                 buffNested.append("\n");
-                n = (TableFilter) n.getJoin();
+                n = n.getJoin();
             } while (n != null);
 
             buff.append("(\n");
@@ -943,7 +943,7 @@ public class TableFilter implements ColumnResolver {
             if (n != null) {
                 n.visit(visitor);
             }
-            f = (TableFilter) f.join;
+            f = f.join;
         } while (f != null);
     }
 

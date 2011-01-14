@@ -455,9 +455,8 @@ public class Utils {
             in = Utils.class.getResourceAsStream(name);
             if (in == null) {
                 return null;
-            } else {
-                return IOUtils.readBytesAndClose(in, 0);
             }
+            return IOUtils.readBytesAndClose(in, 0);
         }
         ZipInputStream zipIn = new ZipInputStream(in);
         try {
@@ -475,9 +474,8 @@ public class Utils {
                     IOUtils.copy(zipIn, out);
                     zipIn.closeEntry();
                     return out.toByteArray();
-                } else {
-                    zipIn.closeEntry();
                 }
+                zipIn.closeEntry();
             }
         } catch (IOException e) {
             // if this happens we have a real problem

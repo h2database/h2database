@@ -58,15 +58,14 @@ public class RuleList implements Rule {
                 }
             }
             return false;
-        } else {
-            for (Rule r : list) {
-                if (!r.autoComplete(sentence)) {
-                    sentence.setQuery(old);
-                    return false;
-                }
-            }
-            return true;
         }
+        for (Rule r : list) {
+            if (!r.autoComplete(sentence)) {
+                sentence.setQuery(old);
+                return false;
+            }
+        }
+        return true;
     }
 
 }

@@ -73,9 +73,8 @@ public class TestLobApi extends TestBase {
                     if (pos > 100001) {
                         if (ioException) {
                             throw new IOException("");
-                        } else {
-                            throw new IllegalStateException();
                         }
+                        throw new IllegalStateException();
                     }
                     return len;
                 }
@@ -99,9 +98,8 @@ public class TestLobApi extends TestBase {
                     if (pos > 100001) {
                         if (ioException) {
                             throw new IOException("");
-                        } else {
-                            throw new IllegalStateException();
                         }
+                        throw new IllegalStateException();
                     }
                     return 0;
                 }

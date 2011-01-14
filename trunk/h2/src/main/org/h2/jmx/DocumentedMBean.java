@@ -68,9 +68,8 @@ public class DocumentedMBean extends StandardMBean {
     protected int getImpact(MBeanOperationInfo info) {
         if (info.getName().startsWith("list")) {
             return MBeanOperationInfo.INFO;
-        } else {
-            return MBeanOperationInfo.ACTION;
         }
+        return MBeanOperationInfo.ACTION;
     }
 
 }

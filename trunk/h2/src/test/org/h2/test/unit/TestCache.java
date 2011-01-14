@@ -165,7 +165,6 @@ public class TestCache extends TestBase implements CacheWriter {
         conn.close();
         stat = null;
         conn = null;
-        rs = null;
         long afterClose = getRealMemory();
         trace("Used memory: " + (afterInsert - afterClose) + " calculated cache size: " + calculated);
         trace("Before: " + before + " after: " + afterInsert + " after closing: " + afterClose);

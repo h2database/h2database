@@ -127,11 +127,9 @@ public class TestNestedJoins extends TestBase {
                     // System.out.println(se);
                     // System.out.println("  " + sql);
                 }
-                if (e != null) {
-                    if (shortest == null || sql.length() < shortest.length()) {
-                        shortest = sql;
-                        shortestEx = e;
-                    }
+                if (shortest == null || sql.length() < shortest.length()) {
+                    shortest = sql;
+                    shortestEx = e;
                 }
             }
         }
@@ -338,7 +336,7 @@ public class TestNestedJoins extends TestBase {
         stat.execute("insert into t4 values(1,1), (2,2), (3,3), (4,4)");
         rs = stat.executeQuery("explain select distinct t1.a, t2.a, t3.a from t1 right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
         assertTrue(rs.next());
-        sql = cleanRemarks(conn, rs.getString(1));
+        sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT DISTINCT T1.A, T2.A, T3.A FROM PUBLIC.T2 LEFT OUTER JOIN ( PUBLIC.T3 LEFT OUTER JOIN ( PUBLIC.T1 ) ON T1.B = T3.A ) ON T2.B = T1.A", sql);
         rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
         // expected: 1  1       1; null    2       null
@@ -372,7 +370,7 @@ public class TestNestedJoins extends TestBase {
         stat.execute("insert into c values(1), (2)");
         rs = stat.executeQuery("explain select a.x, b.x, c.x from a inner join b on a.x = b.x right outer join c on c.x = a.x");
         assertTrue(rs.next());
-        sql = cleanRemarks(conn, rs.getString(1));
+        sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.C LEFT OUTER JOIN ( PUBLIC.A INNER JOIN PUBLIC.B ON A.X = B.X ) ON C.X = A.X", sql);
         rs = stat.executeQuery("select a.x, b.x, c.x from a inner join b on a.x = b.x right outer join c on c.x = a.x");
         // expected result: 1   1       1; null    null    2
@@ -414,7 +412,7 @@ public class TestNestedJoins extends TestBase {
                 "on b.x = c.y) " +
                 "on a.x = c.x");
         assertTrue(rs.next());
-        sql = cleanRemarks(conn, rs.getString(1));
+        sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT A.X, B.X, C.X, C.Y FROM PUBLIC.A " +
                 "LEFT OUTER JOIN ( PUBLIC.B " +
                 "LEFT OUTER JOIN PUBLIC.C " +
@@ -495,7 +493,7 @@ public class TestNestedJoins extends TestBase {
                 "left outer join (b " +
                 "inner join c on c.x = 1) on a.x = b.x");
         assertTrue(rs.next());
-        sql = cleanRemarks(conn, rs.getString(1));
+        sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.A " +
                 "LEFT OUTER JOIN ( PUBLIC.B " +
                 "INNER JOIN PUBLIC.C ON C.X = 1 ) ON A.X = B.X", sql);
@@ -541,7 +539,7 @@ public class TestNestedJoins extends TestBase {
                 "left outer join (b inner join base b_base " +
                 "on b.pk = b_base.pk and b_base.deleted = 0) on 1=1");
         assertTrue(rs.next());
-        sql = cleanRemarks(conn, rs.getString(1));
+        sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT A.PK, A_BASE.PK, B.PK, B_BASE.PK FROM PUBLIC.BASE A_BASE " +
                 "LEFT OUTER JOIN ( PUBLIC.B " +
                 "INNER JOIN PUBLIC.BASE B_BASE " +
@@ -571,7 +569,7 @@ public class TestNestedJoins extends TestBase {
         deleteDb("nestedJoins");
     }
 
-    private String cleanRemarks(Connection conn, String sql) throws SQLException {
+    private String cleanRemarks(String sql) throws SQLException {
         ScriptReader r = new ScriptReader(new StringReader(sql));
         r.setSkipRemarks(true);
         sql = r.readStatement();

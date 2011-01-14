@@ -1492,7 +1492,7 @@ public class PageStore implements CacheWriter {
             if (add) {
                 addMeta(row, systemSession, true);
             } else {
-                removeMeta(logPos, row);
+                removeMeta(row);
             }
         }
         Index index = metaObjects.get(tableId);
@@ -1565,7 +1565,7 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void removeMeta(int logPos, Row row) {
+    private void removeMeta(Row row) {
         int id = row.getValue(0).getInt();
         PageIndex index = metaObjects.get(id);
         index.getTable().removeIndex(index);

@@ -422,7 +422,7 @@ public class LobStorage {
 
     private long getHashCacheBlock(int hash) {
         if (HASH_CACHE_SIZE > 0) {
-            int index = (int) (hash & (HASH_CACHE_SIZE - 1));
+            int index = hash & (HASH_CACHE_SIZE - 1);
             long oldHash = hashBlocks[index];
             if (oldHash == hash) {
                 return hashBlocks[index + HASH_CACHE_SIZE];
@@ -433,7 +433,7 @@ public class LobStorage {
 
     private void setHashCacheBlock(int hash, long block) {
         if (HASH_CACHE_SIZE > 0) {
-            int index = (int) (hash & (HASH_CACHE_SIZE - 1));
+            int index = hash & (HASH_CACHE_SIZE - 1);
             hashBlocks[index] = hash;
             hashBlocks[index + HASH_CACHE_SIZE] = block;
         }

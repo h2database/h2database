@@ -162,7 +162,7 @@ public class Trace {
      */
     public void error(Throwable t, String s, Object... params) {
         if (isEnabled(TraceSystem.ERROR)) {
-            s = MessageFormat.format(s, (Object[]) params);
+            s = MessageFormat.format(s, params);
             traceWriter.write(TraceSystem.ERROR, module, s, t);
         }
     }
@@ -186,7 +186,7 @@ public class Trace {
      */
     public void info(String s, Object... params) {
         if (isEnabled(TraceSystem.INFO)) {
-            s = MessageFormat.format(s, (Object[]) params);
+            s = MessageFormat.format(s, params);
             traceWriter.write(TraceSystem.INFO, module, s, null);
         }
     }
@@ -255,7 +255,7 @@ public class Trace {
      */
     public void debug(String s, Object... params) {
         if (isEnabled(TraceSystem.DEBUG)) {
-            s = MessageFormat.format(s, (Object[]) params);
+            s = MessageFormat.format(s, params);
             traceWriter.write(TraceSystem.DEBUG, module, s, null);
         }
     }

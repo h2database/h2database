@@ -104,11 +104,9 @@ public class TestRandomCompare extends TestBase {
                     // System.out.println(se);
                     // System.out.println("  " + sql);
                 }
-                if (e != null) {
-                    if (shortest == null || sql.length() < shortest.length()) {
-                        shortest = sql;
-                        shortestEx = e;
-                    }
+                if (shortest == null || sql.length() < shortest.length()) {
+                    shortest = sql;
+                    shortestEx = e;
                 }
             }
         }

@@ -1622,7 +1622,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     private void checkColumnIndex(int columnIndex) throws SQLException {
         if (columnIndex < 0 || columnIndex >= columns.size()) {
-            throw DbException.getInvalidValueException("columnIndex", columnIndex).getSQLException();
+            throw DbException.getInvalidValueException("columnIndex", columnIndex + 1).getSQLException();
         }
     }
 

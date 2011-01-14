@@ -41,9 +41,8 @@ public class FunctionIndex extends BaseIndex {
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (functionTable.isFast()) {
             return new FunctionCursorResultSet(session, functionTable.getResultSet(session));
-        } else {
-            return new FunctionCursor(functionTable.getResult(session));
         }
+        return new FunctionCursor(functionTable.getResult(session));
     }
 
     public double getCost(Session session, int[] masks) {

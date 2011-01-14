@@ -114,9 +114,8 @@ public class CacheTQ implements Cache {
     public CacheObject update(int pos, CacheObject record) {
         if (lru.find(pos) != null) {
             return lru.update(pos, record);
-        } else {
-            return fifo.update(pos, record);
         }
+        return fifo.update(pos, record);
     }
 
 }

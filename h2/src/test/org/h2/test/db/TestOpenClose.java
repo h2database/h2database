@@ -67,18 +67,21 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("split:" + getBaseDir(), "openClose");
-        deleteDb("openClose");
+        FileSystem.getInstance("split:").delete("split:" + getBaseDir() + "/openClose2.h2.db");
         Connection conn;
-        conn = DriverManager.getConnection("jdbc:h2:split:12:" + getBaseDir() + "/openClose");
+        conn = DriverManager.getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
+        conn.createStatement().execute("create table test(id int, name varchar) as select 1, space(1000000)");
         conn.close();
-        FileObject f = FileSystem.getInstance(getBaseDir()).openFileObject(getBaseDir() + "/openClose.h2.db.1.part", "rw");
+        FileObject f = FileSystem.getInstance(getBaseDir()).openFileObject(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
         f.setFileLength(f.length() * 2);
+        f.close();
         try {
-            DriverManager.getConnection("jdbc:h2:split:12:" + getBaseDir() + "/openClose");
+            DriverManager.getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
+            fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.IO_EXCEPTION_2, e.getErrorCode());
         }
+        FileSystem.getInstance("split:").delete("split:" + getBaseDir() + "/openClose2.h2.db");
     }
 
     private void testCloseDelay() throws Exception {

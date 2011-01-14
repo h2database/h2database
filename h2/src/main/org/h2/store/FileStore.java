@@ -526,7 +526,9 @@ public class FileStore {
      * Release the file lock.
      */
     public void releaseLock() {
-        file.releaseLock();
+        if (file != null) {
+            file.releaseLock();
+        }
     }
 
 }

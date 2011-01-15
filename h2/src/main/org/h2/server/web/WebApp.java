@@ -1250,15 +1250,21 @@ public class WebApp {
                 edit = true;
                 sql = sql.substring("@edit".length()).trim();
                 session.put("resultSetSQL", sql);
-            } else if (isBuiltIn(sql, "@generated")) {
+            }
+            if (isBuiltIn(sql, "@list")) {
+                list = true;
+                sql = sql.substring("@list".length()).trim();
+            }
+            if (isBuiltIn(sql, "@meta")) {
+                metadata = true;
+                sql = sql.substring("@meta".length()).trim();
+            }
+            if (isBuiltIn(sql, "@generated")) {
                 generatedKeys = true;
                 sql = sql.substring("@generated".length()).trim();
             } else if (isBuiltIn(sql, "@history")) {
                 buff.append(getHistoryString());
                 return buff.toString();
-            } else if (isBuiltIn(sql, "@list")) {
-                list = true;
-                sql = sql.substring("@list".length()).trim();
             } else if (isBuiltIn(sql, "@loop")) {
                 sql = sql.substring("@loop".length()).trim();
                 int idx = sql.indexOf(' ');
@@ -1269,9 +1275,6 @@ public class WebApp {
                 int maxrows = (int) Double.parseDouble(sql.substring("@maxrows".length()).trim());
                 session.put("maxrows", "" + maxrows);
                 return "${text.result.maxrowsSet}";
-            } else if (isBuiltIn(sql, "@meta")) {
-                metadata = true;
-                sql = sql.substring("@meta".length()).trim();
             } else if (isBuiltIn(sql, "@parameter_meta")) {
                 sql = sql.substring("@parameter_meta".length()).trim();
                 PreparedStatement prep = conn.prepareStatement(sql);
@@ -1507,41 +1510,59 @@ public class WebApp {
         } else {
             buff.append("<table cellspacing=0 cellpadding=0>");
         }
+        if (metadata) {
+            SimpleResultSet r = new SimpleResultSet();
+            r.addColumn("#", Types.INTEGER, 0, 0);
+            r.addColumn("label", Types.VARCHAR, 0, 0);
+            r.addColumn("catalog", Types.VARCHAR, 0, 0);
+            r.addColumn("schema", Types.VARCHAR, 0, 0);
+            r.addColumn("table", Types.VARCHAR, 0, 0);
+            r.addColumn("column", Types.VARCHAR, 0, 0);
+            r.addColumn("type", Types.INTEGER, 0, 0);
+            r.addColumn("typeName", Types.VARCHAR, 0, 0);
+            r.addColumn("class", Types.VARCHAR, 0, 0);
+            r.addColumn("precision", Types.INTEGER, 0, 0);
+            r.addColumn("scale", Types.INTEGER, 0, 0);
+            r.addColumn("displaySize", Types.INTEGER, 0, 0);
+            r.addColumn("autoIncrement", Types.BOOLEAN, 0, 0);
+            r.addColumn("caseSensitive", Types.BOOLEAN, 0, 0);
+            r.addColumn("currency", Types.BOOLEAN, 0, 0);
+            r.addColumn("nullable", Types.INTEGER, 0, 0);
+            r.addColumn("readOnly", Types.BOOLEAN, 0, 0);
+            r.addColumn("searchable", Types.BOOLEAN, 0, 0);
+            r.addColumn("signed", Types.BOOLEAN, 0, 0);
+            r.addColumn("writable", Types.BOOLEAN, 0, 0);
+            r.addColumn("definitelyWritable", Types.BOOLEAN, 0, 0);
+            ResultSetMetaData m = rs.getMetaData();
+            for (int i = 1; i <= m.getColumnCount(); i++) {
+                r.addRow(i,
+                        m.getColumnLabel(i),
+                        m.getCatalogName(i),
+                        m.getSchemaName(i),
+                        m.getTableName(i),
+                        m.getColumnName(i),
+                        m.getColumnType(i),
+                        m.getColumnTypeName(i),
+                        m.getColumnClassName(i),
+                        m.getPrecision(i),
+                        m.getScale(i),
+                        m.getColumnDisplaySize(i),
+                        m.isAutoIncrement(i),
+                        m.isCaseSensitive(i),
+                        m.isCurrency(i),
+                        m.isNullable(i),
+                        m.isReadOnly(i),
+                        m.isSearchable(i),
+                        m.isSigned(i),
+                        m.isWritable(i),
+                        m.isDefinitelyWritable(i));
+            }
+            rs = r;
+        }
         ResultSetMetaData meta = rs.getMetaData();
         int columns = meta.getColumnCount();
         int rows = 0;
-        if (metadata) {
-            buff.append("<tr><th>i</th><th>label</th><th>cat</th><th>schem</th>" +
-                "<th>tab</th><th>col</th><th>type</th><th>typeName</th><th>class</th>" +
-                "<th>prec</th><th>scale</th><th>size</th><th>autoInc</th>" +
-                "<th>case</th><th>currency</th><th>null</th><th>ro</th>" +
-                "<th>search</th><th>sig</th><th>w</th><th>defW</th></tr>");
-            for (int i = 1; i <= columns; i++) {
-                buff.append("<tr>").
-                    append("<td>").append(i).append("</td>").
-                    append("<td>").append(PageParser.escapeHtml(meta.getColumnLabel(i))).append("</td>").
-                    append("<td>").append(PageParser.escapeHtml(meta.getCatalogName(i))).append("</td>").
-                    append("<td>").append(PageParser.escapeHtml(meta.getSchemaName(i))).append("</td>").
-                    append("<td>").append(PageParser.escapeHtml(meta.getTableName(i))).append("</td>").
-                    append("<td>").append(PageParser.escapeHtml(meta.getColumnName(i))).append("</td>").
-                    append("<td>").append(meta.getColumnType(i)).append("</td>").
-                    append("<td>").append(PageParser.escapeHtml(meta.getColumnTypeName(i))).append("</td>").
-                    append("<td>").append(PageParser.escapeHtml(meta.getColumnClassName(i))).append("</td>").
-                    append("<td>").append(meta.getPrecision(i)).append("</td>").
-                    append("<td>").append(meta.getScale(i)).append("</td>").
-                    append("<td>").append(meta.getColumnDisplaySize(i)).append("</td>").
-                    append("<td>").append(meta.isAutoIncrement(i)).append("</td>").
-                    append("<td>").append(meta.isCaseSensitive(i)).append("</td>").
-                    append("<td>").append(meta.isCurrency(i)).append("</td>").
-                    append("<td>").append(meta.isNullable(i)).append("</td>").
-                    append("<td>").append(meta.isReadOnly(i)).append("</td>").
-                    append("<td>").append(meta.isSearchable(i)).append("</td>").
-                    append("<td>").append(meta.isSigned(i)).append("</td>").
-                    append("<td>").append(meta.isWritable(i)).append("</td>").
-                    append("<td>").append(meta.isDefinitelyWritable(i)).append("</td>").
-                    append("</tr>");
-            }
-        } else if (list) {
+        if (list) {
             buff.append("<tr><th>Column</th><th>Data</th></tr><tr>");
             while (rs.next()) {
                 if (maxrows > 0 && rows >= maxrows) {

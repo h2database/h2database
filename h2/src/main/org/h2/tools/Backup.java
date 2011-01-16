@@ -11,13 +11,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.command.dml.BackupCommand;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.FileLister;
+import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
@@ -91,7 +93,8 @@ public class Backup extends Tool {
      *
      * @param zipFileName the name of the target backup file (including path)
      * @param directory the source directory name
-     * @param db the source database name (null if there is only one database)
+     * @param db the source database name (null if there is only one database, and
+     *          and empty string to backup all files in this directory)
      * @param quiet don't print progress information
      * @throws SQLException
      */
@@ -104,7 +107,13 @@ public class Backup extends Tool {
     }
 
     private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
-        ArrayList<String> list = FileLister.getDatabaseFiles(directory, db, true);
+        List<String> list;
+        boolean allFiles = db != null && db.length() == 0;
+        if (allFiles) {
+            list = Arrays.asList(FileSystem.getInstance(directory).listFiles(directory));
+        } else {
+            list = FileLister.getDatabaseFiles(directory, db, true);
+        }
         if (list.size() == 0) {
             if (!quiet) {
                 printNoDatabaseFilesFound(directory, db);
@@ -124,7 +133,7 @@ public class Backup extends Tool {
             ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             String base = "";
             for (String fileName : list) {
-                if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+                if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE) || allFiles) {
                     base = IOUtils.getParent(fileName);
                     break;
                 }
@@ -133,6 +142,9 @@ public class Backup extends Tool {
                 String f = IOUtils.getAbsolutePath(fileName);
                 if (!f.startsWith(base)) {
                     DbException.throwInternalError(f + " does not start with " + base);
+                }
+                if (f.endsWith(zipFileName)) {
+                    continue;
                 }
                 if (IOUtils.isDirectory(fileName)) {
                     continue;

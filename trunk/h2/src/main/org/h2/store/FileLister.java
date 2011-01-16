@@ -8,6 +8,7 @@ package org.h2.store;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -46,7 +47,7 @@ public class FileLister {
      * @param message the text to include in the error message
      * @throws SQLException if it failed
      */
-    public static void tryUnlockDatabase(ArrayList<String> files, String message) throws SQLException {
+    public static void tryUnlockDatabase(List<String> files, String message) throws SQLException {
         for (String fileName : files) {
             if (fileName.endsWith(Constants.SUFFIX_LOCK_FILE)) {
                 FileLock lock = new FileLock(new TraceSystem(null), fileName, Constants.LOCK_SLEEP);

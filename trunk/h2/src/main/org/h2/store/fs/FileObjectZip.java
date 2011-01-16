@@ -66,7 +66,7 @@ public class FileObjectZip implements FileObject {
                 try {
                     IOUtils.skipFully(in, skip);
                 } catch (NullPointerException e) {
-                    // workaround for Google Android
+                    // workaround for Android
                     skipUsingRead = true;
                 }
             }

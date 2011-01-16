@@ -62,6 +62,12 @@ public class TestSampleApps extends TestBase {
         // process)
         testApp("The sum is 20.00", org.h2.samples.TriggerSample.class);
         testApp("Hello: 1\nWorld: 2", org.h2.samples.TriggerPassData.class);
+        testApp(
+                "adding test data...\n" +
+                "defrag to reduce random access...\n" +
+                "create the zip file...\n" +
+                "open the database from the zip file...",
+                org.h2.samples.ReadOnlyDatabaseInZip.class);
 
         // tools
         testApp("Allows changing the database file encryption password or algorithm*",

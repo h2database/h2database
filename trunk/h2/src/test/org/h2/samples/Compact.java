@@ -60,4 +60,5 @@ public class Compact {
         RunScript.execute(url, user, password, file, null, false);
         IOUtils.delete(file);
     }
+
 }

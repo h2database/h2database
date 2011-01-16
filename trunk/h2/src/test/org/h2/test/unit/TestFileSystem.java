@@ -22,6 +22,8 @@ import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemMemory;
 import org.h2.test.TestBase;
+import org.h2.tools.Backup;
+import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 
 /**
@@ -41,6 +43,7 @@ public class TestFileSystem extends TestBase {
     }
 
     public void test() throws Exception {
+        testSplitDatabaseInZip();
         testDatabaseInMemFileSys();
         testDatabaseInJar();
         // set default part size to 1 << 10
@@ -70,6 +73,27 @@ public class TestFileSystem extends TestBase {
         } finally {
             IOUtils.delete(getBaseDir() + "/fs");
         }
+    }
+
+    private void testSplitDatabaseInZip() throws SQLException {
+        String dir = getBaseDir() + "/fs";
+        FileSystem.getInstance(dir).deleteRecursive(dir, false);
+        Connection conn;
+        Statement stat;
+        conn = DriverManager.getConnection("jdbc:h2:split:18:"+dir+"/test");
+        stat = conn.createStatement();
+        stat.execute(
+                "create table test(id int primary key, name varchar) " +
+                "as select x, space(10000) from system_range(1, 100)");
+        stat.execute("shutdown defrag");
+        conn.close();
+        Backup.execute(dir + "/test.zip", dir, "", true);
+        DeleteDbFiles.execute("split:" + dir, "test", true);
+        conn = DriverManager.getConnection(
+                "jdbc:h2:split:zip:"+dir+"/test.zip!/test");
+        conn.createStatement().execute("select * from test where id=1");
+        conn.close();
+        FileSystem.getInstance(dir).deleteRecursive(dir, false);
     }
 
     private void testDatabaseInMemFileSys() throws SQLException {

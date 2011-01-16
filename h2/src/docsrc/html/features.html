@@ -1291,6 +1291,7 @@ the database can also be opened in read-only mode, even if the database file is 
 <p>
 To create a read-only database in a zip file, first create a regular persistent database, and then create a backup.
 The database must not have pending changes, that means you need to close all connections to the database first.
+To speed up opening the read-only database and running queries, the database should be closed using <code>SHUTDOWN DEFRAG</code>.
 If you are using a database named <code>test</code>, an easy way to create a zip file is using the
 <code>Backup</code> tool. You can start the tool from the command line, or from within the
 H2 Console (Tools - Backup). Please note that the database must be closed when the backup
@@ -1308,6 +1309,11 @@ a regular database, because random access in zip files is not supported (only st
 affects the performance depends on the queries and the data. The database
 is not read in memory; therefore large databases are supported as well. The same indexes are used as when using
 a regular database.
+</p>
+<p>
+If the database is larger than a few megabytes, performance is much better if the database file is split into multiple smaller files,
+because random access in compressed files is not possible.
+See also the sample application <a href="http://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/ReadOnlyDatabaseInZip.java">ReadOnlyDatabaseInZip</a>.
 </p>
 
 <h2 id="low_disk_space">Graceful Handling of Low Disk Space Situations</h2>
@@ -1633,17 +1639,17 @@ overrides this value (even if larger than the physical memory).
 To get the current used maximum cache size, use the query
 <code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'info.CACHE_MAX_SIZE'</code>
 </p><p>
-An experimental scan-resistant cache algorithm "Two Queue" (2Q) is available. 
+An experimental scan-resistant cache algorithm "Two Queue" (2Q) is available.
 To enable it, append <code>;CACHE_TYPE=TQ</code> to the database URL.
-The cache might not actually improve performance. 
+The cache might not actually improve performance.
 If you plan to use it, please run your own test cases first.
 </p><p>
-Also included is an experimental second level soft reference cache. 
-Rows in this cache are only garbage collected on low memory. 
-By default the second level cache is disabled. 
-To enable it, use the prefix <code>SOFT_</code>. 
+Also included is an experimental second level soft reference cache.
+Rows in this cache are only garbage collected on low memory.
+By default the second level cache is disabled.
+To enable it, use the prefix <code>SOFT_</code>.
 Example: <code>jdbc:h2:~/test;CACHE_TYPE=SOFT_LRU</code>.
-The cache might not actually improve performance. 
+The cache might not actually improve performance.
 If you plan to use it, please run your own test cases first.
 </p><p>
 To get information about page reads and writes, and the current caching algorithm in use,

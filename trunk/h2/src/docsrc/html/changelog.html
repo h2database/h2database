@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>A new sample application that shows how to create
+<ul><li>Version 1.3: when re-running the same query so that the previous result was re-used,
+    and if the result set was large so that it was stored externally (in a temp file or in a temp table), 
+    then reading rows from both result sets resulted in an exception or wrong behavior.
+</li><li>A new sample application that shows how to create
     a read-only database in a zip file where the database file is split into multiple smaller parts.
 </li><li>The Backup tool now supports compressing all files in a given directory.
 </li><li>H2 Console: the special syntax @list and @meta can not be combined.

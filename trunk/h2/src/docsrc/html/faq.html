@@ -72,7 +72,7 @@ Here is the list of known and confirmed issues:
     (<code>common/lib</code>).
 </li><li>Some problems have been found with right outer join. Internally, it is converted
     to left outer join, which does not always produce the same results as other databases
-    when used in combination with other joins.
+    when used in combination with other joins. This problem is fixed in H2 version 1.3.
 </li><li>When using Install4j before 4.1.4 on Linux and enabling <code>pack200</code>,
     the <code>h2*.jar</code> becomes corrupted by the install process, causing application failure.
     A workaround is to add an empty file <code>h2*.jar.nopack</code>
@@ -131,8 +131,8 @@ See <a href="advanced.html#limits_limitations">Limits and Limitations</a>.
 <h3 id="reliable">Is it Reliable?</h3>
 <p>
 That is not easy to say. It is still a quite new product. A lot of tests have been written,
-and the code coverage of these tests is very high. Randomized stress tests
-are run regularly. But there are probably still
+and the code coverage of these tests is higher than 80% for each package. 
+Randomized stress tests are run regularly. But there are probably still
 bugs that have not yet been found (as with most software). Some features are known
 to be dangerous, they are only supported for situations where performance is more important
 than reliability. Those dangerous features are:

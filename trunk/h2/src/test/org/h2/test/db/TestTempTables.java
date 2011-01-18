@@ -30,6 +30,8 @@ public class TestTempTables extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("tempTables");
+        testTempFileResultSet();
+        testTempTableResultSet();
         testTransactionalTemp();
         testDeleteGlobalTempTableWhenClosing();
         Connection c1 = getConnection("tempTables");
@@ -41,6 +43,93 @@ public class TestTempTables extends TestBase {
         c1.close();
         c2.close();
         deleteDb("tempTables");
+    }
+
+    private void testTempFileResultSet() throws SQLException {
+        deleteDb("tempTables");
+        Connection conn = getConnection("tempTables;MAX_MEMORY_ROWS=10");
+        ResultSet rs1, rs2;
+        Statement stat1 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        rs1 = stat1.executeQuery("select * from system_range(1, 20)");
+        rs2 = stat2.executeQuery("select * from system_range(1, 20)");
+        for (int i = 0; i < 20; i++) {
+            rs1.next();
+            rs2.next();
+            rs1.getInt(1);
+            rs2.getInt(1);
+        }
+        rs2.close();
+        // verify the temp table is not deleted yet
+        rs1.beforeFirst();
+        for (int i = 0; i < 20; i++) {
+            rs1.next();
+            rs1.getInt(1);
+        }
+        rs1.close();
+
+        rs1 = stat1.executeQuery("select * from system_range(1, 20) order by x desc");
+        rs2 = stat2.executeQuery("select * from system_range(1, 20) order by x desc");
+        for (int i = 0; i < 20; i++) {
+            rs1.next();
+            rs2.next();
+            rs1.getInt(1);
+            rs2.getInt(1);
+        }
+        rs1.close();
+        // verify the temp table is not deleted yet
+        rs2.beforeFirst();
+        for (int i = 0; i < 20; i++) {
+            rs2.next();
+            rs2.getInt(1);
+        }
+        rs2.close();
+
+        conn.close();
+    }
+
+    private void testTempTableResultSet() throws SQLException {
+        deleteDb("tempTables");
+        Connection conn = getConnection("tempTables;MAX_MEMORY_ROWS_DISTINCT=10");
+        Statement stat1 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        ResultSet rs1, rs2;
+        rs1 = stat1.executeQuery("select distinct * from system_range(1, 20)");
+        // this will re-use the same temp table
+        rs2 = stat2.executeQuery("select distinct * from system_range(1, 20)");
+        for (int i = 0; i < 20; i++) {
+            rs1.next();
+            rs2.next();
+            rs1.getInt(1);
+            rs2.getInt(1);
+        }
+        rs2.close();
+        // verify the temp table is not deleted yet
+        rs1.beforeFirst();
+        for (int i = 0; i < 20; i++) {
+            rs1.next();
+            rs1.getInt(1);
+        }
+        rs1.close();
+
+        rs1 = stat1.executeQuery("select distinct * from system_range(1, 20)");
+        rs2 = stat2.executeQuery("select distinct * from system_range(1, 20)");
+        for (int i = 0; i < 20; i++) {
+            rs1.next();
+            rs2.next();
+            rs1.getInt(1);
+            rs2.getInt(1);
+        }
+        rs1.close();
+        // verify the temp table is not deleted yet
+        rs2.beforeFirst();
+        for (int i = 0; i < 20; i++) {
+            rs2.next();
+            rs2.getInt(1);
+        }
+        rs2.close();
+
+        conn.close();
     }
 
     private void testTransactionalTemp() throws SQLException {

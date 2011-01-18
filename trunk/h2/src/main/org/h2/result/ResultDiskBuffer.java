@@ -25,13 +25,18 @@ class ResultDiskBuffer implements ResultExternal {
 
     private static final int READ_AHEAD = 128;
 
-    private Data rowBuff;
-    private FileStore file;
-    private ArrayList<ResultDiskTape> tapes;
-    private ResultDiskTape mainTape;
-    private SortOrder sort;
-    private int columnCount;
+    private final Data rowBuff;
+    private final ArrayList<ResultDiskTape> tapes;
+    private final ResultDiskTape mainTape;
+    private final SortOrder sort;
+    private final int columnCount;
     private final int maxBufferSize;
+
+    private FileStore file;
+
+    private final ResultDiskBuffer parent;
+    private boolean closed;
+    private int childCount;
 
     /**
      * Represents a virtual disk tape for the merge sort algorithm.
@@ -61,21 +66,60 @@ class ResultDiskBuffer implements ResultExternal {
     }
 
     ResultDiskBuffer(Session session, SortOrder sort, int columnCount) {
+        this.parent = null;
         this.sort = sort;
         this.columnCount = columnCount;
         Database db = session.getDatabase();
-        rowBuff = Data.create(db, Constants.DEFAULT_PAGE_SIZE);
+        rowBuff = Data.create(null, Constants.DEFAULT_PAGE_SIZE);
         String fileName = session.getDatabase().createTempFile();
         file = session.getDatabase().openFile(fileName, "rw", false);
         file.setCheckedWriting(false);
         file.seek(FileStore.HEADER_LENGTH);
         if (sort != null) {
             tapes = New.arrayList();
+            mainTape = null;
         } else {
+            tapes = null;
             mainTape = new ResultDiskTape();
             mainTape.pos = FileStore.HEADER_LENGTH;
         }
         this.maxBufferSize = db.getSettings().largeResultBufferSize;
+    }
+
+    private ResultDiskBuffer(ResultDiskBuffer parent) {
+        this.parent = parent;
+        rowBuff = Data.create(null, Constants.DEFAULT_PAGE_SIZE);
+        file = parent.file;
+        if (parent.tapes != null) {
+            tapes = New.arrayList();
+            for (ResultDiskTape t : parent.tapes) {
+                ResultDiskTape t2 = new ResultDiskTape();
+                t2.pos = t2.start = t.start;
+                t2.end = t.end;
+                tapes.add(t2);
+            }
+        } else {
+            tapes = null;
+        }
+        if (parent.mainTape != null) {
+            mainTape = new ResultDiskTape();
+            mainTape.pos = FileStore.HEADER_LENGTH;
+            mainTape.start = parent.mainTape.start;
+            mainTape.end = parent.mainTape.end;
+        } else {
+            mainTape = null;
+        }
+        sort = parent.sort;
+        columnCount = parent.columnCount;
+        maxBufferSize = parent.maxBufferSize;
+    }
+
+    public synchronized ResultDiskBuffer createShallowCopy() {
+        if (closed || parent != null) {
+            return null;
+        }
+        childCount++;
+        return new ResultDiskBuffer(this);
     }
 
     public void addRows(ArrayList<Value[]> rows) {
@@ -212,10 +256,25 @@ class ResultDiskBuffer implements ResultExternal {
         close();
     }
 
-    public void close() {
-        if (file != null) {
+    private synchronized void closeChild() {
+        if (--childCount == 0 && closed) {
             file.closeAndDeleteSilently();
             file = null;
+        }
+    }
+
+    public synchronized void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        if (parent != null) {
+            parent.closeChild();
+        } else if (file != null) {
+            if (childCount == 0) {
+                file.closeAndDeleteSilently();
+                file = null;
+            }
         }
     }
 

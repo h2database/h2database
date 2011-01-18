@@ -69,4 +69,11 @@ public interface ResultExternal {
      */
     int addRow(Value[] values);
 
+    /**
+     * Create a shallow copy of this object if possible.
+     *
+     * @return the shallow copy, or null
+     */
+    ResultExternal createShallowCopy();
+
 }

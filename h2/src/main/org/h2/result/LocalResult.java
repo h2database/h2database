@@ -37,7 +37,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private ValueHashMap<Value[]> distinctRows;
     private Value[] currentRow;
     private int offset, limit;
-    private ResultExternal disk;
+    private ResultExternal external;
     private int diskOffset;
     private boolean distinct;
     private boolean closed;
@@ -105,8 +105,15 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * @return the copy
      */
     public LocalResult createShallowCopy(Session targetSession) {
-        if (disk == null && (rows == null || rows.size() < rowCount)) {
+        if (external == null && (rows == null || rows.size() < rowCount)) {
             return null;
+        }
+        ResultExternal e2 = null;
+        if (external != null) {
+            e2 = external.createShallowCopy();
+            if (e2 == null) {
+                return null;
+            }
         }
         LocalResult copy = new LocalResult();
         copy.maxMemoryRows = this.maxMemoryRows;
@@ -122,7 +129,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         copy.currentRow = null;
         copy.offset = 0;
         copy.limit = 0;
-        copy.disk = this.disk;
+        copy.external = e2;
         copy.diskOffset = this.diskOffset;
         return copy;
     }
@@ -158,7 +165,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
             distinctRows.remove(array);
             rowCount = distinctRows.size();
         } else {
-            rowCount = disk.removeRow(values);
+            rowCount = external.removeRow(values);
         }
     }
 
@@ -176,16 +183,16 @@ public class LocalResult implements ResultInterface, ResultTarget {
             ValueArray array = ValueArray.get(values);
             return distinctRows.get(array) != null;
         }
-        return disk.contains(values);
+        return external.contains(values);
     }
 
     public void reset() {
         rowId = -1;
-        if (disk != null) {
-            disk.reset();
+        if (external != null) {
+            external.reset();
             if (diskOffset > 0) {
                 for (int i = 0; i < diskOffset; i++) {
-                    disk.next();
+                    external.next();
                 }
             }
         }
@@ -199,8 +206,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (rowId < rowCount) {
             rowId++;
             if (rowId < rowCount) {
-                if (disk != null) {
-                    currentRow = disk.next();
+                if (external != null) {
+                    currentRow = external.next();
                 } else {
                     currentRow = rows.get(rowId);
                 }
@@ -228,27 +235,27 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 rowCount = distinctRows.size();
                 Database db = session.getDatabase();
                 if (rowCount > db.getSettings().maxMemoryRowsDistinct && db.isPersistent()) {
-                    disk = new ResultTempTable(session, sort);
-                    disk.addRows(distinctRows.values());
+                    external = new ResultTempTable(session, sort);
+                    external.addRows(distinctRows.values());
                     distinctRows = null;
                 }
             } else {
-                rowCount = disk.addRow(values);
+                rowCount = external.addRow(values);
             }
             return;
         }
         rows.add(values);
         rowCount++;
         if (rows.size() > maxMemoryRows && session.getDatabase().isPersistent()) {
-            if (disk == null) {
-                disk = new ResultDiskBuffer(session, sort, values.length);
+            if (external == null) {
+                external = new ResultDiskBuffer(session, sort, values.length);
             }
             addRowsToDisk();
         }
     }
 
     private void addRowsToDisk() {
-        disk.addRows(rows);
+        external.addRows(rows);
         rows.clear();
     }
 
@@ -265,10 +272,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 rows = distinctRows.values();
                 distinctRows = null;
             } else {
-                if (disk != null && sort != null) {
+                if (external != null && sort != null) {
                     // external sort
-                    ResultExternal temp = disk;
-                    disk = null;
+                    ResultExternal temp = external;
+                    external = null;
                     temp.reset();
                     rows = New.arrayList();
                     // TODO use offset directly if possible
@@ -277,12 +284,12 @@ public class LocalResult implements ResultInterface, ResultTarget {
                         if (list == null) {
                             break;
                         }
-                        if (disk == null) {
-                            disk = new ResultDiskBuffer(session, sort, list.length);
+                        if (external == null) {
+                            external = new ResultDiskBuffer(session, sort, list.length);
                         }
                         rows.add(list);
                         if (rows.size() > maxMemoryRows) {
-                            disk.addRows(rows);
+                            external.addRows(rows);
                             rows.clear();
                         }
                     }
@@ -291,9 +298,9 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 }
             }
         }
-        if (disk != null) {
+        if (external != null) {
             addRowsToDisk();
-            disk.done();
+            external.done();
         } else {
             if (sort != null) {
                 sort.sort(rows);
@@ -321,7 +328,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (limit <= 0) {
             return;
         }
-        if (disk == null) {
+        if (external == null) {
             if (rows.size() > limit) {
                 rows = New.arrayList(rows.subList(0, limit));
                 rowCount = limit;
@@ -334,13 +341,13 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     public boolean needToClose() {
-        return disk != null;
+        return external != null;
     }
 
     public void close() {
-        if (disk != null) {
-            disk.close();
-            disk = null;
+        if (external != null) {
+            external.close();
+            external = null;
             closed = true;
         }
     }
@@ -398,7 +405,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (offset <= 0) {
             return;
         }
-        if (disk == null) {
+        if (external == null) {
             if (offset >= rows.size()) {
                 rows.clear();
                 rowCount = 0;

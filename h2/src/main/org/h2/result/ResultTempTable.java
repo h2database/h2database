@@ -28,13 +28,17 @@ import org.h2.value.ValueArray;
 public class ResultTempTable implements ResultExternal {
 
     private static final String COLUMN_NAME = "DATA";
-    private Session session;
+    private final SortOrder sort;
+    private final Session session;
+    private final Index index;
     private RegularTable table;
-    private SortOrder sort;
-    private Index index;
     private Cursor resultCursor;
 
-    public ResultTempTable(Session session, SortOrder sort) {
+    private final ResultTempTable parent;
+    private boolean closed;
+    private int childCount;
+
+    ResultTempTable(Session session, SortOrder sort) {
         this.session = session;
         this.sort = sort;
         Schema schema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
@@ -60,6 +64,25 @@ public class ResultTempTable implements ResultExternal {
         index = new PageBtreeIndex(table, indexId, data.tableName, indexCols, indexType, true, session);
         index.setTemporary(true);
         table.getIndexes().add(index);
+        parent = null;
+    }
+
+    private ResultTempTable(ResultTempTable parent) {
+        this.parent = parent;
+        this.session = parent.session;
+        this.table = parent.table;
+        this.index = parent.index;
+        // sort is only used when adding rows
+        this.sort = null;
+        reset();
+    }
+
+    public synchronized ResultExternal createShallowCopy() {
+        if (closed || parent != null) {
+            return null;
+        }
+        childCount++;
+        return new ResultTempTable(this);
     }
 
     public int removeRow(Value[] values) {
@@ -94,7 +117,27 @@ public class ResultTempTable implements ResultExternal {
         }
     }
 
-    public void close() {
+    private synchronized void closeChild() {
+        if (--childCount == 0 && closed) {
+            dropTable();
+        }
+    }
+
+    public synchronized void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        if (parent != null) {
+            parent.closeChild();
+        } else {
+            if (childCount == 0) {
+                dropTable();
+            }
+        }
+    }
+
+    private void dropTable() {
         if (table == null) {
             return;
         }

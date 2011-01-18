@@ -1027,6 +1027,7 @@ public abstract class Value {
     /**
      * Throw the exception that the feature is not support for the given data type.
      *
+     * @param op the operation
      * @return never returns normally
      * @throws the exception
      */

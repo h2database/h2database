@@ -260,58 +260,55 @@ public abstract class TestBase {
         }
         if (!config.memory) {
             if (config.smallLog && admin) {
-                url += ";MAX_LOG_SIZE=1";
+                url = addOption(url, "MAX_LOG_SIZE", "1");
             }
         }
         if (config.traceSystemOut) {
-            url += ";TRACE_LEVEL_SYSTEM_OUT=2";
+            url = addOption(url, "TRACE_LEVEL_SYSTEM_OUT", "2");
         }
         if (config.traceLevelFile > 0 && admin) {
-            if (url.indexOf(";TRACE_LEVEL_FILE=") < 0) {
-                url += ";TRACE_LEVEL_FILE=" + config.traceLevelFile;
-            }
-            if (url.indexOf(";TRACE_MAX_FILE_SIZE=") < 0) {
-                url += ";TRACE_MAX_FILE_SIZE=8";
-            }
+            url = addOption(url, "TRACE_LEVEL_FILE", "" + config.traceLevelFile);
+            url = addOption(url, "TRACE_MAX_FILE_SIZE", "8");
         }
-        if (url.indexOf(";LOG=") < 0) {
-            url += ";LOG=1";
-        }
+        url = addOption(url, "LOG", "1");
         if (config.throttle > 0) {
-            url += ";THROTTLE=" + config.throttle;
+            url = addOption(url, "THROTTLE", "" + config.throttle);
         }
-        if (url.indexOf(";LOCK_TIMEOUT=") < 0) {
-            url += ";LOCK_TIMEOUT=50";
-        }
+        url = addOption(url, "LOCK_TIMEOUT", "50");
         if (config.diskUndo && admin) {
-            url += ";MAX_MEMORY_UNDO=3";
+            url = addOption(url, "MAX_MEMORY_UNDO", "3");
         }
-        if (config.big && admin && url.indexOf(";MAX_OPERATION_MEMORY=") <= 0) {
+        if (config.big && admin) {
             // force operations to disk
-            url += ";MAX_OPERATION_MEMORY=1";
+            url = addOption(url, "MAX_OPERATION_MEMORY", "1");
         }
-        if (config.mvcc && url.indexOf(";MVCC=") < 0) {
-            url += ";MVCC=TRUE";
+        if (config.mvcc) {
+            url = addOption(url, "MVCC", "TRUE");
         }
-        if (config.cacheType != null && admin && url.indexOf(";CACHE_TYPE=") < 0) {
-            url += ";CACHE_TYPE=" + config.cacheType;
+        if (config.cacheType != null && admin) {
+            url = addOption(url, "CACHE_TYPE", config.cacheType);
         }
         if (config.diskResult && admin) {
-            url += ";MAX_MEMORY_ROWS=100";
-            if (url.indexOf(";CACHE_SIZE=") < 0) {
-                url += ";CACHE_SIZE=0";
-            }
+            url = addOption(url, "MAX_MEMORY_ROWS", "100");
+            url = addOption(url, "CACHE_SIZE", "0");
         }
         if (config.cipher != null) {
-            url += ";CIPHER=" + config.cipher;
+            url = addOption(url, "CIPHER", config.cipher);
         }
         if (config.defrag) {
-            url += ";DEFRAG_ALWAYS=TRUE";
+            url = addOption(url, "DEFRAG_ALWAYS", "TRUE");
         }
         if (config.nestedJoins) {
-            url += ";NESTED_JOINS=TRUE";
+            url = addOption(url, "NESTED_JOINS", "TRUE");
         }
         return "jdbc:h2:" + url;
+    }
+
+    private String addOption(String url, String option, String value) {
+        if (url.indexOf(";" + option + "=") < 0) {
+            url += ";" + option + "=" + value;
+        }
+        return url;
     }
 
     private Connection getConnectionInternal(String url, String user, String password) throws SQLException {
@@ -584,6 +581,7 @@ public abstract class TestBase {
      *
      * @param expected the expected value
      * @param actual the actual value
+     * @param len the maximum length, or -1
      * @throws AssertionError if the values are not equal
      */
     protected void assertEqualReaders(Reader expected, Reader actual, int len) throws IOException {
@@ -604,6 +602,7 @@ public abstract class TestBase {
      *
      * @param expected the expected value
      * @param actual the actual value
+     * @param len the maximum length, or -1
      * @throws AssertionError if the values are not equal
      */
     protected void assertEqualStreams(InputStream expected, InputStream actual, int len) throws IOException {

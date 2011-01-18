@@ -293,6 +293,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @deprecated
      *
      * @param parameterIndex the parameter index (1, 2, ...)
+     * @param scale is ignored
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
@@ -970,7 +971,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param length the number of bytes
+     * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
     public void setCharacterStream(String parameterName, Reader x, int length) throws SQLException {
@@ -1025,7 +1026,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param length the number of bytes
+     * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
     public void setBinaryStream(String parameterName, InputStream x, int length) throws SQLException {
@@ -1039,7 +1040,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param length the number of bytes
+     * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
     public void setAsciiStream(String parameterName,
@@ -1228,7 +1229,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param length the number of bytes
+     * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
@@ -1259,6 +1260,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
+     * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
@@ -1275,6 +1277,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
+     * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
@@ -1291,6 +1294,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
+     * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
@@ -1350,7 +1354,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param length the number of bytes
+     * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
     public void setAsciiStream(String parameterName,
@@ -1381,7 +1385,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param length the number of bytes
+     * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##
@@ -1430,7 +1434,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      * @param x the value
-     * @param length the number of characters
+     * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
 //## Java 1.6 begin ##

@@ -305,9 +305,8 @@ public class Doclet {
         ThrowsTag[] throwsTags = method.throwsTags();
         boolean hasThrowsTag = throwsTags != null && throwsTags.length > 0;
         if (paramTags.length != params.length) {
-            if (hasComment && !method.commentText().startsWith("[") && !hasThrowsTag) {
+            if (hasComment && !method.commentText().startsWith("[")) {
                 // [Not supported] and such are not problematic
-                // also not problematic are methods that always throw an exception
                 addError("Undocumented parameter(s) (" +
                         clazz.name() + ".java:" + method.position().line() + ") " + name + " documented: " + paramTags.length + " params: "+ params.length);
             }

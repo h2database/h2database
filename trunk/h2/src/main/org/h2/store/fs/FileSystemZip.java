@@ -253,4 +253,8 @@ public class FileSystemZip extends FileSystem {
         return fileName.startsWith(PREFIX);
     }
 
+    public String unwrap(String fileName) {
+        return fileName;
+    }
+
 }

@@ -168,13 +168,13 @@ public class FileSystemMemory extends FileSystem {
         return true;
     }
 
-    public void copy(String original, String copy) {
+    public void copy(String source, String target) {
         try {
-            OutputStream out = openFileOutputStream(copy, false);
-            InputStream in = openFileInputStream(original);
+            OutputStream out = openFileOutputStream(target, false);
+            InputStream in = openFileInputStream(source);
             IOUtils.copyAndClose(in, out);
         } catch (IOException e) {
-            throw DbException.convertIOException(e, "Can not copy " + original + " to " + copy);
+            throw DbException.convertIOException(e, "Can not copy " + source + " to " + target);
         }
     }
 
@@ -229,6 +229,10 @@ public class FileSystemMemory extends FileSystem {
 
     protected boolean accepts(String fileName) {
         return fileName.startsWith(PREFIX) || fileName.startsWith(PREFIX_LZF);
+    }
+
+    public String unwrap(String fileName) {
+        return fileName;
     }
 
 }

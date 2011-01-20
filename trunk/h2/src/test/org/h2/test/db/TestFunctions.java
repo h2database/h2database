@@ -24,7 +24,6 @@ import java.util.Properties;
 import java.util.UUID;
 
 import org.h2.api.AggregateFunction;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
@@ -63,7 +62,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         deleteDb("functions");
-        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
+        IOUtils.deleteRecursive(TEMP_DIR, true);
     }
 
     private void testFunctionInSchema() throws SQLException {

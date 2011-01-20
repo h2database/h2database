@@ -225,10 +225,10 @@ public abstract class FileSystem {
     /**
      * Copy a file from one directory to another, or to another file.
      *
-     * @param original the original file name
-     * @param copy the file name of the copy
+     * @param source the name of the original file
+     * @param target the file name of the copy
      */
-    public abstract void copy(String original, String copy);
+    public abstract void copy(String source, String target);
 
     /**
      * Create all required directories.
@@ -336,5 +336,14 @@ public abstract class FileSystem {
             return n;
         }
     }
+
+    /**
+     * Get the unwrapped file name (without wrapper prefixes if wrapping /
+     * delegating file systems are used).
+     *
+     * @param fileName the file name
+     * @return the unwrapped
+     */
+    public abstract String unwrap(String fileName);
 
 }

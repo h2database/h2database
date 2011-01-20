@@ -17,7 +17,6 @@ import java.sql.Connection;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
-import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
@@ -127,7 +126,7 @@ public class TestWeb extends TestBase {
             new File("transfer/testUpload.txt").delete();
         } finally {
             server.shutdown();
-            FileSystem.getInstance("transfer").deleteRecursive("transfer", true);
+            IOUtils.deleteRecursive("transfer", true);
         }
     }
 

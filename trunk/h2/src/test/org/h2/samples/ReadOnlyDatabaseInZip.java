@@ -9,9 +9,9 @@ package org.h2.samples;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
-import org.h2.store.fs.FileSystem;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.IOUtils;
 
 /**
  * This sample application shows how to create and use a read-only database in a
@@ -30,7 +30,7 @@ public class ReadOnlyDatabaseInZip {
     public static void main(String... args) throws Exception {
 
         // delete all files in this directory
-        FileSystem.getInstance("~/temp").deleteRecursive("~/temp", false);
+        IOUtils.deleteRecursive("~/temp", false);
 
         Connection conn;
         Class.forName("org.h2.Driver");

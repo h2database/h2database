@@ -20,7 +20,7 @@ import org.h2.util.New;
  * A file system that may split files into multiple smaller files.
  * (required for a FAT32 because it only support files up to 2 GB).
  */
-public class FileSystemSplit extends FileSystem {
+public class FileSystemSplit extends FileSystemWrapper {
 
     /**
      * The prefix to use for this file system.
@@ -35,13 +35,8 @@ public class FileSystemSplit extends FileSystem {
         FileSystem.register(new FileSystemSplit());
     }
 
-    public boolean canWrite(String fileName) {
-        fileName = translateFileName(fileName);
-        return getFileSystem(fileName).canWrite(fileName);
-    }
-
     public boolean setReadOnly(String fileName) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         boolean result = false;
         for (int i = 0;; i++) {
             String f = getFileName(fileName, i);
@@ -54,14 +49,14 @@ public class FileSystemSplit extends FileSystem {
         return result;
     }
 
-    public void copy(String original, String copy) {
-        original = translateFileName(original);
-        copy = translateFileName(copy);
-        getFileSystem(original).copy(original, copy);
+    public void copy(String source, String target) {
+        source = unwrap(source);
+        target = unwrap(target);
+        getFileSystem(source).copy(source, target);
         for (int i = 1;; i++) {
-            String o = getFileName(original, i);
+            String o = getFileName(source, i);
             if (getFileSystem(o).exists(o)) {
-                String c = getFileName(copy, i);
+                String c = getFileName(target, i);
                 getFileSystem(o).copy(o, c);
             } else {
                 break;
@@ -69,24 +64,8 @@ public class FileSystemSplit extends FileSystem {
         }
     }
 
-    public void createDirs(String fileName) {
-        fileName = translateFileName(fileName);
-        getFileSystem(fileName).createDirs(fileName);
-    }
-
-    public boolean createNewFile(String fileName) {
-        fileName = translateFileName(fileName);
-        return getFileSystem(fileName).createNewFile(fileName);
-    }
-
-    public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
-            throws IOException {
-        prefix = translateFileName(prefix);
-        return PREFIX + getFileSystem(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
-    }
-
     public void delete(String fileName) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         for (int i = 0;; i++) {
             String f = getFileName(fileName, i);
             if (getFileSystem(fileName).exists(f)) {
@@ -97,34 +76,8 @@ public class FileSystemSplit extends FileSystem {
         }
     }
 
-    public void deleteRecursive(String directory, boolean tryOnly) {
-        directory = translateFileName(directory);
-        getFileSystem(directory).deleteRecursive(directory, tryOnly);
-    }
-
-    public boolean exists(String fileName) {
-        fileName = translateFileName(fileName);
-        return getFileSystem(fileName).exists(fileName);
-    }
-
-    public boolean fileStartsWith(String fileName, String prefix) {
-        fileName = translateFileName(fileName);
-        prefix = translateFileName(prefix);
-        return getFileSystem(fileName).fileStartsWith(fileName, prefix);
-    }
-
-    public String getAbsolutePath(String fileName) {
-        fileName = translateFileName(fileName);
-        return PREFIX + getFileSystem(fileName).getAbsolutePath(fileName);
-    }
-
-    public String getFileName(String name) {
-        name = translateFileName(name);
-        return getFileSystem(name).getFileName(name);
-    }
-
     public long getLastModified(String fileName) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         long lastModified = 0;
         for (int i = 0;; i++) {
             String f = getFileName(fileName, i);
@@ -138,28 +91,8 @@ public class FileSystemSplit extends FileSystem {
         return lastModified;
     }
 
-    public String getParent(String fileName) {
-        fileName = translateFileName(fileName);
-        return PREFIX + getFileSystem(fileName).getParent(fileName);
-    }
-
-    public boolean isAbsolute(String fileName) {
-        fileName = translateFileName(fileName);
-        return getFileSystem(fileName).isAbsolute(fileName);
-    }
-
-    public boolean isDirectory(String fileName) {
-        fileName = translateFileName(fileName);
-        return getFileSystem(fileName).isDirectory(fileName);
-    }
-
-    public boolean isReadOnly(String fileName) {
-        fileName = translateFileName(fileName);
-        return getFileSystem(fileName).isReadOnly(fileName);
-    }
-
     public long length(String fileName) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         long length = 0;
         for (int i = 0;; i++) {
             String f = getFileName(fileName, i);
@@ -173,15 +106,13 @@ public class FileSystemSplit extends FileSystem {
     }
 
     public String[] listFiles(String directory) {
-        directory = translateFileName(directory);
-        String[] array = getFileSystem(directory).listFiles(directory);
+        String[] array = super.listFiles(directory);
         ArrayList<String> list = New.arrayList();
         for (int i = 0; i < array.length; i++) {
             String f = array[i];
             if (f.endsWith(PART_SUFFIX)) {
                 continue;
             }
-            array[i] = f = PREFIX + f;
             list.add(f);
         }
         if (list.size() != array.length) {
@@ -191,13 +122,8 @@ public class FileSystemSplit extends FileSystem {
         return array;
     }
 
-    public String normalize(String fileName) {
-        fileName = translateFileName(fileName);
-        return PREFIX + getFileSystem(fileName).normalize(fileName);
-    }
-
     public InputStream openFileInputStream(String fileName) throws IOException {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         InputStream input = getFileSystem(fileName).openFileInputStream(fileName);
         for (int i = 1;; i++) {
             String f = getFileName(fileName, i);
@@ -212,7 +138,7 @@ public class FileSystemSplit extends FileSystem {
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         ArrayList<FileObject> list = New.arrayList();
         FileObject o = getFileSystem(fileName).openFileObject(fileName, mode);
         list.add(o);
@@ -265,14 +191,16 @@ public class FileSystemSplit extends FileSystem {
     }
 
     public OutputStream openFileOutputStream(String fileName, boolean append) {
-        fileName = translateFileName(fileName);
-        // TODO the output stream is not split
-        return getFileSystem(fileName).openFileOutputStream(fileName, append);
+        try {
+            return new FileObjectOutputStream(openFileObject(fileName, "rw"), append);
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, fileName);
+        }
     }
 
     public void rename(String oldName, String newName) {
-        oldName = translateFileName(oldName);
-        newName = translateFileName(newName);
+        oldName = unwrap(oldName);
+        newName = unwrap(newName);
         for (int i = 0;; i++) {
             String o = getFileName(oldName, i);
             if (getFileSystem(o).exists(o)) {
@@ -285,7 +213,7 @@ public class FileSystemSplit extends FileSystem {
     }
 
     public boolean tryDelete(String fileName) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         for (int i = 0;; i++) {
             String f = getFileName(fileName, i);
             if (getFileSystem(fileName).exists(f)) {
@@ -300,7 +228,7 @@ public class FileSystemSplit extends FileSystem {
         return true;
     }
 
-    private String translateFileName(String fileName) {
+    public String unwrap(String fileName) {
         if (!fileName.startsWith(PREFIX)) {
             DbException.throwInternalError(fileName + " doesn't start with " + PREFIX);
         }
@@ -336,8 +264,8 @@ public class FileSystemSplit extends FileSystem {
         return FileSystem.getInstance(fileName);
     }
 
-    protected boolean accepts(String fileName) {
-        return fileName.startsWith(PREFIX);
+    protected String getPrefix() {
+        return PREFIX;
     }
 
 }

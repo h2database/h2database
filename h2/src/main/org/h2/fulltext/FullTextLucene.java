@@ -32,8 +32,8 @@ import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -348,7 +348,7 @@ public class FullTextLucene extends FullText {
         if (access != null) {
             removeIndexAccess(access, path);
         }
-        FileSystem.getInstance(path).deleteRecursive(path, false);
+        IOUtils.deleteRecursive(path, false);
     }
 
     /**

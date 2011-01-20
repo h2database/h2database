@@ -19,7 +19,6 @@ import org.h2.command.dml.BackupCommand;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.FileLister;
-import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
@@ -110,7 +109,7 @@ public class Backup extends Tool {
         List<String> list;
         boolean allFiles = db != null && db.length() == 0;
         if (allFiles) {
-            list = Arrays.asList(FileSystem.getInstance(directory).listFiles(directory));
+            list = Arrays.asList(IOUtils.listFiles(directory));
         } else {
             list = FileLister.getDatabaseFiles(directory, db, true);
         }

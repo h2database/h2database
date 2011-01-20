@@ -25,10 +25,10 @@ import java.util.LinkedList;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
-import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemSplit;
 import org.h2.test.utils.RecordingFileSystem;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.IOUtils;
 
 /**
  * The base class for all tests.
@@ -144,8 +144,8 @@ public abstract class TestBase {
             }
         } finally {
             try {
-                FileSystem.getInstance("memFS:").deleteRecursive("memFS:", false);
-                FileSystem.getInstance("memLZF:").deleteRecursive("memLZF:", false);
+                IOUtils.deleteRecursive("memFS:", false);
+                IOUtils.deleteRecursive("memLZF:", false);
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }

@@ -26,7 +26,6 @@ import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.Utils;
@@ -86,7 +85,7 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
-        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
+        IOUtils.deleteRecursive(TEMP_DIR, true);
     }
 
     private void testUniqueIndex() throws Exception {
@@ -212,7 +211,7 @@ public class TestLob extends TestBase {
 
     private void testTempFilesDeleted() throws Exception {
         String[] list;
-        FileSystem.getInstance(TEMP_DIR).deleteRecursive(TEMP_DIR, true);
+        IOUtils.deleteRecursive(TEMP_DIR, true);
         IOUtils.mkdirs(new File(TEMP_DIR));
         list = IOUtils.listFiles(TEMP_DIR);
         if (list.length > 0) {

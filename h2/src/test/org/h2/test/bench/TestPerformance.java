@@ -18,8 +18,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Properties;
-
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -77,7 +75,7 @@ public class TestPerformance {
             if ("-db".equals(arg)) {
                 dbId = Integer.parseInt(args[++i]);
             } else if ("-init".equals(arg)) {
-                FileSystem.getInstance("data").deleteRecursive("data", true);
+                IOUtils.deleteRecursive("data", true);
             } else if ("-out".equals(arg)) {
                 out = args[++i];
             } else if ("-trace".equals(arg)) {

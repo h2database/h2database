@@ -25,6 +25,7 @@ import java.io.Writer;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 
 /**
@@ -522,7 +523,58 @@ public class IOUtils {
      * @return just the file name
      */
     public static String getFileName(String name) {
-        return FileSystem.getInstance(name).getFileName(name);
+        return getFileSystem(name).getFileName(name);
+    }
+
+    /**
+     * Check if the file is writable.
+     *
+     * @param fileName the file name
+     * @return if the file is writable
+     */
+    public static boolean canWrite(String fileName) {
+        return getFileSystem(fileName).canWrite(fileName);
+    }
+
+    /**
+     * Disable the ability to write.
+     *
+     * @param fileName the file name
+     * @return true if the call was successful
+     */
+    public static boolean setReadOnly(String fileName) {
+        return getFileSystem(fileName).setReadOnly(fileName);
+    }
+
+    /**
+     * Copy a file from one directory to another, or to another file.
+     *
+     * @param original the original file name
+     * @param copy the file name of the copy
+     */
+    public static void copy(String original, String copy) {
+        getFileSystem(original).copy(original, copy);
+    }
+
+    /**
+     * Create a new file.
+     *
+     * @param fileName the file name
+     * @return true if creating was successful
+     */
+    public static boolean createNewFile(String fileName) {
+        return getFileSystem(fileName).createNewFile(fileName);
+    }
+
+    /**
+     * Open a random access file object.
+     *
+     * @param fileName the file name
+     * @param mode the access mode. Supported are r, rw, rws, rwd
+     * @return the file object
+     */
+    public static FileObject openFileObject(String fileName, String mode) throws IOException {
+        return getFileSystem(fileName).openFileObject(fileName, mode);
     }
 
     /**
@@ -532,7 +584,7 @@ public class IOUtils {
      * @return the normalized file name
      */
     public static String normalize(String fileName) {
-        return FileSystem.getInstance(fileName).normalize(fileName);
+        return getFileSystem(fileName).normalize(fileName);
     }
 
     /**
@@ -542,7 +594,7 @@ public class IOUtils {
      * @return true if it worked
      */
     public static boolean tryDelete(String fileName) {
-        return FileSystem.getInstance(fileName).tryDelete(fileName);
+        return getFileSystem(fileName).tryDelete(fileName);
     }
 
     /**
@@ -552,7 +604,7 @@ public class IOUtils {
      * @return if it is read only
      */
     public static boolean isReadOnly(String fileName) {
-        return FileSystem.getInstance(fileName).isReadOnly(fileName);
+        return getFileSystem(fileName).isReadOnly(fileName);
     }
 
     /**
@@ -562,7 +614,7 @@ public class IOUtils {
      * @return true if it exists
      */
     public static boolean exists(String fileName) {
-        return FileSystem.getInstance(fileName).exists(fileName);
+        return getFileSystem(fileName).exists(fileName);
     }
 
     /**
@@ -572,7 +624,7 @@ public class IOUtils {
      * @return the length in bytes
      */
     public static long length(String fileName) {
-        return FileSystem.getInstance(fileName).length(fileName);
+        return getFileSystem(fileName).length(fileName);
     }
 
     /**
@@ -588,7 +640,7 @@ public class IOUtils {
      */
     public static String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
-        return FileSystem.getInstance(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
+        return getFileSystem(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
     }
 
     /**
@@ -598,7 +650,7 @@ public class IOUtils {
      * @return the parent directory name
      */
     public static String getParent(String fileName) {
-        return FileSystem.getInstance(fileName).getParent(fileName);
+        return getFileSystem(fileName).getParent(fileName);
     }
 
     /**
@@ -608,7 +660,7 @@ public class IOUtils {
      * @return the list of fully qualified file names
      */
     public static String[] listFiles(String path) {
-        return FileSystem.getInstance(path).listFiles(path);
+        return getFileSystem(path).listFiles(path);
     }
 
     /**
@@ -618,7 +670,7 @@ public class IOUtils {
      * @return true if it is a directory
      */
     public static boolean isDirectory(String fileName) {
-        return FileSystem.getInstance(fileName).isDirectory(fileName);
+        return getFileSystem(fileName).isDirectory(fileName);
     }
 
     /**
@@ -628,7 +680,7 @@ public class IOUtils {
      * @return if the file name is absolute
      */
     public static boolean isAbsolute(String fileName) {
-        return FileSystem.getInstance(fileName).isAbsolute(fileName);
+        return getFileSystem(fileName).isAbsolute(fileName);
     }
 
     /**
@@ -638,7 +690,7 @@ public class IOUtils {
      * @return the absolute file name
      */
     public static String getAbsolutePath(String fileName) {
-        return FileSystem.getInstance(fileName).getAbsolutePath(fileName);
+        return getFileSystem(fileName).getAbsolutePath(fileName);
     }
 
     /**
@@ -649,7 +701,7 @@ public class IOUtils {
      * @return true if it starts with the prefix
      */
     public static boolean fileStartsWith(String fileName, String prefix) {
-        return FileSystem.getInstance(fileName).fileStartsWith(fileName, prefix);
+        return getFileSystem(fileName).fileStartsWith(fileName, prefix);
     }
 
     /**
@@ -659,7 +711,7 @@ public class IOUtils {
      * @return the input stream
      */
     public static InputStream openFileInputStream(String fileName) throws IOException {
-        return FileSystem.getInstance(fileName).openFileInputStream(fileName);
+        return getFileSystem(fileName).openFileInputStream(fileName);
     }
 
     /**
@@ -671,7 +723,7 @@ public class IOUtils {
      * @return the output stream
      */
     public static OutputStream openFileOutputStream(String fileName, boolean append) {
-        return FileSystem.getInstance(fileName).openFileOutputStream(fileName, append);
+        return getFileSystem(fileName).openFileOutputStream(fileName, append);
     }
 
     /**
@@ -681,7 +733,7 @@ public class IOUtils {
      * @param newName the new fully qualified file name
      */
     public static void rename(String oldName, String newName) {
-        FileSystem.getInstance(oldName).rename(oldName, newName);
+        getFileSystem(oldName).rename(oldName, newName);
     }
 
     /**
@@ -690,7 +742,7 @@ public class IOUtils {
      * @param fileName the file name (not directory name)
      */
     public static void createDirs(String fileName) {
-        FileSystem.getInstance(fileName).createDirs(fileName);
+        getFileSystem(fileName).createDirs(fileName);
     }
 
     /**
@@ -699,7 +751,17 @@ public class IOUtils {
      * @param fileName the file name
      */
     public static void delete(String fileName) {
-        FileSystem.getInstance(fileName).delete(fileName);
+        getFileSystem(fileName).delete(fileName);
+    }
+
+    /**
+     * Delete a directory or file and all subdirectories and files.
+     *
+     * @param directory the directory
+     * @param tryOnly whether errors should  be ignored
+     */
+    public static void deleteRecursive(String directory, boolean tryOnly) {
+        getFileSystem(directory).deleteRecursive(directory, tryOnly);
     }
 
     /**
@@ -709,7 +771,22 @@ public class IOUtils {
      * @return the last modified date
      */
     public static long getLastModified(String fileName) {
-        return FileSystem.getInstance(fileName).getLastModified(fileName);
+        return getFileSystem(fileName).getLastModified(fileName);
+    }
+
+    /**
+     * Get the unwrapped file name (without wrapper prefixes if wrapping /
+     * delegating file systems are used).
+     *
+     * @param fileName the file name
+     * @return the unwrapped
+     */
+    public static String unwrap(String fileName) {
+        return getFileSystem(fileName).unwrap(fileName);
+    }
+
+    private static FileSystem getFileSystem(String fileName) {
+        return FileSystem.getInstance(fileName);
     }
 
     /**
@@ -719,30 +796,9 @@ public class IOUtils {
      * @param fileName the file name
      * @param o the object to append to the message
      */
-    static void trace(String method, String fileName, Object o) {
+    public static void trace(String method, String fileName, Object o) {
         if (SysProperties.TRACE_IO) {
             System.out.println("IOUtils." + method + " " + fileName + " " + o);
-        }
-    }
-
-    /**
-     * Checks if a file is below a given directory
-     *
-     * @param file the file to check
-     * @param dir the directory the file must be in
-     * @return true if the file is within the directory
-     */
-    public static boolean isInDir(File file, File dir) {
-        try {
-            String canonicalFileName = file.getCanonicalPath();
-            String canonicalDirName = dir.getCanonicalPath();
-            if (canonicalFileName.equals(canonicalDirName)) {
-                // the file is the directory: not allowed (file "../test" in dir "test")
-                return false;
-            }
-            return canonicalFileName.startsWith(canonicalDirName);
-        } catch (Exception e) {
-            return false;
         }
     }
 

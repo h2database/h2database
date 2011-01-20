@@ -6,7 +6,6 @@
  */
 package org.h2.tools;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,6 +13,7 @@ import java.sql.SQLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.FileLister;
 import org.h2.util.IOUtils;
@@ -146,7 +146,7 @@ public class Restore extends Tool {
                 if (originalDbName == null) {
                     throw new IOException("No database named " + db + " found");
                 }
-                if (originalDbName.startsWith(File.separator)) {
+                if (originalDbName.startsWith(SysProperties.FILE_SEPARATOR)) {
                     originalDbName = originalDbName.substring(1);
                 }
                 originalDbLen = originalDbName.length();
@@ -160,9 +160,9 @@ public class Restore extends Tool {
                 }
                 String fileName = entry.getName();
                 // restoring windows backups on linux and vice versa
-                fileName = fileName.replace('\\', File.separatorChar);
-                fileName = fileName.replace('/', File.separatorChar);
-                if (fileName.startsWith(File.separator)) {
+                fileName = fileName.replace('\\', SysProperties.FILE_SEPARATOR.charAt(0));
+                fileName = fileName.replace('/', SysProperties.FILE_SEPARATOR.charAt(0));
+                if (fileName.startsWith(SysProperties.FILE_SEPARATOR)) {
                     fileName = fileName.substring(1);
                 }
                 boolean copy = false;
@@ -175,7 +175,7 @@ public class Restore extends Tool {
                 if (copy) {
                     OutputStream o = null;
                     try {
-                        o = IOUtils.openFileOutputStream(directory + File.separator + fileName, false);
+                        o = IOUtils.openFileOutputStream(directory + SysProperties.FILE_SEPARATOR + fileName, false);
                         IOUtils.copy(zipIn, o);
                         o.close();
                     } finally {

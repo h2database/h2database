@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -137,31 +136,24 @@ public class ConnectionInfo implements Cloneable {
      */
     public void setBaseDir(String dir) {
         if (persistent) {
-            String fileSystemPrefix = "";
-            int colonIndex = name.lastIndexOf(':');
-            if (colonIndex > 1) {
-                // cut FileSystem prefixes, but not
-                //  C: and D: (Microsoft Windows drive letters)
-                fileSystemPrefix = name.substring(0, colonIndex+1);
-                name = name.substring(colonIndex+1);
-            }
-            String testFileName;
-            if (name.startsWith("~")) {
-                testFileName = System.getProperty("user.home") + SysProperties.FILE_SEPARATOR + name.substring(1);
+            String absDir = IOUtils.unwrap(IOUtils.getAbsolutePath(dir));
+            boolean absolute = IOUtils.isAbsolute(name);
+            String n;
+            String prefix = null;
+            if (absolute) {
+                n = name;
             } else {
-                testFileName = dir + SysProperties.FILE_SEPARATOR + name;
+                n  = IOUtils.unwrap(name);
+                prefix = name.substring(0, name.length() - n.length());
+                n = dir + SysProperties.FILE_SEPARATOR + n;
             }
-
-            File testFile = new File(testFileName);
-            File baseDir = new File(dir);
-            if (!IOUtils.isInDir(testFile, baseDir)) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, testFile.getAbsolutePath() + " outside " +
-                        baseDir.getAbsolutePath());
+            String absName = IOUtils.unwrap(IOUtils.getAbsolutePath(n));
+            if (absName.equals(absDir) || !absName.startsWith(absDir)) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, absName + " outside " +
+                        absDir);
             }
-            if (name.startsWith("~")) {
-                name = fileSystemPrefix + name;
-            } else {
-                name = fileSystemPrefix + dir + SysProperties.FILE_SEPARATOR + name;
+            if (!absolute) {
+                name = prefix + dir + SysProperties.FILE_SEPARATOR + IOUtils.unwrap(name);
             }
         }
     }

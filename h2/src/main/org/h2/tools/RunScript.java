@@ -7,7 +7,6 @@
 package org.h2.tools;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,6 +16,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.Utils;
@@ -201,7 +201,7 @@ public class RunScript extends Tool {
                 sql = trim;
                 sql = sql.substring("@INCLUDE".length()).trim();
                 if (!IOUtils.isAbsolute(sql)) {
-                    sql = path + File.separator + sql;
+                    sql = path + SysProperties.FILE_SEPARATOR + sql;
                 }
                 process(conn, sql, continueOnError, charsetName);
             } else {

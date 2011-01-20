@@ -225,14 +225,14 @@ public class ValueLob extends Value {
         String name;
         int f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
         if (f > 0) {
-            name = File.separator + objectId;
+            name = SysProperties.FILE_SEPARATOR + objectId;
         } else {
             name = "";
         }
         objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         while (objectId > 0) {
             f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
-            name = File.separator + f + Constants.SUFFIX_LOBS_DIRECTORY + name;
+            name = SysProperties.FILE_SEPARATOR + f + Constants.SUFFIX_LOBS_DIRECTORY + name;
             objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         }
         name = IOUtils.normalize(path + Constants.SUFFIX_LOBS_DIRECTORY + name);

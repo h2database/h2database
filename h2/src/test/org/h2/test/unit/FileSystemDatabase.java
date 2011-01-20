@@ -130,7 +130,7 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     private long getId(String fileName, boolean parent) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         log(fileName);
         try {
             String[] path = StringUtils.arraySplit(fileName, '/', false);
@@ -155,13 +155,6 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    private String translateFileName(String fileName) {
-        if (fileName.startsWith(url)) {
-            fileName = fileName.substring(url.length());
-        }
-        return fileName;
-    }
-
     private PreparedStatement prepare(String sql) throws SQLException {
         PreparedStatement prep = preparedMap.get(sql);
         if (prep == null) {
@@ -182,19 +175,19 @@ public class FileSystemDatabase extends FileSystem {
         return true;
     }
 
-    public void copy(String original, String copy) {
+    public void copy(String source, String target) {
         try {
-            OutputStream out = openFileOutputStream(copy, false);
-            InputStream in = openFileInputStream(original);
+            OutputStream out = openFileOutputStream(target, false);
+            InputStream in = openFileInputStream(source);
             IOUtils.copyAndClose(in, out);
         } catch (IOException e) {
             rollback();
-            throw DbException.convertIOException(e, "Can not copy " + original + " to " + copy);
+            throw DbException.convertIOException(e, "Can not copy " + source + " to " + target);
         }
     }
 
     public void createDirs(String fileName) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         try {
             String[] path = StringUtils.arraySplit(fileName, '/', false);
             long parentId = 0;
@@ -266,7 +259,7 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         return fileName.startsWith(prefix);
     }
 
@@ -275,7 +268,7 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     public String getFileName(String fileName) {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         String[] path = StringUtils.arraySplit(fileName, '/', false);
         return path[path.length - 1];
     }
@@ -460,6 +453,13 @@ public class FileSystemDatabase extends FileSystem {
             rollback();
             throw convert(e);
         }
+    }
+
+    public String unwrap(String fileName) {
+        if (fileName.startsWith(url)) {
+            fileName = fileName.substring(url.length());
+        }
+        return fileName;
     }
 
 }

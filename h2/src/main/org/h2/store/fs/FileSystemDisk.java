@@ -94,7 +94,7 @@ public class FileSystemDisk extends FileSystem {
                     new String[] { oldName, newName + " (exists)" });
         }
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-            trace("rename", oldName + " >" + newName, null);
+            IOUtils.trace("rename", oldName + " >" + newName, null);
             boolean ok = oldFile.renameTo(newFile);
             if (ok) {
                 return;
@@ -102,19 +102,6 @@ public class FileSystemDisk extends FileSystem {
             wait(i);
         }
         throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
-    }
-
-    /**
-     * Print a trace message if tracing is enabled.
-     *
-     * @param method the method
-     * @param fileName the file name
-     * @param o the object
-     */
-    protected void trace(String method, String fileName, Object o) {
-        if (SysProperties.TRACE_IO) {
-            System.out.println("FileSystem." + method + " " + fileName + " " + o);
-        }
     }
 
     private static void wait(int i) {
@@ -154,7 +141,7 @@ public class FileSystemDisk extends FileSystem {
         File file = new File(fileName);
         if (file.exists()) {
             for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-                trace("delete", fileName, null);
+                IOUtils.trace("delete", fileName, null);
                 boolean ok = file.delete();
                 if (ok) {
                     return;
@@ -167,7 +154,7 @@ public class FileSystemDisk extends FileSystem {
 
     public boolean tryDelete(String fileName) {
         fileName = translateFileName(fileName);
-        trace("tryDelete", fileName, null);
+        IOUtils.trace("tryDelete", fileName, null);
         return new File(fileName).delete();
     }
 
@@ -214,8 +201,8 @@ public class FileSystemDisk extends FileSystem {
                 return new String[0];
             }
             String base = f.getCanonicalPath();
-            if (!base.endsWith(File.separator)) {
-                base += File.separator;
+            if (!base.endsWith(SysProperties.FILE_SEPARATOR)) {
+                base += SysProperties.FILE_SEPARATOR;
             }
             for (int i = 0, len = list.length; i < len; i++) {
                 list[i] = base + list[i];
@@ -327,14 +314,14 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public void copy(String original, String copy) {
-        original = translateFileName(original);
-        copy = translateFileName(copy);
+    public void copy(String source, String target) {
+        source = translateFileName(source);
+        target = translateFileName(target);
         OutputStream out = null;
         InputStream in = null;
         try {
-            out = IOUtils.openFileOutputStream(copy, false);
-            in = IOUtils.openFileInputStream(original);
+            out = IOUtils.openFileOutputStream(target, false);
+            in = IOUtils.openFileInputStream(source);
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
             while (true) {
                 int len = in.read(buffer);
@@ -345,7 +332,7 @@ public class FileSystemDisk extends FileSystem {
             }
             out.close();
         } catch (IOException e) {
-            throw DbException.convertIOException(e, "original: " + original + " copy: " + copy);
+            throw DbException.convertIOException(e, "original: " + source + " copy: " + target);
         } finally {
             IOUtils.closeSilently(in);
             IOUtils.closeSilently(out);
@@ -392,7 +379,7 @@ public class FileSystemDisk extends FileSystem {
             File file = new File(fileName);
             createDirs(file.getAbsolutePath());
             FileOutputStream out = new FileOutputStream(fileName, append);
-            trace("openFileOutputStream", fileName, out);
+            IOUtils.trace("openFileOutputStream", fileName, out);
             return out;
         } catch (IOException e) {
             freeMemoryAndFinalize();
@@ -414,7 +401,7 @@ public class FileSystemDisk extends FileSystem {
         }
         fileName = translateFileName(fileName);
         FileInputStream in = new FileInputStream(fileName);
-        trace("openFileInputStream", fileName, in);
+        IOUtils.trace("openFileInputStream", fileName, in);
         return in;
     }
 
@@ -422,8 +409,8 @@ public class FileSystemDisk extends FileSystem {
      * Call the garbage collection and run finalization. This close all files that
      * were not closed, and are no longer referenced.
      */
-    protected void freeMemoryAndFinalize() {
-        trace("freeMemoryAndFinalize", null, null);
+    static void freeMemoryAndFinalize() {
+        IOUtils.trace("freeMemoryAndFinalize", null, null);
         Runtime rt = Runtime.getRuntime();
         long mem = rt.freeMemory();
         for (int i = 0; i < 16; i++) {
@@ -442,7 +429,7 @@ public class FileSystemDisk extends FileSystem {
         FileObjectDisk f;
         try {
             f = new FileObjectDisk(fileName, mode);
-            trace("openRandomAccessFile", fileName, f);
+            IOUtils.trace("openFileObject", fileName, f);
         } catch (IOException e) {
             freeMemoryAndFinalize();
             try {
@@ -456,6 +443,10 @@ public class FileSystemDisk extends FileSystem {
 
     protected boolean accepts(String fileName) {
         return true;
+    }
+
+    public String unwrap(String fileName) {
+        return fileName;
     }
 
 }

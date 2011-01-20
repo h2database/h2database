@@ -7,13 +7,13 @@
 package org.h2.store.fs;
 
 import java.io.IOException;
-import java.io.InputStream;
+import org.h2.util.IOUtils;
 
 /**
  * This file system stores files on disk and uses java.nio to access the files.
  * This class uses FileChannel.
  */
-public class FileSystemDiskNio extends FileSystemDisk {
+public class FileSystemDiskNio extends FileSystemWrapper {
 
     /**
      * The prefix for the file system that uses java.nio.channels.FileChannel.
@@ -24,51 +24,14 @@ public class FileSystemDiskNio extends FileSystemDisk {
         FileSystem.register(new FileSystemDiskNio());
     }
 
-    public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir)
-    throws IOException {
-        String file = super.createTempFile(name, suffix, deleteOnExit, inTempDir);
-        return getPrefix() + file;
-    }
-
-    protected String translateFileName(String fileName) {
-        if (fileName.startsWith(getPrefix())) {
-            fileName = fileName.substring(getPrefix().length());
-        }
-        return super.translateFileName(fileName);
-    }
-
-    public InputStream openFileInputStream(String fileName) throws IOException {
-        return super.openFileInputStream(translateFileName(fileName));
-    }
-
-    public String normalize(String fileName) {
-        return getPrefix() + super.normalize(fileName);
-    }
-
-    public String[] listFiles(String path) {
-        String[] list = super.listFiles(path);
-        for (int i = 0; list != null && i < list.length; i++) {
-            list[i] = getPrefix() + list[i];
-        }
-        return list;
-    }
-
-    public String getParent(String fileName) {
-        return getPrefix() + super.getParent(fileName);
-    }
-
-    public String getAbsolutePath(String fileName) {
-        return getPrefix() + super.getAbsolutePath(fileName);
-    }
-
     public FileObject openFileObject(String fileName, String mode) throws IOException {
-        fileName = translateFileName(fileName);
+        fileName = unwrap(fileName);
         FileObject f;
         try {
             f = open(fileName, mode);
-            trace("openRandomAccessFile", fileName, f);
+            IOUtils.trace("openFileObject", fileName, f);
         } catch (IOException e) {
-            freeMemoryAndFinalize();
+            FileSystemDisk.freeMemoryAndFinalize();
             try {
                 f = open(fileName, mode);
             } catch (IOException e2) {
@@ -97,10 +60,6 @@ public class FileSystemDiskNio extends FileSystemDisk {
      */
     protected FileObject open(String fileName, String mode) throws IOException {
         return new FileObjectDiskChannel(fileName, mode);
-    }
-
-    protected boolean accepts(String fileName) {
-        return fileName.startsWith(getPrefix());
     }
 
 }

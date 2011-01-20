@@ -120,9 +120,11 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     public void close() throws IOException {
-        unMap();
-        file.close();
-        file = null;
+        if (file != null) {
+            unMap();
+            file.close();
+            file = null;
+        }
     }
 
     public long getFilePointer() {

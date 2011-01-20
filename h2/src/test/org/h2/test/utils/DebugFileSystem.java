@@ -9,14 +9,14 @@ package org.h2.test.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.h2.message.DbException;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
+import org.h2.store.fs.FileSystemWrapper;
 
 /**
  * A debugging file system that logs all operations.
  */
-public class DebugFileSystem extends FileSystem {
+public class DebugFileSystem extends FileSystemWrapper {
 
     /**
      * The prefix used for a debugging file system.
@@ -60,184 +60,146 @@ public class DebugFileSystem extends FileSystem {
     }
 
     public boolean canWrite(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "canWrite");
-        return FileSystem.getInstance(fileName).canWrite(fileName);
+        return super.canWrite(fileName);
     }
 
-    public void copy(String original, String copy) {
-        original = translateFileName(original);
-        copy = translateFileName(copy);
-        trace(original, "copy", copy);
-        FileSystem.getInstance(original).copy(original, copy);
+    public void copy(String source, String target) {
+        trace(source, "copy", unwrap(target));
+        super.copy(source, target);
     }
 
     public void createDirs(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "createDirs");
-        FileSystem.getInstance(fileName).createDirs(fileName);
+        super.createDirs(fileName);
     }
 
     public boolean createNewFile(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "createNewFile");
-        return FileSystem.getInstance(fileName).createNewFile(fileName);
+        return super.createNewFile(fileName);
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
-        prefix = translateFileName(prefix);
         trace(prefix, "createTempFile", suffix, deleteOnExit, inTempDir);
-        return PREFIX + FileSystem.getInstance(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
+        return super.createTempFile(prefix, suffix, deleteOnExit, inTempDir);
     }
 
     public void delete(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "fileName");
-        FileSystem.getInstance(fileName).delete(fileName);
+        super.delete(fileName);
     }
 
     public void deleteRecursive(String directory, boolean tryOnly) {
-        directory = translateFileName(directory);
-        trace(directory, "deleteRecursive");
-        FileSystem.getInstance(directory).deleteRecursive(directory, tryOnly);
+        trace(directory, "deleteRecursive", tryOnly);
+        super.deleteRecursive(directory, tryOnly);
     }
 
     public boolean exists(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "exists");
-        return FileSystem.getInstance(fileName).exists(fileName);
+        return super.exists(fileName);
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
-        fileName = translateFileName(fileName);
-        prefix = translateFileName(prefix);
-        trace(fileName, "fileStartsWith", prefix);
-        return FileSystem.getInstance(fileName).fileStartsWith(fileName, prefix);
+        trace(fileName, "fileStartsWith", unwrap(prefix));
+        return super.fileStartsWith(fileName, prefix);
     }
 
     public String getAbsolutePath(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "getAbsolutePath");
-        return PREFIX + FileSystem.getInstance(fileName).getAbsolutePath(fileName);
+        return super.getAbsolutePath(fileName);
     }
 
     public String getFileName(String name) {
-        name = translateFileName(name);
         trace(name, "getFileName");
-        return FileSystem.getInstance(name).getFileName(name);
+        return super.getFileName(name);
     }
 
     public long getLastModified(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "getLastModified");
-        return FileSystem.getInstance(fileName).getLastModified(fileName);
+        return super.getLastModified(fileName);
     }
 
     public String getParent(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "getParent");
-        return PREFIX + FileSystem.getInstance(fileName).getParent(fileName);
+        return super.getParent(fileName);
     }
 
     public boolean isAbsolute(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "isAbsolute");
-        return FileSystem.getInstance(fileName).isAbsolute(fileName);
+        return super.isAbsolute(fileName);
     }
 
     public boolean isDirectory(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "isDirectory");
-        return FileSystem.getInstance(fileName).isDirectory(fileName);
+        return super.isDirectory(fileName);
     }
 
     public boolean isReadOnly(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "isReadOnly");
-        return FileSystem.getInstance(fileName).isReadOnly(fileName);
+        return super.isReadOnly(fileName);
     }
 
     public boolean setReadOnly(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "setReadOnly");
-        return FileSystem.getInstance(fileName).setReadOnly(fileName);
+        return super.setReadOnly(fileName);
     }
 
     public long length(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "length");
-        return FileSystem.getInstance(fileName).length(fileName);
+        return super.length(fileName);
     }
 
     public String[] listFiles(String directory) {
-        directory = translateFileName(directory);
         trace(directory, "listFiles");
-        String[] list = FileSystem.getInstance(directory).listFiles(directory);
-        for (int i = 0; i < list.length; i++) {
-            list[i] = PREFIX + list[i];
-        }
-        return list;
+        return super.listFiles(directory);
     }
 
     public String normalize(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "normalize");
-        return PREFIX + FileSystem.getInstance(fileName).normalize(fileName);
+        return super.normalize(fileName);
     }
 
     public InputStream openFileInputStream(String fileName) throws IOException {
-        fileName = translateFileName(fileName);
         trace(fileName, "openFileInputStream");
-        return FileSystem.getInstance(fileName).openFileInputStream(fileName);
+        return super.openFileInputStream(fileName);
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
-        fileName = translateFileName(fileName);
         trace(fileName, "openFileObject", mode);
-        return new DebugFileObject(this, FileSystem.getInstance(fileName).openFileObject(fileName, mode));
+        return new DebugFileObject(this, super.openFileObject(fileName, mode));
     }
 
     public OutputStream openFileOutputStream(String fileName, boolean append) {
-        fileName = translateFileName(fileName);
         trace(fileName, "openFileOutputStream", append);
-        return FileSystem.getInstance(fileName).openFileOutputStream(fileName, append);
+        return super.openFileOutputStream(fileName, append);
     }
 
     public void rename(String oldName, String newName) {
-        oldName = translateFileName(oldName);
-        newName = translateFileName(newName);
-        trace(oldName, "rename", newName);
-        FileSystem.getInstance(oldName).rename(oldName, newName);
+        trace(oldName, "rename", unwrap(newName));
+        super.rename(oldName, newName);
     }
 
     public boolean tryDelete(String fileName) {
-        fileName = translateFileName(fileName);
         trace(fileName, "tryDelete");
-        return FileSystem.getInstance(fileName).tryDelete(fileName);
+        return super.tryDelete(fileName);
     }
 
-    protected boolean accepts(String fileName) {
-        return fileName.startsWith(PREFIX);
-    }
-
-    private String translateFileName(String fileName) {
-        if (!fileName.startsWith(PREFIX)) {
-            DbException.throwInternalError(fileName + " doesn't start with " + PREFIX);
-        }
-        return fileName.substring(PREFIX.length());
+    public String getPrefix() {
+        return PREFIX;
     }
 
     /**
      * Print a debug message.
-     * @param fileName the file name
+     *
+     * @param fileName the (wrapped) file name
      * @param method the method name
      * @param params parameters if any
      */
     void trace(String fileName, String method, Object... params) {
         if (trace) {
             StringBuilder buff = new StringBuilder("    ");
-            buff.append(fileName).append(' ').append(method);
+            buff.append(unwrap(fileName)).append(' ').append(method);
             for (Object s : params) {
                 buff.append(' ').append(s);
             }

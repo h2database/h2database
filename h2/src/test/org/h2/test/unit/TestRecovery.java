@@ -190,7 +190,7 @@ public class TestRecovery extends TestBase {
         deleteDb("recovery2");
         IOUtils.delete(getBaseDir() + "/recovery.h2.sql");
         String dir = getBaseDir() + "/recovery.lobs.db";
-        FileSystem.getInstance(dir).deleteRecursive(dir, false);
+        IOUtils.deleteRecursive(dir, false);
     }
 
 }

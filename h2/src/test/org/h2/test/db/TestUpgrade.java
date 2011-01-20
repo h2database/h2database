@@ -12,7 +12,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.upgrade.DbUpgrade;
 import org.h2.util.IOUtils;
@@ -198,7 +197,7 @@ public class TestUpgrade extends TestBase {
         }
         IOUtils.delete(getBaseDir() + "/" + dbName + ".data.db.backup");
         IOUtils.delete(getBaseDir() + "/" + dbName + ".index.db.backup");
-        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/" + dbName + ".lobs.db.backup", false);
+        IOUtils.deleteRecursive(getBaseDir() + "/" + dbName + ".lobs.db.backup", false);
     }
 
 }

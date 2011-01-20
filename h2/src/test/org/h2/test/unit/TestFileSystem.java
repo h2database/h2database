@@ -77,7 +77,7 @@ public class TestFileSystem extends TestBase {
 
     private void testSplitDatabaseInZip() throws SQLException {
         String dir = getBaseDir() + "/fs";
-        FileSystem.getInstance(dir).deleteRecursive(dir, false);
+        IOUtils.deleteRecursive(dir, false);
         Connection conn;
         Statement stat;
         conn = DriverManager.getConnection("jdbc:h2:split:18:"+dir+"/test");
@@ -93,7 +93,7 @@ public class TestFileSystem extends TestBase {
                 "jdbc:h2:split:zip:"+dir+"/test.zip!/test");
         conn.createStatement().execute("select * from test where id=1");
         conn.close();
-        FileSystem.getInstance(dir).deleteRecursive(dir, false);
+        IOUtils.deleteRecursive(dir, false);
     }
 
     private void testDatabaseInMemFileSys() throws SQLException {

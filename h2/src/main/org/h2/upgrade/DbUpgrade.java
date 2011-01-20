@@ -16,7 +16,6 @@ import java.util.UUID;
 import org.h2.engine.ConnectionInfo;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -155,7 +154,7 @@ public class DbUpgrade {
             if (deleteOldDb) {
                 IOUtils.delete(backupData);
                 IOUtils.delete(backupIndex);
-                FileSystem.getInstance(name).deleteRecursive(backupLobs, false);
+                IOUtils.deleteRecursive(backupLobs, false);
             }
         } catch (Exception e)  {
             if (IOUtils.exists(backupData)) {

@@ -49,6 +49,18 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
         return name;
     }
 
+    public void close() throws IOException {
+int test;
+long t = System.currentTimeMillis();
+        super.close();
+t = System.currentTimeMillis() - t;
+if (t > 100) {
+    System.out.println("close took " + t);
+//            System.out.println("");
+}
+
+    }
+
     public synchronized boolean tryLock() {
         if (lock == null) {
             try {

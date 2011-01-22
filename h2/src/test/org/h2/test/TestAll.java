@@ -322,7 +322,7 @@ java org.h2.test.TestAll timer
         SelfDestructor.startCountdown(3 * 60);
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
-        test.printSystem();
+        test.printSystemInfo();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
@@ -723,13 +723,17 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         FileSystemDisk.getInstance().deleteRecursive(TestBase.BASE_TEST_DIR, true);
     }
 
-    private void printSystem() {
+    /**
+     * Print system information.
+     */
+    public static void printSystemInfo() {
         Properties prop = System.getProperties();
         System.out.println("H2 " + Constants.getFullVersion() + " @ " + new java.sql.Timestamp(System.currentTimeMillis()).toString());
         System.out.println("Java " +
                 prop.getProperty("java.runtime.version") + ", " +
                 prop.getProperty("java.vm.name")+", " +
-                prop.getProperty("java.vendor"));
+                prop.getProperty("java.vendor") + ", " +
+                prop.getProperty("sun.arch.data.model"));
         System.out.println(
                 prop.getProperty("os.name") + ", " +
                 prop.getProperty("os.arch")+", "+

@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 
+import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -31,6 +32,7 @@ public class CopyOfTestMvccMultiThreaded extends TestBase {
     }
 
     public void test() throws Exception {
+        TestAll.printSystemInfo();
         int test;
         if (config.big && !config.networked)
         for(int i=0; ; i++) {
@@ -81,7 +83,8 @@ try{
         }
 }catch(Exception e) {
 //    System.out.println(buff);
-    e.printStackTrace(System.out);
+    System.out.println(e.toString());
+ //   e.printStackTrace(System.out);
 }
 long time = System.currentTimeMillis() - startThread;
 //if (time > 10000) {

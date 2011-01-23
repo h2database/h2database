@@ -255,9 +255,9 @@ public abstract class Command implements CommandInterface {
         try {
             Database database = session.getDatabase();
             if (database.isMultiThreaded()) {
-                Thread.sleep(1);
+                Thread.sleep(10);
             } else {
-                database.wait(1);
+                database.wait(10);
             }
         } catch (InterruptedException e1) {
             // ignore

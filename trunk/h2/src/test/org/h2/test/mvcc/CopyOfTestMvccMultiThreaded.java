@@ -36,7 +36,7 @@ public class CopyOfTestMvccMultiThreaded extends TestBase {
         int test;
         if (config.big && !config.networked)
         for(int i=0; ; i++) {
-            System.out.println("i: " + i);
+            System.out.println("--------------- i: " + i);
             testConcurrentMerge();
         }
 //        testConcurrentUpdate("");
@@ -49,13 +49,13 @@ public class CopyOfTestMvccMultiThreaded extends TestBase {
         int len = 3;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
-            Connection conn = getConnection("mvccMultiThreadedMerge;MVCC=TRUE;LOCK_TIMEOUT=1000");
+            Connection conn = getConnection("mvccMultiThreadedMerge;MVCC=TRUE;LOCK_TIMEOUT=1000;MAX_OPERATION_MEMORY=1000");
             connList[i] = conn;
         }
         Connection conn = connList[0];
         conn.createStatement().execute("create table test(id int primary key, name varchar)");
         Task[] tasks = new Task[len];
-//final StringBuffer buff = new StringBuffer();
+final StringBuffer buff = new StringBuffer();
 final long startThread = System.currentTimeMillis();
         for (int i = 0; i < len; i++) {
 final int x = i;
@@ -66,7 +66,7 @@ final int x = i;
                     while (!stop) {
                         c.createStatement().execute("merge into test values(1, 'x')");
                         c.commit();
-//                        buff.append((System.currentTimeMillis() - startThread) + ": " + x + "\n");
+                        buff.append((System.currentTimeMillis() - startThread) + ": " + x + "\n");
 //if (System.currentTimeMillis() - startThread > 3000) {
 //    System.out.println(x);
 //}
@@ -82,7 +82,7 @@ try{
             tasks[i].get();
         }
 }catch(Exception e) {
-//    System.out.println(buff);
+    System.out.println(buff);
     System.out.println(e.toString());
  //   e.printStackTrace(System.out);
 }

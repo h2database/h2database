@@ -82,11 +82,11 @@ public class TestPreparedStatement extends TestBase {
 
     private void testToString(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("call 1");
-        assertEquals("prep0: call 1", prep.toString());
+        assertTrue(prep.toString().endsWith(": call 1"));
         prep = conn.prepareStatement("call ?");
-        assertEquals("prep1: call ? {1: NULL}", prep.toString());
+        assertTrue(prep.toString().endsWith(": call ? {1: NULL}"));
         prep.setString(1, "Hello World");
-        assertEquals("prep1: call ? {1: 'Hello World'}", prep.toString());
+        assertTrue(prep.toString().endsWith(": call ? {1: 'Hello World'}"));
     }
 
     private void testExecuteUpdateCall(Connection conn) throws SQLException {

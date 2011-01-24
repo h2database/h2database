@@ -45,6 +45,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testToString(conn);
         testExecuteUpdateCall(conn);
         testPrepareExecute(conn);
         testUUID(conn);
@@ -77,6 +78,15 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
         deleteDb("preparedStatement");
+    }
+
+    private void testToString(Connection conn) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement("call 1");
+        assertEquals("prep0: call 1", prep.toString());
+        prep = conn.prepareStatement("call ?");
+        assertEquals("prep1: call ? {1: NULL}", prep.toString());
+        prep.setString(1, "Hello World");
+        assertEquals("prep1: call ? {1: 'Hello World'}", prep.toString());
     }
 
     private void testExecuteUpdateCall(Connection conn) throws SQLException {

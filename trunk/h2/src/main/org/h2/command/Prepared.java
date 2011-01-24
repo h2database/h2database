@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
+import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -307,19 +308,7 @@ public abstract class Prepared {
     void trace(long startTime, int count) {
         if (session.getTrace().isInfoEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            String params;
-            if (parameters.size() > 0) {
-                StatementBuilder buff = new StatementBuilder(" {");
-                int i = 0;
-                for (Expression e : parameters) {
-                    buff.appendExceptFirst(", ");
-                    Value v = e.getValue(session);
-                    buff.append(++i).append(": ").append(v.getTraceSQL());
-                }
-                params = buff.append('}').toString();
-            } else {
-                params = "";
-            }
+            String params = Trace.formatParams(parameters);
             session.getTrace().infoSQL(sqlStatement, params, count, time);
         }
     }

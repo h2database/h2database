@@ -12,7 +12,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
+import org.h2.result.LocalResult;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
@@ -24,6 +24,7 @@ import org.h2.value.ValueNull;
  * An 'in' condition with a subquery, as in WHERE ID IN(SELECT ...)
  */
 public class ConditionInSelect extends Condition {
+
     private Database database;
     private Expression left;
     private Query query;
@@ -41,11 +42,36 @@ public class ConditionInSelect extends Condition {
 
     public Value getValue(Session session) {
         query.setSession(session);
-        ResultInterface rows = query.query(0);
+        LocalResult rows = query.query(0);
         session.addTemporaryResult(rows);
+        Value l = left.getValue(session);
+        if (!session.getDatabase().getSettings().optimizeInSelect) {
+            return getValueSlow(rows, l);
+        }
+        if (compareType != Comparison.EQUAL && compareType != Comparison.EQUAL_NULL_SAFE) {
+            return getValueSlow(rows, l);
+        }
+        if (rows.getRowCount() == 0) {
+            return ValueBoolean.get(false);
+        }
+        if (l == ValueNull.INSTANCE) {
+            return l;
+        }
+        if (all && rows.getRowCount() > 1) {
+            return ValueBoolean.get(false);
+        }
+        if (rows.containsDistinct(new Value[] { l })) {
+            return ValueBoolean.get(true);
+        }
+        if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
+            return ValueNull.INSTANCE;
+        }
+        return ValueBoolean.get(false);
+    }
+
+    public Value getValueSlow(LocalResult rows, Value l) {
         boolean hasNull = false;
         boolean result = all;
-        Value l = left.getValue(session);
         boolean hasRow = false;
         while (rows.next()) {
             if (!hasRow) {

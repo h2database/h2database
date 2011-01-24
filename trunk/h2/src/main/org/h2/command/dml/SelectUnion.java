@@ -372,7 +372,7 @@ public class SelectUnion extends Query {
         return buff.toString();
     }
 
-    public ResultInterface query(int limit, ResultTarget target) {
+    public LocalResult query(int limit, ResultTarget target) {
         // union doesn't always know the parameter list of the left and right queries
         return queryWithoutCache(limit, target);
     }

@@ -7,7 +7,10 @@
 package org.h2.message;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import org.h2.constant.SysProperties;
+import org.h2.expression.ParameterInterface;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -201,6 +204,25 @@ public class Trace {
         if (isEnabled(TraceSystem.INFO)) {
             traceWriter.write(TraceSystem.INFO, module, s, t);
         }
+    }
+
+    /**
+     * Format the parameter list.
+     *
+     * @param parameters the parameter list
+     * @return the formatted text
+     */
+    public static String formatParams(ArrayList<? extends ParameterInterface> parameters) {
+        if (parameters.size() == 0) {
+            return "";
+        }
+        StatementBuilder buff = new StatementBuilder(" {");
+        int i = 0;
+        for (ParameterInterface p : parameters) {
+            buff.appendExceptFirst(", ");
+            buff.append(++i).append(": ").append(p.getParamValue().getTraceSQL());
+        }
+        return buff.append('}').toString();
     }
 
     /**

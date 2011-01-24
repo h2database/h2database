@@ -60,6 +60,7 @@ public class ConditionInSelect extends Condition {
         if (all && rows.getRowCount() > 1) {
             return ValueBoolean.get(false);
         }
+        l = l.convertTo(rows.getColumnType(0));
         if (rows.containsDistinct(new Value[] { l })) {
             return ValueBoolean.get(true);
         }

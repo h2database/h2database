@@ -196,6 +196,13 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeInList = get("OPTIMIZE_IN_LIST", true);
 
     /**
+     * Database setting <code>OPTIMIZE_IN_SELECT</code> (default: false).<br />
+     * Optimize IN(SELECT ...) comparisons. This includes
+     * optimization for SELECT, DELETE, and UPDATE.
+     */
+    public final boolean optimizeInSelect = get("OPTIMIZE_IN_SELECT", Constants.VERSION_MINOR >= 3);
+
+    /**
      * Database setting <code>OPTIMIZE_IS_NULL</code> (default: false).<br />
      * Use an index for condition of the form columnName IS NULL.
      */

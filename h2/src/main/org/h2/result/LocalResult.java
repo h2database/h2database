@@ -270,7 +270,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (distinct) {
             if (distinctRows != null) {
                 rows = distinctRows.values();
-                distinctRows = null;
             } else {
                 if (external != null && sort != null) {
                     // external sort

@@ -20,7 +20,6 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
@@ -223,7 +222,7 @@ public abstract class Query extends Prepared {
         return params;
     }
 
-    public ResultInterface query(int maxrows) {
+    public LocalResult query(int maxrows) {
         return query(maxrows, null);
     }
 
@@ -234,7 +233,7 @@ public abstract class Query extends Prepared {
      * @param target the target result (null will return the result)
      * @return the result set (if the target is not set).
      */
-    ResultInterface query(int limit, ResultTarget target) {
+    LocalResult query(int limit, ResultTarget target) {
         fireBeforeSelectTriggers();
         if (!session.getDatabase().getOptimizeReuseResults()) {
             return queryWithoutCache(limit, target);

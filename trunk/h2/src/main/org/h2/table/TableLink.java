@@ -133,6 +133,7 @@ public class TableLink extends Table {
             long precision = rs.getInt("COLUMN_SIZE");
             precision = convertPrecision(sqlType, precision);
             int scale = rs.getInt("DECIMAL_DIGITS");
+            scale = convertScale(sqlType, scale);
             int displaySize = MathUtils.convertLongToInt(precision);
             int type = DataType.convertSQLTypeToValueType(sqlType);
             Column col = new Column(n, type, precision, scale, displaySize);
@@ -259,9 +260,15 @@ public class TableLink extends Table {
     }
 
     private long convertPrecision(int sqlType, long precision) {
-        // workaround for an Oracle problem
-        // the precision reported by Oracle is 7 for a date column
+        // workaround for an Oracle problem:
+        // for DATE columns, the reported precision is 7
+        // for DECIMAL columns, the reported precision is 0
         switch (sqlType) {
+        case Types.DECIMAL:
+            if (precision == 0) {
+                precision = 65535;
+            }
+            break;
         case Types.DATE:
             precision = Math.max(ValueDate.PRECISION, precision);
             break;
@@ -273,6 +280,19 @@ public class TableLink extends Table {
             break;
         }
         return precision;
+    }
+
+    private int convertScale(int sqlType, int scale) {
+        // workaround for an Oracle problem:
+        // for DECIMAL columns, the reported precision is -127
+        switch (sqlType) {
+        case Types.DECIMAL:
+            if (scale < 0) {
+                scale = 32767;
+            }
+            break;
+        }
+        return scale;
     }
 
     private String convertColumnName(String columnName) {

@@ -169,7 +169,7 @@ public class DbContents {
             String schema = rs.getString(findColumn(rs, "TABLE_SCHEM", 1));
             if (isOracle) {
                 for (String ignore : new String[] {
-                        "CTXSYS", "DIP", "DBSNMP", "DMSYS", "EXFSYS", "MDDATA", "MDSYS",
+                        "CTXSYS", "DIP", "DBSNMP", "DMSYS", "EXFSYS", "FLOWS_020100", "FLOWS_FILES", "MDDATA", "MDSYS",
                         "MGMT_VIEW", "OLAPSYS", "ORDSYS", "ORDPLUGINS", "OUTLN", "SI_INFORMTN_SCHEMA", "SYS", "SYSMAN",
                         "SYSTEM", "TSMSYS", "WMSYS", "XDB"
                 }) {

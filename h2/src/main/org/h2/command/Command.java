@@ -274,7 +274,7 @@ public abstract class Command implements CommandInterface {
     }
 
     public String toString() {
-        return sql + getParameters();
+        return sql + Trace.formatParams(getParameters());
     }
 
     public boolean isCacheable() {

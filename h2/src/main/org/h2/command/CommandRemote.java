@@ -244,7 +244,7 @@ public class CommandRemote implements CommandInterface {
     }
 
     public String toString() {
-        return sql + getParameters();
+        return sql + Trace.formatParams(getParameters());
     }
 
     public int getCommandType() {

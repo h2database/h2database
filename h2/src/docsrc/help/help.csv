@@ -124,13 +124,16 @@ statements; each statement must end with ';'. This command can be used to
 restore a database from a backup. The password must be in single quotes; it is
 case sensitive and can contain spaces.
 
+Instead of a file name, an URL may be used. 
+To read a stream from the classpath, use the prefix 'classpath:'.
+
 The compression algorithm must match the one used when creating the script. When
 using encryption, only DEFLATE and LZF are supported (LZF is faster but uses more space).
 Instead of a file, an URL may be used.
 
 Admin rights are required to execute this command.
 ","
-RUNSCRIPT FROM 'backup'
+RUNSCRIPT FROM 'backup.sql'
 "
 
 "Commands (DML)","SCRIPT","
@@ -3310,8 +3313,10 @@ parsed as NULL. All columns of type VARCHAR.
 The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
 
 This function can be used like a table: ""SELECT * FROM CSVREAD(...)"".
+
 Instead of a file, an URL may be used, for example
-""jar:file:///c:/temp/example.zip!/org/example/nested.zip"".
+""jar:file:///c:/temp/example.zip!/org/example/nested.csv"".
+To read a stream from the classpath, use the prefix ""classpath:"".
 
 Admin rights are required to execute this command.
 ","
@@ -3322,6 +3327,7 @@ CALL CSVREAD('test2.csv', 'ID|NAME', 'UTF-8', '|');
 -- Read a semicolon-separated file
 SELECT * FROM CSVREAD('data/test.csv', NULL, NULL, ';');
 SELECT ""Last Name"" FROM CSVREAD('address.csv');
+SELECT ""Last Name"" FROM CSVREAD('classpath:/org/acme/data/address.csv');
 "
 
 "Functions (System)","CSVWRITE","
@@ -3369,7 +3375,11 @@ FILE_READ(fileNameString [,encodingString])
 Returns the contents of a file. If only one parameter is supplied, the data are
 returned as a BLOB. If two parameters are used, the data is returned as a CLOB
 (text). The second parameter is the character set to use, NULL meaning the
-default character set for this system. File names and URLs are supported.
+default character set for this system. 
+
+File names and URLs are supported.
+To read a stream from the classpath, use the prefix ""classpath:"".
+
 Admin rights are required to execute this command.
 ","
 SELECT LENGTH(FILE_READ('~/.h2.server.properties')) LEN;

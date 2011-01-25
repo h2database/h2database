@@ -34,6 +34,8 @@ public class FileSystemDisk extends FileSystem {
     // could maybe implemented using some other means
     private static final boolean IS_FILE_SYSTEM_CASE_INSENSITIVE = File.separatorChar == '\\';
 
+    private static final String CLASSPATH_PREFIX = "classpath:";
+
     protected FileSystemDisk() {
         // nothing to do
     }
@@ -394,6 +396,14 @@ public class FileSystemDisk extends FileSystem {
     public InputStream openFileInputStream(String fileName) throws IOException {
         if (fileName.indexOf(':') > 1) {
             // if the : is in position 1, a windows file access is assumed: C:.. or D:
+            if (fileName.startsWith(CLASSPATH_PREFIX)) {
+                fileName = fileName.substring(CLASSPATH_PREFIX.length());
+                InputStream in = getClass().getClassLoader().getResourceAsStream(fileName);
+                if (in == null) {
+                    throw new FileNotFoundException("resource " + fileName);
+                }
+                return in;
+            }
             // otherwise an URL is assumed
             URL url = new URL(fileName);
             InputStream in = url.openStream();

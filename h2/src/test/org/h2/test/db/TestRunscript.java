@@ -34,12 +34,23 @@ public class TestRunscript extends TestBase implements Trigger {
     }
 
     public void test() throws Exception {
+        testRunscriptFromClasspath();
         testCancelScript();
         testEncoding();
         testClobPrimaryKey();
         test(false);
         test(true);
         deleteDb("runscript");
+    }
+
+    private void testRunscriptFromClasspath() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("runscript from 'classpath:org/h2/samples/newsfeed.sql'");
+        stat.execute("select * from version");
+        conn.close();
     }
 
     private void testCancelScript() throws Exception {

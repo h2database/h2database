@@ -183,7 +183,7 @@ public class TestFuzzOptimizations extends TestBase {
                 "IN(SELECT " + value + " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
             List<Map<String, Object>> a = db.prepare(sql1).set(x).query();
             List<Map<String, Object>> b = db.prepare(sql2).set(x).query();
-            assertTrue("seed: " + seed, a.equals(b));
+            assertTrue("seed: " + seed + " sql: " + sql1 + " a: " + a + " b: " + b, a.equals(b));
         }
         db.execute("DROP TABLE TEST");
     }

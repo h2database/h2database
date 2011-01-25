@@ -628,7 +628,7 @@ public class Build extends BuildBase {
             System.out.println(serverSocket);
             int port = serverSocket.getLocalPort();
             final ServerSocket accept = serverSocket;
-            new Thread() {
+            Thread thread = new Thread() {
                 public void run() {
                     try {
                         System.out.println("server accepting");
@@ -646,9 +646,11 @@ public class Build extends BuildBase {
                         t.printStackTrace();
                     }
                 }
-            }.start();
+            };
+            thread.start();
             Thread.sleep(1000);
             Socket socket = new Socket();
+            socket.setSoTimeout(2000);
             InetSocketAddress socketAddress = new InetSocketAddress(address, port);
             System.out.println("client:" + socketAddress);
             try {
@@ -662,6 +664,12 @@ public class Build extends BuildBase {
             } catch (Throwable t) {
                 t.printStackTrace();
             }
+            thread.join(5000);
+            if (thread.isAlive()) {
+                System.out.println("thread is still alive, interrupting");
+                thread.interrupt();
+            }
+            Thread.sleep(100);
             System.out.println("done");
         } catch (Exception e) {
             e.printStackTrace();

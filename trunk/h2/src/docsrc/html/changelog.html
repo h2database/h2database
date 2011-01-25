@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>PreparedStatement.toString() now includes the parameter values in a human readable format.
+<ul><li>Issue 277:  JaQu didn't correctly convert a CLOB column to a String.
+</li><li>./build.sh testNetwork could block if there was a network configuration problem.
+</li><li>Reading input streams from the classpath is now supported. Example:
+    RUNSCRIPT FROM 'classpath:org/h2/samples/newsfeed.sql'.
+</li><li>PreparedStatement.toString() now includes the parameter values in a human readable format.
 </li><li>New database setting OPTIMIZE_IN_SELECT (enabled by default for version 1.3.x).
     If enabled, IN(SELECT...) conditions are faster if there are many rows in the table or subquery.
 </li><li>Linked tables: for DECIMAL column, Oracle reports precision 0 and scale -127.

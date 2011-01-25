@@ -54,9 +54,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li></ul>
 
 <h2>Priority 2</h2>
-<ul><li>Improve test code coverage.
-</li><li>Maybe disable shutdown hook (DB_CLOSE_ON_EXIT=FALSE) by default.
-</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
+<ul><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
@@ -74,7 +72,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer.
 </li><li>Rebuild index functionality to shrink index size and improve performance.
-</li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
+</li><li>Don't use temp files, specially not deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA).
 </li><li>Test performance again with SQL Server, Oracle, DB2.
 </li><li>Test with Spatial DB in a box / JTS: http://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification.
@@ -248,12 +246,12 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimization: don't lock when the database is read-only
 </li><li>Issue 146: Support merge join.
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
-</li><li>Cluster: hot deploy (adding a node at runtime)
+</li><li>Cluster: hot deploy (adding a node at runtime).
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Support COSH, SINH, and TANH functions
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
-</li><li>Improve documentation of access rights
+</li><li>Improve documentation of access rights.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system. Workaround: detect jar file using getClass().getProtectionDomain().getCodeSource().getLocation().
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
 </li><li>Remember the user defined data type (domain) of a column
@@ -540,6 +538,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Oracle compatibility: support INSERT ALL.
 </li><li>Support UDT (user defined types) similar to how Apache Derby supports it:
     check constraint, allow to use it in Java functions as parameters (return values already seem to work).
+</li><li>Encrypted file system (use cipher text stealing so file length doesn't need to decrypt; 4 KB header per file,
+    optional compatibility with current encrypted database files).
 </li></ul>
 
 <h2>Not Planned</h2>

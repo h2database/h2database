@@ -7,15 +7,18 @@
 package org.h2.jaqu.util;
 
 //## Java 1.5 begin ##
+import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Clob;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import org.h2.util.IOUtils;
 //## Java 1.5 end ##
 
 /**
@@ -134,6 +137,15 @@ public class Utils {
             return o;
         }
         if (targetType == String.class) {
+            if (Clob.class.isAssignableFrom(currentType)) {
+                Clob c = (Clob) o;
+                try {
+                    Reader r = c.getCharacterStream();
+                    return IOUtils.readStringAndClose(r, -1);
+                } catch (Exception e) {
+                    throw new RuntimeException("Error converting CLOB to String: " + e.toString(), e);
+                }
+            }
             return o.toString();
         }
         if (Number.class.isAssignableFrom(currentType)) {

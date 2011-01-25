@@ -1428,6 +1428,12 @@ As an example, to use the the <code>nio</code> file system, use the following da
 To register a new file system, extend the classes <code>org.h2.store.fs.FileSystem, FileObject</code>,
 and call the method <code>FileSystem.register</code> before using it.
 </p>
+<p>
+For input streams (but not for random access files), URLs may be used in addition to the registered file systems.
+Example: <code>jar:file:///c:/temp/example.zip!/org/example/nested.csv</code>.
+To read a stream from the classpath, use the prefix <code>classpath:</code>, as in 
+<code>classpath:org/h2/samples/newsfeed.sql</code>.
+</p>
 
 <h2 id="database_upgrade">Database Upgrade</h2>
 <p>

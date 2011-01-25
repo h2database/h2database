@@ -36,6 +36,13 @@ public interface ParameterInterface {
     void checkSet();
 
     /**
+     * Is the value of a parameter set.
+     *
+     * @return true if set
+     */
+    boolean isValueSet();
+
+    /**
      * Get the expected data type of the parameter if no value is set, or the
      * data type of the value if one is set.
      *

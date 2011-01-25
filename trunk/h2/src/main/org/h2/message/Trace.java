@@ -12,6 +12,7 @@ import org.h2.constant.SysProperties;
 import org.h2.expression.ParameterInterface;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.value.Value;
 
 /**
  * This class represents a trace module.
@@ -216,13 +217,24 @@ public class Trace {
         if (parameters.size() == 0) {
             return "";
         }
-        StatementBuilder buff = new StatementBuilder(" {");
+        StatementBuilder buff = new StatementBuilder();
         int i = 0;
+        boolean params = false;
         for (ParameterInterface p : parameters) {
-            buff.appendExceptFirst(", ");
-            buff.append(++i).append(": ").append(p.getParamValue().getTraceSQL());
+            if (p.isValueSet()) {
+                if (!params) {
+                    buff.append(" {");
+                    params = true;
+                }
+                buff.appendExceptFirst(", ");
+                Value v = p.getParamValue();
+                buff.append(++i).append(": ").append(v.getTraceSQL());
+            }
         }
-        return buff.append('}').toString();
+        if (params) {
+            buff.append('}');
+        }
+        return buff.toString();
     }
 
     /**

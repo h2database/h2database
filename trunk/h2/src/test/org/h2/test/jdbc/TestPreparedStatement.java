@@ -42,7 +42,6 @@ public class TestPreparedStatement extends TestBase {
     }
 
     public void test() throws Exception {
-
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
         testToString(conn);
@@ -84,7 +83,7 @@ public class TestPreparedStatement extends TestBase {
         PreparedStatement prep = conn.prepareStatement("call 1");
         assertTrue(prep.toString().endsWith(": call 1"));
         prep = conn.prepareStatement("call ?");
-        assertTrue(prep.toString().endsWith(": call ? {1: NULL}"));
+        assertTrue(prep.toString().endsWith(": call ?"));
         prep.setString(1, "Hello World");
         assertTrue(prep.toString().endsWith(": call ? {1: 'Hello World'}"));
     }

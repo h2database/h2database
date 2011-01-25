@@ -46,6 +46,10 @@ public class ParameterRemote implements ParameterInterface {
         }
     }
 
+    public boolean isValueSet() {
+        return value != null;
+    }
+
     public int getType() {
         return value == null ? dataType : value.getType();
     }

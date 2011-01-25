@@ -153,7 +153,7 @@ public abstract class Expression {
     /**
      * Is the value of a parameter set.
      *
-     * @return if it is set
+     * @return true if set
      */
     public boolean isValueSet() {
         return false;

@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 277:  JaQu didn't correctly convert a CLOB column to a String.
+<ul><li>CSVREAD / CSVWRITE: instead of setting the options one by one, 
+    all options can be combined into a space separated key-value pairs.
+</li><li>CSVREAD / CSV tool: there is a new option "lineCommentCharacter" to set or disable line comments.
+    For H2 version 1.2, the default is '#' (as before). For H2 version 1.3, line comments are disabled by default.
+</li><li>Issue 277:  JaQu didn't correctly convert a CLOB column to a String.
 </li><li>./build.sh testNetwork could block if there was a network configuration problem.
 </li><li>Reading input streams from the classpath is now supported. Example:
     RUNSCRIPT FROM 'classpath:org/h2/samples/newsfeed.sql'.
@@ -30,7 +34,7 @@ Change Log
 </li><li>TCP Server: a base directory with a prefix with a database name with prefix didn't work as expected
     (this only applies to non-disk and wrapped file systems).
 </li><li>Version 1.3: when re-running the same query so that the previous result was re-used,
-    and if the result set was large so that it was stored externally (in a temp file or in a temp table), 
+    and if the result set was large so that it was stored externally (in a temp file or in a temp table),
     then reading rows from both result sets resulted in an exception or wrong behavior.
 </li><li>A new sample application that shows how to create
     a read-only database in a zip file where the database file is split into multiple smaller parts.

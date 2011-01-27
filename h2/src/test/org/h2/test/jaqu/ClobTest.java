@@ -35,13 +35,13 @@ public class ClobTest extends TestBase {
         Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.executeUpdate(MessageFormat.format(create, "VARCHAR(255)"));
         db.insertAll(StringRecord.getList());
-        testSimpleUpdate(db, "VARCHARs fail");
+        testSimpleUpdate(db, "VARCHAR fail");
         db.close();
 
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.executeUpdate(MessageFormat.format(create, "TEXT"));
         db.insertAll(StringRecord.getList());
-        testSimpleUpdate(db, "CLOBs fail because of single quote artifacts");
+        testSimpleUpdate(db, "CLOB fail because of single quote artifacts");
         db.close();
     }
 

@@ -74,7 +74,7 @@ public class ConditionInSelect extends Condition {
         return ValueBoolean.get(false);
     }
 
-    public Value getValueSlow(LocalResult rows, Value l) {
+    private Value getValueSlow(LocalResult rows, Value l) {
         boolean hasNull = false;
         boolean result = all;
         boolean hasRow = false;

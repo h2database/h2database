@@ -32,7 +32,9 @@ public class GenerateHelp {
     private void run() throws Exception {
         String in = "src/docsrc/help/help.csv";
         String out = "src/main/org/h2/res/help.csv";
-        ResultSet rs = Csv.getInstance().read(in, null, null);
+        Csv csv = Csv.getInstance();
+        csv.setLineCommentCharacter('#');
+        ResultSet rs = csv.read(in, null, null);
         SimpleResultSet rs2 = new SimpleResultSet();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount() - 1;
@@ -58,7 +60,7 @@ public class GenerateHelp {
                 "# Version 1.0, and under the Eclipse Public License, Version 1.0\n" +
                 "# (http://h2database.com/html/license.html).\n" +
                 "# Initial Developer: H2 Group)\n");
-        Csv csv = Csv.getInstance();
+        csv = Csv.getInstance();
         csv.setLineSeparator("\n");
         csv.write(writer, rs2);
     }

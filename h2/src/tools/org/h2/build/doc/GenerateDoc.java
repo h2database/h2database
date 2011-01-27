@@ -68,7 +68,7 @@ public class GenerateDoc {
         session.put("stableVersion", Constants.getVersionStable());
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
-        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + inHelp + "') WHERE SECTION ";
+        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + inHelp + "', NULL, 'lineComment=#') WHERE SECTION ";
         map("commands", help + "LIKE 'Commands%' ORDER BY ID", true);
         map("commandsDML", help + "= 'Commands (DML)' ORDER BY ID", false);
         map("commandsDDL", help + "= 'Commands (DDL)' ORDER BY ID", false);

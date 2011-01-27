@@ -47,7 +47,9 @@ public class Railroads {
     private void process() throws Exception {
         RailroadImages.main();
         bnf = Bnf.getInstance(getReader());
-        ResultSet rs = Csv.getInstance().read(getReader(), null);
+        Csv csv = Csv.getInstance();
+        csv.setLineCommentCharacter('#');
+        ResultSet rs = csv.read(getReader(), null);
         map("grammar", rs, true);
         processHtml("jcr-sql2.html");
     }

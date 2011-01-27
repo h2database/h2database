@@ -72,10 +72,12 @@ public class Bnf {
         return head;
     }
 
-    private void parse(Reader csv) throws SQLException, IOException {
+    private void parse(Reader reader) throws SQLException, IOException {
         Rule functions = null;
         statements = New.arrayList();
-        ResultSet rs = Csv.getInstance().read(csv, null);
+        Csv csv = Csv.getInstance();
+        csv.setLineCommentCharacter('#');
+        ResultSet rs = csv.read(reader, null);
         for (int id = 0; rs.next(); id++) {
             String section = rs.getString("SECTION").trim();
             if (section.startsWith("System")) {

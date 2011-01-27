@@ -546,6 +546,7 @@ CONSTRAINT [ IF NOT EXISTS ] newConstraintName
 Defines a constraint name."
 "Other Grammar","Csv Options","
 charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]]
+    | optionString
 ","
 Optional parameters for CSVREAD and CSVWRITE."
 "Other Grammar","Data Type","

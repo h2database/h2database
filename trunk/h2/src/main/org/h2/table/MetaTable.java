@@ -934,7 +934,9 @@ public class MetaTable extends Table {
             try {
                 byte[] data = Utils.getResource(resource);
                 Reader reader = new InputStreamReader(new ByteArrayInputStream(data));
-                ResultSet rs = Csv.getInstance().read(reader, null);
+                Csv csv = Csv.getInstance();
+                csv.setLineCommentCharacter('#');
+                ResultSet rs = csv.read(reader, null);
                 for (int i = 0; rs.next(); i++) {
                     add(rows,
                         // ID

@@ -124,7 +124,7 @@ statements; each statement must end with ';'. This command can be used to
 restore a database from a backup. The password must be in single quotes; it is
 case sensitive and can contain spaces.
 
-Instead of a file name, an URL may be used. 
+Instead of a file name, an URL may be used.
 To read a stream from the classpath, use the prefix 'classpath:'.
 
 The compression algorithm must match the one used when creating the script. When
@@ -1651,10 +1651,21 @@ CONSTRAINT CONST_ID
 
 "Other Grammar","Csv Options","
 charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]]
+    | optionString
 ","
 Optional parameters for CSVREAD and CSVWRITE.
+Instead of setting the options one by one, all options can be
+combined into a space separated key-value pairs, as follows:
+'charset=UTF-8 escape="" fieldDelimiter="" fieldSeparator=, ' ||
+'lineComment=# lineSeparator=\n null= rowSeparator='.
+The following options are supported:
+charset, escape, fieldDelimiter, fieldSeparator,
+lineComment (# for H2 version 1.2, disabled for H2 version 1.3),
+lineSeparator, null, rowSeparator (not set by default).
+The options text is encoded like a Java string.
 ","
 CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'UTF-8', '|');
+CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|');
 "
 
 "Other Grammar","Data Type","
@@ -3375,7 +3386,7 @@ FILE_READ(fileNameString [,encodingString])
 Returns the contents of a file. If only one parameter is supplied, the data are
 returned as a BLOB. If two parameters are used, the data is returned as a CLOB
 (text). The second parameter is the character set to use, NULL meaning the
-default character set for this system. 
+default character set for this system.
 
 File names and URLs are supported.
 To read a stream from the classpath, use the prefix ""classpath:"".

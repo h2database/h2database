@@ -1046,15 +1046,21 @@ public class Function extends Expression implements FunctionCall {
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();
-            String charset = v2 == null ? null : v2.getString();
-            String fieldSeparatorRead = v3 == null ? null : v3.getString();
-            String fieldDelimiter = v4 == null ? null : v4.getString();
-            String escapeCharacter = v5 == null ? null : v5.getString();
-            Value v6 = getNullOrValue(session, argList, 6);
-            String nullString = v6 == null ? null : v6.getString();
             Csv csv = Csv.getInstance();
-            setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
-            csv.setNullString(nullString);
+            String options = v2 == null ? null : v2.getString();
+            String charset = null;
+            if (options != null && options.indexOf('=') >= 0) {
+                charset = csv.setOptions(options);
+            } else {
+                charset = options;
+                String fieldSeparatorRead = v3 == null ? null : v3.getString();
+                String fieldDelimiter = v4 == null ? null : v4.getString();
+                String escapeCharacter = v5 == null ? null : v5.getString();
+                Value v6 = getNullOrValue(session, argList, 6);
+                String nullString = v6 == null ? null : v6.getString();
+                setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
+                csv.setNullString(nullString);
+            }
             char fieldSeparator = csv.getFieldSeparatorRead();
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
             try {
@@ -1076,19 +1082,25 @@ public class Function extends Expression implements FunctionCall {
         case CSVWRITE: {
             session.getUser().checkAdmin();
             Connection conn = session.createConnection(false);
-            String charset = v2 == null ? null : v2.getString();
-            String fieldSeparatorWrite = v3 == null ? null : v3.getString();
-            String fieldDelimiter = v4 == null ? null : v4.getString();
-            String escapeCharacter = v5 == null ? null : v5.getString();
-            Value v6 = getNullOrValue(session, argList, 6);
-            String nullString = v6 == null ? null : v6.getString();
-            Value v7 = getNullOrValue(session, argList, 7);
-            String lineSeparator = v7 == null ? null : v7.getString();
             Csv csv = Csv.getInstance();
-            setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter, escapeCharacter);
-            csv.setNullString(nullString);
-            if (lineSeparator != null) {
-                csv.setLineSeparator(lineSeparator);
+            String options = v2 == null ? null : v2.getString();
+            String charset = null;
+            if (options != null && options.indexOf('=') >= 0) {
+                charset = csv.setOptions(options);
+            } else {
+                charset = options;
+                String fieldSeparatorWrite = v3 == null ? null : v3.getString();
+                String fieldDelimiter = v4 == null ? null : v4.getString();
+                String escapeCharacter = v5 == null ? null : v5.getString();
+                Value v6 = getNullOrValue(session, argList, 6);
+                String nullString = v6 == null ? null : v6.getString();
+                Value v7 = getNullOrValue(session, argList, 7);
+                String lineSeparator = v7 == null ? null : v7.getString();
+                setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter, escapeCharacter);
+                csv.setNullString(nullString);
+                if (lineSeparator != null) {
+                    csv.setLineSeparator(lineSeparator);
+                }
             }
             try {
                 int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
@@ -1900,12 +1912,18 @@ public class Function extends Expression implements FunctionCall {
                 throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "fileName");
             }
             String columnList = argList.length < 2 ? null : argList[1].getValue(session).getString();
-            String charset = argList.length < 3 ? null : argList[2].getValue(session).getString();
-            String fieldSeparatorRead = argList.length < 4 ? null : argList[3].getValue(session).getString();
-            String fieldDelimiter = argList.length < 5 ? null : argList[4].getValue(session).getString();
-            String escapeCharacter = argList.length < 6 ? null : argList[5].getValue(session).getString();
             Csv csv = Csv.getInstance();
-            setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
+            String options = argList.length < 3 ? null : argList[2].getValue(session).getString();
+            String charset = null;
+            if (options != null && options.indexOf('=') >= 0) {
+                charset = csv.setOptions(options);
+            } else {
+                charset = options;
+                String fieldSeparatorRead = argList.length < 4 ? null : argList[3].getValue(session).getString();
+                String fieldDelimiter = argList.length < 5 ? null : argList[4].getValue(session).getString();
+                String escapeCharacter = argList.length < 6 ? null : argList[5].getValue(session).getString();
+                setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
+            }
             char fieldSeparator = csv.getFieldSeparatorRead();
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
             ResultSet rs = null;

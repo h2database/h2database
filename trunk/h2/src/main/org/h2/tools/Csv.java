@@ -32,6 +32,7 @@ import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * A facility to read from and write to CSV (comma separated values) files. When
@@ -42,16 +43,22 @@ import org.h2.util.New;
  */
 public class Csv implements SimpleRowSource {
 
-    private String streamCharset = SysProperties.FILE_ENCODING;
     private String[] columnNames;
-    private char fieldSeparatorRead = ',';
-    private char commentLineStart = '#';
-    private String fieldSeparatorWrite = ",";
-    private String rowSeparatorWrite;
-    private char fieldDelimiter = '\"';
+
+    private String characterSet = SysProperties.FILE_ENCODING;
     private char escapeCharacter = '\"';
+    private char fieldDelimiter = '\"';
+    private char fieldSeparatorRead = ',';
+    private String fieldSeparatorWrite = ",";
+
+    // TODO change the docs at setLineCommentCharacter
+    // TODO also change help.csv
+    private char lineComment = Constants.VERSION_MINOR == 3 ? 0 : '#';
+
     private String lineSeparator = SysProperties.LINE_SEPARATOR;
     private String nullString = "";
+
+    private String rowSeparatorWrite;
     private String fileName;
     private Reader input;
     private char[] inputBuffer;
@@ -218,25 +225,28 @@ public class Csv implements SimpleRowSource {
 
     private void makeColumnNamesUnique() {
         for (int i = 0; i < columnNames.length; i++) {
-            String x = columnNames[i];
-            if (x == null || x.length() == 0) {
-                x = "C" + (i + 1);
+            StringBuilder buff = new StringBuilder();
+            String n = columnNames[i];
+            if (n == null || n.length() == 0) {
+                buff.append('C').append(i + 1);
+            } else {
+                buff.append(n);
             }
             for (int j = 0; j < i; j++) {
                 String y = columnNames[j];
-                if (x.equals(y)) {
-                    x += "1";
+                if (buff.toString().equals(y)) {
+                    buff.append('1');
                     j = -1;
                 }
             }
-            columnNames[i] = x;
+            columnNames[i] = buff.toString();
         }
     }
 
     private void init(String newFileName, String charset) {
         this.fileName = newFileName;
         if (charset != null) {
-            this.streamCharset = charset;
+            this.characterSet = charset;
         }
     }
 
@@ -245,7 +255,7 @@ public class Csv implements SimpleRowSource {
             try {
                 OutputStream out = IOUtils.openFileOutputStream(fileName, false);
                 out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE);
-                output = new BufferedWriter(new OutputStreamWriter(out, streamCharset));
+                output = new BufferedWriter(new OutputStreamWriter(out, characterSet));
             } catch (Exception e) {
                 close();
                 throw DbException.convertToIOException(e);
@@ -306,7 +316,7 @@ public class Csv implements SimpleRowSource {
             try {
                 InputStream in = IOUtils.openFileInputStream(fileName);
                 in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-                input = new InputStreamReader(in, streamCharset);
+                input = new InputStreamReader(in, characterSet);
             } catch (IOException e) {
                 close();
                 throw e;
@@ -481,7 +491,7 @@ public class Csv implements SimpleRowSource {
             } else if (ch <= ' ') {
                 // ignore spaces
                 continue;
-            } else if (ch == commentLineStart) {
+            } else if (lineComment != 0 && ch == lineComment) {
                 // comment until end of line
                 inputBufferStart = -1;
                 while (true) {
@@ -581,11 +591,6 @@ public class Csv implements SimpleRowSource {
 
     private SQLException convertException(String message, Exception e) {
         return DbException.get(ErrorCode.IO_EXCEPTION_1, e, message).getSQLException();
-//        SQLException s = new SQLException(message, "CSV");
-//        //## Java 1.4 begin ##
-//        s.initCause(e);
-//        //## Java 1.4 end ##
-//        return s;
     }
 
     /**
@@ -662,6 +667,25 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
+     * Set the line comment character. The default is character code 0 (line
+     * comments are disabled) for H2 version 1.3, and '#' for H2 version 1.2.
+     *
+     * @param lineCommentCharacter the line comment character
+     */
+    public void setLineCommentCharacter(char lineCommentCharacter) {
+        this.lineComment = lineCommentCharacter;
+    }
+
+    /**
+     * Get the line comment character.
+     *
+     * @return the line comment character, or 0 if disabled
+     */
+    public char getLineCommentCharacter() {
+        return lineComment;
+    }
+
+    /**
      * Set the field delimiter. The default is " (a double quote).
      * The value 0 means no field delimiter is used.
      *
@@ -729,6 +753,15 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
+     * Get the current line separator.
+     *
+     * @return the line separator
+     */
+    public String getLineSeparator() {
+        return lineSeparator;
+    }
+
+    /**
      * Set the value that represents NULL.
      *
      * @param nullString the null
@@ -744,6 +777,55 @@ public class Csv implements SimpleRowSource {
      */
     public String getNullString() {
         return nullString;
+    }
+
+    /**
+     * INTERNAL.
+     * Parse and set the CSV options.
+     *
+     * @param options the the options
+     * @return the character set
+     */
+    public String setOptions(String options) {
+        String charset = null;
+        options = StringUtils.javaDecode(options);
+        String[] keyValuePairs = StringUtils.arraySplit(options, ' ', false);
+        for (String pair : keyValuePairs) {
+            int index = pair.indexOf('=');
+            String key = StringUtils.trim(pair.substring(0, index), true, true, " ");
+            String value = StringUtils.trim(pair.substring(index + 1), true, true, " ");
+            char ch = value.length() == 0 ? 0 : value.charAt(0);
+            if (isParam(key, "escape", "esc", "escapeCharacter")) {
+                setEscapeCharacter(ch);
+            } else if (isParam(key, "fieldDelimiter", "fieldDelim")) {
+                setFieldDelimiter(ch);
+            } else if (isParam(key, "fieldSeparator", "fieldSep")) {
+                setFieldSeparatorRead(ch);
+                setFieldSeparatorWrite(value);
+            } else if (isParam(key, "lineComment", "lineCommentCharacter")) {
+                setLineCommentCharacter(ch);
+            } else if (isParam(key, "lineSeparator", "lineSep")) {
+                setLineSeparator(value);
+            } else if (isParam(key, "null", "nullString")) {
+                setNullString(value);
+            } else if (isParam(key, "rowSeparator", "rowSep")) {
+                setRowSeparatorWrite(value);
+            } else if (isParam(key, "charset", "characterSet")) {
+                charset = value;
+            } else {
+                throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
+            }
+        }
+        return charset;
+    }
+
+    private boolean isParam(String key, String... values) {
+        for (String v : values) {
+            if (key.equalsIgnoreCase(v)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

@@ -20,6 +20,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
@@ -49,6 +53,7 @@ public class TestCsv extends TestBase {
     }
 
     public void test() throws Exception {
+        testOptions();
         testPseudoBom();
         testWriteRead();
         testColumnNames();
@@ -61,6 +66,53 @@ public class TestCsv extends TestBase {
         testRead();
         testPipe();
         deleteDb("csv");
+    }
+
+    private void testOptions() {
+        Csv csv = Csv.getInstance();
+        assertEquals(",", csv.getFieldSeparatorWrite());
+        assertEquals(SysProperties.LINE_SEPARATOR, csv.getLineSeparator());
+        assertEquals("", csv.getNullString());
+        assertEquals(null, csv.getRowSeparatorWrite());
+        assertEquals('\"', csv.getEscapeCharacter());
+        assertEquals('"', csv.getFieldDelimiter());
+        assertEquals(',', csv.getFieldSeparatorRead());
+        assertEquals(",", csv.getFieldSeparatorWrite());
+        assertEquals(Constants.VERSION_MINOR == 3 ? 0 : '#', csv.getLineCommentCharacter());
+
+        String charset = csv.setOptions("escape=1x fieldDelimiter=2x fieldSeparator=3x " +
+                "lineComment=4x lineSeparator=5x " +
+                "null=6x rowSeparator=7x charset=8x");
+        assertEquals('1', csv.getEscapeCharacter());
+        assertEquals('2', csv.getFieldDelimiter());
+        assertEquals('3', csv.getFieldSeparatorRead());
+        assertEquals("3x", csv.getFieldSeparatorWrite());
+        assertEquals('4', csv.getLineCommentCharacter());
+        assertEquals("5x", csv.getLineSeparator());
+        assertEquals("6x", csv.getNullString());
+        assertEquals("7x", csv.getRowSeparatorWrite());
+        assertEquals("8x", charset);
+
+        charset = csv.setOptions("escape= fieldDelimiter= fieldSeparator= " +
+                "lineComment= lineSeparator=\r\n " +
+                "null=\0 rowSeparator= charset=");
+        assertEquals(0, csv.getEscapeCharacter());
+        assertEquals(0, csv.getFieldDelimiter());
+        assertEquals(0, csv.getFieldSeparatorRead());
+        assertEquals("", csv.getFieldSeparatorWrite());
+        assertEquals(0, csv.getLineCommentCharacter());
+        assertEquals("\r\n", csv.getLineSeparator());
+        assertEquals("\0", csv.getNullString());
+        assertEquals("", csv.getRowSeparatorWrite());
+        assertEquals("", charset);
+
+        try {
+            csv.setOptions("escape=a error=b");
+            fail();
+        } catch (DbException e) {
+            assertEquals(ErrorCode.UNSUPPORTED_SETTING_1, e.getErrorCode());
+            assertEquals('a', csv.getEscapeCharacter());
+        }
     }
 
     private void testPseudoBom() throws Exception {
@@ -86,6 +138,14 @@ public class TestCsv extends TestBase {
         assertEquals("First Name", rs.getMetaData().getColumnName(2));
         assertEquals("2x", rs.getMetaData().getColumnName(3));
         assertEquals("_X2", rs.getMetaData().getColumnName(4));
+
+        rs = Csv.getInstance().read(new StringReader("a,a\n1,2"), null);
+        assertEquals("A", rs.getMetaData().getColumnName(1));
+        assertEquals("A1", rs.getMetaData().getColumnName(2));
+
+        rs = Csv.getInstance().read(new StringReader("1,2"), new String[]{"", null});
+        assertEquals("C1", rs.getMetaData().getColumnName(1));
+        assertEquals("C2", rs.getMetaData().getColumnName(2));
     }
 
     private void testSpaceSeparated() throws SQLException {

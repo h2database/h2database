@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.150 Beta (2011-01-28)</h2>
 <ul><li>CSVREAD / CSVWRITE: instead of setting the options one by one, 
     all options can be combined into a space separated key-value pairs.
 </li><li>CSVREAD / CSV tool: there is a new option "lineCommentCharacter" to set or disable line comments.
@@ -842,44 +846,6 @@ when "LOBs in database" is enabled).
 </li><li>PgServer: the wrong size was sent for VARCHAR data.
     Thanks again to Sergi Vladykin for the patch.
 </li><li>Serialized access mode (server-less multi-connection mode): fixed getGeneratedKeys() for sequences.
-</li></ul>
-
-<h2>Version 1.2.127 (2010-01-15)</h2>
-<ul><li>Serialized access mode (server-less multi-connection mode): sequences did not work as expected
-    (there were gaps in generated values when using multiple connections).
-</li><li>Page store: new databases can not be opened with older versions.
-</li><li>Page store: adding data to new database is now faster.
-</li><li>File system: getting the file name from a path is now faster. This should
-    speed up BLOB and CLOB access.
-</li><li>PgServer: incorrect SQL types were returned in result set meta data.
-    Concurrently opening a database could fail (PG catalog initialization was not synchronized).
-    Thanks a lot to Sergi Vladykin for providing the patches!
-</li><li>SHOW COLUMNS did not work correctly if there where multiple indexes
-    on the same columns.
-</li><li>Page store: the wrong write count was written to the database header.
-    This could cause the server-less multi-connection mode to fail.
-</li><li>Result sets larger than 2 GB threw an exception "Negative seek offset". Fixed.
-</li><li>If the system property h2.check was set to false, an ArrayIndexOutOfBoundsException could occur.
-</li><li>Alter table is now supported even if a table has views defined. (Patch from Kerry Sainsbury).
-</li><li>Fulltext search: exceptions within the fulltext search package had the wrong SQL state.
-</li><li>The Lucene fulltext search ignored transaction rollback. Fixed using a trigger on rollback.
-</li><li>Trigger can now be called on rollback.
-</li><li>The shell script h2.sh ignored command line line arguments.
-</li><li>When running H2 in the Google AppEngine for Java, a AccessControlException could be thrown
-    when trying to open a read-only database. Fixed.
-</li><li>The user home directory prefix (~) is now only expanded when followed by a slash
-    or backslash, or standing alone.
-</li><li>Native fulltext search: before inserting or deleting data, FT_INIT() had to be called.
-    This is no longer required.
-</li><li>The .trace.db file is now only created if required.
-</li><li>Shell tool: improved PostgreSQL compatibility.
-</li><li>Trying to open a database in read-only mode when a .lock.db file exists will now fail
-    with a nice error message.
-</li><li>H2 Console: data that is too long is now abbreviated as follows: text... (100000 characters).
-    A large binary is abbreviated as follows: abcdef... (100000 bytes).
-</li><li>Faster data conversion from BIGINT or INT to DECIMAL.
-</li><li>Server-less multi-connection mode: try to delete log files if switching between read/write operations.
-</li><li>CompressLZF: Faster decompress and improved javadocs
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

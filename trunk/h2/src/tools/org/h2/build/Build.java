@@ -446,7 +446,7 @@ public class Build extends BuildBase {
                 "-d", "docs/javadocImpl2",
                 "-classpath", System.getProperty("java.home") +
                 "/../lib/tools.jar" +
-                File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
@@ -456,7 +456,7 @@ public class Build extends BuildBase {
         System.setProperty("h2.javadocDestDir", "docs/javadocImpl");
         javadoc("-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools",
                 "-classpath", System.getProperty("java.home") + "/../lib/tools.jar" +
-                File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",

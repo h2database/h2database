@@ -77,6 +77,7 @@ public class Rownum extends Expression {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.GET_DEPENDENCIES:
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
+        case ExpressionVisitor.GET_COLUMNS:
             // if everything else is the same, the rownum is the same
             return true;
         default:

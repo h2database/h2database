@@ -35,10 +35,61 @@ public class TestAlter extends TestBase {
         deleteDb("alter");
         conn = getConnection("alter");
         stat = conn.createStatement();
+        testAlterTableDropColumWithReferences();
         testAlterTableAlterColumn();
         testAlterTableDropIdentityColumn();
         conn.close();
         deleteDb("alter");
+    }
+
+    private void testAlterTableDropColumWithReferences() throws SQLException {
+
+        stat.execute("create table parent(id int, b int)");
+        stat.execute("create table child(p int primary key)");
+        stat.execute("alter table child add foreign key(p) references parent(id)");
+        stat.execute("alter table parent drop column id");
+        stat.execute("drop table parent");
+        stat.execute("drop table child");
+
+        stat.execute("create table test(id int, name varchar(255))");
+        stat.execute("alter table test add constraint x check (id > name)");
+        try {
+            // the constraint references multiple columns
+            stat.execute("alter table test drop column id");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.COLUMN_IS_REFERENCED_1, e.getErrorCode());
+        }
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int, name varchar(255))");
+        stat.execute("alter table test add constraint x unique(id, name)");
+        try {
+            // the constraint references multiple columns
+            stat.execute("alter table test drop column id");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.COLUMN_IS_REFERENCED_1, e.getErrorCode());
+        }
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int, name varchar(255))");
+        stat.execute("alter table test add constraint x check (id > 1)");
+        stat.execute("alter table test drop column id");
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int, name varchar(255))");
+        stat.execute("alter table test add constraint x check (name > 'TEST.ID')");
+        // previous versions of H2 used sql.indexOf(columnName)
+        // to check if the column is referenced
+        stat.execute("alter table test drop column id");
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int, name varchar(255))");
+        stat.execute("alter table test add constraint x unique(id)");
+        stat.execute("alter table test drop column id");
+        stat.execute("drop table test");
+
     }
 
     private void testAlterTableDropIdentityColumn() throws SQLException {

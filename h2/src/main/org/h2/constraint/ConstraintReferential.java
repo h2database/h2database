@@ -7,6 +7,7 @@
 package org.h2.constraint;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -23,6 +24,7 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -197,6 +199,20 @@ public class ConstraintReferential extends Constraint {
 
     public IndexColumn[] getColumns() {
         return columns;
+    }
+
+    public HashSet<Column> getReferencedColumns(Table table) {
+        HashSet<Column> result = New.hashSet();
+        if (table == this.table) {
+            for (IndexColumn c : columns) {
+                result.add(c.column);
+            }
+        } else if (table == this.refTable) {
+            for (IndexColumn c : refColumns) {
+                result.add(c.column);
+            }
+        }
+        return result;
     }
 
     public void setRefColumns(IndexColumn[] refCols) {

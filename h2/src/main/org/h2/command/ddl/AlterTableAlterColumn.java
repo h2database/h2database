@@ -126,8 +126,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (table.getColumns().length == 1) {
                 throw DbException.get(ErrorCode.CANNOT_DROP_LAST_COLUMN, oldColumn.getSQL());
             }
-            table.checkColumnIsNotReferenced(oldColumn);
-            dropSingleColumnIndexes();
+            table.dropSingleColumnConstraintsAndIndexes(session, oldColumn);
             copyData();
             break;
         }
@@ -386,33 +385,6 @@ public class AlterTableAlterColumn extends SchemaCommand {
         command.update();
         if (ddl) {
             session.commit(true);
-        }
-    }
-
-    private void dropSingleColumnIndexes() {
-        Database db = session.getDatabase();
-        ArrayList<Index> indexes = table.getIndexes();
-        for (int i = 0; i < indexes.size(); i++) {
-            Index index = indexes.get(i);
-            if (index.getCreateSQL() == null) {
-                continue;
-            }
-            boolean dropIndex = false;
-            Column[] cols = index.getColumns();
-            for (Column c : cols) {
-                if (c == oldColumn) {
-                    if (cols.length == 1) {
-                        dropIndex = true;
-                    } else {
-                        throw DbException.get(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
-                    }
-                }
-            }
-            if (dropIndex) {
-                db.removeSchemaObject(session, index);
-                indexes = table.getIndexes();
-                i = -1;
-            }
         }
     }
 

@@ -8,6 +8,7 @@ package org.h2.expression;
 
 import java.util.HashSet;
 import org.h2.engine.DbObject;
+import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 
@@ -91,6 +92,11 @@ public class ExpressionVisitor {
     public static final int QUERY_COMPARABLE = 8;
 
     /**
+     * Get all referenced columns.
+     */
+    public static final int GET_COLUMNS = 9;
+
+    /**
      * The visitor singleton for the type QUERY_COMPARABLE.
      */
     public static final ExpressionVisitor QUERY_COMPARABLE_VISITOR = new ExpressionVisitor(QUERY_COMPARABLE);
@@ -98,14 +104,16 @@ public class ExpressionVisitor {
     private final int type;
     private final int queryLevel;
     private final HashSet<DbObject> dependencies;
+    private final HashSet<Column> columns;
     private final Table table;
     private final long[] maxDataModificationId;
     private final ColumnResolver resolver;
 
-    private ExpressionVisitor(int type, int queryLevel, HashSet<DbObject> dependencies, Table table, ColumnResolver resolver, long[] maxDataModificationId) {
+    private ExpressionVisitor(int type, int queryLevel, HashSet<DbObject> dependencies, HashSet<Column> columns, Table table, ColumnResolver resolver, long[] maxDataModificationId) {
         this.type = type;
         this.queryLevel = queryLevel;
         this.dependencies = dependencies;
+        this.columns = columns;
         this.table = table;
         this.resolver = resolver;
         this.maxDataModificationId = maxDataModificationId;
@@ -115,6 +123,7 @@ public class ExpressionVisitor {
         this.type = type;
         this.queryLevel = 0;
         this.dependencies = null;
+        this.columns = null;
         this.table = null;
         this.resolver = null;
         this.maxDataModificationId = null;
@@ -127,7 +136,7 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor getDependenciesVisitor(HashSet<DbObject> dependencies) {
-        return new ExpressionVisitor(GET_DEPENDENCIES, 0, dependencies, null, null, null);
+        return new ExpressionVisitor(GET_DEPENDENCIES, 0, dependencies, null, null, null, null);
     }
 
     /**
@@ -137,7 +146,7 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor getOptimizableVisitor(Table table) {
-        return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null, table, null, null);
+        return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null, null, table, null, null);
     }
 
     /**
@@ -148,11 +157,21 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
-        return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, resolver, null);
+        return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, null, resolver, null);
+    }
+
+    /**
+     * Create a new visitor to get all referenced columns.
+     *
+     * @param columns the columns map
+     * @return the new visitor
+     */
+    public static ExpressionVisitor getColumnsVisitor(HashSet<Column> columns) {
+        return new ExpressionVisitor(GET_COLUMNS, 0, null, columns, null, null, null);
     }
 
     public static ExpressionVisitor getMaxModificationIdVisitor() {
-        return new ExpressionVisitor(SET_MAX_DATA_MODIFICATION_ID, 0, null, null, null, new long[1]);
+        return new ExpressionVisitor(SET_MAX_DATA_MODIFICATION_ID, 0, null, null, null, null, new long[1]);
     }
 
     /**
@@ -163,6 +182,16 @@ public class ExpressionVisitor {
      */
     public void addDependency(DbObject obj) {
         dependencies.add(obj);
+    }
+
+    /**
+     * Add a new column to the set of columns.
+     * This is used for GET_COLUMNS visitors.
+     *
+     * @param column the additional column.
+     */
+    public void addColumn(Column column) {
+        columns.add(column);
     }
 
     /**
@@ -182,7 +211,7 @@ public class ExpressionVisitor {
      * @return a clone of this expression visitor, with the changed query level
      */
     public ExpressionVisitor incrementQueryLevel(int offset) {
-        return new ExpressionVisitor(type, queryLevel + offset, dependencies, table, resolver, maxDataModificationId);
+        return new ExpressionVisitor(type, queryLevel + offset, dependencies, columns, table, resolver, maxDataModificationId);
     }
 
     /**

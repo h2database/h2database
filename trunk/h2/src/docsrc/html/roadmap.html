@@ -466,7 +466,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimizer: WHERE X=? AND Y IN(?), it always uses the index on Y. Should be cost based.
 </li><li>Make the cache scan resistant (currently a small cache is faster than a large cache for large table scans).
 </li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available.
-</li><li>Issue 179: Related subqueries in HAVING clause
+</li><li>Issue 179: Related subqueries in HAVING clause.
 </li><li>IBM DB2 compatibility: NOT NULL WITH DEFAULT. Similar to MySQL Mode.convertInsertNullToZero.
 </li><li>Creating primary key: always create a constraint.
 </li><li>Maybe use a different page layout: keep the data at the head of the page, and ignore the tail
@@ -540,6 +540,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     check constraint, allow to use it in Java functions as parameters (return values already seem to work).
 </li><li>Encrypted file system (use cipher text stealing so file length doesn't need to decrypt; 4 KB header per file,
     optional compatibility with current encrypted database files).
+</li><li>Issue 229: SELECT with simple OR tests uses tableScan when it could use indexes    
 </li></ul>
 
 <h2>Not Planned</h2>

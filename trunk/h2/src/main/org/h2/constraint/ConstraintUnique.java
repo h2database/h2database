@@ -6,6 +6,7 @@
  */
 package org.h2.constraint;
 
+import java.util.HashSet;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.index.Index;
@@ -14,6 +15,7 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
@@ -121,13 +123,12 @@ public class ConstraintUnique extends Constraint {
         indexOwner = true;
     }
 
-    public boolean containsColumn(Column col) {
+    public HashSet<Column> getReferencedColumns(Table table) {
+        HashSet<Column> result = New.hashSet();
         for (IndexColumn c : columns) {
-            if (c.column == col) {
-                return true;
-            }
+            result.add(c.column);
         }
-        return false;
+        return result;
     }
 
     public boolean isBefore() {

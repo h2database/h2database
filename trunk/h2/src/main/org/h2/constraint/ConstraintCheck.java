@@ -6,9 +6,12 @@
  */
 package org.h2.constraint;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -17,6 +20,7 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -97,12 +101,15 @@ public class ConstraintCheck extends Constraint {
         DbException.throwInternalError();
     }
 
-    public boolean containsColumn(Column col) {
-        // TODO check constraints / containsColumn: this is cheating, maybe the
-        // column is not referenced
-        String s = col.getSQL();
-        String sql = getCreateSQL();
-        return sql.indexOf(s) >= 0;
+    public HashSet<Column> getReferencedColumns(Table table) {
+        HashSet<Column> columns = New.hashSet();
+        expr.isEverything(ExpressionVisitor.getColumnsVisitor(columns));
+        for (Iterator<Column> it = columns.iterator(); it.hasNext();) {
+            if (it.next().getTable() != table) {
+                it.remove();
+            }
+        }
+        return columns;
     }
 
     public Expression getExpression() {

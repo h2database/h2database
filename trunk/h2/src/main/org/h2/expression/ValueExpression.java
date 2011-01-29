@@ -144,6 +144,7 @@ public class ValueExpression extends Expression {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.GET_DEPENDENCIES:
         case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.GET_COLUMNS:
             return true;
         default:
             throw DbException.throwInternalError("type=" + visitor.getType());

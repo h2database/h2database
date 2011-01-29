@@ -6,6 +6,7 @@
  */
 package org.h2.constraint;
 
+import java.util.HashSet;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.index.Index;
@@ -87,12 +88,12 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
     public abstract void setIndexOwner(Index index);
 
     /**
-     * Check if this constraint contains the given column.
+     * Get all referenced columns.
      *
-     * @param col the column
-     * @return true if it does
+     * @param table the table
+     * @return the set of referenced columns
      */
-    public abstract boolean containsColumn(Column col);
+    public abstract HashSet<Column> getReferencedColumns(Table table);
 
     /**
      * Get the SQL statement to create this constraint.

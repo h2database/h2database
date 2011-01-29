@@ -260,6 +260,9 @@ public class ExpressionColumn extends Expression {
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(column.getTable());
             return true;
+        case ExpressionVisitor.GET_COLUMNS:
+            visitor.addColumn(column);
+            return true;
         default:
             throw DbException.throwInternalError("type=" + visitor.getType());
         }

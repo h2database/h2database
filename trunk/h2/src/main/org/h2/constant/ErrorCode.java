@@ -1255,7 +1255,7 @@ public class ErrorCode {
      * ALTER TABLE TEST DROP COLUMN PID;
      * </pre>
      */
-    public static final int COLUMN_MAY_BE_REFERENCED_1 = 90083;
+    public static final int COLUMN_IS_REFERENCED_1 = 90083;
 
     /**
      * The error with code <code>90084</code> is thrown when

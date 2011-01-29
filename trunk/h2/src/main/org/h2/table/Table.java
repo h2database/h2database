@@ -464,34 +464,55 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Check that this column is not referenced by a referential constraint or
-     * multi-column index.
+     * Check that this column is not referenced by a multi-column constraint or
+     * multi-column index. If it is, an exception is thrown. Single-column
+     * references and indexes are dropped.
      *
      * @param col the column
-     * @throws SQLException if the column is referenced
+     * @throws SQLException if the column is referenced by multi-column
+     *             constraints or indexes
      */
-    public void checkColumnIsNotReferenced(Column col) {
+    public void dropSingleColumnConstraintsAndIndexes(Session session, Column col) {
+        ArrayList<Constraint> constraintsToDrop = New.arrayList();
         if (constraints != null) {
             for (int i = 0, size = constraints.size(); i < size; i++) {
                 Constraint constraint = constraints.get(i);
-                if (constraint.containsColumn(col)) {
-                    throw DbException.get(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, constraint.getSQL());
+                HashSet<Column> columns = constraint.getReferencedColumns(this);
+                if (!columns.contains(col)) {
+                    continue;
+                }
+                if (columns.size() == 1) {
+                    constraintsToDrop.add(constraint);
+                } else {
+                    throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL());
                 }
             }
         }
+        ArrayList<Index> indexesToDrop = New.arrayList();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             for (int i = 0, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                if (index.getColumns().length == 1) {
-                    continue;
-                }
                 if (index.getCreateSQL() == null) {
                     continue;
                 }
-                if (index.getColumnIndex(col) >= 0) {
-                    throw DbException.get(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, index.getSQL());
+                if (index.getColumnIndex(col) < 0) {
+                    continue;
                 }
+                if (index.getColumns().length == 1) {
+                    indexesToDrop.add(index);
+                } else {
+                    throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL());
+                }
+            }
+        }
+        for (Constraint c : constraintsToDrop) {
+            session.getDatabase().removeSchemaObject(session, c);
+        }
+        for (Index i : indexesToDrop) {
+            // the index may already have been dropped when dropping the constraint
+            if (getIndexes().contains(i)) {
+                session.getDatabase().removeSchemaObject(session, i);
             }
         }
     }

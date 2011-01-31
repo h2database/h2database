@@ -274,6 +274,9 @@ the complete undo log must fit in memory when using multi-version concurrency
 It is not possible to enable or disable this setting while the database is already open.
 The setting must be specified in the first connection (the one that opens the database).
 </p>
+<p>
+If MVCC is enabled, changing the lock mode (<code>LOCK_MODE</code>) has no effect.
+</p>
 
 <h2 id="clustering">Clustering / High Availability</h2>
 <p>

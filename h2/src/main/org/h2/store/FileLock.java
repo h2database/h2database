@@ -444,8 +444,11 @@ public class FileLock implements Runnable {
         if (fileName != null) {
             try {
                 Properties prop = load();
-                String serverId = prop.getProperty("server") + "/" + prop.getProperty("id");
-                e = e.addSQL(serverId);
+                String server = prop.getProperty("server");
+                if (server != null) {
+                    String serverId = server + "/" + prop.getProperty("id");
+                    e = e.addSQL(serverId);
+                }
             } catch (DbException e2) {
                 // ignore
             }

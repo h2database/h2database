@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.DatabaseEventListener;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 
@@ -51,11 +52,44 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
     }
 
     public void test() throws Exception {
+        testWrongUrl();
         autoServer = true;
         testReconnect();
         autoServer = false;
         testReconnect();
         deleteDb("autoReconnect");
+    }
+
+    private void testWrongUrl() throws Exception {
+        deleteDb("autoReconnect");
+        Server tcp = Server.createTcpServer().start();
+        try {
+            Connection conn = getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE");
+            try {
+                getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
+                fail();
+            } catch (SQLException e) {
+                assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
+            }
+            try {
+                getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
+                fail();
+            } catch (SQLException e) {
+                assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
+            }
+            conn.close();
+
+            conn = getConnection("jdbc:h2:tcp://localhost/" + getBaseDir() + "/autoReconnect");
+            try {
+                getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
+                fail();
+            } catch (SQLException e) {
+                assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
+            }
+            conn.close();
+        } finally {
+            tcp.stop();
+        }
     }
 
     private void testReconnect() throws Exception {

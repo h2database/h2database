@@ -427,7 +427,7 @@ public class FileLock implements Runnable {
         watchdog.start();
     }
 
-    private void sleep(int time) {
+    private static void sleep(int time) {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
@@ -435,7 +435,7 @@ public class FileLock implements Runnable {
         }
     }
 
-    private DbException getExceptionFatal(String reason, Throwable t) {
+    private static DbException getExceptionFatal(String reason, Throwable t) {
         return DbException.get(ErrorCode.ERROR_OPENING_DATABASE_1, t, reason);
     }
 

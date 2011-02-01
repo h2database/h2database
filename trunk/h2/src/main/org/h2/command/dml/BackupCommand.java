@@ -99,7 +99,7 @@ public class BackupCommand extends Prepared {
         out.closeEntry();
     }
 
-    private void backupFile(ZipOutputStream out, String base, String fn) throws IOException {
+    private static void backupFile(ZipOutputStream out, String base, String fn) throws IOException {
         String f = IOUtils.getAbsolutePath(fn);
         base = IOUtils.getAbsolutePath(base);
         if (!f.startsWith(base)) {

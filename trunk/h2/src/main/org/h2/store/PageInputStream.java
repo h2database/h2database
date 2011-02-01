@@ -121,7 +121,7 @@ public class PageInputStream extends InputStream {
             endOfFile = true;
             return;
         }
-        dataPos = data.getReadStart();
+        dataPos = PageStreamData.getReadStart();
         remaining = store.getPageSize() - dataPos;
     }
 

@@ -44,7 +44,7 @@ public class LinkedIndex extends BaseIndex {
         // nothing to do
     }
 
-    private boolean isNull(Value v) {
+    private static boolean isNull(Value v) {
         return v == null || v == ValueNull.INSTANCE;
     }
 
@@ -77,7 +77,7 @@ public class LinkedIndex extends BaseIndex {
                 prep.executeUpdate();
                 rowCount++;
             } catch (Exception e) {
-                throw link.wrapException(sql, e);
+                throw TableLink.wrapException(sql, e);
             }
         }
     }
@@ -137,7 +137,7 @@ public class LinkedIndex extends BaseIndex {
                 ResultSet rs = prep.executeQuery();
                 return new LinkedCursor(link, rs, session, sql, prep);
             } catch (Exception e) {
-                throw link.wrapException(sql, e);
+                throw TableLink.wrapException(sql, e);
             }
         }
     }
@@ -214,7 +214,7 @@ public class LinkedIndex extends BaseIndex {
                 int count = prep.executeUpdate();
                 rowCount -= count;
             } catch (Exception e) {
-                throw link.wrapException(sql, e);
+                throw TableLink.wrapException(sql, e);
             }
         }
     }
@@ -276,7 +276,7 @@ public class LinkedIndex extends BaseIndex {
                 // this has no effect but at least it allows to debug the update count
                 rowCount = rowCount + count - count;
             } catch (Exception e) {
-                throw link.wrapException(sql, e);
+                throw TableLink.wrapException(sql, e);
             }
         }
     }

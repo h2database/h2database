@@ -60,7 +60,7 @@ public class Right extends DbObjectBase {
         this.grantedTable = grantedRightOnTable;
     }
 
-    private boolean appendRight(StringBuilder buff, int right, int mask, String name, boolean comma) {
+    private static boolean appendRight(StringBuilder buff, int right, int mask, String name, boolean comma) {
         if ((right & mask) != 0) {
             if (comma) {
                 buff.append(", ");

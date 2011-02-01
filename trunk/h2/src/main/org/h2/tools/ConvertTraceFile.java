@@ -199,11 +199,11 @@ public class ConvertTraceFile extends Tool {
         scriptWriter.close();
     }
 
-    private String removeNewlines(String s) {
+    private static String removeNewlines(String s) {
         return s == null ? s : s.replace('\r', ' ').replace('\n', ' ');
     }
 
-    private String padNumberLeft(long number, int digits) {
+    private static String padNumberLeft(long number, int digits) {
         return StringUtils.pad(String.valueOf(number), digits, " ", false);
     }
 

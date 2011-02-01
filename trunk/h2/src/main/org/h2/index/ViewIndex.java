@@ -234,7 +234,7 @@ public class ViewIndex extends BaseIndex {
         return new ViewCursor(table, result);
     }
 
-    private void setParameter(ArrayList<Parameter> paramList, int x, Value v) {
+    private static void setParameter(ArrayList<Parameter> paramList, int x, Value v) {
         if (x >= paramList.size()) {
             // the parameter may be optimized away as in
             // select * from (select null as x) where x=1;

@@ -2741,15 +2741,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         conn.checkClosed();
     }
 
-    private String getPattern(String pattern) {
+    private static String getPattern(String pattern) {
         return pattern == null ? "%" : pattern;
     }
 
-    private String getSchemaPattern(String pattern) {
+    private static String getSchemaPattern(String pattern) {
         return pattern == null ? "%" : pattern.length() == 0 ? Constants.SCHEMA_MAIN : pattern;
     }
 
-    private String getCatalogPattern(String catalogPattern) {
+    private static String getCatalogPattern(String catalogPattern) {
         // Workaround for OpenOffice: getColumns is called with "" as the catalog
         return catalogPattern == null || catalogPattern.length() == 0 ? "%" : catalogPattern;
     }

@@ -185,7 +185,7 @@ public class DbContextRule implements Rule {
         return false;
     }
 
-    private String autoCompleteTableAlias(Sentence sentence, boolean newAlias) {
+    private static String autoCompleteTableAlias(Sentence sentence, boolean newAlias) {
         String s = sentence.getQuery();
         String up = sentence.getQueryUpper();
         int i = 0;

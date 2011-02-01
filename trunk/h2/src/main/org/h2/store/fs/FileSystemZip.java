@@ -219,7 +219,7 @@ public class FileSystemZip extends FileSystem {
         return false;
     }
 
-    private String translateFileName(String fileName) {
+    private static String translateFileName(String fileName) {
         if (fileName.startsWith(PREFIX)) {
             fileName = fileName.substring(PREFIX.length());
         }
@@ -230,7 +230,7 @@ public class FileSystemZip extends FileSystem {
         return FileSystemDisk.expandUserHomeDirectory(fileName);
     }
 
-    private String getEntryName(String fileName) {
+    private static String getEntryName(String fileName) {
         int idx = fileName.indexOf('!');
         if (idx <= 0) {
             fileName = "";
@@ -244,7 +244,7 @@ public class FileSystemZip extends FileSystem {
         return fileName;
     }
 
-    private ZipFile openZipFile(String fileName) throws IOException {
+    private static ZipFile openZipFile(String fileName) throws IOException {
         fileName = translateFileName(fileName);
         return new ZipFile(fileName);
     }

@@ -582,7 +582,7 @@ public class PgServerThread implements Runnable {
         }
     }
 
-    private int getTypeSize(int pgType, int precision) {
+    private static int getTypeSize(int pgType, int precision) {
         switch (pgType) {
         case PgServer.PG_TYPE_VARCHAR:
             return Math.max(255, precision + 10);
@@ -657,7 +657,7 @@ public class PgServerThread implements Runnable {
         }
     }
 
-    private void installPgCatalog(Statement stat) throws SQLException {
+    private static void installPgCatalog(Statement stat) throws SQLException {
         Reader r = null;
         try {
             r = new InputStreamReader(new ByteArrayInputStream(Utils

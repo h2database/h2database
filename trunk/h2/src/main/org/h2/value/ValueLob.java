@@ -239,7 +239,7 @@ public class ValueLob extends Value {
         return name;
     }
 
-    private int getNewObjectId(DataHandler h) {
+    private static int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
         if ((path != null) && (path.length() == 0)) {
             path = new File(System.getProperty("java.io.tmpdir"), SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
@@ -307,7 +307,7 @@ public class ValueLob extends Value {
         dirCounter = 0;
     }
 
-    private void invalidateFileList(DataHandler h, String dir) {
+    private static void invalidateFileList(DataHandler h, String dir) {
         SmallLRUCache<String, String[]> cache = h.getLobFileListCache();
         if (cache != null) {
             synchronized (cache) {
@@ -316,7 +316,7 @@ public class ValueLob extends Value {
         }
     }
 
-    private String[] getFileList(DataHandler h, String dir) {
+    private static String[] getFileList(DataHandler h, String dir) {
         SmallLRUCache<String, String[]> cache = h.getLobFileListCache();
         String[] list;
         if (cache == null) {
@@ -756,7 +756,7 @@ public class ValueLob extends Value {
         }
     }
 
-    private void copyFileTo(DataHandler h, String sourceFileName, String targetFileName) {
+    private static void copyFileTo(DataHandler h, String sourceFileName, String targetFileName) {
         synchronized (h.getLobSyncObject()) {
             FileSystem.getInstance(sourceFileName).copy(sourceFileName, targetFileName);
         }

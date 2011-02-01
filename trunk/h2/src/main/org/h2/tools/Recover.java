@@ -463,7 +463,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private String getPageType(int type) {
+    private static String getPageType(int type) {
         switch (type) {
         case 0:
             return "free";
@@ -1054,10 +1054,9 @@ public class Recover extends Tool implements DataHandler {
                                 // TODO doesn't work for all cases ("" inside user name)
                                 userName = userName.substring(1, userName.length() - 1);
                             }
-                            SHA256 sha = new SHA256();
-                            byte[] userPasswordHash = sha.getKeyPasswordHash(userName, "".toCharArray());
+                            byte[] userPasswordHash = SHA256.getKeyPasswordHash(userName, "".toCharArray());
                             byte[] salt = MathUtils.secureRandomBytes(Constants.SALT_LEN);
-                            byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
+                            byte[] passwordHash = SHA256.getHashWithSalt(userPasswordHash, salt);
                             StringBuilder buff = new StringBuilder();
                             buff.append("SALT '").
                                 append(StringUtils.convertBytesToString(salt)).
@@ -1228,7 +1227,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private String extractTableOrViewName(String sql) {
+    private static String extractTableOrViewName(String sql) {
         int indexTable = sql.indexOf(" TABLE ");
         int indexView = sql.indexOf(" VIEW ");
         if (indexTable > 0 && indexView > 0) {
@@ -1263,7 +1262,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
 
-    private void closeSilently(FileStore fileStore) {
+    private static void closeSilently(FileStore fileStore) {
         if (fileStore != null) {
             fileStore.closeSilently();
         }

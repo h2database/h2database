@@ -108,7 +108,7 @@ public class TreeIndex extends BaseIndex {
         }
     }
 
-    private TreeNode child(TreeNode x, boolean isLeft) {
+    private static TreeNode child(TreeNode x, boolean isLeft) {
         return isLeft ? x.left : x.right;
     }
 
@@ -123,7 +123,7 @@ public class TreeIndex extends BaseIndex {
         }
     }
 
-    private void set(TreeNode parent, boolean left, TreeNode n) {
+    private static void set(TreeNode parent, boolean left, TreeNode n) {
         if (left) {
             parent.left = n;
         } else {
@@ -302,64 +302,6 @@ public class TreeIndex extends BaseIndex {
     public void truncate(Session session) {
         root = null;
         rowCount = 0;
-    }
-
-    /**
-     * Get the next node if there is one.
-     *
-     * @param x the node
-     * @return the next node or null
-     */
-    TreeNode next(TreeNode x) {
-        if (x == null) {
-            return null;
-        }
-        TreeNode r = x.right;
-        if (r != null) {
-            x = r;
-            TreeNode l = x.left;
-            while (l != null) {
-                x = l;
-                l = x.left;
-            }
-            return x;
-        }
-        TreeNode ch = x;
-        x = x.parent;
-        while (x != null && ch == x.right) {
-            ch = x;
-            x = x.parent;
-        }
-        return x;
-    }
-
-    /**
-     * Get the previous node if there is one.
-     *
-     * @param x the node
-     * @return the previous node or null
-     */
-    TreeNode previous(TreeNode x) {
-        if (x == null) {
-            return null;
-        }
-        TreeNode l = x.left;
-        if (l != null) {
-            x = l;
-            TreeNode r = x.right;
-            while (r != null) {
-                x = r;
-                r = x.right;
-            }
-            return x;
-        }
-        TreeNode ch = x;
-        x = x.parent;
-        while (x != null && ch == x.left) {
-            ch = x;
-            x = x.parent;
-        }
-        return x;
     }
 
     public void checkRename() {

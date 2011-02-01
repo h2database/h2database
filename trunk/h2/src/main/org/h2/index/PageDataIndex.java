@@ -18,7 +18,6 @@ import org.h2.engine.UndoLogRecord;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.store.Data;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
@@ -398,25 +397,6 @@ public class PageDataIndex extends PageIndex {
 
     PageStore getPageStore() {
         return store;
-    }
-
-    /**
-     * Read a row from the data page at the given position.
-     *
-     * @param data the data page
-     * @param pos the position to read from
-     * @param columnCount the number of columns
-     * @return the row
-     */
-    Row readRow(Data data, int pos, int columnCount) {
-        Value[] values = new Value[columnCount];
-        synchronized (data) {
-            data.setPos(pos);
-            for (int i = 0; i < columnCount; i++) {
-                values[i] = data.readValue();
-            }
-        }
-        return tableData.createRow(values);
     }
 
     public long getRowCountApproximation() {

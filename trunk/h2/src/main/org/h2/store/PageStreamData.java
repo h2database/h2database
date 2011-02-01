@@ -161,7 +161,7 @@ public class PageStreamData extends Page {
         return true;
     }
 
-    public int getReadStart() {
+    public static int getReadStart() {
         return DATA_START;
     }
 

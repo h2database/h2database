@@ -128,7 +128,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
     }
 
-    private Object[] convertToObjectList(Row row) {
+    private static Object[] convertToObjectList(Row row) {
         if (row == null) {
             return null;
         }

@@ -49,9 +49,7 @@ public class WebServer implements Service {
 
     static final String TRANSFER = "transfer";
 
-    private static final String DEFAULT_LANGUAGE = "en";
-
-    private static final String[][] LANGUAGES = {
+    static final String[][] LANGUAGES = {
         { "cs", "\u010ce\u0161tina" },
         { "de", "Deutsch" },
         { "en", "English" },
@@ -72,6 +70,8 @@ public class WebServer implements Service {
         { "zh_CN", "\u4e2d\u6587 (\u7b80\u4f53)"},
         { "zh_TW", "\u4e2d\u6587 (\u7e41\u9ad4)"},
     };
+
+    private static final String DEFAULT_LANGUAGE = "en";
 
     private static final String[] GENERIC = {
         "Generic JNDI Data Source|javax.naming.InitialContext|java:comp/env/jdbc/Test|sa",
@@ -177,7 +177,7 @@ public class WebServer implements Service {
      * @param s the string
      * @return true if it's a simple name
      */
-    boolean isSimpleName(String s) {
+    static boolean isSimpleName(String s) {
         for (char c : s.toCharArray()) {
             if (c != '.' && c != '_' && c != '-' && !Character.isLetterOrDigit(c)) {
                 return false;
@@ -195,7 +195,7 @@ public class WebServer implements Service {
         running.remove(t);
     }
 
-    private String generateSessionId() {
+    private static String generateSessionId() {
         byte[] buff = MathUtils.secureRandomBytes(16);
         return StringUtils.convertBytesToString(buff);
     }
@@ -451,10 +451,6 @@ public class WebServer implements Service {
             TraceSystem.traceThrowable(e);
         }
         session.put("text", new HashMap<Object, Object>(text));
-    }
-
-    String[][] getLanguageArray() {
-        return LANGUAGES;
     }
 
     ArrayList<HashMap<String, Object>> getSessions() {

@@ -71,7 +71,7 @@ public class MultiDimension implements Comparator<long[]> {
         return (int) ((1L << bitsPerValue) - 1);
     }
 
-    private int getBitsPerValue(int dimensions) {
+    private static int getBitsPerValue(int dimensions) {
         return Math.min(31, 64 / dimensions);
     }
 
@@ -224,7 +224,7 @@ public class MultiDimension implements Comparator<long[]> {
         return ranges;
     }
 
-    private int getSize(int[] min, int[] max, int len) {
+    private static int getSize(int[] min, int[] max, int len) {
         int size = 1;
         for (int i = 0; i < len; i++) {
             int diff = max[i] - min[i];
@@ -306,11 +306,11 @@ public class MultiDimension implements Comparator<long[]> {
         }
     }
 
-    private int roundUp(int x, int blockSizePowerOf2) {
+    private static int roundUp(int x, int blockSizePowerOf2) {
         return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
     }
 
-    private int findMiddle(int a, int b) {
+    private static int findMiddle(int a, int b) {
         int diff = b - a - 1;
         if (diff == 0) {
             return a;

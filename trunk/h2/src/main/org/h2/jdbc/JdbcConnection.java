@@ -107,7 +107,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkJavaVersion();
             // this will return an embedded or server connection
-            session = new SessionRemote(ci).createSession(ci);
+            session = new SessionRemote(ci).connectEmbeddedOrServer(false);
             trace = session.getTrace();
             int id = getNextId(TraceObject.CONNECTION);
             setTrace(trace, TraceObject.CONNECTION, id);
@@ -346,7 +346,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         setQueryTimeout = closeAndSetNull(setQueryTimeout);
     }
 
-    private CommandInterface closeAndSetNull(CommandInterface command) {
+    private static CommandInterface closeAndSetNull(CommandInterface command) {
         if (command != null) {
             command.close();
         }
@@ -960,7 +960,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
-    private JdbcSavepoint convertSavepoint(Savepoint savepoint) {
+    private static JdbcSavepoint convertSavepoint(Savepoint savepoint) {
         if (!(savepoint instanceof JdbcSavepoint)) {
             throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, "" + savepoint);
         }
@@ -1066,7 +1066,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     // =============================================================
 
-    private void checkJavaVersion() {
+    private static void checkJavaVersion() {
         try {
             //## Java 1.4 begin ##
             // check for existence of this class (avoiding Class . forName)
@@ -1093,7 +1093,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         return old == null ? session.prepareCommand(sql, Integer.MAX_VALUE) : old;
     }
 
-    private int translateGetEnd(String sql, int i, char c) {
+    private static int translateGetEnd(String sql, int i, char c) {
         int len = sql.length();
         switch(c) {
         case '$': {
@@ -1161,7 +1161,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @param sql the SQL statement with or without JDBC escape sequences
      * @return the SQL statement without JDBC escape sequences
      */
-    private String translateSQL(String sql) {
+    private static String translateSQL(String sql) {
         return translateSQL(sql, true);
     }
 
@@ -1173,7 +1173,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @param escapeProcessing whether escape sequences should be replaced
      * @return the SQL statement without JDBC escape sequences
      */
-    String translateSQL(String sql, boolean escapeProcessing) {
+    static String translateSQL(String sql, boolean escapeProcessing) {
         if (sql == null) {
             throw DbException.getInvalidValueException("SQL", null);
         }
@@ -1291,17 +1291,17 @@ public class JdbcConnection extends TraceObject implements Connection {
         return sql;
     }
 
-    private void checkRunOver(int i, int len, String sql) {
+    private static void checkRunOver(int i, int len, String sql) {
         if (i >= len) {
             throw DbException.getSyntaxError(sql, i);
         }
     }
 
-    private boolean found(String sql, int start, String other) {
+    private static boolean found(String sql, int start, String other) {
         return sql.regionMatches(true, start, other, 0, other.length());
     }
 
-    private void checkTypeConcurrency(int resultSetType, int resultSetConcurrency) {
+    private static void checkTypeConcurrency(int resultSetType, int resultSetConcurrency) {
         switch (resultSetType) {
         case ResultSet.TYPE_FORWARD_ONLY:
         case ResultSet.TYPE_SCROLL_INSENSITIVE:
@@ -1319,7 +1319,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
-    private void checkHoldability(int resultSetHoldability) {
+    private static void checkHoldability(int resultSetHoldability) {
         // TODO compatibility / correctness: DBPool uses
         // ResultSet.HOLD_CURSORS_OVER_COMMIT
         //## Java 1.4 begin ##
@@ -1666,7 +1666,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         return v;
     }
 
-    private void checkMap(Map<String, Class<?>> map) {
+    private static void checkMap(Map<String, Class<?>> map) {
         if (map != null && map.size() > 0) {
             throw DbException.getUnsupportedException("map.size > 0");
         }

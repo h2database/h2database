@@ -655,7 +655,7 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    private void remove(ArrayList<? extends DbObject> list, DbObject obj) {
+    private static void remove(ArrayList<? extends DbObject> list, DbObject obj) {
         if (list != null) {
             int i = list.indexOf(obj);
             if (i >= 0) {
@@ -760,7 +760,7 @@ public abstract class Table extends SchemaObjectBase {
         triggers = add(triggers, trigger);
     }
 
-    private <T> ArrayList<T> add(ArrayList<T> list, T obj) {
+    private static <T> ArrayList<T> add(ArrayList<T> list, T obj) {
         if (list == null) {
             list = New.arrayList();
         }

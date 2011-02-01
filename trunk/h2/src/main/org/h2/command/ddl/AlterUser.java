@@ -84,9 +84,8 @@ public class AlterUser extends DefineCommand {
                 user.setSaltAndHash(getByteArray(salt), getByteArray(hash));
             } else {
                 String name = newName == null ? user.getName() : newName;
-                SHA256 sha = new SHA256();
                 char[] passwordChars = getCharArray(password);
-                byte[] userPasswordHash = sha.getKeyPasswordHash(name, passwordChars);
+                byte[] userPasswordHash = SHA256.getKeyPasswordHash(name, passwordChars);
                 user.setUserPasswordHash(userPasswordHash);
             }
             break;

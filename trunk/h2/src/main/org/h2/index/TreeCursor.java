@@ -41,10 +41,10 @@ public class TreeCursor implements Cursor {
                 return false;
             }
             if (first != null && tree.compareRows(node.row, first) < 0) {
-                node = tree.next(node);
+                node = next(node);
             }
         } else {
-            node = tree.next(node);
+            node = next(node);
         }
         if (node != null && last != null) {
             if (tree.compareRows(node.row, last) > 0) {
@@ -55,8 +55,67 @@ public class TreeCursor implements Cursor {
     }
 
     public boolean previous() {
-        node = tree.previous(node);
+        node = previous(node);
         return node != null;
+    }
+
+    /**
+     * Get the next node if there is one.
+     *
+     * @param x the node
+     * @return the next node or null
+     */
+    private static TreeNode next(TreeNode x) {
+        if (x == null) {
+            return null;
+        }
+        TreeNode r = x.right;
+        if (r != null) {
+            x = r;
+            TreeNode l = x.left;
+            while (l != null) {
+                x = l;
+                l = x.left;
+            }
+            return x;
+        }
+        TreeNode ch = x;
+        x = x.parent;
+        while (x != null && ch == x.right) {
+            ch = x;
+            x = x.parent;
+        }
+        return x;
+    }
+
+
+    /**
+     * Get the previous node if there is one.
+     *
+     * @param x the node
+     * @return the previous node or null
+     */
+    private static TreeNode previous(TreeNode x) {
+        if (x == null) {
+            return null;
+        }
+        TreeNode l = x.left;
+        if (l != null) {
+            x = l;
+            TreeNode r = x.right;
+            while (r != null) {
+                x = r;
+                r = x.right;
+            }
+            return x;
+        }
+        TreeNode ch = x;
+        x = x.parent;
+        while (x != null && ch == x.left) {
+            ch = x;
+            x = x.parent;
+        }
+        return x;
     }
 
 }

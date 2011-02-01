@@ -43,6 +43,7 @@ public class CipherFactory {
      * The default password to use for the .h2.keystore file
      */
     public static final String KEYSTORE_PASSWORD = "h2pass";
+
     private static final String KEYSTORE = "~/.h2.keystore";
     private static final String KEYSTORE_KEY = "javax.net.ssl.keyStore";
     private static final String KEYSTORE_PASSWORD_KEY = "javax.net.ssl.keyStorePassword";
@@ -67,19 +68,6 @@ public class CipherFactory {
             return new Fog();
         }
         throw DbException.get(ErrorCode.UNSUPPORTED_CIPHER, algorithm);
-    }
-
-    /**
-     * Get a new cryptographic hash object for the given algorithm.
-     *
-     * @param algorithm the algorithm
-     * @return a new hash object
-     */
-    public static SHA256 getHash(String algorithm) {
-        if ("SHA256".equalsIgnoreCase(algorithm)) {
-            return new SHA256();
-        }
-        throw DbException.getInvalidValueException("algorithm", algorithm);
     }
 
     /**

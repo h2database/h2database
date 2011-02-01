@@ -123,7 +123,7 @@ public class TableFunction extends Function {
         return vr;
     }
 
-    private SimpleResultSet getSimpleResultSet(ResultInterface rs,  int maxrows) {
+    private static SimpleResultSet getSimpleResultSet(ResultInterface rs,  int maxrows) {
         int columnCount = rs.getVisibleColumnCount();
         SimpleResultSet simple = new SimpleResultSet();
         for (int i = 0; i < columnCount; i++) {

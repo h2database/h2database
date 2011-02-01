@@ -500,7 +500,6 @@ public class Shell extends Tool implements Runnable {
         int len = meta.getColumnCount();
         String[] columns = new String[len];
         int[] columnSizes = new int[len];
-        int total = 0;
         for (int i = 0; i < len; i++) {
             String s = meta.getColumnLabel(i + 1);
             int l = s.length();
@@ -514,7 +513,6 @@ public class Shell extends Tool implements Runnable {
             columns[i] = s;
             columnSizes[i] = l;
             longest = Math.max(longest, l);
-            total += l;
         }
         StringBuilder buff = new StringBuilder();
         if (!asList) {

@@ -67,7 +67,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             synchronized (session) {
                 checkClosed();
                 closeOldResultSet();
-                sql = conn.translateSQL(sql, escapeProcessing);
+                sql = JdbcConnection.translateSQL(sql, escapeProcessing);
                 CommandInterface command = conn.prepareCommand(sql, fetchSize);
                 ResultInterface result;
                 boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
@@ -118,7 +118,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         checkClosedForWrite();
         try {
             closeOldResultSet();
-            sql = conn.translateSQL(sql, escapeProcessing);
+            sql = JdbcConnection.translateSQL(sql, escapeProcessing);
             CommandInterface command = conn.prepareCommand(sql, fetchSize);
             synchronized (session) {
                 setExecutingStatement(command);
@@ -161,7 +161,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         checkClosedForWrite();
         try {
             closeOldResultSet();
-            sql = conn.translateSQL(sql, escapeProcessing);
+            sql = JdbcConnection.translateSQL(sql, escapeProcessing);
             CommandInterface command = conn.prepareCommand(sql, fetchSize);
             boolean returnsResultSet;
             synchronized (session) {
@@ -587,7 +587,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("addBatch", sql);
             checkClosed();
-            sql = conn.translateSQL(sql, escapeProcessing);
+            sql = JdbcConnection.translateSQL(sql, escapeProcessing);
             if (batchCommands == null) {
                 batchCommands = New.arrayList();
             }

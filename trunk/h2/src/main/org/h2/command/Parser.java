@@ -850,7 +850,7 @@ public class Parser {
         return prepare(session, buff.toString(), paramValues);
     }
 
-    private Prepared prepare(Session s, String sql, ArrayList<Value> paramValues) {
+    private static Prepared prepare(Session s, String sql, ArrayList<Value> paramValues) {
         Prepared prep = s.prepare(sql);
         ArrayList<Parameter> params = prep.getParameters();
         if (params != null) {
@@ -5076,7 +5076,7 @@ public class Parser {
         return command;
     }
 
-    private int getCompareType(int tokenType) {
+    private static int getCompareType(int tokenType) {
         switch (tokenType) {
         case EQUAL:
             return Comparison.EQUAL;

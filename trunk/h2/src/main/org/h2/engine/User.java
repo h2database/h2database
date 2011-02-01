@@ -69,8 +69,7 @@ public class User extends RightOwner {
             } else {
                 salt = new byte[Constants.SALT_LEN];
                 MathUtils.randomBytes(salt);
-                SHA256 sha = new SHA256();
-                passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
+                passwordHash = SHA256.getHashWithSalt(userPasswordHash, salt);
             }
         }
     }
@@ -182,11 +181,10 @@ public class User extends RightOwner {
         if (userPasswordHash.length == 0 && passwordHash.length == 0) {
             return true;
         }
-        SHA256 sha = new SHA256();
         if (userPasswordHash.length == 0) {
-            userPasswordHash = sha.getKeyPasswordHash(getName(), new char[0]);
+            userPasswordHash = SHA256.getKeyPasswordHash(getName(), new char[0]);
         }
-        byte[] hash = sha.getHashWithSalt(userPasswordHash, salt);
+        byte[] hash = SHA256.getHashWithSalt(userPasswordHash, salt);
         return Utils.compareSecure(hash, passwordHash);
     }
 

@@ -165,7 +165,7 @@ public class FunctionAlias extends SchemaObjectBase {
         Arrays.sort(javaMethods);
     }
 
-    private String getMethodSignature(Method m) {
+    private static String getMethodSignature(Method m) {
         StatementBuilder buff = new StatementBuilder(m.getName());
         buff.append('(');
         for (Class<?> p : m.getParameterTypes()) {

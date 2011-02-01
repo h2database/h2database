@@ -359,7 +359,7 @@ public abstract class Prepared {
      * @param values the value list
      * @return the SQL snippet
      */
-    protected String getSQL(Value[] values) {
+    protected static String getSQL(Value[] values) {
         StatementBuilder buff = new StatementBuilder();
         for (Value v : values) {
             buff.appendExceptFirst(", ");
@@ -376,7 +376,7 @@ public abstract class Prepared {
      * @param list the expression list
      * @return the SQL snippet
      */
-    protected String getSQL(Expression[] list) {
+    protected static String getSQL(Expression[] list) {
         StatementBuilder buff = new StatementBuilder();
         for (Expression e : list) {
             buff.appendExceptFirst(", ");

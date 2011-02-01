@@ -367,7 +367,7 @@ public class Csv implements SimpleRowSource {
         list.toArray(columnNames);
     }
 
-    private boolean isSimpleColumnName(String columnName) {
+    private static boolean isSimpleColumnName(String columnName) {
         for (int i = 0, length = columnName.length(); i < length; i++) {
             char ch = columnName.charAt(i);
             if (i == 0) {
@@ -589,7 +589,7 @@ public class Csv implements SimpleRowSource {
         return row;
     }
 
-    private SQLException convertException(String message, Exception e) {
+    private static SQLException convertException(String message, Exception e) {
         return DbException.get(ErrorCode.IO_EXCEPTION_1, e, message).getSQLException();
     }
 
@@ -819,7 +819,7 @@ public class Csv implements SimpleRowSource {
         return charset;
     }
 
-    private boolean isParam(String key, String... values) {
+    private static boolean isParam(String key, String... values) {
         for (String v : values) {
             if (key.equalsIgnoreCase(v)) {
                 return true;

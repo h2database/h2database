@@ -219,7 +219,7 @@ ShutdownHandler {
         }
     }
 
-    private Image loadImage(String name) {
+    private static Image loadImage(String name) {
         try {
             byte[] imageData = Utils.getResource(name);
             if (imageData == null) {

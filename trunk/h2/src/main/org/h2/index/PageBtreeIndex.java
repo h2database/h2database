@@ -455,7 +455,7 @@ public class PageBtreeIndex extends PageIndex {
      *
      * @return true if it is
      */
-    public boolean isMemoryChangeRequired() {
+    static boolean isMemoryChangeRequired() {
         if (memoryChangeRequired-- <= 0) {
             memoryChangeRequired = 10;
             return true;

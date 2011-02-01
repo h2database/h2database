@@ -80,8 +80,7 @@ public class CreateUser extends DefineCommand {
             if (userName.length() == 0 && passwordChars.length == 0 && SysProperties.EMPTY_PASSWORD) {
                 userPasswordHash = new byte[0];
             } else {
-                SHA256 sha = new SHA256();
-                userPasswordHash = sha.getKeyPasswordHash(userName, passwordChars);
+                userPasswordHash = SHA256.getKeyPasswordHash(userName, passwordChars);
             }
             user.setUserPasswordHash(userPasswordHash);
         } else {

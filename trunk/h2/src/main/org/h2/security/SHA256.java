@@ -42,7 +42,7 @@ public class SHA256 {
      * @param salt the salt to use
      * @return the hash code
      */
-    public byte[] getHashWithSalt(byte[] data, byte[] salt) {
+    public static byte[] getHashWithSalt(byte[] data, byte[] salt) {
         byte[] buff = new byte[data.length + salt.length];
         System.arraycopy(data, 0, buff, 0, data.length);
         System.arraycopy(salt, 0, buff, data.length, salt.length);
@@ -60,7 +60,7 @@ public class SHA256 {
      * @param password the password
      * @return the hash code
      */
-    public byte[] getKeyPasswordHash(String userName, char[] password) {
+    public static byte[] getKeyPasswordHash(String userName, char[] password) {
         String user = userName + "@";
         byte[] buff = new byte[2 * (user.length() + password.length)];
         int n = 0;
@@ -85,7 +85,7 @@ public class SHA256 {
      *            the hash code
      * @return the hash code
      */
-    public byte[] getHash(byte[] data, boolean nullData) {
+    public static byte[] getHash(byte[] data, boolean nullData) {
         int byteLen = data.length;
         int intLen = ((byteLen + 9 + 63) / 64) * 16;
         byte[] bytes = new byte[intLen * 4];
@@ -152,16 +152,16 @@ public class SHA256 {
         return result;
     }
 
-    private int rot(int i, int count) {
+    private static int rot(int i, int count) {
         return (i << (32 - count)) | (i >>> count);
     }
 
-    private int readInt(byte[] b, int i) {
+    private static int readInt(byte[] b, int i) {
         return ((b[i] & 0xff) << 24) + ((b[i + 1] & 0xff) << 16)
                 + ((b[i + 2] & 0xff) << 8) + (b[i + 3] & 0xff);
     }
 
-    private void writeInt(byte[] b, int i, int value) {
+    private static void writeInt(byte[] b, int i, int value) {
         b[i] = (byte) (value >> 24);
         b[i + 1] = (byte) (value >> 16);
         b[i + 2] = (byte) (value >> 8);

@@ -348,7 +348,7 @@ class WebThread extends WebApp implements Runnable {
             }
             trace(" " + line);
         }
-        if (!server.isSimpleName(fileName)) {
+        if (!WebServer.isSimpleName(fileName)) {
             return;
         }
         len -= headerBytes;
@@ -376,7 +376,7 @@ class WebThread extends WebApp implements Runnable {
         f.close();
     }
 
-    private String getHeaderLineValue(String line) {
+    private static String getHeaderLineValue(String line) {
         return line.substring(line.indexOf(':') + 1).trim();
     }
 

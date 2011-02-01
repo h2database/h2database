@@ -105,8 +105,7 @@ public class ChangeFileEncryption extends Tool {
         if (password == null) {
             return null;
         }
-        SHA256 sha = new SHA256();
-        return sha.getKeyPasswordHash("file", password);
+        return SHA256.getKeyPasswordHash("file", password);
     }
 
     /**

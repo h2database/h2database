@@ -262,7 +262,7 @@ public class CompressTool {
         }
     }
 
-    private Compressor getCompressor(int algorithm) {
+    private static Compressor getCompressor(int algorithm) {
         switch (algorithm) {
         case Compressor.NO:
             return new CompressNo();

@@ -259,7 +259,7 @@ public class TableLink extends Table {
         }
     }
 
-    private long convertPrecision(int sqlType, long precision) {
+    private static long convertPrecision(int sqlType, long precision) {
         // workaround for an Oracle problem:
         // for DATE columns, the reported precision is 7
         // for DECIMAL columns, the reported precision is 0
@@ -282,7 +282,7 @@ public class TableLink extends Table {
         return precision;
     }
 
-    private int convertScale(int sqlType, int scale) {
+    private static int convertScale(int sqlType, int scale) {
         // workaround for an Oracle problem:
         // for DECIMAL columns, the reported precision is -127
         switch (sqlType) {
@@ -415,7 +415,7 @@ public class TableLink extends Table {
      * @param ex the exception from the remote database
      * @return the wrapped exception
      */
-    public DbException wrapException(String sql, Exception ex) {
+    public static DbException wrapException(String sql, Exception ex) {
         SQLException e = DbException.toSQLException(ex);
         return DbException.get(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, e, sql, e.toString());
     }

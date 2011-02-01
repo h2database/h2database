@@ -235,7 +235,7 @@ class AggregateData {
         return v == null ? ValueNull.INSTANCE : v.convertTo(dataType);
     }
 
-    private Value divide(Value a, long by) {
+    private static Value divide(Value a, long by) {
         if (by == 0) {
             return ValueNull.INSTANCE;
         }

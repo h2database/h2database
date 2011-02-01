@@ -182,7 +182,7 @@ public class FileSystemSplit extends FileSystemWrapper {
         return fo;
     }
 
-    private void closeAndThrow(FileObject[] array, FileObject o, long maxLength) throws IOException {
+    private static void closeAndThrow(FileObject[] array, FileObject o, long maxLength) throws IOException {
         String message = "Expected file length: " + maxLength + " got: " + o.length() + " for " + o.getName();
         for (FileObject f : array) {
             f.close();
@@ -258,10 +258,6 @@ public class FileSystemSplit extends FileSystemWrapper {
             fileName += "." + id + PART_SUFFIX;
         }
         return fileName;
-    }
-
-    private FileSystem getFileSystem(String fileName) {
-        return FileSystem.getInstance(fileName);
     }
 
     protected String getPrefix() {

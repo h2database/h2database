@@ -98,7 +98,7 @@ public class RailroadImages {
         }
     }
 
-    private BufferedImage flipHorizontal(BufferedImage img) {
+    private static BufferedImage flipHorizontal(BufferedImage img) {
         int w = img.getWidth(), h = img.getHeight();
         BufferedImage copy = new BufferedImage(w, h, img.getType());
         Graphics2D g = copy.createGraphics();

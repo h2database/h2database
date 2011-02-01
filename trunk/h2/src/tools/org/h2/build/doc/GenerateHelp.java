@@ -26,10 +26,6 @@ public class GenerateHelp {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        new GenerateHelp().run();
-    }
-
-    private void run() throws Exception {
         String in = "src/docsrc/help/help.csv";
         String out = "src/main/org/h2/res/help.csv";
         Csv csv = Csv.getInstance();

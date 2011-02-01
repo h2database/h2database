@@ -53,7 +53,7 @@ public class XMLChecker {
         }
     }
 
-    private void processFile(String fileName) throws Exception {
+    private static void processFile(String fileName) throws Exception {
         int idx = fileName.lastIndexOf('.');
         if (idx < 0) {
             return;

@@ -214,7 +214,7 @@ public class FtpControl extends Thread {
             if ("PWD".equals(command)) {
                 reply(257, StringUtils.quoteIdentifier(currentDir) + " directory");
             } else if ("PASV".equals(command)) {
-                ServerSocket dataSocket = server.createDataSocket();
+                ServerSocket dataSocket = FtpServer.createDataSocket();
                 data = new FtpData(server, control.getInetAddress(), dataSocket);
                 data.start();
                 int port = dataSocket.getLocalPort();

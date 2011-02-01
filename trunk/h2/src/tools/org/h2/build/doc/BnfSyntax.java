@@ -31,7 +31,7 @@ public class BnfSyntax implements BnfVisitor {
      */
     public String getHtml(Bnf bnf, String syntaxLines) {
         syntaxLines = StringUtils.replaceAll(syntaxLines, "\n    ", "\n");
-        StringTokenizer tokenizer = bnf.getTokenizer(syntaxLines);
+        StringTokenizer tokenizer = Bnf.getTokenizer(syntaxLines);
         StringBuilder buff = new StringBuilder();
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();

@@ -236,7 +236,7 @@ public class BuildBase {
         }
     }
 
-    private Object invoke(Method m, Object instance, Object[] args) {
+    private static Object invoke(Method m, Object instance, Object[] args) {
         try {
             try {
                 return m.invoke(instance, args);
@@ -290,7 +290,7 @@ public class BuildBase {
         sysOut.println();
     }
 
-    private boolean isWindows() {
+    private static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().indexOf("windows") >= 0;
     }
 
@@ -340,7 +340,7 @@ public class BuildBase {
         }
     }
 
-    private void copyInThread(final InputStream in, final OutputStream out) {
+    private static void copyInThread(final InputStream in, final OutputStream out) {
         new Thread() {
             public void run() {
                 try {
@@ -367,7 +367,7 @@ public class BuildBase {
      * @param fieldName the field name
      * @return the value as a string
      */
-    protected String getStaticField(String className, String fieldName) {
+    protected static String getStaticField(String className, String fieldName) {
         try {
             Class<?> clazz = Class.forName(className);
             Field field = clazz.getField(fieldName);
@@ -384,7 +384,7 @@ public class BuildBase {
      * @param methodName the field name
      * @return the value as a string
      */
-    protected String getStaticValue(String className, String methodName) {
+    protected static String getStaticValue(String className, String methodName) {
         try {
             Class<?> clazz = Class.forName(className);
             Method method = clazz.getMethod(methodName);
@@ -485,7 +485,7 @@ public class BuildBase {
         }
     }
 
-    private String convertBytesToString(byte[] value) {
+    private static String convertBytesToString(byte[] value) {
         StringBuilder buff = new StringBuilder(value.length * 2);
         for (byte c : value) {
             int x = c & 0xff;
@@ -501,7 +501,7 @@ public class BuildBase {
      * @param data the byte array
      * @return the SHA1 checksum
      */
-    protected String getSHA1(byte[] data) {
+    protected static String getSHA1(byte[] data) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-1");
@@ -580,7 +580,7 @@ public class BuildBase {
      * @param args the arguments
      * @return the string list
      */
-    protected StringList args(String...args) {
+    protected static StringList args(String...args) {
         return new StringList(args);
     }
 
@@ -597,7 +597,7 @@ public class BuildBase {
         }
     }
 
-    private String removeBase(String basePath, String path) {
+    private static String removeBase(String basePath, String path) {
         if (path.startsWith(basePath)) {
             path = path.substring(basePath.length());
         }
@@ -653,7 +653,7 @@ public class BuildBase {
      * @param fileName the file name
      * @return the suffix or an empty string if there is none
      */
-    String getSuffix(String fileName) {
+    static String getSuffix(String fileName) {
         int idx = fileName.lastIndexOf('.');
         return idx < 0 ? "" : fileName.substring(idx);
     }
@@ -686,7 +686,7 @@ public class BuildBase {
         println("Zip " + destFile + " (" + kb + " KB)");
     }
 
-    private long zipOrJar(String destFile, FileList files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
+    private static long zipOrJar(String destFile, FileList files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
             Collections.sort(files, new Comparator<File>() {
@@ -742,11 +742,11 @@ public class BuildBase {
      *
      * @return the java specification version
      */
-    protected String getJavaSpecVersion() {
+    protected static String getJavaSpecVersion() {
         return System.getProperty("java.specification.version");
     }
 
-    private List<String> getPaths(FileList files) {
+    private static List<String> getPaths(FileList files) {
         StringList list = new StringList();
         for (File f : files) {
             list.add(f.getPath());
@@ -811,7 +811,7 @@ public class BuildBase {
      *
      * @param dir the directory to create
      */
-    protected void mkdir(String dir) {
+    protected static void mkdir(String dir) {
         File f = new File(dir);
         if (f.exists()) {
             if (f.isFile()) {
@@ -822,7 +822,7 @@ public class BuildBase {
         }
     }
 
-    private void mkdirs(File f) {
+    private static void mkdirs(File f) {
         if (!f.exists()) {
             if (!f.mkdirs()) {
                 throw new RuntimeException("Can not create directory " + f.getAbsolutePath());

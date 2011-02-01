@@ -125,7 +125,7 @@ public class Build extends BuildBase {
         switchSource(true);
     }
 
-    private void switchSource(boolean enableCheck) {
+    private static void switchSource(boolean enableCheck) {
         try {
             String version = System.getProperty("version");
             String check = enableCheck ? "+CHECK" : "-CHECK";
@@ -190,7 +190,7 @@ public class Build extends BuildBase {
         resources(clientOnly, basicResourcesOnly);
     }
 
-    private void filter(String source, String target, String old, String replacement) {
+    private static void filter(String source, String target, String old, String replacement) {
         String text = new String(readFile(new File(source)));
         text = replaceAll(text, old, replacement);
         writeFile(new File(target), text.getBytes());
@@ -263,15 +263,15 @@ public class Build extends BuildBase {
                 "4da67bb4a6eea5dc273f99c50ad2333eadb46f86");
     }
 
-    private String getVersion() {
+    private static String getVersion() {
         return getStaticValue("org.h2.engine.Constants", "getVersion");
     }
 
-    private String getLuceneJar() {
+    private static String getLuceneJar() {
         return "lucene-core-" + (getLuceneVersion() == 2 ? "2.2.0" : "3.0.2") + ".jar";
     }
 
-    private int getLuceneVersion() {
+    private static int getLuceneVersion() {
         // use Lucene 2 for H2 1.2.x, and Lucene 3 for H2 1.3.x.
         String s = new String(readFile(new File("src/main/org/h2/engine/Constants.java")));
         int idx = s.indexOf("VERSION_MINOR") + "VERSION_MINOR".length() + 3;
@@ -279,7 +279,7 @@ public class Build extends BuildBase {
         return Integer.parseInt(System.getProperty("lucene", "" + version));
     }
 
-    private String getJarSuffix() {
+    private static String getJarSuffix() {
         return "-" + getVersion() + ".jar";
     }
 
@@ -318,7 +318,7 @@ public class Build extends BuildBase {
         updateChecksum("../h2web/html/download.html", sha1Zip, sha1Exe);
     }
 
-    private void updateChecksum(String fileName, String sha1Zip, String sha1Exe) {
+    private static void updateChecksum(String fileName, String sha1Zip, String sha1Exe) {
         String checksums = new String(readFile(new File(fileName)));
         checksums = replaceAll(checksums, "<!-- sha1Zip -->",
                 "(SHA1 checksum: " + sha1Zip + ")");
@@ -468,7 +468,7 @@ public class Build extends BuildBase {
         copy("docs/javadocImpl", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
 
-    private void manifest(String title, String mainClassName) {
+    private static void manifest(String title, String mainClassName) {
         String manifest = new String(readFile(new File("src/main/META-INF/MANIFEST.MF")));
         manifest = replaceAll(manifest, "${title}", title);
         manifest = replaceAll(manifest, "${version}", getVersion());

@@ -93,7 +93,7 @@ public class Migrate {
         new File(TEMP_SCRIPT).delete();
     }
 
-    private String getJavaExecutablePath() {
+    private static String getJavaExecutablePath() {
         String pathToJava;
         if (File.separator.equals("\\")) {
             pathToJava = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java.exe";
@@ -149,7 +149,7 @@ public class Migrate {
         writeFile(targetFile, data);
     }
 
-    private void mkdirs(File f) {
+    private static void mkdirs(File f) {
         if (!f.exists()) {
             if (!f.mkdirs()) {
                 throw new RuntimeException("Can not create directory " + f.getAbsolutePath());
@@ -169,7 +169,7 @@ public class Migrate {
         }
     }
 
-    private String getSHA1(byte[] data) {
+    private static String getSHA1(byte[] data) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-1");
@@ -179,7 +179,7 @@ public class Migrate {
         }
     }
 
-    private String convertBytesToString(byte[] value) {
+    private static String convertBytesToString(byte[] value) {
         StringBuilder buff = new StringBuilder(value.length * 2);
         for (byte c : value) {
             int x = c & 0xff;
@@ -216,7 +216,7 @@ public class Migrate {
         }
     }
 
-    private void copyInThread(final InputStream in, final OutputStream out) {
+    private static void copyInThread(final InputStream in, final OutputStream out) {
         new Thread() {
             public void run() {
                 try {

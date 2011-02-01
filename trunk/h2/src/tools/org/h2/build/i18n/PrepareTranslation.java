@@ -43,10 +43,6 @@ public class PrepareTranslation {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        new PrepareTranslation().run();
-    }
-
-    private void run() throws Exception {
         String baseDir = "src/docsrc/textbase";
         prepare(baseDir, "src/main/org/h2/res", true);
         prepare(baseDir, "src/main/org/h2/server/web/res", true);
@@ -391,7 +387,7 @@ public class PrepareTranslation {
         prop.setProperty(document, s);
     }
 
-    private void prepare(String baseDir, String path, boolean utf8) throws IOException {
+    private static void prepare(String baseDir, String path, boolean utf8) throws IOException {
         String suffix = utf8 ? ".prop" : ".properties";
         File dir = new File(path);
         File main = null;
@@ -435,7 +431,7 @@ public class PrepareTranslation {
         }
     }
 
-    private void prepare(Properties main, Properties base, File trans, boolean utf8) throws IOException {
+    private static void prepare(Properties main, Properties base, File trans, boolean utf8) throws IOException {
         SortedProperties p = load(trans.getAbsolutePath(), utf8);
         Properties oldTranslations = new Properties();
         for (Object k : base.keySet()) {

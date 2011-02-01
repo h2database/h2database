@@ -427,7 +427,7 @@ public class Doclet {
         return false;
     }
 
-    private Type getReturnType(ExecutableMemberDoc method) {
+    private static Type getReturnType(ExecutableMemberDoc method) {
         if (method instanceof MethodDoc) {
             MethodDoc m = (MethodDoc) method;
             return m.returnType();

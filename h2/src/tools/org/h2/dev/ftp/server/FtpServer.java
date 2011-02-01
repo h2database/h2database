@@ -215,7 +215,7 @@ public class FtpServer extends Tool implements Service {
      *
      * @return the server socket
      */
-    ServerSocket createDataSocket() {
+    static ServerSocket createDataSocket() {
         return NetUtils.createServerSocket(0, false);
     }
 

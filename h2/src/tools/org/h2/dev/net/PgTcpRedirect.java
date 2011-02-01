@@ -537,7 +537,7 @@ public class PgTcpRedirect {
      * @param buffer the byte array
      * @param len the length
      */
-    synchronized void printData(byte[] buffer, int len) {
+    synchronized static void printData(byte[] buffer, int len) {
         if (DEBUG) {
             System.out.print(" ");
             for (int i = 0; i < len; i++) {

@@ -176,7 +176,7 @@ public class GenerateDoc {
         }
     }
 
-    private String addCode(String text) {
+    private static String addCode(String text) {
         text = StringUtils.replaceAll(text, "&quot;", "\"");
         StringBuilder buff = new StringBuilder(text.length());
         int len = text.length();

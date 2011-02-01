@@ -60,7 +60,7 @@ public class MergeDocs {
         writer.close();
     }
 
-    private String disableRailroads(String text) {
+    private static String disableRailroads(String text) {
         text = StringUtils.replaceAll(text, "<!-- railroad-start -->", "<!-- railroad-start ");
         text = StringUtils.replaceAll(text, "<!-- railroad-end -->", " railroad-end -->");
         text = StringUtils.replaceAll(text, "<!-- syntax-start", "<!-- syntax-start -->");
@@ -68,7 +68,7 @@ public class MergeDocs {
         return text;
     }
 
-    private String removeHeaderFooter(String fileName, String text) {
+    private static String removeHeaderFooter(String fileName, String text) {
         // String start = "<body";
         // String end = "</body>";
 

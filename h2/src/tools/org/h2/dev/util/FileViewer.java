@@ -86,7 +86,7 @@ public class FileViewer extends Tool {
         }
     }
 
-    private void process(String fileName, String find, boolean head, boolean tail, long start, int lines, boolean quiet) throws IOException {
+    private static void process(String fileName, String find, boolean head, boolean tail, long start, int lines, boolean quiet) throws IOException {
         RandomAccessFile file = new RandomAccessFile(fileName, "r");
         long length = file.length();
         if (head) {
@@ -121,7 +121,7 @@ public class FileViewer extends Tool {
         }
     }
 
-    private long find(RandomAccessFile file, byte[] find, boolean quiet) throws IOException {
+    private static long find(RandomAccessFile file, byte[] find, boolean quiet) throws IOException {
         long pos = file.getFilePointer();
         long length = file.length();
         int bufferSize = 4 * 1024;
@@ -150,7 +150,7 @@ public class FileViewer extends Tool {
         return -1;
     }
 
-    private int find(byte[] data, byte[] find, int max) {
+    private static int find(byte[] data, byte[] find, int max) {
         outer:
         for (int i = 0; i < max; i++) {
             for (int j = 0; j < find.length; j++) {
@@ -163,7 +163,7 @@ public class FileViewer extends Tool {
         return -1;
     }
 
-    private void list(long pos, String header, ArrayList<String> list) {
+    private static void list(long pos, String header, ArrayList<String> list) {
         System.out.println("-----------------------------------------------");
         System.out.println("[" + pos + "]: " + header);
         System.out.println("-----------------------------------------------");
@@ -173,7 +173,7 @@ public class FileViewer extends Tool {
         System.out.println("-----------------------------------------------");
     }
 
-    private ArrayList<String> readLines(RandomAccessFile file, int maxLines) throws IOException {
+    private static ArrayList<String> readLines(RandomAccessFile file, int maxLines) throws IOException {
         ArrayList<String> lines = new ArrayList<String>();
         ByteArrayOutputStream buff = new ByteArrayOutputStream(100);
         boolean lastNewline = false;

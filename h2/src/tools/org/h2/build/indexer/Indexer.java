@@ -354,7 +354,7 @@ public class Indexer {
         }
     }
 
-    private String convertUTF(String s) {
+    private static String convertUTF(String s) {
         s = StringUtils.quoteJavaString(s);
         s = s.substring(1, s.length() - 1);
         return s;

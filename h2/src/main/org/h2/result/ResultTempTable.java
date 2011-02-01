@@ -183,7 +183,7 @@ public class ResultTempTable implements ResultExternal {
         resultCursor = index.find(session, null, null);
     }
 
-    private Row convertToRow(Value[] values) {
+    private static Row convertToRow(Value[] values) {
         ValueArray data = ValueArray.get(values);
         return new Row(new Value[]{data}, Row.MEMORY_CALCULATE);
     }

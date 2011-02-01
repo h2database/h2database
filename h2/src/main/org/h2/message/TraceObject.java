@@ -163,7 +163,7 @@ public class TraceObject {
      * @param type the object type
      * @return the new trace object id
      */
-    protected int getNextId(int type) {
+    protected static int getNextId(int type) {
         return ID[type]++;
     }
 
@@ -257,7 +257,7 @@ public class TraceObject {
      * @param s the string to convert
      * @return the Java string literal
      */
-    protected String quote(String s) {
+    protected static String quote(String s) {
         return StringUtils.quoteJavaString(s);
     }
 
@@ -267,7 +267,7 @@ public class TraceObject {
      * @param x the time to convert
      * @return the Java source code
      */
-    protected String quoteTime(java.sql.Time x) {
+    protected static String quoteTime(java.sql.Time x) {
         if (x == null) {
             return "null";
         }
@@ -280,7 +280,7 @@ public class TraceObject {
      * @param x the timestamp to convert
      * @return the Java source code
      */
-    protected String quoteTimestamp(java.sql.Timestamp x) {
+    protected static String quoteTimestamp(java.sql.Timestamp x) {
         if (x == null) {
             return "null";
         }
@@ -293,7 +293,7 @@ public class TraceObject {
      * @param x the date to convert
      * @return the Java source code
      */
-    protected String quoteDate(java.sql.Date x) {
+    protected static String quoteDate(java.sql.Date x) {
         if (x == null) {
             return "null";
         }
@@ -306,7 +306,7 @@ public class TraceObject {
      * @param x the big decimal to convert
      * @return the Java source code
      */
-    protected String quoteBigDecimal(BigDecimal x) {
+    protected static String quoteBigDecimal(BigDecimal x) {
         if (x == null) {
             return "null";
         }
@@ -319,7 +319,7 @@ public class TraceObject {
      * @param x the byte array to convert
      * @return the Java source code
      */
-    protected String quoteBytes(byte[] x) {
+    protected static String quoteBytes(byte[] x) {
         if (x == null) {
             return "null";
         }
@@ -333,7 +333,7 @@ public class TraceObject {
      * @param s the string array to convert
      * @return the Java source code
      */
-    protected String quoteArray(String[] s) {
+    protected static String quoteArray(String[] s) {
         return StringUtils.quoteJavaStringArray(s);
     }
 
@@ -343,7 +343,7 @@ public class TraceObject {
      * @param s the int array to convert
      * @return the Java source code
      */
-    protected String quoteIntArray(int[] s) {
+    protected static String quoteIntArray(int[] s) {
         return StringUtils.quoteJavaIntArray(s);
     }
 
@@ -353,7 +353,7 @@ public class TraceObject {
      * @param map the map to convert
      * @return the Java source code
      */
-    protected String quoteMap(Map<String, Class<?>> map) {
+    protected static String quoteMap(Map<String, Class<?>> map) {
         if (map == null) {
             return "null";
         }

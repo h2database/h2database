@@ -203,7 +203,7 @@ public class Engine implements SessionFactory {
         return session;
     }
 
-    private void checkClustering(ConnectionInfo ci, Database database) {
+    private static void checkClustering(ConnectionInfo ci, Database database) {
         String clusterSession = ci.getProperty(SetTypes.CLUSTER, null);
         if (Constants.CLUSTERING_DISABLED.equals(clusterSession)) {
             // in this case, no checking is made

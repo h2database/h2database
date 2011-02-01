@@ -89,16 +89,15 @@ public class DeleteDbFiles extends Tool {
         if (files.size() == 0 && !quiet) {
             printNoDatabaseFilesFound(dir, db);
         }
-        DeleteDbFiles delete = new DeleteDbFiles();
         for (String fileName : files) {
-            delete.process(fileName, quiet);
+            process(fileName, quiet);
             if (!quiet) {
                 out.println("Processed: " + fileName);
             }
         }
     }
 
-    private void process(String fileName, boolean quiet) {
+    private static void process(String fileName, boolean quiet) {
         if (IOUtils.isDirectory(fileName)) {
             // only delete empty directories
             IOUtils.tryDelete(fileName);

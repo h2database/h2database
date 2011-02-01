@@ -75,8 +75,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     public void setPassword(char[] password) {
-        SHA256 sha = new SHA256();
-        key = sha.getKeyPasswordHash("script", password);
+        key = SHA256.getKeyPasswordHash("script", password);
     }
 
     public void setFileNameExpr(Expression file) {

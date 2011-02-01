@@ -275,7 +275,7 @@ public abstract class Query extends Prepared {
      * @param mustBeInResult all order by expressions must be in the select list
      * @return the new list (expressions may be added)
      */
-    void initOrder(ArrayList<Expression> expressions, ArrayList<String> expressionSQL, ArrayList<SelectOrderBy> orderList, int visible,
+    static void initOrder(ArrayList<Expression> expressions, ArrayList<String> expressionSQL, ArrayList<SelectOrderBy> orderList, int visible,
             boolean mustBeInResult) {
         for (SelectOrderBy o : orderList) {
             Expression e = o.expression;

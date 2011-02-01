@@ -304,7 +304,7 @@ public abstract class FileSystem {
      * @param newRandom if the random part of the filename should change
      * @return the file name part
      */
-    protected synchronized String getNextTempFileNamePart(boolean newRandom) {
+    protected static synchronized String getNextTempFileNamePart(boolean newRandom) {
         if (newRandom || tempRandom == null) {
             byte[] prefix = new byte[8];
             MathUtils.randomBytes(prefix);
@@ -345,5 +345,9 @@ public abstract class FileSystem {
      * @return the unwrapped
      */
     public abstract String unwrap(String fileName);
+
+    protected static FileSystem getFileSystem(String fileName) {
+        return FileSystem.getInstance(fileName);
+    }
 
 }

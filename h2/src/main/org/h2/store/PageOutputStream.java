@@ -29,7 +29,6 @@ public class PageOutputStream {
     private int trunkIndex;
     private PageStreamData data;
     private int reserved;
-    private int remaining;
     private boolean needFlush;
     private boolean writing;
     private int pageCount;
@@ -135,7 +134,6 @@ public class PageOutputStream {
                 len -= l;
             }
             needFlush = true;
-            remaining -= len;
         } finally {
             writing = false;
         }

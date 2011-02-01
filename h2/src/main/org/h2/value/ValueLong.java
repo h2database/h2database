@@ -84,7 +84,7 @@ public class ValueLong extends Value {
         return ValueLong.get(-value);
     }
 
-    private DbException getOverflow() {
+    private static DbException getOverflow() {
         return DbException.get(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.LONG).name);
     }
 
@@ -102,7 +102,7 @@ public class ValueLong extends Value {
         return add(other.negate());
     }
 
-    private boolean isInteger(long a) {
+    private static boolean isInteger(long a) {
         return a >= Integer.MIN_VALUE && a <= Integer.MAX_VALUE;
     }
 

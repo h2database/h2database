@@ -267,15 +267,14 @@ public class ConnectionInfo implements Cloneable {
         userPasswordHash = hashPassword(passwordHash, user, password);
     }
 
-    private byte[] hashPassword(boolean passwordHash, String userName, char[] password) {
+    private static byte[] hashPassword(boolean passwordHash, String userName, char[] password) {
         if (passwordHash) {
             return StringUtils.convertStringToBytes(new String(password));
         }
         if (userName.length() == 0 && password.length == 0 && SysProperties.EMPTY_PASSWORD) {
             return new byte[0];
         }
-        SHA256 sha = new SHA256();
-        return sha.getKeyPasswordHash(userName, password);
+        return SHA256.getKeyPasswordHash(userName, password);
     }
 
     /**

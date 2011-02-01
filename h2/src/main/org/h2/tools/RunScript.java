@@ -152,10 +152,6 @@ public class RunScript extends Tool {
      * @return the last result set
      */
     public static ResultSet execute(Connection conn, Reader reader) throws SQLException {
-        return new RunScript().process(conn, reader);
-    }
-
-    private ResultSet process(Connection conn, Reader reader) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = null;
         ScriptReader r = new ScriptReader(reader);

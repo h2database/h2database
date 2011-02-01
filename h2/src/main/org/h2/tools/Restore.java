@@ -68,7 +68,7 @@ public class Restore extends Tool {
                 throwUnsupportedOption(arg);
             }
         }
-        process(zipFileName, dir, db);
+        execute(zipFileName, dir, db, false);
     }
 
     private static String getOriginalDbName(String fileName, String db) throws IOException {
@@ -121,19 +121,6 @@ public class Restore extends Tool {
      * @throws SQLException
      */
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
-        new Restore().process(zipFileName, directory, db);
-    }
-
-    /**
-     * Restores database files.
-     *
-     * @param zipFileName the name of the backup file
-     * @param directory the directory name
-     * @param db the database name (null for all databases)
-     * @param quiet don't print progress information
-     * @throws SQLException
-     */
-    private void process(String zipFileName, String directory, String db) throws SQLException {
         InputStream in = null;
         try {
             if (!IOUtils.exists(zipFileName)) {

@@ -113,7 +113,7 @@ public class FileObjectDiskMapped implements FileObject {
         this.pos = Math.min(oldPos, (int) length);
     }
 
-    private void checkFileSizeLimit(long length) throws IOException {
+    private static void checkFileSizeLimit(long length) throws IOException {
         if (length > Integer.MAX_VALUE) {
             throw new IOException("File over 2GB is not supported yet when using this file system");
         }

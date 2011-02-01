@@ -258,14 +258,10 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     /**
      * Open a new (remote or embedded) session.
      *
-     * @param ci the connection info
+     * @param openNew whether to open a new session in any case
      * @return the session
      */
-    public SessionInterface createSession(ConnectionInfo ci) {
-        return new SessionRemote(ci).connectEmbeddedOrServer(false);
-    }
-
-    private SessionInterface connectEmbeddedOrServer(boolean openNew) {
+    public SessionInterface connectEmbeddedOrServer(boolean openNew) {
         ConnectionInfo ci = connectionInfo;
         if (ci.isRemote()) {
             connectServer(ci);

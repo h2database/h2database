@@ -54,7 +54,7 @@ public class DbStarter implements ServletContextListener {
         }
     }
 
-    private String getParameter(ServletContext servletContext, String key, String defaultValue) {
+    private static String getParameter(ServletContext servletContext, String key, String defaultValue) {
         String value = servletContext.getInitParameter(key);
         return value == null ? defaultValue : value;
     }

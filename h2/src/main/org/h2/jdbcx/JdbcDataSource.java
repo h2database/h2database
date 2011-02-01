@@ -228,11 +228,11 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         this.passwordChars = password;
     }
 
-    private char[] convertToCharArray(String s) {
+    private static char[] convertToCharArray(String s) {
         return s == null ? null : s.toCharArray();
     }
 
-    private String convertToString(char[] a) {
+    private static String convertToString(char[] a) {
         return a == null ? null : new String(a);
     }
 

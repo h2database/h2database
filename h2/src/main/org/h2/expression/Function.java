@@ -408,7 +408,7 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private strictfp double log10(double value) {
+    private static strictfp double log10(double value) {
         return roundmagic(StrictMath.log(value) / StrictMath.log(10));
     }
 
@@ -416,7 +416,7 @@ public class Function extends Expression implements FunctionCall {
         return getValueWithArgs(session, args);
     }
 
-    private Value getNullOrValue(Session session, Expression[] x, int i) {
+    private static Value getNullOrValue(Session session, Expression[] x, int i) {
         if (i < x.length) {
             Expression e = x[i];
             if (e != null) {
@@ -824,7 +824,7 @@ public class Function extends Expression implements FunctionCall {
         return result;
     }
 
-    private boolean cancelStatement(Session session, int targetSessionId) {
+    private static boolean cancelStatement(Session session, int targetSessionId) {
         session.getUser().checkAdmin();
         Session[] sessions = session.getDatabase().getSessions(false);
         for (Session s : sessions) {
@@ -1174,7 +1174,7 @@ public class Function extends Expression implements FunctionCall {
         return database.getSchema(schemaName).getSequence(sequenceName);
     }
 
-    private long length(Value v) {
+    private static long length(Value v) {
         switch (v.getType()) {
         case Value.BLOB:
         case Value.CLOB:
@@ -1186,14 +1186,14 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
+    private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
         int size = MathUtils.roundUpInt(data.length, blockSize);
         byte[] newData = Utils.newBytes(size);
         System.arraycopy(data, 0, newData, 0, data.length);
         return newData;
     }
 
-    private byte[] decrypt(String algorithm, byte[] key, byte[] data) {
+    private static byte[] decrypt(String algorithm, byte[] key, byte[] data) {
         BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
         byte[] newKey = getPaddedArrayCopy(key, cipher.getKeyLength());
         cipher.setKey(newKey);
@@ -1202,7 +1202,7 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private byte[] encrypt(String algorithm, byte[] key, byte[] data) {
+    private static byte[] encrypt(String algorithm, byte[] key, byte[] data) {
         BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
         byte[] newKey = getPaddedArrayCopy(key, cipher.getKeyLength());
         cipher.setKey(newKey);
@@ -1211,10 +1211,12 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private byte[] getHash(String algorithm, byte[] bytes, int iterations) {
-        SHA256 hash = CipherFactory.getHash(algorithm);
+    private static byte[] getHash(String algorithm, byte[] bytes, int iterations) {
+        if (!"SHA256".equalsIgnoreCase(algorithm)) {
+            throw DbException.getInvalidValueException("algorithm", algorithm);
+        }
         for (int i = 0; i < iterations; i++) {
-            bytes = hash.getHash(bytes, false);
+            bytes = SHA256.getHash(bytes, false);
         }
         return bytes;
     }
@@ -1454,7 +1456,7 @@ public class Function extends Expression implements FunctionCall {
         return e;
     }
 
-    private double roundmagic(double d) {
+    private static double roundmagic(double d) {
         if ((d < 0.0000000000001) && (d > -0.0000000000001)) {
             return 0.0;
         }
@@ -1944,7 +1946,7 @@ public class Function extends Expression implements FunctionCall {
         return (ValueResultSet) getValueWithArgs(session, argList);
     }
 
-    private void setCsvDelimiterEscape(Csv csv, String fieldSeparator, String fieldDelimiter, String escapeCharacter) {
+    private static void setCsvDelimiterEscape(Csv csv, String fieldSeparator, String fieldDelimiter, String escapeCharacter) {
         if (fieldSeparator != null) {
             csv.setFieldSeparatorWrite(fieldSeparator);
             if (fieldSeparator.length() > 0) {

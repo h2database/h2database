@@ -270,7 +270,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         this.updateAction = action;
     }
 
-    private Index getUniqueIndex(Table t, IndexColumn[] cols) {
+    private static Index getUniqueIndex(Table t, IndexColumn[] cols) {
         for (Index idx : t.getIndexes()) {
             if (canUseUniqueIndex(idx, t, cols)) {
                 return idx;
@@ -279,7 +279,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
 
-    private Index getIndex(Table t, IndexColumn[] cols) {
+    private static Index getIndex(Table t, IndexColumn[] cols) {
         for (Index idx : t.getIndexes()) {
             if (canUseIndex(idx, t, cols)) {
                 return idx;
@@ -288,7 +288,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
 
-    private boolean canUseUniqueIndex(Index idx, Table table, IndexColumn[] cols) {
+    private static boolean canUseUniqueIndex(Index idx, Table table, IndexColumn[] cols) {
         if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
             return false;
         }
@@ -310,7 +310,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return true;
     }
 
-    private boolean canUseIndex(Index existingIndex, Table table, IndexColumn[] cols) {
+    private static boolean canUseIndex(Index existingIndex, Table table, IndexColumn[] cols) {
         if (existingIndex.getTable() != table || existingIndex.getCreateSQL() == null) {
             // can't use the scan index or index of another table
             return false;

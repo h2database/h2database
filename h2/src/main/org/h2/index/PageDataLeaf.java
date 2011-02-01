@@ -17,6 +17,8 @@ import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
+import org.h2.table.RegularTable;
+import org.h2.value.Value;
 
 /**
  * A leaf page that contains data of one or multiple rows. Format:
@@ -324,7 +326,7 @@ public class PageDataLeaf extends PageData {
         Row r = rows[at];
         if (r == null) {
             if (firstOverflowPageId == 0) {
-                r = index.readRow(data, offsets[at], columnCount);
+                r = readRow(data, offsets[at], columnCount);
             } else {
                 if (rowRef != null) {
                     r = rowRef.get();
@@ -343,7 +345,7 @@ public class PageDataLeaf extends PageData {
                     next = page.readInto(buff);
                 } while (next != 0);
                 overflowRowSize = pageSize + buff.length();
-                r = index.readRow(buff, 0, columnCount);
+                r = readRow(buff, 0, columnCount);
             }
             r.setKey(keys[at]);
             if (firstOverflowPageId != 0) {
@@ -578,6 +580,25 @@ public class PageDataLeaf extends PageData {
 
     public boolean isStream() {
         return firstOverflowPageId > 0;
+    }
+
+    /**
+     * Read a row from the data page at the given position.
+     *
+     * @param data the data page
+     * @param pos the position to read from
+     * @param columnCount the number of columns
+     * @return the row
+     */
+    private static Row readRow(Data data, int pos, int columnCount) {
+        Value[] values = new Value[columnCount];
+        synchronized (data) {
+            data.setPos(pos);
+            for (int i = 0; i < columnCount; i++) {
+                values[i] = data.readValue();
+            }
+        }
+        return RegularTable.createRow(values);
     }
 
 }

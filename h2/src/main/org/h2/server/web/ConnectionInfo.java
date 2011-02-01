@@ -52,7 +52,7 @@ public class ConnectionInfo implements Comparable<ConnectionInfo> {
         user = get(array, 3);
     }
 
-    private String get(String[] array, int i) {
+    private static String get(String[] array, int i) {
         return array != null && array.length > i ? array[i] : "";
     }
 

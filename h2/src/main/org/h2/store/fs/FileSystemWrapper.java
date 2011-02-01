@@ -25,16 +25,6 @@ public abstract class FileSystemWrapper extends FileSystem {
      */
     protected abstract String getPrefix();
 
-    /**
-     * Wrap the file object if required.
-     *
-     * @param o the file object
-     * @return the wrapped object
-     */
-    protected FileObject wrap(FileObject o) {
-        return null;
-    }
-
     public boolean canWrite(String fileName) {
         return IOUtils.canWrite(unwrap(fileName));
     }

@@ -226,7 +226,7 @@ public class JdbcArray extends TraceObject implements Array {
         value = null;
     }
 
-    private ResultSet getResultSet(Object[] array, long offset) {
+    private static ResultSet getResultSet(Object[] array, long offset) {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("INDEX", Types.BIGINT, 0, 0);
         // TODO array result set: there are multiple data types possible
@@ -263,7 +263,7 @@ public class JdbcArray extends TraceObject implements Array {
         return subset;
     }
 
-    private void checkMap(Map<String, Class<?>> map) {
+    private static void checkMap(Map<String, Class<?>> map) {
         if (map != null && map.size() > 0) {
             throw DbException.getUnsupportedException("map.size > 0");
         }

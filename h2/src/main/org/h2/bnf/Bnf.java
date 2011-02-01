@@ -78,7 +78,7 @@ public class Bnf {
         Csv csv = Csv.getInstance();
         csv.setLineCommentCharacter('#');
         ResultSet rs = csv.read(reader, null);
-        for (int id = 0; rs.next(); id++) {
+        while (rs.next()) {
             String section = rs.getString("SECTION").trim();
             if (section.startsWith("System")) {
                 continue;
@@ -336,7 +336,7 @@ public class Bnf {
      * @param s the syntax
      * @return the tokenizer
      */
-    public StringTokenizer getTokenizer(String s) {
+    public static StringTokenizer getTokenizer(String s) {
         return new StringTokenizer(s, " [](){}|.,\r\n<>:-+*/=<\">!'$", true);
     }
 

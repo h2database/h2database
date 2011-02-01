@@ -315,7 +315,7 @@ public class RegularTable extends TableBase {
         return true;
     }
 
-    private void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
+    private static void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
         final Index idx = index;
         Collections.sort(list, new Comparator<Row>() {
             public int compare(Row r1, Row r2) {
@@ -523,7 +523,7 @@ public class RegularTable extends TableBase {
         }
     }
 
-    private String getDeadlockDetails(ArrayList<Session> sessions) {
+    private static String getDeadlockDetails(ArrayList<Session> sessions) {
         StringBuilder buff = new StringBuilder();
         for (Session s : sessions) {
             Table lock = s.getWaitForLock();
@@ -631,7 +631,7 @@ public class RegularTable extends TableBase {
      * @param data the value list
      * @return the row
      */
-    public Row createRow(Value[] data) {
+    public static Row createRow(Value[] data) {
         return new Row(data, Row.MEMORY_CALCULATE);
     }
 

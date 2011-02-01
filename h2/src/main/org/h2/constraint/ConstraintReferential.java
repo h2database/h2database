@@ -75,7 +75,7 @@ public class ConstraintReferential extends Constraint {
         return Constraint.REFERENTIAL;
     }
 
-    private void appendAction(StatementBuilder buff, int action) {
+    private static void appendAction(StatementBuilder buff, int action) {
         switch (action) {
         case CASCADE:
             buff.append("CASCADE");

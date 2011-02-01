@@ -85,7 +85,7 @@ public class AES implements BlockCipher {
         }
     }
 
-    private int getDec(int t) {
+    private static int getDec(int t) {
         return RT0[FS[(t >> 24) & 255]] ^ RT1[FS[(t >> 16) & 255]] ^ RT2[FS[(t >> 8) & 255]] ^ RT3[FS[t & 255]];
     }
 

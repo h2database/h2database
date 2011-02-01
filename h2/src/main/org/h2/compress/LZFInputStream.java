@@ -31,7 +31,7 @@ public class LZFInputStream extends InputStream {
         }
     }
 
-    private byte[] ensureSize(byte[] buff, int len) {
+    private static byte[] ensureSize(byte[] buff, int len) {
         return buff == null || buff.length < len ? Utils.newBytes(len) : buff;
     }
 

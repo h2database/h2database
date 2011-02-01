@@ -421,13 +421,13 @@ implements XAConnection, XAResource
         return getTraceObjectName() + ": " + physicalConn;
     }
 
-    private XAException convertException(SQLException e) {
+    private static XAException convertException(SQLException e) {
         XAException xa = new XAException(e.getMessage());
         xa.initCause(e);
         return xa;
     }
 
-    private String quoteFlags(int flags) {
+    private static String quoteFlags(int flags) {
         StringBuilder buff = new StringBuilder();
         if ((flags & XAResource.TMENDRSCAN) != 0) {
             buff.append("|XAResource.TMENDRSCAN");

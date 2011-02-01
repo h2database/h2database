@@ -358,7 +358,7 @@ public class Column {
             originalSQL = "BIGINT";
         }
         String sequenceName;
-        for (int i = 0;; i++) {
+        while (true) {
             ValueUuid uuid = ValueUuid.getNewRandom();
             String s = uuid.getString();
             s = s.replace('-', '_').toUpperCase();

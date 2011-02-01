@@ -598,7 +598,7 @@ public class MetaTable extends Table {
         return true;
     }
 
-    private String replaceNullWithEmpty(String s) {
+    private static String replaceNullWithEmpty(String s) {
         return s == null ? "" : s;
     }
 
@@ -1596,7 +1596,7 @@ public class MetaTable extends Table {
         return rows;
     }
 
-    private int getRefAction(int action) {
+    private static int getRefAction(int action) {
         switch(action) {
         case ConstraintReferential.CASCADE:
             return DatabaseMetaData.importedKeyCascade;

@@ -166,7 +166,7 @@ public class WebApp {
         return file;
     }
 
-    private String getComboBox(String[] elements, String selected) {
+    private static String getComboBox(String[] elements, String selected) {
         StringBuilder buff = new StringBuilder();
         for (String value : elements) {
             buff.append("<option value=\"").
@@ -182,7 +182,7 @@ public class WebApp {
         return buff.toString();
     }
 
-    private String getComboBox(String[][] elements, String selected) {
+    private static String getComboBox(String[][] elements, String selected) {
         StringBuilder buff = new StringBuilder();
         for (String[] n : elements) {
             buff.append("<option value=\"").
@@ -420,7 +420,7 @@ public class WebApp {
     }
 
     private String index() {
-        String[][] languageArray = server.getLanguageArray();
+        String[][] languageArray = WebServer.LANGUAGES;
         String language = (String) attributes.get("language");
         Locale locale = session.locale;
         if (language != null) {
@@ -465,7 +465,7 @@ public class WebApp {
         return "query.jsp";
     }
 
-    private int addColumns(boolean mainSchema, DbTableOrView table, StringBuilder buff, int treeIndex, boolean showColumnTypes,
+    private static int addColumns(boolean mainSchema, DbTableOrView table, StringBuilder buff, int treeIndex, boolean showColumnTypes,
             StringBuilder columnsBuffer) {
         DbColumn[] columns = table.columns;
         for (int i = 0; columns != null && i < columns.length; i++) {
@@ -509,7 +509,7 @@ public class WebApp {
         String columns;
     }
 
-    private int addIndexes(boolean mainSchema, DatabaseMetaData meta, String table, String schema, StringBuilder buff, int treeIndex)
+    private static int addIndexes(boolean mainSchema, DatabaseMetaData meta, String table, String schema, StringBuilder buff, int treeIndex)
             throws SQLException {
         ResultSet rs;
         try {
@@ -767,7 +767,7 @@ public class WebApp {
         }
     }
 
-    private String linkToSource(String s) {
+    private static String linkToSource(String s) {
         try {
             StringBuilder result = new StringBuilder(s.length());
             int idx = s.indexOf("<br />");
@@ -810,7 +810,7 @@ public class WebApp {
         }
     }
 
-    private String formatAsError(String s) {
+    private static String formatAsError(String s) {
         return "<div class=\"error\">" + s + "</div>";
     }
 
@@ -887,9 +887,6 @@ public class WebApp {
         session.put("autoCommit", "checked");
         session.put("autoComplete", "1");
         session.put("maxrows", "1000");
-        if (loginAsync(driver, url, user, password)) {
-            return "";
-        }
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
             Connection conn = server.getConnection(driver, url, user, password);
@@ -903,19 +900,6 @@ public class WebApp {
             session.put("error", getLoginError(e, isH2));
             return "login.jsp";
         }
-    }
-
-    /**
-     * Login in a separate thread if possible.
-     *
-     * @param driver the driver class
-     * @param url the database URL
-     * @param user the user name
-     * @param password the password
-     * @return false if asynchronous login is not possible
-     */
-    protected boolean loginAsync(String driver, String url, String user, String password) {
-        return false;
     }
 
     private String logout() {
@@ -1168,7 +1152,7 @@ public class WebApp {
         return null;
     }
 
-    private void addDatabaseMetaData(SimpleResultSet rs, DatabaseMetaData meta) {
+    private static void addDatabaseMetaData(SimpleResultSet rs, DatabaseMetaData meta) {
         Method[] methods = DatabaseMetaData.class.getDeclaredMethods();
         Arrays.sort(methods, new Comparator<Method>() {
             public int compare(Method o1, Method o2) {
@@ -1189,7 +1173,7 @@ public class WebApp {
         }
     }
 
-    private String[] split(String s) {
+    private static String[] split(String s) {
         String[] list = new String[10];
         String[] t = StringUtils.arraySplit(s, ' ', true);
         System.arraycopy(t, 0, list, 0, t.length);
@@ -1283,8 +1267,7 @@ public class WebApp {
             } else if (isBuiltIn(sql, "@password_hash")) {
                 sql = sql.substring("@password_hash".length()).trim();
                 String[] p = split(sql);
-                SHA256 sha = new SHA256();
-                return StringUtils.convertBytesToString(sha.getKeyPasswordHash(p[0], p[1].toCharArray()));
+                return StringUtils.convertBytesToString(SHA256.getKeyPasswordHash(p[0], p[1].toCharArray()));
             } else if (isBuiltIn(sql, "@prof_start")) {
                 if (profiler != null) {
                     profiler.stopCollecting();
@@ -1359,7 +1342,7 @@ public class WebApp {
         }
     }
 
-    private boolean isBuiltIn(String sql, String builtIn) {
+    private static boolean isBuiltIn(String sql, String builtIn) {
         return StringUtils.startsWithIgnoreCase(sql, builtIn);
     }
 
@@ -1379,7 +1362,6 @@ public class WebApp {
             }
             idx++;
         }
-        int rows = 0;
         boolean prepared;
         Random random = new Random(1);
         long time = System.currentTimeMillis();
@@ -1400,7 +1382,6 @@ public class WebApp {
                 if (stat.execute(s)) {
                     ResultSet rs = stat.getResultSet();
                     while (!stop && rs.next()) {
-                        rows++;
                         // maybe get the data as well
                     }
                     rs.close();
@@ -1425,7 +1406,6 @@ public class WebApp {
                     if (prep.execute()) {
                         ResultSet rs = prep.getResultSet();
                         while (!stop && rs.next()) {
-                            rows++;
                             // maybe get the data as well
                         }
                         rs.close();
@@ -1469,7 +1449,7 @@ public class WebApp {
         return buff.toString();
     }
 
-    private String getParameterResultSet(ParameterMetaData meta) throws SQLException {
+    private static String getParameterResultSet(ParameterMetaData meta) throws SQLException {
         StringBuilder buff = new StringBuilder();
         if (meta == null) {
             return "No parameter meta data";
@@ -1683,7 +1663,7 @@ public class WebApp {
         return "index.do";
     }
 
-    private String escapeData(ResultSet rs, int columnIndex) throws SQLException {
+    private static String escapeData(ResultSet rs, int columnIndex) throws SQLException {
         String d = rs.getString(columnIndex);
         if (d == null) {
             return "<i>null</i>";
@@ -1701,7 +1681,7 @@ public class WebApp {
         return PageParser.escapeHtml(d);
     }
 
-    private boolean isBinary(int sqlType) {
+    private static boolean isBinary(int sqlType) {
         switch (sqlType) {
         case Types.BINARY:
         case Types.BLOB:

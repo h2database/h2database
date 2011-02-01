@@ -92,7 +92,7 @@ public class CreateCluster extends Tool {
      * @throws SQLException
      */
     public void execute(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
-        new CreateCluster().process(urlSource, urlTarget, user, password, serverList);
+        process(urlSource, urlTarget, user, password, serverList);
     }
 
     private void process(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
@@ -139,7 +139,7 @@ public class CreateCluster extends Tool {
                 OutputStream scriptOut = null;
                 try {
                     scriptOut = IOUtils.openFileOutputStream(scriptFile, false);
-                    script.process(connSource, scriptOut);
+                    Script.process(connSource, scriptOut);
                 } finally {
                     IOUtils.closeSilently(scriptOut);
                 }

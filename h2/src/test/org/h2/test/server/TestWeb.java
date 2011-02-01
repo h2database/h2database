@@ -197,9 +197,8 @@ public class TestWeb extends TestBase {
         result = client.get(url, "tables.do");
         result = client.get(url, "query.jsp");
         result = client.get(url, "query.do?sql=select * from test");
-        result = client.get(url, "query.do?sql=drop table test if exists");
-        result = client.get(url, "query.do?sql=select * from test");
         assertContains(result, "Hello");
+        result = client.get(url, "query.do?sql=select * from test");
         result = client.get(url, "query.do?sql=@META select * from test");
         assertContains(result, "typeName");
         result = client.get(url, "query.do?sql=delete from test");

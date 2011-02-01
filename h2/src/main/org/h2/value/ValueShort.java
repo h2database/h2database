@@ -39,7 +39,7 @@ public class ValueShort extends Value {
         return checkRange(value + other.value);
     }
 
-    private ValueShort checkRange(int x) {
+    private static ValueShort checkRange(int x) {
         if (x < Short.MIN_VALUE || x > Short.MAX_VALUE) {
             throw DbException.get(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.SHORT).name);
         }

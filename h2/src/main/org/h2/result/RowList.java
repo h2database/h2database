@@ -106,7 +106,7 @@ public class RowList {
         memory = 0;
     }
 
-    private void initBuffer(Data buff) {
+    private static void initBuffer(Data buff) {
         buff.reset();
         buff.writeInt(0);
     }
@@ -218,7 +218,7 @@ public class RowList {
                 if (len - min > 0) {
                     file.readFully(buff.getBytes(), min, len - min);
                 }
-                for (int i = 0;; i++) {
+                while (true) {
                     r = readRow(buff);
                     if (r == null) {
                         break;

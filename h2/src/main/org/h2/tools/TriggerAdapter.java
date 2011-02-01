@@ -122,7 +122,7 @@ public abstract class TriggerAdapter implements Trigger {
      */
     public abstract void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException;
 
-    private SimpleResultSet wrap(SimpleResultSet rs, TriggerRowSource source, Object[] row) throws SQLException {
+    private static SimpleResultSet wrap(SimpleResultSet rs, TriggerRowSource source, Object[] row) throws SQLException {
         if (row == null) {
             return null;
         }

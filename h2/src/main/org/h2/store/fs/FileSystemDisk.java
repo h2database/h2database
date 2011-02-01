@@ -56,7 +56,7 @@ public class FileSystemDisk extends FileSystem {
      * @param fileName the file name
      * @return the native file name
      */
-    protected String translateFileName(String fileName) {
+    protected static String translateFileName(String fileName) {
         return expandUserHomeDirectory(fileName);
     }
 
@@ -286,7 +286,7 @@ public class FileSystemDisk extends FileSystem {
         return canWriteInternal(new File(fileName));
     }
 
-    private boolean canWriteInternal(File file) {
+    private static boolean canWriteInternal(File file) {
         try {
             if (!file.canWrite()) {
                 return false;

@@ -97,11 +97,11 @@ public class Script extends Tool {
         if (options1 != null) {
             processScript(url, user, password, file, options1, options2);
         } else {
-            process(url, user, password, file);
+            execute(url, user, password, file);
         }
     }
 
-    private void processScript(String url, String user, String password, String fileName, String options1, String options2) throws SQLException {
+    private static void processScript(String url, String user, String password, String fileName, String options1, String options2) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
@@ -125,8 +125,15 @@ public class Script extends Tool {
      * @param fileName the script file
      */
     public static void execute(String url, String user, String password, String fileName) throws SQLException {
-        new Script().process(url, user, password, fileName);
+        OutputStream o = null;
+        try {
+            o = IOUtils.openFileOutputStream(fileName, false);
+            execute(url, user, password, o);
+        } finally {
+            IOUtils.closeSilently(o);
+        }
     }
+
 
     /**
      * Backs up a database to a stream. The stream is not closed.
@@ -137,58 +144,29 @@ public class Script extends Tool {
      * @param out the output stream
      */
     public static void execute(String url, String user, String password, OutputStream out) throws SQLException {
-        new Script().process(url, user, password, out);
-    }
-
-    /**
-     * Backs up a database to a SQL script file.
-     *
-     * @param url the database URL
-     * @param user the user name
-     * @param password the password
-     * @param fileName the script file
-     */
-    void process(String url, String user, String password, String fileName) throws SQLException {
-        OutputStream o = null;
-        try {
-            o = IOUtils.openFileOutputStream(fileName, false);
-            process(url, user, password, o);
-        } finally {
-            IOUtils.closeSilently(o);
-        }
-    }
-
-    /**
-     * Backs up a database to a stream. The stream is not closed.
-     *
-     * @param url the database URL
-     * @param user the user name
-     * @param password the password
-     * @param o the output stream
-     */
-    void process(String url, String user, String password, OutputStream o) throws SQLException {
         Connection conn = null;
         try {
             org.h2.Driver.load();
             conn = DriverManager.getConnection(url, user, password);
-            process(conn, o);
+            process(conn, out);
         } finally {
             JdbcUtils.closeSilently(conn);
         }
     }
+
 
     /**
      * Backs up a database to a stream. The stream is not closed.
      * The connection is not closed.
      *
      * @param conn the connection
-     * @param o the output stream
+     * @param out the output stream
      */
-    void process(Connection conn, OutputStream o) throws SQLException {
+    static void process(Connection conn, OutputStream out) throws SQLException {
         Statement stat = null;
         try {
             stat = conn.createStatement();
-            PrintWriter writer = new PrintWriter(IOUtils.getBufferedWriter(o));
+            PrintWriter writer = new PrintWriter(IOUtils.getBufferedWriter(out));
             ResultSet rs = stat.executeQuery("SCRIPT");
             while (rs.next()) {
                 String s = rs.getString(1);

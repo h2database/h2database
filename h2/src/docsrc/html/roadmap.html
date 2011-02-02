@@ -540,7 +540,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     check constraint, allow to use it in Java functions as parameters (return values already seem to work).
 </li><li>Encrypted file system (use cipher text stealing so file length doesn't need to decrypt; 4 KB header per file,
     optional compatibility with current encrypted database files).
-</li><li>Issue 229: SELECT with simple OR tests uses tableScan when it could use indexes    
+</li><li>Issue 229: SELECT with simple OR tests uses tableScan when it could use indexes.
+</li><li>GROUP BY queries should use a temporary table if there are too many rows.
 </li></ul>
 
 <h2>Not Planned</h2>

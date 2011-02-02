@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 279: Auto-Server mode: unclear error message when trying to connect using AUTO_SERVER
+<ul><li>Linked tables: for NUMERIC column, Oracle reports precision 0 and scale -127.
+    A workaround has been implemented (the same as for DECIMAL columns in version 1.3.150).
+</li><li>Issue 279: Auto-Server mode: unclear error message when trying to connect using AUTO_SERVER
     if the database is already open without the flag (Connection is broken: "null").
 </li><li>Issue 238: Can drop a column that has a single-column constraint.
 </li></ul>

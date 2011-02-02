@@ -162,6 +162,7 @@ public class TableLink extends Table {
                     long precision = rsMeta.getPrecision(i + 1);
                     precision = convertPrecision(sqlType, precision);
                     int scale = rsMeta.getScale(i + 1);
+                    scale = convertScale(sqlType, scale);
                     int displaySize = rsMeta.getColumnDisplaySize(i + 1);
                     int type = DataType.convertSQLTypeToValueType(sqlType);
                     Column col = new Column(n, type, precision, scale, displaySize);
@@ -265,6 +266,7 @@ public class TableLink extends Table {
         // for DECIMAL columns, the reported precision is 0
         switch (sqlType) {
         case Types.DECIMAL:
+        case Types.NUMERIC:
             if (precision == 0) {
                 precision = 65535;
             }
@@ -287,6 +289,7 @@ public class TableLink extends Table {
         // for DECIMAL columns, the reported precision is -127
         switch (sqlType) {
         case Types.DECIMAL:
+        case Types.NUMERIC:
             if (scale < 0) {
                 scale = 32767;
             }

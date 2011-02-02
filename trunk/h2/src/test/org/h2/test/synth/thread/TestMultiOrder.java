@@ -86,7 +86,7 @@ public class TestMultiOrder extends TestMultiThread {
         prep.execute();
     }
 
-    private String getString(int id) {
+    private static String getString(int id) {
         StringBuilder buff = new StringBuilder();
         Random rnd = new Random(id);
         int len = rnd.nextInt(40);
@@ -101,19 +101,19 @@ public class TestMultiOrder extends TestMultiThread {
         return buff.toString();
     }
 
-    private synchronized int getNextCustomerId() {
+    private static synchronized int getNextCustomerId() {
         return customerCount++;
     }
 
-    private synchronized int increaseOrders() {
+    private static synchronized int increaseOrders() {
         return orderCount++;
     }
 
-    private synchronized int increaseOrderLines(int count) {
+    private static synchronized int increaseOrderLines(int count) {
         return orderLineCount += count;
     }
 
-    private int getCustomerCount() {
+    private static int getCustomerCount() {
         return customerCount;
     }
 

@@ -125,7 +125,7 @@ public class TestSequence extends TestBase {
         conn.close();
     }
 
-    private long getNext(Statement stat) throws SQLException {
+    private static long getNext(Statement stat) throws SQLException {
         ResultSet rs = stat.executeQuery("call next value for testSequence");
         rs.next();
         long value = rs.getLong(1);

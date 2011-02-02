@@ -188,7 +188,7 @@ public class TestRandomCompare extends TestBase {
         }
     }
 
-    private void appendRandomValue(Random random, StringBuilder buff) {
+    private static void appendRandomValue(Random random, StringBuilder buff) {
         switch (random.nextInt(7)) {
         case 0:
             buff.append("null");
@@ -238,7 +238,7 @@ public class TestRandomCompare extends TestBase {
         }
     }
 
-    private String getResult(ResultSet rs) throws SQLException {
+    private static String getResult(ResultSet rs) throws SQLException {
         ArrayList<String> list = New.arrayList();
         while (rs.next()) {
             StringBuilder buff = new StringBuilder();

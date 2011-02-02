@@ -118,7 +118,7 @@ public class TestCache extends TestBase implements CacheWriter {
         conn.close();
     }
 
-    private int getReadCount(Statement stat) throws Exception {
+    private static int getReadCount(Statement stat) throws Exception {
         ResultSet rs;
         rs = stat.executeQuery("select value from information_schema.settings where name = 'info.FILE_READ'");
         rs.next();

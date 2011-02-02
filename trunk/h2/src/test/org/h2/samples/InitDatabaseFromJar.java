@@ -28,14 +28,14 @@ public class InitDatabaseFromJar {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        new InitDatabaseFromJar().createScript();
+        createScript();
         new InitDatabaseFromJar().initDb();
     }
 
     /**
      * Create a script from a new database.
      */
-    private void createScript() throws Exception {
+    private static void createScript() throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");
         Statement stat = conn.createStatement();

@@ -243,7 +243,7 @@ public class TestCompress extends TestBase {
                 assertEquals(buff.length, test.length);
                 assertEquals(buff, test);
                 Arrays.fill(test, (byte) 0);
-                utils.expand(out, test, 0);
+                CompressTool.expand(out, test, 0);
                 assertEquals(buff, test);
             }
             for (String a : new String[] { null, "LZF", "DEFLATE", "ZIP", "GZIP" }) {

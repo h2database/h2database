@@ -78,7 +78,7 @@ public class TaskProcess {
         }
     }
 
-    private void copyInThread(final InputStream in, final OutputStream out) {
+    private static void copyInThread(final InputStream in, final OutputStream out) {
         new Task() {
             public void call() throws IOException {
                 while (true) {

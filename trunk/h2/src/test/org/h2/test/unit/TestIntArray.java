@@ -39,7 +39,7 @@ public class TestIntArray extends TestBase {
         assertEquals(5, array.get(2));
     }
 
-    private void testInit() {
+    private static void testInit() {
         IntArray array = new IntArray(new int[0]);
         array.add(10);
     }
@@ -81,7 +81,7 @@ public class TestIntArray extends TestBase {
         }
     }
 
-    private int[] add(int[] array, int i, int value) {
+    private static int[] add(int[] array, int i, int value) {
         int[] a2 = new int[array.length + 1];
         System.arraycopy(array, 0, a2, 0, array.length);
         if (i < array.length) {
@@ -92,15 +92,15 @@ public class TestIntArray extends TestBase {
         return array;
     }
 
-    private int[] add(int[] array, int value) {
+    private static int[] add(int[] array, int value) {
         return add(array, array.length, value);
     }
 
-    private int get(int[] array, int i) {
+    private static int get(int[] array, int i) {
         return array[i];
     }
 
-    private int[] remove(int[] array, int i) {
+    private static int[] remove(int[] array, int i) {
         int[] a2 = new int[array.length - 1];
         System.arraycopy(array, 0, a2, 0, i);
         if (i < a2.length) {

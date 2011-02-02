@@ -322,8 +322,7 @@ java org.h2.test.TestAll timer
     private static void run(String... args) throws Exception {
         SelfDestructor.startCountdown(3 * 60);
         long time = System.currentTimeMillis();
-        TestAll test = new TestAll();
-        test.printSystemInfo();
+        printSystemInfo();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
@@ -366,6 +365,7 @@ kill a test:
 kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
 */
+        TestAll test = new TestAll();
         if (args.length > 0) {
             if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
@@ -775,7 +775,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         return buff.toString();
     }
 
-    private void appendIf(StringBuilder buff, boolean flag, String text) {
+    private static void appendIf(StringBuilder buff, boolean flag, String text) {
         if (flag) {
             buff.append(text);
             buff.append(' ');

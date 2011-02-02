@@ -6,7 +6,6 @@
  */
 package org.h2.test.utils;
 
-import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -26,7 +25,7 @@ public class MemoryFootprint {
      *
      * @param a ignored
      */
-    public static void main(String... a) throws IOException {
+    public static void main(String... a) {
         // System.getProperties().store(System.out, "");
         print("Object", new Object());
         print("Timestamp", new java.sql.Timestamp(0));

@@ -60,7 +60,7 @@ public class TestConnectionPool extends TestBase {
         cp.dispose();
     }
 
-    private void testWrongUrl() throws SQLException {
+    private void testWrongUrl() {
         JdbcConnectionPool cp = JdbcConnectionPool.create("jdbc:wrong:url", "", "");
         try {
             cp.getConnection();

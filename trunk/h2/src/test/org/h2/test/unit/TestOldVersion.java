@@ -132,12 +132,12 @@ public class TestOldVersion extends TestBase {
         m.invoke(serverOld);
     }
 
-    private ClassLoader getClassLoader(String jarFile) throws Exception {
+    private static ClassLoader getClassLoader(String jarFile) throws Exception {
         URL[] urls = { new URL(jarFile) };
         return new URLClassLoader(urls, null);
     }
 
-    private Driver getDriver(ClassLoader cl) throws Exception {
+    private static Driver getDriver(ClassLoader cl) throws Exception {
         Class<?> driverClass;
         try {
             driverClass = cl.loadClass("org.h2.Driver");

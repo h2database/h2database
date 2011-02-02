@@ -100,7 +100,7 @@ public class TestXASimple extends TestBase {
         JdbcUtils.closeSilently(xa);
     }
 
-    private void shutdown(JdbcDataSource ds) throws SQLException {
+    private static void shutdown(JdbcDataSource ds) throws SQLException {
         Connection conn = ds.getConnection();
         conn.createStatement().execute("shutdown immediately");
         JdbcUtils.closeSilently(conn);

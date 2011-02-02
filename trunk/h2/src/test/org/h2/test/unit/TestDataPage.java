@@ -67,7 +67,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         testAll();
     }
 
-    private void testPerformance() {
+    private static void testPerformance() {
         Data data = Data.create(null, 1024);
         for (int j = 0; j < 4; j++) {
             long time = System.currentTimeMillis();

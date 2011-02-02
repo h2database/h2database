@@ -132,7 +132,7 @@ public class Set extends Prepared {
         }
         case SetTypes.COMPRESS_LOB: {
             session.getUser().checkAdmin();
-            int algo = CompressTool.getInstance().getCompressAlgorithm(stringValue);
+            int algo = CompressTool.getCompressAlgorithm(stringValue);
             database.setLobCompressionAlgorithm(algo == Compressor.NO ? null : stringValue);
             addOrUpdateSetting(name, stringValue, 0);
             break;

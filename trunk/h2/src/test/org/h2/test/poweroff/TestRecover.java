@@ -63,10 +63,6 @@ public class TestRecover {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        new TestRecover().runTest();
-    }
-
-    private void runTest() throws Exception {
         System.out.println("URL=" + URL);
         System.out.println("backup...");
         new File(TEST_DIRECTORY).mkdirs();
@@ -174,14 +170,14 @@ public class TestRecover {
         }
     }
 
-    private void testLoop() throws Exception {
+    private static void testLoop() throws Exception {
         Random random = new SecureRandom();
         while (true) {
             runOneTest(random.nextInt());
         }
     }
 
-    private Connection openConnection() throws Exception {
+    private static Connection openConnection() throws Exception {
         Class.forName(DRIVER);
         Connection conn = DriverManager.getConnection(URL, "sa", "sa");
         Statement stat = conn.createStatement();
@@ -194,7 +190,7 @@ public class TestRecover {
         return conn;
     }
 
-    private void closeConnection(Connection conn) {
+    private static void closeConnection(Connection conn) {
         try {
             conn.close();
         } catch (SQLException e) {
@@ -215,7 +211,7 @@ public class TestRecover {
         }
     }
 
-    private void runOneTest(int i) throws Exception {
+    private static void runOneTest(int i) throws Exception {
         Random random = new Random(i);
         Connection conn = openConnection();
         PreparedStatement prepInsert = null;
@@ -309,7 +305,7 @@ public class TestRecover {
         }
     }
 
-    private boolean testConsistency() {
+    private static boolean testConsistency() {
         FileOutputStream out = null;
         PrintWriter p = null;
         try {
@@ -347,7 +343,7 @@ public class TestRecover {
         }
     }
 
-    private void test(Connection conn, String order) throws Exception {
+    private static void test(Connection conn, String order) throws Exception {
         ResultSet rs;
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST " + order);
         int max = 0;

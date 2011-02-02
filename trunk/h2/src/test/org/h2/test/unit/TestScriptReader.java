@@ -59,7 +59,7 @@ public class TestScriptReader extends TestBase {
         }
     }
 
-    private String randomStatement(Random random) {
+    private static String randomStatement(Random random) {
         StringBuilder buff = new StringBuilder();
         int len = random.nextInt(5);
         for (int i = 0; i < len; i++) {

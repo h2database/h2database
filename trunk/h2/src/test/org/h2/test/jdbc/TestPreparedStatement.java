@@ -143,10 +143,9 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private String getString(int i) {
+    private static String getString(int i) {
         return new String(new char[100000]).replace('\0', (char) ('0' + i));
     }
-
 
     private void testExecuteErrorTwice(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("CREATE TABLE BAD AS SELECT A");
@@ -301,7 +300,7 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testCoalesce(Connection conn) throws SQLException {
+    private static void testCoalesce(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.executeUpdate("create table test(tm timestamp)");
         stat.executeUpdate("insert into test values(current_timestamp)");

@@ -100,7 +100,7 @@ public class TestRowLocks extends TestBase {
         c2.close();
     }
 
-    private String getSingleValue(Statement stat, String sql) throws SQLException {
+    private static String getSingleValue(Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         return rs.next() ? rs.getString(1) : null;
     }

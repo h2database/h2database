@@ -199,7 +199,7 @@ public class TestScript extends TestBase {
         write("");
     }
 
-    private void setParameter(PreparedStatement prep, int i, String param) throws SQLException {
+    private static void setParameter(PreparedStatement prep, int i, String param) throws SQLException {
         if (param.equalsIgnoreCase("null")) {
             param = null;
         }
@@ -255,7 +255,7 @@ public class TestScript extends TestBase {
         return 0;
     }
 
-    private String formatString(String s) {
+    private static String formatString(String s) {
         if (s == null) {
             return "null";
         }
@@ -311,7 +311,7 @@ public class TestScript extends TestBase {
         writeResult(sql, (ordered ? "rows (ordered): " : "rows: ") + i, null);
     }
 
-    private String format(String[] row, int[] max) {
+    private static String format(String[] row, int[] max) {
         int length = max.length;
         StringBuilder buff = new StringBuilder();
         for (int i = 0; i < length; i++) {
@@ -376,7 +376,7 @@ public class TestScript extends TestBase {
         out.println(s);
     }
 
-    private void sort(String[] a) {
+    private static void sort(String[] a) {
         for (int i = 1, j, len = a.length; i < len; i++) {
             String t = a[i];
             for (j = i - 1; j >= 0 && t.compareTo(a[j]) < 0; j--) {

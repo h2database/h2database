@@ -28,7 +28,7 @@ public class TestTempTableCrash {
         new TestTempTableCrash().test();
     }
 
-    private void test() throws Exception {
+    public void test() throws Exception {
         Connection conn;
         Statement stat;
 

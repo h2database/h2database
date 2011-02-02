@@ -650,7 +650,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return the result set
      */
-    public static ResultSet nullResultSet(Connection conn) throws SQLException {
+    public static ResultSet nullResultSet(Connection conn) {
         return null;
     }
 

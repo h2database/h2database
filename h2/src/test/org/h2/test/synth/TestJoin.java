@@ -275,7 +275,7 @@ public class TestJoin extends TestBase {
         }
     }
 
-    private String readResult(ResultSet rs) throws SQLException {
+    private static String readResult(ResultSet rs) throws SQLException {
         StringBuilder b = new StringBuilder();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();

@@ -94,7 +94,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         long first = Utils.getMemoryUsed();
         ArrayList<Value> list = new ArrayList<Value>();
         long memory = 0;
-        for (int i = 0; memory < 1000000; i++) {
+        while (memory < 1000000) {
             Value v = create(type);
             memory += v.getMemory() + Constants.MEMORY_POINTER;
             list.add(v);

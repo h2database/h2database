@@ -68,7 +68,7 @@ class Arg {
         return obj;
     }
 
-    private String quote(Class<?> valueClass, Object value) {
+    private static String quote(Class<?> valueClass, Object value) {
         if (value == null) {
             return null;
         } else if (valueClass == String.class) {

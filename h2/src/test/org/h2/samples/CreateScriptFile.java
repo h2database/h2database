@@ -108,7 +108,7 @@ public class CreateScriptFile {
         try {
             OutputStream out;
             if (cipher != null) {
-                byte[] key = new SHA256().getKeyPasswordHash("script", password.toCharArray());
+                byte[] key = SHA256.getKeyPasswordHash("script", password.toCharArray());
                 IOUtils.delete(fileName);
                 FileStore store = FileStore.open(null, fileName, "rw", cipher, key);
                 store.init();
@@ -142,7 +142,7 @@ public class CreateScriptFile {
         try {
             InputStream in;
             if (cipher != null) {
-                byte[] key = new SHA256().getKeyPasswordHash("script", password.toCharArray());
+                byte[] key = SHA256.getKeyPasswordHash("script", password.toCharArray());
                 FileStore store = FileStore.open(null, fileName, "rw", cipher, key);
                 store.init();
                 in = new FileStoreInputStream(store, null, compressionAlgorithm != null, false);

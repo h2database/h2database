@@ -59,7 +59,7 @@ implements XAConnection, XAResource
         org.h2.Driver.load();
     }
 
-    JdbcXAConnection(JdbcDataSourceFactory factory, int id, JdbcConnection physicalConn) throws SQLException {
+    JdbcXAConnection(JdbcDataSourceFactory factory, int id, JdbcConnection physicalConn) {
         this.factory = factory;
         setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
         this.physicalConn = physicalConn;

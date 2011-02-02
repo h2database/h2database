@@ -152,7 +152,7 @@ class TableDefinition<T> {
         }
     }
 
-    private String getDataType(Field field) {
+    private static String getDataType(Field field) {
         Class<?> fieldClass = field.getType();
         if (fieldClass == Integer.class) {
             return "INT";

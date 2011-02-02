@@ -37,35 +37,33 @@ public class TestSecurity extends TestBase {
         testXTEA();
     }
 
-    private void testConnectWithHash() throws SQLException {
+    private static void testConnectWithHash() throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:test", "sa", "sa");
-        String pwd = StringUtils.convertBytesToString(new SHA256().getKeyPasswordHash("SA", "sa".toCharArray()));
+        String pwd = StringUtils.convertBytesToString(SHA256.getKeyPasswordHash("SA", "sa".toCharArray()));
         Connection conn2 = DriverManager.getConnection("jdbc:h2:mem:test;PASSWORD_HASH=TRUE", "sa", pwd);
         conn.close();
         conn2.close();
     }
 
     private void testSHA() {
-        SHA256 sha = new SHA256();
-        testOneSHA(sha);
+        testOneSHA();
     }
 
-    private String getHashString(SHA256 sha, byte[] data) {
-        byte[] result = sha.getHash(data, true);
+    private String getHashString(byte[] data) {
+        byte[] result = SHA256.getHash(data, true);
         if (data.length > 0) {
             assertEquals(0, data[0]);
         }
         return StringUtils.convertBytesToString(result);
     }
 
-    private void testOneSHA(SHA256 sha) {
+    private void testOneSHA() {
         assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-                getHashString(sha, new byte[] {}));
+                getHashString(new byte[] {}));
         assertEquals("68aa2e2ee5dff96e3355e6c7ee373e3d6a4e17f75f9518d843709c0c9bc3e3d4",
-                getHashString(sha, new byte[] { 0x19 }));
+                getHashString(new byte[] { 0x19 }));
         assertEquals("175ee69b02ba9b58e2b0a5fd13819cea573f3940a94f825128cf4209beabb4e8",
                 getHashString(
-                        sha,
                         new byte[] { (byte) 0xe3, (byte) 0xd7, 0x25, 0x70, (byte) 0xdc, (byte) 0xdd, 0x78, 0x7c, (byte) 0xe3,
                                 (byte) 0x88, 0x7a, (byte) 0xb2, (byte) 0xcd, 0x68, 0x46, 0x52 }));
         checkSHA256("", "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855");
@@ -81,12 +79,11 @@ public class TestSecurity extends TestBase {
     }
 
     private void checkSHA256(String message, String expected) {
-        SHA256 sha = new SHA256();
-        String hash = StringUtils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
+        String hash = StringUtils.convertBytesToString(SHA256.getHash(message.getBytes(), true)).toUpperCase();
         assertEquals(expected, hash);
     }
 
-    private void testXTEA() {
+    private static void testXTEA() {
         byte[] test = new byte[4096];
         BlockCipher xtea = CipherFactory.getBlockCipher("XTEA");
         xtea.setKey("abcdefghijklmnop".getBytes());

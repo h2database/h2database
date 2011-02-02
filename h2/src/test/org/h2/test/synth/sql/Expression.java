@@ -154,7 +154,7 @@ public class Expression {
         return list[i];
     }
 
-    private String getColumnName(String alias, Column column) {
+    private static String getColumnName(String alias, Column column) {
         if (alias == null) {
             return column.getName();
         }

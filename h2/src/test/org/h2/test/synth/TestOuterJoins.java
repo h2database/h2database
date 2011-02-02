@@ -184,7 +184,7 @@ public class TestOuterJoins extends TestBase {
         buff.append(")");
     }
 
-    private void appendRandomCondition(Random random, StringBuilder buff, int max) {
+    private static void appendRandomCondition(Random random, StringBuilder buff, int max) {
         if (max > 0 && random.nextInt(4) == 0) {
             return;
         }
@@ -230,7 +230,7 @@ public class TestOuterJoins extends TestBase {
         }
     }
 
-    private void appendRandomValueOrColumn(Random random, StringBuilder buff, int max) {
+    private static void appendRandomValueOrColumn(Random random, StringBuilder buff, int max) {
         if (random.nextBoolean()) {
             buff.append(random.nextInt(8) - 2);
         } else {
@@ -269,7 +269,7 @@ public class TestOuterJoins extends TestBase {
         }
     }
 
-    private String getResult(ResultSet rs) throws SQLException {
+    private static String getResult(ResultSet rs) throws SQLException {
         ArrayList<String> list = New.arrayList();
         while (rs.next()) {
             StringBuilder buff = new StringBuilder();
@@ -561,7 +561,7 @@ public class TestOuterJoins extends TestBase {
         deleteDb("nestedJoins");
     }
 
-    private String cleanRemarks(String sql) throws SQLException {
+    private static String cleanRemarks(String sql) {
         ScriptReader r = new ScriptReader(new StringReader(sql));
         r.setSkipRemarks(true);
         sql = r.readStatement();

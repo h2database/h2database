@@ -235,7 +235,7 @@ public class TestLob extends TestBase {
         }
     }
 
-    private void testAddLobRestart() throws SQLException {
+    private static void testAddLobRestart() throws SQLException {
         DeleteDbFiles.execute("memFS:", "lob", true);
         Connection conn = org.h2.Driver.load().connect("jdbc:h2:memFS:lob", null);
         Statement stat = conn.createStatement();
@@ -320,7 +320,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void collectAndWait() {
+    private static void collectAndWait() {
         for (int i = 0; i < 3; i++) {
             System.gc();
         }
@@ -1020,11 +1020,11 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private Reader getRandomReader(int len, int seed) {
+    private static Reader getRandomReader(int len, int seed) {
         return new CharArrayReader(getRandomChars(len, seed));
     }
 
-    private char[] getRandomChars(int len, int seed) {
+    private static char[] getRandomChars(int len, int seed) {
         Random random = new Random(seed);
         char[] buff = new char[len];
         for (int i = 0; i < len; i++) {
@@ -1039,7 +1039,7 @@ public class TestLob extends TestBase {
         return buff;
     }
 
-    private InputStream getRandomStream(int len, int seed) {
+    private static InputStream getRandomStream(int len, int seed) {
         Random random = new Random(seed);
         byte[] buff = new byte[len];
         random.nextBytes(buff);

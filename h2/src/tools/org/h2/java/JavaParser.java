@@ -157,7 +157,7 @@ public class JavaParser {
         }
     }
 
-    private String cleanPackageName(String name) {
+    private static String cleanPackageName(String name) {
         if (name.startsWith("org.h2.java.lang") || name.startsWith("org.h2.java.io")) {
             return name.substring("org.h2.".length());
         }

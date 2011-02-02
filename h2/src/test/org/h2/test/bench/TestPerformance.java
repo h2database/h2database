@@ -47,12 +47,12 @@ public class TestPerformance {
         new TestPerformance().test(args);
     }
 
-    private Connection getResultConnection() throws SQLException {
+    private static Connection getResultConnection() throws SQLException {
         org.h2.Driver.load();
         return DriverManager.getConnection("jdbc:h2:data/results");
     }
 
-    private void openResults() throws SQLException {
+    private static void openResults() throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
@@ -236,13 +236,13 @@ public class TestPerformance {
         }
     }
 
-    private void runDatabase(Database db, ArrayList<Bench> tests, int size) throws Exception {
+    private static void runDatabase(Database db, ArrayList<Bench> tests, int size) throws Exception {
         for (Bench bench : tests) {
             runTest(db, bench, size);
         }
     }
 
-    private void runTest(Database db, Bench bench, int size) throws Exception {
+    private static void runTest(Database db, Bench bench, int size) throws Exception {
         bench.init(db, size);
         bench.runTest();
     }

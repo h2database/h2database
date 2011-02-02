@@ -304,14 +304,14 @@ public abstract class TestBase {
         return "jdbc:h2:" + url;
     }
 
-    private String addOption(String url, String option, String value) {
+    private static String addOption(String url, String option, String value) {
         if (url.indexOf(";" + option + "=") < 0) {
             url += ";" + option + "=" + value;
         }
         return url;
     }
 
-    private Connection getConnectionInternal(String url, String user, String password) throws SQLException {
+    private static Connection getConnectionInternal(String url, String user, String password) throws SQLException {
         org.h2.Driver.load();
         // url += ";DEFAULT_TABLE_TYPE=1";
         // Class.forName("org.hsqldb.jdbcDriver");
@@ -976,18 +976,6 @@ public abstract class TestBase {
 
     /**
      * Check if a result set contains the expected data.
-     * The sort order is not significant
-     *
-     * @param rs the result set
-     * @param data the expected data
-     * @throws AssertionError if there is a mismatch
-     */
-//    void assertResultSetUnordered(ResultSet rs, String[][] data) {
-//        assertResultSet(false, rs, data);
-//    }
-
-    /**
-     * Check if a result set contains the expected data.
      *
      * @param ordered if the sort order is significant
      * @param rs the result set
@@ -1037,7 +1025,7 @@ public abstract class TestBase {
         }
     }
 
-    private boolean testRow(String[] a, String[] b, int len) {
+    private static boolean testRow(String[] a, String[] b, int len) {
         for (int i = 0; i < len; i++) {
             String sa = a[i];
             String sb = b[i];
@@ -1054,7 +1042,7 @@ public abstract class TestBase {
         return true;
     }
 
-    private String[] getData(ResultSet rs, int len) throws SQLException {
+    private static String[] getData(ResultSet rs, int len) throws SQLException {
         String[] data = new String[len];
         for (int i = 0; i < len; i++) {
             data[i] = rs.getString(i + 1);
@@ -1064,7 +1052,7 @@ public abstract class TestBase {
         return data;
     }
 
-    private String formatRow(String[] row) {
+    private static String formatRow(String[] row) {
         String sb = "";
         for (String r : row) {
             sb += "{" + r + "}";

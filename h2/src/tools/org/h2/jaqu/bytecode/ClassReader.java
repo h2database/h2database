@@ -38,7 +38,7 @@ public class ClassReader {
     private int nextPc;
     private Map<String, Object> fieldMap = new HashMap<String, Object>();
 
-    private void debug(String s) {
+    private static void debug(String s) {
         if (DEBUG) {
             System.out.println(s);
         }

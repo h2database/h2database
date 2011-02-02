@@ -39,7 +39,7 @@ public class TestDate extends TestBase {
         testCurrentTimeZone();
     }
 
-    private void testCurrentTimeZone() {
+    private static void testCurrentTimeZone() {
         for (int year = 1970; year < 2050; year += 3) {
             for (int month = 1; month <= 12; month++) {
                 for (int day = 1; day < 29; day++) {
@@ -51,7 +51,7 @@ public class TestDate extends TestBase {
         }
     }
 
-    private void test(int year, int month, int day, int hour) {
+    private static void test(int year, int month, int day, int hour) {
         DateTimeUtils.parseDateTime(year + "-" + month + "-" + day + " " + hour + ":00:00", Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
     }
 

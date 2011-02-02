@@ -194,7 +194,7 @@ public class TestTempTables extends TestBase {
         stat.execute("drop table test");
     }
 
-    private void testConstraints(Connection conn1, Connection conn2) throws SQLException {
+    private static void testConstraints(Connection conn1, Connection conn2) throws SQLException {
         Statement s1 = conn1.createStatement(), s2 = conn2.createStatement();
         s1.execute("create local temporary table test(id int unique)");
         s2.execute("create local temporary table test(id int unique)");
@@ -204,7 +204,7 @@ public class TestTempTables extends TestBase {
         s2.execute("drop table test");
     }
 
-    private void testIndexes(Connection conn1, Connection conn2) throws SQLException {
+    private static void testIndexes(Connection conn1, Connection conn2) throws SQLException {
         conn1.createStatement().executeUpdate("create local temporary table test(id int)");
         conn1.createStatement().executeUpdate("create index idx_id on test(id)");
         conn2.createStatement().executeUpdate("create local temporary table test(id int)");

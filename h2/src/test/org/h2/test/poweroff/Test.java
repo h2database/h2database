@@ -87,10 +87,6 @@ public class Test {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        new Test().test(args);
-    }
-
-    private void test(String... args) throws Exception {
         int port = 9099;
         String connect = "192.168.0.3";
         boolean file = false;
@@ -106,7 +102,7 @@ public class Test {
         test(connect, port, file);
     }
 
-    private void test(String connect, int port, boolean file) throws Exception {
+    private static void test(String connect, int port, boolean file) throws Exception {
         Socket socket = new Socket(connect, port);
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         System.out.println("Connected to " + socket.toString());
@@ -117,7 +113,7 @@ public class Test {
         }
     }
 
-    private void testFile(DataOutputStream out) throws IOException {
+    private static void testFile(DataOutputStream out) throws IOException {
         File file = new File("test.txt");
         if (file.exists()) {
             file.delete();
@@ -142,7 +138,7 @@ public class Test {
         write.close();
     }
 
-    private void testDatabases(DataOutputStream out) throws Exception {
+    private static void testDatabases(DataOutputStream out) throws Exception {
         Test[] dbs = {
                 new Test("org.h2.Driver", "jdbc:h2:test1", "sa", "", true),
                 new Test("org.h2.Driver", "jdbc:h2:test2", "sa", "", false),

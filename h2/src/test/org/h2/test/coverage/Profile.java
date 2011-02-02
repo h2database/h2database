@@ -108,7 +108,7 @@ public class Profile extends Thread {
         }
     }
 
-    private void closeSilently(Reader reader) {
+    private static void closeSilently(Reader reader) {
         if (reader != null) {
             try {
                 reader.close();
@@ -118,7 +118,7 @@ public class Profile extends Thread {
         }
     }
 
-    private void closeSilently(Writer writer) {
+    private static void closeSilently(Writer writer) {
         if (writer != null) {
             try {
                 writer.close();
@@ -244,11 +244,11 @@ public class Profile extends Thread {
         }
     }
 
-    private void print(String s) {
+    private static void print(String s) {
         System.out.println(s);
     }
 
-    private void printLine(char c) {
+    private static void printLine(char c) {
         for (int i = 0; i < 60; i++) {
             System.out.print(c);
         }

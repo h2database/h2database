@@ -195,7 +195,7 @@ public class TestPowerOffFs2 extends TestBase {
         }
     }
 
-    private void testConsistent(Connection conn) throws SQLException {
+    private static void testConsistent(Connection conn) throws SQLException {
         for (int i = 0; i < 20; i++) {
             Statement stat = conn.createStatement();
             try {

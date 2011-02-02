@@ -247,7 +247,7 @@ public class TestLinkedTable extends TestBase {
         cb.close();
     }
 
-    private void testLinkOtherSchema() throws SQLException {
+    private static void testLinkOtherSchema() throws SQLException {
         org.h2.Driver.load();
         Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
         Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
@@ -289,7 +289,7 @@ public class TestLinkedTable extends TestBase {
         conn2.close();
     }
 
-    private void testLinkDrop() throws SQLException {
+    private static void testLinkDrop() throws SQLException {
         org.h2.Driver.load();
         Connection connA = DriverManager.getConnection("jdbc:h2:mem:a");
         Statement statA = connA.createStatement();

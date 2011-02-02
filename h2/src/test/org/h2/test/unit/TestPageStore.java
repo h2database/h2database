@@ -794,7 +794,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         event("setProgress " + state + " " + name + " " + x + " " + max);
     }
 
-    private void event(String s) {
+    private static void event(String s) {
         eventBuffer.append(s).append(';');
     }
 

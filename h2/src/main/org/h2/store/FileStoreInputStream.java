@@ -117,7 +117,7 @@ public class FileStoreInputStream extends InputStream {
             page.read(buff, 0, remainingInBuffer);
             page.reset();
             page.checkCapacity(uncompressed);
-            compress.expand(buff, page.getBytes(), 0);
+            CompressTool.expand(buff, page.getBytes(), 0);
             remainingInBuffer = uncompressed;
         }
         if (alwaysClose) {

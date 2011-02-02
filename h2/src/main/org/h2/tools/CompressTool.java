@@ -69,7 +69,6 @@ public class CompressTool {
      * @param in the byte array with the original data
      * @param algorithm the algorithm (LZF, DEFLATE)
      * @return the compressed data
-     * @throws SQLException if a error occurs
      */
     public byte[] compress(byte[] in, String algorithm) {
         int len = in.length;
@@ -84,10 +83,7 @@ public class CompressTool {
         return out;
     }
 
-    /**
-     * INTERNAL
-     */
-    public int compress(byte[] in, int len, Compressor compress, byte[] out) {
+    private static int compress(byte[] in, int len, Compressor compress, byte[] out) {
         int newLen = 0;
         out[0] = (byte) compress.getAlgorithm();
         int start = 1 + writeVariableInt(out, 1, len);
@@ -105,7 +101,6 @@ public class CompressTool {
      *
      * @param in the byte array with the compressed data
      * @return the uncompressed data
-     * @throws SQLException if a error occurs
      */
     public byte[] expand(byte[] in) {
         int algorithm = in[0];
@@ -124,7 +119,7 @@ public class CompressTool {
     /**
      * INTERNAL
      */
-    public void expand(byte[] in, byte[] out, int outPos) {
+    public static void expand(byte[] in, byte[] out, int outPos) {
         int algorithm = in[0];
         Compressor compress = getCompressor(algorithm);
         try {
@@ -230,7 +225,7 @@ public class CompressTool {
         }
     }
 
-    private Compressor getCompressor(String algorithm) {
+    private static Compressor getCompressor(String algorithm) {
         if (algorithm == null) {
             algorithm = "LZF";
         }
@@ -249,7 +244,7 @@ public class CompressTool {
     /**
      * INTERNAL
      */
-    public int getCompressAlgorithm(String algorithm) {
+    public static int getCompressAlgorithm(String algorithm) {
         algorithm = StringUtils.toUpperEnglish(algorithm);
         if ("NO".equals(algorithm)) {
             return Compressor.NO;

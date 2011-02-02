@@ -247,7 +247,7 @@ public class TestCsv extends TestBase {
         IOUtils.delete(getBaseDir() + "/test.csv");
     }
 
-    private String randomData(Random random) {
+    private static String randomData(Random random) {
         if (random.nextInt(10) == 1) {
             return null;
         }

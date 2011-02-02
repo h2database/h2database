@@ -548,7 +548,7 @@ public class BuildBase {
             }
             in.close();
         } catch (IOException e) {
-            throw new RuntimeException("Error downloading", e);
+            throw new RuntimeException("Error downloading " + fileURL + " to " + target, e);
         }
         byte[] data = buff.toByteArray();
         String got = getSHA1(data);

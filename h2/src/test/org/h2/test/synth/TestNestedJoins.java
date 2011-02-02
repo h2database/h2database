@@ -217,7 +217,7 @@ public class TestNestedJoins extends TestBase {
         }
     }
 
-    private String getResult(ResultSet rs) throws SQLException {
+    private static String getResult(ResultSet rs) throws SQLException {
         ArrayList<String> list = New.arrayList();
         while (rs.next()) {
             StringBuilder buff = new StringBuilder();
@@ -569,7 +569,7 @@ public class TestNestedJoins extends TestBase {
         deleteDb("nestedJoins");
     }
 
-    private String cleanRemarks(String sql) throws SQLException {
+    private static String cleanRemarks(String sql) {
         ScriptReader r = new ScriptReader(new StringReader(sql));
         r.setSkipRemarks(true);
         sql = r.readStatement();

@@ -53,7 +53,21 @@ public class TestSampleApps extends TestBase {
                 org.h2.samples.CsvSample.class);
         testApp("",
                 org.h2.samples.CachedPreparedStatements.class);
-        testApp("2 is prime\n3 is prime\n5 is prime\n7 is prime\n11 is prime\n13 is prime\n17 is prime\n19 is prime\n30\n20\n0/0\n0/1\n1/0\n1/1",
+        testApp("2 is prime\n" +
+                "3 is prime\n" +
+                "5 is prime\n" +
+                "7 is prime\n" +
+                "11 is prime\n" +
+                "13 is prime\n" +
+                "17 is prime\n" +
+                "19 is prime\n" +
+                "30\n" +
+                "20\n" +
+                "0/0\n" +
+                "0/1\n" +
+                "1/0\n" +
+                "1/1\n" +
+                "10",
                 org.h2.samples.Function.class);
         // Not compatible with PostgreSQL JDBC driver (throws a NullPointerException)
         //testApp(org.h2.samples.SecurePassword.class, null, "Joe");

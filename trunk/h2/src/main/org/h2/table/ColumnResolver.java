@@ -34,9 +34,16 @@ public interface ColumnResolver {
     /**
      * Get the list of system columns, if any.
      *
-     * @return the system columns
+     * @return the system columns or null
      */
     Column[] getSystemColumns();
+
+    /**
+     * Get the row id pseudo column, if there is one.
+     *
+     * @return the row id column or null
+     */
+    Column getRowIdColumn();
 
     /**
      * Get the schema name.

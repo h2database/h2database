@@ -341,4 +341,8 @@ public class MultiVersionIndex implements Index {
         return base.isHidden();
     }
 
+    public boolean isRowIdIndex() {
+        return base.isRowIdIndex() && delta.isRowIdIndex();
+    }
+
 }

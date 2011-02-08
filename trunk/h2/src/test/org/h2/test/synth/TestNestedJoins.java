@@ -281,7 +281,7 @@ public class TestNestedJoins extends TestBase {
         rs = stat.executeQuery("explain select * from test a inner join test b on a.id=b.id left outer join o on o.id=a.id where b.x=1");
         assertTrue(rs.next());
         sql = rs.getString(1);
-        int todo;
+        // TODO Support optimizing queries with both inner and outer joins
         // assertTrue("using table scan", sql.indexOf("tableScan") < 0);
         stat.execute("drop table test");
         stat.execute("drop table o");

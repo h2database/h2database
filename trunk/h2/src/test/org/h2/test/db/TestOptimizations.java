@@ -36,6 +36,8 @@ public class TestOptimizations extends TestBase {
     }
 
     public void test() throws Exception {
+        deleteDb("optimizations");
+        testRowId();
         testSortIndex();
         testAutoAnalyze();
         testInAndBetween();
@@ -59,6 +61,45 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testRowId() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(0, 'Hello')");
+        stat.execute("insert into test values(3, 'Hello')");
+        stat.execute("insert into test values(2, 'Hello')");
+        ResultSet rs;
+
+        rs = stat.executeQuery("explain select * from test where _rowid_ = 2");
+        rs.next();
+        assertContains(rs.getString(1), ".tableScan: _ROWID_ =");
+
+        rs = stat.executeQuery("explain select * from test where _rowid_ > 2");
+        rs.next();
+        assertContains(rs.getString(1), ".tableScan: _ROWID_ >");
+
+        rs = stat.executeQuery("explain select * from test order by _rowid_");
+        rs.next();
+        assertContains(rs.getString(1), "/* index sorted */");
+        rs = stat.executeQuery("select _rowid_, * from test order by _rowid_");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+        assertEquals(0, rs.getInt(2));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        assertEquals(2, rs.getInt(2));
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+        assertEquals(3, rs.getInt(2));
+
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testSortIndex() throws SQLException {

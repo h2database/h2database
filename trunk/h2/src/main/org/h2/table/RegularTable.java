@@ -50,6 +50,7 @@ import org.h2.value.Value;
  * indexes. There is at least one index, the scan index.
  */
 public class RegularTable extends TableBase {
+
     private Index scanIndex;
     private long rowCount;
     private volatile Session lockExclusive;
@@ -724,6 +725,10 @@ public class RegularTable extends TableBase {
     }
 
     public boolean isDeterministic() {
+        return true;
+    }
+
+    public boolean hasRowIdColumn() {
         return true;
     }
 

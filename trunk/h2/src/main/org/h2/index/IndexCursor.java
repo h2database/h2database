@@ -98,13 +98,15 @@ public class IndexCursor implements Cursor {
                 boolean isStart = condition.isStart();
                 boolean isEnd = condition.isEnd();
                 int id = column.getColumnId();
-                IndexColumn idxCol = indexColumns[id];
-                if (idxCol != null && (idxCol.sortType & SortOrder.DESCENDING) != 0) {
-                    // if the index column is sorted the other way, we swap end and start
-                    // NULLS_FIRST / NULLS_LAST is not a problem, as nulls never match anyway
-                    boolean temp = isStart;
-                    isStart = isEnd;
-                    isEnd = temp;
+                if (id >= 0) {
+                    IndexColumn idxCol = indexColumns[id];
+                    if (idxCol != null && (idxCol.sortType & SortOrder.DESCENDING) != 0) {
+                        // if the index column is sorted the other way, we swap end and start
+                        // NULLS_FIRST / NULLS_LAST is not a problem, as nulls never match anyway
+                        boolean temp = isStart;
+                        isStart = isEnd;
+                        isEnd = temp;
+                    }
                 }
                 if (isStart) {
                     start = getSearchRow(start, id, v, true);
@@ -160,7 +162,11 @@ public class IndexCursor implements Cursor {
         } else {
             v = getMax(row.getValue(id), v, max);
         }
-        row.setValue(id, v);
+        if (id < 0) {
+            row.setKey(v.getLong());
+        } else {
+            row.setValue(id, v);
+        }
         return row;
     }
 

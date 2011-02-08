@@ -273,6 +273,13 @@ public class DbSettings extends SettingsBase {
     public final int reconnectCheckDelay = get("RECONNECT_CHECK_DELAY", 200);
 
     /**
+     * Database setting <code>ROWID</code>
+     * (default: false for version 1.2, true for version 1.3).<br />
+     * If set, each table has a pseudo-column _ROWID_.
+     */
+    public final boolean rowId = get("ROWID", Constants.VERSION_MINOR >= 3);
+
+    /**
      * Database setting <code>SELECT_FOR_UPDATE_MVCC</code>
      * (default: false).<br />
      * If set, SELECT .. FOR UPDATE queries lock only the selected rows when

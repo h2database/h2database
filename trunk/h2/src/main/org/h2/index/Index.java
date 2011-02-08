@@ -267,4 +267,11 @@ public interface Index extends SchemaObject {
      */
     Row getRow(Session session, long key);
 
+    /**
+     * Does this index support lookup by row id?
+     *
+     * @return true if it does
+     */
+    boolean isRowIdIndex();
+
 }

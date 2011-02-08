@@ -61,6 +61,10 @@ public class SelectListColumnResolver implements ColumnResolver {
         return null;
     }
 
+    public Column getRowIdColumn() {
+        return null;
+    }
+
     public String getTableAlias() {
         return null;
     }

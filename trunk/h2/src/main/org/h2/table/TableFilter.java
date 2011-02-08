@@ -27,6 +27,7 @@ import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueLong;
 
 /**
  * A table filter represents a table that is used in a query. There is one such
@@ -34,6 +35,7 @@ import org.h2.value.Value;
  * following query has 2 table filters: SELECT * FROM TEST T1, TEST T2.
  */
 public class TableFilter implements ColumnResolver {
+
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
 
     protected Session session;
@@ -167,7 +169,9 @@ public class TableFilter implements ColumnResolver {
                         break;
                     }
                     int id = condition.getColumn().getColumnId();
-                    masks[id] |= condition.getMask(indexConditions);
+                    if (id >= 0) {
+                        masks[id] |= condition.getMask(indexConditions);
+                    }
                 }
             }
             item = table.getBestPlanItem(s, masks);
@@ -243,9 +247,11 @@ public class TableFilter implements ColumnResolver {
             IndexCondition condition = indexConditions.get(i);
             if (!condition.isAlwaysFalse()) {
                 Column col = condition.getColumn();
-                if (index.getColumnIndex(col) < 0) {
-                    indexConditions.remove(i);
-                    i--;
+                if (col.getColumnId() >= 0) {
+                    if (index.getColumnIndex(col) < 0) {
+                        indexConditions.remove(i);
+                        i--;
+                    }
                 }
             }
         }
@@ -828,11 +834,23 @@ public class TableFilter implements ColumnResolver {
         return sys;
     }
 
+    public Column getRowIdColumn() {
+        if (table.hasRowIdColumn() && session.getDatabase().getSettings().rowId) {
+            Column col = new Column(Column.ROWID, Value.LONG);
+            col.setTable(table, -1);
+            return col;
+        }
+        return null;
+    }
+
     public Value getValue(Column column) {
         if (currentSearchRow == null) {
             return null;
         }
         int columnId = column.getColumnId();
+        if (columnId == -1) {
+            return ValueLong.get(currentSearchRow.getKey());
+        }
         if (current == null) {
             Value v = currentSearchRow.getValue(columnId);
             if (v != null) {

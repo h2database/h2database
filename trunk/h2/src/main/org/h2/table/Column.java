@@ -41,6 +41,11 @@ import org.h2.value.ValueUuid;
 public class Column {
 
     /**
+     * The name of the rowid pseudo column.
+     */
+    public static final String ROWID = "_ROWID_";
+
+    /**
      * This column is not nullable.
      */
     public static final int NOT_NULLABLE = ResultSetMetaData.columnNoNulls;

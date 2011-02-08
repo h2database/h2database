@@ -610,4 +610,8 @@ public class TableLink extends Table {
         return null;
     }
 
+    public boolean hasRowIdColumn() {
+        return false;
+    }
+
 }

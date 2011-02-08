@@ -426,7 +426,7 @@ select constraint_name from information_schema.indexes where table_name = 'CHILD
 drop table parent, child;
 > ok
 
-create table test(id int, name varchar);
+create table test(id int, name varchar(max));
 > ok
 
 alter table test alter column id identity;

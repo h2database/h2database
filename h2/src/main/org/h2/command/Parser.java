@@ -3571,37 +3571,39 @@ public class Parser {
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
             if (readIf("(")) {
-                long p = readLong();
-                if (readIf("K")) {
-                    p *= 1024;
-                } else if (readIf("M")) {
-                    p *= 1024 * 1024;
-                } else if (readIf("G")) {
-                    p *= 1024 * 1024 * 1024;
-                }
-                if (p > Long.MAX_VALUE) {
-                    p = Long.MAX_VALUE;
-                }
-                original += "(" + p;
-                // Oracle syntax
-                readIf("CHAR");
-                if (dataType.supportsScale) {
-                    if (readIf(",")) {
-                        scale = getInt();
-                        original += ", " + scale;
-                    } else {
-                        // special case: TIMESTAMP(5) actually means TIMESTAMP(23, 5)
-                        if (dataType.type == Value.TIMESTAMP) {
-                            scale = MathUtils.convertLongToInt(p);
-                            p = precision;
+                if (!readIf("MAX")) {
+                    long p = readLong();
+                    if (readIf("K")) {
+                        p *= 1024;
+                    } else if (readIf("M")) {
+                        p *= 1024 * 1024;
+                    } else if (readIf("G")) {
+                        p *= 1024 * 1024 * 1024;
+                    }
+                    if (p > Long.MAX_VALUE) {
+                        p = Long.MAX_VALUE;
+                    }
+                    original += "(" + p;
+                    // Oracle syntax
+                    readIf("CHAR");
+                    if (dataType.supportsScale) {
+                        if (readIf(",")) {
+                            scale = getInt();
+                            original += ", " + scale;
                         } else {
-                            scale = 0;
+                            // special case: TIMESTAMP(5) actually means TIMESTAMP(23, 5)
+                            if (dataType.type == Value.TIMESTAMP) {
+                                scale = MathUtils.convertLongToInt(p);
+                                p = precision;
+                            } else {
+                                scale = 0;
+                            }
                         }
                     }
+                    precision = p;
+                    displaySize = MathUtils.convertLongToInt(precision);
+                    original += ")";
                 }
-                precision = p;
-                displaySize = MathUtils.convertLongToInt(precision);
-                original += ")";
                 read(")");
             }
         } else if (readIf("(")) {

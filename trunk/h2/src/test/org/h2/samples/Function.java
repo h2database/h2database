@@ -70,6 +70,23 @@ public class Function {
             System.out.println(rs.getInt(1) + "/" + rs.getInt(2));
         }
         prep.close();
+
+        // Creating functions with source code
+        // in this case the JDK classes must be in the classpath
+        // where the database is running
+        stat.execute("create alias make_point as $$ " +
+                "java.awt.Point newPoint(int x, int y) { " +
+                "return new java.awt.Point(x, y); } $$");
+        // parameters of type OTHER (or OBJECT or JAVA_OBJECT)
+        // are de-serialized to match the type
+        stat.execute("create alias get_x as $$ " +
+                "int pointX(java.awt.geom.Point2D p) { " +
+                "return (int) p.getX(); } $$");
+        rs = stat.executeQuery("call get_x(make_point(10, 20))");
+        while (rs.next()) {
+            System.out.println(rs.getString(1));
+        }
+
         stat.close();
         conn.close();
     }

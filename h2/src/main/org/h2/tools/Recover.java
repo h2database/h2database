@@ -71,6 +71,7 @@ public class Recover extends Tool implements DataHandler {
     private int recordLength;
     private int valueId;
     private boolean trace;
+    private boolean transactionLog;
     private ArrayList<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
@@ -159,6 +160,8 @@ public class Recover extends Tool implements DataHandler {
                 remove = true;
             } else if ("-trace".equals(arg)) {
                 trace = true;
+            } else if ("-transactionLog".equals(arg)) {
+                transactionLog = true;
             } else if (arg.equals("-help") || arg.equals("-?")) {
                 showUsage();
                 return;
@@ -444,10 +447,11 @@ public class Recover extends Tool implements DataHandler {
             }
             writer.println("---- Statistics ----");
             writer.println("-- page count: " + pageCount + ", free: " + stat.free);
+            long total = Math.max(1, stat.pageDataRows + stat.pageDataEmpty + stat.pageDataHead);
             writer.println("-- page data bytes: head " + stat.pageDataHead +
                     ", empty " + stat.pageDataEmpty +
                     ", rows " + stat.pageDataRows +
-                    " (" + (100 - 100L * stat.pageDataEmpty / (stat.pageDataRows + stat.pageDataEmpty + stat.pageDataHead)) + "% full)");
+                    " (" + (100 - 100L * stat.pageDataEmpty / total) + "% full)");
             for (int i = 0; i < stat.pageTypeCount.length; i++) {
                 int count = stat.pageTypeCount[i];
                 if (count > 0) {
@@ -655,6 +659,29 @@ public class Recover extends Tool implements DataHandler {
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " add " + row.toString());
+                if (transactionLog) {
+                    if (storageId == 0 && row.getColumnCount() >= 4) {
+                        int tableId = (int) row.getKey();
+                        String sql = row.getValue(3).getString();
+                        String name = extractTableOrViewName(sql);
+                        if (row.getValue(2).getInt() == DbObject.TABLE_OR_VIEW) {
+                            tableMap.put(tableId, name);
+                        }
+                        writer.println(sql + ";");
+                    } else {
+                        String tableName = tableMap.get(storageId);
+                        if (tableName != null) {
+                            StatementBuilder buff = new StatementBuilder();
+                            buff.append("INSERT INTO ").append(tableName).append(" VALUES(");
+                            for (int i = 0; i < row.getColumnCount(); i++) {
+                                buff.appendExceptFirst(", ");
+                                buff.append(row.getValue(i).getSQL());
+                            }
+                            buff.append(");");
+                            writer.println(buff.toString());
+                        }
+                    }
+                }
             } else if (x == PageLog.REMOVE) {
                 int sessionId = in.readVarInt();
                 setStorage(in.readVarInt());
@@ -662,12 +689,30 @@ public class Recover extends Tool implements DataHandler {
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " remove " + key);
+                if (transactionLog) {
+                    if (storageId == 0) {
+                        int tableId = (int) key;
+                        String tableName = tableMap.get(tableId);
+                        if (tableName != null) {
+                            writer.println("DROP TABLE IF EXISTS " + tableName + ";");
+                        }
+                    } else {
+                        String tableName = tableMap.get(storageId);
+                        if (tableName != null) {
+                            String sql = "DELETE FROM " + tableName + " WHERE _ROWID_ = " + key + ";";
+                            writer.println(sql);
+                        }
+                    }
+                }
             } else if (x == PageLog.TRUNCATE) {
                 int sessionId = in.readVarInt();
                 setStorage(in.readVarInt());
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " truncate");
+                if (transactionLog) {
+                    writer.println("TRUNCATE TABLE " + storageId);
+                }
             } else if (x == PageLog.COMMIT) {
                 int sessionId = in.readVarInt();
                 writer.println("-- commit " + sessionId);

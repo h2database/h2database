@@ -51,6 +51,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testLobInLargeResult();
         testUniqueIndex();
         testConvert();
         testCreateAsSelect();
@@ -86,6 +87,23 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testLobInLargeResult() throws Exception {
+        deleteDb("lob");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("lob");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int, data clob) as select x, null from system_range(1, 1000)");
+        stat.execute("insert into test values(0, space(10000))");
+        stat.execute("set max_memory_rows 100");
+        ResultSet rs = stat.executeQuery("select * from test order by id desc");
+        while (rs.next()) {
+            // this threw a NullPointerException because
+            // the disk based result set didn't know the lob handler
+        }
+        conn.close();
     }
 
     private void testUniqueIndex() throws Exception {

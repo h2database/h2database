@@ -1139,4 +1139,8 @@ public class Data {
         }
     }
 
+    public DataHandler getHandler() {
+        return handler;
+    }
+
 }

@@ -17,6 +17,7 @@ import org.h2.engine.Constants;
  * A simple CPU profiling tool similar to java -Xrunhprof.
  */
 public class Profiler implements Runnable {
+
     private static Instrumentation instrumentation;
     private static final int MAX_ELEMENTS = 1000;
 
@@ -25,15 +26,21 @@ public class Profiler implements Runnable {
     public boolean paused;
 
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
+    private String[] ignorePackages = StringUtils.arraySplit(
+            "java," +
+            "sun," +
+            "com.sun.,"
+            , ',', true);
     private String[] ignoreThreads = StringUtils.arraySplit(
+            "java.lang.Object.wait," +
             "java.lang.Thread.dumpThreads," +
             "java.lang.Thread.getThreads," +
-            "java.net.PlainSocketImpl.socketAccept," +
-            "java.net.SocketInputStream.socketRead0," +
-            "java.net.SocketOutputStream.socketWrite0," +
-            "java.lang.UNIXProcess.waitForProcessExit," +
-            "java.lang.Object.wait," +
             "java.lang.Thread.sleep," +
+            "java.lang.UNIXProcess.waitForProcessExit," +
+            "java.net.PlainSocketImpl.accept," +
+            "java.net.PlainSocketImpl.socketAccept," +
+            "java.net.SocketInputStream.socketRead," +
+            "java.net.SocketOutputStream.socketWrite," +
             "sun.awt.windows.WToolkit.eventLoop," +
             "sun.misc.Unsafe.park," +
             "dalvik.system.VMStack.getThreadStackTrace," +
@@ -41,6 +48,7 @@ public class Profiler implements Runnable {
             , ',', true);
     private volatile boolean stop;
     private HashMap<String, Integer> counts = new HashMap<String, Integer>();
+    private HashMap<String, Integer> packages = new HashMap<String, Integer>();
     private int minCount = 1;
     private int total;
     private Thread thread;
@@ -120,62 +128,74 @@ public class Profiler implements Runnable {
                 continue;
             }
             StackTraceElement[] dump = entry.getValue();
-            if (dump.length == 0) {
+            if (dump == null || dump.length == 0) {
                 continue;
             }
-            boolean ignoreThis = false;
-            for (String ig : ignoreThreads) {
-                if (ig.length() > 0 && dump[0].toString().startsWith(ig)) {
-                    ignoreThis = true;
-                    break;
-                }
-            }
-            if (ignoreThis) {
+            if (startsWithAny(dump[0].toString(), ignoreThreads)) {
                 continue;
             }
             StringBuilder buff = new StringBuilder();
             // simple recursive calls are ignored
             String last = null;
+            boolean packageCounts = false;
             for (int j = 0, i = 0; i < dump.length && j < depth; i++) {
                 String el = dump[i].toString();
-                ignoreThis = false;
-                for (String ig : ignoreLines) {
-                    if (ig.length() > 0 && el.startsWith(ig)) {
-                        ignoreThis = true;
-                        break;
-                    }
-                }
-                if (!ignoreThis && !el.equals(last)) {
+                if (!el.equals(last) && !startsWithAny(el, ignoreLines)) {
                     last = el;
                     buff.append("at ").append(el).append(SysProperties.LINE_SEPARATOR);
+                    if (!packageCounts && !startsWithAny(el, ignorePackages)) {
+                        packageCounts = true;
+                        int index = 0;
+                        for (; index < el.length(); index++) {
+                            char c = el.charAt(index);
+                            if (Character.isUpperCase(c) || c == '(') {
+                                break;
+                            }
+                        }
+                        if (index > 0 && el.charAt(index - 1) == '.') {
+                            index--;
+                        }
+                        String packageName = el.substring(0, index);
+                        increment(packages, packageName, 0);
+                    }
                     j++;
                 }
             }
             if (buff.length() > 0) {
-                increment(buff.toString());
+                minCount = increment(counts, buff.toString().trim(), minCount);
+                total++;
             }
         }
     }
 
-    private void increment(String trace) {
-        total++;
-        Integer oldCount = counts.get(trace);
-        if (oldCount == null) {
-            counts.put(trace, 1);
-        } else {
-            counts.put(trace, oldCount + 1);
+    private boolean startsWithAny(String s, String[] prefixes) {
+        for (String p : prefixes) {
+            if (p.length() > 0 && s.startsWith(p)) {
+                return true;
+            }
         }
-        if (counts.size() > MAX_ELEMENTS) {
-            for (Iterator<Map.Entry<String, Integer>> ei = counts.entrySet().iterator(); ei.hasNext();) {
+        return false;
+    }
+
+    private static int increment(HashMap<String, Integer> map, String trace, int minCount) {
+        Integer oldCount = map.get(trace);
+        if (oldCount == null) {
+            map.put(trace, 1);
+        } else {
+            map.put(trace, oldCount + 1);
+        }
+        while (map.size() > MAX_ELEMENTS) {
+            for (Iterator<Map.Entry<String, Integer>> ei = map.entrySet().iterator(); ei.hasNext();) {
                 Map.Entry<String, Integer> e = ei.next();
                 if (e.getValue() <= minCount) {
                     ei.remove();
                 }
             }
-            if (counts.size() > MAX_ELEMENTS) {
+            if (map.size() > MAX_ELEMENTS) {
                 minCount++;
             }
         }
+        return minCount;
     }
 
     /**
@@ -190,12 +210,20 @@ public class Profiler implements Runnable {
         buff.append("Profiler: top ").append(count).append(" stack trace(s) of ").append(time).
             append(" ms [build-").append(Constants.BUILD_ID).append("]:").append(SysProperties.LINE_SEPARATOR);
         if (counts.size() == 0) {
-            buff.append("(none)");
+            buff.append("(none)").append(SysProperties.LINE_SEPARATOR);
         }
+        appendTop(buff, counts, count, total, false);
+        buff.append("packages:").append(SysProperties.LINE_SEPARATOR);
+        appendTop(buff, packages, count, total, true);
+        buff.append('.');
+        return buff.toString();
+    }
+
+    private static void appendTop(StringBuilder buff, HashMap<String, Integer> map, int count, int total, boolean table) {
         for (int x = 0, min = 0;;) {
             int highest = 0;
             Map.Entry<String, Integer> best = null;
-            for (Map.Entry<String, Integer> el : counts.entrySet()) {
+            for (Map.Entry<String, Integer> el : map.entrySet()) {
                 if (el.getValue() > highest) {
                     best = el;
                     highest = el.getValue();
@@ -204,18 +232,29 @@ public class Profiler implements Runnable {
             if (best == null) {
                 break;
             }
-            counts.remove(best.getKey());
+            map.remove(best.getKey());
             if (++x >= count) {
                 if (best.getValue() < min) {
                     break;
                 }
                 min = best.getValue();
             }
-            buff.append(best.getValue()).append('/').append(total).
-                append(SysProperties.LINE_SEPARATOR).append(best.getKey());
+            int c = best.getValue();
+            int percent = 100 * c / Math.max(total, 1);
+            if (table) {
+                if (percent > 1) {
+                    buff.append(percent).
+                        append("%: ").append(best.getKey()).
+                        append(SysProperties.LINE_SEPARATOR);
+                }
+            } else {
+                buff.append(c).append('/').append(total).append(" (").
+                    append(percent).
+                    append("%):").append(SysProperties.LINE_SEPARATOR).
+                    append(best.getKey()).
+                    append(SysProperties.LINE_SEPARATOR);
+            }
         }
-        buff.append('.');
-        return buff.toString();
     }
 
 }

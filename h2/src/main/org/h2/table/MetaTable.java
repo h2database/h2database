@@ -1791,4 +1791,8 @@ public class MetaTable extends Table {
         return false;
     }
 
+    public boolean hasRowIdColumn() {
+        return false;
+    }
+
 }

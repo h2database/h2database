@@ -278,6 +278,13 @@ public abstract class Table extends SchemaObjectBase {
     public abstract boolean canDrop();
 
     /**
+     * Check if this table has a row id column.
+     *
+     * @return true if it has
+     */
+    public abstract boolean hasRowIdColumn();
+
+    /**
      * Get the row count for this table.
      *
      * @param session the session

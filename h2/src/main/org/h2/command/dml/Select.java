@@ -445,6 +445,13 @@ public class Select extends Query {
                 }
             }
         }
+        if (sortCols.length == 1 && sortCols[0].getColumnId() == -1) {
+            // special case: order by _ROWID_
+            Index index = topTableFilter.getTable().getScanIndex(session);
+            if (index.isRowIdIndex()) {
+                return index;
+            }
+        }
         return null;
     }
 
@@ -825,7 +832,7 @@ public class Select extends Query {
                 if (current.getIndexType().isScan() || current == index) {
                     topTableFilter.setIndex(index);
                     if (!topTableFilter.hasInComparisons()) {
-                        // in(select ...) and in(1,2,3) my return the key is another order
+                        // in(select ...) and in(1,2,3) my return the key in another order
                         sortUsingIndex = true;
                     }
                 } else if (index.getIndexColumns().length >= current.getIndexColumns().length) {

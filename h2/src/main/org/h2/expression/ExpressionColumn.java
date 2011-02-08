@@ -28,6 +28,7 @@ import org.h2.value.ValueBoolean;
  * A expression that represents a column of a table or view.
  */
 public class ExpressionColumn extends Expression {
+
     private Database database;
     private String schemaName;
     private String tableAlias;
@@ -78,6 +79,13 @@ public class ExpressionColumn extends Expression {
         }
         for (Column col : resolver.getColumns()) {
             if (columnName.equals(col.getName())) {
+                mapColumn(resolver, col, level);
+                return;
+            }
+        }
+        if (Column.ROWID.equals(columnName)) {
+            Column col = resolver.getRowIdColumn();
+            if (col != null) {
                 mapColumn(resolver, col, level);
                 return;
             }

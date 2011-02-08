@@ -56,6 +56,10 @@ public class SingleColumnResolver implements ColumnResolver {
         return null;
     }
 
+    public Column getRowIdColumn() {
+        return null;
+    }
+
     public Expression optimize(ExpressionColumn expressionColumn, Column col) {
         return expressionColumn;
     }

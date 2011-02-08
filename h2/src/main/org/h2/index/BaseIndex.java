@@ -379,4 +379,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return table.isHidden();
     }
 
+    public boolean isRowIdIndex() {
+        return false;
+    }
+
 }

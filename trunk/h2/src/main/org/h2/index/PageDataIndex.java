@@ -140,7 +140,7 @@ public class PageDataIndex extends PageIndex {
                 store.incrementChangeCount();
             }
         }
-        lastKey = Math.max(lastKey, row.getKey() + 1);
+        lastKey = Math.max(lastKey, row.getKey());
     }
 
     public DbException getNewDuplicateKeyException() {
@@ -258,12 +258,11 @@ public class PageDataIndex extends PageIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        if (first != null || last != null) {
-            // this index is a table scan, must not use it for lookup
-            throw DbException.throwInternalError(getSQL() + " " + first + " " + last);
-        }
+        long from = first == null ? Long.MIN_VALUE : first.getKey();
+        long to = last == null ? Long.MAX_VALUE : last.getKey();
         PageData root = getPage(rootPageId, 0);
-        return root.find(session, Long.MIN_VALUE, Long.MAX_VALUE, isMultiVersion);
+        return root.find(session, from, to, isMultiVersion);
+
     }
 
     /**
@@ -525,6 +524,10 @@ public class PageDataIndex extends PageIndex {
         } else {
             memoryPerPage += (x > memoryPerPage ? 1 : -1) + ((x - memoryPerPage) / Constants.MEMORY_FACTOR);
         }
+    }
+
+    public boolean isRowIdIndex() {
+        return true;
     }
 
 }

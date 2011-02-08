@@ -70,9 +70,9 @@ class ResultDiskBuffer implements ResultExternal {
         this.sort = sort;
         this.columnCount = columnCount;
         Database db = session.getDatabase();
-        rowBuff = Data.create(null, Constants.DEFAULT_PAGE_SIZE);
-        String fileName = session.getDatabase().createTempFile();
-        file = session.getDatabase().openFile(fileName, "rw", false);
+        rowBuff = Data.create(db, Constants.DEFAULT_PAGE_SIZE);
+        String fileName = db.createTempFile();
+        file = db.openFile(fileName, "rw", false);
         file.setCheckedWriting(false);
         file.seek(FileStore.HEADER_LENGTH);
         if (sort != null) {
@@ -88,7 +88,7 @@ class ResultDiskBuffer implements ResultExternal {
 
     private ResultDiskBuffer(ResultDiskBuffer parent) {
         this.parent = parent;
-        rowBuff = Data.create(null, Constants.DEFAULT_PAGE_SIZE);
+        rowBuff = Data.create(parent.rowBuff.getHandler(), Constants.DEFAULT_PAGE_SIZE);
         file = parent.file;
         if (parent.tapes != null) {
             tapes = New.arrayList();

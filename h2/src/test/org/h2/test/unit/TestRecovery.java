@@ -36,10 +36,50 @@ public class TestRecovery extends TestBase {
     }
 
     public void test() throws Exception {
+        testRedoTransactions();
         testCorrupt();
         testWithTransactionLog();
         testCompressedAndUncompressed();
         testRunScript();
+    }
+
+    private void testRedoTransactions() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("set write_delay 0");
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test select x, 'Hello' from system_range(1, 5)");
+        stat.execute("create table test2(id int primary key)");
+        stat.execute("drop table test2");
+        stat.execute("update test set name = 'Hallo' where id < 3");
+        stat.execute("delete from test where id = 1");
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (Exception e) {
+            // ignore
+        }
+        Recover.main("-dir", getBaseDir(), "-db", "recovery", "-transactionLog");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection("recovery;init=runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test order by id");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertEquals("Hallo", rs.getString(2));
+        assertTrue(rs.next());
+        assertEquals(3, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        assertTrue(rs.next());
+        assertEquals(4, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        assertTrue(rs.next());
+        assertEquals(5, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        assertFalse(rs.next());
+        conn.close();
     }
 
     private void testCorrupt() throws Exception {

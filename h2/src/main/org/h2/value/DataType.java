@@ -1047,6 +1047,12 @@ public class DataType {
         } else if (paramClass == Clob.class) {
             return new JdbcClob(conn, v, 0);
         }
+        if (v.getType() == Value.JAVA_OBJECT) {
+            Object o = Utils.deserialize(v.getBytes());
+            if (paramClass.isAssignableFrom(o.getClass())) {
+                return o;
+            }
+        }
         throw DbException.getUnsupportedException(paramClass.getName());
     }
 

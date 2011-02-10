@@ -1078,7 +1078,7 @@ public class MetaTable extends Table {
                             // DATA_TYPE
                             "" + DataType.convertTypeToSQLType(method.getDataType()),
                             // COLUMN_COUNT INT
-                            "" + method.getColumnClasses().length,
+                            "" + method.getParameterCount(),
                             // RETURNS_RESULT SMALLINT
                             "" + returnsResult,
                             // REMARKS
@@ -1127,6 +1127,9 @@ public class MetaTable extends Table {
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
                     Class<?>[] columnList = method.getColumnClasses();
                     for (int k = 0; k < columnList.length; k++) {
+                        if (method.hasConnectionParam() && k == 0) {
+                            continue;
+                        }
                         Class<?> clazz = columnList[k];
                         int dataType = DataType.getTypeFromClass(clazz);
                         DataType dt = DataType.getDataType(dataType);
@@ -1146,15 +1149,15 @@ public class MetaTable extends Table {
                                 // COLUMN_COUNT
                                 "" + method.getParameterCount(),
                                 // POS INT
-                                "" + k,
+                                "" + (k + (method.hasConnectionParam() ? 0 : 1)),
                                 // COLUMN_NAME
-                                "P" + (k+1),
+                                "P" + (k + 1),
                                 // DATA_TYPE
                                 "" + DataType.convertTypeToSQLType(dt.type),
                                 // TYPE_NAME
                                 dt.name,
-                                // PRECISION
-                                "" + dt.defaultPrecision,
+                                // PRECISION INT
+                                "" + MathUtils.convertLongToInt(dt.defaultPrecision),
                                 // SCALE
                                 "" + dt.defaultScale,
                                 // RADIX

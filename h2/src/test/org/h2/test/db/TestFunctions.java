@@ -258,6 +258,29 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(10.0, rs.getDouble(2));
         assertEquals(15.0, rs.getDouble(3));
 
+        DatabaseMetaData meta = conn.getMetaData();
+        rs = meta.getProcedureColumns(null, null, "MEAN2", null);
+        assertTrue(rs.next());
+        assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
+        assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
+        assertEquals("MEAN2", rs.getString("PROCEDURE_NAME"));
+        assertEquals("P2", rs.getString("COLUMN_NAME"));
+        assertEquals(DatabaseMetaData.procedureColumnIn, rs.getInt("COLUMN_TYPE"));
+        assertEquals("OTHER", rs.getString("TYPE_NAME"));
+        assertEquals(Integer.MAX_VALUE, rs.getInt("PRECISION"));
+        assertEquals(Integer.MAX_VALUE, rs.getInt("LENGTH"));
+        assertEquals(0, rs.getInt("SCALE"));
+        assertEquals(DatabaseMetaData.columnNullable, rs.getInt("NULLABLE"));
+        assertEquals("", rs.getString("REMARKS"));
+        assertEquals(null, rs.getString("COLUMN_DEF"));
+        assertEquals(0, rs.getInt("SQL_DATA_TYPE"));
+        assertEquals(0, rs.getInt("SQL_DATETIME_SUB"));
+        assertEquals(0, rs.getInt("CHAR_OCTET_LENGTH"));
+        assertEquals(1, rs.getInt("ORDINAL_POSITION"));
+        assertEquals("YES", rs.getString("IS_NULLABLE"));
+        assertEquals("MEAN2", rs.getString("SPECIFIC_NAME"));
+        assertFalse(rs.next());
+
         stat.execute("CREATE ALIAS printMean FOR \"" +
                 getClass().getName() + ".printMean\"");
         rs = stat.executeQuery(
@@ -379,6 +402,32 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
+        DatabaseMetaData meta = conn.getMetaData();
+        rs = meta.getProcedureColumns(null, null, "ADD_ROW", null);
+        assertTrue(rs.next());
+        assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
+        assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
+        assertEquals("ADD_ROW", rs.getString("PROCEDURE_NAME"));
+        assertEquals("P2", rs.getString("COLUMN_NAME"));
+        assertEquals(DatabaseMetaData.procedureColumnIn, rs.getInt("COLUMN_TYPE"));
+        assertEquals("INTEGER", rs.getString("TYPE_NAME"));
+        assertEquals(10, rs.getInt("PRECISION"));
+        assertEquals(10, rs.getInt("LENGTH"));
+        assertEquals(0, rs.getInt("SCALE"));
+        assertEquals(DatabaseMetaData.columnNoNulls, rs.getInt("NULLABLE"));
+        assertEquals("", rs.getString("REMARKS"));
+        assertEquals(null, rs.getString("COLUMN_DEF"));
+        assertEquals(0, rs.getInt("SQL_DATA_TYPE"));
+        assertEquals(0, rs.getInt("SQL_DATETIME_SUB"));
+        assertEquals(0, rs.getInt("CHAR_OCTET_LENGTH"));
+        assertEquals(1, rs.getInt("ORDINAL_POSITION"));
+        assertEquals("YES", rs.getString("IS_NULLABLE"));
+        assertEquals("ADD_ROW", rs.getString("SPECIFIC_NAME"));
+        assertTrue(rs.next());
+        assertEquals("P3", rs.getString("COLUMN_NAME"));
+        assertEquals("VARCHAR", rs.getString("TYPE_NAME"));
+        assertFalse(rs.next());
+
         stat.executeQuery("CALL ADD_ROW(2, 'World')");
 
         stat.execute("CREATE ALIAS SELECT_F FOR \"" + getClass().getName() + ".select\"");
@@ -489,6 +538,21 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
         assertEquals(null, rs.getString(1));
+        assertFalse(rs.next());
+
+        rs = meta.getProcedures(null, null, "NULL_RESULT");
+        rs.next();
+        assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
+        assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
+        assertEquals("NULL_RESULT", rs.getString("PROCEDURE_NAME"));
+        assertEquals(0, rs.getInt("NUM_INPUT_PARAMS"));
+        assertEquals(0, rs.getInt("NUM_OUTPUT_PARAMS"));
+        assertEquals(0, rs.getInt("NUM_RESULT_SETS"));
+        assertEquals("", rs.getString("REMARKS"));
+        assertEquals(DatabaseMetaData.procedureReturnsResult, rs.getInt("PROCEDURE_TYPE"));
+        assertEquals("NULL_RESULT", rs.getString("SPECIFIC_NAME"));
+
+        rs = meta.getProcedureColumns(null, null, "NULL_RESULT", null);
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS RESULT_WITH_NULL FOR \"" + getClass().getName() + ".resultSetWithNull\"");

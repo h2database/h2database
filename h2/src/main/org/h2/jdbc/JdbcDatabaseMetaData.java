@@ -581,14 +581,17 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>2 PROCEDURE_SCHEM (String) schema </li>
      * <li>3 PROCEDURE_NAME (String) name </li>
      * <li>4 COLUMN_NAME (String) column name </li>
-     * <li>5 COLUMN_TYPE (short) column type </li>
+     * <li>5 COLUMN_TYPE (short) column type
+     * (always DatabaseMetaData.procedureColumnIn)</li>
      * <li>6 DATA_TYPE (short) sql type </li>
      * <li>7 TYPE_NAME (String) type name </li>
      * <li>8 PRECISION (int) precision </li>
      * <li>9 LENGTH (int) length </li>
      * <li>10 SCALE (short) scale </li>
      * <li>11 RADIX (int) always 10 </li>
-     * <li>12 NULLABLE (short) nullable </li>
+     * <li>12 NULLABLE (short) nullable
+     * (DatabaseMetaData.columnNoNulls for primitive data types,
+     * DatabaseMetaData.columnNullable otherwise)</li>
      * <li>13 REMARKS (String) description </li>
      * <li>14 COLUMN_DEF (String) always null </li>
      * <li>15 SQL_DATA_TYPE (int) for future use, always 0 </li>

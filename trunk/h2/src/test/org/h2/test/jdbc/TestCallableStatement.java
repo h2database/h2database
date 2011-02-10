@@ -35,10 +35,28 @@ public class TestCallableStatement extends TestBase {
     public void test() throws SQLException {
         deleteDb("callableStatement");
         Connection conn = getConnection("callableStatement");
+        testCallWithResultSet(conn);
         testCallWithResult(conn);
         testPrepare(conn);
         conn.close();
         deleteDb("callableStatement");
+    }
+
+    private void testCallWithResultSet(Connection conn) throws SQLException {
+        CallableStatement call;
+        ResultSet rs;
+        call = conn.prepareCall("select 10");
+
+        call.execute();
+        rs = call.getResultSet();
+        rs.next();
+        assertEquals(10, rs.getInt(1));
+
+        call.executeUpdate();
+        rs = call.getResultSet();
+        rs.next();
+        assertEquals(10, rs.getInt(1));
+
     }
 
     private void testCallWithResult(Connection conn) throws SQLException {

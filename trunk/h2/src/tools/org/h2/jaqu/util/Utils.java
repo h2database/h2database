@@ -44,10 +44,6 @@ public class Utils {
         return Collections.synchronizedMap(map);
     }
 
-    public static <A, B> WeakIdentityHashMap<A, B> newWeakIdentityHashMap() {
-        return new WeakIdentityHashMap<A, B>();
-    }
-
     public static <A, B> IdentityHashMap<A, B> newIdentityHashMap() {
         return new IdentityHashMap<A, B>();
     }

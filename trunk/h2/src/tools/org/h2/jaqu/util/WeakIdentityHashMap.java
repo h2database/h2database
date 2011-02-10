@@ -16,13 +16,15 @@ import java.util.Set;
 /**
  * This hash map uses weak references, so that elements that are no longer
  * referenced elsewhere can be garbage collected. It also uses object identity
- * to compare keys.
+ * to compare keys. The garbage collection happens when trying to add new data,
+ * or when resizing.
  *
  * @param <K> the keys
  * @param <V> the value
  */
 //## Java 1.5 begin ##
 public class WeakIdentityHashMap<K, V> implements Map<K, V> {
+
     private static final int MAX_LOAD = 90;
     private static final WeakReference<Object> DELETED_KEY =
         new WeakReference<Object>(null);

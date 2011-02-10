@@ -1913,6 +1913,7 @@ value
     | tableAlias.columnName
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
+Each table has a pseudo-column named ""_ROWID_"" that contains the unique row identifier.
 ","
 'Hello'
 "

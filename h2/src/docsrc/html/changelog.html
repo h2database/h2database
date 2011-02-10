@@ -18,7 +18,26 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Linked tables: for NUMERIC column, Oracle reports precision 0 and scale -127.
+<ul><li>JaQu: the static map Db.TOKENS was not synchronized.
+</li><li>DatabaseMetaData.getProcedureColumns returned the wrong data
+    (it also returned the Connection parameter if there was any).
+</li><li>Issue 284: If the query cache was used (enabled by default in version 1.3.x), 
+    and multiple threads used the same connection, 
+    and the same query but different prepared statements,
+    parameters of one prepared statement could be overwritten by another.
+</li><li>If the query cache was used (enabled by default in version 1.3.x), 
+    parameters of re-used queries were not reset in prepared statements.
+</li><li>CallableStatement: the first row of the result set was skipped when using CallableStatement.execute().
+</li><li>Batch update exceptions now include the root cause and all chained exceptions (getNextException).
+</li><li>Reading a large result set with a BLOB or CLOB column could throw a NullPointerException.
+</li><li>Support for the MS SQL Server syntax VARCHAR(MAX).
+</li><li>The Recover tool could print "/ by zero" on an empty database.
+</li><li>For tables without a single column primary key of type INT or LONG, 
+    the unique row id had gaps, which didn't look nice.
+</li><li>Each table now has a pseudo-column "_ROWID_" to get the unique row id (only enabled for version 1.3.x).
+</li><li>User defined functions can now have parameters of any class. Values of type
+    OTHER (or OBJECT or JAVA_OBJECT) are automatically de-serialized in that case.
+</li><li>Linked tables: for NUMERIC column, Oracle reports precision 0 and scale -127.
     A workaround has been implemented (the same as for DECIMAL columns in version 1.3.150).
 </li><li>Issue 279: Auto-Server mode: unclear error message when trying to connect using AUTO_SERVER
     if the database is already open without the flag (Connection is broken: "null").
@@ -116,8 +135,8 @@ Change Log
 </li><li>Using the java.sql.Blob or java.sql.Clob interfaces could throw the wrong
     exception after the object was closed.
 </li><li>LOB: in server mode, if the feature "LOBs in database" is disabled,
-the temporary files are now created in the temp directory (the same as
-when "LOBs in database" is enabled).
+    the temporary files are now created in the temp directory (the same as
+    when "LOBs in database" is enabled).
 </li></ul>
 
 <h2>Version 1.2.147 (2010-11-21)</h2>

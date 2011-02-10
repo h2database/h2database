@@ -92,7 +92,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
 </li><li>Web server classloader: override findResource / getResourceFrom.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant.
-</li><li>Comparison: pluggable sort order: natural sort.
+</li><li>Comparison: pluggable sort order: natural sort (for text that contains numbers).
 </li><li>Count index range query (count(*) where id between 10 and 20).
 </li><li>Performance: update in-place.
 </li><li>Eclipse plugin.
@@ -542,6 +542,14 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     optional compatibility with current encrypted database files).
 </li><li>Issue 229: SELECT with simple OR tests uses tableScan when it could use indexes.
 </li><li>GROUP BY queries should use a temporary table if there are too many rows.
+</li><li>BLOB: support random access when reading.
+</li><li>CLOB: support random access when reading (this is harder than for BLOB as data is stored in UTF-8 form).
+</li><li>Compatibility: support SELECT INTO (as an alias for CREATE TABLE ... AS SELECT ...).
+</li><li>Compatibility with MySQL: support SELECT INTO OUTFILE (cannot be an existing file) as an alias for CSVWRITE(...).
+</li><li>Support optimizing queries with both inner and outer joins, as in:
+    select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1
+    (the optimizer should swap a and b here).
+    See also TestNestedJoins.
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -53,10 +53,53 @@ public class TestBatchUpdates extends TestBase {
     }
 
     public void test() throws SQLException {
+        testRootCause();
         testExecuteCall();
         testException();
         testCoffee();
         deleteDb("batchUpdates");
+    }
+
+    private void testRootCause() throws SQLException {
+        deleteDb("batchUpdates");
+        conn = getConnection("batchUpdates");
+        stat = conn.createStatement();
+        stat.addBatch("select * from test_x");
+        stat.addBatch("select * from test_y");
+        try {
+            stat.executeBatch();
+        } catch (SQLException e) {
+            assertContains(e.toString(), "TEST_Y");
+            e = e.getNextException();
+            assertTrue(e != null);
+            assertContains(e.toString(), "TEST_Y");
+            e = e.getNextException();
+            assertTrue(e != null);
+            assertContains(e.toString(), "TEST_X");
+            e = e.getNextException();
+            assertTrue(e == null);
+        }
+        stat.execute("create table test(id int)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(?)");
+        prep.setString(1, "TEST_X");
+        prep.addBatch();
+        prep.setString(1, "TEST_Y");
+        prep.addBatch();
+        try {
+            prep.executeBatch();
+        } catch (SQLException e) {
+            assertContains(e.toString(), "TEST_Y");
+            e = e.getNextException();
+            assertTrue(e != null);
+            assertContains(e.toString(), "TEST_Y");
+            e = e.getNextException();
+            assertTrue(e != null);
+            assertContains(e.toString(), "TEST_X");
+            e = e.getNextException();
+            assertTrue(e == null);
+        }
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testExecuteCall() throws SQLException {

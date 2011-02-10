@@ -6,7 +6,6 @@
  */
 package org.h2.jdbc;
 
-import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -627,12 +626,19 @@ public class JdbcStatement extends TraceObject implements Statement {
                 int size = batchCommands.size();
                 int[] result = new int[size];
                 boolean error = false;
+                SQLException next = null;
                 for (int i = 0; i < size; i++) {
                     String sql = batchCommands.get(i);
                     try {
                         result[i] = executeUpdateInternal(sql);
-                    } catch (Exception e) {
-                        logAndConvert(e);
+                    } catch (Exception re) {
+                        SQLException e = logAndConvert(re);
+                        if (next == null) {
+                            next = e;
+                        } else {
+                            e.setNextException(next);
+                            next = e;
+                        }
                         //## Java 1.4 begin ##
                         result[i] = Statement.EXECUTE_FAILED;
                         //## Java 1.4 end ##
@@ -641,7 +647,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 }
                 batchCommands = null;
                 if (error) {
-                    throw new BatchUpdateException(result);
+                    throw new JdbcBatchUpdateException(next, result);
                 }
                 return result;
             } finally {

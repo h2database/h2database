@@ -1091,14 +1091,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                     try {
                         result[i] = executeUpdateInternal();
                     } catch (Exception re) {
-                        SQLException e = DbException.toSQLException(re);
+                        SQLException e = logAndConvert(re);
                         if (next == null) {
                             next = e;
                         } else {
                             e.setNextException(next);
                             next = e;
                         }
-                        logAndConvert(e);
                         //## Java 1.4 begin ##
                         result[i] = Statement.EXECUTE_FAILED;
                         //## Java 1.4 end ##
@@ -1108,7 +1107,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 batchParameters = null;
                 if (error) {
                     JdbcBatchUpdateException e = new JdbcBatchUpdateException(next, result);
-                    e.setNextException(next);
                     throw e;
                 }
                 return result;

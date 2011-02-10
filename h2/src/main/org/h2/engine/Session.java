@@ -416,7 +416,8 @@ public class Session extends SessionWithState {
                 queryCache = SmallLRUCache.newInstance(queryCacheSize);
             } else {
                 command = queryCache.get(sql);
-                if (command != null) {
+                if (command != null && command.canReuse()) {
+                    command.reuse();
                     return command;
                 }
             }

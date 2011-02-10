@@ -19,6 +19,7 @@ import java.util.TreeSet;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
+import org.h2.util.Task;
 
 /**
  * Test various optimizations (query cache, optimization for MIN(..), and
@@ -37,6 +38,8 @@ public class TestOptimizations extends TestBase {
 
     public void test() throws Exception {
         deleteDb("optimizations");
+        testQueryCacheConcurrentUse();
+        testQueryCacheResetParams();
         testRowId();
         testSortIndex();
         testAutoAnalyze();
@@ -61,6 +64,58 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testQueryCacheConcurrentUse() throws Exception {
+        final Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, data clob)");
+        stat.execute("insert into test values(0, space(10000))");
+        stat.execute("insert into test values(1, space(10001))");
+        Task[] tasks = new Task[2];
+        for (int i = 0; i < tasks.length; i++) {
+            tasks[i] = new Task() {
+                public void call() throws Exception {
+                    PreparedStatement prep = conn.prepareStatement("select * from test where id = ?");
+                    while (!stop) {
+                        int x = (int) (Math.random() * 2);
+                        prep.setInt(1, x);
+                        ResultSet rs = prep.executeQuery();
+                        rs.next();
+                        String data = rs.getString(2);
+                        if (data.length() != 10000 + x) {
+                            throw new Exception(data.length() + " != " + x);
+                        }
+                        rs.close();
+                    }
+                }
+            };
+            tasks[i].execute();
+        }
+        Thread.sleep(1000);
+        for (Task t : tasks) {
+            t.get();
+        }
+        stat.execute("drop table test");
+        conn.close();
+    }
+
+    private void testQueryCacheResetParams() throws SQLException {
+        Connection conn = getConnection("optimizations");
+        PreparedStatement prep;
+        prep = conn.prepareStatement("select ?");
+        prep.setString(1, "Hello");
+        prep.execute();
+        prep.close();
+        prep = conn.prepareStatement("select ?");
+        try {
+            prep.execute();
+            fail("Parameter value still set");
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        prep.close();
+        conn.close();
     }
 
     private void testRowId() throws SQLException {

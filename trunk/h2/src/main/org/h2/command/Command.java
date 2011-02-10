@@ -44,6 +44,8 @@ public abstract class Command implements CommandInterface {
 
     private final String sql;
 
+    private boolean canReuse;
+
     public Command(Parser parser, String sql) {
         this.session = parser.getSession();
         this.sql = sql;
@@ -266,7 +268,7 @@ public abstract class Command implements CommandInterface {
     }
 
     public void close() {
-        // nothing to do
+        canReuse = true;
     }
 
     public void cancel() {
@@ -279,6 +281,19 @@ public abstract class Command implements CommandInterface {
 
     public boolean isCacheable() {
         return false;
+    }
+
+    public boolean canReuse() {
+        return canReuse;
+    }
+
+    public void reuse() {
+        canReuse = false;
+        ArrayList<? extends ParameterInterface> parameters = getParameters();
+        for (int i = 0, size = parameters.size(); i < size; i++) {
+            ParameterInterface param = parameters.get(i);
+            param.setValue(null, true);
+        }
     }
 
 }

@@ -32,6 +32,9 @@ import org.h2.upgrade.DbUpgrade;
 public class Driver implements java.sql.Driver {
 
     private static final Driver INSTANCE = new Driver();
+    private static final String DEFAULT_URL = "jdbc:default:connection";
+    private static final ThreadLocal<Connection> DEFAULT_CONNECTION = new ThreadLocal<Connection>();
+
     private static volatile boolean registered;
 
     static {
@@ -55,6 +58,9 @@ public class Driver implements java.sql.Driver {
             if (!acceptsURL(url)) {
                 return null;
             }
+            if (url.equals(DEFAULT_URL)) {
+                return DEFAULT_CONNECTION.get();
+            }
             Connection c = DbUpgrade.connectOrUpgrade(url, info);
             if (c != null) {
                 return c;
@@ -73,7 +79,14 @@ public class Driver implements java.sql.Driver {
      * @return if the driver understands the URL
      */
     public boolean acceptsURL(String url) {
-        return url != null && url.startsWith(Constants.START_URL);
+        if (url != null) {
+            if (url.startsWith(Constants.START_URL)) {
+                return true;
+            } else if (url.equals(DEFAULT_URL)) {
+                return DEFAULT_CONNECTION.get() != null;
+            }
+        }
+        return false;
     }
 
     /**
@@ -145,6 +158,13 @@ public class Driver implements java.sql.Driver {
         } catch (SQLException e) {
             TraceSystem.traceThrowable(e);
         }
+    }
+
+    /**
+     * INTERNAL
+     */
+    public static void setDefaultConnection(Connection c) {
+        DEFAULT_CONNECTION.set(c);
     }
 
 }

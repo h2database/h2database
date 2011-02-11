@@ -72,6 +72,16 @@ public class DbSettings extends SettingsBase {
     public final boolean dbCloseOnExit = get("DB_CLOSE_ON_EXIT", true);
 
     /**
+     * Database setting <code>DEFAULT_CONNECTION</code> (default: false).<br />
+     * Whether Java functions can use
+     * <code>DriverManager.getConnection("jdbc:default:connection")</code> to
+     * get a database connection. This feature is disabled by default for
+     * performance reasons. Please note the Oracle JDBC driver will try to
+     * resolve this database URL if it is loaded before the H2 driver.
+     */
+    public boolean defaultConnection = get("DEFAULT_CONNECTION", false);
+
+    /**
      * Database setting <code>DEFAULT_ESCAPE</code> (default: \).<br />
      * The default escape character for LIKE comparisons. To select no escape
      * character, use an empty string.

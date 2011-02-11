@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.h2.Driver;
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -376,10 +377,14 @@ public class FunctionAlias extends SchemaObjectBase {
             }
             boolean old = session.getAutoCommit();
             Value identity = session.getScopeIdentity();
+            boolean defaultConnection = session.getDatabase().getSettings().defaultConnection;
             try {
                 session.setAutoCommit(false);
                 Object returnValue;
                 try {
+                    if (defaultConnection) {
+                        Driver.setDefaultConnection(session.createConnection(columnList));
+                    }
                     returnValue = method.invoke(null, params);
                     if (returnValue == null) {
                         return ValueNull.INSTANCE;
@@ -401,6 +406,9 @@ public class FunctionAlias extends SchemaObjectBase {
             } finally {
                 session.setScopeIdentity(identity);
                 session.setAutoCommit(old);
+                if (defaultConnection) {
+                    Driver.setDefaultConnection(null);
+                }
             }
         }
 

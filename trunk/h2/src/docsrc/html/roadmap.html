@@ -392,7 +392,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface).
 </li><li>HSQLDB compatibility: support CALL "java.lang.Math.sqrt"(2.0)
 </li><li>Support comma as the decimal separator in the CSV tool.
-</li><li>Compatibility: Support jdbc:default:connection using ThreadLocal (part of SQLJ)
 </li><li>Compatibility: Java functions with SQLJ Part1 http://www.acm.org/sigmod/record/issues/9912/standards.pdf.gz
 </li><li>Compatibility: Java functions with SQL/PSM (Persistent Stored Modules) - need to find the documentation.
 </li><li>CACHE_SIZE: automatically use a fraction of Runtime.maxMemory - maybe automatically the second level cache.
@@ -550,6 +549,12 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1
     (the optimizer should swap a and b here).
     See also TestNestedJoins.
+</li><li>Compatibility with MySQL: support non-strict mode (sql_mode = "") any data 
+    that is too large for the column will just be truncated or set to the default value.
+</li><li>The full condition should be sent to the linked table, not just the indexed condition.
+    Example: TestLinkedTableFullCondition
+</li><li>Compatibility with IBM DB2: CREATE PROCEDURE.
+</li><li>Compatibility with IBM DB2: SQL cursors.
 </li></ul>
 
 <h2>Not Planned</h2>

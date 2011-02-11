@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -47,6 +48,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testDefaultConnection();
         testFunctionInSchema();
         testGreatest();
         testSource();
@@ -63,6 +65,19 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFileRead();
         deleteDb("functions");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testDefaultConnection() throws SQLException {
+        Connection conn = getConnection("functions;DEFAULT_CONNECTION=TRUE");
+        Statement stat = conn.createStatement();
+        stat.execute("create alias test for \""+TestFunctions.class.getName()+".testDefaultConn\"");
+        stat.execute("call test()");
+        stat.execute("drop alias test");
+        conn.close();
+    }
+
+    public static void testDefaultConn() throws SQLException {
+        DriverManager.getConnection("jdbc:default:connection");
     }
 
     private void testFunctionInSchema() throws SQLException {

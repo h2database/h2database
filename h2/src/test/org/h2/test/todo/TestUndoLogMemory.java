@@ -30,7 +30,7 @@ public class TestUndoLogMemory {
         // new TestUndoLogMemory().test(1000, "space(100000)");
     }
 
-    public void test(int count, String defaultValue) throws SQLException {
+    private void test(int count, String defaultValue) throws SQLException {
 
         // -Xmx1m -XX:+HeapDumpOnOutOfMemoryError
         DeleteDbFiles.execute("data", "test", true);

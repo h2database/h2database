@@ -354,21 +354,13 @@ class WebThread extends WebApp implements Runnable {
         len -= headerBytes;
         File file = new File(WebServer.TRANSFER, fileName);
         OutputStream out = new FileOutputStream(file);
-        byte[] bytes = Utils.newBytes(Constants.IO_BUFFER_SIZE);
-        while (len > 0) {
-            int l = Math.min(Constants.IO_BUFFER_SIZE, len);
-            l = in.read(bytes, 0, l);
-            if (l < 0) {
-                break;
-            }
-            out.write(bytes, 0, l);
-            len -= l;
-        }
+        IOUtils.copy(in, out, len);
         out.close();
         // remove the boundary
         RandomAccessFile f = new RandomAccessFile(file, "rw");
         int testSize = (int) Math.min(f.length(), Constants.IO_BUFFER_SIZE);
         f.seek(f.length() - testSize);
+        byte[] bytes = Utils.newBytes(Constants.IO_BUFFER_SIZE);
         f.readFully(bytes, 0, testSize);
         String s = new String(bytes, "ASCII");
         int x = s.lastIndexOf(boundary);

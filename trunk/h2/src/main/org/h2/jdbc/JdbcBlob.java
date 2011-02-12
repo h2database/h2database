@@ -58,21 +58,7 @@ public class JdbcBlob extends TraceObject implements Blob {
                     return precision;
                 }
             }
-            long size = 0;
-            InputStream in = value.getInputStream();
-            try {
-                byte[] buff = new byte[Constants.IO_BUFFER_SIZE];
-                while (true) {
-                    int len = in.read(buff, 0, Constants.IO_BUFFER_SIZE);
-                    if (len <= 0) {
-                        break;
-                    }
-                    size += len;
-                }
-            } finally {
-                in.close();
-            }
-            return size;
+            return IOUtils.copyAndCloseInput(value.getInputStream(), null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -106,14 +92,7 @@ public class JdbcBlob extends TraceObject implements Blob {
             InputStream in = value.getInputStream();
             try {
                 IOUtils.skipFully(in, pos - 1);
-                while (length > 0) {
-                    int x = in.read();
-                    if (x < 0) {
-                        break;
-                    }
-                    out.write(x);
-                    length--;
-                }
+                IOUtils.copy(in, out, length);
             } finally {
                 in.close();
             }

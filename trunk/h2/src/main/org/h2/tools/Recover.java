@@ -280,24 +280,15 @@ public class Recover extends Tool implements DataHandler {
     private void dumpLob(String fileName, boolean lobCompression) {
         OutputStream fileOut = null;
         FileStore fileStore = null;
-        int size = 0;
+        long size = 0;
         String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
         InputStream in = null;
         try {
             fileOut = IOUtils.openFileOutputStream(n, false);
             fileStore = FileStore.open(null, fileName, "r");
             fileStore.init();
-            in = new BufferedInputStream(new FileStoreInputStream(fileStore, this, lobCompression, false));
-            byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
-            while (true) {
-                int l = in.read(buffer);
-                if (l < 0) {
-                    break;
-                }
-                fileOut.write(buffer, 0, l);
-                size += l;
-            }
-            fileOut.close();
+            in = new FileStoreInputStream(fileStore, this, lobCompression, false);
+            size = IOUtils.copy(in, fileOut);
         } catch (Throwable e) {
             // this is usually not a problem, because we try both compressed and
             // uncompressed

@@ -73,7 +73,6 @@ public class TestTools extends TestBase {
             return;
         }
         org.h2.Driver.load();
-        testInMemoryBaseDir();
         testConsole();
         testJdbcDriverUtils();
         testWrongServer();
@@ -844,31 +843,12 @@ public class TestTools extends TestBase {
         try {
             DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
             fail("Should throw an exception!");
-        } catch (Throwable e) {
-            // Expected
+        } catch (SQLException e) {
+            assertKnownException(e);
         }
 
         server.stop();
         deleteDb("testSplit");
-    }
-
-    private void testInMemoryBaseDir() throws SQLException {
-        Connection conn;
-        Server tcpServer = Server.createTcpServer(
-                        "-baseDir", "memFS:/testDir",
-                        "-tcpPort", "9192",
-                        "-tcpAllowOthers").start();
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-        conn.close();
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/split:test", "sa", "");
-        conn.close();
-        try {
-            DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/split:../test", "sa", "");
-            fail("Should throw an exception!");
-        } catch (Throwable e) {
-            // Expected
-        }
-        tcpServer.stop();
     }
 
 }

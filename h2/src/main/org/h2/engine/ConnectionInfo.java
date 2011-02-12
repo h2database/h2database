@@ -147,9 +147,9 @@ public class ConnectionInfo implements Cloneable {
                 prefix = name.substring(0, name.length() - n.length());
                 n = dir + SysProperties.FILE_SEPARATOR + n;
             }
-            String absName = IOUtils.unwrap(IOUtils.getAbsolutePath(n));
-            if (absName.equals(absDir) || !absName.startsWith(absDir)) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, absName + " outside " +
+            String normalizedName = IOUtils.unwrap(IOUtils.normalize(n));
+            if (normalizedName.equals(absDir) || !normalizedName.startsWith(absDir)) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, normalizedName + " outside " +
                         absDir);
             }
             if (!absolute) {

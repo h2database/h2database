@@ -1,7 +1,5 @@
 Check dictionary.txt
-./build.sh spellcheck
-./build.sh javadocImpl
-./build.sh docs
+./build.sh spellcheck javadocImpl docs
 Update Constants.java - change version and build number
 Update changelog.html - add new version, remove oldest
 Update newsfeed.sql - add new version, remove oldest

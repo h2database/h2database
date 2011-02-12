@@ -30,9 +30,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.server.ShutdownHandler;
+import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
 
@@ -68,6 +70,14 @@ ShutdownHandler {
      * <table>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
+     * <tr><td>[-url]</td>
+     * <td>Start a browser and connect to this URL</td></tr>
+     * <tr><td>[-driver]</td>
+     * <td>Used together with -url: the driver</td></tr>
+     * <tr><td>[-user]</td>
+     * <td>Used together with -url: the user name</td></tr>
+     * <tr><td>[-password]</td>
+     * <td>Used together with -url: the password</td></tr>
      * <tr><td>[-web]</td>
      * <td>Start the web server with the H2 Console</td></tr>
      * <tr><td>[-tool]</td>
@@ -104,6 +114,7 @@ ShutdownHandler {
         boolean browserStart = false;
         boolean startDefaultServers = true;
         boolean printStatus = args != null && args.length > 0;
+        String driver = null, url = null, user = null, password = null;
 
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
@@ -112,6 +123,15 @@ ShutdownHandler {
             } else if ("-?".equals(arg) || "-help".equals(arg)) {
                 showUsage();
                 return;
+            } else if ("-url".equals(arg)) {
+                startDefaultServers = false;
+                url = args[++i];
+            } else if ("-driver".equals(arg)) {
+                driver = args[++i];
+            } else if ("-user".equals(arg)) {
+                user = args[++i];
+            } else if ("-password".equals(arg)) {
+                password = args[++i];
             } else if ("-web".equals(arg)) {
                 startDefaultServers = false;
                 webStart = true;
@@ -140,6 +160,12 @@ ShutdownHandler {
         }
         SQLException startException = null;
         boolean webRunning = false;
+
+        if (url != null) {
+            Connection conn = JdbcUtils.getConnection(driver, url, user, password);
+            Server.startWebServer(conn);
+        }
+
         if (webStart) {
             try {
                 web = Server.createWebServer(args);

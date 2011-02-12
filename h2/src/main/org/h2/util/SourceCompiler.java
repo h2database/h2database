@@ -218,15 +218,7 @@ public class SourceCompiler {
     private static void copyInThread(final InputStream in, final OutputStream out) {
         new Task() {
             public void call() throws IOException {
-                while (true) {
-                    int x = in.read();
-                    if (x < 0) {
-                        return;
-                    }
-                    if (out != null) {
-                        out.write(x);
-                    }
-                }
+                IOUtils.copy(in, out);
             }
         }.execute();
     }

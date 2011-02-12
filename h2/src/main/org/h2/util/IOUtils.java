@@ -33,8 +33,6 @@ import org.h2.store.fs.FileSystem;
  */
 public class IOUtils {
 
-    private static final int BUFFER_BLOCK_SIZE = 4 * 1024;
-
     private IOUtils() {
         // utility class
     }
@@ -126,7 +124,7 @@ public class IOUtils {
      * input stream. Exceptions while closing are ignored.
      *
      * @param in the input stream
-     * @param out the output stream
+     * @param out the output stream (null if writing is not required)
      * @return the number of bytes copied
      */
     public static long copyAndCloseInput(InputStream in, OutputStream out) throws IOException {
@@ -144,22 +142,40 @@ public class IOUtils {
      * are kept open.
      *
      * @param in the input stream
-     * @param out the output stream
+     * @param out the output stream (null if writing is not required)
      * @return the number of bytes copied
      */
     public static long copy(InputStream in, OutputStream out) throws IOException {
+        return copy(in, out, Long.MAX_VALUE);
+    }
+
+    /**
+     * Copy all data from the input stream to the output stream. Both streams
+     * are kept open.
+     *
+     * @param in the input stream
+     * @param out the output stream (null if writing is not required)
+     * @param length the maximum number of bytes to copy
+     * @return the number of bytes copied
+     */
+    public static long copy(InputStream in, OutputStream out, long length) throws IOException {
         try {
-            long written = 0;
-            byte[] buffer = new byte[4 * 1024];
-            while (true) {
-                int len = in.read(buffer);
+            long copied = 0;
+            int len = (int) Math.min(length, Constants.IO_BUFFER_SIZE);
+            byte[] buffer = new byte[len];
+            while (length > 0) {
+                len = in.read(buffer, 0, len);
                 if (len < 0) {
                     break;
                 }
-                out.write(buffer, 0, len);
-                written += len;
+                if (out != null) {
+                    out.write(buffer, 0, len);
+                }
+                copied += len;
+                length -= len;
+                len = (int) Math.min(length, Constants.IO_BUFFER_SIZE);
             }
-            return written;
+            return copied;
         } catch (Exception e) {
             throw DbException.convertToIOException(e);
         }
@@ -170,22 +186,28 @@ public class IOUtils {
      * Exceptions while closing are ignored.
      *
      * @param in the reader
-     * @param out the writer
+     * @param out the writer (null if writing is not required)
+     * @param length the maximum number of bytes to copy
      * @return the number of characters copied
      */
-    public static long copyAndCloseInput(Reader in, Writer out) throws IOException {
+    public static long copyAndCloseInput(Reader in, Writer out, long length) throws IOException {
         try {
-            long written = 0;
-            char[] buffer = new char[4 * 1024];
-            while (true) {
-                int len = in.read(buffer);
+            long copied = 0;
+            int len = (int) Math.min(length, Constants.IO_BUFFER_SIZE);
+            char[] buffer = new char[len];
+            while (length > 0) {
+                len = in.read(buffer, 0, len);
                 if (len < 0) {
                     break;
                 }
-                out.write(buffer, 0, len);
-                written += len;
+                if (out != null) {
+                    out.write(buffer, 0, len);
+                }
+                length -= len;
+                len = (int) Math.min(length, Constants.IO_BUFFER_SIZE);
+                copied += len;
             }
-            return written;
+            return copied;
         } catch (Exception e) {
             throw DbException.convertToIOException(e);
         } finally {
@@ -253,18 +275,9 @@ public class IOUtils {
             if (length <= 0) {
                 length = Integer.MAX_VALUE;
             }
-            int block = Math.min(BUFFER_BLOCK_SIZE, length);
+            int block = Math.min(Constants.IO_BUFFER_SIZE, length);
             ByteArrayOutputStream out = new ByteArrayOutputStream(block);
-            byte[] buff = new byte[block];
-            while (length > 0) {
-                int len = Math.min(block, length);
-                len = in.read(buff, 0, len);
-                if (len < 0) {
-                    break;
-                }
-                out.write(buff, 0, len);
-                length -= len;
-            }
+            copy(in, out, length);
             return out.toByteArray();
         } catch (Exception e) {
             throw DbException.convertToIOException(e);
@@ -286,18 +299,9 @@ public class IOUtils {
             if (length <= 0) {
                 length = Integer.MAX_VALUE;
             }
-            int block = Math.min(BUFFER_BLOCK_SIZE, length);
-            StringWriter out = new StringWriter(length == Integer.MAX_VALUE ? block : length);
-            char[] buff = new char[block];
-            while (length > 0) {
-                int len = Math.min(block, length);
-                len = in.read(buff, 0, len);
-                if (len < 0) {
-                    break;
-                }
-                out.write(buff, 0, len);
-                length -= len;
-            }
+            int block = Math.min(Constants.IO_BUFFER_SIZE, length);
+            StringWriter out = new StringWriter(block);
+            copyAndCloseInput(in, out, length);
             return out.toString();
         } finally {
             in.close();

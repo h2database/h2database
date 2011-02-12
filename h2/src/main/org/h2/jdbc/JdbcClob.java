@@ -13,6 +13,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.sql.Clob;
 //## Java 1.6 begin ##
@@ -63,21 +64,7 @@ public class JdbcClob extends TraceObject implements Clob
                     return precision;
                 }
             }
-            Reader in = value.getReader();
-            try {
-                long size = 0;
-                char[] buff = new char[Constants.IO_BUFFER_SIZE];
-                while (true) {
-                    int len = in.read(buff, 0, Constants.IO_BUFFER_SIZE);
-                    if (len <= 0) {
-                        break;
-                    }
-                    size += len;
-                }
-                return size;
-            } finally {
-                in.close();
-            }
+            return IOUtils.copyAndCloseInput(value.getReader(), null, Long.MAX_VALUE);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -196,21 +183,15 @@ public class JdbcClob extends TraceObject implements Clob
             if (length < 0) {
                 throw DbException.getInvalidValueException("length", length);
             }
-            StringBuilder buff = new StringBuilder(Math.min(4096, length));
+            StringWriter writer = new StringWriter(Math.min(Constants.IO_BUFFER_SIZE, length));
             Reader reader = value.getReader();
             try {
                 IOUtils.skipFully(reader, pos - 1);
-                for (int i = 0; i < length; i++) {
-                    int ch = reader.read();
-                    if (ch < 0) {
-                        break;
-                    }
-                    buff.append((char) ch);
-                }
+                IOUtils.copyAndCloseInput(reader, writer, length);
             } finally {
                 reader.close();
             }
-            return buff.toString();
+            return writer.toString();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

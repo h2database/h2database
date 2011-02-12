@@ -18,7 +18,6 @@ import java.net.URL;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -322,17 +321,9 @@ public class FileSystemDisk extends FileSystem {
         OutputStream out = null;
         InputStream in = null;
         try {
-            out = IOUtils.openFileOutputStream(target, false);
             in = IOUtils.openFileInputStream(source);
-            byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
-            while (true) {
-                int len = in.read(buffer);
-                if (len < 0) {
-                    break;
-                }
-                out.write(buffer, 0, len);
-            }
-            out.close();
+            out = IOUtils.openFileOutputStream(target, false);
+            IOUtils.copy(in, out);
         } catch (IOException e) {
             throw DbException.convertIOException(e, "original: " + source + " copy: " + target);
         } finally {

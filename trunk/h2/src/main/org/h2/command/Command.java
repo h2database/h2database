@@ -283,10 +283,19 @@ public abstract class Command implements CommandInterface {
         return false;
     }
 
+    /**
+     * Whether the command is already closed (in which case it can be re-used).
+     *
+     * @return true if it can be re-used
+     */
     public boolean canReuse() {
         return canReuse;
     }
 
+    /**
+     * The command is now re-used, therefore reset the canReuse flag, and the
+     * parameter values.
+     */
     public void reuse() {
         canReuse = false;
         ArrayList<? extends ParameterInterface> parameters = getParameters();

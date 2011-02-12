@@ -466,10 +466,17 @@ public class BuildBase {
             if (quiet) {
                 System.setOut(filter(System.out, new String[] {
                         "Loading source files for package",
-                        "Constructing Javadoc information",
+                        "Constructing Javadoc information...",
                         "Generating ",
                         "Standard Doclet",
-                        "Building "
+                        "Building tree for all the packages and classes...",
+                        "Building index for all the packages and classes...",
+                        "Building index for all classes..."
+                }));
+            } else {
+                System.setOut(filter(System.out, new String[] {
+                        "Loading source files for package ",
+                        "Generating ",
                 }));
             }
             Class<?> clazz = Class.forName("com.sun.tools.javadoc.Main");

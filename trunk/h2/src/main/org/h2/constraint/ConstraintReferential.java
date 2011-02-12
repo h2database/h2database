@@ -598,20 +598,6 @@ public class ConstraintReferential extends Constraint {
         }
     }
 
-    public boolean containsColumn(Column col) {
-        for (IndexColumn c : columns) {
-            if (c.column == col) {
-                return true;
-            }
-        }
-        for (IndexColumn c : refColumns) {
-            if (c.column == col) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public boolean isBefore() {
         return false;
     }

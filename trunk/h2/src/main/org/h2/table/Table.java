@@ -475,6 +475,7 @@ public abstract class Table extends SchemaObjectBase {
      * multi-column index. If it is, an exception is thrown. Single-column
      * references and indexes are dropped.
      *
+     * @param session the session
      * @param col the column
      * @throws SQLException if the column is referenced by multi-column
      *             constraints or indexes

@@ -35,14 +35,14 @@ public class TestAlter extends TestBase {
         deleteDb("alter");
         conn = getConnection("alter");
         stat = conn.createStatement();
-        testAlterTableDropColumWithReferences();
+        testAlterTableDropColumnWithReferences();
         testAlterTableAlterColumn();
         testAlterTableDropIdentityColumn();
         conn.close();
         deleteDb("alter");
     }
 
-    private void testAlterTableDropColumWithReferences() throws SQLException {
+    private void testAlterTableDropColumnWithReferences() throws SQLException {
 
         stat.execute("create table parent(id int, b int)");
         stat.execute("create table child(p int primary key)");

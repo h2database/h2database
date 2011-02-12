@@ -346,8 +346,4 @@ public abstract class FileSystem {
      */
     public abstract String unwrap(String fileName);
 
-    protected static FileSystem getFileSystem(String fileName) {
-        return FileSystem.getInstance(fileName);
-    }
-
 }

@@ -76,6 +76,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static void testDefaultConn() throws SQLException {
         DriverManager.getConnection("jdbc:default:connection");
     }

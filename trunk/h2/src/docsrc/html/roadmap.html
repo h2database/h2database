@@ -549,7 +549,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1
     (the optimizer should swap a and b here).
     See also TestNestedJoins.
-</li><li>Compatibility with MySQL: support non-strict mode (sql_mode = "") any data 
+</li><li>Compatibility with MySQL: support non-strict mode (sql_mode = "") any data
     that is too large for the column will just be truncated or set to the default value.
 </li><li>The full condition should be sent to the linked table, not just the indexed condition.
     Example: TestLinkedTableFullCondition

@@ -28,7 +28,7 @@ public class TestUndoLogLarge {
         new TestUndoLogLarge().test();
     }
 
-    public void test() throws SQLException {
+    private void test() throws SQLException {
         DeleteDbFiles.execute("data", "test", true);
         Connection conn = DriverManager.getConnection("jdbc:h2:data/test");
         Statement stat = conn.createStatement();

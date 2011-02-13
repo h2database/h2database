@@ -15,8 +15,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.h2.api.Trigger;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.TriggerAdapter;
+import org.h2.util.Task;
 
 /**
  * Tests for trigger and constraints.
@@ -35,8 +37,10 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() throws Exception {
         deleteDb("trigger");
+        testTriggerDeadlock();
+        testDeleteInTrigger();
         testTriggerAdapter();
         testViewTrigger();
         testTriggerBeforeSelect();
@@ -44,6 +48,70 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testTriggers();
         testConstraints();
         deleteDb("trigger");
+    }
+
+    /**
+     * A trigger that deletes all rows in the test table.
+     */
+    public static class DeleteTrigger extends TriggerAdapter {
+        public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
+            conn.createStatement().execute("delete from test");
+        }
+    }
+
+    private void testTriggerDeadlock() throws Exception {
+        final Connection conn, conn2;
+        final Statement stat, stat2;
+        conn = getConnection("trigger");
+        conn2 = getConnection("trigger");
+        stat = conn.createStatement();
+        stat2 = conn2.createStatement();
+        stat.execute("create table test(id int) as select 1");
+        stat.execute("create table test2(id int) as select 1");
+        stat.execute("create trigger test_u before update on test2 " +
+                "for each row call \"" + DeleteTrigger.class.getName() + "\"");
+        conn.setAutoCommit(false);
+        conn2.setAutoCommit(false);
+        stat2.execute("update test set id = 2");
+        Task task = new Task() {
+            public void call() throws Exception {
+                Thread.sleep(200);
+                stat2.execute("update test2 set id = 4");
+            }
+        };
+        task.execute();
+        Thread.sleep(100);
+        try {
+            stat.execute("update test2 set id = 3");
+            task.get();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.LOCK_TIMEOUT_1, e.getErrorCode());
+        }
+        conn2.rollback();
+        conn.rollback();
+        stat.execute("drop table test");
+        stat.execute("drop table test2");
+        conn.close();
+        conn2.close();
+    }
+
+    private void testDeleteInTrigger() throws SQLException {
+        Connection conn;
+        Statement stat;
+        conn = getConnection("trigger");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int) as select 1");
+        stat.execute("create trigger test_u before update on test " +
+                "for each row call \"" + DeleteTrigger.class.getName() + "\"");
+        try {
+            stat.execute("update test set id = 2");
+            fail();
+        } catch (SQLException e) {
+            // this threw a NullPointerException
+            assertKnownException(e);
+        }
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testTriggerAdapter() throws SQLException {

@@ -75,7 +75,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat2.execute("update test set id = 2");
         Task task = new Task() {
             public void call() throws Exception {
-                Thread.sleep(200);
+                Thread.sleep(300);
                 stat2.execute("update test2 set id = 4");
             }
         };

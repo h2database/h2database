@@ -107,7 +107,7 @@ public class SysProperties {
 
     /**
      * System property <code>h2.bindAddress</code> (default: null).<br />
-     * Comma separated list of class names or prefixes.
+     * The bind address to use.
      */
     public static final String BIND_ADDRESS = getStringSetting("h2.bindAddress", null);
 

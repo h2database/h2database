@@ -598,15 +598,20 @@ public class Build extends BuildBase {
     }
 
     /**
+     * Print the system properties
+     */
+    public void testSysProperties() {
+        System.out.println("environment settings:");
+        for (Entry<Object, Object> e : new TreeMap<Object, Object>(System.getProperties()).entrySet()) {
+            System.out.println(e);
+        }
+    }
+
+    /**
      * Test the local network of this machine.
      */
     public void testNetwork() {
         try {
-            System.out.println("environment settings:");
-            for (Entry<Object, Object> e : new TreeMap<Object, Object>(System.getProperties()).entrySet()) {
-                System.out.println(e);
-            }
-            System.out.println();
             System.out.println("localhost:" + InetAddress.getByName("localhost"));
             for (InetAddress address : InetAddress.getAllByName("localhost")) {
                 System.out.println("  " + address);

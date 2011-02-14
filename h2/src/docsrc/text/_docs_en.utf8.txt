@@ -1526,7 +1526,7 @@ Change Log
 Next Version (unreleased)
 
 @changelog_1002_li
-- 
+Deleting rows in the trigger table inside a trigger could result in a NullPointerException. 
 
 @changelog_1003_h2
 Version 1.3.151 Beta (2011-02-12)
@@ -11182,138 +11182,141 @@ Using the Lucene Fulltext Search
 @tutorial_1295_p
  You can also call the index from within a Java application: 
 
-@tutorial_1296_h2
+@tutorial_1296_p
+ The Lucene fulltext search supports searching in specific column only. Column names must be uppercase (except if the original columns are double quoted). For column names starting with an underscore (_), another underscore needs to be added. Example: 
+
+@tutorial_1297_h2
 User-Defined Variables
 
-@tutorial_1297_p
+@tutorial_1298_p
  This database supports user-defined variables. Variables start with <code>@</code> and can be used wherever expressions or parameters are allowed. Variables are not persisted and session scoped, that means only visible from within the session in which they are defined. A value is usually assigned using the SET command: 
 
-@tutorial_1298_p
+@tutorial_1299_p
  The value can also be changed using the SET() method. This is useful in queries: 
 
-@tutorial_1299_p
+@tutorial_1300_p
  Variables that are not set evaluate to <code>NULL</code>. The data type of a user-defined variable is the data type of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them. There are no restrictions on the assigned values; large objects (LOBs) are supported as well. 
 
-@tutorial_1300_h2
+@tutorial_1301_h2
 Date and Time
 
-@tutorial_1301_p
+@tutorial_1302_p
  Date, time and timestamp values support ISO 8601 formatting, including time zone: 
 
-@tutorial_1302_p
+@tutorial_1303_p
  If the time zone is not set, the value is parsed using the current time zone setting of the system. Date and time information is stored in H2 database files without time zone information. If the database is opened using another system time zone, the date and time will be the same. That means if you store the value '2000-01-01 12:00:00' in one time zone, then close the database and open the database again in a different time zone, you will also get '2000-01-01 12:00:00'. Please note that changing the time zone after the H2 driver is loaded is not supported. 
 
-@tutorial_1303_h2
+@tutorial_1304_h2
 Using Spring
 
-@tutorial_1304_p
+@tutorial_1305_p
  Use the following configuration to start and stop the H2 TCP server using the Spring Framework: 
 
-@tutorial_1305_p
+@tutorial_1306_p
  The <code>destroy-method</code> will help prevent exceptions on hot-redeployment or when restarting the server. 
 
-@tutorial_1306_h2
+@tutorial_1307_h2
 Java Management Extension (JMX)
 
-@tutorial_1307_p
+@tutorial_1308_p
  Management over JMX is supported, but not enabled by default. To enable JMX, append <code>;JMX=TRUE</code> to the database URL when opening the database. Various tools support JMX, one such tool is the <code>jconsole</code>. When opening the <code>jconsole</code>, connect to the process where the database is open (when using the server mode, you need to connect to the server process). Then go to the <code>MBeans</code> section. Under <code>org.h2</code> you will find one entry per database. The object name of the entry is the database short name, plus the path (each colon is replaced with an underscore character). 
 
-@tutorial_1308_p
+@tutorial_1309_p
  The following attributes and operations are supported: 
 
-@tutorial_1309_code
+@tutorial_1310_code
 CacheSize
 
-@tutorial_1310_li
+@tutorial_1311_li
 : the cache size currently in use in KB. 
 
-@tutorial_1311_code
+@tutorial_1312_code
 CacheSizeMax
 
-@tutorial_1312_li
+@tutorial_1313_li
  (read/write): the maximum cache size in KB. 
 
-@tutorial_1313_code
+@tutorial_1314_code
 Exclusive
 
-@tutorial_1314_li
+@tutorial_1315_li
 : whether this database is open in exclusive mode or not. 
 
-@tutorial_1315_code
+@tutorial_1316_code
 FileReadCount
 
-@tutorial_1316_li
+@tutorial_1317_li
 : the number of file read operations since the database was opened. 
 
-@tutorial_1317_code
+@tutorial_1318_code
 FileSize
 
-@tutorial_1318_li
+@tutorial_1319_li
 : the file size in KB. 
 
-@tutorial_1319_code
+@tutorial_1320_code
 FileWriteCount
 
-@tutorial_1320_li
+@tutorial_1321_li
 : the number of file write operations since the database was opened. 
 
-@tutorial_1321_code
+@tutorial_1322_code
 FileWriteCountTotal
 
-@tutorial_1322_li
+@tutorial_1323_li
 : the number of file write operations since the database was created. 
 
-@tutorial_1323_code
+@tutorial_1324_code
 LogMode
 
-@tutorial_1324_li
+@tutorial_1325_li
  (read/write): the current transaction log mode. See <code>SET LOG</code> for details. 
 
-@tutorial_1325_code
+@tutorial_1326_code
 Mode
 
-@tutorial_1326_li
+@tutorial_1327_li
 : the compatibility mode (<code>REGULAR</code> if no compatibility mode is used). 
 
-@tutorial_1327_code
+@tutorial_1328_code
 MultiThreaded
 
-@tutorial_1328_li
+@tutorial_1329_li
 : true if multi-threaded is enabled. 
 
-@tutorial_1329_code
+@tutorial_1330_code
 Mvcc
 
-@tutorial_1330_li
+@tutorial_1331_li
 : true if <code>MVCC</code> is enabled. 
 
-@tutorial_1331_code
+@tutorial_1332_code
 ReadOnly
 
-@tutorial_1332_li
+@tutorial_1333_li
 : true if the database is read-only. 
 
-@tutorial_1333_code
+@tutorial_1334_code
 TraceLevel
 
-@tutorial_1334_li
+@tutorial_1335_li
  (read/write): the file trace level. 
 
-@tutorial_1335_code
+@tutorial_1336_code
 Version
 
-@tutorial_1336_li
+@tutorial_1337_li
 : the database version in use. 
 
-@tutorial_1337_code
+@tutorial_1338_code
 listSettings
 
-@tutorial_1338_li
+@tutorial_1339_li
 : list the database settings. 
 
-@tutorial_1339_code
+@tutorial_1340_code
 listSessions
 
-@tutorial_1340_li
+@tutorial_1341_li
 : list the open sessions, including currently executing statement (if any) and locked tables (if any). 
 

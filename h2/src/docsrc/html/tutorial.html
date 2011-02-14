@@ -1181,6 +1181,24 @@ You can also call the index from within a Java application:
 org.h2.fulltext.FullTextLucene.search(conn, text, limit, offset);
 org.h2.fulltext.FullTextLucene.searchData(conn, text, limit, offset);
 </pre>
+<p>
+The Lucene fulltext search supports searching in specific column only.
+Column names must be uppercase (except if the original columns are double quoted).
+For column names starting with an underscore (_), another underscore needs to be added.
+Example:
+</p>
+<pre>
+CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";
+CALL FTL_INIT();
+DROP TABLE IF EXISTS TEST;
+CREATE TABLE TEST(ID INT PRIMARY KEY, FIRST_NAME VARCHAR, LAST_NAME VARCHAR);
+CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', NULL);
+INSERT INTO TEST VALUES(1, 'John', 'Wayne');
+INSERT INTO TEST VALUES(2, 'Elton', 'John');
+SELECT * FROM FTL_SEARCH_DATA('John', 0, 0);
+SELECT * FROM FTL_SEARCH_DATA('LAST_NAME:John', 0, 0);
+CALL FTL_DROP_ALL();
+</pre>
 
 <h2 id="user_defined_variables">User-Defined Variables</h2>
 <p>

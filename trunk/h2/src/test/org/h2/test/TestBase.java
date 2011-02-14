@@ -271,7 +271,9 @@ public abstract class TestBase {
             url = addOption(url, "TRACE_MAX_FILE_SIZE", "8");
         }
         url = addOption(url, "LOG", "1");
-        if (config.throttle > 0) {
+        if (config.throttleDefault > 0) {
+            url = addOption(url, "THROTTLE", "" + config.throttleDefault);
+        } else if (config.throttle > 0) {
             url = addOption(url, "THROTTLE", "" + config.throttle);
         }
         url = addOption(url, "LOCK_TIMEOUT", "50");

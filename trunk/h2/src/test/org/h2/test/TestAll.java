@@ -291,6 +291,11 @@ java org.h2.test.TestAll timer
     int throttle;
 
     /**
+     * The THROTTLE value to use by default.
+     */
+    int throttleDefault = Integer.parseInt(System.getProperty("throttle", "0"));
+
+    /**
      * If the test should stop when the first error occurs.
      */
     boolean stopOnError;

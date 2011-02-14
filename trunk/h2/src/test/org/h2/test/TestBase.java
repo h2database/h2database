@@ -402,7 +402,7 @@ public abstract class TestBase {
      *
      * @throws AssertionError always throws an AssertionError
      */
-    protected void fail() {
+    public void fail() {
         fail("Unexpected success");
     }
 
@@ -1115,7 +1115,7 @@ public abstract class TestBase {
      *
      * @param e the error
      */
-    protected void assertKnownException(SQLException e) {
+    public void assertKnownException(SQLException e) {
         assertKnownException("", e);
     }
 

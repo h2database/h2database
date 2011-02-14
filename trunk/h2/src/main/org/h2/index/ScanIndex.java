@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -131,6 +132,9 @@ public class ScanIndex extends BaseIndex {
             Row free = new Row(null, 1);
             free.setKey(firstFree);
             long key = row.getKey();
+            if (rows.size() <= key) {
+                throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, rows.size() + ": " + key);
+            }
             rows.set((int) key, free);
             firstFree = key;
         }

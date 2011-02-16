@@ -96,6 +96,9 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     private void testDeleteInTrigger() throws SQLException {
+        if (config.mvcc) {
+            return;
+        }
         Connection conn;
         Statement stat;
         conn = getConnection("trigger");

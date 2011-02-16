@@ -33,6 +33,7 @@ import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
 import org.h2.util.StringUtils;
+import org.h2.util.Tool;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -272,23 +273,23 @@ public class WebServer implements Service {
         allowOthers = SortedProperties.getBooleanProperty(prop, "webAllowOthers", false);
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
-            if ("-webPort".equals(a)) {
+            if (Tool.isOption(a, "-webPort")) {
                 port = Integer.decode(args[++i]);
-            } else if ("-webSSL".equals(a)) {
+            } else if (Tool.isOption(a, "-webSSL")) {
                 ssl = true;
-            } else if ("-webAllowOthers".equals(a)) {
+            } else if (Tool.isOption(a, "-webAllowOthers")) {
                 allowOthers = true;
-            } else if ("-webDaemon".equals(a)) {
+            } else if (Tool.isOption(a, "-webDaemon")) {
                 isDaemon = true;
-            } else if ("-baseDir".equals(a)) {
+            } else if (Tool.isOption(a, "-baseDir")) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
-            } else if ("-ifExists".equals(a)) {
+            } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
-            } else if ("-properties".equals(args[i])) {
+            } else if (Tool.isOption(a, "-properties")) {
                 // already set
                 i++;
-            } else if ("-trace".equals(a)) {
+            } else if (Tool.isOption(a, "-trace")) {
                 trace = true;
             }
         }

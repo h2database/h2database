@@ -23,6 +23,7 @@ import org.h2.engine.Constants;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
+import org.h2.util.Tool;
 
 /**
  * This class implements a subset of the PostgreSQL protocol as described here:
@@ -84,17 +85,17 @@ public class PgServer implements Service {
         port = DEFAULT_PORT;
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
-            if ("-trace".equals(a)) {
+            if (Tool.isOption(a, "-trace")) {
                 trace = true;
-            } else if ("-pgPort".equals(a)) {
+            } else if (Tool.isOption(a, "-pgPort")) {
                 port = Integer.decode(args[++i]);
-            } else if ("-baseDir".equals(a)) {
+            } else if (Tool.isOption(a, "-baseDir")) {
                 baseDir = args[++i];
-            } else if ("-pgAllowOthers".equals(a)) {
+            } else if (Tool.isOption(a, "-pgAllowOthers")) {
                 allowOthers = true;
-            } else if ("-pgDaemon".equals(a)) {
+            } else if (Tool.isOption(a, "-pgDaemon")) {
                 isDaemon = true;
-            } else if ("-ifExists".equals(a)) {
+            } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
             }
         }

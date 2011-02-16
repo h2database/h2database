@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.Properties;
+import org.h2.message.DbException;
 import org.h2.store.FileLister;
 
 /**
@@ -97,6 +98,24 @@ public abstract class Tool {
         out.println("Usage: java "+getClass().getName() + " <options>");
         out.println(resources.get(className + ".main"));
         out.println("See also http://h2database.com/javadoc/" + className.replace('.', '/') + ".html");
+    }
+
+    /**
+     * Check if the argument matches the option.
+     * If the argument starts with this option, but doesn't match,
+     * then an exception is thrown.
+     *
+     * @param arg the argument
+     * @param the option
+     * @return true if it matches
+     */
+    public static boolean isOption(String arg, String option) {
+        if (arg.equals(option)) {
+            return true;
+        } else if (arg.startsWith(option)) {
+            throw DbException.getUnsupportedException("expected: " + option + " got: " + arg);
+        }
+        return false;
     }
 
 }

@@ -30,6 +30,7 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Tool;
 
 /**
  * The TCP server implements the native H2 database server protocol.
@@ -162,24 +163,24 @@ public class TcpServer implements Service {
         port = Constants.DEFAULT_TCP_PORT;
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
-            if ("-trace".equals(a)) {
+            if (Tool.isOption(a, "-trace")) {
                 trace = true;
-            } else if ("-tcpSSL".equals(a)) {
+            } else if (Tool.isOption(a, "-tcpSSL")) {
                 ssl = true;
-            } else if ("-tcpPort".equals(a)) {
+            } else if (Tool.isOption(a, "-tcpPort")) {
                 port = Integer.decode(args[++i]);
-            } else if ("-tcpPassword".equals(a)) {
+            } else if (Tool.isOption(a, "-tcpPassword")) {
                 managementPassword = args[++i];
-            } else if ("-baseDir".equals(a)) {
+            } else if (Tool.isOption(a, "-baseDir")) {
                 baseDir = args[++i];
-            } else if ("-key".equals(a)) {
+            } else if (Tool.isOption(a, "-key")) {
                 key = args[++i];
                 keyDatabase = args[++i];
-            } else if ("-tcpAllowOthers".equals(a)) {
+            } else if (Tool.isOption(a, "-tcpAllowOthers")) {
                 allowOthers = true;
-            } else if ("-tcpDaemon".equals(a)) {
+            } else if (Tool.isOption(a, "-tcpDaemon")) {
                 isDaemon = true;
-            } else if ("-ifExists".equals(a)) {
+            } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
             }
         }

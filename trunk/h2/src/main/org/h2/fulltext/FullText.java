@@ -50,27 +50,27 @@ public class FullText {
     /**
      * A column name of the result set returned by the searchData method.
      */
-    protected static final String FIELD_SCHEMA = "SCHEMA";
+    private static final String FIELD_SCHEMA = "SCHEMA";
 
     /**
      * A column name of the result set returned by the searchData method.
      */
-    protected static final String FIELD_TABLE = "TABLE";
+    private static final String FIELD_TABLE = "TABLE";
 
     /**
      * A column name of the result set returned by the searchData method.
      */
-    protected static final String FIELD_COLUMNS = "COLUMNS";
+    private static final String FIELD_COLUMNS = "COLUMNS";
 
     /**
      * A column name of the result set returned by the searchData method.
      */
-    protected static final String FIELD_KEYS = "KEYS";
+    private static final String FIELD_KEYS = "KEYS";
 
     /**
      * The hit score.
      */
-    protected static final String FIELD_SCORE = "SCORE";
+    private static final String FIELD_SCORE = "SCORE";
 
     private static final String TRIGGER_PREFIX = "FT_";
     private static final String SCHEMA = "FT";

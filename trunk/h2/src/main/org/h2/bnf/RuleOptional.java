@@ -11,7 +11,7 @@ import java.util.HashMap;
 /**
  * Represents an optional BNF rule.
  */
-public class RuleOptional implements Rule {
+class RuleOptional implements Rule {
     private Rule rule;
     private boolean mapSet;
 

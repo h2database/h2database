@@ -11,7 +11,7 @@ import java.util.HashMap;
 /**
  * Represents a loop in a BNF object.
  */
-public class RuleRepeat implements Rule {
+class RuleRepeat implements Rule {
 
     private final Rule rule;
     private final boolean comma;

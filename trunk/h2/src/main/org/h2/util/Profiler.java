@@ -168,7 +168,7 @@ public class Profiler implements Runnable {
         }
     }
 
-    private boolean startsWithAny(String s, String[] prefixes) {
+    private static boolean startsWithAny(String s, String[] prefixes) {
         for (String p : prefixes) {
             if (p.length() > 0 && s.startsWith(p)) {
                 return true;

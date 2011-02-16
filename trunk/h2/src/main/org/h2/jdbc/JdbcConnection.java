@@ -1401,7 +1401,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             return;
         }
         if (session != null && openStackTrace != null) {
-            trace.error(openStackTrace, "connection not closed");
+            Exception ex = DbException.get(ErrorCode.TRACE_CONNECTION_NOT_CLOSED);
+            trace.error(openStackTrace, ex.getMessage());
             try {
                 close();
             } catch (SQLException e) {

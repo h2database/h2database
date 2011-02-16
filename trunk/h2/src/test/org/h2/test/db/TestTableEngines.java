@@ -293,11 +293,6 @@ public class TestTableEngines extends TestBase {
                 // do nothing
             }
 
-            @Override
-            public boolean hasRowIdColumn() {
-                return false;
-            }
-
         }
 
         /**

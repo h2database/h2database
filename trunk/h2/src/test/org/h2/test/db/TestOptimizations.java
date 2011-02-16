@@ -124,12 +124,31 @@ public class TestOptimizations extends TestBase {
         }
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
+        ResultSet rs;
+
+        stat.execute("create table test(data varchar)");
+        stat.execute("select min(_rowid_ + 1) from test");
+        stat.execute("insert into test(_rowid_, data) values(10, 'Hello')");
+        stat.execute("insert into test(data) values('World')");
+        stat.execute("insert into test(_rowid_, data) values(20, 'Hello')");
+        stat.execute("merge into test(_rowid_, data) key(_rowid_) values(20, 'Hallo')");
+        rs = stat.executeQuery("select _rowid_, data from test order by _rowid_");
+        rs.next();
+        assertEquals(10, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        rs.next();
+        assertEquals(11, rs.getInt(1));
+        assertEquals("World", rs.getString(2));
+        rs.next();
+        assertEquals(21, rs.getInt(1));
+        assertEquals("Hallo", rs.getString(2));
+        assertFalse(rs.next());
+        stat.execute("drop table test");
 
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(0, 'Hello')");
         stat.execute("insert into test values(3, 'Hello')");
         stat.execute("insert into test values(2, 'Hello')");
-        ResultSet rs;
 
         rs = stat.executeQuery("explain select * from test where _rowid_ = 2");
         rs.next();

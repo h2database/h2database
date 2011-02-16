@@ -304,7 +304,7 @@ public abstract class Expression {
      * @param value the value to extract columns from
      * @return array of expression columns
      */
-    public static Expression[] getExpressionColumns(Session session, ValueArray value) {
+    static Expression[] getExpressionColumns(Session session, ValueArray value) {
         Value[] list = value.getList();
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0, len = list.length; i < len; i++) {

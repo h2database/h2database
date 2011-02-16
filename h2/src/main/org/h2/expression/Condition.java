@@ -12,7 +12,7 @@ import org.h2.value.ValueBoolean;
 /**
  * Represents a condition returning a boolean value, or NULL.
  */
-public abstract class Condition extends Expression {
+abstract class Condition extends Expression {
 
     public int getType() {
         return Value.BOOLEAN;

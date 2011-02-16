@@ -125,6 +125,7 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testJavaString() {
+        assertEquals("a\"b", StringUtils.javaDecode("a\"b"));
         Random random = new Random(1);
         for (int i = 0; i < 1000; i++) {
             int len = random.nextInt(10);

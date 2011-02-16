@@ -226,11 +226,9 @@ public class StringUtils {
         StringBuilder buff = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
-            if (c == '"') {
-                break;
-            } else if (c == '\\') {
-                if (i >= s.length()) {
-                    throw getFormatException(s, s.length() - 1);
+            if (c == '\\') {
+                if (i + 1 >= s.length()) {
+                    throw getFormatException(s, i);
                 }
                 c = s.charAt(++i);
                 switch (c) {

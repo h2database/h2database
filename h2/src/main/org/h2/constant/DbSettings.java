@@ -225,12 +225,6 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeOr = get("OPTIMIZE_OR", Constants.VERSION_MINOR >= 3);
 
     /**
-     * Database setting <code>OPTIMIZE_SUBQUERY_CACHE</code> (default: true).<br />
-     * Cache subquery results.
-     */
-    public final boolean optimizeSubqueryCache = get("OPTIMIZE_SUBQUERY_CACHE", true);
-
-    /**
      * Database setting <code>OPTIMIZE_TWO_EQUALS</code> (default: true).<br />
      * Optimize expressions of the form A=B AND B=1. In this case, AND A=1 is
      * added so an index on A can be used.

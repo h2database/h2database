@@ -34,7 +34,7 @@ import org.h2.util.TempFileDeleter;
 /**
  * This class is the base for RunScriptCommand and ScriptCommand.
  */
-public abstract class ScriptBase extends Prepared implements DataHandler {
+abstract class ScriptBase extends Prepared implements DataHandler {
 
     /**
      * The default name of the script file if .zip compression is used.
@@ -62,7 +62,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     private FileStore store;
     private String compressionAlgorithm;
 
-    public ScriptBase(Session session) {
+    ScriptBase(Session session) {
         super(session);
     }
 

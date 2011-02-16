@@ -76,7 +76,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
      *
      * @return the update count
      */
-    public int tryUpdate() {
+    private int tryUpdate() {
         if (!transactional) {
             session.commit(true);
         }

@@ -788,12 +788,15 @@ public class Csv implements SimpleRowSource {
      */
     public String setOptions(String options) {
         String charset = null;
-        options = StringUtils.javaDecode(options);
+//        options = StringUtils.javaDecode(options);
         String[] keyValuePairs = StringUtils.arraySplit(options, ' ', false);
         for (String pair : keyValuePairs) {
+            if (pair.length() == 0) {
+                continue;
+            }
             int index = pair.indexOf('=');
             String key = StringUtils.trim(pair.substring(0, index), true, true, " ");
-            String value = StringUtils.trim(pair.substring(index + 1), true, true, " ");
+            String value = pair.substring(index + 1);
             char ch = value.length() == 0 ? 0 : value.charAt(0);
             if (isParam(key, "escape", "esc", "escapeCharacter")) {
                 setEscapeCharacter(ch);

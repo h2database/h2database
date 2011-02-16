@@ -80,7 +80,18 @@ public class TestCsv extends TestBase {
         assertEquals(",", csv.getFieldSeparatorWrite());
         assertEquals(Constants.VERSION_MINOR == 3 ? 0 : '#', csv.getLineCommentCharacter());
 
-        String charset = csv.setOptions("escape=1x fieldDelimiter=2x fieldSeparator=3x " +
+        String charset;
+
+        charset = csv.setOptions("escape=\\  fieldDelimiter=\\\\ fieldSeparator=\n " +
+                "lineComment=\" lineSeparator=\\ \\\\\\ ");
+        assertEquals(' ', csv.getEscapeCharacter());
+        assertEquals('\\', csv.getFieldDelimiter());
+        assertEquals('\n', csv.getFieldSeparatorRead());
+        assertEquals("\n", csv.getFieldSeparatorWrite());
+        assertEquals('"', csv.getLineCommentCharacter());
+        assertEquals(" \\ ", csv.getLineSeparator());
+
+        charset = csv.setOptions("escape=1x fieldDelimiter=2x fieldSeparator=3x " +
                 "lineComment=4x lineSeparator=5x " +
                 "null=6x rowSeparator=7x charset=8x");
         assertEquals('1', csv.getEscapeCharacter());

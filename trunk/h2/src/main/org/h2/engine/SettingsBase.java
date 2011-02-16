@@ -87,7 +87,7 @@ public class SettingsBase {
      * @param k the key
      * @return true if they do
      */
-    public boolean containsKey(String k) {
+    protected boolean containsKey(String k) {
         return settings.containsKey(k);
     }
 

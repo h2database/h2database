@@ -284,7 +284,7 @@ public class ConnectionInfo implements Cloneable {
      * @param defaultValue the default value
      * @return the value
      */
-    public boolean getProperty(String key, boolean defaultValue) {
+    boolean getProperty(String key, boolean defaultValue) {
         String x = getProperty(key, null);
         if (x == null) {
             return defaultValue;
@@ -403,7 +403,7 @@ public class ConnectionInfo implements Cloneable {
      * @param defaultValue the default value
      * @return the value as a String
      */
-    public int getProperty(String key, int defaultValue) {
+    int getProperty(String key, int defaultValue) {
         if (SysProperties.CHECK && !isKnownSetting(key)) {
             DbException.throwInternalError(key);
         }

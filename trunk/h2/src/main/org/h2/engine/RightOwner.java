@@ -100,7 +100,7 @@ public abstract class RightOwner extends DbObjectBase {
      *
      * @param table the table
      */
-    public void revokeRight(Table table) {
+    void revokeRight(Table table) {
         if (grantedRights == null) {
             return;
         }
@@ -129,7 +129,7 @@ public abstract class RightOwner extends DbObjectBase {
      * @param role the role to revoke
      * @throws SQLException if the right has not been granted
      */
-    public void revokeRole(Role role) {
+    void revokeRole(Role role) {
         if (grantedRoles == null) {
             return;
         }

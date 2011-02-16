@@ -11,7 +11,7 @@ import java.sql.SQLException;
 /**
  * A class that implements this interface can create new database sessions.
  */
-public interface SessionFactory {
+interface SessionFactory {
 
     /**
      * Create a new session.

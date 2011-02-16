@@ -15,7 +15,7 @@ import org.h2.value.Value;
 /**
  * The base class for both remote and embedded sessions.
  */
-public abstract class SessionWithState implements SessionInterface {
+abstract class SessionWithState implements SessionInterface {
 
     protected ArrayList<String> sessionState;
     protected boolean sessionStateChanged;

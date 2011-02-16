@@ -13,12 +13,12 @@ import org.h2.result.ResultInterface;
 /**
  * Represents a list of SQL statements.
  */
-public class CommandList extends Command {
+class CommandList extends Command {
 
     private final Command command;
     private final String remaining;
 
-    public CommandList(Parser parser, String sql, Command c, String remaining) {
+    CommandList(Parser parser, String sql, Command c, String remaining) {
         super(parser, sql);
         this.command = c;
         this.remaining = remaining;

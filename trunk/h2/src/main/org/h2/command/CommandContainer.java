@@ -16,7 +16,7 @@ import org.h2.value.Value;
  * Represents a single SQL statements.
  * It wraps a prepared statement.
  */
-public class CommandContainer extends Command {
+class CommandContainer extends Command {
 
     private Prepared prepared;
 

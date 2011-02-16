@@ -424,7 +424,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
      * @param count the retry count index
      * @return true if reconnected
      */
-    public boolean autoReconnect(int count) {
+    private boolean autoReconnect(int count) {
         if (!isClosed()) {
             return false;
         }

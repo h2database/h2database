@@ -309,7 +309,7 @@ public class Database implements DataHandler {
      * @return true if the call was successful,
      *          false if another connection was faster
      */
-    synchronized boolean reconnectModified(boolean pending) {
+    private synchronized boolean reconnectModified(boolean pending) {
         if (readOnly || lock == null || fileLockMethod != FileLock.LOCK_SERIALIZED) {
             return true;
         }
@@ -435,7 +435,7 @@ public class Database implements DataHandler {
      * @param name the name of the database (including path)
      * @return true if one exists
      */
-    public static boolean exists(String name) {
+    static boolean exists(String name) {
         return IOUtils.exists(name + Constants.SUFFIX_PAGE_FILE);
     }
 
@@ -470,7 +470,7 @@ public class Database implements DataHandler {
      * @param testHash the hash code
      * @return true if the cipher algorithm and the password match
      */
-    public boolean validateFilePasswordHash(String testCipher, byte[] testHash) {
+    boolean validateFilePasswordHash(String testCipher, byte[] testHash) {
         if (!StringUtils.equals(testCipher, this.cipher)) {
             return false;
         }
@@ -919,7 +919,7 @@ public class Database implements DataHandler {
      * @return the session
      * @throws SQLException if the database is in exclusive mode
      */
-    public synchronized Session createSession(User user) {
+    synchronized Session createSession(User user) {
         if (exclusiveSession != null) {
             throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
@@ -1662,7 +1662,7 @@ public class Database implements DataHandler {
      * @param session the session
      * @param transaction the name of the transaction
      */
-    public void prepareCommit(Session session, String transaction) {
+    void prepareCommit(Session session, String transaction) {
         if (readOnly) {
             return;
         }
@@ -1676,7 +1676,7 @@ public class Database implements DataHandler {
      *
      * @param session the session
      */
-    public void commit(Session session) {
+    void commit(Session session) {
         if (readOnly) {
             return;
         }
@@ -1921,7 +1921,7 @@ public class Database implements DataHandler {
      * Called after the database has been opened and initialized. This method
      * notifies the event listener if one has been set.
      */
-    public void opened() {
+    void opened() {
         if (eventListener != null) {
             eventListener.opened();
         }

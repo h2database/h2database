@@ -229,7 +229,7 @@ public class Engine implements SessionFactory {
      *
      * @param name the database name
      */
-    public void close(String name) {
+    void close(String name) {
         if (jmx) {
             try {
                 Utils.callStaticMethod("org.h2.jmx.DatabaseInfo.unregisterMBean", name);

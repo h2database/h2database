@@ -94,7 +94,7 @@ public class Comment extends DbObjectBase {
      * @param obj the object
      * @return the key name
      */
-    public static String getKey(DbObject obj) {
+    static String getKey(DbObject obj) {
         return getTypeName(obj.getType()) + " " + obj.getSQL();
     }
 

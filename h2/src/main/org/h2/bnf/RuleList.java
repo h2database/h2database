@@ -13,7 +13,7 @@ import org.h2.util.New;
 /**
  * Represents a sequence of BNF rules, or a list of alternative rules.
  */
-public class RuleList implements Rule {
+class RuleList implements Rule {
 
     private boolean or;
     private ArrayList<Rule> list;

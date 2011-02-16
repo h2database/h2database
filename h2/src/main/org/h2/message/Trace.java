@@ -65,11 +65,6 @@ public class Trace {
     public static final String SCHEMA = "schema";
 
     /**
-     * The trace module name for sessions.
-     */
-    public static final String SESSION = "session";
-
-    /**
      * The trace module name for sequences.
      */
     public static final String SEQUENCE = "sequence";

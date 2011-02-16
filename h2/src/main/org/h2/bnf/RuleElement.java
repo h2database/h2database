@@ -13,7 +13,7 @@ import org.h2.util.StringUtils;
 /**
  * A single terminal rule in a BNF object.
  */
-public class RuleElement implements Rule {
+class RuleElement implements Rule {
 
     private boolean keyword;
     private String name;

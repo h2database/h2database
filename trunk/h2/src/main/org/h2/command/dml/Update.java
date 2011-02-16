@@ -6,6 +6,8 @@
  */
 package org.h2.command.dml;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
@@ -23,6 +25,7 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -35,7 +38,8 @@ public class Update extends Prepared {
 
     private Expression condition;
     private TableFilter tableFilter;
-    private Expression[] expressions;
+    private ArrayList<Column> columns = New.arrayList();
+    private HashMap<Column, Expression> expressionMap  = New.hashMap();
 
     public Update(Session session) {
         super(session);
@@ -43,8 +47,6 @@ public class Update extends Prepared {
 
     public void setTableFilter(TableFilter tableFilter) {
         this.tableFilter = tableFilter;
-        Table table = tableFilter.getTable();
-        expressions = new Expression[table.getColumns().length];
     }
 
     public void setCondition(Expression condition) {
@@ -58,12 +60,12 @@ public class Update extends Prepared {
      * @param expression the expression
      */
     public void setAssignment(Column column, Expression expression) {
-        int id = column.getColumnId();
-        if (expressions[id] != null) {
+        if (expressionMap.containsKey(column)) {
             throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column
                     .getName());
         }
-        expressions[id] = expression;
+        columns.add(column);
+        expressionMap.put(column, expression);
         if (expression instanceof Parameter) {
             Parameter p = (Parameter) expression;
             p.setColumn(column);
@@ -83,13 +85,14 @@ public class Update extends Prepared {
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
             int count = 0;
+            Column[] columns = table.getColumns();
             while (tableFilter.next()) {
                 setCurrentRowNumber(count+1);
                 if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                     Row oldRow = tableFilter.get();
                     Row newRow = table.getTemplateRow();
                     for (int i = 0; i < columnCount; i++) {
-                        Expression newExpr = expressions[i];
+                        Expression newExpr = expressionMap.get(columns[i]);
                         Value newValue;
                         if (newExpr == null) {
                             newValue = oldRow.getValue(i);
@@ -141,15 +144,11 @@ public class Update extends Prepared {
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(tableFilter.getPlanSQL(false)).append("\nSET\n    ");
-        Table table = tableFilter.getTable();
-        int columnCount = table.getColumns().length;
-        for (int i = 0; i < columnCount; i++) {
-            Expression newExpr = expressions[i];
-            if (newExpr != null) {
-                Column column = table.getColumn(i);
-                buff.appendExceptFirst(",\n    ");
-                buff.append(column.getName()).append(" = ").append(newExpr.getSQL());
-            }
+        for (int i = 0, size = columns.size(); i < size; i++) {
+            Column c = columns.get(i);
+            Expression e = expressionMap.get(c);
+            buff.appendExceptFirst(",\n    ");
+            buff.append(c.getName()).append(" = ").append(e.getSQL());
         }
         if (condition != null) {
             buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
@@ -163,12 +162,11 @@ public class Update extends Prepared {
             condition = condition.optimize(session);
             condition.createIndexConditions(session, tableFilter);
         }
-        for (int i = 0, len = expressions.length; i < len; i++) {
-            Expression expr = expressions[i];
-            if (expr != null) {
-                expr.mapColumns(tableFilter, 0);
-                expressions[i] = expr.optimize(session);
-            }
+        for (int i = 0, size = columns.size(); i < size; i++) {
+            Column c = columns.get(i);
+            Expression e = expressionMap.get(c);
+            e.mapColumns(tableFilter, 0);
+            expressionMap.put(c, e.optimize(session));
         }
         PlanItem item = tableFilter.getBestPlanItem(session, 1);
         tableFilter.setPlanItem(item);

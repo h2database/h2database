@@ -1656,15 +1656,16 @@ charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]
 Optional parameters for CSVREAD and CSVWRITE.
 Instead of setting the options one by one, all options can be
 combined into a space separated key-value pairs, as follows:
-'charset=UTF-8 escape="" fieldDelimiter="" fieldSeparator=, ' ||
-'lineComment=# lineSeparator=\n null= rowSeparator='.
+STRINGDECODE('charset=UTF-8 escape=\"" fieldDelimiter=\"" fieldSeparator=, ' ||
+'lineComment=# lineSeparator=\n null= rowSeparator=').
 The following options are supported:
 charset, escape, fieldDelimiter, fieldSeparator,
 lineComment (# for H2 version 1.2, disabled for H2 version 1.3),
 lineSeparator, null, rowSeparator (not set by default).
-The options text is encoded like a Java string.
+For a newline or other special character, use STRINGDECODE as in the example above.
+A space needs to be escaped with a backslash ('\ ').
+A backslash needs to be escaped with another backslash ('\\').
 ","
-CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'UTF-8', '|');
 CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|');
 "
 

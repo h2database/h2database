@@ -106,7 +106,7 @@ public abstract class Tool {
      * then an exception is thrown.
      *
      * @param arg the argument
-     * @param the option
+     * @param option the command line option
      * @return true if it matches
      */
     public static boolean isOption(String arg, String option) {

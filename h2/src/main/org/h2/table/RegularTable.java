@@ -62,6 +62,7 @@ public class RegularTable extends TableBase {
     private PageDataIndex mainIndex;
     private int changesSinceAnalyze;
     private int nextAnalyze;
+    private Column rowIdColumn;
 
     /**
      * True if one thread ever was waiting to lock this table. This is to avoid
@@ -728,8 +729,12 @@ public class RegularTable extends TableBase {
         return true;
     }
 
-    public boolean hasRowIdColumn() {
-        return true;
+    public Column getRowIdColumn() {
+        if (rowIdColumn == null) {
+            rowIdColumn = new Column(Column.ROWID, Value.LONG);
+            rowIdColumn.setTable(this, -1);
+        }
+        return rowIdColumn;
     }
 
 }

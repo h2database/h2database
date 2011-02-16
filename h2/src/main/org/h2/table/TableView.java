@@ -408,8 +408,4 @@ public class TableView extends Table {
         return tableExpression;
     }
 
-    public boolean hasRowIdColumn() {
-        return false;
-    }
-
 }

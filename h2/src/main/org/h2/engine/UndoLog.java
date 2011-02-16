@@ -35,7 +35,7 @@ public class UndoLog {
      *
      * @param session the session
      */
-    public UndoLog(Session session) {
+    UndoLog(Session session) {
         this.database = session.getDatabase();
         largeTransactions = database.getSettings().largeTransactions;
     }
@@ -45,7 +45,7 @@ public class UndoLog {
      *
      * @return the number of rows
      */
-    public int size() {
+    int size() {
         if (largeTransactions) {
             return storedEntries + records.size();
         }
@@ -59,7 +59,7 @@ public class UndoLog {
      * Clear the undo log. This method is called after the transaction is
      * committed.
      */
-    public void clear() {
+    void clear() {
         records.clear();
         storedEntries = 0;
         storedEntriesPos.clear();
@@ -136,7 +136,7 @@ public class UndoLog {
      *
      * @param trimToSize if the undo array should shrink to conserve memory
      */
-    public void removeLast(boolean trimToSize) {
+    void removeLast(boolean trimToSize) {
         int i = records.size() - 1;
         UndoLogRecord r = records.remove(i);
         if (!r.isStored()) {
@@ -152,7 +152,7 @@ public class UndoLog {
      *
      * @param entry the entry
      */
-    public void add(UndoLogRecord entry) {
+    void add(UndoLogRecord entry) {
         records.add(entry);
         if (largeTransactions) {
             memoryUndo++;

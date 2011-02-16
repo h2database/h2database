@@ -331,7 +331,7 @@ public class Session extends SessionWithState {
      *
      * @param constraint the constraint
      */
-    public void removeLocalTempTableConstraint(Constraint constraint) {
+    void removeLocalTempTableConstraint(Constraint constraint) {
         if (localTempTableConstraints != null) {
             localTempTableConstraints.remove(constraint.getName());
             synchronized (database) {
@@ -653,7 +653,7 @@ public class Session extends SessionWithState {
      *
      * @param t the table to unlock
      */
-    public void unlock(Table t) {
+    void unlock(Table t) {
         locks.remove(t);
     }
 
@@ -746,7 +746,7 @@ public class Session extends SessionWithState {
      * This method is called after the transaction log has written the commit
      * entry for this session.
      */
-    public void setAllCommitted() {
+    void setAllCommitted() {
         firstUncommittedLog = Session.LOG_WRITTEN;
         firstUncommittedPos = Session.LOG_WRITTEN;
     }

@@ -28,14 +28,14 @@ public abstract class Command implements CommandInterface {
     protected final Session session;
 
     /**
-     * The trace module.
-     */
-    protected final Trace trace;
-
-    /**
      * The last start time.
      */
     protected long startTime;
+
+    /**
+     * The trace module.
+     */
+    private final Trace trace;
 
     /**
      * If this query was canceled.
@@ -46,7 +46,7 @@ public abstract class Command implements CommandInterface {
 
     private boolean canReuse;
 
-    public Command(Parser parser, String sql) {
+    Command(Parser parser, String sql) {
         this.session = parser.getSession();
         this.sql = sql;
         trace = session.getDatabase().getTrace(Trace.COMMAND);
@@ -127,7 +127,7 @@ public abstract class Command implements CommandInterface {
      *
      * @throws SQLException if the statement has been canceled
      */
-    public void checkCanceled() {
+    protected void checkCanceled() {
         if (cancel) {
             cancel = false;
             throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);

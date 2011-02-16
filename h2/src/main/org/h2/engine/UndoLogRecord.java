@@ -44,7 +44,7 @@ public class UndoLogRecord {
      * @param op the operation type
      * @param row the row that was deleted or inserted
      */
-    public UndoLogRecord(Table table, short op, Row row) {
+    UndoLogRecord(Table table, short op, Row row) {
         this.table = table;
         this.row = row;
         this.operation = op;
@@ -80,7 +80,7 @@ public class UndoLogRecord {
      *
      * @param session the session
      */
-    public void undo(Session session) {
+    void undo(Session session) {
         Database db = session.getDatabase();
         switch (operation) {
         case INSERT:
@@ -252,7 +252,7 @@ public class UndoLogRecord {
      * This method is called after the operation was committed.
      * It commits the change to the indexes.
      */
-    public void commit() {
+    void commit() {
         table.commit(operation, row);
     }
 

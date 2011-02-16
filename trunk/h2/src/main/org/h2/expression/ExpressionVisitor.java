@@ -156,7 +156,7 @@ public class ExpressionVisitor {
      * @param resolver the resolver
      * @return the new visitor
      */
-    public static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
+    static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
         return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, null, resolver, null);
     }
 
@@ -190,7 +190,7 @@ public class ExpressionVisitor {
      *
      * @param column the additional column.
      */
-    public void addColumn(Column column) {
+    void addColumn(Column column) {
         columns.add(column);
     }
 

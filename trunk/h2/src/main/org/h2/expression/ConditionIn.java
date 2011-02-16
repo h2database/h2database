@@ -177,7 +177,7 @@ public class ConditionIn extends Condition {
      * @param other the second condition
      * @return null if the condition was not added, or the new condition
      */
-    public Expression getAdditional(Session session, Comparison other) {
+    Expression getAdditional(Session session, Comparison other) {
         Expression add = other.getIfEquals(left);
         if (add != null) {
             valueList.add(add);

@@ -364,7 +364,7 @@ public class Function extends Expression implements FunctionCall {
      * @param name the function name
      * @return the function info
      */
-    public static FunctionInfo getFunctionInfo(String name) {
+    private static FunctionInfo getFunctionInfo(String name) {
         return FUNCTIONS.get(name);
     }
 
@@ -1611,21 +1611,6 @@ public class Function extends Expression implements FunctionCall {
                         .get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "" + len);
             }
         }
-    }
-
-    /**
-     * Set the result data type of this function.
-     *
-     * @param dataType the data type
-     * @param precision the precision
-     * @param scale the scale
-     * @param displaySize the display size
-     */
-    public void setDataType(int dataType, long precision, int scale, int displaySize) {
-        this.dataType = dataType;
-        this.precision = precision;
-        this.displaySize = displaySize;
-        this.scale = scale;
     }
 
     public void setDataType(Column col) {

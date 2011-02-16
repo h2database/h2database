@@ -14,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.Connection;
+import java.sql.SQLException;
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
@@ -38,12 +40,34 @@ public class TestWeb extends TestBase {
     }
 
     public void test() throws Exception {
+        testWrongParameters();
         testTools();
         testTransfer();
         testAlreadyRunning();
         testStartWebServerWithConnection();
         testServer();
         testWebApp();
+    }
+
+    private void testWrongParameters() throws Exception {
+        try {
+            Server.createPgServer("-pgPort 8182");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
+        }
+        try {
+            Server.createTcpServer("-tcpPort 8182");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
+        }
+        try {
+            Server.createWebServer("-webPort=8182");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
+        }
     }
 
     private void testAlreadyRunning() throws Exception {

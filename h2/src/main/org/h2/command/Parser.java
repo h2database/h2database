@@ -641,6 +641,11 @@ public class Parser {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
             }
         }
+        if (database.getSettings().rowId) {
+            if (Column.ROWID.equals(columnName)) {
+                return filter.getRowIdColumn();
+            }
+        }
         return filter.getTable().getColumn(columnName);
     }
 
@@ -756,7 +761,13 @@ public class Parser {
         HashSet<Column> set = New.hashSet();
         if (!readIf(")")) {
             do {
-                Column column = table.getColumn(readColumnIdentifier());
+                String id = readColumnIdentifier();
+                Column column;
+                if (database.getSettings().rowId && Column.ROWID.equals(id)) {
+                    column = table.getRowIdColumn();
+                } else {
+                    column = table.getColumn(id);
+                }
                 if (!set.add(column)) {
                     throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL());
                 }

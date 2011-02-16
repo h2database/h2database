@@ -5960,7 +5960,7 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1 GROUP BY NAME, ID;
 EXPLAIN PLAN FOR UPDATE TEST SET NAME='Hello', ID=1 WHERE NAME LIKE 'T%' ESCAPE 'x';
 > PLAN
 > ---------------------------------------------------------------------------------------------------------
-> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = 1, NAME = 'Hello' WHERE NAME LIKE 'T%' ESCAPE 'x'
+> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET NAME = 'Hello', ID = 1 WHERE NAME LIKE 'T%' ESCAPE 'x'
 > rows: 1
 
 EXPLAIN PLAN FOR DELETE FROM TEST;

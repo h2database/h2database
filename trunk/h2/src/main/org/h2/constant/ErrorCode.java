@@ -1667,18 +1667,6 @@ public class ErrorCode {
     public static final int DATABASE_CALLED_AT_SHUTDOWN = 90121;
 
     /**
-     * The error with code <code>90122</code> is thrown when
-     * trying to altering, adding or dropping columns of a table that has views.
-     * Example:
-     * <pre>
-     * CREATE TABLE TEST(ID INT);
-     * CREATE VIEW TEST_VIEW AS SELECT * FROM TEST;
-     * ALTER TABLE TEST ADD COLUMN NAME VARCHAR;
-     * </pre>
-     */
-    public static final int OPERATION_NOT_SUPPORTED_WITH_VIEWS_2 = 90122;
-
-    /**
      * The error with code <code>90123</code> is thrown when
      * trying mix regular parameters and indexed parameters in the same statement.
      * Example:
@@ -1889,7 +1877,7 @@ public class ErrorCode {
      */
     public static final int RESULT_SET_READONLY = 90140;
 
-    // next is 90140
+    // next is 90122, 90141
 
     private ErrorCode() {
         // utility class

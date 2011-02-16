@@ -57,7 +57,7 @@ public abstract class Query extends Prepared {
     private Value[] lastParameters;
     private boolean cacheableChecked, cacheable;
 
-    public Query(Session session) {
+    Query(Session session) {
         super(session);
     }
 

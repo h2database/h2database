@@ -19,7 +19,7 @@ import org.h2.util.Permutations;
  * The optimizer is responsible to find the best execution plan
  * for a given query.
  */
-public class Optimizer {
+class Optimizer {
 
     private static final int MAX_BRUTE_FORCE_FILTERS = 7;
     private static final int MAX_BRUTE_FORCE = 2000;

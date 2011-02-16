@@ -278,13 +278,6 @@ public abstract class Table extends SchemaObjectBase {
     public abstract boolean canDrop();
 
     /**
-     * Check if this table has a row id column.
-     *
-     * @return true if it has
-     */
-    public abstract boolean hasRowIdColumn();
-
-    /**
      * Get the row count for this table.
      *
      * @param session the session
@@ -298,6 +291,15 @@ public abstract class Table extends SchemaObjectBase {
      * @return the approximated row count
      */
     public abstract long getRowCountApproximation();
+
+    /**
+     * Get the row id column if this table has one.
+     *
+     * @return the row id column, or null
+     */
+    public Column getRowIdColumn() {
+        return null;
+    }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError();

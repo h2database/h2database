@@ -225,8 +225,4 @@ public class FunctionTable extends Table {
         return false;
     }
 
-    public boolean hasRowIdColumn() {
-        return false;
-    }
-
 }

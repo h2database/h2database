@@ -10,6 +10,7 @@ import org.h2.engine.Constants;
 import org.h2.store.Data;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
+import org.h2.value.ValueLong;
 
 /**
  * Represents a row in a table.
@@ -69,7 +70,7 @@ public class Row implements SearchRow {
     }
 
     public Value getValue(int i) {
-        return data[i];
+        return i == -1 ? ValueLong.get(key) : data[i];
     }
 
     /**
@@ -87,7 +88,11 @@ public class Row implements SearchRow {
     }
 
     public void setValue(int i, Value v) {
-        data[i] = v;
+        if (i == -1) {
+            this.key = v.getLong();
+        } else {
+            data[i] = v;
+        }
     }
 
     public boolean isEmpty() {

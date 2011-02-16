@@ -173,8 +173,4 @@ public class RangeTable extends Table {
         return false;
     }
 
-    public boolean hasRowIdColumn() {
-        return false;
-    }
-
 }

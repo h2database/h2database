@@ -835,10 +835,8 @@ public class TableFilter implements ColumnResolver {
     }
 
     public Column getRowIdColumn() {
-        if (table.hasRowIdColumn() && session.getDatabase().getSettings().rowId) {
-            Column col = new Column(Column.ROWID, Value.LONG);
-            col.setTable(table, -1);
-            return col;
+        if (session.getDatabase().getSettings().rowId) {
+            return table.getRowIdColumn();
         }
         return null;
     }

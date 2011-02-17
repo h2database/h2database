@@ -54,7 +54,6 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     }
 
     /**
-    /**
      * Executes a statement (insert, update, delete, create, drop)
      * and returns the update count.
      * If another result set exists for this statement, this will be closed

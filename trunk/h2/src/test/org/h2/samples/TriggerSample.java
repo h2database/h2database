@@ -34,9 +34,16 @@ public class TriggerSample {
         stat.execute("CREATE TABLE INVOICE(ID INT PRIMARY KEY, AMOUNT DECIMAL)");
         stat.execute("CREATE TABLE INVOICE_SUM(AMOUNT DECIMAL)");
         stat.execute("INSERT INTO INVOICE_SUM VALUES(0.0)");
-        stat.execute("CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE FOR EACH ROW CALL \"org.h2.samples.TriggerSample$MyTrigger\" ");
-        stat.execute("CREATE TRIGGER INV_UPD AFTER UPDATE ON INVOICE FOR EACH ROW CALL \"org.h2.samples.TriggerSample$MyTrigger\" ");
-        stat.execute("CREATE TRIGGER INV_DEL AFTER DELETE ON INVOICE FOR EACH ROW CALL \"org.h2.samples.TriggerSample$MyTrigger\" ");
+
+        stat.execute("CREATE TRIGGER INV_INS " +
+                "AFTER INSERT ON INVOICE FOR EACH ROW " +
+                "CALL \"org.h2.samples.TriggerSample$MyTrigger\" ");
+        stat.execute("CREATE TRIGGER INV_UPD " +
+                "AFTER UPDATE ON INVOICE FOR EACH ROW " +
+                "CALL \"org.h2.samples.TriggerSample$MyTrigger\" ");
+        stat.execute("CREATE TRIGGER INV_DEL " +
+                "AFTER DELETE ON INVOICE FOR EACH ROW " +
+                "CALL \"org.h2.samples.TriggerSample$MyTrigger\" ");
 
         stat.execute("INSERT INTO INVOICE VALUES(1, 10.0)");
         stat.execute("INSERT INTO INVOICE VALUES(2, 19.95)");

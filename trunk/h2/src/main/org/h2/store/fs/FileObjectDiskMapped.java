@@ -119,7 +119,7 @@ public class FileObjectDiskMapped implements FileObject {
         }
     }
 
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         if (file != null) {
             unMap();
             file.close();
@@ -135,11 +135,11 @@ public class FileObjectDiskMapped implements FileObject {
         return FileSystemDiskNioMapped.PREFIX + name;
     }
 
-    public long length() throws IOException {
+    public synchronized long length() throws IOException {
         return file.length();
     }
 
-    public void readFully(byte[] b, int off, int len) throws EOFException {
+    public synchronized void readFully(byte[] b, int off, int len) throws EOFException {
         try {
             mapped.position(pos);
             mapped.get(b, off, len);
@@ -160,7 +160,7 @@ public class FileObjectDiskMapped implements FileObject {
         this.pos = (int) pos;
     }
 
-    public void setFileLength(long newLength) throws IOException {
+    public synchronized void setFileLength(long newLength) throws IOException {
         checkFileSizeLimit(newLength);
         int oldPos = pos;
         unMap();
@@ -179,12 +179,12 @@ public class FileObjectDiskMapped implements FileObject {
         pos = (int) Math.min(newLength, oldPos);
     }
 
-    public void sync() throws IOException {
+    public synchronized void sync() throws IOException {
         mapped.force();
         file.getFD().sync();
     }
 
-    public void write(byte[] b, int off, int len) throws IOException {
+    public synchronized void write(byte[] b, int off, int len) throws IOException {
         // check if need to expand file
         if (mapped.capacity() < pos + len) {
             setFileLength(pos + len);

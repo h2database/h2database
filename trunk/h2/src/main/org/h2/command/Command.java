@@ -16,6 +16,7 @@ import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
+import org.h2.util.MathUtils;
 
 /**
  * Represents a SQL statement. This object is only used on the server side.
@@ -256,10 +257,11 @@ public abstract class Command implements CommandInterface {
         }
         try {
             Database database = session.getDatabase();
+            int sleep = 1 + MathUtils.randomInt(10);
             if (database.isMultiThreaded()) {
-                Thread.sleep(10);
+                Thread.sleep(sleep);
             } else {
-                database.wait(10);
+                database.wait(sleep);
             }
         } catch (InterruptedException e1) {
             // ignore

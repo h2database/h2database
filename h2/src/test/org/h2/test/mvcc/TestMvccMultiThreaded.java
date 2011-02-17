@@ -8,7 +8,6 @@ package org.h2.test.mvcc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 
 import org.h2.test.TestBase;
@@ -40,7 +39,7 @@ public class TestMvccMultiThreaded extends TestBase {
         int len = 3;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
-            Connection conn = getConnection("mvccMultiThreaded;MVCC=TRUE;LOCK_TIMEOUT=1000");
+            Connection conn = getConnection("mvccMultiThreaded;MVCC=TRUE;LOCK_TIMEOUT=100");
             connList[i] = conn;
         }
         Connection conn = connList[0];
@@ -51,7 +50,7 @@ public class TestMvccMultiThreaded extends TestBase {
             final Connection c = connList[i];
             c.setAutoCommit(false);
             tasks[i] = new Task() {
-                public void call() throws SQLException {
+                public void call() throws Exception {
                     while (!stop) {
                         c.createStatement().execute("merge into test values(1, 'x')");
                         c.commit();

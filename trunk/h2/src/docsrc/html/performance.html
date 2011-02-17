@@ -28,6 +28,8 @@ Performance
     Application Profiling</a><br />
 <a href="#database_profiling">
     Database Profiling</a><br />
+<a href="#storage_and_indexes">
+    How Data is Stored and How Indexes Work</a><br />
 <a href="#explain_plan">
     Statement Execution Plans</a><br />
 <a href="#fast_import">
@@ -608,6 +610,116 @@ following profiling data (results vary):
 --   0% 100%       0       1       0 DROP TABLE IF EXISTS TEST;
 --   0% 100%       0       1       0 SET TRACE_LEVEL_FILE 3;
 </pre>
+
+<h2 id="storage_and_indexes">How Data is Stored and How Indexes Work</h2>
+<p>
+Internally, each row in a table is identified by a unique number, the row id.
+The rows of a table are stored with the row id as the key.
+The row id is a number of type long.
+If a table has a single column primary key of type <code>INT</code> or <code>BIGINT</code>,
+then the value of this column is the row id, otherwise the database generates the row id automatically.
+There is a (non-standard) way to access the row id: using the <code>_ROWID_</code> pseudo-column:
+</p>
+<pre>
+CREATE TABLE ADDRESS(FIRST_NAME VARCHAR, NAME VARCHAR, CITY VARCHAR, PHONE VARCHAR);
+INSERT INTO ADDRESS VALUES('John', 'Miller', 'Berne', '123 456 789');
+INSERT INTO ADDRESS VALUES('Philip', 'Jones', 'Berne', '123 012 345');
+SELECT _ROWID_, * FROM ADDRESS;
+</pre>
+<p>
+The data is stored in the database as follows:
+</p>
+<table>
+<tr><th>_ROWID_</th><th>FIRST_NAME</th><th>NAME</th><th>CITY</th><th>PHONE</th></tr>
+<tr><td>1</td><td>John</td><td>Miller</td><td>Berne</td><td>123 456 789</td></tr>
+<tr><td>2</td><td>Philip</td><td>Jones</td><td>Berne</td><td>123 012 345</td></tr>
+</table>
+<p>
+Access by row id is fast because the data is sorted by this key.
+If the query condition does not contain the row id (and if no other index can be used), then all rows of the table are scanned.
+A table scan iterates over all rows in the table, in the order of the row id.
+To find out what strategy the database uses to retrieve the data, use <code>EXPLAIN SELECT</code>:
+</p>
+<pre>
+SELECT * FROM ADDRESS WHERE NAME = 'Miller';
+
+EXPLAIN SELECT PHONE FROM ADDRESS WHERE NAME = 'Miller';
+SELECT
+    PHONE
+FROM PUBLIC.ADDRESS
+    /* PUBLIC.ADDRESS.tableScan */
+WHERE NAME = 'Miller';
+</pre>
+<p>
+An index internally is basically just a table that contains the indexed column(s), plus the row id:
+</p>
+<pre>
+CREATE INDEX INDEX_PLACE ON ADDRESS(CITY, NAME, FIRST_NAME);
+</pre>
+<p>
+In the index, the data is sorted by the indexed columns.
+So this index contains the following data:
+</p>
+<table>
+<tr><th>CITY</th><th>NAME</th><th>FIRST_NAME</th><th>_ROWID_</th></tr>
+<tr><td>Berne</td><td>Jones</td><td>Philip</td><td>2</td></tr>
+<tr><td>Berne</td><td>Miller</td><td>John</td><td>1</td></tr>
+</table>
+<p>
+When the database uses an index to query the data, it searches the index for the given data,
+and (if required) reads the remaining columns in the main data table (retrieved using the row id).
+An index on city, name, and first name allows to quickly search for rows when the city, name, and first name are known.
+If only the city and name, or only the city is known, then the index is also used.
+This index is also used when reading all rows, sorted by the indexed columns.
+However, if only the first name is known, then this index is not used:
+</p>
+<pre>
+EXPLAIN SELECT PHONE FROM ADDRESS WHERE CITY = 'Berne' AND NAME = 'Miller' AND FIRST_NAME = 'John';
+SELECT
+    PHONE
+FROM PUBLIC.ADDRESS
+    /* PUBLIC.INDEX_PLACE: FIRST_NAME = 'John'
+        AND CITY = 'Berne'
+        AND NAME = 'Miller'
+     */
+WHERE (FIRST_NAME = 'John')
+    AND ((CITY = 'Berne')
+    AND (NAME = 'Miller'));
+
+EXPLAIN SELECT PHONE FROM ADDRESS WHERE CITY = 'Berne';
+SELECT
+    PHONE
+FROM PUBLIC.ADDRESS
+    /* PUBLIC.INDEX_PLACE: CITY = 'Berne' */
+WHERE CITY = 'Berne';
+
+EXPLAIN SELECT * FROM ADDRESS ORDER BY CITY, NAME, FIRST_NAME;
+SELECT
+    ADDRESS.FIRST_NAME,
+    ADDRESS.NAME,
+    ADDRESS.CITY,
+    ADDRESS.PHONE
+FROM PUBLIC.ADDRESS
+    /* PUBLIC.INDEX_PLACE */
+ORDER BY 3, 2, 1
+/* index sorted */;
+
+EXPLAIN SELECT PHONE FROM ADDRESS WHERE FIRST_NAME = 'John';
+SELECT
+    PHONE
+FROM PUBLIC.ADDRESS
+    /* PUBLIC.ADDRESS.tableScan */
+WHERE FIRST_NAME = 'John';
+</pre>
+<p>
+If your application often queries the table for a phone number, then it makes sense to create
+an additional index on it, which then contains the following data:
+</p>
+<table>
+<tr><th>PHONE</th><th>_ROWID_</th></tr>
+<tr><td>123 012 345</td><td>2</td></tr>
+<tr><td>123 456 789</td><td>1</td></tr>
+</table>
 
 <h2 id="explain_plan">Statement Execution Plans</h2>
 <p>

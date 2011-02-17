@@ -557,6 +557,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility with IBM DB2: SQL cursors.
 </li><li>Single-column primary key values are always stored explicitly. This is not required.
 </li><li>Compatibility with MySQL: support CREATE TABLE TEST(NAME VARCHAR(255) CHARACTER SET UTF8).
+</li><li>CALL is incompatible with other databases because it returns a result set, so that CallableStatement.execute() returns true.
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -86,7 +86,9 @@ BACKUP TO 'backup.zip'
 "Commands (DML)","CALL","
 CALL expression
 ","
-Calculates a simple expression.
+Calculates a simple expression. This statement returns a result set with one row,
+except if the called function returns a result set itself.
+If the called function returns an array, then each element in this array is returned as a column.
 ","
 CALL 15*25
 "
@@ -3613,3 +3615,4 @@ Contains all values from start to end (this is a dynamic table).
 ","
 SYSTEM_RANGE(0, 100)
 "
+

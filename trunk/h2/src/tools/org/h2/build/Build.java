@@ -93,6 +93,14 @@ public class Build extends BuildBase {
         compile(true, false, false);
     }
 
+    private void compileTools() {
+        FileList files = files("src/tools").keep("src/tools/org/h2/build/*");
+        StringList args = args("-d", "temp", "-sourcepath", "src/tools" +
+                File.pathSeparator + "src/test" + File.pathSeparator + "src/main");
+        mkdir("temp");
+        javac(args, files);
+    }
+
     /**
      * Run the Emma code coverage.
      */
@@ -424,6 +432,7 @@ public class Build extends BuildBase {
      * Create the Javadocs of the API (including the JDBC API) and tools.
      */
     public void javadoc() {
+        compileTools();
         delete("docs");
         mkdir("docs/javadoc");
         javadoc("-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
@@ -438,6 +447,7 @@ public class Build extends BuildBase {
      * Create the Javadocs of the implementation.
      */
     public void javadocImpl() {
+        compileTools();
         mkdir("docs/javadocImpl2");
         javadoc("-sourcepath", "src/main" + File.pathSeparator +
                 "src/test" + File.pathSeparator + "src/tools" ,

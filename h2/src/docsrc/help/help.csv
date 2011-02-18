@@ -605,6 +605,7 @@ Exceptions that occur within such triggers are ignored.
 
 INSTEAD OF triggers are implicitly row based and behave like BEFORE triggers.
 Only the first such trigger is called. Such triggers on views are supported.
+They can be used to make views updatable.
 
 The MERGE statement will call both INSERT and UPDATE triggers.
 Not supported are SELECT triggers with the option FOR EACH ROW,
@@ -644,6 +645,8 @@ If the OR REPLACE clause is used an existing view will be replaced, and any
 dependent views will not need to be recreated. If dependent views will become
 invalid as a result of the change an error will be generated, but this error
 can be ignored if the FORCE clause is also used.
+
+Views are not updatable except when using 'instead of' triggers.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.

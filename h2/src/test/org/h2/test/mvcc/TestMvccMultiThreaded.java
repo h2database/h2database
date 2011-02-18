@@ -39,7 +39,7 @@ public class TestMvccMultiThreaded extends TestBase {
         int len = 3;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
-            Connection conn = getConnection("mvccMultiThreaded;MVCC=TRUE;LOCK_TIMEOUT=100");
+            Connection conn = getConnection("mvccMultiThreaded;MVCC=TRUE;LOCK_TIMEOUT=500");
             connList[i] = conn;
         }
         Connection conn = connList[0];

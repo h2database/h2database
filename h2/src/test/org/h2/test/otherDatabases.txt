@@ -2,6 +2,7 @@ MySQL
 --------------------------------------------------------------------------------------------------------
 Start:
 sudo mysqld_safe --default-storage-engine=innodb
+sudo mysqld_safe --default-storage-engine=innodb --wait_timeout=10
 
 Stop:
 sudo mysqladmin shutdown

@@ -54,6 +54,7 @@ public class TestMvccMultiThreaded extends TestBase {
                     while (!stop) {
                         c.createStatement().execute("merge into test values(1, 'x')");
                         c.commit();
+                        Thread.sleep(1);
                     }
                 }
             };

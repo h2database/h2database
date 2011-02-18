@@ -73,6 +73,11 @@ public class DbContents {
     boolean isSQLite;
 
     /**
+     * True if this is a MS SQL Server database.
+     */
+    boolean isMSSQLServer;
+
+    /**
      * True if the unquoted names are stored as upper case.
      * False for MySQL and PostgreSQL.
      */
@@ -101,7 +106,7 @@ public class DbContents {
      *
      * @param meta the database meta data
      */
-    void readContents(DatabaseMetaData meta) throws SQLException {
+    synchronized void readContents(DatabaseMetaData meta) throws SQLException {
         String prod = StringUtils.toLowerEnglish(meta.getDatabaseProductName());
         isSQLite = prod.indexOf("sqlite") >= 0;
         String url = meta.getURL();
@@ -124,6 +129,7 @@ public class DbContents {
             isMySQL = url.startsWith("jdbc:mysql:");
             isDerby = url.startsWith("jdbc:derby:");
             isFirebird = url.startsWith("jdbc:firebirdsql:");
+            isMSSQLServer = url.startsWith("jdbc:sqlserver:");
         }
         storedUpperCaseIdentifiers = meta.storesUpperCaseIdentifiers();
         String defaultSchemaName = getDefaultSchemaName(meta);
@@ -172,6 +178,16 @@ public class DbContents {
                         "CTXSYS", "DIP", "DBSNMP", "DMSYS", "EXFSYS", "FLOWS_020100", "FLOWS_FILES", "MDDATA", "MDSYS",
                         "MGMT_VIEW", "OLAPSYS", "ORDSYS", "ORDPLUGINS", "OUTLN", "SI_INFORMTN_SCHEMA", "SYS", "SYSMAN",
                         "SYSTEM", "TSMSYS", "WMSYS", "XDB"
+                }) {
+                    if (ignore.equals(schema)) {
+                        schema = null;
+                        break;
+                    }
+                }
+            } else if (isMSSQLServer) {
+                for (String ignore : new String[] {
+                        "sys", "db_accessadmin", "db_backupoperator", "db_datareader", "db_datawriter", "db_ddladmin",
+                        "db_denydatareader", "db_denydatawriter", "db_owner", "db_securityadmin"
                 }) {
                     if (ignore.equals(schema)) {
                         schema = null;

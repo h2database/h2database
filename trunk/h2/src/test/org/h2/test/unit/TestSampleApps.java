@@ -76,6 +76,8 @@ public class TestSampleApps extends TestBase {
         // process)
         testApp("The sum is 20.00", org.h2.samples.TriggerSample.class);
         testApp("Hello: 1\nWorld: 2", org.h2.samples.TriggerPassData.class);
+        testApp("table test:\n1 Hallo\n\ntest_view:\n1 Hallo",
+                org.h2.samples.UpdatableView.class);
         testApp(
                 "adding test data...\n" +
                 "defrag to reduce random access...\n" +

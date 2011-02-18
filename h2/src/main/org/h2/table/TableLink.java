@@ -54,6 +54,7 @@ public class TableLink extends Table {
     private DbException connectException;
     private boolean storesLowerCase;
     private boolean storesMixedCase;
+    private boolean storesMixedCaseQuoted;
     private boolean supportsMixedCaseIdentifiers;
     private boolean globalTemporary;
     private boolean readOnly;
@@ -100,6 +101,7 @@ public class TableLink extends Table {
         DatabaseMetaData meta = conn.getConnection().getMetaData();
         storesLowerCase = meta.storesLowerCaseIdentifiers();
         storesMixedCase = meta.storesMixedCaseIdentifiers();
+        storesMixedCaseQuoted = meta.storesMixedCaseQuotedIdentifiers();
         supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();
         ResultSet rs = meta.getTables(null, originalSchema, originalTable, null);
         if (rs.next() && rs.next()) {
@@ -303,6 +305,9 @@ public class TableLink extends Table {
             columnName = StringUtils.toUpperEnglish(columnName);
         } else if (storesMixedCase && !supportsMixedCaseIdentifiers) {
             // TeraData
+            columnName = StringUtils.toUpperEnglish(columnName);
+        } else if (storesMixedCase && storesMixedCaseQuoted) {
+            // MS SQL Server (identifiers are case insensitive even if quoted)
             columnName = StringUtils.toUpperEnglish(columnName);
         }
         return columnName;

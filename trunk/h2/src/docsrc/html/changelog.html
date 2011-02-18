@@ -23,7 +23,7 @@ Change Log
     Also, listing the database meta data sometimes resulted in an exception.
 </li><li>Linked tables / MS SQL Server: if the tables were created in mixed case in MS SQL Server, 
     then the identifiers in the linked tables were case sensitive (in H2).
-</li><li>MVCC: the probability of lock timeouts is now lower if multiple threads try to update the same rows.
+</li><li>MVCC: the probability of a lock timeout is now lower if multiple threads try to update the same rows.
 </li><li>Building only the documentation (without compiling all classes) didn't work, specially: ./build.sh clean javadocImpl.
 </li><li>Documentation on how data is stored internally and how indexes work (in the performance section).
 </li><li>Some people reported NullPointerException in FileObjectDiskMapped.

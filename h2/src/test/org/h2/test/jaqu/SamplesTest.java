@@ -9,9 +9,14 @@ package org.h2.test.jaqu;
 import static org.h2.jaqu.Function.count;
 import static org.h2.jaqu.Function.isNull;
 import static org.h2.jaqu.Function.length;
-import static org.h2.jaqu.Function.*;
+import static org.h2.jaqu.Function.max;
+import static org.h2.jaqu.Function.min;
+import static org.h2.jaqu.Function.not;
+import static org.h2.jaqu.Function.sum;
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.h2.jaqu.Db;
 import org.h2.jaqu.Filter;
 import org.h2.test.TestBase;
@@ -73,6 +78,8 @@ public class SamplesTest extends TestBase {
         testWhereSimple2();
         testWhereSimple3();
         testReverseColumns();
+        testLimitOffset();
+        testKeyRetrieval();
         db.close();
 //## Java 1.5 end ##
     }
@@ -265,6 +272,9 @@ public class SamplesTest extends TestBase {
         deleted = db.from(p).delete();
         assertEquals(9, deleted);
         db.insertAll(Product.getList());
+        db.deleteAll(Product.getList());
+        assertEquals(0, db.from(p).selectCount());
+        db.insertAll(Product.getList());
     }
 
     private void testOrAndNot() {
@@ -375,6 +385,25 @@ public class SamplesTest extends TestBase {
             } }).selectCount();
 
         assertEquals(1, count);
+    }
+    
+    private void testLimitOffset() {
+        Set<Integer> ids = new HashSet<Integer>();
+        Product p = new Product();
+        for (int i = 0; i < 5; i++) {
+            List<Product> products = db.from(p).limit(2).offset(2*i).select();
+            assertTrue(products.size() == 2);
+            for (Product prod:products)
+                assertTrue("Failed to add product id.  Duplicate?", ids.add(prod.productId));
+        }
+    }
+    
+    private void testKeyRetrieval() {
+        List<SupportedTypes> list = SupportedTypes.createList();
+        List<Long> keys = db.insertAllAndGetKeys(list);
+        Set<Long> uniqueKeys = new HashSet<Long>();
+        for (Long l:keys)
+            assertTrue("Failed to add key.  Duplicate?", uniqueKeys.add(l));
     }
 //## Java 1.5 end ##
 

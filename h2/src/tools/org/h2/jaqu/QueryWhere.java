@@ -33,6 +33,16 @@ public class QueryWhere<T> {
         query.addConditionToken(ConditionAndOr.OR);
         return new QueryCondition<T, A>(query, x);
     }
+    
+    public QueryWhere<T> limit(long limit) {
+        query.limit(limit);
+        return this;
+    }
+    
+    public QueryWhere<T> offset(long offset) {
+        query.offset(offset);
+        return this;
+    }
 
     public <X, Z> List<X> select(Z x) {
         return query.select(x);
@@ -121,6 +131,10 @@ public class QueryWhere<T> {
 
     public int delete() {
         return query.delete();
+    }
+
+    public int update() {
+        return query.update();
     }
 
     public long selectCount() {

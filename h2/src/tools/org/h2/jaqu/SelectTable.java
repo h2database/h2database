@@ -55,9 +55,9 @@ class SelectTable <T> {
 
     void appendSQL(SQLStatement stat) {
         if (query.isJoin()) {
-            stat.appendSQL(aliasDef.tableName + " AS " + as);
+            stat.appendTable(aliasDef.schemaName, aliasDef.tableName).appendSQL(" AS " + as);
         } else {
-            stat.appendSQL(aliasDef.tableName);
+            stat.appendTable(aliasDef.schemaName, aliasDef.tableName);
         }
     }
 

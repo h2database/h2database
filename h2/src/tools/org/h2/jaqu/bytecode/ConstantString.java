@@ -8,7 +8,7 @@ package org.h2.jaqu.bytecode;
 
 import org.h2.jaqu.Query;
 import org.h2.jaqu.SQLStatement;
-import org.h2.util.StringUtils;
+import org.h2.jaqu.util.StringUtils;
 
 /**
  * A string constant.

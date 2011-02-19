@@ -65,7 +65,9 @@ import org.h2.test.db.TestView;
 import org.h2.test.db.TestViewAlterTable;
 import org.h2.test.db.TestViewDropView;
 import org.h2.test.jaqu.AliasMapTest;
+import org.h2.test.jaqu.AnnotationsTest;
 import org.h2.test.jaqu.ClobTest;
+import org.h2.test.jaqu.ModelsTest;
 import org.h2.test.jaqu.SamplesTest;
 import org.h2.test.jaqu.UpdateTest;
 import org.h2.test.jdbc.TestBatchUpdates;
@@ -588,6 +590,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new ClobTest().runTest(this);
         new SamplesTest().runTest(this);
         new UpdateTest().runTest(this);
+        new AnnotationsTest().runTest(this);
+        new ModelsTest().runTest(this);
 
         // jdbc
         new TestBatchUpdates().runTest(this);

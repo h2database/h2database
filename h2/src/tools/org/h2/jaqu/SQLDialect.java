@@ -6,75 +6,105 @@
  */
 package org.h2.jaqu;
 
-import java.text.MessageFormat;
 import org.h2.jaqu.TableDefinition.IndexDefinition;
 import org.h2.jaqu.util.StatementBuilder;
 import org.h2.jaqu.util.StringUtils;
 
 /**
- * Interface that defines points where JaQu can build different statements for
- * DB-specific SQL. 
- *
+ * This interface defines points where JaQu can build different statements
+ * depending on the database used.
  */
 public interface SQLDialect {
-    
-    public String tableName(String schema, String table);
-    
-    public String createIndex(String schema, String table, IndexDefinition index);
-    
-    public void appendLimit(SQLStatement stat, long limit);
-    
-    public void appendOffset(SQLStatement stat, long offset);
-    
+
+    /**
+     * Get the SQL snippet for the table name.
+     *
+     * @param schema the schema name, or null for no schema
+     * @param table the table name
+     * @return the SQL snippet
+     */
+    String tableName(String schema, String table);
+
+    /**
+     * Get the CREATE INDEX statement.
+     *
+     * @param schema the schema name
+     * @param table the table name
+     * @param index the index definition
+     * @return the SQL statement
+     */
+    String createIndex(String schema, String table, IndexDefinition index);
+
+    /**
+     * Append "LIMIT limit" to the SQL statement.
+     *
+     * @param stat the statement
+     * @param limit the limit
+     */
+    void appendLimit(SQLStatement stat, long limit);
+
+    /**
+     * Append "OFFSET offset" to the SQL statement.
+     *
+     * @param stat the statement
+     * @param offset the offset
+     */
+    void appendOffset(SQLStatement stat, long offset);
+
     /**
      *  Default implementation of an SQL dialect.
      *  Designed for an H2 database.  May be suitable for others.
      */
     public static class DefaultSQLDialect implements SQLDialect {
-        
+
         @Override
-        public String tableName(String schema, String table) {            
-            if (StringUtils.isNullOrEmpty(schema))
+        public String tableName(String schema, String table) {
+            if (StringUtils.isNullOrEmpty(schema)) {
                 return table;
+            }
             return schema + "." + table;
         }
-        
+
         @Override
         public String createIndex(String schema, String table, IndexDefinition index) {
-            StatementBuilder cols = new StatementBuilder();
-            for (String col:index.columnNames) {
-                cols.appendExceptFirst(", ");
-                cols.append(col);
-            }
-            String type;
+            StatementBuilder buff = new StatementBuilder();
+            buff.append("CREATE ");
             switch(index.type) {
+            case STANDARD:
+                break;
             case UNIQUE:
-                type = " UNIQUE ";
+                buff.append("UNIQUE ");
                 break;
             case HASH:
-                type = " HASH ";
+                buff.append("HASH ");
                 break;
             case UNIQUE_HASH:
-                type = " UNIQUE HASH ";
-                break;
-            case STANDARD:
-            default:
-                type = " ";
+                buff.append("UNIQUE HASH ");
                 break;
             }
-                
-            return MessageFormat.format("CREATE{0}INDEX IF NOT EXISTS {1} ON {2}({3})",
-                    type, index.indexName, table, cols);
+            buff.append("INDEX IF NOT EXISTS ");
+            buff.append(index.indexName);
+            buff.append(" ON ");
+            buff.append(table);
+            buff.append("(");
+            for (String col:index.columnNames) {
+                buff.appendExceptFirst(", ");
+                buff.append(col);
+            }
+            buff.append(")");
+            return buff.toString();
         }
-        
+
         @Override
         public void appendLimit(SQLStatement stat, long limit) {
             stat.appendSQL(" LIMIT " + limit);
         }
-        
+
         @Override
         public void appendOffset(SQLStatement stat, long offset) {
             stat.appendSQL(" OFFSET " + offset);
         }
-    }   
+
+    }
+
 }

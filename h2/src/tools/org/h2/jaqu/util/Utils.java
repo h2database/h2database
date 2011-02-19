@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+//## Java 1.5 end ##
 
 /**
  * Generic utility methods.
@@ -32,30 +33,30 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Utils {
 //## Java 1.5 begin ##
 
-    private static final AtomicLong counter = new AtomicLong(0);
+    private static final AtomicLong COUNTER = new AtomicLong(0);
 
     private static final boolean MAKE_ACCESSIBLE = true;
-    
+
     private static final int BUFFER_BLOCK_SIZE = 4 * 1024;
 
     public static <T> ArrayList<T> newArrayList() {
         return new ArrayList<T>();
     }
-    
+
     public static <T> ArrayList<T> newArrayList(Collection<T> c) {
         return new ArrayList<T>(c);
     }
-    
+
     public static <T> HashSet<T> newHashSet() {
         return new HashSet<T>();
     }
-    
+
     public static <T> HashSet<T> newHashSet(Collection<T> list) {
         return new HashSet<T>(list);
     }
-    
+
     public static <T> Set<T> newConcurrentHashSet() {
-        return Collections.newSetFromMap(new ConcurrentHashMap<T,Boolean>());
+        return Collections.newSetFromMap(new ConcurrentHashMap<T, Boolean>());
     }
 
     public static <A, B> HashMap<A, B> newHashMap() {
@@ -75,35 +76,35 @@ public class Utils {
     public static <T> T newObject(Class<T> clazz) {
         // must create new instances
         if (clazz == Integer.class) {
-            return (T) new Integer((int) counter.incrementAndGet());
+            return (T) new Integer((int) COUNTER.incrementAndGet());
         } else if (clazz == String.class) {
-            return (T) ("" + counter.incrementAndGet());
+            return (T) ("" + COUNTER.incrementAndGet());
         } else if (clazz == Long.class) {
-            return (T) new Long(counter.incrementAndGet());
+            return (T) new Long(COUNTER.incrementAndGet());
         } else if (clazz == Short.class) {
-            return (T) new Short((short) counter.incrementAndGet());
+            return (T) new Short((short) COUNTER.incrementAndGet());
         } else if (clazz == Byte.class) {
-            return (T) new Byte((byte) counter.incrementAndGet());
+            return (T) new Byte((byte) COUNTER.incrementAndGet());
         } else if (clazz == Float.class) {
-            return (T) new Float(counter.incrementAndGet());
+            return (T) new Float(COUNTER.incrementAndGet());
         } else if (clazz == Double.class) {
-            return (T) new Double(counter.incrementAndGet());
+            return (T) new Double(COUNTER.incrementAndGet());
         } else if (clazz == Boolean.class) {
             return (T) new Boolean(false);
         } else if (clazz == BigDecimal.class) {
-            return (T) new BigDecimal(counter.incrementAndGet());
+            return (T) new BigDecimal(COUNTER.incrementAndGet());
         } else if (clazz == BigInteger.class) {
-            return (T) new BigInteger("" + counter.incrementAndGet());
+            return (T) new BigInteger("" + COUNTER.incrementAndGet());
         } else if (clazz == java.sql.Date.class) {
-            return (T) new java.sql.Date(counter.incrementAndGet());
+            return (T) new java.sql.Date(COUNTER.incrementAndGet());
         } else if (clazz == java.sql.Time.class) {
-            return (T) new java.sql.Time(counter.incrementAndGet());
+            return (T) new java.sql.Time(COUNTER.incrementAndGet());
         } else if (clazz == java.sql.Timestamp.class) {
-            return (T) new java.sql.Timestamp(counter.incrementAndGet());
+            return (T) new java.sql.Timestamp(COUNTER.incrementAndGet());
         } else if (clazz == java.util.Date.class) {
-            return (T) new java.util.Date(counter.incrementAndGet());
+            return (T) new java.util.Date(COUNTER.incrementAndGet());
         } else if (clazz == List.class) {
-            return (T) newArrayList();
+            return (T) new ArrayList();
         }
         try {
             return clazz.newInstance();
@@ -186,7 +187,7 @@ public class Utils {
         throw new RuntimeException("Can not convert the value " + o +
                 " from " + currentType + " to " + targetType);
     }
-    
+
     /**
      * Read a number of characters from a reader and close it.
      *
@@ -217,6 +218,6 @@ public class Utils {
             in.close();
         }
     }
-    
+
 //## Java 1.5 end ##
 }

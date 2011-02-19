@@ -8,15 +8,24 @@ package org.h2.jaqu;
 
 //## Java 1.5 begin ##
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
+import org.h2.jaqu.Table.IndexType;
+import org.h2.jaqu.Table.JQColumn;
+import org.h2.jaqu.Table.JQIndex;
+import org.h2.jaqu.Table.JQSchema;
+import org.h2.jaqu.Table.JQTable;
+import org.h2.jaqu.util.StatementLogger;
+import org.h2.jaqu.util.StatementBuilder;
+import org.h2.jaqu.util.StringUtils;
 import org.h2.jaqu.util.Utils;
-import org.h2.util.StatementBuilder;
 
 /**
  * A table definition contains the index definitions of a table, the field
@@ -33,9 +42,9 @@ class TableDefinition<T> {
      */
 //## Java 1.5 begin ##
     static class IndexDefinition {
-        boolean unique;
+        IndexType type;
         String indexName;
-        List<String> columnNames;
+        Set<String> columnNames;
     }
 //## Java 1.5 end ##
 
@@ -49,6 +58,10 @@ class TableDefinition<T> {
         String dataType;
         int maxLength;
         boolean isPrimaryKey;
+        boolean isAutoIncrement;
+        boolean trimString;
+        boolean allowNull;
+        String defaultValue;
 
         Object getValue(Object obj) {
             try {
@@ -65,6 +78,8 @@ class TableDefinition<T> {
 
         void setValue(Object obj, Object o) {
             try {
+                if (!field.isAccessible())
+                    field.setAccessible(true);
                 o = Utils.convert(o, field.getType());
                 field.set(obj, o);
             } catch (Exception e) {
@@ -80,22 +95,35 @@ class TableDefinition<T> {
             }
         }
     }
-
+    
+    private boolean createTableIfRequired = true;
+    String schemaName;
     String tableName;
     private Class<T> clazz;
     private ArrayList<FieldDefinition> fields = Utils.newArrayList();
     private IdentityHashMap<Object, FieldDefinition> fieldMap =
             Utils.newIdentityHashMap();
-    private List<String> primaryKeyColumnNames;
+    private Set<String> primaryKeyColumnNames;
     private ArrayList<IndexDefinition> indexes = Utils.newArrayList();
+    private boolean memoryTable = false;
+    int tableVersion = 0;
 
     TableDefinition(Class<T> clazz) {
         this.clazz = clazz;
-        tableName = clazz.getSimpleName();
+        schemaName = null;
+        tableName = clazz.getSimpleName();        
+    }
+    
+    Class<T> getModelClass() {
+        return clazz;
     }
 
     List<FieldDefinition> getFields() {
         return fields;
+    }
+
+    void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
     }
 
     void setTableName(String tableName) {
@@ -111,23 +139,41 @@ class TableDefinition<T> {
         }
     }
 
+    void setPrimaryKey(List<String> primaryKeyColumnNames) {
+        this.primaryKeyColumnNames = Utils.newHashSet(primaryKeyColumnNames);
+        // set isPrimaryKey flag for all field definitions
+        for (FieldDefinition fieldDefinition : fieldMap.values()) {
+            fieldDefinition.isPrimaryKey = this.primaryKeyColumnNames
+                .contains(fieldDefinition.columnName);
+        }
+    }
+    
     <A> String getColumnName(A fieldObject) {
         FieldDefinition def = fieldMap.get(fieldObject);
         return def == null ? null : def.columnName;
     }
 
-    private List<String> mapColumnNames(Object[] columns) {
-        List<String> columnNames = Utils.newArrayList();
+    private Set<String> mapColumnNames(Object[] columns) {
+        Set<String> columnNames = Utils.newHashSet();
         for (Object column : columns) {
             columnNames.add(getColumnName(column));
         }
         return columnNames;
     }
 
-    void addIndex(Object[] columns) {
+    void addIndex(IndexType type, Object[] columns) {
         IndexDefinition index = new IndexDefinition();
         index.indexName = tableName + "_" + indexes.size();
         index.columnNames = mapColumnNames(columns);
+        index.type = type;
+        indexes.add(index);
+    }
+
+    void addIndex(IndexType type, List<String> columnNames) {
+        IndexDefinition index = new IndexDefinition();
+        index.indexName = tableName + "_" + indexes.size();
+        index.columnNames = Utils.newHashSet(columnNames);
+        index.type = type;
         indexes.add(index);
     }
 
@@ -142,43 +188,89 @@ class TableDefinition<T> {
     }
 
     void mapFields() {
-        Field[] classFields = clazz.getFields();
+        boolean byAnnotationsOnly = false;
+        boolean inheritColumns = false;
+        boolean strictTypeMapping = false;
+        if (clazz.isAnnotationPresent(JQTable.class)) {
+            JQTable tableAnnotation = clazz.getAnnotation(JQTable.class);
+            byAnnotationsOnly = tableAnnotation.annotationsOnly();
+            inheritColumns = tableAnnotation.inheritColumns();
+            strictTypeMapping = tableAnnotation.strictTypeMapping();
+        }
+
+        List<Field> classFields = Utils.newArrayList();
+        classFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+        if (inheritColumns) {
+            Class<?> superClazz = clazz.getSuperclass();
+            classFields.addAll(Arrays.asList(superClazz.getDeclaredFields()));
+        }
+
         for (Field f : classFields) {
-            FieldDefinition fieldDef = new FieldDefinition();
-            fieldDef.field = f;
-            fieldDef.columnName = f.getName();
-            fieldDef.dataType = getDataType(f);
-            fields.add(fieldDef);
+            String columnName = f.getName(); // default to field name
+            boolean isAutoIncrement = false;
+            boolean isPrimaryKey = false;
+            int maxLength = 0;
+            boolean trimString = false;
+            boolean allowNull = true;
+            String defaultValue = ""; 
+            boolean hasAnnotation = f.isAnnotationPresent(JQColumn.class);
+            if (hasAnnotation) {
+                JQColumn col = f.getAnnotation(JQColumn.class);
+                if (!StringUtils.isNullOrEmpty(col.name()))
+                    columnName = col.name();
+                isAutoIncrement = col.autoIncrement();
+                isPrimaryKey = col.primaryKey();
+                maxLength = col.maxLength();
+                trimString = col.trimString();
+                allowNull = col.allowNull();
+                defaultValue = col.defaultValue();
+            }
+            boolean isPublic = Modifier.isPublic(f.getModifiers());
+            boolean reflectiveMatch = isPublic && !byAnnotationsOnly;
+            if (reflectiveMatch || hasAnnotation) {
+                FieldDefinition fieldDef = new FieldDefinition();
+                fieldDef.field = f;
+                fieldDef.columnName = columnName;
+                fieldDef.isAutoIncrement = isAutoIncrement;
+                fieldDef.isPrimaryKey = isPrimaryKey;
+                fieldDef.maxLength = maxLength;
+                fieldDef.trimString = trimString;
+                fieldDef.allowNull = allowNull;
+                fieldDef.defaultValue= defaultValue;
+                fieldDef.dataType = ModelUtils.getDataType(fieldDef, strictTypeMapping);
+                fields.add(fieldDef);
+            }
         }
+        List<String> primaryKey = Utils.newArrayList();
+        for (FieldDefinition fieldDef : fields) {
+            if (fieldDef.isPrimaryKey)
+                primaryKey.add(fieldDef.columnName);
+        }
+        if (primaryKey.size() > 0)
+            setPrimaryKey(primaryKey);
     }
 
-    private static String getDataType(Field field) {
-        Class<?> fieldClass = field.getType();
-        if (fieldClass == Integer.class) {
-            return "INT";
-        } else if (fieldClass == String.class) {
-            return "VARCHAR";
-        } else if (fieldClass == Double.class) {
-            return "DOUBLE";
-        } else if (fieldClass == java.math.BigDecimal.class) {
-            return "DECIMAL";
-        } else if (fieldClass == java.util.Date.class) {
-            return "DATE";
-        } else if (fieldClass == java.sql.Date.class) {
-            return "DATE";
-        } else if (fieldClass == java.sql.Time.class) {
-            return "TIME";
-        } else if (fieldClass == java.sql.Timestamp.class) {
-            return "TIMESTAMP";
-        }
-        return "VARCHAR";
-        // TODO add more data types
+    // Optionally truncates strings to maxLength
+    private Object getValue(Object obj, FieldDefinition field) {
+        Object value = field.getValue(obj);
+        if (field.trimString && field.maxLength > 0) {
+            if (value instanceof String) {
+                // Clip Strings
+                String s = (String) value;
+                if (s.length() > field.maxLength)
+                    return s.substring(0, field.maxLength);
+                return s;
+            }
+            return value;
+        } else
+            // Standard JaQu behavior
+            return value;
     }
 
-    void insert(Db db, Object obj) {
+    long insert(Db db, Object obj, boolean returnKey) {
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(tableName).append('(');
+        buff.append(db.getDialect().tableName(schemaName, tableName)).append('(');
         for (FieldDefinition field : fields) {
             buff.appendExceptFirst(", ");
             buff.append(field.columnName);
@@ -188,12 +280,15 @@ class TableDefinition<T> {
         for (FieldDefinition field : fields) {
             buff.appendExceptFirst(", ");
             buff.append('?');
-            Object value = field.getValue(obj);
+            Object value = getValue(obj, field);
             stat.addParameter(value);
         }
         buff.append(')');
         stat.setSQL(buff.toString());
-        stat.executeUpdate();
+        StatementLogger.insert(stat.getSQL());
+        if (returnKey)
+            return stat.executeInsert();
+        return stat.executeUpdate();
     }
 
     void merge(Db db, Object obj) {
@@ -203,7 +298,7 @@ class TableDefinition<T> {
         }
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("MERGE INTO ");
-        buff.append(tableName).append(" (");
+        buff.append(db.getDialect().tableName(schemaName, tableName)).append(" (");
         buff.resetCount();
         for (FieldDefinition field : fields) {
             buff.appendExceptFirst(", ");
@@ -223,11 +318,12 @@ class TableDefinition<T> {
         for (FieldDefinition field : fields) {
             buff.appendExceptFirst(", ");
             buff.append('?');
-            Object value = field.getValue(obj);
+            Object value = getValue(obj, field);
             stat.addParameter(value);
         }
         buff.append(')');
         stat.setSQL(buff.toString());
+        StatementLogger.merge(stat.getSQL());
         stat.executeUpdate();
     }
 
@@ -238,17 +334,49 @@ class TableDefinition<T> {
         }
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(tableName).append(" SET ");
+        buff.append(db.getDialect().tableName(schemaName, tableName)).append(" SET ");
         buff.resetCount();
+        
         for (FieldDefinition field : fields) {
             if (!field.isPrimaryKey) {
                 buff.appendExceptFirst(", ");
                 buff.append(field.columnName);
                 buff.append(" = ?");
-                Object value = field.getValue(obj);
+                Object value = getValue(obj, field);
                 stat.addParameter(value);
             }
         }
+        Object alias = Utils.newObject(obj.getClass());
+        Query<Object> query = Query.from(db, alias);
+        boolean firstCondition = true;
+        for (FieldDefinition field : fields) {
+            if (field.isPrimaryKey) {
+                Object aliasValue = field.getValue(alias);
+                Object value = field.getValue(obj);
+                if (!firstCondition) {
+                    query.addConditionToken(ConditionAndOr.AND);
+                }
+                firstCondition = false;
+                query.addConditionToken(
+                        new Condition<Object>(
+                                aliasValue, value, CompareType.EQUAL));
+            }
+        }
+        stat.setSQL(buff.toString());        
+        query.appendWhere(stat);
+        StatementLogger.update(stat.getSQL());
+        stat.executeUpdate();        
+    }
+
+    void delete(Db db, Object obj) {
+        if (primaryKeyColumnNames == null || primaryKeyColumnNames.size() == 0) {
+            throw new IllegalStateException("No primary key columns defined "
+                + "for table " + obj.getClass() + " - no update possible");
+        }
+        SQLStatement stat = new SQLStatement(db);
+        StatementBuilder buff = new StatementBuilder("DELETE FROM ");
+        buff.append(db.getDialect().tableName(schemaName, tableName));
+        buff.resetCount();
         Object alias = Utils.newObject(obj.getClass());
         Query<Object> query = Query.from(db, alias);
         boolean firstCondition = true;
@@ -267,21 +395,60 @@ class TableDefinition<T> {
         }
         stat.setSQL(buff.toString());
         query.appendWhere(stat);
+        StatementLogger.delete(stat.getSQL());
         stat.executeUpdate();
     }
 
     TableDefinition<T> createTableIfRequired(Db db) {
+        if (!createTableIfRequired) {
+            // Skip table and index creation
+            // But still check for upgrades
+            db.upgradeTable(this);
+            return this;
+        }
         SQLStatement stat = new SQLStatement(db);
-        StatementBuilder buff = new StatementBuilder("CREATE TABLE IF NOT EXISTS ");
-        buff.append(tableName).append('(');
+        StatementBuilder buff;
+        if (memoryTable && 
+                db.getConnection().getClass()
+                .getCanonicalName().equals("org.h2.jdbc.JdbcConnection"))
+            buff = new StatementBuilder("CREATE MEMORY TABLE IF NOT EXISTS ");
+        else
+            buff = new StatementBuilder("CREATE TABLE IF NOT EXISTS ");
+        buff.append(db.getDialect().tableName(schemaName, tableName)).append('(');
+        
         for (FieldDefinition field : fields) {
-            buff.appendExceptFirst(", ");
+            buff.appendExceptFirst(", ");            
             buff.append(field.columnName).append(' ').append(field.dataType);
-            if (field.maxLength != 0) {
+            
+            // FIELD LENGTH
+            if (field.maxLength > 0) {
                 buff.append('(').append(field.maxLength).append(')');
             }
+            
+            // AUTO_INCREMENT
+            if (field.isAutoIncrement) {
+                buff.append(" AUTO_INCREMENT");
+            }
+            
+            // NOT NULL
+            if (!field.allowNull) {
+                buff.append(" NOT NULL");
+            }
+            
+            // DEFAULT...
+            if (!field.isAutoIncrement && !field.isPrimaryKey) {
+                String dv = field.defaultValue;                
+                if (!StringUtils.isNullOrEmpty(dv)) {
+                    if (ModelUtils.isProperlyFormattedDefaultValue(dv)
+                            && ModelUtils.isValidDefaultValue(field.field.getType(), dv)) {
+                        buff.append(" DEFAULT " + dv);
+                    }
+                }
+            }
         }
-        if (primaryKeyColumnNames != null) {
+        
+        // PRIMARY KEY...
+        if (primaryKeyColumnNames != null && primaryKeyColumnNames.size() > 0) {
             buff.append(", PRIMARY KEY(");
             buff.resetCount();
             for (String n : primaryKeyColumnNames) {
@@ -292,14 +459,94 @@ class TableDefinition<T> {
         }
         buff.append(')');
         stat.setSQL(buff.toString());
+        StatementLogger.create(stat.getSQL());
         stat.executeUpdate();
-        // TODO create indexes
+
+        // Create Indexes
+        for (IndexDefinition index:indexes) {
+            String sql = db.getDialect().createIndex(schemaName, tableName, index);
+            stat.setSQL(sql);
+            StatementLogger.create(stat.getSQL());
+            stat.executeUpdate();
+        }
+        
+        // Table is created IF NOT EXISTS, otherwise statement is ignored
+        // But we still need to process potential Upgrade
+        db.upgradeTable(this);        
         return this;
     }
 
+    // Retrieve list of columns from CSV whitespace notated index
+    private List<String> getColumns(String index) {
+        List<String> cols = Utils.newArrayList();
+        if (index == null || index.length() == 0)
+            return null;
+        String[] cs = index.split("(,|\\s)");
+        for (String c : cs)
+            if (c != null && c.trim().length() > 0)
+                cols.add(c.trim());
+        if (cols.size() == 0)
+            return null;
+        return cols;
+    }
+   
     void mapObject(Object obj) {
         fieldMap.clear();
         initObject(obj, fieldMap);
+
+        if (clazz.isAnnotationPresent(JQSchema.class)) {
+            JQSchema schemaAnnotation = clazz.getAnnotation(JQSchema.class);
+            // Setup Schema name mapping, if properly annotated
+            if (!StringUtils.isNullOrEmpty(schemaAnnotation.name()))
+                schemaName = schemaAnnotation.name();
+        }
+
+        if (clazz.isAnnotationPresent(JQTable.class)) {
+            JQTable tableAnnotation = clazz.getAnnotation(JQTable.class);
+
+            // Setup Table name mapping, if properly annotated
+            if (!StringUtils.isNullOrEmpty(tableAnnotation.name()))
+                tableName = tableAnnotation.name();
+
+            // Allow control over createTableIfRequired()
+            createTableIfRequired = tableAnnotation.createIfRequired();
+            
+            // Model Version
+            if (tableAnnotation.version() > 0)
+                tableVersion = tableAnnotation.version();
+
+            // Setup the Primary Index, if properly annotated
+            List<String> primaryKey = getColumns(tableAnnotation.primaryKey());
+            if (primaryKey != null)
+                setPrimaryKey(primaryKey);
+        }
+        
+        if (clazz.isAnnotationPresent(JQIndex.class)) {
+            JQIndex indexAnnotation = clazz.getAnnotation(JQIndex.class);
+
+            // Setup the indexes, if properly annotated
+            addIndexes(IndexType.STANDARD, indexAnnotation.standard());
+            addIndexes(IndexType.UNIQUE, indexAnnotation.unique());
+            addIndexes(IndexType.HASH, indexAnnotation.hash());
+            addIndexes(IndexType.UNIQUE_HASH, indexAnnotation.uniqueHash());
+        }
+    }
+    
+    void addIndexes(IndexType type, String [] indexes) {
+        for (String index:indexes) {
+            List<String> validatedColumns = getColumns(index);
+            if (validatedColumns == null)
+                return;
+            addIndex(type, validatedColumns);
+        }
+    }
+    
+    List<IndexDefinition> getIndexes(IndexType type) {
+        List<IndexDefinition> list = Utils.newArrayList();
+        for (IndexDefinition def:indexes)
+            if (def.type.equals(type))
+                list.add(def);
+        return list;
     }
 
     void initObject(Object obj, Map<Object, FieldDefinition> map) {

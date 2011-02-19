@@ -6,10 +6,10 @@
  */
 package org.h2.test.jaqu;
 
-import org.h2.jaqu.Db;
-import org.h2.test.TestBase;
-
 import static java.sql.Date.valueOf;
+import org.h2.jaqu.Db;
+import org.h2.jaqu.util.StatementLogger;
+import org.h2.test.TestBase;
 
 /**
  * Tests the Db.update() function.
@@ -31,6 +31,8 @@ public class UpdateTest extends TestBase {
     }
 
     public void test() throws Exception {
+//        EventLogger.activateConsoleLogger();
+
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());
         db.insertAll(Customer.getList());
@@ -40,8 +42,10 @@ public class UpdateTest extends TestBase {
         testSimpleUpdateWithCombinedPrimaryKey();
         testSimpleMerge();
         testSimpleMergeWithCombinedPrimaryKey();
+        testSetColumns();
 
         db.close();
+//        EventLogger.deactivateConsoleLogger();
     }
 
     private void testSimpleUpdate() {
@@ -111,5 +115,38 @@ public class UpdateTest extends TestBase {
         ourOrder.orderDate = valueOf("2007-01-02");
         db.merge(ourOrder);
     }
+    
+    private void testSetColumns() {
+        Product p = new Product();
+        Product original = db.from(p).where(p.productId).is(1).selectFirst();
+        
+        // SetColumn on String and Double
+        db.from(p)
+            .set(p.productName).to("updated")
+            .increment(p.unitPrice).by(3.14)
+            .increment(p.unitsInStock).by(2)
+            .where(p.productId)
+            .is(1).
+            update();
+        
+        // Confirm fields were properly updated
+        Product revised = db.from(p).where(p.productId).is(1).selectFirst();        
+        assertEquals("updated", revised.productName);
+        assertEquals(original.unitPrice + 3.14, revised.unitPrice);
+        assertEquals(original.unitsInStock + 2, revised.unitsInStock.intValue());
+
+        // Restore fields
+        db.from(p)
+            .set(p.productName).to(original.productName)
+            .set(p.unitPrice).to(original.unitPrice)
+            .increment(p.unitsInStock).by(-2)
+            .where(p.productId).is(1).update();
+        
+        // Confirm fields were properly restored
+        Product restored = db.from(p).where(p.productId).is(1).selectFirst();
+        assertEquals(original.productName, restored.productName);
+        assertEquals(original.unitPrice, restored.unitPrice);
+        assertEquals(original.unitsInStock, restored.unitsInStock);
+    }   
 
 }

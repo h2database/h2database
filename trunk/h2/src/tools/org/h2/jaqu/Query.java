@@ -8,6 +8,7 @@ package org.h2.jaqu;
 
 //## Java 1.5 begin ##
 import java.lang.reflect.Field;
+import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -15,9 +16,10 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import org.h2.jaqu.bytecode.ClassReader;
+import org.h2.jaqu.util.StatementLogger;
+import org.h2.jaqu.util.JdbcUtils;
 import org.h2.jaqu.util.Utils;
-import org.h2.util.JdbcUtils;
-import org.h2.util.New;
+//import org.h2.util.JdbcUtils;
 //## Java 1.5 end ##
 
 /**
@@ -31,10 +33,13 @@ public class Query<T> {
     private Db db;
     private SelectTable<T> from;
     private ArrayList<Token> conditions = Utils.newArrayList();
+    private ArrayList<Declaration> declarations = Utils.newArrayList();
     private ArrayList<SelectTable<?>> joins = Utils.newArrayList();
     private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = Utils.newIdentityHashMap();
     private ArrayList<OrderExpression<T>> orderByList = Utils.newArrayList();
     private Object[] groupByExpressions;
+    private long limit = 0;
+    private long offset = 0;
 
     Query(Db db) {
         this.db = db;
@@ -60,7 +65,7 @@ public class Query<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(rs, true);
         }
     }
 
@@ -102,7 +107,7 @@ public class Query<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(rs, true);
         }
         return result;
     }
@@ -112,7 +117,35 @@ public class Query<T> {
         stat.appendSQL("DELETE FROM ");
         from.appendSQL(stat);
         appendWhere(stat);
+        StatementLogger.delete(stat.getSQL());
         return stat.executeUpdate();
+    }
+    
+    public <A> SetColumn<T, A> set(A field) {
+        return new SetColumn<T, A>(this, field);
+    }
+
+    public <A> IncrementColumn<T, A> increment(A field) {
+        return new IncrementColumn<T, A>(this, field);
+    }
+
+    public int update() {
+        if (declarations.size() == 0)
+            throw new RuntimeException("Please specify SET or INCREMENT before calling Update!");
+        SQLStatement stat = new SQLStatement(db);                
+        stat.appendSQL("UPDATE ");
+        from.appendSQL(stat);
+        stat.appendSQL(" SET ");
+        int i = 0;
+        for (Declaration declaration:declarations) {
+            if (i++ > 0) {
+                stat.appendSQL(", ");
+            }
+            declaration.appendSQL(stat);
+        }
+        appendWhere(stat);
+        StatementLogger.update(stat.getSQL());
+        return stat.executeUpdate();        
     }
 
     public <X, Z> List<X> selectDistinct(Z x) {
@@ -147,7 +180,7 @@ public class Query<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(rs, true);
         }
         return result;
     }
@@ -161,7 +194,12 @@ public class Query<T> {
         try {
             while (rs.next()) {
                 try {
-                    X value = (X) rs.getObject(1);
+                    X value;
+                    Object o = rs.getObject(1);
+                    if (Clob.class.isAssignableFrom(o.getClass())) {
+                        value = (X) Utils.convert(o, String.class);
+                    } else
+                        value = (X) o;
                     result.add(value);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -170,7 +208,7 @@ public class Query<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(rs, true);
         }
         return result;
     }
@@ -180,7 +218,7 @@ public class Query<T> {
     }
 
     public <A> QueryWhere<T> where(Filter filter) {
-        HashMap<String, Object> fieldMap = New.hashMap();
+        HashMap<String, Object> fieldMap = Utils.newHashMap();
         for (Field f : filter.getClass().getDeclaredFields()) {
             f.setAccessible(true);
             try {
@@ -212,6 +250,23 @@ public class Query<T> {
     }
 //## Java 1.5 end ##
 
+    /**
+     * Sets the Limit and Offset of a query.
+     *
+     * @return the query
+     */
+//## Java 1.5 begin ##
+    public Query<T> limit(long limit) {
+        this.limit = limit;
+        return this;
+    }
+
+    public Query<T> offset(long offset) {
+        this.offset = offset;
+        return this;
+    }
+//## Java 1.5 end ##
+    
     /**
      * Order by a number of columns.
      *
@@ -268,6 +323,10 @@ public class Query<T> {
     void addConditionToken(Token condition) {
         conditions.add(condition);
     }
+    
+    void addDeclarationToken(Declaration declaration) {
+        declarations.add(declaration);
+    }
 
     void appendWhere(SQLStatement stat) {
         if (!conditions.isEmpty()) {
@@ -317,6 +376,11 @@ public class Query<T> {
                 stat.appendSQL(" ");
             }
         }
+        if (limit > 0)
+            db.getDialect().appendLimit(stat, limit);
+        if (offset > 0)
+            db.getDialect().appendOffset(stat, offset);
+        StatementLogger.select(stat.getSQL());
         return stat;
     }
 //## Java 1.5 end ##

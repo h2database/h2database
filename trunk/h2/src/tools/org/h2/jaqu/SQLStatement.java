@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import org.h2.jaqu.util.JdbcUtils;
 //## Java 1.5 end ##
 
 /**
@@ -37,6 +38,10 @@ public class SQLStatement {
         sql = null;
         return this;
     }
+    
+    public SQLStatement appendTable(String schema, String table) {
+        return appendSQL(db.getDialect().tableName(schema, table));
+    }
 
     String getSQL() {
         if (sql == null) {
@@ -49,20 +54,42 @@ public class SQLStatement {
         params.add(o);
         return this;
     }
-
+    
     ResultSet executeQuery() {
         try {
-            return prepare().executeQuery();
+            return prepare(false).executeQuery();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     int executeUpdate() {
+        PreparedStatement ps = null;
         try {
-            return prepare().executeUpdate();
+            ps = prepare(false);
+            return ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            JdbcUtils.closeSilently(ps);
+        }
+    }
+    
+    long executeInsert() {
+        PreparedStatement ps = null;
+        try {
+            ps = prepare(true);
+            ps.executeUpdate();
+            long identity = -1;
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs != null && rs.next())
+                identity = rs.getLong(1);
+            JdbcUtils.closeSilently(rs);            
+            return identity;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            JdbcUtils.closeSilently(ps);
         }
     }
 
@@ -74,8 +101,8 @@ public class SQLStatement {
         }
     }
 
-    private PreparedStatement prepare() {
-        PreparedStatement prep = db.prepare(getSQL());
+    private PreparedStatement prepare(boolean returnIdentity) {
+        PreparedStatement prep = db.prepare(getSQL(), returnIdentity);
         for (int i = 0; i < params.size(); i++) {
             Object o = params.get(i);
             setValue(prep, i + 1, o);

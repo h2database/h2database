@@ -12,16 +12,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import javax.sql.DataSource;
-
+import org.h2.jaqu.DbUpgrader.DefaultDbUpgrader;
+import org.h2.jaqu.SQLDialect.DefaultSQLDialect;
+import org.h2.jaqu.Table.JQDatabase;
+import org.h2.jaqu.Table.JQTable;
+import org.h2.jaqu.util.JdbcUtils;
+import org.h2.jaqu.util.StringUtils;
 import org.h2.jaqu.util.Utils;
 import org.h2.jaqu.util.WeakIdentityHashMap;
-import org.h2.util.JdbcUtils;
-//## Java 1.5 end ##
 
 /**
  * This class represents a connection to a database.
@@ -41,9 +46,18 @@ public class Db {
     private final Connection conn;
     private final Map<Class<?>, TableDefinition<?>> classMap =
         Utils.newHashMap();
-
-    Db(Connection conn) {
+    private final SQLDialect dialect;
+    private DbUpgrader dbUpgrader = new DefaultDbUpgrader();
+    private final Set<Class<?>> upgradeChecked = Utils.newConcurrentHashSet();
+    
+    public Db(Connection conn) {
         this.conn = conn;
+        dialect = getDialect(conn.getClass().getCanonicalName());
+    }
+    
+    SQLDialect getDialect(String clazz) {
+        // TODO add special cases here
+        return new DefaultSQLDialect();
     }
 
     static <X> X registerToken(X x, Token token) {
@@ -105,27 +119,105 @@ public class Db {
 
     public <T> void insert(T t) {
         Class<?> clazz = t.getClass();
-        define(clazz).createTableIfRequired(this).insert(this, t);
+        upgradeDb().define(clazz).createTableIfRequired(this).insert(this, t, false);
+    }
+
+    public <T> long insertAndGetKey(T t) {
+        Class<?> clazz = t.getClass();
+        return upgradeDb().define(clazz).createTableIfRequired(this).insert(this, t, true);
     }
 
     public <T> void merge(T t) {
         Class<?> clazz = t.getClass();
-        define(clazz).createTableIfRequired(this).merge(this, t);
+        upgradeDb().define(clazz).createTableIfRequired(this).merge(this, t);
     }
 
     public <T> void update(T t) {
         Class<?> clazz = t.getClass();
-        define(clazz).createTableIfRequired(this).update(this, t);
+        upgradeDb().define(clazz).createTableIfRequired(this).update(this, t);
     }
 
+    public <T> void delete(T t) {
+        Class<?> clazz = t.getClass();
+        upgradeDb().define(clazz).createTableIfRequired(this).delete(this, t);
+    }
+    
     public <T extends Object> Query<T> from(T alias) {
         Class<?> clazz = alias.getClass();
-        define(clazz).createTableIfRequired(this);
+        upgradeDb().define(clazz).createTableIfRequired(this);
         return Query.from(this, alias);
     }
+    
+    Db upgradeDb() {
+        if (!upgradeChecked.contains(dbUpgrader.getClass())) {
+            // Flag as checked immediately because calls are nested.
+            upgradeChecked.add(dbUpgrader.getClass());
 
-    <T> void createTable(Class<T> clazz) {
-        define(clazz).createTableIfRequired(this);
+            JQDatabase model = dbUpgrader.getClass().getAnnotation(JQDatabase.class);
+            if (model.version() > 0) {
+                DbVersion v = new DbVersion();
+                DbVersion dbVersion = 
+                    // (SCHEMA="" && TABLE="") == DATABASE
+                    from(v).where(v.schema).is("").and(v.table).is("").selectFirst();
+                if (dbVersion == null) {
+                    // Database has no version registration, but model specifies
+                    // version. Insert DbVersion entry and return.
+                    DbVersion newDb = new DbVersion(model.version());
+                    insert(newDb);
+                } else {
+                    // Database has a version registration,
+                    // check to see if upgrade is required.
+                    if ((model.version() > dbVersion.version) 
+                            && (dbUpgrader != null)) {
+                        // Database is an older version than model.
+                        boolean success = dbUpgrader.upgradeDatabase(this,
+                                dbVersion.version, model.version());
+                        if (success) {
+                            dbVersion.version = model.version();
+                            update(dbVersion);
+                        }
+                    }
+                }
+            }
+        }
+        return this;
+    }
+    
+    <T> void upgradeTable(TableDefinition<T> model) {
+        if (!upgradeChecked.contains(model.getModelClass())) {
+            // Flag as checked immediately because calls are nested.
+            upgradeChecked.add(model.getModelClass());
+
+            if (model.tableVersion > 0) {
+                // Table is using JaQu version tracking.
+                DbVersion v = new DbVersion();
+                String schema = StringUtils.isNullOrEmpty(model.schemaName) ? "" : model.schemaName;
+                DbVersion dbVersion = 
+                    from(v).where(v.schema).like(schema).and(v.table)
+                    .like(model.tableName).selectFirst();
+                if (dbVersion == null) {
+                    // Table has no version registration, but model specifies
+                    // version. Insert DbVersion entry and return.
+                    DbVersion newTable = new DbVersion(model.tableVersion);
+                    newTable.schema = schema;
+                    newTable.table = model.tableName;
+                    insert(newTable);
+                } else {
+                    // Table has a version registration.
+                    // Check to see if upgrade is required.
+                    if ((model.tableVersion > dbVersion.version) 
+                            && (dbUpgrader != null)) {
+                        // Table is an older version than model.
+                        boolean success = dbUpgrader.upgradeTable(this, schema,
+                                model.tableName, dbVersion.version, model.tableVersion);
+                        if (success) {
+                            dbVersion.version = model.tableVersion;
+                            update(dbVersion);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     <T> TableDefinition<T> define(Class<T> clazz) {
@@ -138,9 +230,31 @@ public class Db {
                 T t = instance(clazz);
                 Table table = (Table) t;
                 Define.define(def, table);
+            } else if (clazz.isAnnotationPresent(JQTable.class)) {
+                // Annotated Class skips Define().define() static initializer
+                T t = instance(clazz);
+                def.mapObject(t);         
             }
         }
         return def;
+    }
+    
+    public synchronized void setDbUpgrader(DbUpgrader upgrader) {
+        if (upgrader == null)
+            throw new RuntimeException("DbUpgrader may not be NULL!");
+        if (!upgrader.getClass().isAnnotationPresent(JQDatabase.class))
+            throw new RuntimeException("DbUpgrader must be annotated with "
+                    + JQDatabase.class.getSimpleName() + "!");
+        this.dbUpgrader = upgrader;
+        upgradeChecked.clear();
+    }
+    
+    SQLDialect getDialect() {
+        return dialect;
+    }
+    
+    public Connection getConnection() {
+        return conn;
     }
 
     public void close() {
@@ -161,8 +275,30 @@ public class Db {
         }
     }
 
-    PreparedStatement prepare(String sql) {
+    public <T> List<Long> insertAllAndGetKeys(List<T> list) {
+        List<Long> identities = new ArrayList<Long>();
+        for (T t : list) {
+            identities.add(insertAndGetKey(t));
+        }
+        return identities;
+    }
+
+    public <T> void updateAll(List<T> list) {
+        for (T t : list) {
+            update(t);
+        }
+    }
+
+    public <T> void deleteAll(List<T> list) {
+        for (T t : list) {
+            delete(t);
+        }
+    }
+
+    PreparedStatement prepare(String sql, boolean returnKey) {
         try {
+            if (returnKey)
+                return conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);

@@ -22,8 +22,6 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 //## Java 1.5 end ##
 
@@ -53,10 +51,6 @@ public class Utils {
 
     public static <T> HashSet<T> newHashSet(Collection<T> list) {
         return new HashSet<T>(list);
-    }
-
-    public static <T> Set<T> newConcurrentHashSet() {
-        return Collections.newSetFromMap(new ConcurrentHashMap<T, Boolean>());
     }
 
     public static <A, B> HashMap<A, B> newHashMap() {

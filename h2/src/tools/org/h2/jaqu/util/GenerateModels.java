@@ -21,10 +21,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.h2.jaqu.Db;
 import org.h2.jaqu.DbInspector;
+import org.h2.message.DbException;
 
 /**
  * Generates JaQu models.
- * 
  */
 public class GenerateModels {
 
@@ -32,7 +32,7 @@ public class GenerateModels {
      * The output stream where this tool writes to.
      */
     protected PrintStream out = System.out;
-    
+
     public static void main(String... args) throws SQLException {
         new GenerateModels().runTool(args);
     }
@@ -82,13 +82,13 @@ public class GenerateModels {
         if (url == null) {
             throw new SQLException("URL not set");
         }
-        execute(url, user, password, schema, table, packageName, folder, 
+        execute(url, user, password, schema, table, packageName, folder,
                 annotateSchema, trimStrings);
     }
 
     /**
      * Generates models from the database.
-     * 
+     *
      * @param url the database URL
      * @param user the user name
      * @param password the password
@@ -99,8 +99,8 @@ public class GenerateModels {
      * @param annotateSchema includes the schema in the table model annotations
      * @param trimStrings automatically trim strings that exceed maxLength
      */
-    public static void execute(String url, String user, String password, 
-            String schema, String table, String packageName, String folder, 
+    public static void execute(String url, String user, String password,
+            String schema, String table, String packageName, String folder,
             boolean annotateSchema, boolean trimStrings)
                 throws SQLException {
         Connection conn = null;
@@ -109,7 +109,7 @@ public class GenerateModels {
             conn = DriverManager.getConnection(url, user, password);
             Db db = Db.open(url, user, password.toCharArray());
             DbInspector inspector = new DbInspector(db);
-            List<String> models = inspector.generateModel(schema, table, 
+            List<String> models = inspector.generateModel(schema, table,
                     packageName, annotateSchema, trimStrings);
             File parentFile;
             if (StringUtils.isNullOrEmpty(folder))
@@ -130,15 +130,13 @@ public class GenerateModels {
                     System.out.println("Generated " + classFile.getAbsolutePath());
                 }
             }
-        } catch (SQLException s) {
-            throw s;
-        } catch (IOException i) {
-            throw new SQLException(i);
+        } catch (IOException io) {
+            throw DbException.convertIOException(io, "could not generate model").getSQLException();
         } finally {
             JdbcUtils.closeSilently(conn);
         }
     }
-    
+
     /**
      * Throw a SQLException saying this command line option is not supported.
      *
@@ -149,7 +147,7 @@ public class GenerateModels {
         showUsage();
         throw new SQLException("Unsupported option: " + option);
     }
-       
+
     protected void showUsage() {
         out.println("GenerateModels");
         out.println("Usage: java "+getClass().getName());

@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -27,6 +28,7 @@ import org.h2.jaqu.util.JdbcUtils;
 import org.h2.jaqu.util.StringUtils;
 import org.h2.jaqu.util.Utils;
 import org.h2.jaqu.util.WeakIdentityHashMap;
+//## Java 1.5 end ##
 
 /**
  * This class represents a connection to a database.
@@ -48,14 +50,17 @@ public class Db {
         Utils.newHashMap();
     private final SQLDialect dialect;
     private DbUpgrader dbUpgrader = new DefaultDbUpgrader();
-    private final Set<Class<?>> upgradeChecked = Utils.newConcurrentHashSet();
-    
+    private final Set<Class<?>> upgradeChecked = Collections.synchronizedSet(new HashSet<Class<?>>());
+
+    private int todoDocumentNewFeaturesInHtmlFile;
+
     public Db(Connection conn) {
         this.conn = conn;
         dialect = getDialect(conn.getClass().getCanonicalName());
     }
-    
+
     SQLDialect getDialect(String clazz) {
+    int todo;
         // TODO add special cases here
         return new DefaultSQLDialect();
     }
@@ -119,6 +124,7 @@ public class Db {
 
     public <T> void insert(T t) {
         Class<?> clazz = t.getClass();
+        int upgradeDbSoundsWrongHere;
         upgradeDb().define(clazz).createTableIfRequired(this).insert(this, t, false);
     }
 
@@ -141,13 +147,13 @@ public class Db {
         Class<?> clazz = t.getClass();
         upgradeDb().define(clazz).createTableIfRequired(this).delete(this, t);
     }
-    
+
     public <T extends Object> Query<T> from(T alias) {
         Class<?> clazz = alias.getClass();
         upgradeDb().define(clazz).createTableIfRequired(this);
         return Query.from(this, alias);
     }
-    
+
     Db upgradeDb() {
         if (!upgradeChecked.contains(dbUpgrader.getClass())) {
             // Flag as checked immediately because calls are nested.
@@ -156,7 +162,7 @@ public class Db {
             JQDatabase model = dbUpgrader.getClass().getAnnotation(JQDatabase.class);
             if (model.version() > 0) {
                 DbVersion v = new DbVersion();
-                DbVersion dbVersion = 
+                DbVersion dbVersion =
                     // (SCHEMA="" && TABLE="") == DATABASE
                     from(v).where(v.schema).is("").and(v.table).is("").selectFirst();
                 if (dbVersion == null) {
@@ -167,7 +173,7 @@ public class Db {
                 } else {
                     // Database has a version registration,
                     // check to see if upgrade is required.
-                    if ((model.version() > dbVersion.version) 
+                    if ((model.version() > dbVersion.version)
                             && (dbUpgrader != null)) {
                         // Database is an older version than model.
                         boolean success = dbUpgrader.upgradeDatabase(this,
@@ -182,7 +188,7 @@ public class Db {
         }
         return this;
     }
-    
+
     <T> void upgradeTable(TableDefinition<T> model) {
         if (!upgradeChecked.contains(model.getModelClass())) {
             // Flag as checked immediately because calls are nested.
@@ -192,7 +198,7 @@ public class Db {
                 // Table is using JaQu version tracking.
                 DbVersion v = new DbVersion();
                 String schema = StringUtils.isNullOrEmpty(model.schemaName) ? "" : model.schemaName;
-                DbVersion dbVersion = 
+                DbVersion dbVersion =
                     from(v).where(v.schema).like(schema).and(v.table)
                     .like(model.tableName).selectFirst();
                 if (dbVersion == null) {
@@ -205,7 +211,7 @@ public class Db {
                 } else {
                     // Table has a version registration.
                     // Check to see if upgrade is required.
-                    if ((model.tableVersion > dbVersion.version) 
+                    if ((model.tableVersion > dbVersion.version)
                             && (dbUpgrader != null)) {
                         // Table is an older version than model.
                         boolean success = dbUpgrader.upgradeTable(this, schema,
@@ -233,12 +239,12 @@ public class Db {
             } else if (clazz.isAnnotationPresent(JQTable.class)) {
                 // Annotated Class skips Define().define() static initializer
                 T t = instance(clazz);
-                def.mapObject(t);         
+                def.mapObject(t);
             }
         }
         return def;
     }
-    
+
     public synchronized void setDbUpgrader(DbUpgrader upgrader) {
         if (upgrader == null)
             throw new RuntimeException("DbUpgrader may not be NULL!");
@@ -248,11 +254,11 @@ public class Db {
         this.dbUpgrader = upgrader;
         upgradeChecked.clear();
     }
-    
+
     SQLDialect getDialect() {
         return dialect;
     }
-    
+
     public Connection getConnection() {
         return conn;
     }
@@ -295,10 +301,11 @@ public class Db {
         }
     }
 
-    PreparedStatement prepare(String sql, boolean returnKey) {
+    PreparedStatement prepare(String sql, boolean returnGeneratedKeys) {
         try {
-            if (returnKey)
-                return conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+            if (returnGeneratedKeys) {
+                return conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            }
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);

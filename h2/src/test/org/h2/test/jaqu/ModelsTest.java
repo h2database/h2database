@@ -17,13 +17,16 @@ import org.h2.jaqu.Validation;
 import org.h2.test.TestBase;
 import org.h2.test.jaqu.SupportedTypes.SupportedTypes2;
 
+/**
+ * Test that the mapping between classes and tables is done correctly.
+ */
 public class ModelsTest extends TestBase {
 
     /**
      * This object represents a database (actually a connection to the database).
      */
 //## Java 1.5 begin ##
-    Db db;
+    private Db db;
 //## Java 1.5 end ##
 
     /**
@@ -32,8 +35,11 @@ public class ModelsTest extends TestBase {
      *
      * @param args the command line parameters
      */
-    public static void main(String... args) {
-        new ModelsTest().test();
+    public static void main(String... args) throws Exception {
+        ModelsTest test = new ModelsTest();
+        test.init();
+        test.config.traceTest = true;
+        test.test();
     }
 
     public void test() {
@@ -50,28 +56,28 @@ public class ModelsTest extends TestBase {
         db.close();
 //## Java 1.5 end ##
     }
-    
+
     private void testValidateModels() {
-        boolean verbose = false;
         DbInspector inspector = new DbInspector(db);
-        validateModel(inspector, new Product(), verbose);
-        validateModel(inspector, new ProductAnnotationOnly(), verbose);
-        validateModel(inspector, new ProductMixedAnnotation(), verbose);
+        validateModel(inspector, new Product());
+        validateModel(inspector, new ProductAnnotationOnly());
+        validateModel(inspector, new ProductMixedAnnotation());
     }
-    
-    private void validateModel(DbInspector inspector, Object o, boolean verbose) {        
+
+    private void validateModel(DbInspector inspector, Object o) {
         List<Validation> remarks = inspector.validateModel(o, false);
-        if (verbose && remarks.size() > 0) {
-            System.out.println("Validation Remarks for " + o.getClass().getName());
-            System.out.println("=============================================");
-            for (Validation remark:remarks)
-                System.out.println(remark);
-            System.out.println();
+        if (config.traceTest && remarks.size() > 0) {
+            trace("Validation remarks for " + o.getClass().getName());
+            for (Validation remark : remarks) {
+                trace(remark.toString());
+            }
+            trace("");
         }
-        for (Validation remark:remarks)
+        for (Validation remark : remarks) {
             assertFalse(remark.toString(), remark.isError());
+        }
     }
-    
+
     private void testSupportedTypes() {
         List<SupportedTypes> original = SupportedTypes.createList();
         db.insertAll(original);
@@ -83,8 +89,8 @@ public class ModelsTest extends TestBase {
             assertTrue(o.equivalentTo(r));
         }
     }
-    
-    private void testModelGeneration() {        
+
+    private void testModelGeneration() {
         DbInspector inspector = new DbInspector(db);
         List<String> models = inspector.generateModel(null, "SupportedTypes",
                 "org.h2.test.jaqu", true, true);
@@ -92,19 +98,19 @@ public class ModelsTest extends TestBase {
         // a poor test, but a start
         assertEquals(1364, models.get(0).length());
     }
-    
+
     private void testDatabaseUpgrade() {
         Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
 
         // Insert a Database version record
         db.insert(new DbVersion(1));
-        
+
         TestDbUpgrader dbUpgrader = new TestDbUpgrader();
         db.setDbUpgrader(dbUpgrader);
 
         List<SupportedTypes> original = SupportedTypes.createList();
         db.insertAll(original);
-        
+
         assertEquals(1, dbUpgrader.oldVersion.get());
         assertEquals(2, dbUpgrader.newVersion.get());
         db.close();
@@ -112,7 +118,7 @@ public class ModelsTest extends TestBase {
 
     private void testTableUpgrade() {
         Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
-        
+
         // Insert first, this will create version record automatically
         List<SupportedTypes> original = SupportedTypes.createList();
         db.insertAll(original);
@@ -120,7 +126,7 @@ public class ModelsTest extends TestBase {
         // Reset the dbUpgrader (clears updatecheck cache)
         TestDbUpgrader dbUpgrader = new TestDbUpgrader();
         db.setDbUpgrader(dbUpgrader);
-        
+
         SupportedTypes2 s2 = new SupportedTypes2();
 
         List<SupportedTypes2> types = db.from(s2).select();
@@ -130,27 +136,29 @@ public class ModelsTest extends TestBase {
         db.close();
     }
 
-    @JQDatabase(version=2)
-    private class TestDbUpgrader implements DbUpgrader  {
+    /**
+     * A sample database upgrader class.
+     */
+    @JQDatabase(version = 2)
+    class TestDbUpgrader implements DbUpgrader  {
         final AtomicInteger oldVersion = new AtomicInteger(0);
         final AtomicInteger newVersion = new AtomicInteger(0);
 
-        @Override
-        public boolean upgradeTable(Db db, String schema, String table, 
+        public boolean upgradeTable(Db db, String schema, String table,
                 int fromVersion, int toVersion) {
-            // Sample DbUpgrader just claims success on upgrade request
+            // just claims success on upgrade request
             oldVersion.set(fromVersion);
             newVersion.set(toVersion);
             return true;
         }
 
-        @Override
-        public boolean upgradeDatabase(Db db, int fromVersion, int toVersion) {                
-            // Sample DbUpgrader just claims success on upgrade request
+        public boolean upgradeDatabase(Db db, int fromVersion, int toVersion) {
+            // just claims success on upgrade request
             oldVersion.set(fromVersion);
             newVersion.set(toVersion);
             return true;
-        }            
-    };
+        }
+
+    }
 
 }

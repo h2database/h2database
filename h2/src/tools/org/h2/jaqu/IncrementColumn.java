@@ -7,8 +7,9 @@
 package org.h2.jaqu;
 
 /**
- * This class represents a "column=(column + 1)" token for a SET statement.
+ * This class represents "SET column = (column + 1)" in an UPDATE statement.
  *
+ * @param <T> the query type
  * @param <A> the new value data type
  */
 //## Java 1.5 begin ##
@@ -22,25 +23,27 @@ public class IncrementColumn<T, A> implements Declaration {
         this.query = query;
         this.x = x;
     }
-    
+
     public Query<T> by(A y) {
         query.addDeclarationToken(this);
         this.y = y;
         return query;
     }
 
-    @Override
     public void appendSQL(SQLStatement stat) {
         query.appendSQL(stat, x);
         stat.appendSQL("=(");
         query.appendSQL(stat, x);
+        int todoSomethingWrongHere;
         if (y instanceof Number) {
             Number n = (Number) y;
-            if (n.doubleValue() > 0)
+            if (n.doubleValue() > 0) {
                 stat.appendSQL("+");
+            }
         }
         stat.appendSQL(y.toString());
         stat.appendSQL(")");
-    }  
+    }
+
 }
 //## Java 1.5 end ##

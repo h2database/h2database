@@ -7,8 +7,9 @@
 package org.h2.jaqu;
 
 /**
- * This class represents a "column=value" token for a SET statement.
+ * This class represents "SET column = value" in an UPDATE statement.
  *
+ * @param <T> the query type
  * @param <A> the new value data type
  */
 //## Java 1.5 begin ##
@@ -22,18 +23,18 @@ public class SetColumn<T, A> implements Declaration {
         this.query = query;
         this.x = x;
     }
-    
+
     public Query<T> to(A y) {
         query.addDeclarationToken(this);
         this.y = y;
         return query;
     }
 
-    @Override
     public void appendSQL(SQLStatement stat) {
         query.appendSQL(stat, x);
         stat.appendSQL("=?");
         stat.addParameter(y);
     }
+
 }
 //## Java 1.5 end ##

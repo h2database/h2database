@@ -38,16 +38,19 @@ import org.h2.jaqu.util.Utils;
  * validation.
  */
 public class TableInspector {
-    String schema;
-    String table;
-    boolean forceUpperCase;
-    Class<? extends java.util.Date> dateClazz;
-    List<String> primaryKeys = Utils.newArrayList();
-    Map<String, IndexInspector> indexes;
-    Map<String, ColumnInspector> columns;
-    final String eol = "\n";
 
-    TableInspector(String schema, String table, boolean forceUpperCase, 
+    private String schema;
+    private String table;
+    private boolean forceUpperCase;
+    private Class<? extends java.util.Date> dateClazz;
+    private List<String> primaryKeys = Utils.newArrayList();
+    private Map<String, IndexInspector> indexes;
+    private Map<String, ColumnInspector> columns;
+    private final String eol = "\n";
+
+    private int todoReviewWholeClass;
+
+    TableInspector(String schema, String table, boolean forceUpperCase,
             Class<? extends java.util.Date> dateClazz) {
         this.schema = schema;
         this.table = table;
@@ -58,60 +61,62 @@ public class TableInspector {
     /**
      * Tests to see if this TableInspector represents schema.table.
      * <p>
-     * @param schema
-     * @param table
-     * @return
+     * @param schema the schema name
+     * @param table the table name
+     * @return true if the table matches
      */
     boolean matches(String schema, String table) {
-        if (isNullOrEmpty(schema))
+        if (isNullOrEmpty(schema)) {
             // table name matching
             return this.table.equalsIgnoreCase(table);
-        else if (isNullOrEmpty(table))
+        } else if (isNullOrEmpty(table)) {
             // schema name matching
             return this.schema.equalsIgnoreCase(schema);
-        else
+        } else {
             // exact table matching
             return this.schema.equalsIgnoreCase(schema)
                 && this.table.equalsIgnoreCase(table);
+        }
     }
 
     /**
      * Reads the DatabaseMetaData for the details of this table including
      * primary keys and indexes.
-     * <p>
-     * @param metadata
-     * @throws SQLException
+     *
+     * @param metaData the database meta data
      */
-    void read(DatabaseMetaData metadata) throws SQLException {
+    void read(DatabaseMetaData metaData) throws SQLException {
         ResultSet rs = null;
-        
+
         // Primary Keys
         try {
-            rs = metadata.getPrimaryKeys(null, schema, table);
+            rs = metaData.getPrimaryKeys(null, schema, table);
             while (rs.next()) {
                 String c = rs.getString("COLUMN_NAME");
                 primaryKeys.add(c);
             }
             closeSilently(rs);
-            
+
             // Indexes
-            rs = metadata.getIndexInfo(null, schema, table, false, true);
+            rs = metaData.getIndexInfo(null, schema, table, false, true);
             indexes = Utils.newHashMap();
             while (rs.next()) {
                 IndexInspector info = new IndexInspector(rs);
-                if (info.type.equals(IndexType.UNIQUE) 
-                        && info.name.toLowerCase().startsWith("primary"))
+                if (info.type.equals(IndexType.UNIQUE)
+                        && info.name.toLowerCase().startsWith("primary")) {
                     // Skip PrimaryKey indexes
                     continue;
-                if (indexes.containsKey(info.name))
+                }
+                if (indexes.containsKey(info.name)) {
                     indexes.get(info.name).addColumn(rs);
-                else
+                } else {
                     indexes.put(info.name, info);
+                }
             }
             closeSilently(rs);
-            
+
             // Columns
-            rs = metadata.getColumns(null, schema, table, null);
+            rs = metaData.getColumns(null, schema, table, null);
             columns = Utils.newHashMap();
             while (rs.next()) {
                 ColumnInspector col = new ColumnInspector();
@@ -119,25 +124,25 @@ public class TableInspector {
                 col.type = rs.getString("TYPE_NAME");
                 col.clazz = ModelUtils.getClassType(col.type, dateClazz);
                 col.size = rs.getInt("COLUMN_SIZE");
-                
+
                 // Allow Null
                 try {
-                    col.allowNull = (rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable);
+                    col.allowNull = rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable;
                 } catch (SQLException x) {
                 }
-                
+
                 // AutoIncrement
                 try {
                     col.isAutoIncrement = rs.getBoolean("IS_AUTOINCREMENT");
                 } catch (SQLException x) {
                 }
-                
+
                 // Primary Key
                 if (primaryKeys.size() == 1) {
                     if (col.name.equalsIgnoreCase(primaryKeys.get(0)))
                         col.isPrimaryKey = true;
                 }
-                
+
                 // Default Value
                 if (!col.isAutoIncrement) {
                     try {
@@ -158,7 +163,7 @@ public class TableInspector {
 
     /**
      * Generates a model (class definition) from this table.
-     * The model includes indexes, primary keys, default values, maxLengths, 
+     * The model includes indexes, primary keys, default values, maxLengths,
      * and allowNull information.
      * <p>
      * The caller may optionally set a destination package name, whether or not
@@ -180,13 +185,14 @@ public class TableInspector {
         imports.add(JQTable.class.getCanonicalName());
         imports.add(JQIndex.class.getCanonicalName());
         imports.add(JQColumn.class.getCanonicalName());
-        
+
         // Table Fields
         StringBuilder fields = new StringBuilder();
         List<ColumnInspector> sortedColumns = Utils.newArrayList(columns.values());
-        Collections.sort(sortedColumns);        
-        for (ColumnInspector col : sortedColumns)
+        Collections.sort(sortedColumns);
+        for (ColumnInspector col : sortedColumns) {
             fields.append(generateColumn(imports, col, trimStrings));
+        }
 
         // Build Complete Class Definition
         StringBuilder model = new StringBuilder();
@@ -195,36 +201,38 @@ public class TableInspector {
             model.append("package " + packageName + ";");
             model.append(eol).append(eol);
         }
-        
+
         // Imports
         List<String> sortedImports = new ArrayList<String>(imports);
         Collections.sort(sortedImports);
-        for (String imp : sortedImports)
+        for (String imp : sortedImports) {
             model.append("import ").append(imp).append(';').append(eol);
+        }
         model.append(eol);
-        
+
         // @JQSchema
         if (annotateSchema && !isNullOrEmpty(schema)) {
             model.append('@').append(JQSchema.class.getSimpleName());
             model.append('(');
-            AnnotationBuilder ap = new AnnotationBuilder();        
+            AnnotationBuilder ap = new AnnotationBuilder();
             ap.addParameter("name", schema);
             model.append(ap);
             model.append(')').append(eol);
         }
-        
+
         // @JQTable
         model.append('@').append(JQTable.class.getSimpleName());
         model.append('(');
-        
+
         // JQTable Annotation Parameters
-        AnnotationBuilder ap = new AnnotationBuilder();        
+        AnnotationBuilder ap = new AnnotationBuilder();
         ap.addParameter("name", table);
-        
+
         if (primaryKeys.size() > 1) {
             StringBuilder pk = new StringBuilder();
-            for (String key : primaryKeys)
+            for (String key : primaryKeys) {
                 pk.append(key).append(' ');
+            }
             pk.trimToSize();
             ap.addParameter("primaryKey", pk.toString());
         }
@@ -232,7 +240,7 @@ public class TableInspector {
         // Finish @JQTable annotation
         model.append(ap);
         model.append(')').append(eol);
-        
+
         // @JQIndex
         ap = new AnnotationBuilder();
         generateIndexAnnotations(ap, "standard", IndexType.STANDARD);
@@ -250,40 +258,42 @@ public class TableInspector {
         String clazzName = ModelUtils.createClassName(table);
         model.append(format("public class {0} '{'", clazzName)).append(eol);
         model.append(eol);
-        
+
         // Field Declarations
         model.append(fields);
-        
+
         // Default Constructor
         model.append("\tpublic ").append(clazzName).append("() {").append(eol);
         model.append("\t}").append(eol);
-        
+
         // End of Class Body
         model.append('}');
         model.trimToSize();
         return model.toString();
     }
-    
+
     /**
      * Generates the specified index annotation.
      * @param ap
      */
     void generateIndexAnnotations(AnnotationBuilder ap, String parameter, IndexType type) {
         List<IndexInspector> list = getIndexes(type);
-        if (list.size() == 0)
+        if (list.size() == 0) {
             // No matching indexes
             return;
+        }
         if (list.size() == 1) {
             ap.addParameter(parameter, list.get(0).getColumnsString());
         } else {
             List<String> parameters = Utils.newArrayList();
-            for (IndexInspector index:list)
-                parameters.add(index.getColumnsString());            
+            for (IndexInspector index:list) {
+                parameters.add(index.getColumnsString());
+            }
             ap.addParameter(parameter, parameters);
         }
-        
+
     }
-    
+
     /**
      * Returns indexes of a specific type from the map.
      * <p>
@@ -292,13 +302,15 @@ public class TableInspector {
      */
     List<IndexInspector> getIndexes(IndexType type) {
         List<IndexInspector> list = Utils.newArrayList();
-        for (IndexInspector index:indexes.values())
-            if (index.type.equals(type))
+        for (IndexInspector index:indexes.values()) {
+            if (index.type.equals(type)) {
                 list.add(index);
+            }
+        }
         return list;
     }
-    
-    
+
+
     /**
      * Generates a column field definition with annotations.
      * <p>
@@ -307,7 +319,7 @@ public class TableInspector {
      * @param trimStrings
      * @return
      */
-    StatementBuilder generateColumn(Set<String> imports, ColumnInspector col, 
+    StatementBuilder generateColumn(Set<String> imports, ColumnInspector col,
             boolean trimStrings) {
         StatementBuilder sb = new StatementBuilder();
         Class<?> clazz = col.clazz;
@@ -321,26 +333,26 @@ public class TableInspector {
             // @JQColumn
             imports.add(clazz.getCanonicalName());
             sb.append('@').append(JQColumn.class.getSimpleName());
-            
+
             // JQColumn Annotation Parameters
             AnnotationBuilder ap = new AnnotationBuilder();
-            
+
             // JQColumn.name
-            if (!col.name.equalsIgnoreCase(cname)) {                
+            if (!col.name.equalsIgnoreCase(cname)) {
                 ap.addParameter("name", col.name);
             }
-            
+
             // JQColumn.primaryKey
             // Composite Primary Keys are annotated on the Table
             if (col.isPrimaryKey && primaryKeys.size() == 1) {
                 ap.addParameter("primaryKey=true");
             }
-            
+
             // JQColumn.maxLength
             if ((clazz == String.class) && (col.size > 0)
                     && (col.size < Integer.MAX_VALUE)) {
                 ap.addParameter("maxLength", col.size);
-                
+
                 // JQColumn.trimStrings
                 if (trimStrings) {
                     ap.addParameter("trimString=true");
@@ -351,16 +363,17 @@ public class TableInspector {
                     ap.addParameter("autoIncrement=true");
                 }
             }
-            
+
             // JQColumn.allowNull
             if (!col.allowNull) {
                 ap.addParameter("allowNull=false");
             }
-            
+
             // JQColumn.defaultValue
-            if (!isNullOrEmpty(col.defaultValue))
+            if (!isNullOrEmpty(col.defaultValue)) {
                 ap.addParameter("defaultValue=\"" + col.defaultValue + "\"");
-            
+            }
+
             // Add leading and trailing ()
             if (ap.length() > 0) {
                 ap.insert(0, '(');
@@ -398,14 +411,14 @@ public class TableInspector {
     <T> List<Validation> validate(TableDefinition<T> def,
             boolean throwError) {
         List<Validation> remarks = Utils.newArrayList();
-        
+
         // Model Class Definition Validation
         if (!Modifier.isPublic(def.getModelClass().getModifiers())) {
             remarks.add(ERROR(table, "SCHEMA",
                     format("Class {0} MUST BE PUBLIC!",
                             def.getModelClass().getCanonicalName())).throwError(throwError));
         }
-        
+
         // Schema Validation
         if (!isNullOrEmpty(schema)) {
             if (isNullOrEmpty(def.schemaName)) {
@@ -419,15 +432,17 @@ public class TableInspector {
                                     schema)).throwError(throwError));
             }
         }
-        
+
         // Index Validation
-        for (IndexInspector index:indexes.values())
+        for (IndexInspector index:indexes.values()) {
             validate(remarks, def, index, throwError);
-                
-        // Field Column Validation 
+        }
+
+        // Field Column Validation
         List<FieldDefinition> fieldDefs = def.getFields();
-        for (FieldDefinition fieldDef : fieldDefs)
+        for (FieldDefinition fieldDef : fieldDefs) {
             validate(remarks, fieldDef, throwError);
+        }
         return remarks;
     }
 
@@ -456,39 +471,39 @@ public class TableInspector {
         // Need to actually compare index types and columns within each index.
         // At this point my head was starting to hurt.
     }
-    
+
     /**
      * Validates a column against the model's field definition.  Checks for
      * existence, supported type, type mapping, default value, defined lengths,
-     * primary key, autoincrement. 
+     * primary key, autoincrement.
      * <p>
      * @param remarks
      * @param fieldDef
      * @param throwError
      */
-    void validate(List<Validation> remarks, FieldDefinition fieldDef, 
+    void validate(List<Validation> remarks, FieldDefinition fieldDef,
             boolean throwError) {
         // Unknown Field
-        String fname = forceUpperCase ? 
+        String fname = forceUpperCase ?
                 fieldDef.columnName.toUpperCase() : fieldDef.columnName;
         if (!columns.containsKey(fname)) {
             // Unknown column mapping!
-            remarks.add(ERROR(table, fieldDef, 
+            remarks.add(ERROR(table, fieldDef,
                     "Does not exist in database!").throwError(throwError));
             return;
         }
         ColumnInspector col = columns.get(fname);
         Class<?> fieldClazz = fieldDef.field.getType();
         Class<?> jdbcClazz = ModelUtils.getClassType(col.type, dateClazz);
-                   
+
         // Supported Type Check
         // JaQu maps to VARCHAR for unsupported types.
-        if (fieldDef.dataType.equals("VARCHAR") 
-                && (fieldClazz != String.class))
+        if (fieldDef.dataType.equals("VARCHAR")
+                && (fieldClazz != String.class)) {
                     remarks.add(ERROR(table, fieldDef,
                     "JaQu does not currently implement support for "
                             + fieldClazz.getName()).throwError(throwError));
-
+        }
         // Number Types
         if (!fieldClazz.equals(jdbcClazz)) {
             if (Number.class.isAssignableFrom(fieldClazz)) {
@@ -507,27 +522,28 @@ public class TableInspector {
         // String Types
         if (fieldClazz == String.class) {
             if ((fieldDef.maxLength != col.size)
-                    && (col.size < Integer.MAX_VALUE))
+                    && (col.size < Integer.MAX_VALUE)) {
                 remarks.add(WARN(table, col,
                         format("{0}.maxLength={1}, ColumnMaxLength={2}",
                                 JQColumn.class.getSimpleName(),
                                 fieldDef.maxLength, col.size)));
-            
-            if (fieldDef.maxLength > 0 && !fieldDef.trimString)
+            }
+            if (fieldDef.maxLength > 0 && !fieldDef.trimString) {
                 remarks.add(CONSIDER(table, col,
                         format("{0}.truncateToMaxLength=true"
                                 + " will prevent RuntimeExceptions on"
                                 + " INSERTs or UPDATEs, but will clip data!",
                                 JQColumn.class.getSimpleName())));
+            }
         }
-        
+
         // Numeric AutoIncrement
-        if (fieldDef.isAutoIncrement != col.isAutoIncrement)
+        if (fieldDef.isAutoIncrement != col.isAutoIncrement) {
             remarks.add(WARN(table, col, format("{0}.isAutoIncrement={1}"
                     + " while Column autoIncrement={2}",
                     JQColumn.class.getSimpleName(), fieldDef.isAutoIncrement,
                     col.isAutoIncrement)));
-        
+        }
         // Last Check
         // Default Value...
         if (!col.isAutoIncrement && !col.isPrimaryKey) {
@@ -541,19 +557,19 @@ public class TableInspector {
                 return;
             }
             // Compare Model.defaultValue to Column.defaultValue
-            if (isNullOrEmpty(fieldDef.defaultValue) 
+            if (isNullOrEmpty(fieldDef.defaultValue)
                     && !isNullOrEmpty(col.defaultValue)) {
                 // Model.defaultValue is NULL, Column.defaultValue is NOT NULL
                 remarks.add(WARN(table, col, format("{0}.defaultValue=\"\""
                         + " while Column default=\"{1}\"",
-                        JQColumn.class.getSimpleName(), col.defaultValue)));                
-            } else if (!isNullOrEmpty(fieldDef.defaultValue) 
+                        JQColumn.class.getSimpleName(), col.defaultValue)));
+            } else if (!isNullOrEmpty(fieldDef.defaultValue)
                     && isNullOrEmpty(col.defaultValue)) {
                 // Column.defaultValue is NULL, Model.defaultValue is NOT NULL
                 remarks.add(WARN(table, col, format("{0}.defaultValue=\"{1}\""
                         + " while Column default=\"\"",
-                        JQColumn.class.getSimpleName(), fieldDef.defaultValue)));  
-            } else if (!isNullOrEmpty(fieldDef.defaultValue) 
+                        JQColumn.class.getSimpleName(), fieldDef.defaultValue)));
+            } else if (!isNullOrEmpty(fieldDef.defaultValue)
                     && !isNullOrEmpty(col.defaultValue)) {
                 if (!fieldDef.defaultValue.equals(col.defaultValue)) {
                     // Model.defaultValue != Column.defaultValue
@@ -563,18 +579,18 @@ public class TableInspector {
                             col.defaultValue)));
                 }
             }
-            
+
             // Sanity Check Model.defaultValue Literal Value
-            if (!ModelUtils.isValidDefaultValue(fieldDef.field.getType(), 
+            if (!ModelUtils.isValidDefaultValue(fieldDef.field.getType(),
                     fieldDef.defaultValue)) {
-                remarks.add(ERROR(table, col, 
-                        format("{0}.defaultValue=\"{1}\" is invalid!!", 
-                                JQColumn.class.getSimpleName(), 
+                remarks.add(ERROR(table, col,
+                        format("{0}.defaultValue=\"{1}\" is invalid!!",
+                                JQColumn.class.getSimpleName(),
                                 fieldDef.defaultValue)));
-            }            
+            }
         }
     }
-    
+
     /**
      * Represents an index as it exists in the database.
      *
@@ -588,20 +604,20 @@ public class TableInspector {
 
         public IndexInspector(ResultSet rs) throws SQLException {
             name = rs.getString("INDEX_NAME");
-            
+
             // Determine Index Type
-            boolean hash = rs.getInt("TYPE") == DatabaseMetaData.tableIndexHashed;            
+            boolean hash = rs.getInt("TYPE") == DatabaseMetaData.tableIndexHashed;
             boolean unique = !rs.getBoolean("NON_UNIQUE");
-            
-            if (!hash && !unique)
+
+            if (!hash && !unique) {
                 type = IndexType.STANDARD;
-            else if (hash && unique)
+            } else if (hash && unique) {
                 type = IndexType.UNIQUE_HASH;
-            else if (unique)
+            } else if (unique) {
                 type = IndexType.UNIQUE;
-            else if (hash)
+            } else if (hash) {
                 type = IndexType.HASH;
-            
+            }
             columns.add(rs.getString("COLUMN_NAME"));
         }
 
@@ -618,40 +634,40 @@ public class TableInspector {
             return sb.toString().trim();
         }
     }
-    
+
     /**
      * Represents a column as it exists in the database.
      *
      */
     public static class ColumnInspector implements Comparable<ColumnInspector> {
-        String name = null;
-        String type = null;
-        int size = 0;
-        boolean allowNull = false;
-        Class<?> clazz = null;
-        boolean isPrimaryKey = false;
-        boolean isAutoIncrement = false;
-        String defaultValue = null;
-        
-        @Override
+        String name;
+        String type;
+        int size;
+        boolean allowNull;
+        Class<?> clazz;
+        boolean isPrimaryKey;
+        boolean isAutoIncrement;
+        String defaultValue;
+
         public int compareTo(ColumnInspector o) {
-            if (isPrimaryKey && o.isPrimaryKey)
+            if (isPrimaryKey && o.isPrimaryKey) {
                 // both primary sort by name
                 return name.compareTo(o.name);
-            else if (isPrimaryKey && !o.isPrimaryKey)
+            } else if (isPrimaryKey && !o.isPrimaryKey) {
                 // primary first
                 return -1;
-            else if (!isPrimaryKey && o.isPrimaryKey)
+            } else if (!isPrimaryKey && o.isPrimaryKey) {
                 // primary first
                 return 1;
-            else
+            } else {
                 // Neither primary, sort by name
                 return name.compareTo(o.name);
+            }
         }
     }
-    
+
     /**
-     * Convenience class based on StatementBuilder for creating the 
+     * Convenience class based on StatementBuilder for creating the
      * annotation parameter list.
      *
      */
@@ -659,12 +675,12 @@ public class TableInspector {
         AnnotationBuilder() {
             super();
         }
-        
+
         void addParameter(String parameter) {
             appendExceptFirst(", ");
             append(parameter);
         }
-        
+
         <T> void addParameter(String parameter, T value) {
             appendExceptFirst(", ");
             append(parameter);
@@ -675,20 +691,26 @@ public class TableInspector {
                 StatementBuilder flat = new StatementBuilder();
                 for (Object o:list) {
                     flat.appendExceptFirst(", ");
-                    if (o instanceof String)
+                    if (o instanceof String) {
                         flat.append('\"');
+                    }
+                    int todoEscape;
                     flat.append(o.toString().trim());
-                    if (o instanceof String)
+                    if (o instanceof String) {
                         flat.append('\"');
+                    }
                 }
                 append(flat);
                 append(" }");
             } else {
-                if (value instanceof String)
+                if (value instanceof String) {
                     append('\"');
+                }
+                int todoEscape;
                 append(value.toString().trim());
-                if (value instanceof String)
+                if (value instanceof String) {
                     append('\"');
+                }
             }
         }
     }

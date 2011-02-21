@@ -17,21 +17,21 @@ import org.h2.jaqu.Table.JQTable;
  */
 // ## Java 1.5 begin ##
 @JQTable(annotationsOnly = false)
-@JQIndex(standard="name,cat")
+@JQIndex(standard = "name, cat")
 public class ProductMixedAnnotation {
-
-    @JQColumn(name = "id", primaryKey=true)
-    private Integer productId;
-
-    @JQColumn(name = "name")
-    private String productName;
-
-    @JQColumn(name = "cat", maxLength = 255)
-    String category;
 
     public Double unitPrice;
     public Integer unitsInStock;
     public String mappedField;
+
+    @JQColumn(name = "cat", maxLength = 255)
+    String category;
+
+    @JQColumn(name = "id", primaryKey = true)
+    private Integer productId;
+
+    @JQColumn(name = "name")
+    private String productName;
 
     public ProductMixedAnnotation() {
         // public constructor
@@ -64,20 +64,20 @@ public class ProductMixedAnnotation {
                 create(8, "Northwoods Cranberry Sauce", "Condiments", 40.0, 6, mappedField),
                 create(9, "Mishi Kobe Niku", "Meat/Poultry", 97.0, 29, mappedField),
                 create(10, "Ikura", "Seafood", 31.0, 31, mappedField), };
-
         return Arrays.asList(list);
     }
 
     public String toString() {
-        return productName + ": " + unitsInStock;    
+        return productName + ": " + unitsInStock;
     }
-    
+
     public int id() {
         return productId;
     }
-    
+
     public String name() {
         return productName;
     }
+
 }
 // ## Java 1.5 end ##

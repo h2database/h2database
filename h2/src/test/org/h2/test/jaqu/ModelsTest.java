@@ -92,7 +92,8 @@ public class ModelsTest extends TestBase {
 
     private void testModelGeneration() {
         DbInspector inspector = new DbInspector(db);
-        List<String> models = inspector.generateModel(null, "SupportedTypes",
+        List<String> models = inspector.generateModel(null,
+                "SupportedTypes",
                 "org.h2.test.jaqu", true, true);
         assertEquals(1, models.size());
         // a poor test, but a start

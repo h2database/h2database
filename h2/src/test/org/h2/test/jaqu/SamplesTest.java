@@ -391,10 +391,11 @@ public class SamplesTest extends TestBase {
         Set<Integer> ids = new HashSet<Integer>();
         Product p = new Product();
         for (int i = 0; i < 5; i++) {
-            List<Product> products = db.from(p).limit(2).offset(2*i).select();
+            List<Product> products = db.from(p).limit(2).offset(2 * i).select();
             assertTrue(products.size() == 2);
-            for (Product prod:products)
+            for (Product prod : products) {
                 assertTrue("Failed to add product id.  Duplicate?", ids.add(prod.productId));
+            }
         }
     }
     
@@ -402,9 +403,10 @@ public class SamplesTest extends TestBase {
         List<SupportedTypes> list = SupportedTypes.createList();
         List<Long> keys = db.insertAllAndGetKeys(list);
         Set<Long> uniqueKeys = new HashSet<Long>();
-        for (Long l:keys)
+        for (Long l : keys) {
             assertTrue("Failed to add key.  Duplicate?", uniqueKeys.add(l));
-    }
+        }
+    }    
 //## Java 1.5 end ##
 
     /**

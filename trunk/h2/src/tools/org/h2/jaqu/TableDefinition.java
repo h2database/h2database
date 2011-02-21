@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.h2.jaqu.Table.IndexType;
 import org.h2.jaqu.Table.JQColumn;
 import org.h2.jaqu.Table.JQIndex;
@@ -26,6 +25,7 @@ import org.h2.jaqu.util.StatementLogger;
 import org.h2.jaqu.util.StatementBuilder;
 import org.h2.jaqu.util.StringUtils;
 import org.h2.jaqu.util.Utils;
+//## Java 1.5 end ##
 
 /**
  * A table definition contains the index definitions of a table, the field
@@ -44,7 +44,8 @@ class TableDefinition<T> {
     static class IndexDefinition {
         IndexType type;
         String indexName;
-        Set<String> columnNames;
+
+        List<String> columnNames;
     }
 //## Java 1.5 end ##
 
@@ -78,8 +79,10 @@ class TableDefinition<T> {
 
         void setValue(Object obj, Object o) {
             try {
-                if (!field.isAccessible())
+                int setAccessibleShouldNotBeRequiredHere;
+                if (!field.isAccessible()) {
                     field.setAccessible(true);
+                }
                 o = Utils.convert(o, field.getType());
                 field.set(obj, o);
             } catch (Exception e) {
@@ -95,25 +98,27 @@ class TableDefinition<T> {
             }
         }
     }
-    
-    private boolean createTableIfRequired = true;
+
     String schemaName;
     String tableName;
+    private boolean createTableIfRequired = true;
     private Class<T> clazz;
     private ArrayList<FieldDefinition> fields = Utils.newArrayList();
     private IdentityHashMap<Object, FieldDefinition> fieldMap =
             Utils.newIdentityHashMap();
-    private Set<String> primaryKeyColumnNames;
+
+    private List<String> primaryKeyColumnNames;
     private ArrayList<IndexDefinition> indexes = Utils.newArrayList();
-    private boolean memoryTable = false;
-    int tableVersion = 0;
+    private boolean memoryTable;
+
+    int tableVersion;
 
     TableDefinition(Class<T> clazz) {
         this.clazz = clazz;
         schemaName = null;
-        tableName = clazz.getSimpleName();        
+        tableName = clazz.getSimpleName();
     }
-    
+
     Class<T> getModelClass() {
         return clazz;
     }
@@ -140,21 +145,22 @@ class TableDefinition<T> {
     }
 
     void setPrimaryKey(List<String> primaryKeyColumnNames) {
-        this.primaryKeyColumnNames = Utils.newHashSet(primaryKeyColumnNames);
+        int duplicateFunctionIsItRequired;
+        this.primaryKeyColumnNames = Utils.newArrayList(primaryKeyColumnNames);
         // set isPrimaryKey flag for all field definitions
         for (FieldDefinition fieldDefinition : fieldMap.values()) {
             fieldDefinition.isPrimaryKey = this.primaryKeyColumnNames
                 .contains(fieldDefinition.columnName);
         }
     }
-    
+
     <A> String getColumnName(A fieldObject) {
         FieldDefinition def = fieldMap.get(fieldObject);
         return def == null ? null : def.columnName;
     }
 
-    private Set<String> mapColumnNames(Object[] columns) {
-        Set<String> columnNames = Utils.newHashSet();
+    private ArrayList<String> mapColumnNames(Object[] columns) {
+        ArrayList<String> columnNames = Utils.newArrayList();
         for (Object column : columns) {
             columnNames.add(getColumnName(column));
         }
@@ -170,9 +176,10 @@ class TableDefinition<T> {
     }
 
     void addIndex(IndexType type, List<String> columnNames) {
+        int whyRequiredCopyOfAboveFunction;
         IndexDefinition index = new IndexDefinition();
         index.indexName = tableName + "_" + indexes.size();
-        index.columnNames = Utils.newHashSet(columnNames);
+        index.columnNames = Utils.newArrayList(columnNames);
         index.type = type;
         indexes.add(index);
     }
@@ -206,18 +213,20 @@ class TableDefinition<T> {
         }
 
         for (Field f : classFields) {
-            String columnName = f.getName(); // default to field name
+            // default to field name
+            String columnName = f.getName(); 
             boolean isAutoIncrement = false;
             boolean isPrimaryKey = false;
             int maxLength = 0;
             boolean trimString = false;
             boolean allowNull = true;
-            String defaultValue = ""; 
+            String defaultValue = "";
             boolean hasAnnotation = f.isAnnotationPresent(JQColumn.class);
             if (hasAnnotation) {
                 JQColumn col = f.getAnnotation(JQColumn.class);
-                if (!StringUtils.isNullOrEmpty(col.name()))
+                if (!StringUtils.isNullOrEmpty(col.name())) {
                     columnName = col.name();
+                }
                 isAutoIncrement = col.autoIncrement();
                 isPrimaryKey = col.primaryKey();
                 maxLength = col.maxLength();
@@ -236,18 +245,20 @@ class TableDefinition<T> {
                 fieldDef.maxLength = maxLength;
                 fieldDef.trimString = trimString;
                 fieldDef.allowNull = allowNull;
-                fieldDef.defaultValue= defaultValue;
+                fieldDef.defaultValue = defaultValue;
                 fieldDef.dataType = ModelUtils.getDataType(fieldDef, strictTypeMapping);
                 fields.add(fieldDef);
             }
         }
         List<String> primaryKey = Utils.newArrayList();
         for (FieldDefinition fieldDef : fields) {
-            if (fieldDef.isPrimaryKey)
+            if (fieldDef.isPrimaryKey) {
                 primaryKey.add(fieldDef.columnName);
+            }
         }
-        if (primaryKey.size() > 0)
+        if (primaryKey.size() > 0) {
             setPrimaryKey(primaryKey);
+        }
     }
 
     // Optionally truncates strings to maxLength
@@ -336,7 +347,7 @@ class TableDefinition<T> {
         StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(db.getDialect().tableName(schemaName, tableName)).append(" SET ");
         buff.resetCount();
-        
+
         for (FieldDefinition field : fields) {
             if (!field.isPrimaryKey) {
                 buff.appendExceptFirst(", ");
@@ -362,10 +373,10 @@ class TableDefinition<T> {
                                 aliasValue, value, CompareType.EQUAL));
             }
         }
-        stat.setSQL(buff.toString());        
+        stat.setSQL(buff.toString());
         query.appendWhere(stat);
         StatementLogger.update(stat.getSQL());
-        stat.executeUpdate();        
+        stat.executeUpdate();
     }
 
     void delete(Db db, Object obj) {
@@ -408,36 +419,38 @@ class TableDefinition<T> {
         }
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff;
-        if (memoryTable && 
+        if (memoryTable &&
                 db.getConnection().getClass()
                 .getCanonicalName().equals("org.h2.jdbc.JdbcConnection"))
             buff = new StatementBuilder("CREATE MEMORY TABLE IF NOT EXISTS ");
         else
             buff = new StatementBuilder("CREATE TABLE IF NOT EXISTS ");
+
+        int todoChangeToGetTableNameChangeAllMethodsInDialectInterface;
         buff.append(db.getDialect().tableName(schemaName, tableName)).append('(');
-        
+
         for (FieldDefinition field : fields) {
-            buff.appendExceptFirst(", ");            
+            buff.appendExceptFirst(", ");
             buff.append(field.columnName).append(' ').append(field.dataType);
-            
+
             // FIELD LENGTH
             if (field.maxLength > 0) {
                 buff.append('(').append(field.maxLength).append(')');
             }
-            
+
             // AUTO_INCREMENT
             if (field.isAutoIncrement) {
                 buff.append(" AUTO_INCREMENT");
             }
-            
+
             // NOT NULL
             if (!field.allowNull) {
                 buff.append(" NOT NULL");
             }
-            
+
             // DEFAULT...
             if (!field.isAutoIncrement && !field.isPrimaryKey) {
-                String dv = field.defaultValue;                
+                String dv = field.defaultValue;
                 if (!StringUtils.isNullOrEmpty(dv)) {
                     if (ModelUtils.isProperlyFormattedDefaultValue(dv)
                             && ModelUtils.isValidDefaultValue(field.field.getType(), dv)) {
@@ -446,7 +459,8 @@ class TableDefinition<T> {
                 }
             }
         }
-        
+
+        int reviewJavadoc;
         // PRIMARY KEY...
         if (primaryKeyColumnNames != null && primaryKeyColumnNames.size() > 0) {
             buff.append(", PRIMARY KEY(");
@@ -469,10 +483,10 @@ class TableDefinition<T> {
             StatementLogger.create(stat.getSQL());
             stat.executeUpdate();
         }
-        
+
         // Table is created IF NOT EXISTS, otherwise statement is ignored
         // But we still need to process potential Upgrade
-        db.upgradeTable(this);        
+        db.upgradeTable(this);
         return this;
     }
 
@@ -489,7 +503,7 @@ class TableDefinition<T> {
             return null;
         return cols;
     }
-   
+
     void mapObject(Object obj) {
         fieldMap.clear();
         initObject(obj, fieldMap);
@@ -510,7 +524,7 @@ class TableDefinition<T> {
 
             // Allow control over createTableIfRequired()
             createTableIfRequired = tableAnnotation.createIfRequired();
-            
+
             // Model Version
             if (tableAnnotation.version() > 0)
                 tableVersion = tableAnnotation.version();
@@ -520,7 +534,7 @@ class TableDefinition<T> {
             if (primaryKey != null)
                 setPrimaryKey(primaryKey);
         }
-        
+
         if (clazz.isAnnotationPresent(JQIndex.class)) {
             JQIndex indexAnnotation = clazz.getAnnotation(JQIndex.class);
 
@@ -531,7 +545,7 @@ class TableDefinition<T> {
             addIndexes(IndexType.UNIQUE_HASH, indexAnnotation.uniqueHash());
         }
     }
-    
+
     void addIndexes(IndexType type, String [] indexes) {
         for (String index:indexes) {
             List<String> validatedColumns = getColumns(index);
@@ -540,7 +554,7 @@ class TableDefinition<T> {
             addIndex(type, validatedColumns);
         }
     }
-    
+
     List<IndexDefinition> getIndexes(IndexType type) {
         List<IndexDefinition> list = Utils.newArrayList();
         for (IndexDefinition def:indexes)

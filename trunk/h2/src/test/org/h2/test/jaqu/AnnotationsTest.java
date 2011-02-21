@@ -6,19 +6,24 @@
  */
 package org.h2.test.jaqu;
 
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.jaqu.Db;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 
+/**
+ * Test annotation processing.
+ */
 public class AnnotationsTest extends TestBase {
 
     /**
      * This object represents a database (actually a connection to the database).
      */
 //## Java 1.5 begin ##
-    Db db;
+    private Db db;
 //## Java 1.5 end ##
 
     /**
@@ -27,76 +32,82 @@ public class AnnotationsTest extends TestBase {
      *
      * @param args the command line parameters
      */
-    public static void main(String... args) {
+    public static void main(String... args) throws SQLException {
         new AnnotationsTest().test();
     }
 
-    public void test() {
+    public void test() throws SQLException {
 //## Java 1.5 begin ##
-//      EventLogger.activateConsoleLogger();        
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());
         db.insertAll(ProductAnnotationOnly.getList());
         db.insertAll(ProductMixedAnnotation.getList());
+        testIndexCreation();
         testProductAnnotationOnly();
         testProductMixedAnnotation();
         testTrimStringAnnotation();
         testCreateTableIfRequiredAnnotation();
         testColumnInheritanceAnnotation();
         db.close();
-//      EventLogger.deactivateConsoleLogger();       
 //## Java 1.5 end ##
+    }
+
+    private void testIndexCreation() throws SQLException {
+        // test indexes are created, and columns are in the right order
+        DatabaseMetaData meta = db.getConnection().getMetaData();
+        ResultSet rs = meta.getIndexInfo(null, "PUBLIC", "ANNOTATEDPRODUCT", false, true);
+        assertTrue(rs.next());
+        assertStartsWith(rs.getString("INDEX_NAME"), "PRIMARY_KEY");
+        assertTrue(rs.next());
+        assertStartsWith(rs.getString("INDEX_NAME"), "ANNOTATEDPRODUCT_");
+        assertStartsWith(rs.getString("COLUMN_NAME"), "NAME");
+        assertTrue(rs.next());
+        assertStartsWith(rs.getString("INDEX_NAME"), "ANNOTATEDPRODUCT_");
+        assertStartsWith(rs.getString("COLUMN_NAME"), "CAT");
+        assertFalse(rs.next());
     }
 
     private void testProductAnnotationOnly() {
         ProductAnnotationOnly p = new ProductAnnotationOnly();
         assertEquals(10, db.from(p).selectCount());
-        
-        // Test JQColumn.name="cat"
+
+        // test JQColumn.name="cat"
         assertEquals(2, db.from(p).where(p.category).is("Beverages").selectCount());
 
-        // Test JQTable.annotationsOnly=true
+        // test JQTable.annotationsOnly=true
         // public String unmappedField is ignored by JaQu
         assertEquals(0, db.from(p).where(p.unmappedField).is("unmapped").selectCount());
-        
-        // Test JQColumn.autoIncrement=true
+
+        // test JQColumn.autoIncrement=true
         // 10 objects, 10 autoIncremented unique values
         assertEquals(10, db.from(p).selectDistinct(p.autoIncrement).size());
-        
-        // Test JQTable.primaryKey=id
-        int errorCode = 0;
+
+        // test JQTable.primaryKey=id
         try {
             db.insertAll(ProductAnnotationOnly.getList());
-        } catch (Throwable t) {
-            if (t.getCause() instanceof JdbcSQLException) {
-                JdbcSQLException s = (JdbcSQLException) t.getCause();
-                errorCode = s.getErrorCode();
-            }
+        } catch (RuntimeException r) {
+            SQLException s = (SQLException) r.getCause();
+            assertEquals(ErrorCode.DUPLICATE_KEY_1, s.getErrorCode());
         }
-        assertEquals(errorCode, ErrorCode.DUPLICATE_KEY_1);
     }
-    
+
     private void testProductMixedAnnotation() {
         ProductMixedAnnotation p = new ProductMixedAnnotation();
-        
-        // Test JQColumn.name="cat"
+
+        // test JQColumn.name="cat"
         assertEquals(2, db.from(p).where(p.category).is("Beverages").selectCount());
-        
-        // Test JQTable.annotationsOnly=false
+
+        // test JQTable.annotationsOnly=false
         // public String mappedField is reflectively mapped by JaQu
         assertEquals(10, db.from(p).where(p.mappedField).is("mapped").selectCount());
-        
-        // Test JQColumn.primaryKey=true
-        int errorCode = 0;
+
+        // test JQColumn.primaryKey=true
         try {
             db.insertAll(ProductMixedAnnotation.getList());
-        } catch (Throwable t) {
-            if (t.getCause() instanceof JdbcSQLException) {
-                JdbcSQLException s = (JdbcSQLException) t.getCause();
-                errorCode = s.getErrorCode();
-            }
+        } catch (RuntimeException r) {
+            SQLException s = (SQLException) r.getCause();
+            assertEquals(ErrorCode.DUPLICATE_KEY_1, s.getErrorCode());
         }
-        assertEquals(errorCode, ErrorCode.DUPLICATE_KEY_1);
     }
 
     private void testTrimStringAnnotation() {
@@ -104,9 +115,10 @@ public class AnnotationsTest extends TestBase {
         ProductAnnotationOnly prod = db.from(p).selectFirst();
         String oldValue = prod.category;
         String newValue = "01234567890123456789";
-        prod.category = newValue; // 2 chars exceeds field max
+        // 2 chars exceeds field max
+        prod.category = newValue;
         db.update(prod);
-        
+
         ProductAnnotationOnly newProd = db.from(p)
             .where(p.productId)
             .is(prod.productId)
@@ -116,15 +128,15 @@ public class AnnotationsTest extends TestBase {
         newProd.category = oldValue;
         db.update(newProd);
     }
-    
+
     private void testColumnInheritanceAnnotation() {
         ProductInheritedAnnotation table = new ProductInheritedAnnotation();
-        Db db = Db.open("jdbc:h2:mem:", "sa", "sa");        
+        Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
         List<ProductInheritedAnnotation> inserted = ProductInheritedAnnotation.getData();
         db.insertAll(inserted);
-        
+
         List<ProductInheritedAnnotation> retrieved = db.from(table).select();
-        
+
         for (int j = 0; j < retrieved.size(); j++) {
             ProductInheritedAnnotation i = inserted.get(j);
             ProductInheritedAnnotation r = retrieved.get(j);
@@ -139,19 +151,15 @@ public class AnnotationsTest extends TestBase {
     }
 
     private void testCreateTableIfRequiredAnnotation() {
-        // Tests JQTable.createTableIfRequired=false
-        int errorCode = 0;
+        // tests JQTable.createTableIfRequired=false
         try {
             Db noCreateDb = Db.open("jdbc:h2:mem:", "sa", "sa");
             noCreateDb.insertAll(ProductNoCreateTable.getList());
             noCreateDb.close();
-        } catch (Throwable e) {
-            if (e.getCause() instanceof JdbcSQLException) {
-                JdbcSQLException error = (JdbcSQLException) e.getCause();                
-                errorCode = error.getErrorCode();
-            }
+        } catch (RuntimeException r) {
+            SQLException s = (SQLException) r.getCause();
+            assertEquals(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, s.getErrorCode());
         }
-        assertTrue(errorCode == ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1);
     }
-    
+
 }

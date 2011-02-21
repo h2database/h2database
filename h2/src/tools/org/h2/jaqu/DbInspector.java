@@ -18,49 +18,49 @@ import org.h2.jaqu.util.StringUtils;
 import org.h2.jaqu.util.Utils;
 
 /**
- * Class to inspect a model and a database for the purposes of model validation 
- * and automatic model generation.  This class finds the svailable schemas and
+ * Class to inspect a model and a database for the purposes of model validation
+ * and automatic model generation.  This class finds the available schemas and
  * tables and serves as the entry point for model generation and validation.
- * 
  */
 public class DbInspector {
 
-    Db db;
-    DatabaseMetaData metadata;
-    Class<? extends java.util.Date> dateClazz = java.util.Date.class;
+    private Db db;
+    private DatabaseMetaData metaData;
+    private Class<? extends java.util.Date> dateClass = java.util.Date.class;
+
+    private int todoReviewWholeClass;
 
     public DbInspector(Db db) {
         this.db = db;
     }
-    
+
     /**
      * Set the preferred Date class.
-     * java.util.Date (default)
-     * java.sql.Timestamp
-     * 
-     * @param dateClazz
+     * Possible values are: java.util.Date (default), java.sql.Date, java.sql.Timestamp.
+     *
+     * @param dateClass the new date class
      */
-    public void setPreferredDateClass(Class<? extends java.util.Date> dateClazz) {
-        this.dateClazz = dateClazz;
+    public void setPreferredDateClass(Class<? extends java.util.Date> dateClass) {
+        this.dateClass = dateClass;
     }
 
     /**
      * Generates models class skeletons for schemas and tables.
-     * 
-     * @param schema (optional)
-     * @param table (required)
-     * @param packageName (optional)
+     *
+     * @param schema the schema name (optional)
+     * @param table the table name (required)
+     * @param packageName the package name (optional)
      * @param annotateSchema (includes schema name in annotation)
      * @param trimStrings (trims strings to maxLength of column)
-     * @return List<String> source code models as strings
+     * @return a list of strings, each element a line of source code
      */
-    public List<String> generateModel(String schema, String table, 
+    public List<String> generateModel(String schema, String table,
             String packageName, boolean annotateSchema, boolean trimStrings) {
         try {
             List<String> models = Utils.newArrayList();
             List<TableInspector> tables = findTables(schema, table);
             for (TableInspector t : tables) {
-                t.read(metadata);
+                t.read(metaData);
                 String model = t.generateModel(packageName, annotateSchema,
                         trimStrings);
                 models.add(model);
@@ -73,17 +73,18 @@ public class DbInspector {
 
     /**
      * Validates a model.
-     * 
-     * @param <T> type of model
-     * @param model class
+     *
+     * @param <T> the model class
+     * @param model and instance of the model class
      * @param throwOnError
      * @return
      */
     public <T> List<Validation> validateModel(T model, boolean throwOnError) {
         try {
             TableInspector inspector = findTable(model);
-            inspector.read(metadata);
-            Class clazz = model.getClass();
+            inspector.read(metaData);
+            @SuppressWarnings("unchecked")
+            Class<T> clazz = (Class<T>) model.getClass();
             TableDefinition<T> def = db.define(clazz);
             return inspector.validate(def, throwOnError);
         } catch (SQLException s) {
@@ -91,24 +92,26 @@ public class DbInspector {
         }
     }
 
-    private DatabaseMetaData metadata() throws SQLException {
-        if (metadata == null)
-            metadata = db.getConnection().getMetaData();
-        return metadata;
+    private DatabaseMetaData getMetaData() throws SQLException {
+        if (metaData == null) {
+            metaData = db.getConnection().getMetaData();
+        }
+        return metaData;
     }
 
     /**
      * Attempts to find a table in the database based on the model definition.
-     * 
+     *
      * @param <T>
      * @param model
      * @return
      * @throws SQLException
      */
     private <T> TableInspector findTable(T model) throws SQLException {
-        Class clazz = model.getClass();
+        @SuppressWarnings("unchecked")
+        Class<T> clazz = (Class<T>) model.getClass();
         TableDefinition<T> def = db.define(clazz);
-        boolean forceUpperCase = metadata().storesUpperCaseIdentifiers();
+        boolean forceUpperCase = getMetaData().storesUpperCaseIdentifiers();
         String sname = (forceUpperCase && def.schemaName != null) ?
                 def.schemaName.toUpperCase() : def.schemaName;
         String tname = forceUpperCase ? def.tableName.toUpperCase() : def.tableName;
@@ -118,54 +121,57 @@ public class DbInspector {
 
     /**
      * Returns a list of tables
-     * 
-     * @param schema
-     * @param table
-     * @return
-     * @throws SQLException
+     *
+     * @param schema the schema name
+     * @param table the table name
+     * @return a list of table inspectors
      */
     private List<TableInspector> findTables(String schema, String table) throws SQLException {
         ResultSet rs = null;
         try {
-            rs = metadata().getSchemas();
+            rs = getMetaData().getSchemas();
             ArrayList<String> schemaList = Utils.newArrayList();
-            while (rs.next())
+            while (rs.next()) {
                 schemaList.add(rs.getString("TABLE_SCHEM"));
+            }
             JdbcUtils.closeSilently(rs);
 
-            // Get JaQu Tables table name.
+            // get JaQu Tables table name.
             String jaquTables = DbVersion.class.getAnnotation(JQTable.class).name();
-            
+
             List<TableInspector> tables = Utils.newArrayList();
-            if (schemaList.size() == 0)
+            if (schemaList.size() == 0) {
                 schemaList.add(null);
+            }
             for (String s : schemaList) {
-                rs = metadata().getTables(null, s, null, new String[] { "TABLE" });
+                rs = getMetaData().getTables(null, s, null, new String[] { "TABLE" });
                 while (rs.next()) {
-                    String t = rs.getString("TABLE_NAME");                    
-                    if (!t.equalsIgnoreCase(jaquTables))
+                    String t = rs.getString("TABLE_NAME");
+                    if (!t.equalsIgnoreCase(jaquTables)) {
                         // Ignore JaQu versions table
-                        tables.add(new TableInspector(s, t, 
-                            metadata().storesUpperCaseIdentifiers(), dateClazz));
+                        tables.add(new TableInspector(s, t,
+                            getMetaData().storesUpperCaseIdentifiers(), dateClass));
+                    }
                 }
             }
 
             if (StringUtils.isNullOrEmpty(schema) && StringUtils.isNullOrEmpty(table)) {
-                // All schemas and tables
+                // all schemas and tables
                 return tables;
-            } else {
-                // schema subset OR table subset OR exact match
-                List<TableInspector> matches = Utils.newArrayList();
-                for (TableInspector t : tables) {
-                    if (t.matches(schema, table))
-                        matches.add(t);
-                }
-                if (matches.size() == 0)
-                    throw new RuntimeException(
-                            MessageFormat.format("Failed to find schema={0} table={1}",
-                            schema == null ? "" : schema, table == null ? "" : table));
-                return matches;
             }
+            // schema subset OR table subset OR exact match
+            List<TableInspector> matches = Utils.newArrayList();
+            for (TableInspector t : tables) {
+                if (t.matches(schema, table)) {
+                    matches.add(t);
+                }
+            }
+            if (matches.size() == 0) {
+                throw new RuntimeException(
+                        MessageFormat.format("Failed to find schema={0} table={1}",
+                        schema == null ? "" : schema, table == null ? "" : table));
+            }
+            return matches;
         } finally {
             JdbcUtils.closeSilently(rs);
         }

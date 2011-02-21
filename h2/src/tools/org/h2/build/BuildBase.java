@@ -519,6 +519,56 @@ public class BuildBase {
     }
 
     /**
+     * Download a file if it does not yet exist. Maven is used if installed, so
+     * that the file is first downloaded to the local repository and then copied
+     * from there.
+     *
+     * @param target the target file name
+     * @param group the Maven group id
+     * @param artifact the Maven artifact id
+     * @param version the Maven version id
+     * @param sha1Checksum the SHA-1 checksum or null
+     */
+    protected void downloadUsingMaven(String target, String group, String artifact, String version, String sha1Checksum) {
+        String repoDir = "http://repo1.maven.org/maven2";
+        File targetFile = new File(target);
+        if (targetFile.exists()) {
+            return;
+        }
+        String repoFile = group + "/" + artifact + "/" + version + "/" + artifact + "-" + version + ".jar";
+        mkdirs(targetFile.getAbsoluteFile().getParentFile());
+        String localMavenDir = System.getProperty("user.home") + "/.m2/repository";
+        if (new File(localMavenDir).exists()) {
+            File f = new File(localMavenDir, repoFile);
+            if (!f.exists()) {
+                try {
+                    execScript("mvnf", args(
+                            "org.apache.maven.plugins:maven-dependency-plugin:2.1:get",
+                            "-DrepoUrl=" + repoDir,
+                            "-Dartifact="+ group +":"+ artifact +":" + version));
+                } catch (RuntimeException e) {
+                    println("Could not download using Maven: " + e.toString());
+                }
+            }
+            if (f.exists()) {
+                byte[] data = readFile(f);
+                String got = getSHA1(data);
+                if (sha1Checksum == null) {
+                    println("SHA1 checksum: " + got);
+                } else {
+                    if (!got.equals(sha1Checksum)) {
+                        throw new RuntimeException("SHA1 checksum mismatch; got: " + got);
+                    }
+                }
+                writeFile(targetFile, data);
+                return;
+            }
+        }
+        String fileURL = repoDir + "/" + repoFile;
+        download(target, fileURL, sha1Checksum);
+    }
+
+    /**
      * Download a file if it does not yet exist.
      * If no checksum is used (that is, if the parameter is null), the
      * checksum is printed. For security, checksums should always be used.

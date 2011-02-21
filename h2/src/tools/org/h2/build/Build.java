@@ -35,25 +35,18 @@ public class Build extends BuildBase {
      * Run the benchmarks.
      */
     public void benchmark() {
-        download("ext/hsqldb-2.0.0.jar",
-                "http://repo1.maven.org/maven2/org/hsqldb/hsqldb/2.0.0/hsqldb-2.0.0.jar",
+        downloadUsingMaven("ext/hsqldb-2.0.0.jar", "hsqldb", "hsqldb", "2.0.0",
                 "c9d525ce1a464185e6b01c7de872127a06092673");
-        download("ext/derby-10.6.1.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0.jar",
+        downloadUsingMaven("ext/derby-10.6.1.0.jar", "org/apache/derby", "derby", "10.6.1.0",
                 "01137cd636b0e3c22f0d273478adb58aa30e984a");
-        download("ext/derbyclient-10.6.1.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/derby/derbyclient/10.6.1.0/derbyclient-10.6.1.0.jar",
+        downloadUsingMaven("ext/derbyclient-10.6.1.0.jar", "org/apache/derby", "derbyclient", "10.6.1.0",
                 "e7c6fbaca2ef4dbcad27fa7d8a9cd1ac0d1e4b00");
-        download("ext/derbynet-10.6.1.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/derby/derbynet/10.6.1.0/derbynet-10.6.1.0.jar",
+        downloadUsingMaven("ext/derbynet-10.6.1.0.jar", "org/apache/derby", "derbynet", "10.6.1.0",
                 "d5d9d7b783eeaef016be85c34d5c65d1e7cec764");
-        download("ext/postgresql-8.3-603.jdbc3.jar",
-                "http://repo1.maven.org/maven2/postgresql/postgresql/8.3-603.jdbc3/postgresql-8.3-603.jdbc3.jar",
+        downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar", "postgresql", "postgresql", "8.3-603.jdbc3",
                 "33d531c3c53055ddcbea3d88bfa093466ffef924");
-        download("ext/mysql-connector-java-5.1.6.jar",
-                "http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.6/mysql-connector-java-5.1.6.jar",
+        downloadUsingMaven("ext/mysql-connector-java-5.1.6.jar", "mysql", "mysql-connector-java", "5.1.6",
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
-
         compile();
 
         String cp = "temp" + File.pathSeparator + "bin/h2" + getJarSuffix() + File.pathSeparator +
@@ -106,8 +99,8 @@ public class Build extends BuildBase {
      */
     public void coverage() {
         downloadTest();
-        download("ext/emma-2.0.5312.jar",
-                "http://repo2.maven.org/maven2/emma/emma/2.0.5312/emma-2.0.5312.jar",
+        downloadUsingMaven("ext/emma-2.0.5312.jar",
+                "emma", "emma", "2.0.5312",
                 "30a40933caf67d88d9e75957950ccf353b181ab7");
         String cp = "temp" + File.pathSeparator + "bin" +
             File.pathSeparator + "ext/emma-2.0.5312.jar" +
@@ -232,23 +225,18 @@ public class Build extends BuildBase {
      * dependencies. The database can be used without any dependencies.
      */
     public void download() {
-        download("ext/servlet-api-2.4.jar",
-                "http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar",
+        downloadUsingMaven("ext/servlet-api-2.4.jar", "javax/servlet", "servlet-api", "2.4",
                 "3fc542fe8bb8164e8d3e840fe7403bc0518053c0");
         if (getLuceneVersion() == 3) {
-            download("ext/lucene-core-3.0.2.jar",
-                    "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/3.0.2/lucene-core-3.0.2.jar",
+            downloadUsingMaven("ext/lucene-core-3.0.2.jar", "org/apache/lucene", "lucene-core", "3.0.2",
                     "c2b48995ab855c1b9ea13867a0f976c994e0105d");
         } else {
-            download("ext/lucene-core-2.2.0.jar",
-                    "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar",
+            downloadUsingMaven("ext/lucene-core-2.2.0.jar", "org/apache/lucene", "lucene-core", "2.2.0",
                     "47b6eee2e17bd68911e7045896a1c09de0b2dda8");
         }
-        download("ext/slf4j-api-1.6.0.jar",
-                "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.6.0/slf4j-api-1.6.0.jar",
+        downloadUsingMaven("ext/slf4j-api-1.6.0.jar", "org/slf4j", "slf4j-api", "1.6.0",
                 "b353147a7d51fcfcd818d8aa6784839783db0915");
-        download("ext/org.osgi.core-1.2.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/felix/org.osgi.core/1.2.0/org.osgi.core-1.2.0.jar",
+        downloadUsingMaven("ext/org.osgi.core-1.2.0.jar", "org/apache/felix", "org.osgi.core", "1.2.0",
                 "3006beb1ca6a83449def6127dad3c060148a0209");
     }
 
@@ -258,16 +246,14 @@ public class Build extends BuildBase {
                 "http://h2database.com/h2mig_pagestore_addon.jar",
                 "6dfafe1b86959c3ba4f7cf03e99535e8b9719965");
         // for TestOldVersion
-        download("ext/h2-1.2.127.jar",
-                "http://repo1.maven.org/maven2/com/h2database/h2/1.2.127/h2-1.2.127.jar",
+        downloadUsingMaven("ext/h2-1.2.127.jar", "com/h2database", "h2", "1.2.127",
                 "056e784c7cf009483366ab9cd8d21d02fe47031a");
         // for TestPgServer
-        download("ext/postgresql-8.3-603.jdbc3.jar",
-                "http://repo1.maven.org/maven2/postgresql/postgresql/8.3-603.jdbc3/postgresql-8.3-603.jdbc3.jar",
+
+        downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar", "postgresql", "postgresql", "8.3-603.jdbc3",
                 "33d531c3c53055ddcbea3d88bfa093466ffef924");
         // for TestTraceSystem
-        download("ext/slf4j-nop-1.6.0.jar",
-                "http://repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.6.0/slf4j-nop-1.6.0.jar",
+        downloadUsingMaven("ext/slf4j-nop-1.6.0.jar", "org/slf4j", "slf4j-nop", "1.6.0",
                 "4da67bb4a6eea5dc273f99c50ad2333eadb46f86");
     }
 

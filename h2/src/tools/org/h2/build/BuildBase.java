@@ -542,7 +542,7 @@ public class BuildBase {
             File f = new File(localMavenDir, repoFile);
             if (!f.exists()) {
                 try {
-                    execScript("mvnf", args(
+                    execScript("mvn", args(
                             "org.apache.maven.plugins:maven-dependency-plugin:2.1:get",
                             "-DrepoUrl=" + repoDir,
                             "-Dartifact="+ group +":"+ artifact +":" + version));

@@ -8,12 +8,11 @@ import org.h2.jaqu.Table.JQTable;
  * This class inherits all its fields from a parent class which has annotated
  * columns.  The JQTable annotation of the parent class is ignored and only
  * the JQTable annotation of this class matters.
- * <p>
  * However, this table inherits JQColumns from its super class.
  */
 @JQTable(inheritColumns = true, annotationsOnly = false)
 public class ProductInheritedAnnotation extends ProductMixedAnnotation {
-   
+
     public ProductInheritedAnnotation() {
         // public constructor
     }
@@ -40,7 +39,7 @@ public class ProductInheritedAnnotation extends ProductMixedAnnotation {
                 create(8, "Northwoods Cranberry Sauce", "Condiments", 40.0, 6, mappedField),
                 create(9, "Mishi Kobe Niku", "Meat/Poultry", 97.0, 29, mappedField),
                 create(10, "Ikura", "Seafood", 31.0, 31, mappedField), };
-
         return Arrays.asList(list);
     }
+
 }

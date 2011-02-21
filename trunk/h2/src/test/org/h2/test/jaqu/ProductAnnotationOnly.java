@@ -20,25 +20,26 @@ import org.h2.jaqu.Table.JQTable;
 @JQIndex(standard = "name, cat")
 public class ProductAnnotationOnly {
 
+    @JQColumn(autoIncrement = true)
+    public Integer autoIncrement;
+
+    public String unmappedField;
+
     @JQColumn(name = "id")
     Integer productId;
+
+    @JQColumn(name = "cat", maxLength = 15, trimString = true)
+    String category;
 
     @JQColumn(name = "name")
     private String productName;
 
-    @JQColumn(name = "cat", maxLength = 15, trimString=true)
-    String category;
-
     @SuppressWarnings("unused")
     @JQColumn
     private Double unitPrice;
+
     @JQColumn
     private Integer unitsInStock;
-
-    @JQColumn(autoIncrement=true)
-    public Integer autoIncrement;
-
-    public String unmappedField;
 
     public ProductAnnotationOnly() {
         // public constructor
@@ -71,7 +72,6 @@ public class ProductAnnotationOnly {
                 create(8, "Northwoods Cranberry Sauce", "Condiments", 40.0, 6, unmappedField),
                 create(9, "Mishi Kobe Niku", "Meat/Poultry", 97.0, 29, unmappedField),
                 create(10, "Ikura", "Seafood", 31.0, 31, unmappedField), };
-
         return Arrays.asList(list);
     }
 

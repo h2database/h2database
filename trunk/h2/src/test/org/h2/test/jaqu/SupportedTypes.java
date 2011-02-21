@@ -7,12 +7,17 @@ import org.h2.jaqu.Table.JQColumn;
 import org.h2.jaqu.Table.JQTable;
 import org.h2.util.New;
 
-@JQTable(strictTypeMapping=true, version=1)
+/**
+ * A data class that contains a column for each data type.
+ */
+@JQTable(strictTypeMapping = true, version = 1)
 public class SupportedTypes {
 
-    @JQColumn(primaryKey=true, autoIncrement=true)
+    static final SupportedTypes SAMPLE = new SupportedTypes();
+
+    @JQColumn(primaryKey = true, autoIncrement = true)
     public Integer id;
-    
+
     @JQColumn
     private Boolean myBool = false;
 
@@ -27,7 +32,7 @@ public class SupportedTypes {
 
     @JQColumn
     private Long myLong;
-    
+
     @JQColumn
     private Float myFloat = 1.0f;
 
@@ -52,25 +57,22 @@ public class SupportedTypes {
     @JQColumn
     private java.sql.Timestamp mySqlTimestamp;
 
-    static SupportedTypes SAMPLE = new SupportedTypes();
-  
-    
     static List<SupportedTypes> createList() {
         List<SupportedTypes> list = New.arrayList();
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++) {
             list.add(randomValue());
+        }
         return list;
     }
-    
+
     static SupportedTypes randomValue() {
         Random rand = new Random();
         SupportedTypes s = new SupportedTypes();
-        
         s.myBool = new Boolean(rand.nextBoolean());
         s.myByte = new Byte((byte) rand.nextInt(Byte.MAX_VALUE));
         s.myShort = new Short((short) rand.nextInt(Short.MAX_VALUE));
         s.myInteger = new Integer(rand.nextInt());
-        s.myLong = new Long(rand.nextLong());        
+        s.myLong = new Long(rand.nextLong());
         s.myFloat = new Float(rand.nextFloat());
         s.myDouble = new Double(rand.nextDouble());
         s.myBigDecimal = new BigDecimal(rand.nextDouble());
@@ -81,7 +83,7 @@ public class SupportedTypes {
         s.mySqlTimestamp = new java.sql.Timestamp(rand.nextLong());
         return s;
     }
-    
+
     public boolean equivalentTo(SupportedTypes s) {
         boolean same = true;
         same &= myBool.equals(s.myBool);
@@ -96,17 +98,19 @@ public class SupportedTypes {
         same &= mySqlTimestamp.getTime() == s.mySqlTimestamp.getTime();
         same &= mySqlDate.toString().equals(s.mySqlDate.toString());
         same &= mySqlTime.toString().equals(s.mySqlTime.toString());
+        same &= myString.equals(s.myString);
         return same;
     }
-    
+
     /**
      * Class to demonstrate TableUpdater
      *
      */
-    @JQTable(name="SupportedTypes", version=2, inheritColumns=true, strictTypeMapping=true)
+    @JQTable(name = "SupportedTypes", version = 2, inheritColumns = true, strictTypeMapping = true)
     public static class SupportedTypes2 extends SupportedTypes {
-        
-        public SupportedTypes2() {            
+
+        public SupportedTypes2() {
+            // nothing to do
         }
     }
 }

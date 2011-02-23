@@ -135,18 +135,23 @@ class TableDefinition<T> {
         this.tableName = tableName;
     }
 
-    void setPrimaryKey(Object[] primaryKeyColumns) {
-        this.primaryKeyColumnNames = mapColumnNames(primaryKeyColumns);
-        // set isPrimaryKey flag for all field definitions
-        for (FieldDefinition fieldDefinition : fieldMap.values()) {
-            fieldDefinition.isPrimaryKey = this.primaryKeyColumnNames
-                .contains(fieldDefinition.columnName);
-        }
+    /**
+     * Define a primary key by the specified model fields.
+     * 
+     * @param modelFields the ordered list of model fields
+     */
+    void setPrimaryKey(Object[] modelFields) {
+        List<String> columnNames = mapColumnNames(modelFields);
+        setPrimaryKey(columnNames);
     }
 
-    void setPrimaryKey(List<String> primaryKeyColumnNames) {
-        int duplicateFunctionIsItRequired;
-        this.primaryKeyColumnNames = Utils.newArrayList(primaryKeyColumnNames);
+    /**
+     * Define a primary key by the specified column names.
+     * 
+     * @param columnNames the ordered list of column names
+     */
+    void setPrimaryKey(List<String> columnNames) {
+        primaryKeyColumnNames = Utils.newArrayList(columnNames);
         // set isPrimaryKey flag for all field definitions
         for (FieldDefinition fieldDefinition : fieldMap.values()) {
             fieldDefinition.isPrimaryKey = this.primaryKeyColumnNames
@@ -167,16 +172,24 @@ class TableDefinition<T> {
         return columnNames;
     }
 
-    void addIndex(IndexType type, Object[] columns) {
-        IndexDefinition index = new IndexDefinition();
-        index.indexName = tableName + "_" + indexes.size();
-        index.columnNames = mapColumnNames(columns);
-        index.type = type;
-        indexes.add(index);
+    /**
+     * Defines an index with the specified model fields.
+     * 
+     * @param type the index type (STANDARD, HASH, UNIQUE, UNIQUE_HASH)
+     * @param modelFields the ordered list of model fields
+     */
+    void addIndex(IndexType type, Object[] modelFields) {
+        List<String> columnNames = mapColumnNames(modelFields);
+        addIndex(type, columnNames);
     }
 
+    /**
+     * Defines an index with the specified column names.
+     * 
+     * @param type the index type (STANDARD, HASH, UNIQUE, UNIQUE_HASH) 
+     * @param columnNames the ordered list of column names
+     */
     void addIndex(IndexType type, List<String> columnNames) {
-        int whyRequiredCopyOfAboveFunction;
         IndexDefinition index = new IndexDefinition();
         index.indexName = tableName + "_" + indexes.size();
         index.columnNames = Utils.newArrayList(columnNames);

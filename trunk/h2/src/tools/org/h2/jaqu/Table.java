@@ -116,8 +116,8 @@ import java.lang.annotation.Target;
  * <pre>
  * Db db = Db.open(&quot;jdbc:h2:mem:&quot;, &quot;sa&quot;, &quot;sa&quot;);
  * DbInspector inspector = new DbInspector(db);
- * List&lt;String&gt; models = inspector.generateModel(schema, table, packageName,
- * 									annotateSchema, trimStrings)
+ * List&lt;String&gt; models = inspector.generateModel(schema, table, 
+ *                              packageName, annotateSchema, trimStrings);
  * </pre>
  * 
  * OR you may use the <i>GenerateModels</i> tool to generate and save your
@@ -139,7 +139,8 @@ import java.lang.annotation.Target;
  * <pre>
  * Db db = Db.open(&quot;jdbc:h2:mem:&quot;, &quot;sa&quot;, &quot;sa&quot;);
  * DbInspector inspector = new DbInspector(db);
- * List&lt;Validation&gt; remarks = inspector.validateModel(new MyModel(), throwOnError);
+ * MyModel model = new MyModel();
+ * List&lt;Validation&gt; remarks = inspector.validateModel(model, throwOnError);
  * for (Validation remark : remarks)
  *     System.out.println(remark);
  * </pre>

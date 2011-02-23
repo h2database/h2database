@@ -71,11 +71,11 @@ public class ModelUtils {
      * Returns the Java class type for a given SQL type.
      * 
      * @param sqlType
-     * @param dateClazz the preferred date class (java.util.Date or java.sql.Timestamp) 
+     * @param dateClass the preferred date class (java.util.Date or java.sql.Timestamp) 
      * @return
      */
     public static Class<?> getClassType(String sqlType, 
-            Class<? extends java.util.Date> dateClazz) {
+            Class<? extends java.util.Date> dateClass) {
         sqlType = sqlType.toUpperCase();
         // FIXME dropping "UNSIGNED" or parts like that.  could be trouble.
         sqlType = sqlType.split(" ")[0].trim();
@@ -83,17 +83,17 @@ public class ModelUtils {
         if (sqlTypes.containsKey(sqlType))
             // Marshall sqlType to a standard type
             sqlType = sqlTypes.get(sqlType);
-        Class<?> mappedClazz = null;
+        Class<?> mappedClass = null;
         for (Class<?> clazz : supportedTypes.keySet())
             if (supportedTypes.get(clazz).equalsIgnoreCase(sqlType)) {                
-                mappedClazz = clazz;
+                mappedClass = clazz;
                 break;
             }
-        if (mappedClazz != null) {
-            if (mappedClazz.equals(java.util.Date.class)
-                    || mappedClazz.equals(java.sql.Timestamp.class))
-                return dateClazz;                
-            return mappedClazz;
+        if (mappedClass != null) {
+            if (mappedClass.equals(java.util.Date.class)
+                    || mappedClass.equals(java.sql.Timestamp.class))
+                return dateClass;                
+            return mappedClass;
         }
         return null;
     }
@@ -294,7 +294,7 @@ public class ModelUtils {
         
         // TIMESTAMPs
         if (modelClazz == java.util.Date.class 
-                || modelClazz == java.sql.Timestamp.class){
+                || modelClazz == java.sql.Timestamp.class) {
             // This may be a little loose....
             // 00-00-00 00:00:00
             // 00/00/00T00:00:00

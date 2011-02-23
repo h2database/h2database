@@ -174,7 +174,7 @@ public class TableInspector {
      * @param packageName
      * @param annotateSchema
      * @param trimStrings
-     * @return
+     * @return a complete model (class definition) for this table as a string
      */
     String generateModel(String packageName, boolean annotateSchema,
             boolean trimStrings) {
@@ -397,8 +397,8 @@ public class TableInspector {
      * Validates that a table definition (annotated, interface, or both) matches
      * the current state of the table and indexes in the database.
      * <p>
-     * Results are returned as a List&lt;Validation&gt; which includes recommendations,
-     * warnings, and errors about the model.
+     * Results are returned as a List&lt;Validation&gt; which includes
+     * recommendations, warnings, and errors about the model.
      * <p>
      * The caller may choose to have validate throw an exception on any validation
      * ERROR.

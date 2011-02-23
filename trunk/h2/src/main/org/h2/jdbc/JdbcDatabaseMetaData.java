@@ -197,11 +197,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>16 CHAR_OCTET_LENGTH (int) unused </li>
      * <li>17 ORDINAL_POSITION (int) the column index (1,2,...) </li>
      * <li>18 IS_NULLABLE (String) "NO" or "YES" </li>
-     * <li>19 SCOPE_CATALOG (String) always null </li>
+     * <li>19 SCOPE_CATLOG (String) always null
+     * (the typo is on purpose, for compatibility with the specification)</li>
      * <li>20 SCOPE_SCHEMA (String) always null </li>
      * <li>21 SCOPE_TABLE (String) always null </li>
      * <li>22 SOURCE_DATA_TYPE (short) null </li>
      * <li>23 IS_AUTOINCREMENT (String) "NO" or "YES" </li>
+     * <li>24 SCOPE_CATALOG (String) always null </li>
      * </ul>
      *
      * @param catalogPattern null (to get all objects) or the catalog name
@@ -244,11 +246,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "CHARACTER_OCTET_LENGTH CHAR_OCTET_LENGTH, "
                     + "ORDINAL_POSITION, "
                     + "IS_NULLABLE IS_NULLABLE, "
-                    + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATALOG, "
+                    + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG, "
                     + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, "
                     + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, "
                     + "SOURCE_DATA_TYPE, "
-                    + "CASE WHEN SEQUENCE_NAME IS NULL THEN 'NO' ELSE 'YES' END IS_AUTOINCREMENT "
+                    + "CASE WHEN SEQUENCE_NAME IS NULL THEN 'NO' ELSE 'YES' END IS_AUTOINCREMENT, "
+                    + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATALOG "
                     + "FROM INFORMATION_SCHEMA.COLUMNS "
                     + "WHERE TABLE_CATALOG LIKE ? ESCAPE '\\' "
                     + "AND TABLE_SCHEMA LIKE ? ESCAPE '\\' "

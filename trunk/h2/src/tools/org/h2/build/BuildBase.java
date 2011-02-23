@@ -544,8 +544,8 @@ public class BuildBase {
                 try {
                     execScript("mvn", args(
                             "org.apache.maven.plugins:maven-dependency-plugin:2.1:get",
-                            "-DrepoUrl=" + repoDir,
-                            "-Dartifact="+ group +":"+ artifact +":" + version));
+                            "-D" + "repoUrl=" + repoDir,
+                            "-D" + "artifact="+ group +":"+ artifact +":" + version));
                 } catch (RuntimeException e) {
                     println("Could not download using Maven: " + e.toString());
                 }

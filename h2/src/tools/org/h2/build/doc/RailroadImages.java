@@ -20,10 +20,10 @@ import javax.imageio.ImageIO;
  */
 public class RailroadImages {
 
-    private static final int SIZE = 64;
+    private static final int SIZE = 128;
     private static final int LINE_REPEAT = 32;
-    private static final int DIV = 4;
-    private static final int STROKE = 4;
+    private static final int DIV = 8;
+    private static final int STROKE = 16;
 
     private String outDir;
 
@@ -49,38 +49,51 @@ public class RailroadImages {
         Graphics2D g;
         img = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_ARGB);
         g = img.createGraphics();
-        g.setColor(Color.BLACK);
-        g.setStroke(new BasicStroke(STROKE));
-        g.drawLine(0, SIZE / 2, SIZE, SIZE / 2);
+        for (int i = 0; i < 2; i++) {
+            setStroke(g, i);
+            g.drawLine(0, SIZE / 2, SIZE, SIZE / 2);
+        }
         g.dispose();
         savePng(img, "div-d.png");
         img = new BufferedImage(SIZE, SIZE * LINE_REPEAT, BufferedImage.TYPE_INT_ARGB);
         g = img.createGraphics();
-        g.setColor(Color.BLACK);
-        g.setStroke(new BasicStroke(STROKE));
-        g.drawLine(0, SIZE / 2, SIZE, SIZE / 2);
-        g.drawLine(SIZE / 2, SIZE, SIZE / 2, SIZE * LINE_REPEAT);
-
-        // g.drawLine(0, SIZE / 2, SIZE / 2, SIZE);
-        g.drawArc(-SIZE / 2, SIZE / 2, SIZE, SIZE, 0, 90);
-
+        for (int i = 0; i < 2; i++) {
+            setStroke(g, i);
+            g.drawLine(0, SIZE / 2, SIZE, SIZE / 2);
+            g.drawLine(SIZE / 2, SIZE, SIZE / 2, SIZE * LINE_REPEAT);
+            // g.drawLine(0, SIZE / 2, SIZE / 2, SIZE);
+            g.drawArc(-SIZE / 2, SIZE / 2, SIZE, SIZE, 0, 90);
+        }
         g.dispose();
         savePng(img, "div-ts.png");
         savePng(flipHorizontal(img), "div-te.png");
         img = new BufferedImage(SIZE, SIZE * LINE_REPEAT, BufferedImage.TYPE_INT_ARGB);
         g = img.createGraphics();
-        g.setColor(Color.BLACK);
-        g.setStroke(new BasicStroke(STROKE));
-
-        g.drawArc(SIZE / 2, -SIZE / 2, SIZE, SIZE, 180, 270);
-        // g.drawLine(SIZE / 2, 0, SIZE, SIZE / 2);
-
+        for (int i = 0; i < 2; i++) {
+            setStroke(g, i);
+            g.drawArc(SIZE / 2, -SIZE / 2, SIZE, SIZE, 180, 270);
+            // g.drawLine(SIZE / 2, 0, SIZE, SIZE / 2);
+        }
         savePng(img, "div-ls.png");
         savePng(flipHorizontal(img), "div-le.png");
-        g.drawLine(SIZE / 2, 0, SIZE / 2, SIZE * LINE_REPEAT);
+        for (int i = 0; i < 2; i++) {
+            setStroke(g, i);
+            g.drawArc(SIZE / 2, -SIZE / 2, SIZE, SIZE, 180, 270);
+            g.drawLine(SIZE / 2, 0, SIZE / 2, SIZE * LINE_REPEAT);
+        }
         g.dispose();
         savePng(img, "div-ks.png");
         savePng(flipHorizontal(img), "div-ke.png");
+    }
+
+    private void setStroke(Graphics2D g, int i) {
+        if (i == 0) {
+            g.setColor(Color.WHITE);
+            g.setStroke(new BasicStroke(STROKE * 2));
+        } else {
+            g.setColor(Color.BLACK);
+            g.setStroke(new BasicStroke(STROKE));
+        }
     }
 
     private void savePng(BufferedImage img, String fileName) {

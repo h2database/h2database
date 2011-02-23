@@ -75,7 +75,7 @@ public class ModelUtils {
         m.put("BOOL", "BIT");
         m.put("BOOLEAN", "BIT");
 
-        // numberic
+        // numeric
         m.put("BYTE", "TINYINT");
         m.put("INT2", "SMALLINT");
         m.put("YEAR", "SMALLINT");

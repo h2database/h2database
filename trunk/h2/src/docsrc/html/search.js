@@ -16,7 +16,7 @@ String.prototype.endsWith = function(suffix) {
     if (startPos < 0) {
         return false;
     }
-    return (this.lastIndexOf(suffix, startPos) == startPos);
+    return this.lastIndexOf(suffix, startPos) == startPos;
 };
 
 function listWords(value, open) {
@@ -33,13 +33,13 @@ function listWords(value, open) {
     var clear = document.getElementById('clear');
     if (value.length == 0) {
         clear.style.display = 'none';
-        return true;
+        return;
     }
     clear.style.display = '';
     var keywords = value.split(' ');
     if (keywords.length > 1) {
-        listAnd(keywords);
-        return true;
+        listMultipleWords(keywords);
+        return;
     }
     if (value.length < 3) {
         max = 100;
@@ -49,18 +49,18 @@ function listWords(value, open) {
     value = value.toLowerCase();
     var r = ref[value.substring(0, 1)];
     if (r == undefined) {
-        return true;
+        return;
     }
     var x = 0;
     var words = r.split(';');
     var count = 0;
-    for ( var i = 0; i < words.length; i++) {
+    for (var i = 0; i < words.length; i++) {
         var wordRef = words[i];
         if (wordRef.toLowerCase().indexOf(value) == 0) {
             count++;
         }
     }
-    for ( var i = 0; i < words.length && (x <= max); i++) {
+    for (var i = 0; i < words.length && (x <= max); i++) {
         var wordRef = words[i];
         if (wordRef.toLowerCase().indexOf(value) == 0) {
             word = wordRef.split("=")[0];
@@ -91,7 +91,6 @@ function listWords(value, open) {
             noResults(table, 'No results found!');
         }
     }
-    return true;
 }
 
 function set(v) {
@@ -127,26 +126,30 @@ function go(pageId, word) {
     }
 }
 
-function listAnd(keywords) {
+function listMultipleWords(keywords) {
     var count = new Array();
     var weight = new Array();
-    for ( var i = 0; i < pages.length; i++) {
+    for (var i = 0; i < pages.length; i++) {
         count[i] = 0;
-        weight[i] = 0;
+        weight[i] = 0.0;
     }
-    for ( var i = 0; i < keywords.length; i++) {
+    for (var i = 0; i < keywords.length; i++) {
         var value = keywords[i].toLowerCase();
+        if (value.length <= 1) {
+            continue;
+        }
         var r = ref[value.substring(0, 1)];
         if (r == undefined) {
-            return true;
+            continue;
         }
         var words = r.split(';');
-        for ( var j = 0; j < words.length; j++) {
+        for (var j = 0; j < words.length; j++) {
             var wordRef = words[j];
             if (wordRef.toLowerCase().indexOf(value) == 0) {
+                var word = wordRef.split("=")[0].toLowerCase();
                 piList = wordRef.split("=")[1].split(",");
                 var w = 1;
-                for ( var k = 0; k < piList.length; k++) {
+                for (var k = 0; k < piList.length; k++) {
                     var pi = piList[k];
                     if (pi.charAt(0) == 't') {
                         pi = pi.substring(1);
@@ -158,10 +161,15 @@ function listAnd(keywords) {
                         pi = pi.substring(1);
                         w = 1;
                     }
-                    if (count[pi] >= i) {
-                        if (count[pi] == i) {
-                            count[pi]++;
+                    if (w > 0) {
+                        if (word != value) {
+                            // if it's only the start of the word,
+                            // reduce the weight
+                            w /= 10.0;
                         }
+                        // higher weight for longer words
+                        w += w * word.length / 10.0;
+                        count[pi]++;
                         weight[pi] += w;
                     }
                 }
@@ -172,15 +180,16 @@ function listAnd(keywords) {
     var table = document.getElementById('result');
     var piList = new Array();
     var piWeight = new Array();
-    for ( var i = 0; i < pages.length; i++) {
-        if (count[i] >= keywords.length) {
+    for (var i = 0; i < pages.length; i++) {
+        var w = weight[i];
+        if (w > 0) {
             piList[x] = '' + i;
-            piWeight[x] = weight[i];
+            piWeight[x] = w * count[i];
             x++;
         }
     }
     // sort
-    for ( var i = 1, j; i < x; i++) {
+    for (var i = 1, j; i < x; i++) {
         var tw = piWeight[i];
         var ti = piList[i];
         for (j = i - 1; j >= 0 && (piWeight[j] < tw); j--) {
@@ -198,7 +207,7 @@ function listAnd(keywords) {
 
 function addReferences(x, piList, word) {
     var table = document.getElementById('result');
-    for ( var j = 0; j < piList.length; j++) {
+    for (var j = 0; j < piList.length; j++) {
         var pi = piList[j];
         if (pi.charAt(0) == 't') {
             pi = pi.substring(1);
@@ -242,7 +251,7 @@ function trim(s) {
 
 function replaceOtherChars(s) {
     var x = "";
-    for ( var i = 0; i < s.length; i++) {
+    for (var i = 0; i < s.length; i++) {
         var c = s.charAt(i);
         if ("\t\r\n\"'.,:;!&/\\?%@`[]{}()+-=<>|*^~#$".indexOf(c) >= 0) {
             c = " ";

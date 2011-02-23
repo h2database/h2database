@@ -386,7 +386,7 @@ public class SamplesTest extends TestBase {
 
         assertEquals(1, count);
     }
-    
+
     private void testLimitOffset() {
         Set<Integer> ids = new HashSet<Integer>();
         Product p = new Product();
@@ -398,7 +398,7 @@ public class SamplesTest extends TestBase {
             }
         }
     }
-    
+
     private void testKeyRetrieval() {
         List<SupportedTypes> list = SupportedTypes.createList();
         List<Long> keys = db.insertAllAndGetKeys(list);
@@ -406,7 +406,7 @@ public class SamplesTest extends TestBase {
         for (Long l : keys) {
             assertTrue("Failed to add key.  Duplicate?", uniqueKeys.add(l));
         }
-    }    
+    }
 //## Java 1.5 end ##
 
     /**

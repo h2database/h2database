@@ -103,7 +103,7 @@ public class ModelsTest extends TestBase {
     private void testDatabaseUpgrade() {
         Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
 
-        // Insert a Database version record
+        // insert a database version record
         db.insert(new DbVersion(1));
 
         TestDbUpgrader dbUpgrader = new TestDbUpgrader();
@@ -120,11 +120,11 @@ public class ModelsTest extends TestBase {
     private void testTableUpgrade() {
         Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
 
-        // Insert first, this will create version record automatically
+        // insert first, this will create version record automatically
         List<SupportedTypes> original = SupportedTypes.createList();
         db.insertAll(original);
 
-        // Reset the dbUpgrader (clears updatecheck cache)
+        // reset the dbUpgrader (clears the update check cache)
         TestDbUpgrader dbUpgrader = new TestDbUpgrader();
         db.setDbUpgrader(dbUpgrader);
 

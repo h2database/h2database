@@ -14,10 +14,12 @@ import org.h2.jaqu.util.StringUtils;
  * A Validation Remark is a result of running a model validation.
  * <p>
  * Each remark has a level, associated component (schema, table, column, index),
- * and a message. 
+ * and a message.
  *
  */
 public class Validation {
+
+    private int todoReviewWholeClass;
 
     public static Validation CONSIDER(String table, String type, String message) {
         return new Validation(Level.CONSIDER, table, type, message);
@@ -57,7 +59,7 @@ public class Validation {
     String fieldName;
     String message;
 
-    private Validation(Level level, String table, String type, String message) {        
+    private Validation(Level level, String table, String type, String message) {
         this.level = level;
         this.table = table;
         this.fieldType = type;
@@ -65,7 +67,7 @@ public class Validation {
         this.message = message;
     }
 
-    private Validation(Level level, String table, FieldDefinition field, String message) {        
+    private Validation(Level level, String table, FieldDefinition field, String message) {
         this.level = level;
         this.table = table;
         this.fieldType = field.dataType;
@@ -73,7 +75,7 @@ public class Validation {
         this.message = message;
     }
 
-    private Validation(Level level, String table, ColumnInspector col, String message) {        
+    private Validation(Level level, String table, ColumnInspector col, String message) {
         this.level = level;
         this.table = table;
         this.fieldType = col.type;
@@ -100,7 +102,7 @@ public class Validation {
         sb.append(message);
         return sb.toString();
     }
-    
+
     public String toCSVString() {
         StringBuilder sb = new StringBuilder();
         sb.append(level.name()).append(',');

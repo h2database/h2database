@@ -227,7 +227,7 @@ class TableDefinition<T> {
 
         for (Field f : classFields) {
             // default to field name
-            String columnName = f.getName(); 
+            String columnName = f.getName();
             boolean isAutoIncrement = false;
             boolean isPrimaryKey = false;
             int maxLength = 0;

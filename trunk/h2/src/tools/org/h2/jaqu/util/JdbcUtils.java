@@ -21,6 +21,8 @@ import javax.sql.XAConnection;
  */
 public class JdbcUtils {
 
+    private static final int todoDeleteClass = 0;
+
     private static final String[] DRIVERS = {
         "h2:", "org.h2.Driver",
         "Cache:", "com.intersys.jdbc.CacheDriver",
@@ -91,7 +93,7 @@ public class JdbcUtils {
     public static void closeSilently(ResultSet rs) {
         closeSilently(rs, false);
     }
-    
+
     /**
      * Close a result set, and optionally its statement without throwing an
      * exception.

@@ -19,7 +19,6 @@ import org.h2.jaqu.bytecode.ClassReader;
 import org.h2.jaqu.util.StatementLogger;
 import org.h2.jaqu.util.JdbcUtils;
 import org.h2.jaqu.util.Utils;
-//import org.h2.util.JdbcUtils;
 //## Java 1.5 end ##
 
 /**
@@ -38,8 +37,8 @@ public class Query<T> {
     private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = Utils.newIdentityHashMap();
     private ArrayList<OrderExpression<T>> orderByList = Utils.newArrayList();
     private Object[] groupByExpressions;
-    private long limit = 0;
-    private long offset = 0;
+    private long limit;
+    private long offset;
 
     Query(Db db) {
         this.db = db;
@@ -65,6 +64,7 @@ public class Query<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
+            int whyTrue;
             JdbcUtils.closeSilently(rs, true);
         }
     }
@@ -120,24 +120,26 @@ public class Query<T> {
         StatementLogger.delete(stat.getSQL());
         return stat.executeUpdate();
     }
-    
+
     public <A> SetColumn<T, A> set(A field) {
+        int renameSetColumnClassToUpdateSetColumn;
         return new SetColumn<T, A>(this, field);
     }
 
     public <A> IncrementColumn<T, A> increment(A field) {
+        int renameIncrementColumnClassToUpdateIncrementColumn;
         return new IncrementColumn<T, A>(this, field);
     }
 
     public int update() {
         if (declarations.size() == 0)
             throw new RuntimeException("Please specify SET or INCREMENT before calling Update!");
-        SQLStatement stat = new SQLStatement(db);                
+        SQLStatement stat = new SQLStatement(db);
         stat.appendSQL("UPDATE ");
         from.appendSQL(stat);
         stat.appendSQL(" SET ");
         int i = 0;
-        for (Declaration declaration:declarations) {
+        for (Declaration declaration : declarations) {
             if (i++ > 0) {
                 stat.appendSQL(", ");
             }
@@ -145,7 +147,7 @@ public class Query<T> {
         }
         appendWhere(stat);
         StatementLogger.update(stat.getSQL());
-        return stat.executeUpdate();        
+        return stat.executeUpdate();
     }
 
     public <X, Z> List<X> selectDistinct(Z x) {
@@ -196,6 +198,7 @@ public class Query<T> {
                 try {
                     X value;
                     Object o = rs.getObject(1);
+                    int convertHereIsProbablyWrong;
                     if (Clob.class.isAssignableFrom(o.getClass())) {
                         value = (X) Utils.convert(o, String.class);
                     } else
@@ -266,7 +269,7 @@ public class Query<T> {
         return this;
     }
 //## Java 1.5 end ##
-    
+
     /**
      * Order by a number of columns.
      *
@@ -323,8 +326,9 @@ public class Query<T> {
     void addConditionToken(Token condition) {
         conditions.add(condition);
     }
-    
+
     void addDeclarationToken(Declaration declaration) {
+    int todoWhatIsDeclaration;
         declarations.add(declaration);
     }
 

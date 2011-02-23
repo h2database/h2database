@@ -28,6 +28,8 @@ import org.h2.message.DbException;
  */
 public class GenerateModels {
 
+    private static final int todoReview = 0;
+
     /**
      * The output stream where this tool writes to.
      */
@@ -112,10 +114,11 @@ public class GenerateModels {
             List<String> models = inspector.generateModel(schema, table,
                     packageName, annotateSchema, trimStrings);
             File parentFile;
-            if (StringUtils.isNullOrEmpty(folder))
+            if (StringUtils.isNullOrEmpty(folder)) {
                 parentFile = new File(System.getProperty("user.dir"));
-            else
+            } else {
                 parentFile = new File(folder);
+            }
             parentFile.mkdirs();
             Pattern p = Pattern.compile("class ([a-zA-Z0-9]+)");
             for (String model : models) {
@@ -162,4 +165,5 @@ public class GenerateModels {
         out.println("    -annotateSchema <boolean>");
         out.println("    -trimStrings <boolean>");
     }
+
 }

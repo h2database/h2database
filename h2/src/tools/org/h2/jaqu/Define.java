@@ -27,17 +27,17 @@ public class Define {
         checkInDefine();
         currentTableDefinition.addIndex(IndexType.STANDARD, columns);
     }
-    
+
     public static void uniqueIndex(Object... columns) {
         checkInDefine();
         currentTableDefinition.addIndex(IndexType.UNIQUE, columns);
     }
-    
+
     public static void hashIndex(Object column) {
         checkInDefine();
         currentTableDefinition.addIndex(IndexType.HASH, new Object [] { column });
     }
-    
+
     public static void uniqueHashIndex(Object column) {
         checkInDefine();
         currentTableDefinition.addIndex(IndexType.UNIQUE_HASH, new Object [] { column });

@@ -35,8 +35,8 @@ public class DbInspector {
     }
 
     /**
-     * Set the preferred Date class.
-     * Possible values are: java.util.Date (default) and java.sql.Timestamp.
+     * Set the preferred Date class. Possible values are: java.util.Date
+     * (default), java.sql.Date, java.sql.Timestamp.
      *
      * @param dateClass the new date class
      */
@@ -115,10 +115,10 @@ public class DbInspector {
         Class<T> clazz = (Class<T>) model.getClass();
         TableDefinition<T> def = db.define(clazz);
         boolean forceUpperCase = getMetaData().storesUpperCaseIdentifiers();
-        String sname = (forceUpperCase && def.schemaName != null) ?
+        String schema = (forceUpperCase && def.schemaName != null) ?
                 def.schemaName.toUpperCase() : def.schemaName;
-        String tname = forceUpperCase ? def.tableName.toUpperCase() : def.tableName;
-        List<TableInspector> tables = findTables(sname, tname);
+        String table = forceUpperCase ? def.tableName.toUpperCase() : def.tableName;
+        List<TableInspector> tables = findTables(schema, table);
         return tables.get(0);
     }
 

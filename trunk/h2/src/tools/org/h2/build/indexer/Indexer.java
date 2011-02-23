@@ -26,7 +26,7 @@ import org.h2.util.StringUtils;
 public class Indexer {
 
     private static final int MIN_WORD_SIZE = 3;
-    private static final int MAX_RELATIONS = 20;
+    private static final int MAX_RELATIONS = 30;
     private static final String VERY_COMMON =
         ";the;be;to;of;and;a;in;that;have;i;it;for;not;on;with;he;as;you;do;at;" +
         "this;but;his;by;from;they;we;say;her;she;or;an;will;my;one;all;would;" +
@@ -72,7 +72,8 @@ public class Indexer {
             }
         }
         File file = new File(dir);
-        setNoIndex("index.html", "html/header.html", "html/search.html", "html/frame.html",
+        setNoIndex("index.html", "html/header.html", "html/search.html",
+                "html/frame.html", "html/fragments.html",
                 "html/sourceError.html", "html/source.html", "html/mainWeb.html",
                 "javadoc/index.html", "javadoc/classes.html", "javadoc/allclasses-frame.html",
                 "javadoc/allclasses-noframe.html", "javadoc/constant-values.html", "javadoc/overview-frame.html",

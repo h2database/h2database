@@ -18,10 +18,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New sample application that shows how to use "instead of" triggers to support updatable views.
+<ul><li>SQL railroad diagrams: improved images for people with black background settings.
+</li><li>Build-in documentation search: improved results if searching for multiple words.
+</li><li>DatabaseMetaData.getColumns: there is a typo in the JDBC specification, so that the column #19 is named
+    SCOPE_CATLOG instead of SCOPE_CATALOG. For compatibility with the specification, this column is now also
+    named SCOPE_CATLOG in H2. A new column named SCOPE_CATALOG is appended as column #24.
+    Please note that MySQL only supports SCOPE_CATALOG, while other databases only support SCOPE_CATLOG.
+</li><li>Build: jar files are now downloaded using Maven if possible (and cached in the local Maven repository).
+    Unfortunately, in many cases this will download more data from the Maven repository.
+</li><li>JaQu has been improved a lot thanks to the new committer James Moger.
+</li><li>New sample application that shows how to use "instead of" triggers to support updatable views.
 </li><li>H2 Console: opening a MS SQL Server database is now faster.
     Also, listing the database meta data sometimes resulted in an exception.
-</li><li>Linked tables / MS SQL Server: if the tables were created in mixed case in MS SQL Server, 
+</li><li>Linked tables / MS SQL Server: if the tables were created in mixed case in MS SQL Server,
     then the identifiers in the linked tables were case sensitive (in H2).
 </li><li>MVCC: the probability of a lock timeout is now lower if multiple threads try to update the same rows.
 </li><li>Building only the documentation (without compiling all classes) didn't work, specially: ./build.sh clean javadocImpl.

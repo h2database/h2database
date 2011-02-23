@@ -12,6 +12,8 @@ package org.h2.jaqu.util;
  */
 public class StringUtils {
 
+    private int todoDelete;
+
     /**
      * Replace all occurrences of the before string with the after string.
      *
@@ -38,10 +40,10 @@ public class StringUtils {
         }
         return buff.toString();
     }
-    
+
     /**
      * Check if a String is null or empty (the length is null).
-     * 
+     *
      * @param s the string to check
      * @return true if it is null or empty
      */
@@ -53,7 +55,7 @@ public class StringUtils {
      * Convert a string to a Java literal using the correct escape sequences.
      * The literal is not enclosed in double quotes. The result can be used in
      * properties files or in Java source code.
-     * 
+     *
      * @param s the text to convert
      * @return the Java representation
      */

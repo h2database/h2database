@@ -16,76 +16,71 @@ import java.util.concurrent.atomic.AtomicLong;
  * Statement logging is disabled by default.
  * <p>
  * This class also tracks the counts for generated statements by major type.
- * 
+ *
  */
 public class StatementLogger {
-    
-    public static boolean logStatements = false;
-    
-    public static PrintWriter out = new PrintWriter(System.out);
 
-    public final static AtomicLong selectCount = new AtomicLong(0);
-    
-    public final static AtomicLong createCount = new AtomicLong(0);
-    
-    public final static AtomicLong insertCount = new AtomicLong(0);
-    
-    public final static AtomicLong updateCount = new AtomicLong(0);
-    
-    public final static AtomicLong mergeCount = new AtomicLong(0);
-    
-    public final static AtomicLong deleteCount = new AtomicLong(0);
+    public static boolean logStatements;
+    private static PrintWriter out = new PrintWriter(System.out);
+    private static final AtomicLong SELECT_COUNT = new AtomicLong();
+    private static final AtomicLong CREATE_COUNT = new AtomicLong();
+    private static final AtomicLong INSERT_COUNT = new AtomicLong();
+    private static final AtomicLong UPDATE_COUNT = new AtomicLong();
+    private static final AtomicLong MERGE_COUNT = new AtomicLong();
+    private static final AtomicLong DELETE_COUNT = new AtomicLong();
 
     public static void create(String statement) {
-        createCount.incrementAndGet();        
+        CREATE_COUNT.incrementAndGet();
         log(statement);
     }
 
     public static void insert(String statement) {
-        insertCount.incrementAndGet();
+        INSERT_COUNT.incrementAndGet();
         log(statement);
     }
 
     public static void update(String statement) {
-        updateCount.incrementAndGet();
+        UPDATE_COUNT.incrementAndGet();
         log(statement);
     }
-    
+
     public static void merge(String statement) {
-        mergeCount.incrementAndGet();
+        MERGE_COUNT.incrementAndGet();
         log(statement);
     }
 
     public static void delete(String statement) {
-        deleteCount.incrementAndGet();
+        DELETE_COUNT.incrementAndGet();
         log(statement);
     }
-    
+
     public static void select(String statement) {
-        selectCount.incrementAndGet();
+        SELECT_COUNT.incrementAndGet();
         log(statement);
     }
-    
+
     private static void log(String statement) {
-        if (logStatements)
+        if (logStatements) {
             out.println(statement);
+        }
     }
-    
+
     public static void printStats() {
-        out.println("JaQu Runtime Stats");
+        out.println("JaQu Runtime Statistics");
         out.println("=======================");
-        printStat("CREATE", createCount);
-        printStat("INSERT", insertCount);
-        printStat("UPDATE", updateCount);
-        printStat("MERGE", mergeCount);
-        printStat("DELETE", deleteCount);
-        printStat("SELECT", selectCount);
+        printStat("CREATE", CREATE_COUNT);
+        printStat("INSERT", INSERT_COUNT);
+        printStat("UPDATE", UPDATE_COUNT);
+        printStat("MERGE", MERGE_COUNT);
+        printStat("DELETE", DELETE_COUNT);
+        printStat("SELECT", SELECT_COUNT);
     }
-    
+
     private static void printStat(String name, AtomicLong value) {
         if (value.get() > 0) {
             DecimalFormat df = new DecimalFormat("###,###,###,###");
-            out.println(name + "=" + df.format(createCount.get()));
+            out.println(name + "=" + df.format(CREATE_COUNT.get()));
         }
     }
+
 }

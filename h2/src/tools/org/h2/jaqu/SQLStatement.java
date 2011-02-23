@@ -38,7 +38,7 @@ public class SQLStatement {
         sql = null;
         return this;
     }
-    
+
     public SQLStatement appendTable(String schema, String table) {
         return appendSQL(db.getDialect().tableName(schema, table));
     }
@@ -54,7 +54,7 @@ public class SQLStatement {
         params.add(o);
         return this;
     }
-    
+
     ResultSet executeQuery() {
         try {
             return prepare(false).executeQuery();
@@ -74,7 +74,7 @@ public class SQLStatement {
             JdbcUtils.closeSilently(ps);
         }
     }
-    
+
     long executeInsert() {
         PreparedStatement ps = null;
         try {
@@ -82,9 +82,10 @@ public class SQLStatement {
             ps.executeUpdate();
             long identity = -1;
             ResultSet rs = ps.getGeneratedKeys();
-            if (rs != null && rs.next())
+            if (rs != null && rs.next()) {
                 identity = rs.getLong(1);
-            JdbcUtils.closeSilently(rs);            
+            }
+            JdbcUtils.closeSilently(rs);
             return identity;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -101,8 +102,8 @@ public class SQLStatement {
         }
     }
 
-    private PreparedStatement prepare(boolean returnIdentity) {
-        PreparedStatement prep = db.prepare(getSQL(), returnIdentity);
+    private PreparedStatement prepare(boolean returnGeneratedKeys) {
+        PreparedStatement prep = db.prepare(getSQL(), returnGeneratedKeys);
         for (int i = 0; i < params.size(); i++) {
             Object o = params.get(i);
             setValue(prep, i + 1, o);

@@ -30,6 +30,8 @@ package org.h2.jaqu.util;
  */
 public class StatementBuilder {
 
+    private int todoDelete;
+
     private final StringBuilder builder = new StringBuilder();
     private int index;
 
@@ -113,11 +115,11 @@ public class StatementBuilder {
             builder.append(s);
         }
     }
-    
+
     public void append(StatementBuilder sb) {
         builder.append(sb);
     }
-    
+
     public void insert(int offset, char c) {
         builder.insert(offset, c);
     }

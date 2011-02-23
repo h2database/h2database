@@ -18,6 +18,8 @@ import java.sql.SQLException;
  */
 public class Message {
 
+    private int todoDelete;
+
     private Message() {
         // utility class
     }

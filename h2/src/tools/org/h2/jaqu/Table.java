@@ -1,7 +1,8 @@
 /*
- * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License, Version
- * 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+ * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.jaqu;
 
@@ -10,6 +11,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * A class that implements this interface can be used as a database table.
+ */
 /**
  * A class that implements the JaQu model mapping options.
  * <p>
@@ -112,95 +116,93 @@ import java.lang.annotation.Target;
  * <p>
  * You may automatically generate model classes as strings with the <i>Db</i>
  * and <i>DbInspector</i> objects.
- * 
+ *
  * <pre>
  * Db db = Db.open(&quot;jdbc:h2:mem:&quot;, &quot;sa&quot;, &quot;sa&quot;);
  * DbInspector inspector = new DbInspector(db);
- * List&lt;String&gt; models = inspector.generateModel(schema, table, 
- *                              packageName, annotateSchema, trimStrings);
+ * List&lt;String&gt; models =
+ *         inspector.generateModel(schema, table, packageName,
+ *         annotateSchema, trimStrings)
  * </pre>
- * 
+ *
  * OR you may use the <i>GenerateModels</i> tool to generate and save your
  * classes to the filesystem.
- * 
+ *
  * <pre>
- * java -cp h2jaqu.jar org.h2.jaqu.util.GenerateModels 
+ * java -cp h2jaqu.jar org.h2.jaqu.util.GenerateModels
  *      -url &quot;jdbc:h2:mem:&quot;
  *      -user sa -password sa -schema schemaName -table tableName
  *      -package packageName -folder destination
  *      -annotateSchema false -trimStrings true
  * </pre>
- * 
+ *
  * <b>Model Validation</b>
  * <p>
  * You may validate your model class with <i>DbInspector</i> object.<br>
- * The DbInspector will report ERRORS, WARNINGS, and SUGGESTIONS to help you.
- * 
+ * The DbInspector will report ERRORS, WARNINGS, and
+ * SUGGESTIONS to help you.
+ *
  * <pre>
- * Db db = Db.open(&quot;jdbc:h2:mem:&quot;, &quot;sa&quot;, &quot;sa&quot;);
+ * Db db = Db.open(&quot;jdbc:h2:mem:&quot;,
+ *     &quot;sa&quot;, &quot;sa&quot;);
  * DbInspector inspector = new DbInspector(db);
- * MyModel model = new MyModel();
- * List&lt;Validation&gt; remarks = inspector.validateModel(model, throwOnError);
- * for (Validation remark : remarks)
+ * List&lt;Validation&gt; remarks =
+ *     inspector.validateModel(new MyModel(), throwOnError);
+ * for (Validation remark : remarks) {
  *     System.out.println(remark);
+ * }
  * </pre>
  */
 public interface Table {
+
+    static final int reviewWholeClassAndJavadocs = 0;
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     public @interface JQDatabase {
         /**
-         * If <b>version</b> is set to a <i>non-zero</i> value, JaQu will
+         * If version is set to a non-zero value, JaQu will
          * maintain a "_jq_versions" table within your database. The
-         * <i>version</i> number will be used to call to a registered
-         * <i>DbUpgrader</i> implementation to perform relevant ALTERs or
-         * whatever.
-         * <p>
-         * <b>Default: <i>0</i></b>
-         * <p>
-         * <b>NOTE:</b><br>
-         * You must specify a <i>DbUpgrader</i> on your <i>Db</i> object to
+         * version number will be used to call to a registered
+         * DbUpgrader implementation to perform relevant ALTER statements.
+         * Default: 0.
+         * You must specify a DbUpgrader on your Db object to
          * use this parameter.
          */
         int version() default 0;
     }
-    
+
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     public @interface JQSchema {
         /**
-         * <b>schema</b> may be optionally specified. If it is not specified the
-         * schema will be ignored.
-         * <p>
-         * <b>Default: <i>Unspecified</i></b>
+         * The schema may be optionally specified. If it is not specified the
+         * schema will be ignored. Default: Unspecified.
          */
         String name() default "";
     }
-    
+
     /**
      * Enumeration defining the 4 index types.
-     *
      */
     public static enum IndexType {
         STANDARD, UNIQUE, HASH, UNIQUE_HASH;
     }
-    
+
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     public @interface JQIndex {
         /**
-         * <b>standard</b> indexes may be optionally specified. If not specified,
+         * Standard indexes may be optionally specified. If not specified,
          * these values will be ignored.
          * <ul>
          * <li>standard = "id, name"
          * <li>standard = "id name"
          * <li>standard = { "id name", "date" }
          * </ul>
-         * Standard indexes may still be added in the <i>define()</i> method if
+         * Standard indexes may still be added in the define() method if
          * the model class is not annotated with JQTable.
-         * <p>
-         * <b>Default: <i>Unspecified</i></b>
+         * Default: Unspecified.
          */
         String[] standard() default {};
 
@@ -218,7 +220,7 @@ public interface Table {
          * <b>Default: <i>Unspecified</i></b>
          */
         String[] unique() default {};
-   
+
         /**
          * <b>hash</b> indexes may be optionally specified. If not specified,
          * these values will be ignored.
@@ -232,7 +234,7 @@ public interface Table {
          * <b>Default: <i>Unspecified</i></b>
          */
         String[] hash() default {};
-   
+
         /**
          * <b>uniqueHash</b> indexes may be optionally specified. If not specified,
          * these values will be ignored.
@@ -337,8 +339,8 @@ public interface Table {
          * If <b>version</b> is set to a <i>non-zero</i> value, JaQu will
          * maintain a "_jq_versions" table within your database. The
          * <i>version</i> number will be used to call to a registered
-         * <i>DbUpgrader</i> implementation to perform relevant ALTERs or
-         * whatever.
+         * <i>DbUpgrader</i> implementation to perform relevant ALTER
+         * statements.
          * <p>
          * <b>Default: <i>0</i></b>
          * <p>

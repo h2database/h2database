@@ -13,6 +13,8 @@ package org.h2.jaqu.util;
  */
 public class ClassUtils {
 
+    int todoDelete;
+
     private ClassUtils() {
         // utility class
     }
@@ -31,5 +33,7 @@ public class ClassUtils {
             throw new RuntimeException(e);
         }
     }
+
 //## Java 1.5 end ##
+
 }

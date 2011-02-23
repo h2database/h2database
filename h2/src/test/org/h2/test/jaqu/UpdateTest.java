@@ -18,7 +18,7 @@ import static java.sql.Date.valueOf;
  */
 public class UpdateTest extends TestBase {
 
-    Db db;
+    private Db db;
 
     /**
      * This method is called when executing this application from the command
@@ -112,11 +112,11 @@ public class UpdateTest extends TestBase {
         ourOrder.orderDate = valueOf("2007-01-02");
         db.merge(ourOrder);
     }
-    
+
     private void testSetColumns() {
         Product p = new Product();
         Product original = db.from(p).where(p.productId).is(1).selectFirst();
-        
+
         // update  string and double columns
         db.from(p)
             .set(p.productName).to("updated")
@@ -125,9 +125,9 @@ public class UpdateTest extends TestBase {
             .where(p.productId)
             .is(1).
             update();
-        
+
         // confirm the data was properly updated
-        Product revised = db.from(p).where(p.productId).is(1).selectFirst();        
+        Product revised = db.from(p).where(p.productId).is(1).selectFirst();
         assertEquals("updated", revised.productName);
         assertEquals(original.unitPrice + 3.14, revised.unitPrice);
         assertEquals(original.unitsInStock + 2, revised.unitsInStock.intValue());
@@ -138,12 +138,12 @@ public class UpdateTest extends TestBase {
             .set(p.unitPrice).to(original.unitPrice)
             .increment(p.unitsInStock).by(-2)
             .where(p.productId).is(1).update();
-        
+
         // confirm the data was properly restored
         Product restored = db.from(p).where(p.productId).is(1).selectFirst();
         assertEquals(original.productName, restored.productName);
         assertEquals(original.unitPrice, restored.unitPrice);
         assertEquals(original.unitsInStock, restored.unitsInStock);
-    }   
+    }
 
 }

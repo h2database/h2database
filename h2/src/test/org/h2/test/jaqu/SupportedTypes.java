@@ -1,3 +1,9 @@
+/*
+ * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: James Moger
+ */
 package org.h2.test.jaqu;
 
 import java.math.BigDecimal;

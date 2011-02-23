@@ -10,33 +10,36 @@ import org.h2.jaqu.Table.JQColumn;
 import org.h2.jaqu.Table.JQTable;
 
 /**
- * Model class for JaQu to track db and table versions. 
- *
+ * A JaQu system table to track database and table versions.
  */
 @JQTable(name = "_jq_versions", primaryKey = "schemaName tableName", memoryTable = true)
 public class DbVersion {
-    
+
     @JQColumn(name = "schemaName", allowNull = false)
-    String schema;
-    
+    String schema = "";
+
     @JQColumn(name = "tableName", allowNull = false)
-    String table;
-    
+    String table = "";
+
     @JQColumn(name = "version")
     Integer version;
-    
-    public DbVersion() {        
+
+    private int todoReviewWholeClass;
+
+    public DbVersion() {
+        // nothing to do
     }
-    
+
     /**
-     * Constructor for defining a version entry.
-     * (SCHEMA="" && TABLE="") == DATABASE
-     * 
-     * @param version
+     * Constructor for defining a version entry. Both the schema and the table
+     * are empty strings, which means this is the row for the 'database'.
+     *
+     * @param version the database version
      */
     public DbVersion(int version) {
         this.schema = "";
         this.table = "";
         this.version = version;
     }
+
 }

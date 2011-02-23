@@ -11,6 +11,9 @@ package org.h2.jaqu;
  * update statement.
  */
 public interface Declaration {
+
+    final static int renameClassToUpdateDeclaration = 0;
+
     /**
      * Append the SQL to the given statement using the given query.
      *
@@ -19,4 +22,5 @@ public interface Declaration {
 //## Java 1.5 begin ##
     void appendSQL(SQLStatement stat);
 //## Java 1.5 end ##
+
 }

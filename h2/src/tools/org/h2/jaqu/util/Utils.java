@@ -70,33 +70,33 @@ public class Utils {
     public static <T> T newObject(Class<T> clazz) {
         // must create new instances
         if (clazz == Integer.class) {
-            return (T) new Integer((int) COUNTER.incrementAndGet());
+            return (T) new Integer((int) COUNTER.getAndIncrement());
         } else if (clazz == String.class) {
-            return (T) ("" + COUNTER.incrementAndGet());
+            return (T) ("" + COUNTER.getAndIncrement());
         } else if (clazz == Long.class) {
-            return (T) new Long(COUNTER.incrementAndGet());
+            return (T) new Long(COUNTER.getAndIncrement());
         } else if (clazz == Short.class) {
-            return (T) new Short((short) COUNTER.incrementAndGet());
+            return (T) new Short((short) COUNTER.getAndIncrement());
         } else if (clazz == Byte.class) {
-            return (T) new Byte((byte) COUNTER.incrementAndGet());
+            return (T) new Byte((byte) COUNTER.getAndIncrement());
         } else if (clazz == Float.class) {
-            return (T) new Float(COUNTER.incrementAndGet());
+            return (T) new Float(COUNTER.getAndIncrement());
         } else if (clazz == Double.class) {
-            return (T) new Double(COUNTER.incrementAndGet());
+            return (T) new Double(COUNTER.getAndIncrement());
         } else if (clazz == Boolean.class) {
             return (T) new Boolean(false);
         } else if (clazz == BigDecimal.class) {
-            return (T) new BigDecimal(COUNTER.incrementAndGet());
+            return (T) new BigDecimal(COUNTER.getAndIncrement());
         } else if (clazz == BigInteger.class) {
-            return (T) new BigInteger("" + COUNTER.incrementAndGet());
+            return (T) new BigInteger("" + COUNTER.getAndIncrement());
         } else if (clazz == java.sql.Date.class) {
-            return (T) new java.sql.Date(COUNTER.incrementAndGet());
+            return (T) new java.sql.Date(COUNTER.getAndIncrement());
         } else if (clazz == java.sql.Time.class) {
-            return (T) new java.sql.Time(COUNTER.incrementAndGet());
+            return (T) new java.sql.Time(COUNTER.getAndIncrement());
         } else if (clazz == java.sql.Timestamp.class) {
-            return (T) new java.sql.Timestamp(COUNTER.incrementAndGet());
+            return (T) new java.sql.Timestamp(COUNTER.getAndIncrement());
         } else if (clazz == java.util.Date.class) {
-            return (T) new java.util.Date(COUNTER.incrementAndGet());
+            return (T) new java.util.Date(COUNTER.getAndIncrement());
         } else if (clazz == List.class) {
             return (T) new ArrayList();
         }

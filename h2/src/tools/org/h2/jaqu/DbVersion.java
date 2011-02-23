@@ -13,16 +13,16 @@ import org.h2.jaqu.Table.JQTable;
  * Model class for JaQu to track db and table versions. 
  *
  */
-@JQTable(name="_jq_versions", primaryKey="schemaName tableName", memoryTable=true)
+@JQTable(name = "_jq_versions", primaryKey = "schemaName tableName", memoryTable = true)
 public class DbVersion {
     
-    @JQColumn(name="schemaName", allowNull=false)
-    String schema = "";
+    @JQColumn(name = "schemaName", allowNull = false)
+    String schema;
     
-    @JQColumn(name="tableName", allowNull = false)
-    String table = "";
+    @JQColumn(name = "tableName", allowNull = false)
+    String table;
     
-    @JQColumn(name="version")
+    @JQColumn(name = "version")
     Integer version;
     
     public DbVersion() {        

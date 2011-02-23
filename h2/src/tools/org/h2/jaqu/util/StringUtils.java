@@ -6,7 +6,10 @@
  */
 package org.h2.jaqu.util;
 
-
+/**
+ * Common string utilities.  I expect that this class will be removed.
+ *
+ */
 public class StringUtils {
 
     /**

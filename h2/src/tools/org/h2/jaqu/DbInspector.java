@@ -36,7 +36,7 @@ public class DbInspector {
 
     /**
      * Set the preferred Date class.
-     * Possible values are: java.util.Date (default), java.sql.Date, java.sql.Timestamp.
+     * Possible values are: java.util.Date (default) and java.sql.Timestamp.
      *
      * @param dateClass the new date class
      */
@@ -45,14 +45,17 @@ public class DbInspector {
     }
 
     /**
-     * Generates models class skeletons for schemas and tables.
+     * Generates models class skeletons for schemas and tables.  If the table
+     * name is undefined, models will be generated for every table within the
+     * specified schema.  Additionally, if no schema is defined, models will be
+     * generated for all schemas and all tables. 
      *
      * @param schema the schema name (optional)
-     * @param table the table name (required)
+     * @param table the table name (optional)
      * @param packageName the package name (optional)
      * @param annotateSchema (includes schema name in annotation)
      * @param trimStrings (trims strings to maxLength of column)
-     * @return a list of strings, each element a line of source code
+     * @return a list of complete model classes as strings, each element a class
      */
     public List<String> generateModel(String schema, String table,
             String packageName, boolean annotateSchema, boolean trimStrings) {

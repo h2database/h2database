@@ -137,7 +137,7 @@ class TableDefinition<T> {
 
     /**
      * Define a primary key by the specified model fields.
-     * 
+     *
      * @param modelFields the ordered list of model fields
      */
     void setPrimaryKey(Object[] modelFields) {
@@ -147,7 +147,7 @@ class TableDefinition<T> {
 
     /**
      * Define a primary key by the specified column names.
-     * 
+     *
      * @param columnNames the ordered list of column names
      */
     void setPrimaryKey(List<String> columnNames) {
@@ -174,7 +174,7 @@ class TableDefinition<T> {
 
     /**
      * Defines an index with the specified model fields.
-     * 
+     *
      * @param type the index type (STANDARD, HASH, UNIQUE, UNIQUE_HASH)
      * @param modelFields the ordered list of model fields
      */
@@ -185,8 +185,8 @@ class TableDefinition<T> {
 
     /**
      * Defines an index with the specified column names.
-     * 
-     * @param type the index type (STANDARD, HASH, UNIQUE, UNIQUE_HASH) 
+     *
+     * @param type the index type (STANDARD, HASH, UNIQUE, UNIQUE_HASH)
      * @param columnNames the ordered list of column names
      */
     void addIndex(IndexType type, List<String> columnNames) {

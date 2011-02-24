@@ -47,8 +47,8 @@ public class ModelUtils {
     }
 
     /**
-     * Marshall SQL type aliases to the list of supported types.
-     * This map is used by Generation and Validation.
+     * Convert SQL type aliases to the list of supported types.
+     * This map is used by generation and validation.
      */
     private static final Map<String, String> SQL_TYPES = new HashMap<String, String>();
 
@@ -146,7 +146,7 @@ public class ModelUtils {
         sqlType = sqlType.split(" ")[0].trim();
 
         if (SQL_TYPES.containsKey(sqlType)) {
-            // marshall sqlType to a standard type
+            // convert the sqlType to a standard type
             sqlType = SQL_TYPES.get(sqlType);
         }
         Class<?> mappedClazz = null;

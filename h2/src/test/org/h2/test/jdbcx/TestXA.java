@@ -107,7 +107,7 @@ public class TestXA extends TestBase {
         xa.close();
     }
 
-    private void testXA(boolean useOneDatabase) {
+    private void testXA(boolean useOneDatabase) throws SQLException {
         String url1 = getURL(DB_NAME1, true);
         String url2 = getURL(DB_NAME2, true);
 
@@ -283,8 +283,8 @@ public class TestXA extends TestBase {
             JdbcUtils.closeSilently(stat2);
             JdbcUtils.closeSilently(conn1);
             JdbcUtils.closeSilently(conn2);
-            JdbcUtils.closeSilently(xaConn1);
-            JdbcUtils.closeSilently(xaConn2);
+            xaConn1.close();
+            xaConn2.close();
         }
     }
 

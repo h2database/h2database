@@ -70,7 +70,7 @@ public class TestXASimple extends TestBase {
         if (shutdown) {
             shutdown(ds);
         }
-        JdbcUtils.closeSilently(xa);
+        xa.close();
 
         xa = ds.getXAConnection();
         Xid[] list = xa.getXAResource().recover(XAResource.TMSTARTRSCAN);
@@ -84,7 +84,7 @@ public class TestXASimple extends TestBase {
         if (shutdown) {
             shutdown(ds);
         }
-        JdbcUtils.closeSilently(xa);
+        xa.close();
 
         xa = ds.getXAConnection();
         list = xa.getXAResource().recover(XAResource.TMSTARTRSCAN);
@@ -97,7 +97,7 @@ public class TestXASimple extends TestBase {
         } else {
             assertFalse(rs.next());
         }
-        JdbcUtils.closeSilently(xa);
+        xa.close();
     }
 
     private static void shutdown(JdbcDataSource ds) throws SQLException {

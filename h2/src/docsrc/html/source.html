@@ -9,30 +9,35 @@ Initial Developer: H2 Group
 </head>
 <script type="text/javascript">
 // <!--
-    var line = 0, file = '';
-    var params = location.search.substring(1).split('&');
-    var tag = 'trunk/h2';
-    for (var i = 0; i<params.length; i++) {
-        var k = params[i].split('=');
-        var key = k[0], value = k[1];
-        if (key == 'line') {
-            line = value;
-        } else if (key == 'file') {
-            file = value;
-        } else if (key == 'build') {
-            if (value == 64) {
-                tag = 'tags/version-1.0.' + value;
-            } else if (value == 146 (value >= 148 && value <= 151)) {
-                tag = 'tags/version-1.3.' + build + '/h2';
-            } else if (value >= 120) {
-                tag = 'tags/version-1.2.' + value + '/h2';
-            } else if (value >= 100) {
-                tag = 'tags/version-1.1.' + value + '/h2';
-            } else if (value >= 63) {
-                tag = 'tags/version-1.0.' + value + '/h2';
-            }
-        }
+
+function getVersion(build) {
+    if (build == 64) {
+        return '1.0.' + build;
+    } else if (build >= 146 && build != 147) {
+        return '1.3.' + build;
+    } else if (build >= 120) {
+        return '1.2.' + build;
+    } else if (build >= 100) {
+        return '1.1.' + build;
     }
+    return '1.0.' + build;
+}
+
+var line = 0, file = '';
+var params = location.search.substring(1).split('&');
+var tag = 'trunk/h2';
+for (var i = 0; i<params.length; i++) {
+    var k = params[i].split('=');
+    var key = k[0], value = k[1];
+    if (key == 'line') {
+        line = value;
+    } else if (key == 'file') {
+        file = value;
+    } else if (key == 'build') {
+        tag = 'tags/version-' + getVersion(value) + '/h2';
+    }
+}
+
 // -->
 </script>
 <pre>

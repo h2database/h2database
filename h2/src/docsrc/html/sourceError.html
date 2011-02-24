@@ -37,6 +37,19 @@ input {
 <script type="text/javascript">
 //<!--
 
+function getVersion(build) {
+    if (build == 64) {
+        return '1.0.' + build;
+    } else if (build >= 146 && build != 147) {
+        return '1.3.' + build;
+    } else if (build >= 120) {
+        return '1.2.' + build;
+    } else if (build >= 100) {
+        return '1.1.' + build;
+    }
+    return '1.0.' + build;
+}
+
 function get(id) {
     return document.getElementById(id);
 }
@@ -65,18 +78,7 @@ function go(file, line) {
         url += "&build=";
         url += build;
     } else {
-        var tag = 'trunk/h2';
-        if (build == 64) {
-            tag = 'tags/version-1.0.' + build;
-        } else if (build == 146 || (build >= 148 && build <= 151)) {
-            tag = 'tags/version-1.3.' + build + '/h2';
-        } else if (build >= 120) {
-            tag = 'tags/version-1.2.' + build + '/h2';
-        } else if (build >= 100) {
-            tag = 'tags/version-1.1.' + build + '/h2';
-        } else if (build >= 63) {
-            tag = 'tags/version-1.0.' + build + '/h2';
-        }
+        var tag = 'trunk/h2/tags/version-' + getVersion(build) + '/h2';
         url = 'http://code.google.com/p/h2database/source/browse/';
         url += tag;
         url += '/src/main/';
@@ -105,7 +107,7 @@ function convert() {
             hasData = true;
             idx = errorCode.indexOf("-");
             build = parseInt(errorCode.substring(idx + 1));
-            get('version').innerHTML = (build < 100 ? '1.0.' : (build < 120 ? '1.1.' : '1.2.')) + build;
+            get('version').innerHTML = getVersion(build);
             errorCode = errorCode.substring(0, idx);
             while (errorCode.length > 1 && errorCode.charAt(0) == '0') {
                 errorCode = errorCode.substring(1);

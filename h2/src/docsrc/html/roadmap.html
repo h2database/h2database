@@ -558,7 +558,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Single-column primary key values are always stored explicitly. This is not required.
 </li><li>Compatibility with MySQL: support CREATE TABLE TEST(NAME VARCHAR(255) CHARACTER SET UTF8).
 </li><li>CALL is incompatible with other databases because it returns a result set, so that CallableStatement.execute() returns true.
-</li><li>Opimization for large lists for column IN(1, 2, 3, 4,...) - currently an list is used, could potentially use a hash set
+</li><li>Optimization for large lists for column IN(1, 2, 3, 4,...) - currently an list is used, could potentially use a hash set
     (maybe only for a part of the values - the ones that can be evaluated).
 </li></ul>
 

@@ -1559,7 +1559,8 @@ AES
 "
 
 "Other Grammar","Column Definition","
-columnName dataType { DEFAULT expression | AS computedColumnExpression } [ [ NOT ] NULL ]
+columnName dataType
+[ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 [ SELECTIVITY selectivity ] [ COMMENT expression ]
 [ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]

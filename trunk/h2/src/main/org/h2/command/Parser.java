@@ -1019,11 +1019,15 @@ public class Parser {
                     read(")");
                     table = new RangeTable(mainSchema, min, max, false);
                 } else {
-                    Expression func = readFunction(schema, tableName);
-                    if (!(func instanceof FunctionCall)) {
+                    Expression expr = readFunction(schema, tableName);
+                    if (!(expr instanceof FunctionCall)) {
                         throw getSyntaxError();
                     }
-                    table = new FunctionTable(mainSchema, session, func, (FunctionCall) func);
+                    FunctionCall call = (FunctionCall) expr;
+                    if (!call.isDeterministic()) {
+                        recompileAlways = true;
+                    }
+                    table = new FunctionTable(mainSchema, session, expr, call);
                 }
             } else if (equalsToken("DUAL", tableName)) {
                 table = getDualTable(false);

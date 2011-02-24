@@ -14,7 +14,6 @@ import java.sql.Statement;
 import java.util.Properties;
 import javax.naming.Context;
 import javax.sql.DataSource;
-import javax.sql.XAConnection;
 import org.h2.message.DbException;
 
 /**
@@ -98,23 +97,6 @@ public class JdbcUtils {
             }
         }
     }
-
-    /**
-     * Close an XA connection set without throwing an exception.
-     *
-     * @param conn the XA connection or null
-     */
-//## Java 1.4 begin ##
-    public static void closeSilently(XAConnection conn) {
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                // ignore
-            }
-        }
-    }
-//## Java 1.4 end ##
 
     /**
      * Open a new database connection with the given settings.

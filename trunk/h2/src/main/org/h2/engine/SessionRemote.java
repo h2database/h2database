@@ -636,10 +636,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         return null;
     }
 
-    public int getClientVersion() {
-        return clientVersion;
-    }
-
     public int getLastReconnect() {
         return lastReconnect;
     }

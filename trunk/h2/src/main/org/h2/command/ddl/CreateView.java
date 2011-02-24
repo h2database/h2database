@@ -34,7 +34,6 @@ public class CreateView extends SchemaCommand {
     private String selectSQL;
     private String[] columnNames;
     private String comment;
-    private boolean recursive;
     private boolean orReplace;
     private boolean force;
 
@@ -44,10 +43,6 @@ public class CreateView extends SchemaCommand {
 
     public void setViewName(String name) {
         viewName = name;
-    }
-
-    public void setRecursive(boolean recursive) {
-        this.recursive = recursive;
     }
 
     public void setSelect(Query select) {
@@ -113,7 +108,7 @@ public class CreateView extends SchemaCommand {
         try {
             Schema schema = session.getDatabase().getSchema(session.getCurrentSchemaName());
             sysSession.setCurrentSchema(schema);
-            view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, sysSession, recursive);
+            view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, sysSession, false);
         } finally {
             sysSession.setCurrentSchema(db.getSchema(Constants.SCHEMA_MAIN));
         }

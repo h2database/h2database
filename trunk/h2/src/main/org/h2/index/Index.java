@@ -7,7 +7,6 @@
 package org.h2.index;
 
 import org.h2.engine.Session;
-import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.SchemaObject;
@@ -19,13 +18,6 @@ import org.h2.table.Table;
  * An index. Indexes are used to speed up searching data.
  */
 public interface Index extends SchemaObject {
-
-    /**
-     * Create a duplicate key exception with a message that contains the index name
-     *
-     * @return the exception
-     */
-    DbException getDuplicateKeyException();
 
     /**
      * Get the message to show in a EXPLAIN statement.
@@ -45,7 +37,7 @@ public interface Index extends SchemaObject {
      * Add a row to the index.
      *
      * @param session the session to use
-     * @param row the data
+     * @param row the row to add
      */
     void add(Session session, Row row);
 
@@ -53,7 +45,7 @@ public interface Index extends SchemaObject {
      * Remove a row from the index.
      *
      * @param session the session
-     * @param row the data
+     * @param row the row
      */
     void remove(Session session, Row row);
 
@@ -63,7 +55,7 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @param first the first row, or null for no limit
      * @param last the last row, or null for no limit
-     * @return the cursor
+     * @return the cursor to iterate over the results
      */
     Cursor find(Session session, SearchRow first, SearchRow last);
 
@@ -119,12 +111,13 @@ public interface Index extends SchemaObject {
     Cursor findNext(Session session, SearchRow higherThan, SearchRow last);
 
     /**
-     * Find the lowest or highest value of a column.
+     * Find the first (or last) value of this index. The cursor returned is
+     * positioned on the correct row, or on null if no row has been found.
      *
      * @param session the session
      * @param first true if the first (lowest for ascending indexes) or last
      *            value should be returned
-     * @return a cursor or null
+     * @return a cursor (never null)
      */
     Cursor findFirstOrLast(Session session, boolean first);
 
@@ -152,24 +145,6 @@ public interface Index extends SchemaObject {
     long getRowCountApproximation();
 
     /**
-     * Estimate the cost required to search a number of rows.
-     *
-     * @param rowCount the row count
-     * @return the estimated cost
-     */
-    int getLookupCost(long rowCount);
-
-    /**
-     * Estimate the cost required to search one row, and then iterate over the
-     * given number of rows.
-     *
-     * @param masks the search mask
-     * @param rowCount the row count
-     * @return the estimated cost
-     */
-    long getCostRangeIndex(int[] masks, long rowCount);
-
-    /**
      * Compare two rows.
      *
      * @param rowData the first row
@@ -179,39 +154,12 @@ public interface Index extends SchemaObject {
     int compareRows(SearchRow rowData, SearchRow compare);
 
     /**
-     * Check if one of the columns is NULL and multiple rows with NULL are
-     * allowed using the current compatibility mode for unique indexes. Note:
-     * NULL behavior is complicated in SQL.
-     *
-     * @param newRow the row to check
-     * @return true if one of the columns is null and multiple nulls in unique
-     *         indexes are allowed
-     */
-    boolean containsNullAndAllowMultipleNull(SearchRow newRow);
-
-    /**
-     * Compare the positions of two rows.
-     *
-     * @param rowData the first row
-     * @param compare the second row
-     * @return 0 if both rows are equal, -1 if the first row is smaller, otherwise 1
-     */
-    int compareKeys(SearchRow rowData, SearchRow compare);
-
-    /**
      * Get the index of a column in the list of index columns
      *
      * @param col the column
      * @return the index (0 meaning first column)
      */
     int getColumnIndex(Column col);
-
-    /**
-     * Get the list of columns as a string.
-     *
-     * @return the list of columns
-     */
-    String getColumnListSQL();
 
     /**
      * Get the indexed columns as index columns (with ordering information).
@@ -249,14 +197,6 @@ public interface Index extends SchemaObject {
      * @param row the row
      */
     void commit(int operation, Row row);
-
-    /**
-     * Get the root page of this index.
-     *
-     * @return the root page id
-     */
-    int getRootPageId();
-
 
     /**
      * Get the row with the given key.

@@ -139,8 +139,8 @@ public interface DbObject {
     String getName();
 
     /**
-     * Construct a CREATE ... SQL statement for this object when creating a copy
-     * of it.
+     * Build a SQL statement to re-create the object, or to create a copy of the
+     * object with a different name or referencing a different table
      *
      * @param table the new table
      * @param quotedName the quoted name

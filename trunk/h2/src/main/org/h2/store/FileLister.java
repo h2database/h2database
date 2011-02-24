@@ -26,20 +26,6 @@ public class FileLister {
     }
 
     /**
-     * Extract the name of the database from a given file name.
-     * Only files ending with .data.db are considered, all others return null.
-     *
-     * @param fileName the file name (without directory)
-     * @return the database name or null
-     */
-    public static String getDatabaseNameFromFileName(String fileName) {
-        if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-            return fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length());
-        }
-        return null;
-    }
-
-    /**
      * Try to lock the database, and then unlock it. If this worked, the
      * .lock.db file will be removed.
      *

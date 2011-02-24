@@ -14,8 +14,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.store.FileLister;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
@@ -85,7 +85,7 @@ public class Restore extends Tool {
                 }
                 String entryName = entry.getName();
                 zipIn.closeEntry();
-                String name = FileLister.getDatabaseNameFromFileName(entryName);
+                String name = getDatabaseNameFromFileName(entryName);
                 if (name != null) {
                     if (db.equals(name)) {
                         originalDbName = name;
@@ -109,6 +109,20 @@ public class Restore extends Tool {
         } finally {
             IOUtils.closeSilently(in);
         }
+    }
+
+    /**
+     * Extract the name of the database from a given file name.
+     * Only files ending with .h2.db are considered, all others return null.
+     *
+     * @param fileName the file name (without directory)
+     * @return the database name or null
+     */
+    private static String getDatabaseNameFromFileName(String fileName) {
+        if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+            return fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length());
+        }
+        return null;
     }
 
     /**

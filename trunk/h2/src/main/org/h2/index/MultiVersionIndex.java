@@ -56,10 +56,6 @@ public class MultiVersionIndex implements Index {
         }
     }
 
-    public int getRootPageId() {
-        return base.getRootPageId();
-    }
-
     public void close(Session session) {
         synchronized (sync) {
             base.close(session);
@@ -190,10 +186,6 @@ public class MultiVersionIndex implements Index {
         }
     }
 
-    public int compareKeys(SearchRow rowData, SearchRow compare) {
-        return base.compareKeys(rowData, compare);
-    }
-
     public int compareRows(SearchRow rowData, SearchRow compare) {
         return base.compareRows(rowData, compare);
     }
@@ -202,20 +194,12 @@ public class MultiVersionIndex implements Index {
         return base.getColumnIndex(col);
     }
 
-    public String getColumnListSQL() {
-        return base.getColumnListSQL();
-    }
-
     public Column[] getColumns() {
         return base.getColumns();
     }
 
     public IndexColumn[] getIndexColumns() {
         return base.getIndexColumns();
-    }
-
-    public long getCostRangeIndex(int[] masks, long rowCount) {
-        return base.getCostRangeIndex(masks, rowCount);
     }
 
     public String getCreateSQL() {
@@ -230,16 +214,8 @@ public class MultiVersionIndex implements Index {
         return base.getDropSQL();
     }
 
-    public DbException getDuplicateKeyException() {
-        return base.getDuplicateKeyException();
-    }
-
     public IndexType getIndexType() {
         return base.getIndexType();
-    }
-
-    public int getLookupCost(long rowCount) {
-        return base.getLookupCost(rowCount);
     }
 
     public String getPlanSQL() {
@@ -256,10 +232,6 @@ public class MultiVersionIndex implements Index {
 
     public int getType() {
         return base.getType();
-    }
-
-    public boolean containsNullAndAllowMultipleNull(SearchRow newRow) {
-        return base.containsNullAndAllowMultipleNull(newRow);
     }
 
     public void removeChildrenAndResources(Session session) {

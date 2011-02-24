@@ -330,6 +330,8 @@ public class Build extends BuildBase {
         compile();
         manifest("H2 Database Engine", "org.h2.tools.Console");
         FileList files = files("temp").
+            exclude("temp/android/*").
+            exclude("temp/org/h2/android/*").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jcr/*").

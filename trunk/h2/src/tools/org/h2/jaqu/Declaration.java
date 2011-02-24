@@ -7,7 +7,7 @@
 package org.h2.jaqu;
 
 /**
- * Classes implementing this interface can be used as a declaration in an 
+ * Classes implementing this interface can be used as a declaration in an
  * update statement.
  */
 public interface Declaration {

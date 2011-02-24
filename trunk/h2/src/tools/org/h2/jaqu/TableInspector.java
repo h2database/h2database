@@ -364,7 +364,7 @@ public class TableInspector {
         sb.append(eol);
 
         // variable declaration
-        sb.append("\tpublic ");
+        sb.append("\t" + "public ");
         sb.append(clazz.getSimpleName());
         sb.append(' ');
         sb.append(column);

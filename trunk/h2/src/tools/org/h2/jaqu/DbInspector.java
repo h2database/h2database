@@ -48,7 +48,7 @@ public class DbInspector {
      * Generates models class skeletons for schemas and tables.  If the table
      * name is undefined, models will be generated for every table within the
      * specified schema.  Additionally, if no schema is defined, models will be
-     * generated for all schemas and all tables. 
+     * generated for all schemas and all tables.
      *
      * @param schema the schema name (optional)
      * @param table the table name (optional)

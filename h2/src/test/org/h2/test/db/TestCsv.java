@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Connection;
@@ -53,6 +54,7 @@ public class TestCsv extends TestBase {
     }
 
     public void test() throws Exception {
+        testChangeData();
         testOptions();
         testPseudoBom();
         testWriteRead();
@@ -66,6 +68,27 @@ public class TestCsv extends TestBase {
         testRead();
         testPipe();
         deleteDb("csv");
+    }
+
+    private void testChangeData() throws Exception {
+        OutputStream out = IOUtils.openFileOutputStream(getBaseDir()+"/test.tsv", false);
+        out.write("a,b,c,d,e,f,g\n1".getBytes());
+        out.close();
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv')");
+        assertEquals(7, rs.getMetaData().getColumnCount());
+        assertEquals("A", rs.getMetaData().getColumnLabel(1));
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        out = IOUtils.openFileOutputStream(getBaseDir()+"/test.tsv", false);
+        out.write("x".getBytes());
+        out.close();
+        rs = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv')");
+        assertEquals(1, rs.getMetaData().getColumnCount());
+        assertEquals("X", rs.getMetaData().getColumnLabel(1));
+        assertFalse(rs.next());
+        conn.close();
     }
 
     private void testOptions() {

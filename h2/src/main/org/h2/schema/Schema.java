@@ -507,15 +507,6 @@ public class Schema extends DbObjectBase {
     }
 
     /**
-     * Get all functions.
-     *
-     * @return a (possible empty) list of all objects
-     */
-    public ArrayList<FunctionAlias> getAllFunctionAliases() {
-        return New.arrayList(functions.values());
-    }
-
-    /**
      * Remove an object from this schema.
      *
      * @param obj the object to remove

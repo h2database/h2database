@@ -9,7 +9,6 @@ package org.h2.engine;
 import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.message.Trace;
-import org.h2.table.Table;
 
 /**
  * The base class for all database objects.
@@ -53,18 +52,6 @@ public abstract class DbObjectBase implements DbObject {
     }
 
     /**
-     * Build a SQL statement to re-create the object, or to create a copy of the
-     * object with a different name or referencing a different table
-     *
-     * @param table
-     *            the new table name
-     * @param quotedName
-     *            the new quoted name
-     * @return the SQL statement
-     */
-    public abstract String getCreateSQLForCopy(Table table, String quotedName);
-
-    /**
      * Build a SQL statement to re-create this object.
      *
      * @return the SQL statement
@@ -77,13 +64,6 @@ public abstract class DbObjectBase implements DbObject {
      * @return the SQL statement
      */
     public abstract String getDropSQL();
-
-    /**
-     * Get the object type.
-     *
-     * @return the object type
-     */
-    public abstract int getType();
 
     /**
      * Remove all dependent objects and free all resources (files, blocks in

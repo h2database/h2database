@@ -102,7 +102,6 @@ public class StringUtils {
         return s.substring(0, start.length()).equalsIgnoreCase(start);
     }
 
-
     /**
      * Convert a string to a SQL literal. Null is converted to NULL. The text is
      * enclosed in single quotes. If there are any special characters, the method

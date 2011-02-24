@@ -19,6 +19,11 @@ public abstract class PageIndex extends BaseIndex {
 
     private boolean sortedInsertMode;
 
+    /**
+     * Get the root page of this index.
+     *
+     * @return the root page id
+     */
     public int getRootPageId() {
         return rootPageId;
     }

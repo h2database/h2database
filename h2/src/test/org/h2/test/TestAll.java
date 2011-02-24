@@ -587,11 +587,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // jaqu
         new AliasMapTest().runTest(this);
+        new AnnotationsTest().runTest(this);
         new ClobTest().runTest(this);
+        new ModelsTest().runTest(this);
         new SamplesTest().runTest(this);
         new UpdateTest().runTest(this);
-        new AnnotationsTest().runTest(this);
-        new ModelsTest().runTest(this);
 
         // jdbc
         new TestBatchUpdates().runTest(this);

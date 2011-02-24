@@ -108,7 +108,8 @@ public class TraceObject {
         "ds", "xads", "xares", "xid", "ar"
     };
 
-    private Trace trace;
+    protected Trace trace;
+
     private int traceType;
     private int id;
 
@@ -123,15 +124,6 @@ public class TraceObject {
         this.trace = trace;
         this.traceType = type;
         this.id = id;
-    }
-
-    /**
-     * Update the trace object.
-     *
-     * @param trace the trace object
-     */
-    protected void setTrace(Trace trace) {
-        this.trace = trace;
     }
 
     /**

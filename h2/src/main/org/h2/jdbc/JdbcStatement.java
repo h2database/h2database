@@ -910,7 +910,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         SessionInterface s = conn.getSession();
         if (s != session) {
             session = s;
-            setTrace(session.getTrace());
+            trace = session.getTrace();
             return true;
         }
         return false;

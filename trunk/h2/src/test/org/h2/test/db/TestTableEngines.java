@@ -127,57 +127,46 @@ public class TestTableEngines extends TestBase {
                     return table.getRowCount(session);
                 }
 
-                @Override
                 public void checkRename() {
                     // do nothing
                 }
 
-                @Override
                 public void truncate(Session session) {
                     // do nothing
                 }
 
-                @Override
                 public void remove(Session session) {
                     // do nothing
                 }
 
-                @Override
                 public void remove(Session session, Row r) {
                     // do nothing
                 }
 
-                @Override
                 public boolean needRebuild() {
                     return false;
                 }
 
-                @Override
                 public double getCost(Session session, int[] masks) {
                     return 0;
                 }
 
-                @Override
                 public Cursor findFirstOrLast(Session session, boolean first) {
                     return new SingleRowCursor(row);
                 }
 
-                @Override
                 public Cursor find(Session session, SearchRow first, SearchRow last) {
                     return new SingleRowCursor(row);
                 }
 
-                @Override
                 public void close(Session session) {
                     // do nothing
                 }
 
-                @Override
                 public boolean canGetFirstOrLast() {
                     return true;
                 }
 
-                @Override
                 public void add(Session session, Row r) {
                     // do nothing
                 }

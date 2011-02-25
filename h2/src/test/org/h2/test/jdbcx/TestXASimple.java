@@ -70,7 +70,6 @@ public class TestXASimple extends TestBase {
         if (shutdown) {
             shutdown(ds);
         }
-        xa.close();
 
         xa = ds.getXAConnection();
         Xid[] list = xa.getXAResource().recover(XAResource.TMSTARTRSCAN);
@@ -84,7 +83,6 @@ public class TestXASimple extends TestBase {
         if (shutdown) {
             shutdown(ds);
         }
-        xa.close();
 
         xa = ds.getXAConnection();
         list = xa.getXAResource().recover(XAResource.TMSTARTRSCAN);

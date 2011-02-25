@@ -168,9 +168,9 @@ public class Build extends BuildBase {
             args = args.plus("-source", "1.5", "-target", "jsr14", "-bootclasspath", bcp);
         }
         if (debugInfo) {
-            args = args.plus("-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
+            args = args.plus("-Xlint:unchecked", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
         } else {
-            args = args.plus("-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
+            args = args.plus("-Xlint:unchecked", "-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
         }
         javac(args, files);
 
@@ -180,7 +180,7 @@ public class Build extends BuildBase {
         if (!clientOnly) {
             files = files("src/test");
             files.addAll(files("src/tools"));
-            args = args("-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
+            args = args("-Xlint:unchecked", "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
                     "-classpath", classpath);
             javac(args, files);
             files = files("src/test").

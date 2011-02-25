@@ -18,14 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 289: Railroads (BNF) for "Column Definition" was incorrect.
+<ul><li>The database can now be compiled with Java 7.
+    Stub methods for the new JDBC 4.1 methods have been implemented,
+    but the new features can't be used yet.
+</li><li>Issue 289: Railroads (BNF) for "Column Definition" was incorrect.
 </li><li>Issue 287: Railroads (BNF) is not readable for certain web-browser configurations (dark background).
 </li><li>Executing a CSVREAD query multiple times could result in an exception if the data was changed on disk.
 </li><li>SQL railroad diagrams: improved images for people with black background settings.
 </li><li>Build-in documentation search: improved results if searching for multiple words.
 </li><li>DatabaseMetaData.getColumns: there is a typo in the JDBC specification, so that the column #19 is named
-    SCOPE_CATLOG instead of SCOPE_CATALOG. For compatibility with the specification, this column is now also
-    named SCOPE_CATLOG in H2. A new column named SCOPE_CATALOG is appended as column #24.
+    SCOPE_CATLOG instead of SCOPE_CATALOG. For compatibility with the specification, a new column #24
+    named SCOPE_CATLOG is added. This typo is fixed in the JDBC 4.1 specification.
     Please note that MySQL only supports SCOPE_CATALOG, while other databases only support SCOPE_CATLOG.
 </li><li>Build: jar files are now downloaded using Maven if possible (and cached in the local Maven repository).
     Unfortunately, in many cases this will download more data from the Maven repository.

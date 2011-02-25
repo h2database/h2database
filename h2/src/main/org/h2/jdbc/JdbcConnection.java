@@ -49,6 +49,10 @@ import java.sql.SQLXML;
 import java.sql.SQLClientInfoException;
 //## Java 1.6 end ##
 
+/*## Java 1.7 begin ##
+import java.util.concurrent.Executor;
+## Java 1.7 end ##*/
+
 /**
  * <p>
  * Represents a connection (session) to a database.
@@ -1666,6 +1670,58 @@ public class JdbcConnection extends TraceObject implements Connection {
         Value v = session.getDataHandler().getLobStorage().createBlob(x, length);
         return v;
     }
+
+    /**
+     * [Not supported]
+     *
+     * @param schema the schema
+     */
+/*## Java 1.7 begin ##
+    public void setSchema(String schema) {
+        // not supported
+    }
+## Java 1.7 end ##*/
+
+    /**
+     * [Not supported]
+     */
+/*## Java 1.7 begin ##
+    public String getSchema() {
+        return null;
+    }
+## Java 1.7 end ##*/
+
+    /**
+     * [Not supported]
+     *
+     * @param executor the executor used by this method
+     */
+/*## Java 1.7 begin ##
+    public void abort(Executor executor) {
+        // not supported
+    }
+## Java 1.7 end ##*/
+
+    /**
+     * [Not supported]
+     *
+     * @param executor the executor used by this method
+     * @param milliseconds the TCP connection timeout
+     */
+/*## Java 1.7 begin ##
+    public void setNetworkTimeout(Executor executor, int milliseconds) {
+        // not supported
+    }
+## Java 1.7 end ##*/
+
+    /**
+     * [Not supported]
+     */
+/*## Java 1.7 begin ##
+    public int getNetworkTimeout() {
+        return 0;
+    }
+## Java 1.7 end ##*/
 
     private static void checkMap(Map<String, Class<?>> map) {
         if (map != null && map.size() > 0) {

@@ -356,8 +356,8 @@ public class FunctionAlias extends SchemaObjectBase {
                         if (columnList) {
                             // if the column list is requested, the parameters may
                             // be null
-                            // need to set to default value otherwise the function
-                            // can't be called at all
+                            // need to set to default value,
+                            // otherwise the function can't be called at all
                             o = DataType.getDefaultForPrimitiveType(paramClass);
                         } else {
                             // NULL for a java primitive: return NULL

@@ -17,6 +17,10 @@ import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.upgrade.DbUpgrade;
 
+/*## Java 1.7 begin ##
+import java.util.logging.Logger;
+## Java 1.7 end ##*/
+
 /**
  * The database driver. An application should not use this class directly. The
  * only thing the application needs to do is load the driver. This can be done
@@ -130,6 +134,15 @@ public class Driver implements java.sql.Driver {
     public boolean jdbcCompliant() {
         return true;
     }
+
+    /**
+     * [Not supported]
+     */
+/*## Java 1.7 begin ##
+    public Logger getParentLogger() {
+        return null;
+    }
+## Java 1.7 end ##*/
 
     /**
      * INTERNAL

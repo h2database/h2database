@@ -870,6 +870,24 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 //## Java 1.4 end ##
 
+    /**
+     * [Not supported]
+     */
+/*## Java 1.7 begin ##
+    public void closeOnCompletion() {
+        // not supported
+    }
+## Java 1.7 end ##*/
+
+    /**
+     * [Not supported]
+     */
+/*## Java 1.7 begin ##
+    public boolean isCloseOnCompletion() {
+        return true;
+    }
+## Java 1.7 end ##*/
+
     // =============================================================
 
     /**

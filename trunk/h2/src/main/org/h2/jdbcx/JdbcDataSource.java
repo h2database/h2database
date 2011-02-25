@@ -26,6 +26,10 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 import org.h2.util.StringUtils;
 
+/*## Java 1.7 begin ##
+import java.util.logging.Logger;
+## Java 1.7 end ##*/
+
 /**
  * A data source for H2 database connections. It is a factory for XAConnection
  * and Connection objects. This class is usually registered in a JNDI naming
@@ -386,6 +390,15 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         throw unsupported("isWrapperFor");
     }
 //## Java 1.6 end ##
+
+    /**
+     * [Not supported]
+     */
+/*## Java 1.7 begin ##
+    public Logger getParentLogger() {
+        return null;
+    }
+## Java 1.7 end ##*/
 
     /**
      * INTERNAL

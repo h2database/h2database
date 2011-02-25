@@ -2124,6 +2124,30 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 //## Java 1.6 end ##
 
     /**
+     * INTERNAL
+     *
+     * @param columnIndex the column index (1, 2, ...)
+     * @param type the class of the returned value
+     */
+/*## Java 1.7 begin ##
+    public <T> T getObject(int columnIndex, Class<T> type) {
+        return null;
+    }
+## Java 1.7 end ##*/
+
+    /**
+     * INTERNAL
+     *
+     * @param columnName the column name
+     * @param type the class of the returned value
+     */
+/*## Java 1.7 begin ##
+    public <T> T getObject(String columnName, Class<T> type) {
+        return null;
+    }
+## Java 1.7 end ##*/
+
+    /**
      * Set the auto-close behavior. If enabled (the default), the result set is
      * closed after reading the last row.
      *

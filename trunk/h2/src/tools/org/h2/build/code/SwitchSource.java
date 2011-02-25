@@ -63,21 +63,31 @@ public class SwitchSource {
             disable.add("Java 1.4");
             disable.add("Java 1.5");
             disable.add("Java 1.6");
+            disable.add("Java 1.7");
         } else if ("1.4".equals(version)) {
             disable.add("Java 1.3 only");
             enable.add("Java 1.4");
             disable.add("Java 1.5");
             disable.add("Java 1.6");
+            disable.add("Java 1.7");
         } else if ("1.5".equals(version)) {
             disable.add("Java 1.3 only");
             enable.add("Java 1.4");
             enable.add("Java 1.5");
             disable.add("Java 1.6");
-        } else if (version.compareTo("1.6") >= 0) {
+            disable.add("Java 1.7");
+        } else if ("1.6".equals(version)) {
             disable.add("Java 1.3 only");
             enable.add("Java 1.4");
             enable.add("Java 1.5");
             enable.add("Java 1.6");
+            disable.add("Java 1.7");
+        } else if (version.compareTo("1.7") >= 0) {
+            disable.add("Java 1.3 only");
+            enable.add("Java 1.4");
+            enable.add("Java 1.5");
+            enable.add("Java 1.6");
+            enable.add("Java 1.7");
         } else {
             throw new IllegalArgumentException("version: " + version);
         }

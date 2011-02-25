@@ -35,6 +35,10 @@ import javax.sql.PooledConnection;
 import org.h2.message.DbException;
 //## Java 1.6 end ##
 
+/*## Java 1.7 begin ##
+import java.util.logging.Logger;
+## Java 1.7 end ##*/
+
 /**
  * A simple standalone JDBC connection pool.
  * It is based on the
@@ -317,5 +321,15 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
         throw DbException.getUnsupportedException("isWrapperFor");
     }
 //## Java 1.6 end ##
+
+    /**
+     * [Not supported]
+     */
+/*## Java 1.7 begin ##
+    public Logger getParentLogger() {
+        return null;
+    }
+## Java 1.7 end ##*/
+
 
 }

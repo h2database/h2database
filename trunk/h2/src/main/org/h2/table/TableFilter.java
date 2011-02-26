@@ -779,7 +779,8 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Update the filter and join conditions of this and all joined tables with
-     * the information that the given table filter can now return rows or not.
+     * the information that the given table filter and all nested filter can now
+     * return rows or not.
      *
      * @param filter the table filter
      * @param b the new flag
@@ -793,7 +794,7 @@ public class TableFilter implements ColumnResolver {
             joinCondition.setEvaluatable(filter, b);
         }
         if (nestedJoin != null) {
-            nestedJoin.setEvaluatable(filter, b);
+            nestedJoin.setEvaluatable(nestedJoin, b);
         }
         if (join != null) {
             join.setEvaluatable(filter, b);

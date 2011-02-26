@@ -11,6 +11,7 @@ import org.h2.engine.Session;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 
@@ -39,7 +40,7 @@ public class ConditionExists extends Condition {
     }
 
     public String getSQL() {
-        return "EXISTS(" + query.getPlanSQL() + ")";
+        return "EXISTS(\n" + StringUtils.indent(query.getPlanSQL(), 4, false) + ")";
     }
 
     public void updateAggregate(Session session) {
@@ -62,7 +63,7 @@ public class ConditionExists extends Condition {
     }
 
     public int getCost() {
-        return 10 + (int) (10 * query.getCost());
+        return query.getCostAsExpression();
     }
 
 }

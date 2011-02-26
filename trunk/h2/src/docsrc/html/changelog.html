@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 288: Some queries with right outer joins or nested joins could throw a NullPointerException.
+<ul><li>Issue 290: Conditions using subqueries were sometimes evaluated before much simpler conditions,
+    which was very bad for performance. This includes subqueries returning a value, EXISTS subqueries,
+    and IN(SELECT ..) subqueries.
+</li><li>Issue 288: Some queries with right outer joins or nested joins could throw a NullPointerException.
 </li><li>The database can now be compiled with Java 7.
     Stub methods for the new JDBC 4.1 methods have been implemented,
     but the new features can't be used yet.

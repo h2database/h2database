@@ -1053,6 +1053,7 @@ public class Select extends Query {
                 buff.append("\n/* group sorted */");
             }
         }
+        // buff.append("\n/* cost: " + cost + " */");
         return buff.toString();
     }
 

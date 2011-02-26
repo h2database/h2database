@@ -38,6 +38,7 @@ public class TestOptimizations extends TestBase {
 
     public void test() throws Exception {
         deleteDb("optimizations");
+        testExistsSubquery();
         testQueryCacheConcurrentUse();
         testQueryCacheResetParams();
         testRowId();
@@ -64,6 +65,18 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testExistsSubquery() throws Exception {
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int) as select x from system_range(1, 10)");
+        ResultSet rs = stat.executeQuery("explain select * from test where exists(select 1 from test, test, test) and id = 10");
+        rs.next();
+        // ensure the ID = 10 part is evaluated first
+        assertContains(rs.getString(1), "WHERE (ID = 10)");
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testQueryCacheConcurrentUse() throws Exception {

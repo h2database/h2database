@@ -93,6 +93,19 @@ public abstract class Query extends Prepared {
     public abstract double getCost();
 
     /**
+     * Calculate the cost when used as a subquery.
+     * This method returns a value between 10 and 1000000,
+     * to ensure adding other values can't result in an integer overflow.
+     *
+     * @return the estimated cost as an integer
+     */
+    public int getCostAsExpression() {
+        // ensure the cost is not larger than 1 million,
+        // so that adding other values can't overflow
+        return (int) Math.min(1000000.0, 10.0 + 10.0 * getCost());
+    }
+
+    /**
      * Get all tables that are involved in this query.
      *
      * @return the set of tables

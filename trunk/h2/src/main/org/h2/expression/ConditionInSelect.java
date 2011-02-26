@@ -146,7 +146,7 @@ public class ConditionInSelect extends Condition {
     }
 
     public int getCost() {
-        return left.getCost() + 10 + (int) (10 * query.getCost());
+        return left.getCost() + query.getCostAsExpression();
     }
 
     public void createIndexConditions(Session session, TableFilter filter) {

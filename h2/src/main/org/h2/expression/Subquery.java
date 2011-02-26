@@ -120,7 +120,7 @@ public class Subquery extends Expression {
     }
 
     public int getCost() {
-        return 10 + (int) (10 * query.getCost());
+        return query.getCostAsExpression();
     }
 
     public Expression[] getExpressionColumns(Session session) {

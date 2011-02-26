@@ -240,6 +240,16 @@ public class TestNestedJoins extends TestBase {
         ResultSet rs;
         String sql;
 
+        // Issue 288
+        /*
+        create table test(id int);
+        select 1 from test a right outer join test b on a.id = 1, test c;
+        drop table test;
+         */
+        stat.execute("create table test(id int)");
+        stat.execute("select 1 from test a right outer join test b on a.id = 1, test c");
+        stat.execute("drop table test");
+
         /*
         create table a(id int);
         create table b(id int);

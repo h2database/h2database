@@ -5995,8 +5995,8 @@ EXPLAIN PLAN FOR SELECT * FROM test t1 left outer join test t2 on t1.id=t2.id an
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE EXISTS(SELECT * FROM TEST T2 WHERE T1.ID-1 = T2.ID);
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE EXISTS(SELECT T2.ID, T2.NAME FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = (T1.ID - 1) */ WHERE (T1.ID - 1) = T2.ID)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE EXISTS( SELECT T2.ID, T2.NAME FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = (T1.ID - 1) */ WHERE (T1.ID - 1) = T2.ID)
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);

@@ -144,6 +144,15 @@ public class UpdateTest extends TestBase {
         assertEquals(original.productName, restored.productName);
         assertEquals(original.unitPrice, restored.unitPrice);
         assertEquals(original.unitsInStock, restored.unitsInStock);
+
+
+        double unitPriceOld = db.from(p).where(p.productId).is(1).selectFirst().unitPrice;
+        // double the unit price
+        db.from(p).increment(p.unitPrice).by(p.unitPrice)
+            .where(p.productId).is(1).update();
+        double unitPriceNew = db.from(p).where(p.productId).is(1).selectFirst().unitPrice;
+        assertEquals(unitPriceOld * 2, unitPriceNew);
+
     }
 
 }

@@ -59,7 +59,7 @@ public class Db {
         dialect = getDialect(conn.getClass().getCanonicalName());
     }
 
-    SQLDialect getDialect(String clazz) {
+    private SQLDialect getDialect(String clazz) {
     int todo;
         // TODO add special cases here
         return new DefaultSQLDialect();
@@ -124,33 +124,32 @@ public class Db {
 
     public <T> void insert(T t) {
         Class<?> clazz = t.getClass();
-        int upgradeDbSoundsWrongHere;
-        upgradeDb().define(clazz).createTableIfRequired(this).insert(this, t, false);
+        define(clazz).createTableIfRequired(this).insert(this, t, false);
     }
 
     public <T> long insertAndGetKey(T t) {
         Class<?> clazz = t.getClass();
-        return upgradeDb().define(clazz).createTableIfRequired(this).insert(this, t, true);
+        return define(clazz).createTableIfRequired(this).insert(this, t, true);
     }
 
     public <T> void merge(T t) {
         Class<?> clazz = t.getClass();
-        upgradeDb().define(clazz).createTableIfRequired(this).merge(this, t);
+        define(clazz).createTableIfRequired(this).merge(this, t);
     }
 
     public <T> void update(T t) {
         Class<?> clazz = t.getClass();
-        upgradeDb().define(clazz).createTableIfRequired(this).update(this, t);
+        define(clazz).createTableIfRequired(this).update(this, t);
     }
 
     public <T> void delete(T t) {
         Class<?> clazz = t.getClass();
-        upgradeDb().define(clazz).createTableIfRequired(this).delete(this, t);
+        define(clazz).createTableIfRequired(this).delete(this, t);
     }
 
     public <T extends Object> Query<T> from(T alias) {
         Class<?> clazz = alias.getClass();
-        upgradeDb().define(clazz).createTableIfRequired(this);
+        define(clazz).createTableIfRequired(this);
         return Query.from(this, alias);
     }
 
@@ -229,6 +228,7 @@ public class Db {
     <T> TableDefinition<T> define(Class<T> clazz) {
         TableDefinition<T> def = getTableDefinition(clazz);
         if (def == null) {
+            upgradeDb();
             def = new TableDefinition<T>(clazz);
             def.mapFields();
             classMap.put(clazz, def);

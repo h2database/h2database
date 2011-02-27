@@ -34,14 +34,8 @@ public class IncrementColumn<T, A> implements Declaration {
         query.appendSQL(stat, x);
         stat.appendSQL("=(");
         query.appendSQL(stat, x);
-        int todoSomethingWrongHere;
-        if (y instanceof Number) {
-            Number n = (Number) y;
-            if (n.doubleValue() > 0) {
-                stat.appendSQL("+");
-            }
-        }
-        stat.appendSQL(y.toString());
+        stat.appendSQL("+");
+        query.appendSQL(stat, y);
         stat.appendSQL(")");
     }
 

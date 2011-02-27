@@ -246,11 +246,10 @@ public class Db {
     }
 
     public synchronized void setDbUpgrader(DbUpgrader upgrader) {
-        if (upgrader == null)
-            throw new RuntimeException("DbUpgrader may not be NULL!");
-        if (!upgrader.getClass().isAnnotationPresent(JQDatabase.class))
+        if (!upgrader.getClass().isAnnotationPresent(JQDatabase.class)) {
             throw new RuntimeException("DbUpgrader must be annotated with "
-                    + JQDatabase.class.getSimpleName() + "!");
+                    + JQDatabase.class.getSimpleName());
+        }
         this.dbUpgrader = upgrader;
         upgradeChecked.clear();
     }

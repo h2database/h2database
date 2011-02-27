@@ -274,21 +274,24 @@ class TableDefinition<T> {
         }
     }
 
-    // Optionally truncates strings to maxLength
+    /**
+     * Optionally truncates strings to maxLength
+     */
     private Object getValue(Object obj, FieldDefinition field) {
         Object value = field.getValue(obj);
         if (field.trimString && field.maxLength > 0) {
             if (value instanceof String) {
                 // Clip Strings
                 String s = (String) value;
-                if (s.length() > field.maxLength)
+                if (s.length() > field.maxLength) {
                     return s.substring(0, field.maxLength);
+                }
                 return s;
             }
             return value;
-        } else
-            // Standard JaQu behavior
-            return value;
+        }
+        // standard behavior
+        return value;
     }
 
     long insert(Db db, Object obj, boolean returnKey) {
@@ -310,8 +313,9 @@ class TableDefinition<T> {
         buff.append(')');
         stat.setSQL(buff.toString());
         StatementLogger.insert(stat.getSQL());
-        if (returnKey)
+        if (returnKey) {
             return stat.executeInsert();
+        }
         return stat.executeUpdate();
     }
 
@@ -434,10 +438,11 @@ class TableDefinition<T> {
         StatementBuilder buff;
         if (memoryTable &&
                 db.getConnection().getClass()
-                .getCanonicalName().equals("org.h2.jdbc.JdbcConnection"))
+                .getCanonicalName().equals("org.h2.jdbc.JdbcConnection")) {
             buff = new StatementBuilder("CREATE MEMORY TABLE IF NOT EXISTS ");
-        else
+        } else {
             buff = new StatementBuilder("CREATE TABLE IF NOT EXISTS ");
+        }
 
         int todoChangeToGetTableNameChangeAllMethodsInDialectInterface;
         buff.append(db.getDialect().tableName(schemaName, tableName)).append('(');
@@ -503,17 +508,26 @@ class TableDefinition<T> {
         return this;
     }
 
-    // Retrieve list of columns from CSV whitespace notated index
+    /**
+     * Retrieve list of columns from CSV whitespace notated index
+     *
+     * @param index the index columns
+     * @return the column list
+     */
     private List<String> getColumns(String index) {
         List<String> cols = Utils.newArrayList();
-        if (index == null || index.length() == 0)
+        if (index == null || index.length() == 0) {
             return null;
+        }
         String[] cs = index.split("(,|\\s)");
-        for (String c : cs)
-            if (c != null && c.trim().length() > 0)
+        for (String c : cs) {
+            if (c != null && c.trim().length() > 0) {
                 cols.add(c.trim());
-        if (cols.size() == 0)
+            }
+        }
+        if (cols.size() == 0) {
             return null;
+        }
         return cols;
     }
 
@@ -523,29 +537,33 @@ class TableDefinition<T> {
 
         if (clazz.isAnnotationPresent(JQSchema.class)) {
             JQSchema schemaAnnotation = clazz.getAnnotation(JQSchema.class);
-            // Setup Schema name mapping, if properly annotated
-            if (!StringUtils.isNullOrEmpty(schemaAnnotation.name()))
+            // setup schema name mapping, if properly annotated
+            if (!StringUtils.isNullOrEmpty(schemaAnnotation.name())) {
                 schemaName = schemaAnnotation.name();
+            }
         }
 
         if (clazz.isAnnotationPresent(JQTable.class)) {
             JQTable tableAnnotation = clazz.getAnnotation(JQTable.class);
 
-            // Setup Table name mapping, if properly annotated
-            if (!StringUtils.isNullOrEmpty(tableAnnotation.name()))
+            // setup table name mapping, if properly annotated
+            if (!StringUtils.isNullOrEmpty(tableAnnotation.name())) {
                 tableName = tableAnnotation.name();
+            }
 
-            // Allow control over createTableIfRequired()
+            // allow control over createTableIfRequired()
             createTableIfRequired = tableAnnotation.createIfRequired();
 
-            // Model Version
-            if (tableAnnotation.version() > 0)
+            // model version
+            if (tableAnnotation.version() > 0) {
                 tableVersion = tableAnnotation.version();
+            }
 
-            // Setup the Primary Index, if properly annotated
+            // setup the primary index, if properly annotated
             List<String> primaryKey = getColumns(tableAnnotation.primaryKey());
-            if (primaryKey != null)
+            if (primaryKey != null) {
                 setPrimaryKey(primaryKey);
+            }
         }
 
         if (clazz.isAnnotationPresent(JQIndex.class)) {
@@ -562,17 +580,20 @@ class TableDefinition<T> {
     void addIndexes(IndexType type, String [] indexes) {
         for (String index:indexes) {
             List<String> validatedColumns = getColumns(index);
-            if (validatedColumns == null)
+            if (validatedColumns == null) {
                 return;
+            }
             addIndex(type, validatedColumns);
         }
     }
 
     List<IndexDefinition> getIndexes(IndexType type) {
         List<IndexDefinition> list = Utils.newArrayList();
-        for (IndexDefinition def:indexes)
-            if (def.type.equals(type))
+        for (IndexDefinition def:indexes) {
+            if (def.type.equals(type)) {
                 list.add(def);
+            }
+        }
         return list;
     }
 

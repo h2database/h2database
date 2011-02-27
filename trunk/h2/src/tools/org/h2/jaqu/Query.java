@@ -132,8 +132,9 @@ public class Query<T> {
     }
 
     public int update() {
-        if (declarations.size() == 0)
-            throw new RuntimeException("Please specify SET or INCREMENT before calling Update!");
+        if (declarations.size() == 0) {
+            throw new RuntimeException("Missing set or increment call.");
+        }
         SQLStatement stat = new SQLStatement(db);
         stat.appendSQL("UPDATE ");
         from.appendSQL(stat);
@@ -201,8 +202,9 @@ public class Query<T> {
                     int convertHereIsProbablyWrong;
                     if (Clob.class.isAssignableFrom(o.getClass())) {
                         value = (X) Utils.convert(o, String.class);
-                    } else
+                    } else {
                         value = (X) o;
+                    }
                     result.add(value);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -328,7 +330,7 @@ public class Query<T> {
     }
 
     void addDeclarationToken(Declaration declaration) {
-    int todoWhatIsDeclaration;
+        int todoWhatIsDeclaration;
         declarations.add(declaration);
     }
 
@@ -380,10 +382,12 @@ public class Query<T> {
                 stat.appendSQL(" ");
             }
         }
-        if (limit > 0)
+        if (limit > 0) {
             db.getDialect().appendLimit(stat, limit);
-        if (offset > 0)
+        }
+        if (offset > 0) {
             db.getDialect().appendOffset(stat, offset);
+        }
         StatementLogger.select(stat.getSQL());
         return stat;
     }

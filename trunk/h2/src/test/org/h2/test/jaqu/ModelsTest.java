@@ -13,7 +13,7 @@ import org.h2.jaqu.DbInspector;
 import org.h2.jaqu.DbUpgrader;
 import org.h2.jaqu.DbVersion;
 import org.h2.jaqu.Table.JQDatabase;
-import org.h2.jaqu.Validation;
+import org.h2.jaqu.ValidationRemark;
 import org.h2.test.TestBase;
 import org.h2.test.jaqu.SupportedTypes.SupportedTypes2;
 
@@ -65,15 +65,15 @@ public class ModelsTest extends TestBase {
     }
 
     private void validateModel(DbInspector inspector, Object o) {
-        List<Validation> remarks = inspector.validateModel(o, false);
+        List<ValidationRemark> remarks = inspector.validateModel(o, false);
         if (config.traceTest && remarks.size() > 0) {
             trace("Validation remarks for " + o.getClass().getName());
-            for (Validation remark : remarks) {
+            for (ValidationRemark remark : remarks) {
                 trace(remark.toString());
             }
             trace("");
         }
-        for (Validation remark : remarks) {
+        for (ValidationRemark remark : remarks) {
             assertFalse(remark.toString(), remark.isError());
         }
     }

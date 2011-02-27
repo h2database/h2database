@@ -82,7 +82,7 @@ public class DbInspector {
      * @param throwOnError
      * @return
      */
-    public <T> List<Validation> validateModel(T model, boolean throwOnError) {
+    public <T> List<ValidationRemark> validateModel(T model, boolean throwOnError) {
         try {
             TableInspector inspector = findTable(model);
             inspector.read(metaData);

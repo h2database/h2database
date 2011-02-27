@@ -10,7 +10,7 @@ import org.h2.jaqu.Table.JQColumn;
 import org.h2.jaqu.Table.JQTable;
 
 /**
- * A JaQu system table to track database and table versions.
+ * A system table to track database and table versions.
  */
 @JQTable(name = "_jq_versions", primaryKey = "schemaName tableName", memoryTable = true)
 public class DbVersion {
@@ -23,8 +23,6 @@ public class DbVersion {
 
     @JQColumn(name = "version")
     Integer version;
-
-    private int todoReviewWholeClass;
 
     public DbVersion() {
         // nothing to do

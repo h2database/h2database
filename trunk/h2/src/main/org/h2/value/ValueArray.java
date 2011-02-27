@@ -15,6 +15,9 @@ import org.h2.util.StatementBuilder;
  * Implementation of the ARRAY data type.
  */
 public class ValueArray extends Value {
+
+    private static final ValueArray EMPTY = new ValueArray(new Value[0]);
+
     private final Value[] values;
     private int hash;
 
@@ -30,7 +33,7 @@ public class ValueArray extends Value {
      * @return the value
      */
     public static ValueArray get(Value[] list) {
-        return new ValueArray(list);
+        return list.length == 0 ? EMPTY : new ValueArray(list);
     }
 
     public int hashCode() {
@@ -103,6 +106,9 @@ public class ValueArray extends Value {
         for (Value v : values) {
             buff.appendExceptFirst(", ");
             buff.append(v.getSQL());
+        }
+        if (values.length == 1) {
+            buff.append(',');
         }
         return buff.append(')').toString();
     }

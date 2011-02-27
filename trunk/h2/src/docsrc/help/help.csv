@@ -1506,11 +1506,14 @@ ID=1 AND NAME='Hi'
 "
 
 "Other Grammar","Array","
-( expression [,...] )
+( [ expression, [ expression [,...] ] ] )
 ","
-An array of values.
+An array of values. An empty array is '()'. Trailing commas are ignored.
+An array with one element must contain a comma to be parsed as an array.
 ","
 (1, 2)
+(1, )
+()
 "
 
 "Other Grammar","Boolean","

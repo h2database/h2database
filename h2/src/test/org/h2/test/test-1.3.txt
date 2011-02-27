@@ -1,4 +1,22 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select () empty;
+> EMPTY
+> -----
+> ()
+> rows: 1
+
+select (1,) one_element;
+> ONE_ELEMENT
+> -----------
+> (1)
+> rows: 1
+
+select (1) one;
+> ONE
+> ---
+> 1
+> rows: 1
+
 create table test(id int);
 > ok
 

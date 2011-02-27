@@ -20,6 +20,8 @@ import org.h2.value.ValueArray;
  */
 public class ExpressionList extends Expression {
 
+    public static final ExpressionList EMPTY = new ExpressionList(new Expression[0]);
+
     private Expression[] list;
 
     public ExpressionList(Expression[] list) {
@@ -82,6 +84,9 @@ public class ExpressionList extends Expression {
         for (Expression e: list) {
             buff.appendExceptFirst(", ");
             buff.append(e.getSQL());
+        }
+        if (list.length == 1) {
+            buff.append(',');
         }
         return buff.append(')').toString();
     }

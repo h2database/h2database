@@ -2482,19 +2482,28 @@ public class Parser {
             break;
         case OPEN:
             read();
-            r = readExpression();
-            if (readIf(",")) {
-                ArrayList<Expression> list = New.arrayList();
-                list.add(r);
-                do {
-                    r = readExpression();
+            if (readIf(")")) {
+                r = ExpressionList.EMPTY;
+            } else {
+                r = readExpression();
+                if (readIf(",")) {
+                    ArrayList<Expression> list = New.arrayList();
                     list.add(r);
-                } while (readIf(","));
-                Expression[] array = new Expression[list.size()];
-                list.toArray(array);
-                r = new ExpressionList(array);
+                    while (!readIf(")")) {
+                        r = readExpression();
+                        list.add(r);
+                        if (!readIf(",")) {
+                            read(")");
+                            break;
+                        }
+                    }
+                    Expression[] array = new Expression[list.size()];
+                    list.toArray(array);
+                    r = new ExpressionList(array);
+                } else {
+                    read(")");
+                }
             }
-            read(")");
             break;
         case TRUE:
             read();

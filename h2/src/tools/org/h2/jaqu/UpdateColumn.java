@@ -10,9 +10,7 @@ package org.h2.jaqu;
  * Classes implementing this interface can be used as a declaration in an
  * update statement.
  */
-public interface Declaration {
-
-    final static int renameClassToUpdateDeclaration = 0;
+public interface UpdateColumn {
 
     /**
      * Append the SQL to the given statement using the given query.

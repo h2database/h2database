@@ -7,24 +7,24 @@
 package org.h2.jaqu;
 
 /**
- * This class represents "SET column = value" in an UPDATE statement.
+ * This class represents "SET column = (column + x)" in an UPDATE statement.
  *
  * @param <T> the query type
  * @param <A> the new value data type
  */
 //## Java 1.5 begin ##
-public class SetColumn<T, A> implements Declaration {
+public class UpdateColumnIncrement<T, A> implements UpdateColumn {
 
     private Query<T> query;
     private A x;
     private A y;
 
-    SetColumn(Query<T> query, A x) {
+    UpdateColumnIncrement(Query<T> query, A x) {
         this.query = query;
         this.x = x;
     }
 
-    public Query<T> to(A y) {
+    public Query<T> by(A y) {
         query.addDeclarationToken(this);
         this.y = y;
         return query;
@@ -32,8 +32,11 @@ public class SetColumn<T, A> implements Declaration {
 
     public void appendSQL(SQLStatement stat) {
         query.appendSQL(stat, x);
-        stat.appendSQL("=?");
-        stat.addParameter(y);
+        stat.appendSQL("=(");
+        query.appendSQL(stat, x);
+        stat.appendSQL("+");
+        query.appendSQL(stat, y);
+        stat.appendSQL(")");
     }
 
 }

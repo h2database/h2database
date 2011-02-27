@@ -32,7 +32,7 @@ public class Query<T> {
     private Db db;
     private SelectTable<T> from;
     private ArrayList<Token> conditions = Utils.newArrayList();
-    private ArrayList<Declaration> declarations = Utils.newArrayList();
+    private ArrayList<UpdateColumn> declarations = Utils.newArrayList();
     private ArrayList<SelectTable<?>> joins = Utils.newArrayList();
     private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = Utils.newIdentityHashMap();
     private ArrayList<OrderExpression<T>> orderByList = Utils.newArrayList();
@@ -121,14 +121,14 @@ public class Query<T> {
         return stat.executeUpdate();
     }
 
-    public <A> SetColumn<T, A> set(A field) {
+    public <A> UpdateColumnSet<T, A> set(A field) {
         int renameSetColumnClassToUpdateSetColumn;
-        return new SetColumn<T, A>(this, field);
+        return new UpdateColumnSet<T, A>(this, field);
     }
 
-    public <A> IncrementColumn<T, A> increment(A field) {
+    public <A> UpdateColumnIncrement<T, A> increment(A field) {
         int renameIncrementColumnClassToUpdateIncrementColumn;
-        return new IncrementColumn<T, A>(this, field);
+        return new UpdateColumnIncrement<T, A>(this, field);
     }
 
     public int update() {
@@ -140,7 +140,7 @@ public class Query<T> {
         from.appendSQL(stat);
         stat.appendSQL(" SET ");
         int i = 0;
-        for (Declaration declaration : declarations) {
+        for (UpdateColumn declaration : declarations) {
             if (i++ > 0) {
                 stat.appendSQL(", ");
             }
@@ -329,7 +329,7 @@ public class Query<T> {
         conditions.add(condition);
     }
 
-    void addDeclarationToken(Declaration declaration) {
+    void addDeclarationToken(UpdateColumn declaration) {
         int todoWhatIsDeclaration;
         declarations.add(declaration);
     }

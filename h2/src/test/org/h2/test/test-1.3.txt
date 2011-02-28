@@ -1,7 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
 select -cast(0 as double) nz;
 > NZ
-> -----
+> ----
 > -0.0
 > rows: 1
 
@@ -7454,7 +7454,7 @@ SELECT ID++0, -X1, -XT, -X_SM, -XB, -XD, -XD2, -XR FROM TEST;
 > ID + 0 - X1  - XT - X_SM - XB - XD  - XD2 - XR
 > ------ ----- ---- ------ ---- ----- ----- ----
 > -1     TRUE  1    1      1    1.00  1.0   1.0
-> 0      TRUE  0    0      0    0.00  0.0   0.0
+> 0      TRUE  0    0      0    0.00  -0.0  -0.0
 > 1      FALSE -1   -1     -1   -1.00 -1.0  -1.0
 > 4      FALSE -4   -4     -4   -4.00 -4.0  -4.0
 > null   null  null null   null null  null  null

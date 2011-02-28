@@ -157,14 +157,14 @@ public class CompareLike extends Condition {
             return;
         }
         // parameters are always evaluatable, but
-        // we need to check the actual value now
+        // we need to check if the value is set
         // (at prepare time)
         // otherwise we would need to prepare at execute time,
-        // which is maybe slower (but maybe not in this case!)
-        if (!right.isValueSet()) {
+        // which may be slower (possibly not in this case)
+        if (!right.isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return;
         }
-        if (escape != null && !escape.isValueSet()) {
+        if (escape != null && !escape.isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return;
         }
         String p = right.getValue(session).getString();

@@ -38,6 +38,7 @@ public class TestOptimizations extends TestBase {
 
     public void test() throws Exception {
         deleteDb("optimizations");
+        testLike();
         testExistsSubquery();
         testQueryCacheConcurrentUse();
         testQueryCacheResetParams();
@@ -65,6 +66,18 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testLike() throws Exception {
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(name varchar primary key) as select x from system_range(1, 10)");
+        ResultSet rs = stat.executeQuery("explain select * from test where name like ? || '%' {1: 'Hello'}");
+        rs.next();
+        // ensure the ID = 10 part is evaluated first
+        assertContains(rs.getString(1), "PRIMARY_KEY_");
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testExistsSubquery() throws Exception {

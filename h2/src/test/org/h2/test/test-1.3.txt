@@ -1,4 +1,10 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select -cast(0 as double) nz;
+> NZ
+> -----
+> -0.0
+> rows: 1
+
 select () empty;
 > EMPTY
 > -----

@@ -27,11 +27,10 @@ public class ValueDouble extends Value {
      */
     public static final int DISPLAY_SIZE = 24;
 
-    private static final double DOUBLE_ZERO = 0.0;
-    private static final double DOUBLE_ONE = 1.0;
-    private static final ValueDouble ZERO = new ValueDouble(DOUBLE_ZERO);
-    private static final ValueDouble ONE = new ValueDouble(DOUBLE_ONE);
+    private static final ValueDouble ZERO = new ValueDouble(0.0);
+    private static final ValueDouble ONE = new ValueDouble(1.0);
     private static final ValueDouble NAN = new ValueDouble(Double.NaN);
+    private static final long ZERO_BITS = Double.doubleToLongBits(0.0);
 
     private final double value;
 
@@ -126,10 +125,14 @@ public class ValueDouble extends Value {
      * @return the value
      */
     public static ValueDouble get(double d) {
-        if (DOUBLE_ZERO == d) {
-            return ZERO;
-        } else if (DOUBLE_ONE == d) {
+        if (d == 1.0) {
             return ONE;
+        } else if (d == 0.0) {
+            // unfortunately, -0.0 == 0.0, but we don't want to return
+            // 0.0 in this case
+            if (Double.doubleToLongBits(d) == ZERO_BITS) {
+                return ZERO;
+            }
         } else if (Double.isNaN(d)) {
             return NAN;
         }

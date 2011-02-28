@@ -479,7 +479,7 @@ condition [ { AND condition } [...] ]
 ","
 Value or condition."
 "Other Grammar","Array","
-( expression [,...] )
+( [ expression, [ expression [,...] ] ] )
 ","
 An array of values."
 "Other Grammar","Boolean","
@@ -576,7 +576,7 @@ A string starts and ends with two dollar signs."
 "Other Grammar","Double","
 [ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
 ","
-The limitations are the same as for the Java data type Double."
+A floating point number with high precision."
 "Other Grammar","Expression","
 andCondition [ { OR andCondition } [...] ]
 ","
@@ -716,23 +716,23 @@ Data type with fixed precision and scale."
 "Data Types","DOUBLE Type","
 { DOUBLE [ PRECISION ] | FLOAT | FLOAT4 | FLOAT8 }
 ","
-Floating point number."
+A floating point number."
 "Data Types","REAL Type","
 REAL
 ","
-Single precision floating point number."
+A single precision floating point number."
 "Data Types","TIME Type","
 TIME
 ","
-The format is hh:mm:ss."
+The time data type."
 "Data Types","DATE Type","
 DATE
 ","
-The format is yyyy-MM-dd."
+The date data type."
 "Data Types","TIMESTAMP Type","
 { TIMESTAMP | DATETIME | SMALLDATETIME }
 ","
-The format is yyyy-MM-dd hh:mm:ss[."
+The timestamp data type."
 "Data Types","BINARY Type","
 { BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA } [ ( precisionInt ) ]
 ","

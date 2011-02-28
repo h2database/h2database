@@ -202,8 +202,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>21 SCOPE_TABLE (String) always null </li>
      * <li>22 SOURCE_DATA_TYPE (short) null </li>
      * <li>23 IS_AUTOINCREMENT (String) "NO" or "YES" </li>
-     * <li>24 SCOPE_CATLOG (String) always null
-     * (the typo is on purpose, for compatibility with the JDBC specification prior to 4.1)</li>
+     * <li>24 SCOPE_CATLOG (String) always null (the typo is on purpose,
+     * for compatibility with the JDBC specification prior to 4.1)</li>
      * </ul>
      *
      * @param catalogPattern null (to get all objects) or the catalog name

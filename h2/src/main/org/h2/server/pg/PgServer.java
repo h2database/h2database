@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.h2.engine.Constants;
+import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
@@ -72,6 +73,7 @@ public class PgServer implements Service {
     private HashSet<Integer> typeSet = New.hashSet();
 
     private int port = PgServer.DEFAULT_PORT;
+    private boolean portIsSet;
     private boolean stop;
     private boolean trace;
     private ServerSocket serverSocket;
@@ -89,6 +91,7 @@ public class PgServer implements Service {
                 trace = true;
             } else if (Tool.isOption(a, "-pgPort")) {
                 port = Integer.decode(args[++i]);
+                portIsSet = true;
             } else if (Tool.isOption(a, "-baseDir")) {
                 baseDir = args[++i];
             } else if (Tool.isOption(a, "-pgAllowOthers")) {
@@ -160,7 +163,16 @@ public class PgServer implements Service {
     }
 
     public void start() {
-        serverSocket = NetUtils.createServerSocket(port, false);
+        try {
+            serverSocket = NetUtils.createServerSocket(port, false);
+        } catch (DbException e) {
+            if (!portIsSet) {
+                serverSocket = NetUtils.createServerSocket(0, false);
+            } else {
+                throw e;
+            }
+        }
+        port = serverSocket.getLocalPort();
     }
 
     public void listen() {

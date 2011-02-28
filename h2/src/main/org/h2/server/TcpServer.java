@@ -54,6 +54,7 @@ public class TcpServer implements Service {
     private static final Map<Integer, TcpServer> SERVERS = Collections.synchronizedMap(new HashMap<Integer, TcpServer>());
 
     private int port;
+    private boolean portIsSet;
     private boolean trace;
     private boolean ssl;
     private boolean stop;
@@ -169,6 +170,7 @@ public class TcpServer implements Service {
                 ssl = true;
             } else if (Tool.isOption(a, "-tcpPort")) {
                 port = Integer.decode(args[++i]);
+                portIsSet = true;
             } else if (Tool.isOption(a, "-tcpPassword")) {
                 managementPassword = args[++i];
             } else if (Tool.isOption(a, "-baseDir")) {
@@ -216,7 +218,15 @@ public class TcpServer implements Service {
 
     public synchronized void start() throws SQLException {
         stop = false;
-        serverSocket = NetUtils.createServerSocket(port, ssl);
+        try {
+            serverSocket = NetUtils.createServerSocket(port, ssl);
+        } catch (DbException e) {
+            if (!portIsSet) {
+                serverSocket = NetUtils.createServerSocket(0, ssl);
+            } else {
+                throw e;
+            }
+        }
         port = serverSocket.getLocalPort();
         initManagementDb();
     }

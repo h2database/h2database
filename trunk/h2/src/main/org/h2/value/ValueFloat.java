@@ -27,10 +27,9 @@ public class ValueFloat extends Value {
      */
     static final int DISPLAY_SIZE = 15;
 
-    private static final float FLOAT_ZERO = 0.0F;
-    private static final float FLOAT_ONE = 1.0F;
-    private static final ValueFloat ZERO = new ValueFloat(FLOAT_ZERO);
-    private static final ValueFloat ONE = new ValueFloat(FLOAT_ONE);
+    private static final ValueFloat ZERO = new ValueFloat(0.0F);
+    private static final ValueFloat ONE = new ValueFloat(1.0F);
+    private static final int ZERO_BITS = Float.floatToIntBits(0.0F);
 
     private final float value;
 
@@ -126,10 +125,14 @@ public class ValueFloat extends Value {
      * @return the value
      */
     public static ValueFloat get(float d) {
-        if (FLOAT_ZERO == d) {
-            return ZERO;
-        } else if (FLOAT_ONE == d) {
+        if (d == 1.0F) {
             return ONE;
+        } else if (d == 0.0F) {
+            // unfortunately, -0.0 == 0.0, but we don't want to return
+            // 0.0 in this case
+            if (Float.floatToIntBits(d) == ZERO_BITS) {
+                return ZERO;
+            }
         }
         return (ValueFloat) Value.cache(new ValueFloat(d));
     }

@@ -27,10 +27,14 @@ public class ValueDouble extends Value {
      */
     public static final int DISPLAY_SIZE = 24;
 
+    /**
+     * Double.doubleToLongBits(0.0)
+     */
+    public static final long ZERO_BITS = Double.doubleToLongBits(0.0);
+
     private static final ValueDouble ZERO = new ValueDouble(0.0);
     private static final ValueDouble ONE = new ValueDouble(1.0);
     private static final ValueDouble NAN = new ValueDouble(Double.NaN);
-    private static final long ZERO_BITS = Double.doubleToLongBits(0.0);
 
     private final double value;
 

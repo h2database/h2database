@@ -2483,7 +2483,7 @@ public class Parser {
         case OPEN:
             read();
             if (readIf(")")) {
-                r = ExpressionList.EMPTY;
+                r = new ExpressionList(new Expression[0]);
             } else {
                 r = readExpression();
                 if (readIf(",")) {

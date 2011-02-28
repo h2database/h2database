@@ -20,8 +20,6 @@ import org.h2.value.ValueArray;
  */
 public class ExpressionList extends Expression {
 
-    public static final ExpressionList EMPTY = new ExpressionList(new Expression[0]);
-
     private Expression[] list;
 
     public ExpressionList(Expression[] list) {

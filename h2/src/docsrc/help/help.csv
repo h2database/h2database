@@ -1728,9 +1728,15 @@ $$John's car$$
 "Other Grammar","Double","
 [ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
 ","
+A floating point number with high precision.
 The limitations are the same as for the Java data type Double.
+To ensure the floating point representation is used, use CAST.
+There are some special values: to represent positive infinity, use POWER(0, -1);
+for negative infinity, use (-POWER(0, -1)); for -0.0, use (-CAST(0 AS DOUBLE));
+for NaN (not a number), use SQRT(-1).
 ","
 -1.4e-10
+CAST(0 AS DOUBLE)
 "
 
 "Other Grammar","Expression","
@@ -2031,7 +2037,7 @@ DECIMAL(20, 2)
 "Data Types","DOUBLE Type","
 { DOUBLE [ PRECISION ] | FLOAT | FLOAT4 | FLOAT8 }
 ","
-Floating point number. Should not be used to represent currency values, because
+A floating point number. Should not be used to represent currency values, because
 of rounding problems.
 
 Mapped to ""java.lang.Double"".
@@ -2042,7 +2048,7 @@ DOUBLE
 "Data Types","REAL Type","
 REAL
 ","
-Single precision floating point number. Should not be used to represent currency
+A single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
 
 Mapped to ""java.lang.Float"".
@@ -2053,7 +2059,7 @@ REAL
 "Data Types","TIME Type","
 TIME
 ","
-The format is hh:mm:ss.
+The time data type. The format is hh:mm:ss.
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ","
@@ -2063,7 +2069,7 @@ TIME
 "Data Types","DATE Type","
 DATE
 ","
-The format is yyyy-MM-dd.
+The date data type. The format is yyyy-MM-dd.
 
 Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 (or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
@@ -2074,7 +2080,7 @@ DATE
 "Data Types","TIMESTAMP Type","
 { TIMESTAMP | DATETIME | SMALLDATETIME }
 ","
-The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
+The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" is also supported).
 ","

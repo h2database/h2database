@@ -108,6 +108,9 @@ public class TraceObject {
         "ds", "xads", "xares", "xid", "ar"
     };
 
+    /**
+     * The trace module used by this object.
+     */
     protected Trace trace;
 
     private int traceType;

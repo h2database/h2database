@@ -163,6 +163,10 @@ This can be done by changing the port in the file <code>.h2.server.properties</c
 in the user directory (for Windows, this is usually in <code>Documents and Settings/&lt;username&gt;</code>).
 The relevant entry is webPort.
 </p>
+<p>
+If no port is specified for the TCP and PG servers, they will try to listen on the default port for the given service.
+If the default port is already in use, a random port is used.
+</p>
 
 <h3>Connecting to the Server using a Browser</h3>
 <p>

@@ -231,11 +231,14 @@ public class Doclet {
         Arrays.sort(fields, new Comparator<FieldDoc>() {
             public int compare(FieldDoc a, FieldDoc b) {
                 String ca = a.constantValueExpression();
-                String cb = b.constantValueExpression();
-                if (ca != null && cb != null) {
-                    return ca.compareTo(cb);
+                if (ca == null) {
+                    ca = a.name();
                 }
-                return a.name().compareTo(b.name());
+                String cb = b.constantValueExpression();
+                if (cb == null) {
+                    cb = b.name();
+                }
+                return ca.compareTo(cb);
             }
         });
         for (FieldDoc field : fields) {

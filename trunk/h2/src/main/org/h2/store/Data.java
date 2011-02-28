@@ -528,21 +528,31 @@ public class Data {
             break;
         case Value.DOUBLE: {
             double x = v.getDouble();
-            if (x == 0.0 || x == 1.0) {
-                writeByte((byte) (DOUBLE_0_1 + x));
+            if (x == 1.0f) {
+                writeByte((byte) (DOUBLE_0_1 + 1));
             } else {
-                writeByte((byte) type);
-                writeVarLong(MathUtils.reverseLong(Double.doubleToLongBits(x)));
+                long d = Double.doubleToLongBits(x);
+                if (d == ValueDouble.ZERO_BITS) {
+                    writeByte((byte) DOUBLE_0_1);
+                } else {
+                    writeByte((byte) type);
+                    writeVarLong(MathUtils.reverseLong(d));
+                }
             }
             break;
         }
         case Value.FLOAT: {
             float x = v.getFloat();
-            if (x == 0.0f || x == 1.0f) {
-                writeByte((byte) (FLOAT_0_1 + x));
+            if (x == 1.0f) {
+                writeByte((byte) (FLOAT_0_1 + 1));
             } else {
-                writeByte((byte) type);
-                writeVarInt(MathUtils.reverseInt(Float.floatToIntBits(v.getFloat())));
+                int f = Float.floatToIntBits(x);
+                if (f == ValueFloat.ZERO_BITS) {
+                    writeByte((byte) FLOAT_0_1);
+                } else {
+                    writeByte((byte) type);
+                    writeVarInt(MathUtils.reverseInt(f));
+                }
             }
             break;
         }

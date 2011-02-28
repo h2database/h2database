@@ -17,6 +17,11 @@ import org.h2.message.DbException;
 public class ValueFloat extends Value {
 
     /**
+     * Float.floatToIntBits(0.0F).
+     */
+    public static final int ZERO_BITS = Float.floatToIntBits(0.0F);
+
+    /**
      * The precision in digits.
      */
     static final int PRECISION = 7;
@@ -29,7 +34,6 @@ public class ValueFloat extends Value {
 
     private static final ValueFloat ZERO = new ValueFloat(0.0F);
     private static final ValueFloat ONE = new ValueFloat(1.0F);
-    private static final int ZERO_BITS = Float.floatToIntBits(0.0F);
 
     private final float value;
 

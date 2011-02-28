@@ -16,8 +16,6 @@ import org.h2.util.StatementBuilder;
  */
 public class ValueArray extends Value {
 
-    private static final ValueArray EMPTY = new ValueArray(new Value[0]);
-
     private final Value[] values;
     private int hash;
 
@@ -33,7 +31,7 @@ public class ValueArray extends Value {
      * @return the value
      */
     public static ValueArray get(Value[] list) {
-        return list.length == 0 ? EMPTY : new ValueArray(list);
+        return new ValueArray(list);
     }
 
     public int hashCode() {

@@ -77,7 +77,11 @@ public class ValueDouble extends Value {
         } else if (Double.isNaN(value)) {
             return "SQRT(-1)";
         }
-        return getString();
+        String s = getString();
+        if (s.equals("-0.0")) {
+            return "-CAST(0 AS DOUBLE)";
+        }
+        return s;
     }
 
     public int getType() {

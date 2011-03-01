@@ -77,7 +77,11 @@ public class ValueFloat extends Value {
             // NaN
             return "SQRT(-1)";
         }
-        return getString();
+        String s = getString();
+        if (s.equals("-0.0")) {
+            return "-CAST(0 AS REAL)";
+        }
+        return s;
     }
 
     public int getType() {

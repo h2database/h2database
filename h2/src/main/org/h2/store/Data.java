@@ -828,7 +828,7 @@ public class Data {
             if (f == ValueFloat.ZERO_BITS) {
                 return 1;
             }
-             return 1 + getVarIntLen(MathUtils.reverseInt(f));
+            return 1 + getVarIntLen(MathUtils.reverseInt(f));
         }
         case Value.STRING: {
             String s = v.getString();

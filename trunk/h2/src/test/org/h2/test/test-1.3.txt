@@ -1,4 +1,10 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+explain select -cast(0 as real), -cast(0 as double);
+> PLAN
+> --------------------------------------------------------------------------------------------
+> SELECT -CAST(0 AS REAL), -CAST(0 AS DOUBLE) FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */
+> rows: 1
+
 select -cast(0 as double) nz;
 > NZ
 > ----

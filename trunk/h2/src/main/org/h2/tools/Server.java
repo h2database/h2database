@@ -529,7 +529,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             }
             if (osName.indexOf("windows") >= 0) {
                 rt.exec(new String[] { "rundll32", "url.dll,FileProtocolHandler", url });
-            } else if (osName.indexOf("mac") >= 0) {
+            } else if (osName.indexOf("mac") >= 0 || osName.indexOf("darwin") >= 0) {
                 // Mac OS: to open a page with Safari, use "open -a Safari"
                 Runtime.getRuntime().exec(new String[] { "open", url });
             } else {

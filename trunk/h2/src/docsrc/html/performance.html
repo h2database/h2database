@@ -668,8 +668,8 @@ So this index contains the following data:
 <p>
 When the database uses an index to query the data, it searches the index for the given data,
 and (if required) reads the remaining columns in the main data table (retrieved using the row id).
-An index on city, name, and first name allows to quickly search for rows when the city, name, and first name are known.
-If only the city and name, or only the city is known, then the index is also used.
+An index on city, name, and first name (multi-column index) allows to quickly search for rows when the city, name, and first name are known.
+If only the city and name, or only the city is known, then this index is also used (so creating an additional index on just the city is not needed).
 This index is also used when reading all rows, sorted by the indexed columns.
 However, if only the first name is known, then this index is not used:
 </p>

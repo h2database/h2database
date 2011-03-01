@@ -604,9 +604,10 @@ In this case, the database URL must include a name. Example: <code>jdbc:h2:mem:d
 Accessing the same database using this URL only works within the same virtual machine and
 class loader environment.
 </p><p>
-In-memory can be accessed remotely
-(or from multiple processes in the same machine) using TCP/IP or SSL/TLS.
-An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code>.
+To access an in-memory database from another process or from another computer,
+you need to start a TCP server in the same process as the in-memory database was created.
+The other processes then need to access the database over TCP/IP or SSL/TLS,
+using a database URL such as: <code>jdbc:h2:tcp://localhost/mem:db1</code>.
 </p><p>
 By default, closing the last connection to a database closes the database.
 For an in-memory database, this means the content is lost.

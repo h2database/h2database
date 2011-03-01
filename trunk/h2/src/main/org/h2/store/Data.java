@@ -528,7 +528,7 @@ public class Data {
             break;
         case Value.DOUBLE: {
             double x = v.getDouble();
-            if (x == 1.0f) {
+            if (x == 1.0d) {
                 writeByte((byte) (DOUBLE_0_1 + 1));
             } else {
                 long d = Double.doubleToLongBits(x);
@@ -810,17 +810,25 @@ public class Data {
         }
         case Value.DOUBLE: {
             double x = v.getDouble();
-            if (x == 0.0 || x == 1.0) {
+            if (x == 1.0d) {
                 return 1;
             }
-            return 1 + getVarLongLen(MathUtils.reverseLong(Double.doubleToLongBits(x)));
+            long d = Double.doubleToLongBits(x);
+            if (d == ValueDouble.ZERO_BITS) {
+                return 1;
+            }
+            return 1 + getVarLongLen(MathUtils.reverseLong(d));
         }
         case Value.FLOAT: {
             float x = v.getFloat();
-            if (x == 0.0f || x == 1.0f) {
+            if (x == 1.0f) {
                 return 1;
             }
-            return 1 + getVarIntLen(MathUtils.reverseInt(Float.floatToIntBits(v.getFloat())));
+            int f = Float.floatToIntBits(x);
+            if (f == ValueFloat.ZERO_BITS) {
+                return 1;
+            }
+             return 1 + getVarIntLen(MathUtils.reverseInt(f));
         }
         case Value.STRING: {
             String s = v.getString();

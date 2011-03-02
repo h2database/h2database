@@ -6,8 +6,11 @@
  */
 package org.h2.test.jdbc;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import org.h2.Driver;
 import org.h2.test.TestBase;
@@ -27,6 +30,27 @@ public class TestDriver extends TestBase {
     }
 
     public void test() throws Exception {
+        testSettingsAsProperties();
+        testDriverObject();
+    }
+
+    private void testSettingsAsProperties() throws Exception {
+        Properties props = new Properties();
+        props.put("user", getUser());
+        props.put("password", getPassword());
+        props.put("max_compact_time", "1234");
+        props.put("unknown", "1234");
+        String url = getURL("driver", true);
+        Connection conn = DriverManager.getConnection(url, props);
+        ResultSet rs;
+        rs = conn.createStatement().executeQuery(
+                "select * from information_schema.settings where name='MAX_COMPACT_TIME'");
+        rs.next();
+        assertEquals(1234, rs.getInt(2));
+        conn.close();
+    }
+
+    private void testDriverObject() throws Exception {
         Driver instance = Driver.load();
         assertTrue(DriverManager.getDriver("jdbc:h2:~/test") == instance);
         Driver.unload();

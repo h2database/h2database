@@ -549,8 +549,11 @@ You can rename it to <code>H2Dialect.java</code> and include this as a patch in 
 or upgrade to a version of Hibernate where this is fixed.
 </p>
 <p>
-When using compatibility modes such as <code>MODE=MySQL</code> when using Hibernate
-is not supported when using <code>H2Dialect</code>.
+When using Hibernate, try to use the <code>H2Dialect</code> if possible.
+When using the <code>H2Dialect</code>, 
+compatibility modes such as <code>MODE=MySQL</code> are not supported.
+When using such a compatibility mode, use the Hibernate dialect for the
+corresponding database instead of the <code>H2Dialect</code>.
 </p>
 
 <h2 id="using_toplink">Using TopLink and Glassfish</h2>

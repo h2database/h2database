@@ -1701,6 +1701,22 @@ public class WebApp {
         } else if (x.startsWith("=+")) {
             // don't update
             return;
+        } else if (x.equals("=*")) {
+            // set an appropriate default value
+            int type = rs.getMetaData().getColumnType(columnIndex);
+            switch (type) {
+            case Types.TIME:
+                rs.updateString(columnIndex, "12:00:00");
+                break;
+            case Types.TIMESTAMP:
+            case Types.DATE:
+                rs.updateString(columnIndex, "2001-01-01");
+                break;
+            default:
+                rs.updateString(columnIndex, "1");
+                break;
+            }
+            return;
         } else if (x.startsWith("= ")) {
             x = x.substring(2);
         }

@@ -86,8 +86,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Make DDL (Data Definition) operations transactional.
 </li><li>RANK() and DENSE_RANK(), Partition using OVER().
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
-</li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
-    ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Access rights: finer grained access control (grant access for specific functions).
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
 </li><li>Web server classloader: override findResource / getResourceFrom.
@@ -102,17 +100,14 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Fulltext search (native): reader / tokenizer / filter.
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files.
 </li><li>iReport to support H2.
-</li><li>Implement missing JDBC API (CallableStatement,...).
-</li><li>Compression of the cache.
 </li><li>Include SMPT (mail) client (alert on cluster failure, low disk space,...).
 </li><li>JSON parser and functions.
-</li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?).
 </li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare).
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements.
 </li><li>Support SET TABLE DUAL READONLY.
 </li><li>GCJ: what is the state now?
 </li><li>Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server. See http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html
-</li><li>Optimization: log compression.
+</li><li>Optimization: simpler log compression.
 </li><li>ROW_NUMBER() OVER([ORDER BY columnName]).
 </li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt - specially KEY_COLUMN_USAGE: http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif
 </li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero.
@@ -120,10 +115,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Custom class loader to reload functions on demand.
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master.
 </li><li>Test http://mysql-je.sourceforge.net/
-</li><li>Performance: automatically build in-memory indexes if the whole table is in memory.
 </li><li>H2 Console: the webclient could support more features like phpMyAdmin.
 </li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
-</li><li>Use Janino to convert Java to C++.
+</li><li>Work on the Java to C converter.
 </li><li>The HELP information schema can be directly exposed in the Console.
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server.
 </li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html http://philip.greenspun.com/sql/trees.html
@@ -148,8 +142,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?).
 </li><li>Console: autocomplete Ctrl+Space inserts template.
 </li><li>Option to encrypt .trace.db file.
-</li><li>Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
-</li><li>Functions with unknown return or parameter data types: serialize / deserialize.
 </li><li>Auto-Update feature for database, .jar file.
 </li><li>ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp.
 </li><li>Partial indexing (see PostgreSQL).
@@ -167,16 +159,14 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Implement Clob / Blob truncate and the remaining functionality.
 </li><li>Tree join functionality.
 </li><li>Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ...
-</li><li>Use JDK 1.4 file locking for the database file and for the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
+</li><li>File locking: writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Pure SQL triggers (example: update parent table if the child table is changed).
 </li><li>Add H2 to Gem (Ruby install system).
-</li><li>Order conditions inside AND / OR to optimize the performance.
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
 </li><li>Support linked JCR tables.
-</li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 </li><li>Native fulltext search: min word length; store word positions.
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL.
-</li><li>Updatable Views (simple cases first).
+</li><li>Updatable views: create 'instead of' triggers automatically if possible (simple cases first).
 </li><li>Improve create index performance.
 </li><li>Compact databases without having to close the database (vacuum).
 </li><li>Implement more JDBC 4.0 features.
@@ -186,28 +176,21 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Public interface for functions (not public static).
 </li><li>Support reading the transaction log.
 </li><li>Support GRANT SELECT, UPDATE ON *.
-</li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record).
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index.
 </li><li>Compatibility with Derby and PostgreSQL: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1). Issue 221.
-</li><li>Use LinkedList instead of ArrayList where applicable.
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support data type INTERVAL
 </li><li>Support % operator (modulo).
-</li><li>Support JMX: create an MBean for each database and server (support JConsole).
-    See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html
-    http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ManagementFactory.html#getPlatformMBeanServer()
-    http://java.sun.com/j2se/1.5.0/docs/guide/management/agent.html
-</li><li>Support nested transactions.
-</li><li>Add a benchmark for big databases, and one for many users.
-</li><li>Compression in the result set (repeating values in the same column) over TCP/IP.
+</li><li>Support nested transactions (possibly using savepoints internally).
+</li><li>Add a benchmark for bigger databases, and one for many users.
+</li><li>Compression in the result set over TCP/IP.
 </li><li>Support curtimestamp (like curtime, curdate).
 </li><li>Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options.
 </li><li>Release locks (shared or exclusive) on demand
 </li><li>Support OUTER UNION
 </li><li>Support parameterized views (similar to CSVREAD, but using just SQL for the definition)
 </li><li>A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
-</li><li>Support linked tables to the current database
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 </li><li>Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
@@ -241,7 +224,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
 </li><li>Support a special trigger on all tables to allow building a transaction log reader.
 </li><li>File system with a background writer thread; test if this is faster
-</li><li>Better document the source code
+</li><li>Better document the source code (high level documentation).
 </li><li>Support select * from dual a left join dual b on b.x=(select max(x) from dual)
 </li><li>Optimization: don't lock when the database is read-only
 </li><li>Issue 146: Support merge join.
@@ -253,8 +236,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system. Workaround: detect jar file using getClass().getProtectionDomain().getCodeSource().getLocation().
-</li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
-</li><li>Remember the user defined data type (domain) of a column
+</li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others).
+</li><li>Remember the user defined data type (domain) of a column.
 </li><li>MVCC: support multi-threaded kernel with multi-version concurrency.
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
@@ -276,11 +259,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Recovery should work with encrypted databases
 </li><li>Corruption: new error code, add help
 </li><li>Space reuse: after init, scan all storages and free those that don't belong to a live database object
-</li><li>Use FilterIn / FilterOut putStream?
 </li><li>Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 </li><li>Support NOCACHE table option (Oracle).
 </li><li>Support table partitioning.
-</li><li>Index usage for UPDATE ... WHERE .. IN (SELECT...)
 </li><li>Add regular javadocs (using the default doclet, but another css) to the homepage.
 </li><li>The database should be kept open for a longer time when using the server mode.
 </li><li>Javadocs: for each tool, add a copy &amp; paste sample in the class level.
@@ -289,7 +270,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: real SQL statement for DESCRIBE TEST
 </li><li>Use a default delay of 1 second before closing a database.
 </li><li>Write (log) to system table before adding to internal data structures.
-</li><li>Doclet (javadocs): constructors are not listed.
 </li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
 </li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular b-tree index solves the problem).
@@ -306,7 +286,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>H2 Console: in-place autocomplete.
 </li><li>Support large databases: split database files to multiple directories / disks (similar to tablespaces).
-</li><li>Support to assign a primary key index a user defined name.
 </li><li>H2 Console: support configuration option for fixed width (monospace) font.
 </li><li>Native fulltext search: support analyzers (specially for Chinese, Japanese).
 </li><li>Automatically compact databases from time to time (as a background process).
@@ -320,7 +299,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Applets: support read-only databases in a zip file (accessed as a resource).
 </li><li>Long running queries / errors / trace system table.
 </li><li>H2 Console should support JaQu directly.
-</li><li>Document FTL_SEARCH, FTL_SEARCH_DATA.
+</li><li>Better document FTL_SEARCH, FTL_SEARCH_DATA.
 </li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
 </li><li>Auto-server: add option to define the IP address range or list.
 </li><li>Index creation using deterministic functions.
@@ -330,7 +309,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and buggy.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
 </li><li>Fulltext search: lazy result generation using SimpleRowSource.
-</li><li>Support transformation to join for user defined functions, as for IN(SELECT...).
 </li><li>Fulltext search: support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
 </li><li>MySQL compatibility: support REPLACE, see http://dev.mysql.com/doc/refman/6.0/en/replace.html and issue 73.
 </li><li>MySQL compatibility: support INSERT INTO table SET column1 = value1, column2 = value2

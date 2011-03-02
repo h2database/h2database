@@ -188,13 +188,22 @@ public class ConnectionInfo implements Cloneable {
     private void readProperties(Properties info) {
         Object[] list = new Object[info.size()];
         info.keySet().toArray(list);
+        DbSettings s = null;
         for (Object k : list) {
             String key = StringUtils.toUpperEnglish(k.toString());
             if (prop.containsKey(key)) {
                 throw DbException.get(ErrorCode.DUPLICATE_PROPERTY_1, key);
             }
+            Object value = info.get(k);
             if (isKnownSetting(key)) {
-                prop.put(key, info.get(k));
+                prop.put(key, value);
+            } else {
+                if (s == null) {
+                    s = getDbSettings();
+                }
+                if (s.containsKey(key)) {
+                    prop.put(key, value);
+                }
             }
         }
     }

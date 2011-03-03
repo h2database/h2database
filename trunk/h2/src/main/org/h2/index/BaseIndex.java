@@ -241,7 +241,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public int getColumnIndex(Column col) {
         for (int i = 0, len = columns.length; i < len; i++) {
-            if (columns[i] == col) {
+            if (columns[i].equals(col)) {
                 return i;
             }
         }

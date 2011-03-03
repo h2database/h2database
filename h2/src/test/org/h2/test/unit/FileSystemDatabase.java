@@ -352,7 +352,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public String normalize(String fileName) {
+    public String getCanonicalPath(String fileName) {
         return fileName;
     }
 

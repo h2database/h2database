@@ -122,7 +122,7 @@ public class Backup extends Tool {
         if (!quiet) {
             FileLister.tryUnlockDatabase(list, "backup");
         }
-        zipFileName = IOUtils.normalize(zipFileName);
+        zipFileName = IOUtils.getCanonicalPath(zipFileName);
         if (IOUtils.exists(zipFileName)) {
             IOUtils.delete(zipFileName);
         }
@@ -138,7 +138,7 @@ public class Backup extends Tool {
                 }
             }
             for (String fileName : list) {
-                String f = IOUtils.getAbsolutePath(fileName);
+                String f = IOUtils.getCanonicalPath(fileName);
                 if (!f.startsWith(base)) {
                     DbException.throwInternalError(f + " does not start with " + base);
                 }

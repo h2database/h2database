@@ -1302,7 +1302,7 @@ public class Database implements DataHandler {
 
     public String getDatabasePath() {
         if (persistent) {
-            return IOUtils.getAbsolutePath(databaseName);
+            return IOUtils.getCanonicalPath(databaseName);
         }
         return null;
     }

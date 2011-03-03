@@ -587,8 +587,8 @@ public class IOUtils {
      * @param fileName the file name
      * @return the normalized file name
      */
-    public static String normalize(String fileName) {
-        return getFileSystem(fileName).normalize(fileName);
+    public static String getCanonicalPath(String fileName) {
+        return getFileSystem(fileName).getCanonicalPath(fileName);
     }
 
     /**
@@ -685,16 +685,6 @@ public class IOUtils {
      */
     public static boolean isAbsolute(String fileName) {
         return getFileSystem(fileName).isAbsolute(fileName);
-    }
-
-    /**
-     * Get the absolute file name.
-     *
-     * @param fileName the file name
-     * @return the absolute file name
-     */
-    public static String getAbsolutePath(String fileName) {
-        return getFileSystem(fileName).getAbsolutePath(fileName);
     }
 
     /**

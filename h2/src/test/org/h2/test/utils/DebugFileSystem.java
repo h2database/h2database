@@ -105,11 +105,6 @@ public class DebugFileSystem extends FileSystemWrapper {
         return super.fileStartsWith(fileName, prefix);
     }
 
-    public String getAbsolutePath(String fileName) {
-        trace(fileName, "getAbsolutePath");
-        return super.getAbsolutePath(fileName);
-    }
-
     public String getFileName(String name) {
         trace(name, "getFileName");
         return super.getFileName(name);
@@ -155,9 +150,9 @@ public class DebugFileSystem extends FileSystemWrapper {
         return super.listFiles(directory);
     }
 
-    public String normalize(String fileName) {
+    public String getCanonicalPath(String fileName) {
         trace(fileName, "normalize");
-        return super.normalize(fileName);
+        return super.getCanonicalPath(fileName);
     }
 
     public InputStream openFileInputStream(String fileName) throws IOException {

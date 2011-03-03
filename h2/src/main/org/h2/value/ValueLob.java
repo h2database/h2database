@@ -235,7 +235,7 @@ public class ValueLob extends Value {
             name = SysProperties.FILE_SEPARATOR + f + Constants.SUFFIX_LOBS_DIRECTORY + name;
             objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         }
-        name = IOUtils.normalize(path + Constants.SUFFIX_LOBS_DIRECTORY + name);
+        name = IOUtils.getCanonicalPath(path + Constants.SUFFIX_LOBS_DIRECTORY + name);
         return name;
     }
 

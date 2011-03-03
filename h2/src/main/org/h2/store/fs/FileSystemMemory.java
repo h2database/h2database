@@ -48,8 +48,8 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public void rename(String oldName, String newName) {
-        oldName = normalize(oldName);
-        newName = normalize(newName);
+        oldName = getCanonicalPath(oldName);
+        newName = getCanonicalPath(newName);
         synchronized (MEMORY_FILES) {
             FileObjectMemoryData f = getMemoryFile(oldName);
             f.setName(newName);
@@ -69,14 +69,14 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public boolean exists(String fileName) {
-        fileName = normalize(fileName);
+        fileName = getCanonicalPath(fileName);
         synchronized (MEMORY_FILES) {
             return MEMORY_FILES.get(fileName) != null;
         }
     }
 
     public void delete(String fileName) {
-        fileName = normalize(fileName);
+        fileName = getCanonicalPath(fileName);
         synchronized (MEMORY_FILES) {
             MEMORY_FILES.remove(fileName);
         }
@@ -104,7 +104,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public void deleteRecursive(String fileName, boolean tryOnly) {
-        fileName = normalize(fileName);
+        fileName = getCanonicalPath(fileName);
         synchronized (MEMORY_FILES) {
             Iterator<String> it = MEMORY_FILES.tailMap(fileName).keySet().iterator();
             while (it.hasNext()) {
@@ -126,7 +126,7 @@ public class FileSystemMemory extends FileSystem {
         return getMemoryFile(fileName).setReadOnly();
     }
 
-    public String normalize(String fileName) {
+    public String getCanonicalPath(String fileName) {
         fileName = fileName.replace('\\', '/');
         int idx = fileName.indexOf(':') + 1;
         if (fileName.length() > idx && fileName.charAt(idx) != '/') {
@@ -136,7 +136,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public String getParent(String fileName) {
-        fileName = normalize(fileName);
+        fileName = getCanonicalPath(fileName);
         int idx = fileName.lastIndexOf('/');
         if (idx < 0) {
             idx = fileName.indexOf(':') + 1;
@@ -153,11 +153,6 @@ public class FileSystemMemory extends FileSystem {
     public boolean isAbsolute(String fileName) {
         // TODO relative files are not supported
         return true;
-    }
-
-    public String getAbsolutePath(String fileName) {
-        // TODO relative files are not supported
-        return normalize(fileName);
     }
 
     public long getLastModified(String fileName) {
@@ -188,8 +183,8 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
-        fileName = normalize(fileName);
-        prefix = normalize(prefix);
+        fileName = getCanonicalPath(fileName);
+        prefix = getCanonicalPath(prefix);
         return fileName.startsWith(prefix);
     }
 
@@ -215,7 +210,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     private FileObjectMemoryData getMemoryFile(String fileName) {
-        fileName = normalize(fileName);
+        fileName = getCanonicalPath(fileName);
         synchronized (MEMORY_FILES) {
             FileObjectMemoryData m = MEMORY_FILES.get(fileName);
             if (m == null) {

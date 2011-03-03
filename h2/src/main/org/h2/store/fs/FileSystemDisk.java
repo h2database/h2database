@@ -243,7 +243,7 @@ public class FileSystemDisk extends FileSystem {
         return f.setReadOnly();
     }
 
-    public String normalize(String fileName) {
+    public String getCanonicalPath(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);
         try {
@@ -267,12 +267,6 @@ public class FileSystemDisk extends FileSystem {
         fileName = translateFileName(fileName);
         File file = new File(fileName);
         return file.isAbsolute();
-    }
-
-    public String getAbsolutePath(String fileName) {
-        fileName = translateFileName(fileName);
-        File parent = new File(fileName).getAbsoluteFile();
-        return parent.getAbsolutePath();
     }
 
     public long getLastModified(String fileName) {

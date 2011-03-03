@@ -66,10 +66,6 @@ public abstract class FileSystemWrapper extends FileSystem {
         return IOUtils.fileStartsWith(unwrap(fileName), unwrap(prefix));
     }
 
-    public String getAbsolutePath(String fileName) {
-        return wrap(IOUtils.getAbsolutePath(unwrap(fileName)));
-    }
-
     public String getFileName(String name) {
         return IOUtils.getFileName(unwrap(name));
     }
@@ -106,8 +102,8 @@ public abstract class FileSystemWrapper extends FileSystem {
         return array;
     }
 
-    public String normalize(String fileName) {
-        return wrap(IOUtils.normalize(unwrap(fileName)));
+    public String getCanonicalPath(String fileName) {
+        return wrap(IOUtils.getCanonicalPath(unwrap(fileName)));
     }
 
     public InputStream openFileInputStream(String fileName) throws IOException {

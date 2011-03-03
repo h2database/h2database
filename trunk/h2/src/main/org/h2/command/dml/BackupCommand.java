@@ -100,8 +100,8 @@ public class BackupCommand extends Prepared {
     }
 
     private static void backupFile(ZipOutputStream out, String base, String fn) throws IOException {
-        String f = IOUtils.getAbsolutePath(fn);
-        base = IOUtils.getAbsolutePath(base);
+        String f = IOUtils.getCanonicalPath(fn);
+        base = IOUtils.getCanonicalPath(base);
         if (!f.startsWith(base)) {
             DbException.throwInternalError(f + " does not start with " + base);
         }

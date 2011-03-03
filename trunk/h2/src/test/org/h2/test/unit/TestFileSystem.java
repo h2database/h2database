@@ -48,7 +48,7 @@ public class TestFileSystem extends TestBase {
         testDatabaseInJar();
         // set default part size to 1 << 10
         String f = "split:10:" + getBaseDir() + "/fs";
-        FileSystem.getInstance(f).getAbsolutePath(f);
+        FileSystem.getInstance(f).getCanonicalPath(f);
         testFileSystem(getBaseDir() + "/fs");
         testFileSystem(FileSystemMemory.PREFIX);
         FileSystemDatabase fs = FileSystemDatabase.register("jdbc:h2:mem:fs");
@@ -165,7 +165,7 @@ public class TestFileSystem extends TestBase {
 
     private void testUserHome() {
         FileSystem fs = FileSystem.getInstance("~/test");
-        String fileName = fs.getAbsolutePath("~/test");
+        String fileName = fs.getCanonicalPath("~/test");
         String userDir = System.getProperty("user.home");
         assertTrue(fileName.startsWith(userDir));
     }

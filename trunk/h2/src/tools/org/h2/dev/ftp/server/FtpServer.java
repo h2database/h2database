@@ -328,7 +328,7 @@ public class FtpServer extends Tool implements Service {
             if ("-ftpPort".equals(a)) {
                 port = Integer.decode(args[++i]);
             } else if ("-ftpDir".equals(a)) {
-                root = IOUtils.normalize(args[++i]);
+                root = IOUtils.getCanonicalPath(args[++i]);
             } else if ("-ftpRead".equals(a)) {
                 readUserName = args[++i];
             } else if ("-ftpWrite".equals(a)) {
@@ -353,7 +353,7 @@ public class FtpServer extends Tool implements Service {
 
     public void start() {
         fs = FileSystem.getInstance(root);
-        root = fs.normalize(root);
+        root = fs.getCanonicalPath(root);
         fs.mkdirs(root);
         serverSocket = NetUtils.createServerSocket(port, false);
         port = serverSocket.getLocalPort();

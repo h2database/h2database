@@ -198,7 +198,7 @@ public class CipherFactory {
                     throw DbException.convertToIOException(e);
                 }
             }
-            String absolutePath = IOUtils.getAbsolutePath(fileName);
+            String absolutePath = IOUtils.getCanonicalPath(fileName);
             System.setProperty(KEYSTORE_KEY, absolutePath);
         }
         if (p.getProperty(KEYSTORE_PASSWORD_KEY) == null) {

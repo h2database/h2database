@@ -58,7 +58,7 @@ public class FileLister {
         if (dir == null || dir.equals("")) {
             return ".";
         }
-        return IOUtils.normalize(dir);
+        return IOUtils.getCanonicalPath(dir);
     }
 
     /**
@@ -73,7 +73,7 @@ public class FileLister {
      */
     public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) {
         ArrayList<String> files = New.arrayList();
-        String start = db == null ? null : IOUtils.normalize(dir + "/" + db);
+        String start = db == null ? null : IOUtils.getCanonicalPath(dir + "/" + db);
         String[] list = IOUtils.listFiles(dir);
         for (int i = 0; list != null && i < list.length; i++) {
             String f = list[i];

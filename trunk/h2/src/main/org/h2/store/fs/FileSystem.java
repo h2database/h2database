@@ -172,7 +172,7 @@ public abstract class FileSystem {
      * @param fileName the file name
      * @return the normalized file name
      */
-    public abstract String normalize(String fileName);
+    public abstract String getCanonicalPath(String fileName);
 
     /**
      * Get the parent directory of a file or directory.
@@ -197,14 +197,6 @@ public abstract class FileSystem {
      * @return if the file name is absolute
      */
     public abstract boolean isAbsolute(String fileName);
-
-    /**
-     * Get the absolute file name.
-     *
-     * @param fileName the file name
-     * @return the absolute file name
-     */
-    public abstract String getAbsolutePath(String fileName);
 
     /**
      * Get the last modified date of a file

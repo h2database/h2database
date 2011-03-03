@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -16,6 +17,7 @@ import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableLink;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -49,6 +51,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     public void add(Session session, Row row) {
+        ArrayList<Value> params = New.arrayList();
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
         buff.append(targetTableName).append(" VALUES(");
         for (int i = 0; i < row.getColumnCount(); i++) {
@@ -60,29 +63,21 @@ public class LinkedIndex extends BaseIndex {
                 buff.append("NULL");
             } else {
                 buff.append('?');
+                params.add(v);
             }
         }
         buff.append(')');
         String sql = buff.toString();
-        synchronized (link.getConnection()) {
-            try {
-                PreparedStatement prep = link.getPreparedStatement(sql, false);
-                for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
-                    Value v = row.getValue(i);
-                    if (v != null && v != ValueNull.INSTANCE) {
-                        v.set(prep, j + 1);
-                        j++;
-                    }
-                }
-                prep.executeUpdate();
-                rowCount++;
-            } catch (Exception e) {
-                throw TableLink.wrapException(sql, e);
-            }
+        try {
+            link.execute(sql, params, true);
+            rowCount++;
+        } catch (Exception e) {
+            throw TableLink.wrapException(sql, e);
         }
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) {
+        ArrayList<Value> params = New.arrayList();
         StatementBuilder buff = new StatementBuilder("SELECT * FROM ");
         buff.append(targetTableName).append(" T");
         for (int i = 0; first != null && i < first.getColumnCount(); i++) {
@@ -97,6 +92,7 @@ public class LinkedIndex extends BaseIndex {
                 } else {
                     buff.append(">=");
                     addParameter(buff, col);
+                    params.add(v);
                 }
             }
         }
@@ -112,33 +108,17 @@ public class LinkedIndex extends BaseIndex {
                 } else {
                     buff.append("<=");
                     addParameter(buff, col);
+                    params.add(v);
                 }
             }
         }
         String sql = buff.toString();
-        synchronized (link.getConnection()) {
-            try {
-                PreparedStatement prep = link.getPreparedStatement(sql, true);
-                int j = 0;
-                for (int i = 0; first != null && i < first.getColumnCount(); i++) {
-                    Value v = first.getValue(i);
-                    if (v != null && v != ValueNull.INSTANCE) {
-                        v.set(prep, j + 1);
-                        j++;
-                    }
-                }
-                for (int i = 0; last != null && i < last.getColumnCount(); i++) {
-                    Value v = last.getValue(i);
-                    if (v != null && v != ValueNull.INSTANCE) {
-                        v.set(prep, j + 1);
-                        j++;
-                    }
-                }
-                ResultSet rs = prep.executeQuery();
-                return new LinkedCursor(link, rs, session, sql, prep);
-            } catch (Exception e) {
-                throw TableLink.wrapException(sql, e);
-            }
+        try {
+            PreparedStatement prep = link.execute(sql, params, false);
+            ResultSet rs = prep.getResultSet();
+            return new LinkedCursor(link, rs, session, sql, prep);
+        } catch (Exception e) {
+            throw TableLink.wrapException(sql, e);
         }
     }
 
@@ -185,6 +165,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     public void remove(Session session, Row row) {
+        ArrayList<Value> params = New.arrayList();
         StatementBuilder buff = new StatementBuilder("DELETE FROM ");
         buff.append(targetTableName).append(" WHERE ");
         for (int i = 0; i < row.getColumnCount(); i++) {
@@ -197,25 +178,18 @@ public class LinkedIndex extends BaseIndex {
             } else {
                 buff.append('=');
                 addParameter(buff, col);
+                params.add(v);
                 buff.append(' ');
             }
         }
         String sql = buff.toString();
-        synchronized (link.getConnection()) {
-            try {
-                PreparedStatement prep = link.getPreparedStatement(sql, false);
-                for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
-                    Value v = row.getValue(i);
-                    if (!isNull(v)) {
-                        v.set(prep, j + 1);
-                        j++;
-                    }
-                }
-                int count = prep.executeUpdate();
-                rowCount -= count;
-            } catch (Exception e) {
-                throw TableLink.wrapException(sql, e);
-            }
+        try {
+            PreparedStatement prep = link.execute(sql, params, false);
+            int count = prep.executeUpdate();
+            link.reusePreparedStatement(prep, sql);
+            rowCount -= count;
+        } catch (Exception e) {
+            throw TableLink.wrapException(sql, e);
         }
     }
 
@@ -227,6 +201,7 @@ public class LinkedIndex extends BaseIndex {
      * @param newRow the new data
      */
     public void update(Row oldRow, Row newRow) {
+        ArrayList<Value> params = New.arrayList();
         StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
@@ -237,6 +212,7 @@ public class LinkedIndex extends BaseIndex {
                 buff.append("DEFAULT");
             } else {
                 buff.append('?');
+                params.add(v);
             }
         }
         buff.append(" WHERE ");
@@ -250,34 +226,15 @@ public class LinkedIndex extends BaseIndex {
                 buff.append(" IS NULL");
             } else {
                 buff.append('=');
+                params.add(v);
                 addParameter(buff, col);
             }
         }
         String sql = buff.toString();
-        synchronized (link.getConnection()) {
-            try {
-                int j = 1;
-                PreparedStatement prep = link.getPreparedStatement(sql, false);
-                for (int i = 0; i < newRow.getColumnCount(); i++) {
-                    Value v = newRow.getValue(i);
-                    if (v != null) {
-                        v.set(prep, j);
-                        j++;
-                    }
-                }
-                for (int i = 0; i < oldRow.getColumnCount(); i++) {
-                    Value v = oldRow.getValue(i);
-                    if (!isNull(v)) {
-                        v.set(prep, j);
-                        j++;
-                    }
-                }
-                int count = prep.executeUpdate();
-                // this has no effect but at least it allows to debug the update count
-                rowCount = rowCount + count - count;
-            } catch (Exception e) {
-                throw TableLink.wrapException(sql, e);
-            }
+        try {
+            link.execute(sql, params, true);
+        } catch (Exception e) {
+            throw TableLink.wrapException(sql, e);
         }
     }
 

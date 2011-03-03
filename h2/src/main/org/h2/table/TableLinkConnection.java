@@ -124,11 +124,13 @@ public class TableLinkConnection {
 
     /**
      * Closes the connection if this is the last link to it.
+     *
+     * @param force if the connection needs to be closed even if it is still
+     *            used elsewhere (for example, because the connection is broken)
      */
-    synchronized void close() {
-        if (--useCounter <= 0) {
+    synchronized void close(boolean force) {
+        if (--useCounter <= 0 || force) {
             JdbcUtils.closeSilently(conn);
-            conn = null;
             synchronized (map) {
                 map.remove(this);
             }

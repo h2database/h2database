@@ -30,6 +30,7 @@ import org.h2.schema.Schema;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -42,6 +43,8 @@ import org.h2.value.ValueTimestamp;
  * The table may be stored in a different database.
  */
 public class TableLink extends Table {
+
+    private static final int MAX_RETRY = 2;
 
     private static final long ROW_COUNT_APPROXIMATION = 100000;
 
@@ -72,7 +75,6 @@ public class TableLink extends Table {
         try {
             connect();
         } catch (DbException e) {
-            connectException = e;
             if (!force) {
                 throw e;
             }
@@ -84,15 +86,26 @@ public class TableLink extends Table {
     }
 
     private void connect() {
-        conn = database.getLinkConnection(driver, url, user, password);
-        synchronized (conn) {
+        connectException = null;
+        for (int retry = 0;; retry++) {
             try {
-                readMetaData();
-            } catch (Exception e) {
-                // could be SQLException or RuntimeException
-                conn.close();
-                conn = null;
-                throw DbException.convert(e);
+                conn = database.getLinkConnection(driver, url, user, password);
+                synchronized (conn) {
+                    try {
+                        readMetaData();
+                        return;
+                    } catch (Exception e) {
+                        // could be SQLException or RuntimeException
+                        conn.close(true);
+                        conn = null;
+                        throw DbException.convert(e);
+                    }
+                }
+            } catch (DbException e) {
+                if (retry >= MAX_RETRY) {
+                    connectException = e;
+                    throw e;
+                }
             }
         }
     }
@@ -395,7 +408,7 @@ public class TableLink extends Table {
     public void close(Session session) {
         if (conn != null) {
             try {
-                conn.close();
+                conn.close(false);
             } finally {
                 conn = null;
             }
@@ -405,11 +418,12 @@ public class TableLink extends Table {
     public synchronized long getRowCount(Session session) {
         String sql = "SELECT COUNT(*) FROM " + qualifiedTableName;
         try {
-            PreparedStatement prep = getPreparedStatement(sql, false);
-            ResultSet rs = prep.executeQuery();
+            PreparedStatement prep = execute(sql, null, false);
+            ResultSet rs = prep.getResultSet();
             rs.next();
             long count = rs.getLong(1);
             rs.close();
+            reusePreparedStatement(prep, sql);
             return count;
         } catch (Exception e) {
             throw wrapException(sql, e);
@@ -433,33 +447,60 @@ public class TableLink extends Table {
     }
 
     /**
-     * Get a prepared statement object for the given statement. Prepared
+     * Execute a SQL statement using the given parameters. Prepared
      * statements are kept in a hash map to avoid re-creating them.
      *
      * @param sql the SQL statement
-     * @param exclusive if the prepared statement must be removed from the map
-     *          until reusePreparedStatement is called (only required for queries)
-     * @return the prepared statement
+     * @param params the parameters or null
+     * @param reusePrepared if the prepared statement can be re-used immediately
+     * @return the prepared statement, or null if it is re-used
      */
-    public PreparedStatement getPreparedStatement(String sql, boolean exclusive) {
-        if (trace.isDebugEnabled()) {
-            trace.debug("{0} :\n{1}", getName(), sql);
+    public PreparedStatement execute(String sql, ArrayList<Value> params, boolean reusePrepared) {
+        if (conn == null) {
+            throw connectException;
         }
-        try {
-            if (conn == null) {
-                throw connectException;
+        for (int retry = 0;; retry++) {
+            try {
+                synchronized (conn) {
+                    PreparedStatement prep = preparedMap.remove(sql);
+                    if (prep == null) {
+                        prep = conn.getConnection().prepareStatement(sql);
+                    }
+                    if (trace.isDebugEnabled()) {
+                        StatementBuilder buff = new StatementBuilder();
+                        buff.append(getName()).append(":\n").append(sql);
+                        if (params != null && params.size() > 0) {
+                            buff.append(" {");
+                            int i = 1;
+                            for (Value v : params) {
+                                buff.appendExceptFirst(", ");
+                                buff.append(i++).append(": ").append(v.getSQL());
+                            }
+                            buff.append('}');
+                        }
+                        buff.append(';');
+                        trace.debug(buff.toString());
+                    }
+                    if (params != null) {
+                        for (int i = 0, size = params.size(); i < size; i++) {
+                            Value v = params.get(i);
+                            v.set(prep, i + 1);
+                        }
+                    }
+                    prep.execute();
+                    if (reusePrepared) {
+                        reusePreparedStatement(prep, sql);
+                        return null;
+                    }
+                    return prep;
+                }
+            } catch (SQLException e) {
+                if (retry >= MAX_RETRY) {
+                    throw DbException.convert(e);
+                }
+                conn.close(true);
+                connect();
             }
-            PreparedStatement prep = preparedMap.get(sql);
-            if (prep == null) {
-                prep = conn.getConnection().prepareStatement(sql);
-                preparedMap.put(sql, prep);
-            }
-            if (exclusive) {
-                preparedMap.remove(sql);
-            }
-            return prep;
-        } catch (SQLException e) {
-            throw DbException.convert(e);
         }
     }
 
@@ -552,10 +593,6 @@ public class TableLink extends Table {
         this.readOnly = readOnly;
     }
 
-    public TableLinkConnection getConnection() {
-        return conn;
-    }
-
     public long getRowCountApproximation() {
         return ROW_COUNT_APPROXIMATION;
     }
@@ -567,7 +604,9 @@ public class TableLink extends Table {
      * @param sql the SQL statement
      */
     public void reusePreparedStatement(PreparedStatement prep, String sql) {
-        preparedMap.put(sql, prep);
+        synchronized (conn) {
+            preparedMap.put(sql, prep);
+        }
     }
 
     public boolean isDeterministic() {

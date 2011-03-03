@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Database-level connection settings could only be set in the database URL,
+<ul><li>Issue 265: Linked tables: auto-reconnect if the backside connection is lost
+    (workaround for the MySQL problem that disconnects after 8 hours of inactivity).
+</li><li>Linked tables: the index conditions was sometimes not used when querying the remote database.
+</li><li>Issue 294: OSGi: the versions were missing in manifest package exports.
+</li><li>The option -baseDir didn't work with symbolic links.
+</li><li>Database-level connection settings could only be set in the database URL,
     but not using the Properties parameter of DriverManaget.getConnection(String url, Properties info).
 </li></ul>
 

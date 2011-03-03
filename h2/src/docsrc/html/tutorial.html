@@ -743,7 +743,7 @@ Fulltext search was not yet tested, however the native fulltext search should wo
 <p>
 Reasons to use H2 instead of SQLite are:
 </p>
-<ul><li>Full Unicode support including UPPER() and LOWER() (unlike SQLite).
+<ul><li>Full Unicode support including UPPER() and LOWER().
 </li><li>Streaming API for BLOB and CLOB data.
 </li><li>Fulltext search.
 </li><li>Multiple connections.
@@ -777,6 +777,9 @@ Class.forName("org.h2.Driver");
 conn = DriverManager.getConnection(url);
 ...
 </pre>
+<p>
+Limitations: Using a connection pool is currently not supported, because the required <code>javax.sql.</code> classes are not available on Android.
+</p>
 
 <h2 id="csv">CSV (Comma Separated Values) Support</h2>
 <p>

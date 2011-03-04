@@ -12,11 +12,10 @@ Bundle-SymbolicName: org.h2
 Bundle-Vendor: H2 Group
 Bundle-Version: ${version}
 DynamicImport-Package: *
-Export-Package:
-    org.h2;version="${version}",
-    org.h2.api;version="${version}",
-    org.h2.fulltext;version="${version}",
-    org.h2.jdbcx;version="${version}",
-    org.h2.tools;version="${version}",
-    org.h2.util;version="${version}"
+Export-Package: org.h2;version="${version}",
+ org.h2.api;version="${version}",
+ org.h2.fulltext;version="${version}",
+ org.h2.jdbcx;version="${version}",
+ org.h2.tools;version="${version}",
+ org.h2.util;version="${version}"
 Premain-Class: org.h2.util.Profiler

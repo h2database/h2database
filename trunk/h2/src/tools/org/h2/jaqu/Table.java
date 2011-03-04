@@ -104,7 +104,8 @@ import java.lang.annotation.Target;
  * <pre>
  * Db db = Db.open(&quot;jdbc:h2:mem:&quot;, &quot;sa&quot;, &quot;sa&quot;);
  * DbInspector inspector = new DbInspector(db);
- * List&lt;Validation&gt; remarks = inspector.validateModel(new MyModel(), throwOnError);
+ * List&lt;Validation&gt; remarks =
+ *         inspector.validateModel(new MyModel(), throwOnError);
  * for (Validation remark : remarks) {
  *     System.out.println(remark);
  * }

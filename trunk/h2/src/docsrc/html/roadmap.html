@@ -215,6 +215,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support compatibility for jdbc:hsqldb:res:
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
+</li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Support indexes for views (probably requires materialized views)
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
 </li><li>Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
@@ -253,7 +254,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
 </li><li>Translation: use ${.} in help.csv
 </li><li>Translated .pdf
-</li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
 </li><li>RECOVER=2 to backup the database, run recovery, open the database
 </li><li>Recovery should work with encrypted databases
@@ -441,7 +441,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>User defined functions: allow to store the bytecode (of just the class, or the jar file of the extension) in the database.
 </li><li>Compatibility: ResultSet.getObject() on a CLOB (TEXT) should return String for PostgreSQL and MySQL.
 </li><li>Optimizer: WHERE X=? AND Y IN(?), it always uses the index on Y. Should be cost based.
-</li><li>Make the cache scan resistant (currently a small cache is faster than a large cache for large table scans).
+</li><li>Oracle compatibility: support INSERT ALL.
 </li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available.
 </li><li>Issue 179: Related subqueries in HAVING clause.
 </li><li>IBM DB2 compatibility: NOT NULL WITH DEFAULT. Similar to MySQL Mode.convertInsertNullToZero.
@@ -512,7 +512,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Require appending DANGEROUS=TRUE when using certain dangerous settings such as
     LOG=0, LOG=1, LOCK_MODE=0, disabling FILE_LOCK,...
 </li><li>Support for Thread.interrupt to cancel running statements.
-</li><li>Oracle compatibility: support INSERT ALL.
 </li><li>Support UDT (user defined types) similar to how Apache Derby supports it:
     check constraint, allow to use it in Java functions as parameters (return values already seem to work).
 </li><li>Encrypted file system (use cipher text stealing so file length doesn't need to decrypt; 4 KB header per file,
@@ -540,6 +539,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     (maybe only for a part of the values - the ones that can be evaluated).
 </li><li>Compatibility for ARRAY data type (Oracle: VARRAY(n) of VARCHAR(m); HSQLDB: VARCHAR(n) ARRAY; Postgres: VARCHAR(n)[]).
 </li><li>PostgreSQL compatible array literal syntax: ARRAY[['a', 'b'], ['c', 'd']]
+</li><li>PostgreSQL compatibility: UPDATE with FROM.
 </li></ul>
 
 <h2>Not Planned</h2>

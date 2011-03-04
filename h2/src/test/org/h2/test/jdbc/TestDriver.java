@@ -35,13 +35,13 @@ public class TestDriver extends TestBase {
     }
 
     private void testSettingsAsProperties() throws Exception {
-        Properties props = new Properties();
-        props.put("user", getUser());
-        props.put("password", getPassword());
-        props.put("max_compact_time", "1234");
-        props.put("unknown", "1234");
+        Properties prop = new Properties();
+        prop.put("user", getUser());
+        prop.put("password", getPassword());
+        prop.put("max_compact_time", "1234");
+        prop.put("unknown", "1234");
         String url = getURL("driver", true);
-        Connection conn = DriverManager.getConnection(url, props);
+        Connection conn = DriverManager.getConnection(url, prop);
         ResultSet rs;
         rs = conn.createStatement().executeQuery(
                 "select * from information_schema.settings where name='MAX_COMPACT_TIME'");

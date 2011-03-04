@@ -23,7 +23,7 @@ public interface SQLDialect {
      * @param table the table name
      * @return the SQL snippet
      */
-    String tableName(String schema, String table);
+    String getTableName(String schema, String table);
 
     /**
      * Get the CREATE INDEX statement.
@@ -33,7 +33,7 @@ public interface SQLDialect {
      * @param index the index definition
      * @return the SQL statement
      */
-    String createIndex(String schema, String table, IndexDefinition index);
+    String getCreateIndex(String schema, String table, IndexDefinition index);
 
     /**
      * Append "LIMIT limit" to the SQL statement.
@@ -52,19 +52,30 @@ public interface SQLDialect {
     void appendOffset(SQLStatement stat, long offset);
 
     /**
+     * Whether memory tables are supported.
+     *
+     * @return true if they are
+     */
+    boolean supportsMemoryTables();
+
+    /**
      *  Default implementation of an SQL dialect.
      *  Designed for an H2 database.  May be suitable for others.
      */
     public static class DefaultSQLDialect implements SQLDialect {
 
-        public String tableName(String schema, String table) {
+        public String getTableName(String schema, String table) {
             if (StringUtils.isNullOrEmpty(schema)) {
                 return table;
             }
             return schema + "." + table;
         }
 
-        public String createIndex(String schema, String table, IndexDefinition index) {
+        public boolean supportsMemoryTables() {
+            return true;
+        }
+
+        public String getCreateIndex(String schema, String table, IndexDefinition index) {
             StatementBuilder buff = new StatementBuilder();
             buff.append("CREATE ");
             switch(index.type) {

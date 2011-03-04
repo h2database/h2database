@@ -32,7 +32,7 @@ public class Query<T> {
     private Db db;
     private SelectTable<T> from;
     private ArrayList<Token> conditions = Utils.newArrayList();
-    private ArrayList<UpdateColumn> declarations = Utils.newArrayList();
+    private ArrayList<UpdateColumn> updateColumnDeclarations = Utils.newArrayList();
     private ArrayList<SelectTable<?>> joins = Utils.newArrayList();
     private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = Utils.newIdentityHashMap();
     private ArrayList<OrderExpression<T>> orderByList = Utils.newArrayList();
@@ -122,17 +122,15 @@ public class Query<T> {
     }
 
     public <A> UpdateColumnSet<T, A> set(A field) {
-        int renameSetColumnClassToUpdateSetColumn;
         return new UpdateColumnSet<T, A>(this, field);
     }
 
     public <A> UpdateColumnIncrement<T, A> increment(A field) {
-        int renameIncrementColumnClassToUpdateIncrementColumn;
         return new UpdateColumnIncrement<T, A>(this, field);
     }
 
     public int update() {
-        if (declarations.size() == 0) {
+        if (updateColumnDeclarations.size() == 0) {
             throw new RuntimeException("Missing set or increment call.");
         }
         SQLStatement stat = new SQLStatement(db);
@@ -140,7 +138,7 @@ public class Query<T> {
         from.appendSQL(stat);
         stat.appendSQL(" SET ");
         int i = 0;
-        for (UpdateColumn declaration : declarations) {
+        for (UpdateColumn declaration : updateColumnDeclarations) {
             if (i++ > 0) {
                 stat.appendSQL(", ");
             }
@@ -329,9 +327,8 @@ public class Query<T> {
         conditions.add(condition);
     }
 
-    void addDeclarationToken(UpdateColumn declaration) {
-        int todoWhatIsDeclaration;
-        declarations.add(declaration);
+    void addUpdateColumnDeclaration(UpdateColumn declaration) {
+        updateColumnDeclarations.add(declaration);
     }
 
     void appendWhere(SQLStatement stat) {

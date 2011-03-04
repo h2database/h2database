@@ -79,7 +79,6 @@ class TableDefinition<T> {
 
         void setValue(Object obj, Object o) {
             try {
-                int setAccessibleShouldNotBeRequiredHere;
                 if (!field.isAccessible()) {
                     field.setAccessible(true);
                 }
@@ -101,6 +100,7 @@ class TableDefinition<T> {
 
     String schemaName;
     String tableName;
+    int tableVersion;
     private boolean createTableIfRequired = true;
     private Class<T> clazz;
     private ArrayList<FieldDefinition> fields = Utils.newArrayList();
@@ -110,8 +110,6 @@ class TableDefinition<T> {
     private List<String> primaryKeyColumnNames;
     private ArrayList<IndexDefinition> indexes = Utils.newArrayList();
     private boolean memoryTable;
-
-    int tableVersion;
 
     TableDefinition(Class<T> clazz) {
         this.clazz = clazz;
@@ -275,13 +273,13 @@ class TableDefinition<T> {
     }
 
     /**
-     * Optionally truncates strings to maxLength
+     * Optionally truncates strings to the maximum length
      */
     private Object getValue(Object obj, FieldDefinition field) {
         Object value = field.getValue(obj);
         if (field.trimString && field.maxLength > 0) {
             if (value instanceof String) {
-                // Clip Strings
+                // clip strings
                 String s = (String) value;
                 if (s.length() > field.maxLength) {
                     return s.substring(0, field.maxLength);
@@ -297,7 +295,7 @@ class TableDefinition<T> {
     long insert(Db db, Object obj, boolean returnKey) {
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(db.getDialect().tableName(schemaName, tableName)).append('(');
+        buff.append(db.getDialect().getTableName(schemaName, tableName)).append('(');
         for (FieldDefinition field : fields) {
             buff.appendExceptFirst(", ");
             buff.append(field.columnName);
@@ -326,7 +324,7 @@ class TableDefinition<T> {
         }
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("MERGE INTO ");
-        buff.append(db.getDialect().tableName(schemaName, tableName)).append(" (");
+        buff.append(db.getDialect().getTableName(schemaName, tableName)).append(" (");
         buff.resetCount();
         for (FieldDefinition field : fields) {
             buff.appendExceptFirst(", ");
@@ -362,7 +360,7 @@ class TableDefinition<T> {
         }
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(db.getDialect().tableName(schemaName, tableName)).append(" SET ");
+        buff.append(db.getDialect().getTableName(schemaName, tableName)).append(" SET ");
         buff.resetCount();
 
         for (FieldDefinition field : fields) {
@@ -403,7 +401,7 @@ class TableDefinition<T> {
         }
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("DELETE FROM ");
-        buff.append(db.getDialect().tableName(schemaName, tableName));
+        buff.append(db.getDialect().getTableName(schemaName, tableName));
         buff.resetCount();
         Object alias = Utils.newObject(obj.getClass());
         Query<Object> query = Query.from(db, alias);
@@ -429,44 +427,38 @@ class TableDefinition<T> {
 
     TableDefinition<T> createTableIfRequired(Db db) {
         if (!createTableIfRequired) {
-            // Skip table and index creation
-            // But still check for upgrades
+            // skip table and index creation
+            // but still check for upgrades
             db.upgradeTable(this);
             return this;
         }
+        SQLDialect dialect = db.getDialect();
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff;
-        if (memoryTable &&
-                db.getConnection().getClass()
-                .getCanonicalName().equals("org.h2.jdbc.JdbcConnection")) {
+        if (memoryTable && dialect.supportsMemoryTables()) {
             buff = new StatementBuilder("CREATE MEMORY TABLE IF NOT EXISTS ");
         } else {
             buff = new StatementBuilder("CREATE TABLE IF NOT EXISTS ");
         }
 
-        int todoChangeToGetTableNameChangeAllMethodsInDialectInterface;
-        buff.append(db.getDialect().tableName(schemaName, tableName)).append('(');
+        buff.append(dialect.getTableName(schemaName, tableName)).append('(');
 
         for (FieldDefinition field : fields) {
             buff.appendExceptFirst(", ");
             buff.append(field.columnName).append(' ').append(field.dataType);
-
-            // FIELD LENGTH
             if (field.maxLength > 0) {
                 buff.append('(').append(field.maxLength).append(')');
             }
 
-            // AUTO_INCREMENT
             if (field.isAutoIncrement) {
                 buff.append(" AUTO_INCREMENT");
             }
 
-            // NOT NULL
             if (!field.allowNull) {
                 buff.append(" NOT NULL");
             }
 
-            // DEFAULT...
+            // default values
             if (!field.isAutoIncrement && !field.isPrimaryKey) {
                 String dv = field.defaultValue;
                 if (!StringUtils.isNullOrEmpty(dv)) {
@@ -478,8 +470,7 @@ class TableDefinition<T> {
             }
         }
 
-        int reviewJavadoc;
-        // PRIMARY KEY...
+        // primary key
         if (primaryKeyColumnNames != null && primaryKeyColumnNames.size() > 0) {
             buff.append(", PRIMARY KEY(");
             buff.resetCount();
@@ -494,24 +485,24 @@ class TableDefinition<T> {
         StatementLogger.create(stat.getSQL());
         stat.executeUpdate();
 
-        // Create Indexes
+        // create indexes
         for (IndexDefinition index:indexes) {
-            String sql = db.getDialect().createIndex(schemaName, tableName, index);
+            String sql = db.getDialect().getCreateIndex(schemaName, tableName, index);
             stat.setSQL(sql);
             StatementLogger.create(stat.getSQL());
             stat.executeUpdate();
         }
 
-        // Table is created IF NOT EXISTS, otherwise statement is ignored
-        // But we still need to process potential Upgrade
+        // tables are created using IF NOT EXISTS
+        // but we may still need to upgrade
         db.upgradeTable(this);
         return this;
     }
 
     /**
-     * Retrieve list of columns from CSV whitespace notated index
+     * Retrieve list of columns from index definition.
      *
-     * @param index the index columns
+     * @param index the index columns, separated by space
      * @return the column list
      */
     private List<String> getColumns(String index) {
@@ -569,7 +560,7 @@ class TableDefinition<T> {
         if (clazz.isAnnotationPresent(JQIndex.class)) {
             JQIndex indexAnnotation = clazz.getAnnotation(JQIndex.class);
 
-            // Setup the indexes, if properly annotated
+            // setup the indexes, if properly annotated
             addIndexes(IndexType.STANDARD, indexAnnotation.standard());
             addIndexes(IndexType.UNIQUE, indexAnnotation.unique());
             addIndexes(IndexType.HASH, indexAnnotation.hash());

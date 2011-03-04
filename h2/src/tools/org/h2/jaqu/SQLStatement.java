@@ -40,7 +40,7 @@ public class SQLStatement {
     }
 
     public SQLStatement appendTable(String schema, String table) {
-        return appendSQL(db.getDialect().tableName(schema, table));
+        return appendSQL(db.getDialect().getTableName(schema, table));
     }
 
     String getSQL() {

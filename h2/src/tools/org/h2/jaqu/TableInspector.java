@@ -493,8 +493,7 @@ public class TableInspector {
                     JQColumn.class.getSimpleName(), fieldDef.isAutoIncrement,
                     col.isAutoIncrement)));
         }
-        // last check
-        // default value...
+        // default value
         if (!col.isAutoIncrement && !col.isPrimaryKey) {
             // check Model.defaultValue format
             if (!ModelUtils.isProperlyFormattedDefaultValue(fieldDef.defaultValue)) {
@@ -510,20 +509,20 @@ public class TableInspector {
                     && !isNullOrEmpty(col.defaultValue)) {
                 // Model.defaultValue is NULL, Column.defaultValue is NOT NULL
                 remarks.add(warn(table, col, format("{0}.defaultValue=\"\""
-                        + " while Column default=\"{1}\"",
+                        + " while column default=\"{1}\"",
                         JQColumn.class.getSimpleName(), col.defaultValue)));
             } else if (!isNullOrEmpty(fieldDef.defaultValue)
                     && isNullOrEmpty(col.defaultValue)) {
                 // Column.defaultValue is NULL, Model.defaultValue is NOT NULL
                 remarks.add(warn(table, col, format("{0}.defaultValue=\"{1}\""
-                        + " while Column default=\"\"",
+                        + " while column default=\"\"",
                         JQColumn.class.getSimpleName(), fieldDef.defaultValue)));
             } else if (!isNullOrEmpty(fieldDef.defaultValue)
                     && !isNullOrEmpty(col.defaultValue)) {
                 if (!fieldDef.defaultValue.equals(col.defaultValue)) {
                     // Model.defaultValue != Column.defaultValue
                     remarks.add(warn(table, col, format("{0}.defaultValue=\"{1}\""
-                            + " while Column default=\"{2}\"",
+                            + " while column default=\"{2}\"",
                             JQColumn.class.getSimpleName(), fieldDef.defaultValue,
                             col.defaultValue)));
                 }
@@ -533,7 +532,7 @@ public class TableInspector {
             if (!ModelUtils.isValidDefaultValue(fieldDef.field.getType(),
                     fieldDef.defaultValue)) {
                 remarks.add(error(table, col,
-                        format("{0}.defaultValue=\"{1}\" is invalid!!",
+                        format("{0}.defaultValue=\"{1}\" is invalid!",
                                 JQColumn.class.getSimpleName(),
                                 fieldDef.defaultValue)));
             }

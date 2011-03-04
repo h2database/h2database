@@ -13,110 +13,75 @@ import java.lang.annotation.Target;
 
 /**
  * A class that implements this interface can be used as a database table.
- */
-/**
- * A class that implements the JaQu model mapping options.
  * <p>
  * You may implement the Table interface on your model object and optionally use
- * JQColumn annotations.<br>
- * <i>This imposes a compile-time and runtime-dependency on JaQu.</i>
+ * JQColumn annotations (which imposes a compile-time and runtime-dependency on
+ * JaQu), or may choose to use the JQTable and JQColumn annotations only (which
+ * imposes a compile-time and runtime-dependency on this file only).
  * <p>
- * <u>OR</u>
+ * If a class is annotated with JQTable and at the same time implements Table,
+ * the define() method is not called.
  * <p>
- * You may choose to use the JQTable and JQColumn annotations only.<br>
- * <i>This imposes a compile-time and runtime-dependency on this file only.</i>
- * <p>
- * <b>NOTE</b><br>
- * Classes that are annotated with JQTable <b>and</b> implement Table will NOT
- * call the define() method.
- * <p>
- * <b>Supported Data Types</b>
+ * Supported data types:
  * <table>
  * <tr>
  * <td>java.lang.String</td>
  * <td>VARCHAR (maxLength > 0) / TEXT (maxLength == 0)</td>
  * </tr>
  * <tr>
- * <td>java.lang.Boolean</td>
- * <td>BIT</td>
+ * <td>java.lang.Boolean</td><td>BIT</td>
  * </tr>
  * <tr>
- * <td>java.lang.Byte</td>
- * <td>TINYINT</td>
+ * <td>java.lang.Byte</td><td>TINYINT</td>
  * </tr>
  * <tr>
- * <td>java.lang.Short</td>
- * <td>SMALLINT</td>
+ * <td>java.lang.Short</td><td>SMALLINT</td>
  * </tr>
  * <tr>
- * <td>java.lang.Integer</td>
- * <td>INT</td>
+ * <td>java.lang.Integer</td><td>INT</td>
  * </tr>
  * <tr>
- * <td>java.lang.Long</td>
- * <td>BIGINT</td>
+ * <td>java.lang.Long</td><td>BIGINT</td>
  * </tr>
  * <tr>
- * <td>java.lang.Float</td>
- * <td>REAL</td>
+ * <td>java.lang.Float</td><td>REAL</td>
  * </tr>
  * <tr>
- * <td>java.lang.Double</td>
- * <td>DOUBLE</td>
+ * <td>java.lang.Double</td><td>DOUBLE</td>
  * </tr>
  * <tr>
- * <td>java.math.BigDecimal</td>
- * <td>DECIMAL</td>
+ * <td>java.math.BigDecimal</td><td>DECIMAL</td>
  * </tr>
  * <tr>
- * <td>java.util.Date</td>
- * <td>TIMESTAMP</td>
+ * <td>java.util.Date</td><td>TIMESTAMP</td>
  * </tr>
  * <tr>
- * <td>java.sql.Date</td>
- * <td>DATE</td>
+ * <td>java.sql.Date</td><td>DATE</td>
  * </tr>
  * <tr>
- * <td>java.sql.Time</td>
- * <td>TIME</td>
+ * <td>java.sql.Time</td><td>TIME</td>
  * </tr>
  * <tr>
- * <td>java.sql.Timestamp</td>
- * <td>TIMESTAMP</td>
+ * <td>java.sql.Timestamp</td><td>TIMESTAMP</td>
  * </tr>
  * </table>
  * <p>
- * <b>Unsupported Data Types</b>
- * <ul>
- * <li>Binary types (BLOB, etc)
- * <li>Custom types
- * </ul>
+ * Unsupported data types: binary types (BLOB, etc), and custom types.
  * <p>
- * <b>Table and Field Mapping</b>
- * <p>
- * By default, the mapped table name is the class name and the <i>public</i>
- * fields are reflectively mapped, by their name, to columns.
- * <p>
- * As an alternative, you may specify both the table and column definition by
+ * Table and field mapping: by default, the mapped table name is the class name
+ * and the public fields are reflectively mapped, by their name, to columns. As
+ * an alternative, you may specify both the table and column definition by
  * annotations.
  * <p>
- * <b>Table Interface</b>
+ * Table Interface: you may set additional parameters such as table name,
+ * primary key, and indexes in the define() method.
  * <p>
- * You may set additional parameters such as table name, primary key, and
- * indexes in the <i>define()</i> method.
+ * Annotations: you may use the annotations with or without implementing the
+ * Table interface. The annotations allow you to decouple your model completely
+ * from JaQu other than this file.
  * <p>
- * <b>Annotations</b>
- * <p>
- * You may use the annotations with or without implementing the Table interface.
- * <br>
- * The annotations allow you to decouple your model completely from JaQu other
- * than this file.
- * <p>
- * <b>Automatic Model Generation</b>
- * <p>
- * You may automatically generate model classes as strings with the <i>Db</i>
- * and <i>DbInspector</i> objects.
- *
+ * Automatic model generation: you may automatically generate model classes as
+ * strings with the Db and DbInspector objects:
  * <pre>
  * Db db = Db.open(&quot;jdbc:h2:mem:&quot;, &quot;sa&quot;, &quot;sa&quot;);
  * DbInspector inspector = new DbInspector(db);
@@ -124,10 +89,8 @@ import java.lang.annotation.Target;
  *         inspector.generateModel(schema, table, packageName,
  *         annotateSchema, trimStrings)
  * </pre>
- *
- * OR you may use the <i>GenerateModels</i> tool to generate and save your
- * classes to the filesystem.
- *
+ * Or you may use the GenerateModels tool to generate and save your classes to
+ * the file system:
  * <pre>
  * java -cp h2jaqu.jar org.h2.jaqu.util.GenerateModels
  *      -url &quot;jdbc:h2:mem:&quot;
@@ -136,18 +99,12 @@ import java.lang.annotation.Target;
  *      -annotateSchema false -trimStrings true
  * </pre>
  *
- * <b>Model Validation</b>
- * <p>
- * You may validate your model class with <i>DbInspector</i> object.<br>
- * The DbInspector will report ERRORS, WARNINGS, and
- * SUGGESTIONS to help you.
- *
+ * Model validation: you may validate your model class with DbInspector object.
+ * The DbInspector will report errors, warnings, and suggestions:
  * <pre>
- * Db db = Db.open(&quot;jdbc:h2:mem:&quot;,
- *     &quot;sa&quot;, &quot;sa&quot;);
+ * Db db = Db.open(&quot;jdbc:h2:mem:&quot;, &quot;sa&quot;, &quot;sa&quot;);
  * DbInspector inspector = new DbInspector(db);
- * List&lt;Validation&gt; remarks =
- *     inspector.validateModel(new MyModel(), throwOnError);
+ * List&lt;Validation&gt; remarks = inspector.validateModel(new MyModel(), throwOnError);
  * for (Validation remark : remarks) {
  *     System.out.println(remark);
  * }
@@ -155,31 +112,39 @@ import java.lang.annotation.Target;
  */
 public interface Table {
 
-    static final int reviewWholeClassAndJavadocs = 0;
-
+    /**
+     * An annotation for a database.
+     */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     public @interface JQDatabase {
+
         /**
-         * If version is set to a non-zero value, JaQu will
-         * maintain a "_jq_versions" table within your database. The
-         * version number will be used to call to a registered
+         * If set to a non-zero value, JaQu
+         * maintains a "_jq_versions" table within your database. The
+         * version number is used to call to a registered
          * DbUpgrader implementation to perform relevant ALTER statements.
          * Default: 0.
          * You must specify a DbUpgrader on your Db object to
          * use this parameter.
          */
         int version() default 0;
+
     }
 
+    /**
+     * An annotation for a schema.
+     */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     public @interface JQSchema {
+
         /**
-         * The schema may be optionally specified. If it is not specified the
-         * schema will be ignored. Default: Unspecified.
+         * The schema may be optionally specified.
+         * Default: unspecified.
          */
         String name() default "";
+
     }
 
     /**
@@ -189,66 +154,64 @@ public interface Table {
         STANDARD, UNIQUE, HASH, UNIQUE_HASH;
     }
 
+    /**
+     * An index annotation.
+     */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     public @interface JQIndex {
+
         /**
-         * Standard indexes may be optionally specified. If not specified,
-         * these values will be ignored.
+         * Standard indexes may be optionally specified.
          * <ul>
-         * <li>standard = "id, name"
-         * <li>standard = "id name"
-         * <li>standard = { "id name", "date" }
+         * <li>standard = "id, name"</li>
+         * <li>standard = "id name"</li>
+         * <li>standard = { "id name", "date" }</li>
          * </ul>
          * Standard indexes may still be added in the define() method if
          * the model class is not annotated with JQTable.
-         * Default: Unspecified.
+         * Default: unspecified.
          */
         String[] standard() default {};
 
         /**
-         * <b>unique</b> indexes may be optionally specified. If not specified,
-         * these values will be ignored.
+         * Unique indexes may be optionally specified.
          * <ul>
-         * <li>unique = "id, name"
-         * <li>unique = "id name"
-         * <li>unique = { "id name", "date" }
+         * <li>unique = "id, name"</li>
+         * <li>unique = "id name"</li>
+         * <li>unique = { "id name", "date" }</li>
          * </ul>
-         * Unique indexes may still be added in the <i>define()</i> method if
+         * Unique indexes may still be added in the define() method if
          * the model class is not annotated with JQTable.
-         * <p>
-         * <b>Default: <i>Unspecified</i></b>
+         * Default: unspecified.
          */
         String[] unique() default {};
 
         /**
-         * <b>hash</b> indexes may be optionally specified. If not specified,
-         * these values will be ignored.
+         * Hash indexes may be optionally specified.
          * <ul>
          * <li>hash = "name"
          * <li>hash = { "name", "date" }
          * </ul>
-         * Hash indexes may still be added in the <i>define()</i> method if
+         * Hash indexes may still be added in the define() method if
          * the model class is not annotated with JQTable.
-         * <p>
-         * <b>Default: <i>Unspecified</i></b>
+         * Default: unspecified.
          */
         String[] hash() default {};
 
         /**
-         * <b>uniqueHash</b> indexes may be optionally specified. If not specified,
-         * these values will be ignored.
+         * Unique hash indexes may be optionally specified.
          * <ul>
          * <li>uniqueHash = "id"
          * <li>uniqueHash = "name"
          * <li>uniqueHash = { "id", "name" }
          * </ul>
-         * UniqueHash indexes may still be added in the <i>define()</i> method if
+         * Unique hash indexes may still be added in the define() method if
          * the model class is not annotated with JQTable.
-         * <p>
-         * <b>Default: <i>Unspecified</i></b>
+         * Default: unspecified.
          */
         String[] uniqueHash() default {};
+
     }
 
     /**
@@ -259,189 +222,151 @@ public interface Table {
     public @interface JQTable {
 
         /**
-         * <b>name</b> may be optionally specified. If it is not specified the
-         * class name will be used as the table name.
+         * The table name. If not specified the
+         * class name is used as the table name.
          * <p>
-         * The table name may still be overridden in the <i>define()</i> method
+         * The table name may still be overridden in the define() method
          * if the model class is not annotated with JQTable.
-         * <p>
-         * <b>Default: <i>Unspecified</i></b>
+         * Default: unspecified.
          */
         String name() default "";
 
         /**
-         * <b>primaryKey</b> may be optionally specified. If it is not
-         * specified, then no primary key will be set by the JQTable annotation.
+         * The primary key may be optionally specified. If it is not
+         * specified, then no primary key is set by the JQTable annotation.
          * You may specify a composite primary key.
          * <ul>
          * <li>primaryKey = "id, name"
          * <li>primaryKey = "id name"
          * </ul>
-         * The primaryKey may still be overridden in the <i>define()</i> method
+         * The primary key may still be overridden in the define() method
          * if the model class is not annotated with JQTable.
-         * <p>
-         * <b>Default: <i>Unspecified</i></b>
+         * Default: unspecified.
          */
         String primaryKey() default "";
 
         /**
-         * <b>inheritColumns</b> allows this model class to inherit columns from
+         * The inherit columns allows this model class to inherit columns from
          * its super class. Any JQTable annotation present on the super class is
-         * ignored.<br>
-         * <p>
-         * <b>Default: <i>false</i></b>
+         * ignored.
+         * Default: false.
          */
         boolean inheritColumns() default false;
 
         /**
-         * <b>createIfRequired</b> allows user to control whether or not
-         * JaQu tries to create the table and indexes.
-         * <p>
-         * <b>Default: <i>true</i></b>
+         * Whether or not JaQu tries to create the table and indexes. Default:
+         * true.
          */
         boolean createIfRequired() default true;
 
         /**
-         * <b>strictTypeMapping</b> allows user to specify that only supported
-         * types are mapped.<br>
-         * If set <i>true</i>, unsupported mapped types will throw a
-         * RuntimeException.<br>
-         * If set <i>false</i>, unsupported mapped types will default to
-         * VARCHAR.
-         * <p>
-         * <b>Default: <i>true</i></b>
+         * Whether only supported types are mapped.
+         * If true, unsupported mapped types will throw a RuntimeException.
+         * If false, unsupported mapped types will default to VARCHAR.
+         * Default: true.
          */
         boolean strictTypeMapping() default true;
 
         /**
-         * <b>annotationsOnly</b> controls reflective field mapping on your
-         * model object. If set <i>true</i>, only fields that are explicitly
+         * If true, only fields that are explicitly
          * annotated as JQColumn are mapped.
-         * <p>
-         * <b>Default: <i>true</i></b>
+         * Default: true.
          */
         boolean annotationsOnly() default true;
 
         /**
-         * If <b>memoryTable</b> is set <i>true</i>, this table is created as a
-         * memory table where data is persistent, but index data is kept in main
-         * memory.<br>
-         * The JDBC Connection class is verified before applying this property
-         * in the CREATE phase.
-         * <p>
-         * <b>Default: <i>false</i></b>
-         * <p>
-         * <u>Valid only for H2 databases.</u>
+         * If true, this table is created as a memory table where data is persistent,
+         * but index data is kept in main memory.
+         * Valid only for H2 databases.
+         * Default: false.
          */
         boolean memoryTable() default false;
 
         /**
-         * If <b>version</b> is set to a <i>non-zero</i> value, JaQu will
+         * If non-zero, JaQu will
          * maintain a "_jq_versions" table within your database. The
-         * <i>version</i> number will be used to call to a registered
-         * <i>DbUpgrader</i> implementation to perform relevant ALTER
+         * version number is used to call to a registered
+         * DbUpgrader implementation to perform relevant ALTER
          * statements.
-         * <p>
-         * <b>Default: <i>0</i></b>
-         * <p>
-         * <bNOTE:</b><br>
-         * You must specify a <i>DbUpgrader</i> on your <i>Db</i> object to
+         * Default: 0.
+         * You must specify a DbUpgrader on your Db object to
          * use this parameter.
          */
         int version() default 0;
     }
 
     /**
-     * Annotation to define a Column. Annotated fields may have any Scope with
-     * the understanding that under some circumstances, the JVM may raise a
-     * SecurityException.
+     * Annotation to define a column. Annotated fields may have any scope
+     * (however, the JVM may raise a SecurityException if the SecurityManager
+     * doesn't allow JaQu to access the field.)
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public @interface JQColumn {
 
         /**
-         * If <b>name</b> is not specified the instance variable field name will
-         * be used as the column name.
-         * <p>
-         * <b>Default: <i>reflective field name mapping</i></b>
+         * If not specified, the field name is used as the column name.
+         * Default: the field name.
          */
         String name() default "";
 
         /**
-         * If <b>primaryKey</b> is true, this column will be the PrimaryKey.
-         * <p>
-         * <b>Default: <i>false</i></b>
+         * This column is the primary key.
+         * Default: false.
          */
         boolean primaryKey() default false;
 
         /**
-         * If <b>autoIncrement</b> is true, the column will be created with a
+         * The column is created with a
          * sequence as the default value.
-         * <p>
-         * <b>Default: <i>false</i></b>
+         * Default: false.
          */
         boolean autoIncrement() default false;
 
         /**
-         * If <b>maxLength</b> > 0 it is used during the CREATE TABLE phase. It
-         * may also be optionally used to prevent database exceptions on INSERT
-         * and UPDATE statements (see <i>trimString</i>).
+         * If larger than zero, it is used during the CREATE TABLE phase. It
+         * may also be used to prevent database exceptions on INSERT
+         * and UPDATE statements (see trimString).
          * <p>
-         * Any maxLength set in <i>define()</i> may override this annotation
+         * Any maxLength set in define() may override this annotation
          * setting if the model class is not annotated with JQTable.
-         * <p>
-         * <b>Default: <i>0</i></b>
+         * Default: 0.
          */
         int maxLength() default 0;
 
         /**
-         * If <b>trimString</b> is <i>true</i> JaQu will automatically trim the
-         * string if it exceeds <b>maxLength</b>.
-         * <p>
-         * e.g. stringValue = stringValue.substring(0, maxLength)
-         * <p>
-         * <b>Default: <i>false</i></b>
+         * If true, JaQu will automatically trim the
+         * string if it exceeds maxLength
+         * (value.substring(0, maxLength)).
+         * Default: false.
          */
         boolean trimString() default false;
 
         /**
-         * If <b>allowNull</b> is <i>false</i> then JaQu will set
+         * If false, JaQu will set
          * the column NOT NULL during the CREATE TABLE phase.
-         * <p>
-         * <b>Default: <i>false</i></b>
+         * Default: false.
          */
         boolean allowNull() default false;
 
         /**
-         * <b>defaultValue</b> is the value assigned to the column during the
-         * CREATE TABLE phase.
-         * <p>
-         * To set <b>null</b>, defaultValue="" (default)
-         * <p>
-         * This field could contain a literal <u>single-quoted value</u>.<br>
-         * Or a function call.<br>
-         * Empty strings will be considered NULL.
+         * The default value assigned to the column during the CREATE TABLE
+         * phase. This field could contain a literal single-quoted value, or a
+         * function call. Empty strings are considered NULL. Examples:
          * <ul>
          * <li>defaultValue="" (null)
-         * <li>defaultValue="CURRENT_TIMESTAMP" (H2 current_timestamp())
-         * <li>defaultValue="''" (default empty string)
-         * <li>defaultValue="'0'" (default number)
-         * <li>defaultValue="'1970-01-01 00:00:01'" (default date)
+         * <li>defaultValue="CURRENT_TIMESTAMP"
+         * <li>defaultValue="''" (empty string)
+         * <li>defaultValue="'0'"
+         * <li>defaultValue="'1970-01-01 00:00:01'"
          * </ul>
-         * if (
-         * <ul>
-         * <li>defaultValue is properly specified
-         * <li>AND <i>autoIncrement</i> == false
-         * <li>AND <i>primaryKey</i> == false
-         * </ul>
-         * )<br>
-         * then this value will be included in the "DEFAULT ..." phrase of a
-         * column during the CREATE TABLE process.
-         * <p>
-         * <b>Default: <i>unspecified, null</i></b>
+         * if the default value is specified, and auto increment is disabled,
+         * and primary key is disabled, then this value is included in the
+         * "DEFAULT ..." phrase of a column during the CREATE TABLE process.
+         * Default: unspecified (null).
          */
         String defaultValue() default "";
+
     }
 
     /**
@@ -449,4 +374,5 @@ public interface Table {
      * and the table name.
      */
     void define();
+
 }

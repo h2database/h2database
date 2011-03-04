@@ -56,11 +56,10 @@ public class Db {
 
     public Db(Connection conn) {
         this.conn = conn;
-        dialect = getDialect(conn.getClass().getCanonicalName());
+        dialect = getDialect(conn);
     }
 
-    private SQLDialect getDialect(String clazz) {
-    int todo;
+    private SQLDialect getDialect(Connection conn) {
         // TODO add special cases here
         return new DefaultSQLDialect();
     }
@@ -155,7 +154,7 @@ public class Db {
 
     Db upgradeDb() {
         if (!upgradeChecked.contains(dbUpgrader.getClass())) {
-            // Flag as checked immediately because calls are nested.
+            // flag as checked immediately because calls are nested.
             upgradeChecked.add(dbUpgrader.getClass());
 
             JQDatabase model = dbUpgrader.getClass().getAnnotation(JQDatabase.class);
@@ -165,16 +164,16 @@ public class Db {
                     // (SCHEMA="" && TABLE="") == DATABASE
                     from(v).where(v.schema).is("").and(v.table).is("").selectFirst();
                 if (dbVersion == null) {
-                    // Database has no version registration, but model specifies
-                    // version. Insert DbVersion entry and return.
+                    // database has no version registration, but model specifies
+                    // version: insert DbVersion entry and return.
                     DbVersion newDb = new DbVersion(model.version());
                     insert(newDb);
                 } else {
-                    // Database has a version registration,
+                    // database has a version registration:
                     // check to see if upgrade is required.
                     if ((model.version() > dbVersion.version)
                             && (dbUpgrader != null)) {
-                        // Database is an older version than model.
+                        // database is an older version than the model
                         boolean success = dbUpgrader.upgradeDatabase(this,
                                 dbVersion.version, model.version());
                         if (success) {
@@ -190,29 +189,29 @@ public class Db {
 
     <T> void upgradeTable(TableDefinition<T> model) {
         if (!upgradeChecked.contains(model.getModelClass())) {
-            // Flag as checked immediately because calls are nested.
+            // flag is checked immediately because calls are nested
             upgradeChecked.add(model.getModelClass());
 
             if (model.tableVersion > 0) {
-                // Table is using JaQu version tracking.
+                // table is using JaQu version tracking.
                 DbVersion v = new DbVersion();
                 String schema = StringUtils.isNullOrEmpty(model.schemaName) ? "" : model.schemaName;
                 DbVersion dbVersion =
                     from(v).where(v.schema).like(schema).and(v.table)
                     .like(model.tableName).selectFirst();
                 if (dbVersion == null) {
-                    // Table has no version registration, but model specifies
-                    // version. Insert DbVersion entry and return.
+                    // table has no version registration, but model specifies
+                    // version: insert DbVersion entry
                     DbVersion newTable = new DbVersion(model.tableVersion);
                     newTable.schema = schema;
                     newTable.table = model.tableName;
                     insert(newTable);
                 } else {
-                    // Table has a version registration.
-                    // Check to see if upgrade is required.
+                    // table has a version registration:
+                    // check if upgrade is required
                     if ((model.tableVersion > dbVersion.version)
                             && (dbUpgrader != null)) {
-                        // Table is an older version than model.
+                        // table is an older version than model
                         boolean success = dbUpgrader.upgradeTable(this, schema,
                                 model.tableName, dbVersion.version, model.tableVersion);
                         if (success) {
@@ -237,7 +236,7 @@ public class Db {
                 Table table = (Table) t;
                 Define.define(def, table);
             } else if (clazz.isAnnotationPresent(JQTable.class)) {
-                // Annotated Class skips Define().define() static initializer
+                // annotated classes skip the Define().define() static initializer
                 T t = instance(clazz);
                 def.mapObject(t);
             }

@@ -25,7 +25,7 @@ public class UpdateColumnSet<T, A> implements UpdateColumn {
     }
 
     public Query<T> to(A y) {
-        query.addDeclarationToken(this);
+        query.addUpdateColumnDeclaration(this);
         this.y = y;
         return query;
     }

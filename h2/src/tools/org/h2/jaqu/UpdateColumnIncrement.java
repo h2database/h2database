@@ -25,7 +25,7 @@ public class UpdateColumnIncrement<T, A> implements UpdateColumn {
     }
 
     public Query<T> by(A y) {
-        query.addDeclarationToken(this);
+        query.addUpdateColumnDeclaration(this);
         this.y = y;
         return query;
     }

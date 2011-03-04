@@ -263,10 +263,6 @@ public class FileSystemDatabase extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public String getAbsolutePath(String fileName) {
-        return fileName;
-    }
-
     public String getFileName(String fileName) {
         fileName = unwrap(fileName);
         String[] path = StringUtils.arraySplit(fileName, '/', false);

@@ -460,7 +460,7 @@ CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
 [ CHECK condition ]
 ","
 Creates a new data type (domain). The check condition must evaluate to true or
-to NULL (to prevent NULL, use NOT NULL). In the condition, the term VALUE refers
+to NULL (to prevent NULL, use ""NOT NULL""). In the condition, the term VALUE refers
 to the value being tested.
 
 Domains are usable within the whole database. They can not be created in a specific schema.
@@ -1478,7 +1478,7 @@ All connections are closed, open transactions are rolled back.
 
 SHUTDOWN COMPACT fully compacts the database (re-creating the database may further reduce the database size).
 If the database is closed normally (using SHUTDOWN or by closing all connections), then the database is also compacted,
-but only for at most the time defined by the system property ""h2.maxCompactTime"" (see there).
+but only for at most the time defined by the database setting ""h2.maxCompactTime"" (see there).
 
 SHUTDOWN IMMEDIATELY closes the database files without any cleanup and without compacting.
 
@@ -1555,7 +1555,7 @@ CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
 "Other Grammar","Cipher","
 { AES | XTEA }
 ","
-Two algorithms are supported: AES (AES-128) and XTEA (using 32 rounds).
+Two algorithms are supported: AES (""AES-128"") and XTEA (using 32 rounds).
 XTEA is a bit faster than AES in some environments, but AES is more secure.
 ","
 AES
@@ -1617,14 +1617,14 @@ compare { { { ALL | ANY | SOME } ( select ) } | operand }
 ","
 The right hand side of a condition.
 
-The conditions IS [ NOT ] and IS [ NOT ] DISTINCT FROM are NULL-safe, meaning
+The conditions ""IS [ NOT ]"" and ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
 NULL is considered the same as NULL, and the condition never evaluates to NULL.
 
-When comparing with LIKE, the wildcards characters are _ (any one character)
-and % (any characters). The database uses an index when comparing with LIKE
-except if the operand starts with a wildcard. To search for the characters % and
-_, the characters need to be escaped. The default escape character is \ (backslash).
-To select no escape character, use ESCAPE '' (empty string).
+When comparing with LIKE, the wildcards characters are ""_"" (any one character)
+and ""%"" (any characters). The database uses an index when comparing with LIKE
+except if the operand starts with a wildcard. To search for the characters ""%"" and
+""_"", the characters need to be escaped. The default escape character is "" \ "" (backslash).
+To select no escape character, use ""ESCAPE ''"" (empty string).
 At most one escape character is allowed.
 Each character that follows the escape character in the pattern needs to match exactly.
 Patterns that end with an escape character are invalid and the expression returns NULL.
@@ -1665,15 +1665,15 @@ charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]
 Optional parameters for CSVREAD and CSVWRITE.
 Instead of setting the options one by one, all options can be
 combined into a space separated key-value pairs, as follows:
-STRINGDECODE('charset=UTF-8 escape=\"" fieldDelimiter=\"" fieldSeparator=, ' ||
-'lineComment=# lineSeparator=\n null= rowSeparator=').
+""STRINGDECODE('charset=UTF-8 escape=\"" fieldDelimiter=\"" fieldSeparator=, ' ||""
+""'lineComment=# lineSeparator=\n null= rowSeparator=')"".
 The following options are supported:
-charset, escape, fieldDelimiter, fieldSeparator,
-lineComment (# for H2 version 1.2, disabled for H2 version 1.3),
-lineSeparator, null, rowSeparator (not set by default).
+""charset"", ""escape"", ""fieldDelimiter"", ""fieldSeparator"",
+""lineComment"" (""#"" for H2 version 1.2, disabled for H2 version 1.3),
+""lineSeparator"", ""null"", ""rowSeparator"" (not set by default).
 For a newline or other special character, use STRINGDECODE as in the example above.
-A space needs to be escaped with a backslash ('\ ').
-A backslash needs to be escaped with another backslash ('\\').
+A space needs to be escaped with a backslash (""'\ '"").
+A backslash needs to be escaped with another backslash (""'\\'"").
 ","
 CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|');
 "
@@ -1731,9 +1731,9 @@ $$John's car$$
 A floating point number with high precision.
 The limitations are the same as for the Java data type Double.
 To ensure the floating point representation is used, use CAST.
-There are some special values: to represent positive infinity, use POWER(0, -1);
-for negative infinity, use (-POWER(0, -1)); for -0.0, use (-CAST(0 AS DOUBLE));
-for NaN (not a number), use SQRT(-1).
+There are some special values: to represent positive infinity, use ""POWER(0, -1)"";
+for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE))"";
+for ""NaN"" (not a number), use ""SQRT(-1)"".
 ","
 -1.4e-10
 CAST(0 AS DOUBLE)
@@ -1898,7 +1898,7 @@ factor [ { { + | - } factor } [...] ]
 ","
 A value or a numeric sum.
 
-Please note the text concatenation operator is ||.
+Please note the text concatenation operator is ""||"".
 ","
 ID + 20
 "
@@ -2369,7 +2369,8 @@ ABS(ID)
 "Functions (Numeric)","ACOS","
 ACOS(double)
 ","
-See also Java ""Math.*"" functions.
+Calculate the arc cosine.
+See also Java ""Math.acos"".
 This method returns a double.
 ","
 ACOS(D)
@@ -2378,7 +2379,8 @@ ACOS(D)
 "Functions (Numeric)","ASIN","
 ASIN(double)
 ","
-See also Java ""Math.*"" functions.
+Calculate the arc sine.
+See also Java ""Math.asin"".
 This method returns a double.
 ","
 ASIN(D)
@@ -2387,7 +2389,8 @@ ASIN(D)
 "Functions (Numeric)","ATAN","
 ATAN(double)
 ","
-See also Java ""Math.*"" functions.
+Calculate the arc tangent.
+See also Java ""Math.atan"".
 This method returns a double.
 ","
 ATAN(D)
@@ -2396,7 +2399,8 @@ ATAN(D)
 "Functions (Numeric)","COS","
 COS(double)
 ","
-See also Java ""Math.*"" functions.
+Calculate the trigonometric cosine.
+See also Java ""Math.cos"".
 This method returns a double.
 ","
 COS(ANGLE)
@@ -2405,6 +2409,7 @@ COS(ANGLE)
 "Functions (Numeric)","COT","
 COT(double)
 ","
+Calculate the trigonometric cotangent (""1/TAN(ANGLE)"").
 See also Java ""Math.*"" functions.
 This method returns a double.
 ","
@@ -2414,7 +2419,8 @@ COT(ANGLE)
 "Functions (Numeric)","SIN","
 SIN(double)
 ","
-See also Java ""Math.*"" functions.
+Calculate the trigonometric sine.
+See also Java ""Math.sin"".
 This method returns a double.
 ","
 SIN(ANGLE)
@@ -2423,7 +2429,8 @@ SIN(ANGLE)
 "Functions (Numeric)","TAN","
 TAN(double)
 ","
-See also Java ""Math.*"" functions.
+Calculate the trigonometric tangent.
+See also Java ""Math.tan"".
 This method returns a double.
 ","
 TAN(ANGLE)
@@ -2432,6 +2439,7 @@ TAN(ANGLE)
 "Functions (Numeric)","ATAN2","
 ATAN2(double, double)
 ","
+Calculate the angle when converting the rectangular coordinates to polar coordinates.
 See also Java ""Math.atan2"".
 This method returns a double.
 ","

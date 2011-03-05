@@ -1475,11 +1475,12 @@ to use <code>java.lang.Integer</code> instead.
 </p>
 <p>
 SQL types are mapped to Java classes and vice-versa as in the JDBC API. For details, see <a href="datatypes.html">Data Types</a>.
-There are two special cases: <code>java.lang.Object</code> is mapped to
+There are a few special cases: <code>java.lang.Object</code> is mapped to
 <code>OTHER</code> (a serialized object). Therefore,
 <code>java.lang.Object</code> can not be used
 to match all SQL types (matching all SQL types is not supported). The second special case is <code>Object[]</code>:
 arrays of any class are mapped to <code>ARRAY</code>.
+Objects of type <code>org.h2.value.Value</code> (the internal value class) are passed through without conversion.
 </p>
 
 <h3>Functions That Require a Connection</h3>

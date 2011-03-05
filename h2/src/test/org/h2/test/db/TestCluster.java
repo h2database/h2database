@@ -35,10 +35,68 @@ public class TestCluster extends TestBase {
     }
 
     public void test() throws Exception {
+        testRecover();
         testRollback();
         testCase();
         testCreateClusterAtRuntime();
         testStartStopCluster();
+    }
+
+    private void testRecover() throws SQLException {
+        if (config.memory || config.networked || config.cipher != null) {
+            return;
+        }
+        int port1 = 9191, port2 = 9192;
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
+        deleteFiles();
+
+        org.h2.Driver.load();
+        String user = getUser(), password = getPassword();
+        Connection conn;
+        Statement stat;
+        ResultSet rs;
+
+        String url1 = "jdbc:h2:tcp://localhost:" + port1 + "/test";
+        String url2 = "jdbc:h2:tcp://localhost:" + port2 + "/test";
+        String urlCluster = "jdbc:h2:tcp://" + serverList + "/test";
+
+        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
+        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
+
+        CreateCluster.main("-urlSource", url1, "-urlTarget", url2, "-user", user, "-password", password, "-serverList",
+                serverList);
+
+        conn = DriverManager.getConnection(urlCluster, user, password);
+        stat = conn.createStatement();
+        stat.execute("create table t1(id int, name varchar(30))");
+        stat.execute("insert into t1 values(1, 'a'), (2, 'b'), (3, 'c')");
+        rs = stat.executeQuery("select count(*) from t1");
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+
+        n2.stop();
+        DeleteDbFiles.main("-dir", getBaseDir() + "/node2", "-quiet");
+
+        stat.execute("insert into t1 values(4, 'd'), (5, 'e')");
+        rs = stat.executeQuery("select count(*) from t1");
+        rs.next();
+        assertEquals(5, rs.getInt(1));
+
+        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
+        CreateCluster.main("-urlSource", url1, "-urlTarget", url2, "-user", user, "-password", password, "-serverList",
+                serverList);
+
+        conn.close();
+
+        conn = DriverManager.getConnection(urlCluster, user, password);
+        stat = conn.createStatement();
+        rs = stat.executeQuery("select count(*) from t1");
+        rs.next();
+        assertEquals(5, rs.getInt(1));
+
+        n1.stop();
+        n2.stop();
+        deleteFiles();
     }
 
     private void testRollback() throws SQLException {

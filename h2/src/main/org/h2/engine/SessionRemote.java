@@ -216,7 +216,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
      * Calls COMMIT if the session is in cluster mode.
      */
     public void autoCommitIfCluster() {
-        if (autoCommit && transferList != null && transferList.size() > 1) {
+        if (autoCommit && cluster) {
             // server side auto commit is off because of race conditions
             // (update set id=1 where id=0, but update set id=2 where id=0 is
             // faster)
@@ -368,12 +368,13 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         boolean switchOffCluster = false;
         try {
             for (int i = 0; i < len; i++) {
+                String s = servers[i];
                 try {
-                    Transfer trans = initTransfer(ci, databaseName, servers[i]);
+                    Transfer trans = initTransfer(ci, databaseName, s);
                     transferList.add(trans);
                 } catch (IOException e) {
                     if (len == 1) {
-                        throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, e, e.getMessage());
+                        throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, e + ": " + s, e.getMessage());
                     }
                     switchOffCluster = true;
                 }
@@ -556,12 +557,12 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     }
 
     /**
-     * Returns true if the connection is in cluster mode.
+     * Returns true if the connection was opened in cluster mode.
      *
      * @return true if it is
      */
     public boolean isClustered() {
-        return transferList.size() > 1;
+        return cluster;
     }
 
     public boolean isClosed() {

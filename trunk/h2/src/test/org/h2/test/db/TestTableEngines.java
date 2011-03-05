@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.SingleRowCursor;
@@ -24,7 +25,12 @@ import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableBase;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.test.TestBase;
+import org.h2.value.Value;
+import org.h2.value.ValueInt;
+import org.h2.value.ValueNull;
+import org.h2.value.ValueString;
 
 /**
  * The class for external table engines mechanism testing.
@@ -46,6 +52,25 @@ public class TestTableEngines extends TestBase {
         if (config.mvcc) {
             return;
         }
+        testEarlyFilter();
+        testSimpleQuery();
+    }
+
+    private void testEarlyFilter() throws SQLException {
+        deleteDb("tableEngine");
+        Connection conn = getConnection("tableEngine;EARLY_FILTER=TRUE");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + EndlessTableEngine.class.getName() + "\"");
+        ResultSet rs = stat.executeQuery("SELECT name FROM t1 where id=1 and name is not null");
+        assertTrue(rs.next());
+        assertEquals("((ID = 1)\n    AND (NAME IS NOT NULL))", rs.getString(1));
+        rs.close();
+        conn.close();
+        deleteDb("tableEngine");
+    }
+
+    private void testSimpleQuery() throws SQLException {
+
         deleteDb("tableEngine");
 
         Connection conn = getConnection("tableEngine");
@@ -112,7 +137,7 @@ public class TestTableEngines extends TestBase {
             /**
              * A scan index for one row.
              */
-            private class Scan extends BaseIndex {
+            public class Scan extends BaseIndex {
 
                 Scan(Table table) {
                     initBaseIndex(table, table.getId(), table.getName() + "_SCAN",
@@ -172,9 +197,9 @@ public class TestTableEngines extends TestBase {
                 }
             }
 
-            volatile Row row;
+            protected Index scanIndex;
 
-            private final Index scanIndex;
+            volatile Row row;
 
             OneRowTable(CreateTableData data) {
                 super(data);
@@ -293,6 +318,72 @@ public class TestTableEngines extends TestBase {
         public OneRowTable createTable(CreateTableData data) {
             return new OneRowTable(data);
         }
+
+    }
+
+    /**
+     * A test table factory.
+     */
+    public static class EndlessTableEngine implements TableEngine {
+
+        /**
+         * A table implementation with one row.
+         */
+        private static class EndlessTable extends OneRowTableEngine.OneRowTable {
+
+            EndlessTable(CreateTableData data) {
+                super(data);
+                row = new Row(new Value[] { ValueInt.get(1), ValueNull.INSTANCE }, 0);
+                scanIndex = new Auto(this);
+            }
+
+            /**
+             * A scan index for one row.
+             */
+            public class Auto extends OneRowTableEngine.OneRowTable.Scan {
+
+                Auto(Table table) {
+                    super(table);
+                }
+
+                public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
+                    return find(filter.getSession(), filter.getFilterCondition(), first, last);
+                }
+
+                public Cursor find(Session session, SearchRow first, SearchRow last) {
+                    return find(session, null, first, last);
+                }
+
+                /**
+                 * Search within the table.
+                 *
+                 * @param session the session
+                 * @param filter the table filter (optional)
+                 * @param first the first row (optional)
+                 * @param last the last row (optional)
+                 * @return the cursor
+                 */
+                private Cursor find(Session session, Expression filter, SearchRow first, SearchRow last) {
+                    if (filter != null) {
+                        row.setValue(1, ValueString.get(filter.getSQL()));
+                    }
+                    return new SingleRowCursor(row);
+                }
+
+            }
+
+        }
+
+        /**
+         * Create a new table.
+         *
+         * @param data the meta data of the table to create
+         * @return the new table
+         */
+        public EndlessTable createTable(CreateTableData data) {
+            return new EndlessTable(data);
+        }
+
     }
 
 }

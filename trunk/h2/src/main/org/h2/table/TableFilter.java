@@ -116,7 +116,7 @@ public class TableFilter implements ColumnResolver {
         this.table = table;
         this.alias = alias;
         this.select = select;
-        this.cursor = new IndexCursor();
+        this.cursor = new IndexCursor(this);
         if (!rightsChecked) {
             session.getUser().checkRight(table, Right.SELECT);
         }
@@ -965,6 +965,10 @@ public class TableFilter implements ColumnResolver {
 
     public boolean isEvaluatable() {
         return evaluatable;
+    }
+
+    public Session getSession() {
+        return session;
     }
 
     /**

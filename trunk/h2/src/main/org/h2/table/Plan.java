@@ -19,6 +19,7 @@ import org.h2.util.New;
  * on the order the tables are accessed.
  */
 public class Plan {
+
     private final TableFilter[] filters;
     private final HashMap<TableFilter, PlanItem> planItems = New.hashMap();
     private final Expression[] allConditions;
@@ -82,7 +83,7 @@ public class Plan {
         for (int i = 0; i < allFilters.length; i++) {
             TableFilter f = allFilters[i];
             setEvaluatable(f, true);
-            if (i < allFilters.length - 1) {
+            if (i < allFilters.length - 1 || f.getSession().getDatabase().getSettings().earlyFilter) {
                 // the last table doesn't need the optimization,
                 // otherwise the expression is calculated twice unnecessarily
                 // (not that bad but not optimal)

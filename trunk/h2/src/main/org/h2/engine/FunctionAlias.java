@@ -349,8 +349,13 @@ public class FunctionAlias extends SchemaObjectBase {
                 }
                 int type = DataType.getTypeFromClass(paramClass);
                 Value v = args[a].getValue(session);
-                v = v.convertTo(type);
-                Object o = v.getObject();
+                Object o;
+                if (Value.class.isAssignableFrom(paramClass)) {
+                    o = v;
+                } else {
+                    v = v.convertTo(type);
+                    o = v.getObject();
+                }
                 if (o == null) {
                     if (paramClass.isPrimitive()) {
                         if (columnList) {
@@ -400,6 +405,9 @@ public class FunctionAlias extends SchemaObjectBase {
                     throw DbException.convertInvocation(e, buff.toString());
                 } catch (Exception e) {
                     throw DbException.convert(e);
+                }
+                if (Value.class.isAssignableFrom(method.getReturnType())) {
+                    return (Value) returnValue;
                 }
                 Value ret = DataType.convertToValue(session, returnValue, dataType);
                 return ret.convertTo(dataType);

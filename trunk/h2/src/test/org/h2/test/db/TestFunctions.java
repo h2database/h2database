@@ -29,6 +29,7 @@ import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
+import org.h2.value.Value;
 
 /**
  * Tests for user defined functions and aggregates.
@@ -63,8 +64,28 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testAggregate();
         testFunctions();
         testFileRead();
+        testValue();
         deleteDb("functions");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testValue() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("create alias TO_CHAR for \"" + getClass().getName() + ".toChar\"");
+        rs = stat.executeQuery("call TO_CHAR(TIMESTAMP '2001-02-03 04:05:06', 'format')");
+        rs.next();
+        assertEquals("2001-02-03 04:05:06.0", rs.getString(1));
+        stat.execute("drop alias TO_CHAR");
+        conn.close();
+    }
+
+    public static Value toChar(Value... args) {
+        if (args.length == 0) {
+            return null;
+        }
+        return args[0].convertTo(Value.STRING);
     }
 
     private void testDefaultConnection() throws SQLException {

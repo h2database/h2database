@@ -116,10 +116,12 @@ public class CreateCluster extends Tool {
                 if (e.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_1) {
                     // database does not exists yet - ok
                     exists = false;
+                } else {
+                    throw e;
                 }
             }
             if (exists) {
-                throw new SQLException("Target database must not yet exist. Please delete it first");
+                throw new SQLException("Target database must not yet exist. Please delete it first: " + urlTarget);
             }
 
             // use cluster='' so connecting is possible

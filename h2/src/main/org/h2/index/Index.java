@@ -13,6 +13,7 @@ import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 
 /**
  * An index. Indexes are used to speed up searching data.
@@ -58,6 +59,16 @@ public interface Index extends SchemaObject {
      * @return the cursor to iterate over the results
      */
     Cursor find(Session session, SearchRow first, SearchRow last);
+
+    /**
+     * Find a row or a list of rows and create a cursor to iterate over the result.
+     *
+     * @param filter the table filter (which possibly knows about additional conditions)
+     * @param first the first row, or null for no limit
+     * @param last the last row, or null for no limit
+     * @return the cursor to iterate over the results
+     */
+    Cursor find(TableFilter filter, SearchRow first, SearchRow last);
 
     /**
      * Estimate the cost to search for rows given the search mask.

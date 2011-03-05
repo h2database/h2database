@@ -20,6 +20,7 @@ import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -91,6 +92,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public boolean canFindNext() {
         return false;
+    }
+
+
+    public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
+        return find(filter.getSession(), first, last);
     }
 
     /**

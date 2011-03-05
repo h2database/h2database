@@ -18,6 +18,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -26,7 +27,9 @@ import org.h2.value.ValueNull;
  * and IN(SELECT ...) optimizations.
  */
 public class IndexCursor implements Cursor {
+
     private Session session;
+    private final TableFilter tableFilter;
     private Index index;
     private Table table;
     private IndexColumn[] indexColumns;
@@ -39,6 +42,10 @@ public class IndexCursor implements Cursor {
     private Value[] inList;
     private ResultInterface inResult;
     private HashSet<Value> inResultTested;
+
+    public IndexCursor(TableFilter filter) {
+        this.tableFilter = filter;
+    }
 
     public void setIndex(Index index) {
         this.index = index;
@@ -135,7 +142,7 @@ public class IndexCursor implements Cursor {
             return;
         }
         if (!alwaysFalse) {
-            cursor = index.find(s, start, end);
+            cursor = index.find(tableFilter, start, end);
         }
     }
 
@@ -265,7 +272,7 @@ public class IndexCursor implements Cursor {
             start = table.getTemplateRow();
         }
         start.setValue(id, v);
-        cursor = index.find(session, start, start);
+        cursor = index.find(tableFilter, start, start);
     }
 
     public boolean previous() {

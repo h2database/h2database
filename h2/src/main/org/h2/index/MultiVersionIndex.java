@@ -18,6 +18,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -59,6 +60,14 @@ public class MultiVersionIndex implements Index {
     public void close(Session session) {
         synchronized (sync) {
             base.close(session);
+        }
+    }
+
+    public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
+        synchronized (sync) {
+            Cursor baseCursor = base.find(filter, first, last);
+            Cursor deltaCursor = delta.find(filter, first, last);
+            return new MultiVersionCursor(filter.getSession(), this, baseCursor, deltaCursor, sync);
         }
     }
 

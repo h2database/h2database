@@ -13,6 +13,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
+import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -275,7 +276,15 @@ public class TreeIndex extends BaseIndex {
         return result;
     }
 
+    public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
+        return find(first, last);
+    }
+
     public Cursor find(Session session, SearchRow first, SearchRow last) {
+        return find(first, last);
+    }
+
+    public Cursor find(SearchRow first, SearchRow last) {
         if (first == null) {
             TreeNode x = root, n;
             while (x != null) {

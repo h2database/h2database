@@ -201,7 +201,7 @@ public class GenerateDoc {
                     buff.append("</code>");
                     code = false;
                 }
-            } else if (codeQuoted && c == '\"') {
+            } else if (codeQuoted && c == '\"' && (i == 0 || text.charAt(i - 1) != '\\')) {
                 buff.append("</code>");
                 codeQuoted = false;
                 continue;

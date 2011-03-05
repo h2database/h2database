@@ -503,7 +503,7 @@ Returns the first expression where the condition is true."
 "Other Grammar","Cipher","
 { AES | XTEA }
 ","
-Two algorithms are supported: AES (AES-128) and XTEA (using 32 rounds)."
+Two algorithms are supported: AES (""AES-128"") and XTEA (using 32 rounds)."
 "Other Grammar","Column Definition","
 columnName dataType
 [ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]
@@ -832,35 +832,35 @@ See also Java ""Math."
 "Functions (Numeric)","ACOS","
 ACOS(double)
 ","
-See also Java ""Math."
+Calculate the arc cosine."
 "Functions (Numeric)","ASIN","
 ASIN(double)
 ","
-See also Java ""Math."
+Calculate the arc sine."
 "Functions (Numeric)","ATAN","
 ATAN(double)
 ","
-See also Java ""Math."
+Calculate the arc tangent."
 "Functions (Numeric)","COS","
 COS(double)
 ","
-See also Java ""Math."
+Calculate the trigonometric cosine."
 "Functions (Numeric)","COT","
 COT(double)
 ","
-See also Java ""Math."
+Calculate the trigonometric cotangent (""1/TAN(ANGLE)"")."
 "Functions (Numeric)","SIN","
 SIN(double)
 ","
-See also Java ""Math."
+Calculate the trigonometric sine."
 "Functions (Numeric)","TAN","
 TAN(double)
 ","
-See also Java ""Math."
+Calculate the trigonometric tangent."
 "Functions (Numeric)","ATAN2","
 ATAN2(double, double)
 ","
-See also Java ""Math."
+Calculate the angle when converting the rectangular coordinates to polar coordinates."
 "Functions (Numeric)","BITAND","
 BITAND(long, long)
 ","

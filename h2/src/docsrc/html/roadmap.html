@@ -70,6 +70,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
 </li><li>Add a migration guide (list differences between databases).
 </li><li>Optimization: automatic index creation suggestion using the trace file?
+</li><li>Fulltext search Lucene: analyzer configuration, mergeFactor.
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer.
 </li><li>Rebuild index functionality to shrink index size and improve performance.
 </li><li>Don't use temp files, specially not deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
@@ -96,7 +97,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Eclipse plugin.
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait].
     See also MS SQL Server "Query Notification".
-</li><li>Fulltext search Lucene: analyzer configuration.
 </li><li>Fulltext search (native): reader / tokenizer / filter.
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files.
 </li><li>iReport to support H2.
@@ -110,7 +110,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimization: simpler log compression.
 </li><li>ROW_NUMBER() OVER([ORDER BY columnName]).
 </li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt - specially KEY_COLUMN_USAGE: http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif
-</li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero.
+</li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero. HSQLDB: 0.0e1 / 0.0e1 is NaN.
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R).
 </li><li>Custom class loader to reload functions on demand.
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master.
@@ -295,6 +295,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>executeBatch: option to stop at the first failed statement.
 </li><li>Implement OLAP features as described here: http://www.devx.com/getHelpOn/10MinuteSolution/16573/0/page/5
 </li><li>Support Oracle ROWID (unique identifier for each row).
+</li><li>MySQL compatibility: alter table add index i(c), add constraint c foreign key(c) references t(c);
 </li><li>Server mode: improve performance for batch updates.
 </li><li>Applets: support read-only databases in a zip file (accessed as a resource).
 </li><li>Long running queries / errors / trace system table.
@@ -377,7 +378,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL compatibility: when in PG mode, treat BYTEA data like PG.
 </li><li>Support =ANY(array) as in PostgreSQL. See also http://www.postgresql.org/docs/8.0/interactive/arrays.html
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
-</li><li>MySQL compatibility: alter table add index i(c), add constraint c foreign key(c) references t(c);
 </li><li>Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle, MSSQLServer).
 </li><li>Oracle compatibility: support CREATE SYNONYM table FOR schema.table.
 </li><li>Optimize A=? OR B=? to UNION if the cost is lower.

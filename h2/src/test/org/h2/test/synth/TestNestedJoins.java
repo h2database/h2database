@@ -16,6 +16,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
@@ -239,6 +240,24 @@ public class TestNestedJoins extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
         String sql;
+
+        // Issue 288
+        try {
+            stat.execute("select 1 from dual a right outer join (select b.x from dual b) c on unknown.x = c.x, dual d");
+            fail();
+        } catch (SQLException e) {
+            // this threw a NullPointerException
+            assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
+        }
+
+        // Issue 288
+        stat.execute("create table test(id int primary key)");
+        stat.execute("insert into test values(1)");
+        // this threw the exception Column "T.ID" must be in the GROUP BY list
+        stat.execute("select * from test t right outer join " +
+                "(select t2.id, count(*) c from test t2 group by t2.id) x on x.id = t.id " +
+                "where t.id = 1");
+        stat.execute("drop table test");
 
         // Issue 288
         /*

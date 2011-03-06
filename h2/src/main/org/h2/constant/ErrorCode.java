@@ -941,7 +941,7 @@ public class ErrorCode {
      * INSERT INTO TEST VALUES(1, 1), (2, 1);
      * ALTER TABLE TEST ADD CONSTRAINT TEST_ID_PARENT
      *   FOREIGN KEY(PARENT) REFERENCES(ID) ON DELETE SET DEFAULT;
-     *   DELETE FROM TEST WHERE ID=1;
+     * DELETE FROM TEST WHERE ID=1;
      * </pre>
      */
     public static final int NO_DEFAULT_SET_1 = 90056;

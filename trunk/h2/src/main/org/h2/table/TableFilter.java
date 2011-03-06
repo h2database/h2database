@@ -222,6 +222,11 @@ public class TableFilter implements ColumnResolver {
      * @param item the plan item
      */
     public void setPlanItem(PlanItem item) {
+        if (item == null) {
+            // invalid plan, most likely because a column wasn't found
+            // this will result in an exception later on
+            return;
+        }
         setIndex(item.getIndex());
         if (nestedJoin != null) {
             if (item.getNestedJoinPlan() != null) {
@@ -794,7 +799,11 @@ public class TableFilter implements ColumnResolver {
             joinCondition.setEvaluatable(filter, b);
         }
         if (nestedJoin != null) {
-            nestedJoin.setEvaluatable(nestedJoin, b);
+            // don't enable / disable the nested join filters
+            // if enabling a filter in a joined filter
+            if (this == filter) {
+                nestedJoin.setEvaluatable(nestedJoin, b);
+            }
         }
         if (join != null) {
             join.setEvaluatable(filter, b);

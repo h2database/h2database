@@ -60,6 +60,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testDeterministic();
         testTransactionId();
         testPrecision();
+        testMathFunctions();
         testVarArgs();
         testAggregate();
         testFunctions();
@@ -271,6 +272,21 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(1, rs.getMetaData().getScale(2));
         assertEquals(32767, rs.getMetaData().getScale(1));
         stat.executeQuery("select * from information_schema.function_aliases");
+        conn.close();
+    }
+
+    private void testMathFunctions() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("CALL SINH(50)");
+        assertTrue(rs.next());
+        assertEquals(Math.sinh(50), rs.getDouble(1));
+        rs = stat.executeQuery("CALL COSH(50)");
+        assertTrue(rs.next());
+        assertEquals(Math.cosh(50), rs.getDouble(1));
+        rs = stat.executeQuery("CALL TANH(50)");
+        assertTrue(rs.next());
+        assertEquals(Math.tanh(50), rs.getDouble(1));
         conn.close();
     }
 

@@ -2406,6 +2406,16 @@ This method returns a double.
 COS(ANGLE)
 "
 
+"Functions (Numeric)","COSH","
+COSH(double)
+","
+Calculate the hyperbolic cosine.
+See also Java ""Math.cosh"".
+This method returns a double.
+","
+COSH(X)
+"
+
 "Functions (Numeric)","COT","
 COT(double)
 ","
@@ -2426,6 +2436,16 @@ This method returns a double.
 SIN(ANGLE)
 "
 
+"Functions (Numeric)","SINH","
+SINH(double)
+","
+Calculate the hyperbolic sine.
+See also Java ""Math.sinh"".
+This method returns a double.
+","
+SINH(ANGLE)
+"
+
 "Functions (Numeric)","TAN","
 TAN(double)
 ","
@@ -2434,6 +2454,16 @@ See also Java ""Math.tan"".
 This method returns a double.
 ","
 TAN(ANGLE)
+"
+
+"Functions (Numeric)","TANH","
+TANH(double)
+","
+Calculate the hyperbolic tangent.
+See also Java ""Math.tanh"".
+This method returns a double.
+","
+TANH(X)
 "
 
 "Functions (Numeric)","ATAN2","

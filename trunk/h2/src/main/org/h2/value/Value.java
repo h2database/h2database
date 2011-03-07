@@ -486,6 +486,16 @@ public abstract class Value {
     }
 
     /**
+     * Take the modulus with a value and return the result.
+     *
+     * @param v the value to take the modulus with
+     * @return the result
+     */
+    public Value modulus(Value v) {
+        throw throwUnsupportedExceptionForType("%");
+    }
+
+    /**
      * Compare a value to the specified type.
      *
      * @param targetType the type of the returned value

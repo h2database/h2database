@@ -53,6 +53,11 @@ public class Operation extends Expression {
      */
     public static final int NEGATE = 5;
 
+    /**
+     * This operation represents a modulus as in 5 % 2.
+     */
+    public static final int MODULUS = 6;
+
     private int opType;
     private Expression left, right;
     private int dataType;
@@ -92,6 +97,8 @@ public class Operation extends Expression {
             return "*";
         case DIVIDE:
             return "/";
+        case MODULUS:
+            return "%";
         default:
             throw DbException.throwInternalError("opType=" + opType);
         }
@@ -149,6 +156,11 @@ public class Operation extends Expression {
                 return ValueNull.INSTANCE;
             }
             return l.divide(r);
+        case MODULUS:
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+            return l.modulus(r);
         default:
             throw DbException.throwInternalError("type=" + opType);
         }
@@ -181,6 +193,7 @@ public class Operation extends Expression {
         case MINUS:
         case MULTIPLY:
         case DIVIDE:
+        case MODULUS:
             right = right.optimize(session);
             int l = left.getType();
             int r = right.getType();

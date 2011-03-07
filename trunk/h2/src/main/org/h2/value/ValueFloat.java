@@ -68,6 +68,14 @@ public class ValueFloat extends Value {
         return ValueFloat.get(value / v2.value);
     }
 
+    public Value modulus(Value v) {
+        ValueFloat other = (ValueFloat) v;
+        if (other.value == 0) {
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+        }
+        return ValueFloat.get(value % other.value);
+    }
+
     public String getSQL() {
         if (value == Float.POSITIVE_INFINITY) {
             return "POWER(0, -1)";

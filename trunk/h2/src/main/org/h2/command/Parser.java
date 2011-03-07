@@ -123,8 +123,8 @@ import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
+import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -1996,6 +1996,8 @@ public class Parser {
                 r = new Operation(Operation.MULTIPLY, r, readTerm());
             } else if (readIf("/")) {
                 r = new Operation(Operation.DIVIDE, r, readTerm());
+            } else if (readIf("%")) {
+                r = new Operation(Operation.MODULUS, r, readTerm());
             } else {
                 return r;
             }
@@ -3237,6 +3239,7 @@ public class Parser {
             case '}':
             case '*':
             case '/':
+            case '%':
             case ';':
             case ',':
             case ':':

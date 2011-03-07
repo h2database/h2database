@@ -137,6 +137,14 @@ public class ValueLong extends Value {
         return ValueLong.get(value / other.value);
     }
 
+    public Value modulus(Value v) {
+        ValueLong other = (ValueLong) v;
+        if (other.value == 0) {
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+        }
+        return ValueLong.get(this.value % other.value);
+    }
+
     public String getSQL() {
         return getString();
     }

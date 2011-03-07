@@ -1748,7 +1748,7 @@ ID=1 OR NAME='Hi'
 "
 
 "Other Grammar","Factor","
-term [ { { * | / } term } [...] ]
+term [ { { * | / | % } term } [...] ]
 ","
 A value or a numeric factor.
 ","

@@ -76,7 +76,7 @@ ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 ","
 Changes the next value and the increment of a sequence."
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE tableName ADD name dataType [ DEFAULT expression ]
+ALTER TABLE tableName ADD [ IF NOT EXISTS ] name dataType [ DEFAULT expression ]
 [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] [ BEFORE columnName ]
 ","
 Adds a new column to a table."

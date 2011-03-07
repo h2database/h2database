@@ -590,6 +590,16 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Does the column with the given name exist?
+     *
+     * @param columnName the column name
+     * @return true if the column exists
+     */
+    public boolean doesColumnExist(String columnName) {
+        return columnMap.containsKey(columnName);
+    }
+
+    /**
      * Get the best plan for the given search mask.
      *
      * @param session the session

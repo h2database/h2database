@@ -4778,9 +4778,10 @@ public class Parser {
 
     private AlterTableAlterColumn parseAlterTableAddColumn(Table table) {
         readIf("COLUMN");
+        boolean ifNotExists = readIfNoExists();
         Schema schema = table.getSchema();
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-        command.setType(CommandInterface.ALTER_TABLE_ADD_COLUMN);
+        command.setType(ifNotExists ? CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS : CommandInterface.ALTER_TABLE_ADD_COLUMN);
         command.setTable(table);
         String columnName = readColumnIdentifier();
         Column column = parseColumnForTable(columnName, true);

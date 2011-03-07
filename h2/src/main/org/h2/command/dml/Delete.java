@@ -30,6 +30,11 @@ public class Delete extends Prepared {
     private Expression condition;
     private TableFilter tableFilter;
 
+    /**
+     * The limit expression as specified in the LIMIT or TOP clause.
+     */
+    private Expression limitExpr;
+
     public Delete(Session session) {
         super(session);
     }
@@ -50,6 +55,10 @@ public class Delete extends Prepared {
         table.fire(session, Trigger.DELETE, true);
         table.lock(session, true, false);
         RowList rows = new RowList(session);
+        int limitRows = -1;
+        if (limitExpr != null) {
+            limitRows = limitExpr.getValue(session).getInt();
+        }
         try {
             setCurrentRowNumber(0);
             while (tableFilter.next()) {
@@ -66,22 +75,36 @@ public class Delete extends Prepared {
                 }
             }
             int rowScanCount = 0;
+            int rowsDeleted = 0;
             for (rows.reset(); rows.hasNext();) {
                 if ((++rowScanCount & 127) == 0) {
                     checkCanceled();
                 }
                 Row row = rows.next();
                 table.removeRow(session, row);
+                rowsDeleted++;
                 session.log(table, UndoLogRecord.DELETE, row);
+                if (limitRows != -1) {
+                    if (rowsDeleted == limitRows) {
+                        break;
+                    }
+                }
             }
             if (table.fireRow()) {
+                int count = 0;
                 for (rows.reset(); rows.hasNext();) {
                     Row row = rows.next();
                     table.fireAfterRow(session, row, null, false);
+                    count++;
+                    if (limitRows != -1) {
+                        if (count == limitRows) {
+                            break;
+                        }
+                    }
                 }
             }
             table.fire(session, Trigger.DELETE, false);
-            return rows.size();
+            return rowsDeleted;
         } finally {
             rows.close();
         }
@@ -89,9 +112,13 @@ public class Delete extends Prepared {
 
     public String getPlanSQL() {
         StringBuilder buff = new StringBuilder();
-        buff.append("DELETE FROM ").append(tableFilter.getPlanSQL(false));
+        buff.append("DELETE ");
+        buff.append("FROM ").append(tableFilter.getPlanSQL(false));
         if (condition != null) {
             buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
+        }
+        if (limitExpr != null) {
+            buff.append("\nLIMIT (").append(StringUtils.unEnclose(limitExpr.getSQL())).append(")");
         }
         return buff.toString();
     }
@@ -117,6 +144,10 @@ public class Delete extends Prepared {
 
     public int getType() {
         return CommandInterface.DELETE;
+    }
+
+    public void setLimit(Expression limit) {
+        this.limitExpr = limit;
     }
 
 }

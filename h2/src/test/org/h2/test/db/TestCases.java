@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testDeleteTop();
         testUnicode();
         testOuterJoin();
         testCommentOnColumnWithSchemaEqualDatabase();
@@ -1173,6 +1174,48 @@ public class TestCases extends TestBase {
         if (list != null && list.length > 0) {
             fail("Lob file was not deleted");
         }
+    }
+
+    private void testDeleteTop() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE TEST(id int) AS SELECT x FROM system_range(1, 100)");
+        stat.execute("DELETE TOP 10 FROM TEST");
+        ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
+        assertTrue(rs.next());
+        assertEquals(90, rs.getInt(1));
+
+        stat.execute("DELETE FROM TEST LIMIT ((SELECT COUNT(*) FROM TEST) / 10)");
+        rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
+        assertTrue(rs.next());
+        assertEquals(81, rs.getInt(1));
+
+        rs = stat.executeQuery("EXPLAIN DELETE FROM TEST LIMIT ((SELECT COUNT(*) FROM TEST) / 10)");
+        rs.next();
+        assertEquals("DELETE FROM PUBLIC.TEST\n" +
+                "    /* PUBLIC.TEST.tableScan */\n" +
+                "LIMIT ((SELECT\n" +
+                "    COUNT(*)\n" +
+                "FROM PUBLIC.TEST\n" +
+                "    /* PUBLIC.TEST.tableScan */\n" +
+                "/* direct lookup */) / 10)",
+                rs.getString(1));
+
+        PreparedStatement prep;
+        prep = conn.prepareStatement("SELECT * FROM TEST LIMIT ?");
+        prep.setInt(1, 10);
+        prep.execute();
+
+        prep = conn.prepareStatement("DELETE FROM TEST LIMIT ?");
+        prep.setInt(1, 10);
+        prep.execute();
+        rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
+        assertTrue(rs.next());
+        assertEquals(71, rs.getInt(1));
+
+        conn.close();
     }
 
 }

@@ -72,6 +72,14 @@ public class ValueShort extends Value {
         return ValueShort.get((short) (value / other.value));
     }
 
+    public Value modulus(Value v) {
+        ValueShort other = (ValueShort) v;
+        if (other.value == 0) {
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+        }
+        return ValueShort.get((short) (value % other.value));
+    }
+
     public String getSQL() {
         return getString();
     }

@@ -7,6 +7,7 @@
 package org.h2.test.unit;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,10 +15,13 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
+import org.h2.constant.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
 import org.h2.value.ValueResultSet;
@@ -43,6 +47,9 @@ public class TestValue extends TestBase {
         testUUID();
         testDouble(false);
         testDouble(true);
+        testModulusDouble();
+        testModulusDecimal();
+        testModulusOperator();
     }
 
     private void testValueResultSet() throws SQLException {
@@ -157,6 +164,44 @@ public class TestValue extends TestBase {
         assertEquals("ffffffff-ffff-4fff-bfff-ffffffffffff", max.getString());
         ValueUuid min = ValueUuid.get(minHigh, minLow);
         assertEquals("00000000-0000-4000-8000-000000000000", min.getString());
+    }
+
+    private void testModulusDouble() {
+        ValueDouble vd1 = ValueDouble.get(12);
+        ValueDouble vd2 = ValueDouble.get(10);
+        ValueDouble vd3 = vd1.modulus(vd2);
+        assertEquals(2, vd3.getDouble());
+        try {
+            vd1.modulus(ValueDouble.get(0));
+            fail();
+        } catch (DbException e) {
+            assertEquals(ErrorCode.DIVISION_BY_ZERO_1, e.getErrorCode());
+        }
+    }
+
+    private void testModulusDecimal() {
+        ValueDecimal vd1 = ValueDecimal.get(new BigDecimal(12));
+        ValueDecimal vd2 = ValueDecimal.get(new BigDecimal(10));
+        ValueDecimal vd3 = vd1.modulus(vd2);
+        assertEquals(2, vd3.getDouble());
+        try {
+            vd1.modulus(ValueDecimal.get(new BigDecimal(0)));
+            fail();
+        } catch (DbException e) {
+            assertEquals(ErrorCode.DIVISION_BY_ZERO_1, e.getErrorCode());
+        }
+    }
+
+    private void testModulusOperator() throws SQLException {
+        Connection conn = getConnection("modulus");
+        try {
+            ResultSet rs = conn.createStatement().executeQuery("CALL 12 % 10");
+            rs.next();
+            assertEquals(2, rs.getInt(1));
+        } finally {
+            conn.close();
+            deleteDb("modulus");
+        }
     }
 
 }

@@ -69,6 +69,14 @@ public class ValueDouble extends Value {
         return ValueDouble.get(value / v2.value);
     }
 
+    public ValueDouble modulus(Value v) {
+        ValueDouble other = (ValueDouble) v;
+        if (other.value == 0) {
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+        }
+        return ValueDouble.get(value % other.value);
+    }
+
     public String getSQL() {
         if (value == Double.POSITIVE_INFINITY) {
             return "POWER(0, -1)";

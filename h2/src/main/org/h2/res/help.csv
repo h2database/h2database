@@ -582,7 +582,7 @@ andCondition [ { OR andCondition } [...] ]
 ","
 Value or condition."
 "Other Grammar","Factor","
-term [ { { * | / } term } [...] ]
+term [ { { * | / | % } term } [...] ]
 ","
 A value or a numeric factor."
 "Other Grammar","Hex","

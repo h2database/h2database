@@ -104,6 +104,15 @@ public class ValueDecimal extends Value {
         return ValueDecimal.get(bd);
     }
 
+    public ValueDecimal modulus(Value v) {
+        ValueDecimal dec = (ValueDecimal) v;
+        if (dec.value.signum() == 0) {
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+        }
+        BigDecimal bd = value.remainder(dec.value);
+        return ValueDecimal.get(bd);
+    }
+
     public String getSQL() {
         return getString();
     }

@@ -72,6 +72,14 @@ public class ValueByte extends Value {
         return ValueByte.get((byte) (value / other.value));
     }
 
+    public Value modulus(Value v) {
+        ValueByte other = (ValueByte) v;
+        if (other.value == 0) {
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+        }
+        return ValueByte.get((byte) (value % other.value));
+    }
+
     public String getSQL() {
         return getString();
     }

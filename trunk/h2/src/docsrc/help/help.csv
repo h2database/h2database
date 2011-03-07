@@ -66,9 +66,10 @@ UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 "
 
 "Commands (DML)","DELETE","
-DELETE FROM tableName [ WHERE expression ]
+DELETE [ TOP term ] FROM tableName [ WHERE expression ] [ LIMIT term ]
 ","
 Deletes rows form a table.
+If TOP or LIMIT is specified, at most the specified number of rows are deleted.
 ","
 DELETE FROM TEST WHERE ID=2
 "

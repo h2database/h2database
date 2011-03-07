@@ -710,6 +710,10 @@ public class Parser {
 
     private Delete parseDelete() {
         Delete command = new Delete(session);
+        Expression limit = null;
+        if (readIf("TOP")) {
+            limit = readTerm().optimize(session);
+        }
         currentPrepared = command;
         int start = lastParseIndex;
         readIf("FROM");
@@ -719,6 +723,10 @@ public class Parser {
             Expression condition = readExpression();
             command.setCondition(condition);
         }
+        if (readIf("LIMIT") && limit == null) {
+            limit = readTerm().optimize(session);
+        }
+        command.setLimit(limit);
         setSQL(command, "DELETE", start);
         return command;
     }

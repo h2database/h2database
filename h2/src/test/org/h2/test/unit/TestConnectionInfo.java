@@ -10,6 +10,7 @@ import org.h2.test.TestBase;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.ConnectionInfo;
 
+import java.io.File;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -33,6 +34,7 @@ public class TestConnectionInfo extends TestBase {
     public void test() throws Exception {
         testConnectInitError();
         testConnectionInfo();
+        testName();
     }
 
     private void testConnectInitError() throws Exception {
@@ -67,6 +69,13 @@ public class TestConnectionInfo extends TestBase {
         assertEquals("CREATE this...;INSERT that...", connectionInfo.getProperty("INIT", ""));
         assertEquals("TRUE", connectionInfo.getProperty("IFEXISTS", ""));
         assertEquals("undefined", connectionInfo.getProperty("CACHE_TYPE", "undefined"));
+    }
+    
+    private void testName() throws Exception {
+        char differentFileSeparator = File.separatorChar == '/' ? '\\' : '/';
+        ConnectionInfo connectionInfo = new ConnectionInfo("testdb" + differentFileSeparator + "subdir");
+        File file = new File("testdb" + File.separatorChar + "subdir");
+        assertEquals(file.getCanonicalPath(), connectionInfo.getName());
     }
 
 }

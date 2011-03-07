@@ -208,7 +208,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "
 
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE tableName ADD name dataType [ DEFAULT expression ]
+ALTER TABLE tableName ADD [ IF NOT EXISTS ] name dataType [ DEFAULT expression ]
 [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] [ BEFORE columnName ]
 ","
 Adds a new column to a table.

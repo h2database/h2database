@@ -38,6 +38,7 @@ public class TestAlter extends TestBase {
         testAlterTableDropColumnWithReferences();
         testAlterTableAlterColumn();
         testAlterTableDropIdentityColumn();
+        testAlterTableAddColumnIfNotExists();
         conn.close();
         deleteDb("alter");
     }
@@ -120,6 +121,16 @@ public class TestAlter extends TestBase {
         } catch (SQLException e) {
             assertEquals(ErrorCode.DATA_CONVERSION_ERROR_1, e.getErrorCode());
         }
+        stat.execute("drop table t");
+    }
+
+    private void testAlterTableAddColumnIfNotExists() throws SQLException {
+        stat.execute("create table t(x varchar) as select 'x'");
+        stat.execute("alter table t add if not exists x int");
+        stat.execute("drop table t");
+        stat.execute("create table t(x varchar) as select 'x'");
+        stat.execute("alter table t add if not exists y int");
+        stat.execute("select x, y from t");
         stat.execute("drop table t");
     }
 

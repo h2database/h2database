@@ -35,6 +35,7 @@ import org.h2.util.New;
 /**
  * This class represents the statements
  * ALTER TABLE ADD,
+ * ALTER TABLE ADD IF NOT EXISTS,
  * ALTER TABLE ALTER COLUMN,
  * ALTER TABLE ALTER COLUMN RESTART,
  * ALTER TABLE ALTER COLUMN SELECTIVITY,
@@ -120,6 +121,13 @@ public class AlterTableAlterColumn extends SchemaCommand {
         case CommandInterface.ALTER_TABLE_ADD_COLUMN: {
             convertAutoIncrementColumn(newColumn);
             copyData();
+            break;
+        }
+        case CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS: {
+            if (!table.doesColumnExist(newColumn.getName())) {
+                convertAutoIncrementColumn(newColumn);
+                copyData();
+            }
             break;
         }
         case CommandInterface.ALTER_TABLE_DROP_COLUMN: {
@@ -216,7 +224,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
         if (type == CommandInterface.ALTER_TABLE_DROP_COLUMN) {
             int position = oldColumn.getColumnId();
             newColumns.remove(position);
-        } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN) {
+        } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN
+                || type == CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS) {
             int position;
             if (addBefore == null) {
                 position = columns.length;
@@ -254,7 +263,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (columnList.length() > 0) {
                 columnList.append(", ");
             }
-            if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN && nc == newColumn) {
+            if ((type == CommandInterface.ALTER_TABLE_ADD_COLUMN 
+                || type == CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS) && nc == newColumn) {
                 Expression def = nc.getDefaultExpression();
                 columnList.append(def == null ? "NULL" : def.getSQL());
             } else {

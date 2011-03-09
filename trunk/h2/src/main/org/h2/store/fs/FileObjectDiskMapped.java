@@ -64,8 +64,10 @@ public class FileObjectDiskMapped implements FileObject {
                 Method cleanerMethod = mapped.getClass().getMethod("cleaner");
                 cleanerMethod.setAccessible(true);
                 Object cleaner = cleanerMethod.invoke(mapped);
-                Method clearMethod = cleaner.getClass().getMethod("clear");
-                clearMethod.invoke(cleaner);
+                if (cleaner != null) {
+                    Method clearMethod = cleaner.getClass().getMethod("clean");
+                    clearMethod.invoke(cleaner);
+                }
                 useSystemGc = false;
             } catch (Throwable e) {
                 // useSystemGc is already true

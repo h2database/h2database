@@ -1651,7 +1651,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90120</code> is thrown when
-     * trying to drop a domain that doesn't exists.
+     * trying to drop a domain that doesn't exist.
      * Example:
      * <pre>
      * DROP DOMAIN UNKNOWN;

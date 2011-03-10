@@ -18,8 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul>
-<li>Support for database paths with backslashes on non Windows systems.
+<ul><li>Support for database paths with backslashes on non Windows systems.
+</li><li>The NIO cleaner hack wasn't working as expected, because the clear method was called
+    instead of the clean method. This has been fixed. Please note this hack is not enabled by default,
+    to try it you need to set the system property "h2.nioCleanerHack" to true.
 </li><li>Improved MS SQL Server and MySQL compatibility: support DELETE with TOP or LIMIT.
 </li><li>Support for COSH, SINH, and TANH functions.
 </li><li>Support for the % operator (modulo) thanks to Noel Grandin.

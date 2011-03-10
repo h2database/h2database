@@ -38,8 +38,7 @@ There is a license FAQ for both the MPL and the EPL, most of that is applicable 
 </li><li>Files containing only your code are not covered by this license (it is 'commercial friendly').
 </li><li>Modifications to the H2 source code must be published.
 </li><li>You don't need to provide the source code of H2 if you did not modify anything.
-</li><li>If you distribute a binary that includes H2, you need to add a disclaimer of liability 
-    (as you should do for your own code) and a notice or link about where to get the H2 source code.
+</li><li>If you distribute a binary that includes H2, you need to add a disclaimer of liability - see the example below.
 </li></ul>
 
 <p>
@@ -51,6 +50,20 @@ hiding the fact that it was in fact just HSQLDB. It seems 'bungisoft' does not e
 About porting the source code to another language (for example C# or C++): converted source code (even if done manually) stays under the same
 copyright and license as the original code. The copyright of the ported source code does not (automatically) go to the person who ported the code.
 </p>
+
+<p>
+If you distribute a binary that includes H2, you need to add a disclaimer of liability
+(as you should do for your own code). You should add disclaimers for all open source libraries you use.
+For example, add a file <code>3rdparty_license.txt</code> in the directory where the jar files are,
+where you list all licenses and disclaimers for all included open source libraries.
+The easiest solution is to copy the following below. You may also include a copy of the complete license.
+</p>
+<pre>
+This software contains unmodified binary redistributions for H2 database engine (http://www.h2database.com/), 
+which is dual licensed and available under a modified version of the MPL 1.1 (Mozilla Public License) 
+or under the (unmodified) EPL 1.0 (Eclipse Public License).
+An original copy of the license agreement can be found at: http://www.h2database.com/html/license.html
+</pre>
 
 <h2 id="h2_license">H2 License - Version 1.0</h2>
 

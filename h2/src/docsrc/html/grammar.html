@@ -16,7 +16,8 @@ SQL Grammar
 <!-- } -->
 
 <h1>SQL Grammar</h1>
-<h2>Commands (Data Manipulation)</h2>
+<h2>Index</h2>
+<h3>Commands (Data Manipulation)</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="commandsDML">
@@ -44,7 +45,7 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h2>Commands (Data Definition)</h2>
+<h3>Commands (Data Definition)</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="commandsDDL">
@@ -72,7 +73,7 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h2>Commands (Other)</h2>
+<h3>Commands (Other)</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="commandsOther">
@@ -100,7 +101,7 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h2>Other Grammar</h2>
+<h3>Other Grammar</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="otherGrammar">
@@ -128,16 +129,26 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h2>System Tables</h2>
+<h3>System Tables</h3>
 <p class="notranslate">
 <a href="#information_schema">Information Schema</a><br />
 <a href="#range_table">Range Table</a><br />
 </p>
 
-<c:forEach var="item" items="commands">
-<h3 id="${item.link}" class="notranslate">${item.topic}</h3>
 <!-- railroad-start -->
+<h2>Details</h2>
+<p>Click on the header to switch between railroad diagram and BNF.</p>
+<!-- railroad-end -->
+
+<c:forEach var="item" items="commands">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
 ${item.railroad}
+</div>
 <!-- railroad-end -->
 <!-- syntax-start
 <pre>
@@ -151,7 +162,7 @@ ${item.example}</p>
 </c:forEach>
 
 <c:forEach var="item" items="otherGrammar">
-<h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
 <!-- railroad-start -->
 ${item.railroad}
 <!-- railroad-end -->
@@ -190,5 +201,7 @@ The table is used as follows:
 <pre>
 SELECT X FROM SYSTEM_RANGE(1, 10);
 </pre>
+
+<!--[if lte IE 7]><script language="javascript">switchBnf(null);</script><![endif]-->
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

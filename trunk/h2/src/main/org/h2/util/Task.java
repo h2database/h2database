@@ -76,6 +76,9 @@ public abstract class Task implements Runnable {
      */
     public Exception getException() {
         stop = true;
+        if (thread == null) {
+            throw new IllegalStateException("Thread not started");
+        }
         try {
             thread.join();
         } catch (InterruptedException e) {

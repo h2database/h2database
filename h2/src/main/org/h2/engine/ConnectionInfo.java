@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -128,7 +127,7 @@ public class ConnectionInfo implements Cloneable {
             persistent = true;
         }
         if (persistent && !remote) {
-            if (File.separatorChar == '/') {
+            if ("/".equals(SysProperties.FILE_SEPARATOR)) {
                 name = name.replace('\\', '/');
             } else {
                 name = name.replace('/', '\\');

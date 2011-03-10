@@ -284,7 +284,7 @@ public class TreeIndex extends BaseIndex {
         return find(first, last);
     }
 
-    public Cursor find(SearchRow first, SearchRow last) {
+    private Cursor find(SearchRow first, SearchRow last) {
         if (first == null) {
             TreeNode x = root, n;
             while (x != null) {

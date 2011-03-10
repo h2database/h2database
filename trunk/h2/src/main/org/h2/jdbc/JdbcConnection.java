@@ -1494,7 +1494,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
             checkClosedForWrite();
             try {
-                Value v = session.getDataHandler().getLobStorage().createBlob(new ByteArrayInputStream(Utils.EMPTY_BYTES), 0);
+                Value v = session.getDataHandler().getLobStorage().createBlob(
+                        new ByteArrayInputStream(Utils.EMPTY_BYTES), 0);
                 return new JdbcBlob(this, v, id);
             } finally {
                 afterWriting();

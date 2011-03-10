@@ -82,6 +82,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param args the argument list
+     * @return the value
+     */
     public static Value toChar(Value... args) {
         if (args.length == 0) {
             return null;

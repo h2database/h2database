@@ -263,7 +263,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (columnList.length() > 0) {
                 columnList.append(", ");
             }
-            if ((type == CommandInterface.ALTER_TABLE_ADD_COLUMN 
+            if ((type == CommandInterface.ALTER_TABLE_ADD_COLUMN
                 || type == CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS) && nc == newColumn) {
                 Expression def = nc.getDefaultExpression();
                 columnList.append(def == null ? "NULL" : def.getSQL());

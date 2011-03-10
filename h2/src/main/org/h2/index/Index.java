@@ -63,7 +63,8 @@ public interface Index extends SchemaObject {
     /**
      * Find a row or a list of rows and create a cursor to iterate over the result.
      *
-     * @param filter the table filter (which possibly knows about additional conditions)
+     * @param filter the table filter (which possibly knows
+     *          about additional conditions)
      * @param first the first row, or null for no limit
      * @param last the last row, or null for no limit
      * @return the cursor to iterate over the results

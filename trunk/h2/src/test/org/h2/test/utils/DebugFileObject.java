@@ -21,7 +21,7 @@ public class DebugFileObject implements FileObject {
     DebugFileObject(DebugFileSystem fs, FileObject file) {
         this.fs = fs;
         this.file = file;
-        this.name = file.getName();
+        this.name = fs.getPrefix() + file.getName();
     }
 
     public void close() throws IOException {

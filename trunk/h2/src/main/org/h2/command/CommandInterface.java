@@ -451,7 +451,7 @@ public interface CommandInterface {
      * The type of a ALTER TABLE ADD IF NOT EXISTS statement.
      */
     int ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS = 85;
-    
+
     /**
      * Get command type.
      *

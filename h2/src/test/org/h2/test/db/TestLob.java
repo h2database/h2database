@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Blob;
@@ -28,6 +29,7 @@ import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.Task;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -51,6 +53,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testConcurrentCreate();
         testLobInLargeResult();
         testUniqueIndex();
         testConvert();
@@ -87,6 +90,44 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    public void testConcurrentCreate() throws Exception {
+        deleteDb("lob");
+        final Connection conn1 = getConnection("lob");
+        final Connection conn2 = getConnection("lob");
+        conn1.setAutoCommit(false);
+        conn2.setAutoCommit(false);
+
+        final byte[] buffer = new byte[10000];
+
+        Task task1 = new Task() {
+            public void call() throws Exception {
+                while (!stop) {
+                    Blob b = conn1.createBlob();
+                    OutputStream out = b.setBinaryStream(1);
+                    out.write(buffer);
+                    out.close();
+                }
+            }
+        };
+        Task task2 = new Task() {
+            public void call() throws Exception {
+                while (!stop) {
+                    Blob b = conn2.createBlob();
+                    OutputStream out = b.setBinaryStream(1);
+                    out.write(buffer);
+                    out.close();
+                }
+            }
+        };
+        task1.execute();
+        task2.execute();
+        Thread.sleep(1000);
+        task1.get();
+        task2.get();
+        conn1.close();
+        conn2.close();
     }
 
     private void testLobInLargeResult() throws Exception {

@@ -16,8 +16,8 @@ Functions
 <!-- } -->
 
 <h1>Functions</h1>
-
-<h2>Aggregate Functions</h2>
+<h2>Index</h2>
+<h3>Aggregate Functions</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="functionsAggregate">
@@ -45,7 +45,7 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h2>Numeric Functions</h2>
+<h3>Numeric Functions</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="functionsNumeric">
@@ -73,7 +73,7 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h2>String Functions</h2>
+<h3>String Functions</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="functionsString">
@@ -101,7 +101,7 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h2>Time and Date Functions</h2>
+<h3>Time and Date Functions</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="functionsTimeDate">
@@ -129,7 +129,7 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h2>System Functions</h2>
+<h3>System Functions</h3>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="functionsSystem">
@@ -157,10 +157,20 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<c:forEach var="item" items="functionsAll">
-<h3 id="${item.link}" class="notranslate">${item.topic}</h3>
 <!-- railroad-start -->
+<h2>Details</h2>
+<p>Click on the header to switch between railroad diagram and BNF.</p>
+<!-- railroad-end -->
+
+<c:forEach var="item" items="functionsAll">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
 ${item.railroad}
+</div>
 <!-- railroad-end -->
 <!-- syntax-start
 <pre>
@@ -171,6 +181,8 @@ syntax-end -->
 <p>Example:</p>
 <p class="notranslate">${item.example}</p>
 </c:forEach>
+
+<!--[if lte IE 7]><script language="javascript">switchBnf(null);</script><![endif]-->
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
 

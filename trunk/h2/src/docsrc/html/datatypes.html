@@ -16,6 +16,7 @@ Data Types
 <!-- } -->
 
 <h1>Data Types</h1>
+<h2>Index</h2>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="dataTypes">
@@ -43,11 +44,20 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
+<!-- railroad-start -->
+<h2>Details</h2>
+<p>Click on the header to switch between railroad diagram and BNF.</p>
+<!-- railroad-end -->
 
 <c:forEach var="item" items="dataTypes">
-<h3 id="${item.link}" class="notranslate">${item.topic}</h3>
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
 <!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
 ${item.railroad}
+</div>
 <!-- railroad-end -->
 <!-- syntax-start
 <pre>
@@ -58,6 +68,8 @@ syntax-end -->
 <p>Example:</p>
 <p class="notranslate">${item.example}</p>
 </c:forEach>
+
+<!--[if lte IE 7]><script language="javascript">switchBnf(null);</script><![endif]-->
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
 

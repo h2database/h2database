@@ -524,7 +524,7 @@ public class TestOptimizations extends TestBase {
             assertEquals(i, rs.getInt(1));
         }
         assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 0 OFFSET 0 SAMPLE_SIZE 3");
+        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT -1 OFFSET 0 SAMPLE_SIZE 3");
         // must have at least one row
         assertTrue(rs.next());
         for (int i = 0; i < 3; i++) {

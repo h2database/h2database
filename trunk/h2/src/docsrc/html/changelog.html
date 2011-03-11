@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Lob in database: storing lob objects was not correctly synchronized.
+<ul><li>A query with an explicit LIMIT 0 will now return no rows (so far it meant no limit), 
+    which is compatible with PostgreSQL and MySQL.
+    A negative limit value, (as well as LIMIT NULL) mean no limit (so far a negative limit meant a limit of one row).
+    There were similar problems with OFFSET.
+</li><li>A new encrypting file system has been implemented. The idea is to
+    allow encrypting all files, not just database files.
+    Also implemented is a simple file system shell tool. At some point,
+    this might replace the Backup, ChangeFileEncryption, DeleteDbFiles, and Restore tools.
+</li><li>Lob in database: storing lob objects was not correctly synchronized.
     This was specially a problem when using Connection.createBlob() / createClob().
 </li><li>Updated the licence page (thanks a lot to Abe to help me with this).
 </li><li>Support for database paths with '\' on non-Windows systems.

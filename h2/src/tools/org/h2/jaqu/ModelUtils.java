@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.h2.jaqu.TableDefinition.FieldDefinition;
+import org.h2.util.StringUtils;
 
 /**
  * Utility methods for models related to type mapping, default value validation,
@@ -115,7 +116,7 @@ public class ModelUtils {
      * @param strictTypeMapping throws a RuntimeException if type is unsupported
      * @return
      */
-    public static String getDataType(FieldDefinition fieldDef, boolean strictTypeMapping) {
+    static String getDataType(FieldDefinition fieldDef, boolean strictTypeMapping) {
         Class<?> fieldClass = fieldDef.field.getType();
         if (SUPPORTED_TYPES.containsKey(fieldClass)) {
             String type = SUPPORTED_TYPES.get(fieldClass);
@@ -132,15 +133,15 @@ public class ModelUtils {
     }
 
     /**
-     * Returns the Java class type for a given SQL type.
+     * Returns the Java class for a given SQL type.
      *
      * @param sqlType
-     * @param dateClass the preferred date class (java.util.Date or
+     * @param dateTimeClass the preferred date class (java.util.Date or
      *            java.sql.Timestamp)
      * @return
      */
-    public static Class<?> getClassType(String sqlType,
-            Class<? extends java.util.Date> dateClass) {
+    static Class<?> getClassForSqlType(String sqlType,
+            Class<? extends java.util.Date> dateTimeClass) {
         sqlType = sqlType.toUpperCase();
         // TODO dropping "UNSIGNED" or parts like that could be trouble
         sqlType = sqlType.split(" ")[0].trim();
@@ -149,64 +150,64 @@ public class ModelUtils {
             // convert the sqlType to a standard type
             sqlType = SQL_TYPES.get(sqlType);
         }
-        Class<?> mappedClazz = null;
+        Class<?> mappedClass = null;
         for (Class<?> clazz : SUPPORTED_TYPES.keySet()) {
             if (SUPPORTED_TYPES.get(clazz).equalsIgnoreCase(sqlType)) {
-                mappedClazz = clazz;
+                mappedClass = clazz;
                 break;
             }
         }
-        if (mappedClazz != null) {
-            if (mappedClazz.equals(java.util.Date.class)
-                    || mappedClazz.equals(java.sql.Timestamp.class)) {
-                return dateClass;
+        if (mappedClass != null) {
+            if (mappedClass.equals(java.util.Date.class)
+                    || mappedClass.equals(java.sql.Timestamp.class)) {
+                return dateTimeClass;
             }
-            return mappedClazz;
+            return mappedClass;
         }
         return null;
     }
 
     /**
-     * Tries to create a CamelCase class name from a table.
+     * Tries to create a convert a SQL table name to a camel case class name.
      *
-     * @param name
-     * @return
+     * @param tableName the SQL table name
+     * @return the class name
      */
-    public static String createClassName(String name) {
-        String[] chunks = name.split("_");
-        StringBuilder newName = new StringBuilder();
+    static String convertTableToClassName(String tableName) {
+        String[] chunks = StringUtils.arraySplit(tableName, '_', false);
+        StringBuilder className = new StringBuilder();
         for (String chunk : chunks) {
             if (chunk.length() == 0) {
                 // leading or trailing _
                 continue;
             }
-            newName.append(Character.toUpperCase(chunk.charAt(0)));
-            newName.append(chunk.substring(1).toLowerCase());
+            className.append(Character.toUpperCase(chunk.charAt(0)));
+            className.append(chunk.substring(1).toLowerCase());
         }
-        return newName.toString();
+        return className.toString();
     }
 
     /**
-     * Ensures that table column names don't collide with Java keywords.
+     * Ensures that SQL column names don't collide with Java keywords.
      *
-     * @param col
-     * @return
+     * @param columnName the column name
+     * @return the Java field name
      */
-    public static String createFieldName(String col) {
-        String cn = col.toLowerCase();
-        if (KEYWORDS.contains(cn)) {
-            cn += "_value";
+    static String convertColumnToFieldName(String columnName) {
+        String lower = columnName.toLowerCase();
+        if (KEYWORDS.contains(lower)) {
+            lower += "Value";
         }
-        return cn;
+        return lower;
     }
 
     /**
-     * Checks the formatting of JQColumn.defaultValue()
+     * Checks the formatting of JQColumn.defaultValue().
      *
-     * @param defaultValue
-     * @return
+     * @param defaultValue the default value
+     * @return true if it is
      */
-    public static boolean isProperlyFormattedDefaultValue(String defaultValue) {
+    static boolean isProperlyFormattedDefaultValue(String defaultValue) {
         if (isNullOrEmpty(defaultValue)) {
             return true;
         }
@@ -217,13 +218,13 @@ public class ModelUtils {
     }
 
     /**
-     * Checks to see if the defaultValue matches the Class.
+     * Checks to see if the default value matches the class.
      *
-     * @param modelClazz
-     * @param defaultValue
-     * @return
+     * @param modelClass the class
+     * @param defaultValue the value
+     * @return true if it does
      */
-    public static boolean isValidDefaultValue(Class<?> modelClazz,
+    static boolean isValidDefaultValue(Class<?> modelClass,
             String defaultValue) {
 
         if (defaultValue == null) {
@@ -248,7 +249,7 @@ public class ModelUtils {
         }
 
         // STRING
-        if (modelClazz == String.class) {
+        if (modelClass == String.class) {
             Pattern stringDefault = Pattern.compile("'(.|\\n)*'");
             return stringDefault.matcher(defaultValue).matches();
         }
@@ -257,8 +258,8 @@ public class ModelUtils {
         String timeRegex = "[0-2]{1}[0-9]{1}:[0-5]{1}[0-9]{1}:[0-5]{1}[0-9]{1}";
 
         // TIMESTAMP
-        if (modelClazz == java.util.Date.class
-                || modelClazz == java.sql.Timestamp.class) {
+        if (modelClass == java.util.Date.class
+                || modelClass == java.sql.Timestamp.class) {
             // this may be a little loose....
             // 00-00-00 00:00:00
             // 00/00/00T00:00:00
@@ -268,7 +269,7 @@ public class ModelUtils {
         }
 
         // DATE
-        if (modelClazz == java.sql.Date.class) {
+        if (modelClass == java.sql.Date.class) {
             // this may be a little loose....
             // 00-00-00
             // 00/00/00
@@ -278,14 +279,14 @@ public class ModelUtils {
         }
 
         // TIME
-        if (modelClazz == java.sql.Time.class) {
+        if (modelClass == java.sql.Time.class) {
             // 00:00:00
             Pattern pattern = Pattern.compile("'" + timeRegex + "'");
             return pattern.matcher(defaultValue).matches();
         }
 
         // NUMBER
-        if (Number.class.isAssignableFrom(modelClazz)) {
+        if (Number.class.isAssignableFrom(modelClass)) {
             // strip single quotes
             String unquoted = defaultValue;
             if (unquoted.charAt(0) == '\'') {
@@ -297,7 +298,7 @@ public class ModelUtils {
 
             try {
                 // delegate to static valueOf() method to parse string
-                Method m = modelClazz.getMethod("valueOf", String.class);
+                Method m = modelClass.getMethod("valueOf", String.class);
                 Object o = m.invoke(null, unquoted);
             } catch (NumberFormatException ex) {
                 return false;

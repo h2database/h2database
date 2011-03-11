@@ -219,8 +219,8 @@ class TableDefinition<T> {
         List<Field> classFields = Utils.newArrayList();
         classFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         if (inheritColumns) {
-            Class<?> superClazz = clazz.getSuperclass();
-            classFields.addAll(Arrays.asList(superClazz.getDeclaredFields()));
+            Class<?> superClass = clazz.getSuperclass();
+            classFields.addAll(Arrays.asList(superClass.getDeclaredFields()));
         }
 
         for (Field f : classFields) {

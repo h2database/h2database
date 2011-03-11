@@ -485,10 +485,17 @@ public class Build extends BuildBase {
      * a new H2 version is made.
      */
     public void mavenDeployCentral() {
-
         // generate and deploy h2*-sources.jar file
-        FileList files = files("src/main").keep("*.java");
-        jar("docs/h2-" + getVersion() + "-sources.jar", files, "src/main");
+        FileList files = files("src/main");
+        copy("docs", files, "src/main");
+        files = files("docs").keep("docs/org/*").keep("*.java");
+        files.addAll(files("docs").keep("docs/META-INF/*"));
+        String manifest = new String(readFile(new File("src/installer/source-manifest.mf")));
+        manifest = replaceAll(manifest, "${version}", getVersion());
+        writeFile(new File("docs/META-INF/MANIFEST.MF"), manifest.getBytes());
+        jar("docs/h2-" + getVersion() + "-sources.jar", files, "docs");
+        delete("docs/org");
+        delete("docs/META-INF");
         // the option -DgeneratePom=false doesn't work with some versions of
         // Maven because of bug http://jira.codehaus.org/browse/MDEPLOY-84
         // as a workaround we generate the pom, but overwrite it later on

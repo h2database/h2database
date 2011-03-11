@@ -824,7 +824,8 @@ access to the same connection, but other databases may not do this.
 
 <h3>Locking, Lock-Timeout, Deadlocks</h3>
 <p>
-The database uses table level locks to give each connection a consistent state of the data.
+Unless <a href="advanced.html#mvcc">multi-version concurrency</a> is used,
+the database uses table level locks to give each connection a consistent state of the data.
 There are two kinds of locks: read locks (shared locks) and write locks (exclusive locks).
 All locks are released when the transaction commits or rolls back.
 When using the default transaction isolation level 'read committed', read locks are already released after each statement.
@@ -880,6 +881,13 @@ set separately for each connection using the SQL command
 <code>SET LOCK_TIMEOUT &lt;milliseconds&gt;</code>.
 The initial lock timeout (that is the timeout used for new connections) can be set using the SQL command
 <code>SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;</code>. The default lock timeout is persistent.
+</p>
+
+<h3>Avoiding Deadlocks</h3>
+<p>
+To avoid deadlocks, ensure that all transactions lock the tables in the same order
+(for example in alphabetical order), and avoid upgrading read locks to write locks.
+Both can be achieved using explicitly locking tables using <code>SELECT ... FOR UPDATE</code>.
 </p>
 
 <h2 id="database_file_layout">Database File Layout</h2>

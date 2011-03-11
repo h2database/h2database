@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>A query with an explicit LIMIT 0 will now return no rows (so far it meant no limit), 
+<ul><li>Issue 294: The Maven source bundle now contains a manifest file that allows Eclipse to automatically
+    attach the source code (if Maven is used).
+</li><li>A query with an explicit LIMIT 0 will now return no rows (so far it meant no limit), 
     which is compatible with PostgreSQL and MySQL.
     A negative limit value, (as well as LIMIT NULL) mean no limit (so far a negative limit meant a limit of one row).
     There were similar problems with OFFSET.

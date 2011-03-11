@@ -762,6 +762,9 @@ public class BuildBase {
         // normalize the path (replace / with \ if required)
         basePath = new File(basePath).getPath();
         try {
+            if (new File(destFile).isDirectory()) {
+                throw new IOException("Can't create the file as a directory with this name already exists: " + destFile);
+            }
             OutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
             ZipOutputStream zipOut;
             if (jar) {

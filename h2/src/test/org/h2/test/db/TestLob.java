@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
@@ -94,8 +95,8 @@ public class TestLob extends TestBase {
 
     public void testConcurrentCreate() throws Exception {
         deleteDb("lob");
-        final Connection conn1 = getConnection("lob");
-        final Connection conn2 = getConnection("lob");
+        final JdbcConnection conn1 = (JdbcConnection) getConnection("lob");
+        final JdbcConnection conn2 = (JdbcConnection) getConnection("lob");
         conn1.setAutoCommit(false);
         conn2.setAutoCommit(false);
 

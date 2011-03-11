@@ -36,7 +36,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private SortOrder sort;
     private ValueHashMap<Value[]> distinctRows;
     private Value[] currentRow;
-    private int offset, limit;
+    private int offset;
+    private int limit = -1;
     private ResultExternal external;
     private int diskOffset;
     private boolean distinct;
@@ -128,7 +129,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         copy.distinct = distinct;
         copy.currentRow = null;
         copy.offset = 0;
-        copy.limit = 0;
+        copy.limit = -1;
         copy.external = e2;
         copy.diskOffset = this.diskOffset;
         return copy;
@@ -317,14 +318,14 @@ public class LocalResult implements ResultInterface, ResultTarget {
     /**
      * Set the number of rows that this result will return at the maximum.
      *
-     * @param limit the limit
+     * @param limit the limit (-1 means no limit, 0 means no rows)
      */
     public void setLimit(int limit) {
         this.limit = limit;
     }
 
     private void applyLimit() {
-        if (limit <= 0) {
+        if (limit < 0) {
             return;
         }
         if (external == null) {

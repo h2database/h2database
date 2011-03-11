@@ -17,9 +17,9 @@ HAVING filter rows after grouping.
 ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
 
-LIMIT limits the number of rows returned by the query, OFFSET specified
-how many rows to skip. SAMPLE_SIZE limits the number of rows read for
-aggregate queries.
+LIMIT limits the number of rows returned by the query (no limit if null or smaller than zero).
+OFFSET specified how many rows to skip. 
+SAMPLE_SIZE limits the number of rows read for aggregate queries.
 
 Multiple set operators (UNION, INTERSECT, MINUS, EXPECT) are evaluated
 from left to right. For compatibility with other databases and future versions
@@ -69,7 +69,7 @@ UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 DELETE [ TOP term ] FROM tableName [ WHERE expression ] [ LIMIT term ]
 ","
 Deletes rows form a table.
-If TOP or LIMIT is specified, at most the specified number of rows are deleted.
+If TOP or LIMIT is specified, at most the specified number of rows are deleted (no limit if null or smaller than zero).
 ","
 DELETE FROM TEST WHERE ID=2
 "

@@ -35,6 +35,40 @@ create table test(id int);
 insert into test values(1), (2), (4);
 > update count: 3
 
+select * from test order by id limit -1;
+> ID
+> --
+> 1
+> 2
+> 4
+> rows (ordered): 3
+
+select * from test order by id limit 0;
+> ID
+> --
+> rows (ordered): 0
+
+select * from test order by id limit 1;
+> ID
+> --
+> 1
+> rows (ordered): 1
+
+select * from test order by id limit 1+1;
+> ID
+> --
+> 1
+> 2
+> rows (ordered): 2
+
+select * from test order by id limit null;
+> ID
+> --
+> 1
+> 2
+> 4
+> rows (ordered): 3
+
 select a.id, a.id in(select 4) x  from test a, test b where a.id in (b.id, b.id - 1);
 > ID X
 > -- -----
@@ -59,6 +93,15 @@ select a.id, 4 in(select a.id) x  from test a, test b where a.id in (b.id, b.id 
 > 2  FALSE
 > 4  TRUE
 > rows: 3
+
+delete from test limit 0;
+> ok
+
+delete from test limit 1;
+> update count: 1
+
+delete from test limit -1;
+> update count: 2
 
 drop table test;
 > ok

@@ -30,6 +30,7 @@ import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueNull;
 
 /**
  * Represents a union SELECT statement.
@@ -119,16 +120,27 @@ public class SelectUnion extends Query {
         return new LocalResult(session, expressionArray, columnCount);
     }
 
-    protected LocalResult queryWithoutCache(int maxrows, ResultTarget target) {
-        if (maxrows != 0) {
-            if (limitExpr != null) {
-                maxrows = Math.min(limitExpr.getValue(session).getInt(), maxrows);
+    protected LocalResult queryWithoutCache(int maxRows, ResultTarget target) {
+        if (maxRows != 0) {
+            // maxRows is set (maxRows 0 means no limit)
+            int l;
+            if (limitExpr == null) {
+                l = -1;
+            } else {
+                Value v = limitExpr.getValue(session);
+                l = v == ValueNull.INSTANCE ? -1 : v.getInt();
             }
-            limitExpr = ValueExpression.get(ValueInt.get(maxrows));
+            if (l < 0) {
+                // for limitExpr, 0 means no rows, and -1 means no limit
+                l = maxRows;
+            } else {
+                l = Math.min(l, maxRows);
+            }
+            limitExpr = ValueExpression.get(ValueInt.get(l));
         }
         if (session.getDatabase().getSettings().optimizeInsertFromSelect) {
             if (unionType == UNION_ALL && target != null) {
-                if (sort == null && !distinct && maxrows == 0 && offsetExpr == null && limitExpr == null) {
+                if (sort == null && !distinct && maxRows == 0 && offsetExpr == null && limitExpr == null) {
                     left.query(0, target);
                     right.query(0, target);
                     return null;
@@ -206,7 +218,10 @@ public class SelectUnion extends Query {
             result.setOffset(offsetExpr.getValue(session).getInt());
         }
         if (limitExpr != null) {
-            result.setLimit(limitExpr.getValue(session).getInt());
+            Value v = limitExpr.getValue(session);
+            if (v != ValueNull.INSTANCE) {
+                result.setLimit(v.getInt());
+            }
         }
         result.done();
         if (target != null) {

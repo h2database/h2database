@@ -106,6 +106,7 @@ import org.h2.test.synth.TestJoin;
 import org.h2.test.synth.TestKill;
 import org.h2.test.synth.TestKillRestart;
 import org.h2.test.synth.TestKillRestartMulti;
+import org.h2.test.synth.TestLimit;
 import org.h2.test.synth.TestMultiThreaded;
 import org.h2.test.synth.TestNestedJoins;
 import org.h2.test.synth.TestOuterJoins;
@@ -632,6 +633,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestBtreeIndex().runTest(this);
         new TestCrashAPI().runTest(this);
         new TestFuzzOptimizations().runTest(this);
+        new TestLimit().runTest(this);
         new TestRandomSQL().runTest(this);
         new TestRandomCompare().runTest(this);
         new TestKillRestart().runTest(this);

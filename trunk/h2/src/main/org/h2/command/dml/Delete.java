@@ -20,6 +20,8 @@ import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -57,11 +59,14 @@ public class Delete extends Prepared {
         RowList rows = new RowList(session);
         int limitRows = -1;
         if (limitExpr != null) {
-            limitRows = limitExpr.getValue(session).getInt();
+            Value v = limitExpr.getValue(session);
+            if (v != ValueNull.INSTANCE) {
+                limitRows = v.getInt();
+            }
         }
         try {
             setCurrentRowNumber(0);
-            while (tableFilter.next()) {
+            while (limitRows != 0 && tableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                     Row row = tableFilter.get();
@@ -71,24 +76,20 @@ public class Delete extends Prepared {
                     }
                     if (!done) {
                         rows.add(row);
+                        if (limitRows >= 0 && rows.size() >= limitRows) {
+                            break;
+                        }
                     }
                 }
             }
             int rowScanCount = 0;
-            int rowsDeleted = 0;
             for (rows.reset(); rows.hasNext();) {
                 if ((++rowScanCount & 127) == 0) {
                     checkCanceled();
                 }
                 Row row = rows.next();
                 table.removeRow(session, row);
-                rowsDeleted++;
                 session.log(table, UndoLogRecord.DELETE, row);
-                if (limitRows != -1) {
-                    if (rowsDeleted == limitRows) {
-                        break;
-                    }
-                }
             }
             if (table.fireRow()) {
                 int count = 0;
@@ -96,15 +97,10 @@ public class Delete extends Prepared {
                     Row row = rows.next();
                     table.fireAfterRow(session, row, null, false);
                     count++;
-                    if (limitRows != -1) {
-                        if (count == limitRows) {
-                            break;
-                        }
-                    }
                 }
             }
             table.fire(session, Trigger.DELETE, false);
-            return rowsDeleted;
+            return rows.size();
         } finally {
             rows.close();
         }

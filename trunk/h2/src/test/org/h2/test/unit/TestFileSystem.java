@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
+import org.h2.dev.fs.FileSystemCrypt;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemMemory;
@@ -58,10 +59,12 @@ public class TestFileSystem extends TestBase {
         testUserHome();
         fs.unregister();
         try {
+            FileSystemCrypt.register();
+            testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
+            testFileSystem("nio:" + getBaseDir() + "/fs");
+            testFileSystem("nioMapped:" + getBaseDir() + "/fs");
             if (!config.splitFileSystem) {
                 testFileSystem("split:" + getBaseDir() + "/fs");
-                testFileSystem("nio:" + getBaseDir() + "/fs");
-                testFileSystem("nioMapped:" + getBaseDir() + "/fs");
                 testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");
             }
         } catch (Exception e) {
@@ -192,6 +195,7 @@ public class TestFileSystem extends TestBase {
         Random random = new Random(1);
         random.nextBytes(buffer);
         fo.write(buffer, 0, 10000);
+        assertEquals(10000, fo.length());
         fo.seek(20000);
         assertEquals(20000, fo.getFilePointer());
         try {
@@ -205,7 +209,9 @@ public class TestFileSystem extends TestBase {
         assertEquals(fsBase, fs.getParent(fo.getName()).replace('\\', '/'));
         fo.tryLock();
         fo.releaseLock();
+        assertEquals(10000, fo.length());
         fo.close();
+        assertEquals(10000, fs.length(fsBase + "/test"));
         fo = fs.openFileObject(fsBase + "/test", "r");
         byte[] test = new byte[10000];
         fo.readFully(test, 0, 10000);

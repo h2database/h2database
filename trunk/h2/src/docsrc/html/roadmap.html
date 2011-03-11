@@ -246,6 +246,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Javadoc: document design patterns used
 </li><li>Write an article about SQLInjection (h2/src/docsrc/html/images/SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
+</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>Support OUT parameters in user-defined procedures.
 </li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 </li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;
@@ -289,7 +290,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Automatically compact databases from time to time (as a background process).
 </li><li>Test Eclipse DTP.
 </li><li>H2 Console: autocomplete: keep the previous setting
-</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>executeBatch: option to stop at the first failed statement.
 </li><li>Implement OLAP features as described here: http://www.devx.com/getHelpOn/10MinuteSolution/16573/0/page/5
 </li><li>Support Oracle ROWID (unique identifier for each row).
@@ -495,6 +495,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Use javax.tools.JavaCompilerTool instead of com.sun.tools.javac.Main
 </li><li>If a database object was not found in the current schema, but one with the same name existed in another schema, included that in the error message.
 </li><li>Optimization to use an index for OR when using multiple keys: where (key1 = ? and key2 = ?) OR (key1 = ? and key2 = ?)
+</li><li>Support optimizing queries with both inner and outer joins, as in:
+    select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1
+    (the optimizer should swap a and b here).
+    See also TestNestedJoins, tag "swapInnerJoinTables".
 </li><li>JaQu should support a DataSource and a way to create a Db object using a Connection (for multi-threaded usage with a connection pool).
 </li><li>Move table to a different schema (rename table to a different schema), possibly using ALTER TABLE ... SET SCHEMA ...;
 </li><li>nioMapped file system: automatically fall back to regular (non mapped) IO if there is a problem (out of memory exception for example).
@@ -518,10 +522,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>CLOB: support random access when reading (this is harder than for BLOB as data is stored in UTF-8 form).
 </li><li>Compatibility: support SELECT INTO (as an alias for CREATE TABLE ... AS SELECT ...).
 </li><li>Compatibility with MySQL: support SELECT INTO OUTFILE (cannot be an existing file) as an alias for CSVWRITE(...).
-</li><li>Support optimizing queries with both inner and outer joins, as in:
-    select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1
-    (the optimizer should swap a and b here).
-    See also TestNestedJoins.
 </li><li>Compatibility with MySQL: support non-strict mode (sql_mode = "") any data
     that is too large for the column will just be truncated or set to the default value.
 </li><li>The full condition should be sent to the linked table, not just the indexed condition.

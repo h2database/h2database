@@ -19,35 +19,33 @@ import org.h2.jaqu.util.Utils;
 
 /**
  * Class to inspect a model and a database for the purposes of model validation
- * and automatic model generation.  This class finds the available schemas and
+ * and automatic model generation. This class finds the available schemas and
  * tables and serves as the entry point for model generation and validation.
  */
 public class DbInspector {
 
     private Db db;
     private DatabaseMetaData metaData;
-    private Class<? extends java.util.Date> dateClass = java.util.Date.class;
-
-    private int todoReviewWholeClass;
+    private Class<? extends java.util.Date> dateTimeClass = java.util.Date.class;
 
     public DbInspector(Db db) {
         this.db = db;
     }
 
     /**
-     * Set the preferred Date class. Possible values are: java.util.Date
-     * (default), java.sql.Date, java.sql.Timestamp.
+     * Set the preferred class to store date and time. Possible values are:
+     * java.util.Date (default) and java.sql.Timestamp.
      *
-     * @param dateClass the new date class
+     * @param dateTimeClass the new class
      */
-    public void setPreferredDateClass(Class<? extends java.util.Date> dateClass) {
-        this.dateClass = dateClass;
+    public void setPreferredDateTimeClass(Class<? extends java.util.Date> dateTimeClass) {
+        this.dateTimeClass = dateTimeClass;
     }
 
     /**
-     * Generates models class skeletons for schemas and tables.  If the table
+     * Generates models class skeletons for schemas and tables. If the table
      * name is undefined, models will be generated for every table within the
-     * specified schema.  Additionally, if no schema is defined, models will be
+     * specified schema. Additionally, if no schema is defined, models will be
      * generated for all schemas and all tables.
      *
      * @param schema the schema name (optional)
@@ -61,7 +59,7 @@ public class DbInspector {
             String packageName, boolean annotateSchema, boolean trimStrings) {
         try {
             List<String> models = Utils.newArrayList();
-            List<TableInspector> tables = findTables(schema, table);
+            List<TableInspector> tables = getTables(schema, table);
             for (TableInspector t : tables) {
                 t.read(metaData);
                 String model = t.generateModel(packageName, annotateSchema,
@@ -78,13 +76,13 @@ public class DbInspector {
      * Validates a model.
      *
      * @param <T> the model class
-     * @param model and instance of the model class
-     * @param throwOnError
-     * @return
+     * @param model an instance of the model class
+     * @param throwOnError if errors should cause validation to fail
+     * @return a list of validation remarks
      */
     public <T> List<ValidationRemark> validateModel(T model, boolean throwOnError) {
         try {
-            TableInspector inspector = findTable(model);
+            TableInspector inspector = getTable(model);
             inspector.read(metaData);
             @SuppressWarnings("unchecked")
             Class<T> clazz = (Class<T>) model.getClass();
@@ -103,14 +101,13 @@ public class DbInspector {
     }
 
     /**
-     * Attempts to find a table in the database based on the model definition.
+     * Get the table in the database based on the model definition.
      *
-     * @param <T>
-     * @param model
-     * @return
-     * @throws SQLException
+     * @param <T> the model class
+     * @param model an instance of the model class
+     * @return the table inspector
      */
-    private <T> TableInspector findTable(T model) throws SQLException {
+    private <T> TableInspector getTable(T model) throws SQLException {
         @SuppressWarnings("unchecked")
         Class<T> clazz = (Class<T>) model.getClass();
         TableDefinition<T> def = db.define(clazz);
@@ -118,18 +115,19 @@ public class DbInspector {
         String schema = (forceUpperCase && def.schemaName != null) ?
                 def.schemaName.toUpperCase() : def.schemaName;
         String table = forceUpperCase ? def.tableName.toUpperCase() : def.tableName;
-        List<TableInspector> tables = findTables(schema, table);
+        List<TableInspector> tables = getTables(schema, table);
         return tables.get(0);
     }
 
     /**
-     * Returns a list of tables
+     * Returns a list of tables. This method always returns at least one element.
+     * If no table is found, an exception is thrown.
      *
      * @param schema the schema name
      * @param table the table name
-     * @return a list of table inspectors
+     * @return a list of table inspectors (always contains at least one element)
      */
-    private List<TableInspector> findTables(String schema, String table) throws SQLException {
+    private List<TableInspector> getTables(String schema, String table) throws SQLException {
         ResultSet rs = null;
         try {
             rs = getMetaData().getSchemas();
@@ -139,7 +137,6 @@ public class DbInspector {
             }
             JdbcUtils.closeSilently(rs);
 
-            // get JaQu Tables table name.
             String jaquTables = DbVersion.class.getAnnotation(JQTable.class).name();
 
             List<TableInspector> tables = Utils.newArrayList();
@@ -151,9 +148,8 @@ public class DbInspector {
                 while (rs.next()) {
                     String t = rs.getString("TABLE_NAME");
                     if (!t.equalsIgnoreCase(jaquTables)) {
-                        // Ignore JaQu versions table
                         tables.add(new TableInspector(s, t,
-                            getMetaData().storesUpperCaseIdentifiers(), dateClass));
+                            getMetaData().storesUpperCaseIdentifiers(), dateTimeClass));
                     }
                 }
             }

@@ -60,7 +60,7 @@ public interface SQLDialect {
 
     /**
      *  Default implementation of an SQL dialect.
-     *  Designed for an H2 database.  May be suitable for others.
+     *  Designed for an H2 database, and may be suitable for others.
      */
     public static class DefaultSQLDialect implements SQLDialect {
 

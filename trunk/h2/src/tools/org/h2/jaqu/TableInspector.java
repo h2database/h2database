@@ -44,18 +44,18 @@ public class TableInspector {
     private String schema;
     private String table;
     private boolean forceUpperCase;
-    private Class<? extends java.util.Date> dateClazz;
+    private Class<? extends java.util.Date> dateTimeClass;
     private List<String> primaryKeys = Utils.newArrayList();
     private Map<String, IndexInspector> indexes;
     private Map<String, ColumnInspector> columns;
     private final String eol = "\n";
 
     TableInspector(String schema, String table, boolean forceUpperCase,
-            Class<? extends java.util.Date> dateClazz) {
+            Class<? extends java.util.Date> dateTimeClass) {
         this.schema = schema;
         this.table = table;
         this.forceUpperCase = forceUpperCase;
-        this.dateClazz = dateClazz;
+        this.dateTimeClass = dateTimeClass;
     }
 
     /**
@@ -122,7 +122,7 @@ public class TableInspector {
                 ColumnInspector col = new ColumnInspector();
                 col.name = rs.getString("COLUMN_NAME");
                 col.type = rs.getString("TYPE_NAME");
-                col.clazz = ModelUtils.getClassType(col.type, dateClazz);
+                col.clazz = ModelUtils.getClassForSqlType(col.type, dateTimeClass);
                 col.size = rs.getInt("COLUMN_SIZE");
                 col.allowNull = rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable;
                 col.isAutoIncrement = rs.getBoolean("IS_AUTOINCREMENT");
@@ -235,7 +235,7 @@ public class TableInspector {
         }
 
         // class declaration
-        String clazzName = ModelUtils.createClassName(table);
+        String clazzName = ModelUtils.convertTableToClassName(table);
         model.append(format("public class {0} '{'", clazzName)).append(eol);
         model.append(eol);
 
@@ -288,7 +288,7 @@ public class TableInspector {
             boolean trimStrings) {
         StatementBuilder sb = new StatementBuilder();
         Class<?> clazz = col.clazz;
-        String column = ModelUtils.createFieldName(col.name.toLowerCase());
+        String column = ModelUtils.convertColumnToFieldName(col.name.toLowerCase());
         sb.append('\t');
         if (clazz == null) {
             // unsupported type
@@ -426,7 +426,7 @@ public class TableInspector {
     }
 
     /**
-     * Validates a column against the model's field definition.  Checks for
+     * Validates a column against the model's field definition. Checks for
      * existence, supported type, type mapping, default value, defined lengths,
      * primary key, autoincrement.
      */
@@ -442,34 +442,34 @@ public class TableInspector {
             return;
         }
         ColumnInspector col = columns.get(field);
-        Class<?> fieldClazz = fieldDef.field.getType();
-        Class<?> jdbcClazz = ModelUtils.getClassType(col.type, dateClazz);
+        Class<?> fieldClass = fieldDef.field.getType();
+        Class<?> jdbcClass = ModelUtils.getClassForSqlType(col.type, dateTimeClass);
 
         // supported type check
         // JaQu maps to VARCHAR for unsupported types.
         if (fieldDef.dataType.equals("VARCHAR")
-                && (fieldClazz != String.class)) {
+                && (fieldClass != String.class)) {
                     remarks.add(error(table, fieldDef,
                     "JaQu does not currently implement support for "
-                            + fieldClazz.getName()).throwError(throwError));
+                            + fieldClass.getName()).throwError(throwError));
         }
         // number types
-        if (!fieldClazz.equals(jdbcClazz)) {
-            if (Number.class.isAssignableFrom(fieldClazz)) {
+        if (!fieldClass.equals(jdbcClass)) {
+            if (Number.class.isAssignableFrom(fieldClass)) {
                 remarks.add(warn(table, col,
                         format("Precision mismatch: ModelObject={0}, ColumnObject={1}",
-                                fieldClazz.getSimpleName(), jdbcClazz.getSimpleName())));
+                                fieldClass.getSimpleName(), jdbcClass.getSimpleName())));
             } else {
-                if (!Date.class.isAssignableFrom(jdbcClazz)) {
+                if (!Date.class.isAssignableFrom(jdbcClass)) {
                     remarks.add(warn(table, col,
                             format("Object Mismatch: ModelObject={0}, ColumnObject={1}",
-                                    fieldClazz.getSimpleName(), jdbcClazz.getSimpleName())));
+                                    fieldClass.getSimpleName(), jdbcClass.getSimpleName())));
                 }
             }
         }
 
         // string types
-        if (fieldClazz == String.class) {
+        if (fieldClass == String.class) {
             if ((fieldDef.maxLength != col.size)
                     && (col.size < Integer.MAX_VALUE)) {
                 remarks.add(warn(table, col,

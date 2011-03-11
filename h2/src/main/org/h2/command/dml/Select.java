@@ -456,10 +456,14 @@ public class Select extends Query {
     }
 
     private void queryDistinct(ResultTarget result, long limitRows) {
-        if (limitRows != 0 && offsetExpr != null) {
-            // limitRows must be long, otherwise we get an int overflow
-            // if limitRows is at or near Integer.MAX_VALUE
-            limitRows += offsetExpr.getValue(session).getInt();
+        // limitRows must be long, otherwise we get an int overflow
+        // if limitRows is at or near Integer.MAX_VALUE
+        // limitRows is never 0 here
+        if (limitRows > 0 && offsetExpr != null) {
+            int offset = offsetExpr.getValue(session).getInt();
+            if (offset > 0) {
+                limitRows += offset;
+            }
         }
         int rowNumber = 0;
         setCurrentRowNumber(0);
@@ -481,7 +485,7 @@ public class Select extends Query {
             Value[] row = { value };
             result.addRow(row);
             rowNumber++;
-            if ((sort == null || sortUsingIndex) && limitRows != 0 && rowNumber >= limitRows) {
+            if ((sort == null || sortUsingIndex) && limitRows > 0 && rowNumber >= limitRows) {
                 break;
             }
             if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -491,10 +495,14 @@ public class Select extends Query {
     }
 
     private void queryFlat(int columnCount, ResultTarget result, long limitRows) {
-        if (limitRows != 0 && offsetExpr != null) {
-            // limitRows must be long, otherwise we get an int overflow
-            // if limitRows is at or near Integer.MAX_VALUE
-            limitRows += offsetExpr.getValue(session).getInt();
+        // limitRows must be long, otherwise we get an int overflow
+        // if limitRows is at or near Integer.MAX_VALUE
+        // limitRows is never 0 here
+        if (limitRows > 0 && offsetExpr != null) {
+            int offset = offsetExpr.getValue(session).getInt();
+            if (offset > 0) {
+                limitRows += offset;
+            }
         }
         int rowNumber = 0;
         setCurrentRowNumber(0);
@@ -515,7 +523,7 @@ public class Select extends Query {
                 }
                 result.addRow(row);
                 rowNumber++;
-                if ((sort == null || sortUsingIndex) && limitRows != 0 && result.getRowCount() >= limitRows) {
+                if ((sort == null || sortUsingIndex) && limitRows > 0 && result.getRowCount() >= limitRows) {
                     break;
                 }
                 if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -544,12 +552,13 @@ public class Select extends Query {
     }
 
     protected LocalResult queryWithoutCache(int maxRows, ResultTarget target) {
-        int limitRows = maxRows;
+        int limitRows = maxRows == 0 ? -1 : maxRows;
         if (limitExpr != null) {
-            int l = limitExpr.getValue(session).getInt();
-            if (limitRows == 0) {
+            Value v = limitExpr.getValue(session);
+            int l = v == ValueNull.INSTANCE ? -1 : v.getInt();
+            if (limitRows < 0) {
                 limitRows = l;
-            } else {
+            } else if (l >= 0) {
                 limitRows = Math.min(l, limitRows);
             }
         }
@@ -569,7 +578,7 @@ public class Select extends Query {
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
         }
-        if (limitRows != 0 || offsetExpr != null) {
+        if (limitRows >= 0 || offsetExpr != null) {
             result = createLocalResult(result);
         }
         topTableFilter.startQuery(session);
@@ -590,23 +599,25 @@ public class Select extends Query {
             }
         }
         ResultTarget to = result != null ? result : target;
-        if (isQuickAggregateQuery) {
-            queryQuick(columnCount, to);
-        } else if (isGroupQuery) {
-            if (isGroupSortedQuery) {
-                queryGroupSorted(columnCount, to);
+        if (limitRows != 0) {
+            if (isQuickAggregateQuery) {
+                queryQuick(columnCount, to);
+            } else if (isGroupQuery) {
+                if (isGroupSortedQuery) {
+                    queryGroupSorted(columnCount, to);
+                } else {
+                    queryGroup(columnCount, result);
+                }
+            } else if (isDistinctQuery) {
+                queryDistinct(to, limitRows);
             } else {
-                queryGroup(columnCount, result);
+                queryFlat(columnCount, to, limitRows);
             }
-        } else if (isDistinctQuery) {
-            queryDistinct(to, limitRows);
-        } else {
-            queryFlat(columnCount, to, limitRows);
         }
         if (offsetExpr != null) {
             result.setOffset(offsetExpr.getValue(session).getInt());
         }
-        if (limitRows != 0) {
+        if (limitRows >= 0) {
             result.setLimit(limitRows);
         }
         if (result != null) {

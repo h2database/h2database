@@ -173,13 +173,11 @@ function switchBnf(x) {
     for (var i = 0; i < bnfList.length; i++) {
         var bnf = bnfList[i].style;
         bnf.display = bnf.display == '' ? 'none' : '';
-        bnf.visibility = bnf.display == 'none' ? 'hidden' : 'visible';
     }
     var railroads = document.getElementsByName('railroad');
     for (var i = 0; i < railroads.length; i++) {
         var railroad = railroads[i].style;
         railroad.display = railroad.display == '' ? 'none' : '';
-        railroad.visibility = railroad.display == 'none' ? 'hidden' : 'visible';
     }
     if (x) {
         document.location = '#' + x.id;

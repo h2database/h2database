@@ -469,14 +469,14 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     <td><a href="advanced.html#ssl_tls_connections">Server mode (remote connections)<br /> using SSL/TLS</a></td>
     <td class="notranslate">
         jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
-        jdbc:h2:ssl://secureserv:8085/~/sample;
+        jdbc:h2:ssl://localhost:8085/~/sample;
     </td>
 </tr>
 <tr>
     <td><a href="#file_encryption">Using encrypted files</a></td>
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
-        jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES<br />
+        jdbc:h2:ssl://localhost/~/test;CIPHER=AES<br />
         jdbc:h2:file:~/secure;CIPHER=XTEA<br />
     </td>
 </tr>
@@ -1430,11 +1430,10 @@ For a complete sample application, see <code>src/test/org/h2/samples/Function.ja
 <p>
 When defining a function alias with source code, the database tries to compile
 the source code using the Sun Java compiler (the class <code>com.sun.tools.javac.Main</code>)
-if the <code>tools.jar</code> is in the classpath. If not, <code>javac</code> is run as a separate
-process. Only the source code is stored in the database; the class is compiled each time
-the database is re-opened. Source code is usually passed
-as dollar quoted text to avoid escaping problems, however single quotes
-can be used as well. Example:
+if the <code>tools.jar</code> is in the classpath. If not, <code>javac</code> is run as a separate process.
+Only the source code is stored in the database; the class is compiled each time the database is re-opened.
+Source code is usually passed as dollar quoted text to avoid escaping problems, however single quotes can be used as well.
+Example:
 </p>
 <pre>
 CREATE ALIAS NEXT_PRIME AS $$
@@ -1444,8 +1443,9 @@ String nextPrime(String value) {
 $$;
 </pre>
 <p>
-The method name (<code>nextPrime</code> in the example above) is ignored.
 By default, the three packages <code>java.util, java.math, java.sql</code> are imported.
+The method name (<code>nextPrime</code> in the example above) is ignored.
+Method overloading is not supported when declaring functions as source code, that means only one method may be declared for an alias.
 If different import statements are required, they must be declared at the beginning
 and separated with the tag <code>@CODE</code>:
 </p>
@@ -1472,6 +1472,13 @@ public class &lt;aliasName&gt; {
     public static &lt;sourceCode&gt;
 }
 </pre>
+
+<h3>Method Overloading</h3>
+<p>
+Multiple methods may be bound to a SQL function if the class is already compiled and included in the classpath.
+Each Java method must have a different number of arguments.
+Method overloading is not supported when declaring functions as source code.
+</p>
 
 <h3>Function Data Type Mapping</h3>
 <p>

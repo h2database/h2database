@@ -62,7 +62,8 @@ abstract class PageData extends Page {
     protected boolean written;
 
     /**
-     * The estimated memory used by this object.
+     * The estimated heap memory used by this object, in number of double words
+     * (4 bytes each).
      */
     protected int memoryEstimated;
 
@@ -217,9 +218,9 @@ abstract class PageData extends Page {
     abstract Row getRowWithKey(long key);
 
     /**
-     * Get the estimated memory size.
+     * Get the estimated heap memory size.
      *
-     * @return number of double words (4 bytes)
+     * @return number of double words (4 bytes each)
      */
     public int getMemory() {
         // need to always return the same value for the same object (otherwise

@@ -55,14 +55,14 @@ public class TestConnectionInfo extends TestBase {
     private void testConnectionInfo() throws Exception {
         Properties info = new Properties();
         ConnectionInfo connectionInfo = new ConnectionInfo(
-                "jdbc:h2:mem:testdb" +
+                "jdbc:h2:mem:test" +
                         ";LOG=2" +
                         ";ACCESS_MODE_DATA=rws" +
                         ";INIT=CREATE this...\\;INSERT that..." +
                         ";IFEXISTS=TRUE",
                 info);
 
-        assertEquals("jdbc:h2:mem:testdb", connectionInfo.getURL());
+        assertEquals("jdbc:h2:mem:test", connectionInfo.getURL());
 
         assertEquals("2", connectionInfo.getProperty("LOG", ""));
         assertEquals("rws", connectionInfo.getProperty("ACCESS_MODE_DATA", ""));
@@ -70,11 +70,11 @@ public class TestConnectionInfo extends TestBase {
         assertEquals("TRUE", connectionInfo.getProperty("IFEXISTS", ""));
         assertEquals("undefined", connectionInfo.getProperty("CACHE_TYPE", "undefined"));
     }
-    
+
     private void testName() throws Exception {
         char differentFileSeparator = File.separatorChar == '/' ? '\\' : '/';
-        ConnectionInfo connectionInfo = new ConnectionInfo("testdb" + differentFileSeparator + "subdir");
-        File file = new File("testdb" + File.separatorChar + "subdir");
+        ConnectionInfo connectionInfo = new ConnectionInfo("test" + differentFileSeparator + "subDir");
+        File file = new File("test" + File.separatorChar + "subDir");
         assertEquals(file.getCanonicalPath(), connectionInfo.getName());
     }
 

@@ -18,7 +18,7 @@ ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
 
 LIMIT limits the number of rows returned by the query (no limit if null or smaller than zero).
-OFFSET specified how many rows to skip. 
+OFFSET specified how many rows to skip.
 SAMPLE_SIZE limits the number of rows read for aggregate queries.
 
 Multiple set operators (UNION, INTERSECT, MINUS, EXPECT) are evaluated
@@ -1018,9 +1018,9 @@ SET CLUSTER ''
 SET [ DATABASE ] COLLATION
 { OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }
 ","
-Sets the collation used for comparing strings. This command can only be executed
-if there are no tables defined. See ""java.text.Collator"" for details about
-STRENGTH.
+Sets the collation used for comparing strings.
+This command can only be executed if there are no tables defined.
+See ""java.text.Collator"" for details about the supported collations and the STRENGTH.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.

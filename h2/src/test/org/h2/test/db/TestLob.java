@@ -93,7 +93,7 @@ public class TestLob extends TestBase {
         IOUtils.deleteRecursive(TEMP_DIR, true);
     }
 
-    public void testConcurrentCreate() throws Exception {
+    private void testConcurrentCreate() throws Exception {
         deleteDb("lob");
         final JdbcConnection conn1 = (JdbcConnection) getConnection("lob");
         final JdbcConnection conn2 = (JdbcConnection) getConnection("lob");

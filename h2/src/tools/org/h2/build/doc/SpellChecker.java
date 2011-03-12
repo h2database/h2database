@@ -25,7 +25,7 @@ import org.h2.util.StringUtils;
 public class SpellChecker {
 
     private static final String[] SUFFIX = { "html", "java", "sql", "txt", "xml", "jsp", "css", "bat",
-            "csv", "xml", "js", "Driver", "properties", "task", "MF", "sh", "" };
+            "csv", "xml", "js", "Driver", "properties", "task", "MF", "mf", "sh", "" };
     private static final String[] IGNORE = { "dev", "nsi", "gif", "png", "odg", "ico", "sxd", "zip",
             "bz2", "rc", "layout", "res", "dll", "jar", "svg", "prefs", "prop", "iml" };
     private static final String DELIMITERS = " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";

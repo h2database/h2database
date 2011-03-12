@@ -378,7 +378,7 @@ scanner scanners scanning scans scheduler schem schema schemas schemata schmorp
 schoen school sciences scm scope scoped scott scratch screen screenshot script
 scriptella scripts scroll scrollable scrolling sdot seam search searchable
 searched searcher searches searching sec second secondary seconds secret sect
-section sections secure secureserv securing security see seed seeded seeds seek
+section sections secure securing security see seed seeded seeds seek
 seem seems select selectable selected selection selectivity selects self sell
 selling semicolon semmle send sending sends sense sensitive sensitivity sent
 sentence sentinel sep sepang separate separated separately separating separator
@@ -427,7 +427,7 @@ takes taking tamava tan tanh tanuki tanukisoftware tape tapes tar target targets
 task tasks tau tax tbalance tbody tcp technical technology tell teller tellers
 telling temp template templated temple temporarily temporary term terminal
 terminate terminated terminates terminating termination terms tertiary test testa
-testb testdb tested testid testing testlob tests testtab text textarea textbase
+testb tested testid testing testlob tests testtab text textarea textbase
 texts textual than thanks that the their them themselves then theoretical
 theoretically theory there thereafter therefore thereof these theta thetasym they
 thin thing things think thinsp third this thomas thorn those thousand thousands
@@ -679,4 +679,4 @@ exceed identities differentiate inherited tracks strip suggestions
 registration sanity improperly annotate inheritance composite inspected
 hurt imposes marshal policy upgrader configurations dark varray xlint executor
 completion inactivity exports maintains backside schwietzke rene rectangular grandin noel
-sine cosine tangent cotangent trigonometric hyperbolic lte
+sine cosine tangent cotangent trigonometric hyperbolic lte abe alphabetical killer

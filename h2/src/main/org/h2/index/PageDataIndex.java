@@ -44,8 +44,14 @@ public class PageDataIndex extends PageIndex {
     private HashMap<Integer, Integer> sessionRowCount;
     private int mainIndexColumn = -1;
     private DbException fastDuplicateKeyException;
+
+    /**
+     * The estimated heap memory per page, in number of double words (4 bytes
+     * each).
+     */
     private int memoryPerPage;
     private int memoryCount;
+
     private boolean multiVersion;
 
     public PageDataIndex(RegularTable table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) {

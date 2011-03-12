@@ -20,7 +20,7 @@ Change Log
 <h2>Next Version (unreleased)</h2>
 <ul><li>Issue 294: The Maven source bundle now contains a manifest file that allows Eclipse to automatically
     attach the source code (if Maven is used).
-</li><li>A query with an explicit LIMIT 0 will now return no rows (so far it meant no limit), 
+</li><li>A query with an explicit LIMIT 0 will now return no rows (so far it meant no limit),
     which is compatible with PostgreSQL and MySQL.
     A negative limit value, (as well as LIMIT NULL) mean no limit (so far a negative limit meant a limit of one row).
     There were similar problems with OFFSET.
@@ -30,7 +30,7 @@ Change Log
     this might replace the Backup, ChangeFileEncryption, DeleteDbFiles, and Restore tools.
 </li><li>Lob in database: storing lob objects was not correctly synchronized.
     This was specially a problem when using Connection.createBlob() / createClob().
-</li><li>Updated the licence page (thanks a lot to Abe to help me with this).
+</li><li>Updated the license page (thanks a lot to Abe to help me with this).
 </li><li>Support for database paths with '\' on non-Windows systems.
 </li><li>The NIO cleaner hack wasn't working as expected, because the clear method was called
     instead of the clean method. This has been fixed. Please note this hack is not enabled by default,

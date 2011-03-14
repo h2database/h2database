@@ -1487,7 +1487,7 @@ the limit is 4 GB for the data. This is the limitation of the file system. The d
 workaround for this problem, it is to use the file name prefix <code>split:</code>. In that case files are split into
 files of 1 GB by default. An example database URL is:
 <code>jdbc:h2:split:~/test</code>.
-</li><li>The maximum number of rows per table is 2'147'483'648.
+</li><li>The maximum number of rows per table is 2^64.
 </li><li>Main memory requirements: The larger the database, the more main memory is required.
     With the version 1.1 storage mechanism, the minimum main memory required for a 12 GB database was around 240 MB.
     With the current page store, the minimum main memory required is much lower, around 1 MB for each 8 GB database file size.

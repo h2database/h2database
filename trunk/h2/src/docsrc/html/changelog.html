@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.153 (2011-03-14)</h2>
 <ul><li>Issue 294: The Maven source bundle now contains a manifest file that allows Eclipse to automatically
     attach the source code (if Maven is used).
 </li><li>A query with an explicit LIMIT 0 will now return no rows (so far it meant no limit),
@@ -855,17 +859,6 @@ Change Log
     because the file org.h2.store.fs.FileSystemZip is not included. This missing class
     is now ignored.
 </li><li>Literals of type BIGINT now have the correct data type.
-</li></ul>
-
-<h2>Version 1.2.131 (2010-03-05)</h2>
-<ul><li>Older versions of H2 (version 1.2.127 and older) could not connect to a new version (version 1.2.129 and newer).
-    The connection blocked when trying to connect. Now the connection no longer blocks, instead a SQL exception is thrown.
-</li><li>In versions 1.2.129 and 1.2.130, a database could not be opened sometimes
-    after dropping tables or indexes, and then creating new indexes for existing tables.
-    The exception contained the text "parent not found" (version 1.2.129) or
-    "Table not found" (version 1.2.130).
-</li><li>After the database was closed, a null pointer exception could occur in Database.flush.
-</li><li>An ArrayIndexOutOfBoundsException could occur in the page store (eg. on "delete from table"). Fixed.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

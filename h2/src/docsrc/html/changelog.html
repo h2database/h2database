@@ -18,7 +18,7 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>Some time and timezone functions didn't support years before 1.
 </li></ul>
 
 <h2>Version 1.3.153 (2011-03-14)</h2>
@@ -28,8 +28,9 @@ Change Log
     which is compatible with PostgreSQL and MySQL.
     A negative limit value, (as well as LIMIT NULL) mean no limit (so far a negative limit meant a limit of one row).
     There were similar problems with OFFSET.
-</li><li>A new encrypting file system has been implemented. The idea is to
-    allow encrypting all files, not just database files.
+</li><li>A new encrypting file system has been implemented.
+    It is currently experimental, and not included in the main jar file.
+    The idea is to allow encrypting all files, not just database files.
     Also implemented is a simple file system shell tool. At some point,
     this might replace the Backup, ChangeFileEncryption, DeleteDbFiles, and Restore tools.
 </li><li>Lob in database: storing lob objects was not correctly synchronized.

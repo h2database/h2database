@@ -355,7 +355,7 @@ public class FtpControl extends Thread {
         boolean ok = false;
         if (!readonly) {
             try {
-                fs.mkdirs(fileName);
+                fs.createDirs(fileName + "/x");
                 reply(257, StringUtils.quoteIdentifier(param) + " directory");
                 ok = true;
             } catch (Exception e) {

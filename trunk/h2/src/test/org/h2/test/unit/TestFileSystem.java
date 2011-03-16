@@ -185,7 +185,7 @@ public class TestFileSystem extends TestBase {
         for (String s : fs.listFiles(fsBase)) {
             fs.delete(s);
         }
-        fs.mkdirs(fsBase + "/test");
+        fs.createDirs(fsBase + "/test/x");
         fs.delete(fsBase + "/test");
         fs.delete(fsBase + "/test2");
         assertTrue(fs.createNewFile(fsBase + "/test"));

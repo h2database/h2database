@@ -223,15 +223,6 @@ public abstract class FileSystem {
     public abstract void copy(String source, String target);
 
     /**
-     * Create all required directories.
-     *
-     * @param directoryName the directory name
-     */
-    public void mkdirs(String directoryName) {
-        createDirs(directoryName + "/x");
-    }
-
-    /**
      * Create all required directories that are required for this file.
      *
      * @param fileName the file name (not directory name)

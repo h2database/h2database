@@ -62,7 +62,7 @@ public class XMLParser {
      */
     public static final int DTD = 11;
 
-    private String xml;
+    private final String xml;
     private int pos;
     private int eventType;
     private String currentText;

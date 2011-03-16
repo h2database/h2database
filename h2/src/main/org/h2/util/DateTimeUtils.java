@@ -81,6 +81,7 @@ public class DateTimeUtils {
         long time;
         synchronized (cal) {
             cal.setTime(value);
+            cal.set(Calendar.ERA, GregorianCalendar.AD);
             // month is 0 based
             cal.set(DEFAULT_YEAR, DEFAULT_MONTH - 1, DEFAULT_DAY);
             time = cal.getTime().getTime();
@@ -185,6 +186,7 @@ public class DateTimeUtils {
     }
 
     private static void convertTime(Calendar from, Calendar to) {
+        to.set(Calendar.ERA, from.get(Calendar.ERA));
         to.set(Calendar.YEAR, from.get(Calendar.YEAR));
         to.set(Calendar.MONTH, from.get(Calendar.MONTH));
         to.set(Calendar.DAY_OF_MONTH, from.get(Calendar.DAY_OF_MONTH));
@@ -399,6 +401,20 @@ public class DateTimeUtils {
             }
         }
         return value;
+    }
+
+    /**
+     * Get the year (positive or negative) from a calendar.
+     *
+     * @param calendar the calendar
+     * @return the year
+     */
+    public static int getYear(Calendar calendar) {
+        int year = calendar.get(Calendar.YEAR);
+        if (calendar.get(Calendar.ERA) == GregorianCalendar.BC) {
+            year = 1 - year;
+        }
+        return year;
     }
 
     /**

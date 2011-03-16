@@ -10,12 +10,18 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueDate;
+import org.h2.value.ValueTime;
+import org.h2.value.ValueTimestamp;
 
 /**
  * Tests the data parsing. The problem is that some dates are not allowed
@@ -35,8 +41,33 @@ public class TestDate extends TestBase {
     }
 
     public void test() throws SQLException {
+        testDateTimeUtils();
         testAllTimeZones();
         testCurrentTimeZone();
+    }
+
+    private void testDateTimeUtils() {
+        java.sql.Timestamp ts1 = (Timestamp) DateTimeUtils.parseDateTime("-999-08-07 13:14:15.16", Value.TIMESTAMP, 0);
+        java.sql.Timestamp ts2 = (Timestamp) DateTimeUtils.parseDateTime("19999-08-07 13:14:15.16", Value.TIMESTAMP, 0);
+        java.sql.Time t1 = DateTimeUtils.cloneAndNormalizeTime(new java.sql.Time(ts1.getTime()));
+        java.sql.Time t2 = DateTimeUtils.cloneAndNormalizeTime(new java.sql.Time(ts2.getTime()));
+        java.sql.Date d1 = DateTimeUtils.cloneAndNormalizeDate(new java.sql.Date(ts1.getTime()));
+        java.sql.Date d2 = DateTimeUtils.cloneAndNormalizeDate(new java.sql.Date(ts2.getTime()));
+        assertEquals("-999-08-07 13:14:15.16", ValueTimestamp.get(ts1).getString());
+        assertEquals("-999-08-07", ValueDate.get(d1).getString());
+        assertEquals("13:14:15", ValueTime.get(t1).getString());
+        assertEquals("19999-08-07 13:14:15.16", ValueTimestamp.get(ts2).getString());
+        assertEquals("19999-08-07", ValueDate.get(d2).getString());
+        assertEquals("13:14:15", ValueTime.get(t2).getString());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(t1);
+        assertEquals(GregorianCalendar.AD, cal.get(Calendar.ERA));
+        cal.setTime(t2);
+        assertEquals(GregorianCalendar.AD, cal.get(Calendar.ERA));
+        java.sql.Timestamp ts1a = DateTimeUtils.convertTimestampToCalendar(ts1, Calendar.getInstance());
+        java.sql.Timestamp ts2a = DateTimeUtils.convertTimestampToCalendar(ts2, Calendar.getInstance());
+        assertEquals("-999-08-07 13:14:15.16", ValueTimestamp.get(ts1a).getString());
+        assertEquals("19999-08-07 13:14:15.16", ValueTimestamp.get(ts2a).getString());
     }
 
     private static void testCurrentTimeZone() {

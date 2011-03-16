@@ -91,18 +91,6 @@ public interface DbObject {
     int AGGREGATE = 14;
 
     /**
-     * Tell the object that is was modified.
-     */
-    void setModified();
-
-    /**
-     * Get the last modification id.
-     *
-     * @return the modification id
-     */
-    long getModificationId();
-
-    /**
      * Get the SQL name of this object (may be quoted).
      *
      * @return the SQL name

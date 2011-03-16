@@ -278,10 +278,6 @@ public class MultiVersionIndex implements Index {
         return base.getId();
     }
 
-    public long getModificationId() {
-        return base.getModificationId();
-    }
-
     public String getName() {
         return base.getName();
     }
@@ -296,10 +292,6 @@ public class MultiVersionIndex implements Index {
 
     public void setComment(String comment) {
         base.setComment(comment);
-    }
-
-    public void setModified() {
-        base.setModified();
     }
 
     public void setTemporary(boolean temporary) {

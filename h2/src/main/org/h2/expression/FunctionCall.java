@@ -7,7 +7,6 @@
 package org.h2.expression;
 
 import org.h2.engine.Session;
-import org.h2.value.Value;
 import org.h2.value.ValueResultSet;
 
 /**
@@ -53,14 +52,6 @@ public interface FunctionCall {
      * @return the optimized expression
      */
     Expression optimize(Session session);
-
-    /**
-     * Calculate the result.
-     *
-     * @param session the session
-     * @return the result
-     */
-    Value getValue(Session session);
 
     /**
      * Get the function arguments.

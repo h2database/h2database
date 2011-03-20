@@ -94,4 +94,8 @@ public class FunctionIndex extends BaseIndex {
         return "function";
     }
 
+    public boolean canScan() {
+        return false;
+    }
+
 }

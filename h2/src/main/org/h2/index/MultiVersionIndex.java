@@ -318,4 +318,8 @@ public class MultiVersionIndex implements Index {
         return base.isRowIdIndex() && delta.isRowIdIndex();
     }
 
+    public boolean canScan() {
+        return base.canScan();
+    }
+
 }

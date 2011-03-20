@@ -116,4 +116,8 @@ public class HashIndex extends BaseIndex {
         throw DbException.getUnsupportedException("HASH");
     }
 
+    public boolean canScan() {
+        return false;
+    }
+
 }

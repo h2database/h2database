@@ -328,4 +328,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return false;
     }
 
+    public boolean canScan() {
+        return true;
+    }
+
 }

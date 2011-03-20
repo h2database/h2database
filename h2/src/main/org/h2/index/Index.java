@@ -226,4 +226,11 @@ public interface Index extends SchemaObject {
      */
     boolean isRowIdIndex();
 
+    /**
+     * Can this index iterate over all rows?
+     *
+     * @return true if it can
+     */
+    boolean canScan();
+
 }

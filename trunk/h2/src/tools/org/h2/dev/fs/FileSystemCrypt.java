@@ -45,7 +45,7 @@ public class FileSystemCrypt extends FileSystemWrapper {
 
     public long length(String fileName) {
         long len = super.length(fileName);
-        return Math.max(0, len - 2 * FileObjectCrypt.HEADER_LENGTH);
+        return Math.max(0, len - FileObjectCrypt.HEADER_LENGTH - FileObjectCrypt.BLOCK_SIZE);
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {

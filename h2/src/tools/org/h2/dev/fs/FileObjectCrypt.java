@@ -23,12 +23,14 @@ public class FileObjectCrypt implements FileObject {
 
     static final int HEADER_LENGTH = 4096;
 
-    // TODO header
+    static final int BLOCK_SIZE = Constants.FILE_BLOCK_SIZE;
+
+    // TODO improve the header
+    // TODO store the number of empty blocks in the last block
     private static final byte[] HEADER = "-- H2 crypt --\n\0".getBytes();
     private static final int SALT_POS = HEADER.length;
     private static final int SALT_LENGTH = 16;
     private static final int HASH_ITERATIONS = Constants.ENCRYPTION_KEY_HASH_ITERATIONS;
-    private static final int BLOCK_SIZE = Constants.FILE_BLOCK_SIZE;
 
     private final String name;
     private final FileObject file;
@@ -116,7 +118,7 @@ public class FileObjectCrypt implements FileObject {
                 seek(pos);
             }
         }
-        file.setFileLength(newLength + 2 * HEADER_LENGTH);
+        file.setFileLength(newLength + HEADER_LENGTH + BLOCK_SIZE);
         if (newLength < getFilePointer()) {
             seek(newLength);
         }
@@ -181,7 +183,7 @@ public class FileObjectCrypt implements FileObject {
         file.readFully(b, off, len);
         for (int p = 0; p < len; p += BLOCK_SIZE) {
             for (int i = 0; i < BLOCK_SIZE; i++) {
-                // currently, empty blocks are not decrypted
+                // empty blocks are not decrypted
                 if (b[p + off + i] != 0) {
                     cipher.decrypt(b, p + off, BLOCK_SIZE);
                     xorInitVector(b, p + off, BLOCK_SIZE, p + pos);
@@ -194,7 +196,7 @@ public class FileObjectCrypt implements FileObject {
     private void writeAligned(long pos, byte[] b, int off, int len) throws IOException {
         for (int p = 0; p < len; p += BLOCK_SIZE) {
             for (int i = 0; i < BLOCK_SIZE; i++) {
-                // currently, empty blocks are not decrypted
+                // empty blocks are not decrypted
                 if (b[p + off + i] != 0) {
                     xorInitVector(b, p + off, BLOCK_SIZE, p + pos);
                     cipher.encrypt(b, p + off, BLOCK_SIZE);

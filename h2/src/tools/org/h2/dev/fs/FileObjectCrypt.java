@@ -41,7 +41,7 @@ public class FileObjectCrypt implements FileObject {
     public FileObjectCrypt(String name, String algorithm, String password, FileObject file) throws IOException {
         this.name = name;
         this.file = file;
-        boolean newFile = file.length() < 2 * HEADER_LENGTH;
+        boolean newFile = file.length() < HEADER_LENGTH + BLOCK_SIZE;
         byte[] filePasswordHash;
         if (algorithm.endsWith("-hash")) {
             filePasswordHash = StringUtils.convertStringToBytes(password);
@@ -81,7 +81,7 @@ public class FileObjectCrypt implements FileObject {
     }
 
     public long length() throws IOException {
-        return Math.max(0, file.length() - 2 * HEADER_LENGTH);
+        return Math.max(0, file.length() - HEADER_LENGTH - BLOCK_SIZE);
     }
 
     public void releaseLock() {
@@ -108,9 +108,9 @@ public class FileObjectCrypt implements FileObject {
         if (newLength < length()) {
             int mod = (int) (newLength % BLOCK_SIZE);
             if (mod == 0) {
-                file.setFileLength(newLength + HEADER_LENGTH);
+                file.setFileLength(HEADER_LENGTH + newLength);
             } else {
-                file.setFileLength(newLength + HEADER_LENGTH + BLOCK_SIZE - mod);
+                file.setFileLength(HEADER_LENGTH + newLength + BLOCK_SIZE - mod);
                 byte[] buff = new byte[BLOCK_SIZE - mod];
                 long pos = getFilePointer();
                 seek(newLength);
@@ -118,7 +118,7 @@ public class FileObjectCrypt implements FileObject {
                 seek(pos);
             }
         }
-        file.setFileLength(newLength + HEADER_LENGTH + BLOCK_SIZE);
+        file.setFileLength(HEADER_LENGTH + newLength + BLOCK_SIZE);
         if (newLength < getFilePointer()) {
             seek(newLength);
         }
@@ -131,12 +131,15 @@ public class FileObjectCrypt implements FileObject {
             throw new EOFException("pos: " + pos + " len: " + len + " length: " + length);
         }
         int posMod = (int) (pos % BLOCK_SIZE);
-        int lenMod = len % BLOCK_SIZE;
-        if (posMod == 0 && lenMod == 0) {
+        if (posMod == 0 && len % BLOCK_SIZE == 0) {
             readAligned(pos, b, off, len);
         } else {
             long p = pos - posMod;
-            int l = len + 2 * BLOCK_SIZE - lenMod;
+            int l = len;
+            if (posMod != 0) {
+                l += posMod;
+            }
+            l = MathUtils.roundUpInt(l, BLOCK_SIZE);
             seek(p);
             byte[] temp = new byte[l];
             try {
@@ -151,18 +154,21 @@ public class FileObjectCrypt implements FileObject {
     public void write(byte[] b, int off, int len) throws IOException {
         long pos = getFilePointer();
         int posMod = (int) (pos % BLOCK_SIZE);
-        int lenMod = len % BLOCK_SIZE;
-        if (posMod == 0 && lenMod == 0) {
+        if (posMod == 0 && len % BLOCK_SIZE == 0) {
             byte[] temp = new byte[len];
             System.arraycopy(b, off, temp, 0, len);
             writeAligned(pos, temp, 0, len);
         } else {
             long p = pos - posMod;
-            int l = len + 2 * BLOCK_SIZE - lenMod;
+            int l = len;
+            if (posMod != 0) {
+                l += posMod;
+            }
+            l = MathUtils.roundUpInt(l, BLOCK_SIZE);
             seek(p);
             byte[] temp = new byte[l];
-            if (file.length() < pos + l + HEADER_LENGTH) {
-                file.setFileLength(pos + l + HEADER_LENGTH);
+            if (file.length() < HEADER_LENGTH + p + l) {
+                file.setFileLength(HEADER_LENGTH + p + l);
             }
             readAligned(p, temp, 0, l);
             System.arraycopy(b, off, temp, posMod, len);
@@ -174,8 +180,8 @@ public class FileObjectCrypt implements FileObject {
             }
         }
         pos = file.getFilePointer();
-        if (file.length() < pos + HEADER_LENGTH) {
-            file.setFileLength(pos + HEADER_LENGTH);
+        if (file.length() < pos + BLOCK_SIZE) {
+            file.setFileLength(pos + BLOCK_SIZE);
         }
     }
 

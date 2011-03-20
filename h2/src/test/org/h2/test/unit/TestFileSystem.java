@@ -39,11 +39,15 @@ public class TestFileSystem extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.traceTest = true;
+        // test.config.traceTest = true;
         test.test();
     }
 
     public void test() throws Exception {
+        FileSystemCrypt.register();
+        // DebugFileSystem.register().setTrace(true);
+        // testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
+
         testSplitDatabaseInZip();
         testDatabaseInMemFileSys();
         testDatabaseInJar();
@@ -270,6 +274,10 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testRandomAccess(String fsBase) throws Exception {
+        testRandomAccess(fsBase, 1);
+    }
+
+    private void testRandomAccess(String fsBase, int seed) throws Exception {
         StringBuilder buff = new StringBuilder();
         FileSystem fs = FileSystem.getInstance(fsBase);
         String s = fs.createTempFile(fsBase + "/tmp", ".tmp", false, false);
@@ -286,10 +294,11 @@ public class TestFileSystem extends TestBase {
             // expected
         }
         f.sync();
-        Random random = new Random(1);
+        Random random = new Random(seed);
         int size = getSize(100, 500);
         try {
             for (int i = 0; i < size; i++) {
+                trace("op " + i);
                 int pos = random.nextInt(10000);
                 switch(random.nextInt(7)) {
                 case 0: {
@@ -310,13 +319,13 @@ public class TestFileSystem extends TestBase {
                     break;
                 }
                 case 2: {
+                    trace("setLength " + pos);
                     f.setFileLength(pos);
                     ra.setLength(pos);
                     if (ra.getFilePointer() > pos) {
                         f.seek(0);
                         ra.seek(0);
                     }
-                    trace("setLength " + pos);
                     buff.append("setLength " + pos + "\n");
                     break;
                 }
@@ -325,9 +334,9 @@ public class TestFileSystem extends TestBase {
                     len = (int) Math.min(len, ra.length() - ra.getFilePointer());
                     byte[] b1 = new byte[len];
                     byte[] b2 = new byte[len];
+                    trace("readFully " + len);
                     ra.readFully(b1, 0, len);
                     f.readFully(b2, 0, len);
-                    trace("readFully " + len);
                     buff.append("readFully " + len + "\n");
                     assertEquals(b1, b2);
                     break;
@@ -357,28 +366,30 @@ public class TestFileSystem extends TestBase {
                 default:
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             fail("Exception: " + e + "\n"+ buff.toString());
+        } finally {
+            f.close();
+            ra.close();
+            file.delete();
+            fs.delete(s);
         }
-        f.close();
-        ra.close();
-        file.delete();
-        fs.delete(s);
     }
 
     private void testTempFile(String fsBase) throws Exception {
+        int len = 10000;
         FileSystem fs = FileSystem.getInstance(fsBase);
         String s = fs.createTempFile(fsBase + "/tmp", ".tmp", false, false);
         OutputStream out = fs.openFileOutputStream(s, false);
-        byte[] buffer = new byte[10000];
+        byte[] buffer = new byte[len];
         out.write(buffer);
         out.close();
         out = fs.openFileOutputStream(s, true);
         out.write(1);
         out.close();
         InputStream in = fs.openFileInputStream(s);
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < len; i++) {
             assertEquals(0, in.read());
         }
         assertEquals(1, in.read());

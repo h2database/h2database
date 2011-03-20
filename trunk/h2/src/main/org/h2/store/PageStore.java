@@ -529,7 +529,7 @@ public class PageStore implements CacheWriter {
                         cursor.get();
                     }
                     for (Index index : table.getIndexes()) {
-                        if (index != scanIndex) {
+                        if (index != scanIndex && index.canScan()) {
                             cursor = index.find(s, null, null);
                             while (cursor.next()) {
                                 // the data is already read

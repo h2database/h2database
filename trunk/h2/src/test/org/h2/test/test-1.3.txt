@@ -1,4 +1,10 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x ' as char(2)) = 'x';
+> X
+> -
+> 1
+> rows: 1
+
 explain select -cast(0 as real), -cast(0 as double);
 > PLAN
 > --------------------------------------------------------------------------------------------

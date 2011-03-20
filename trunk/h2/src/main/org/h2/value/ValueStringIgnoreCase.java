@@ -70,8 +70,8 @@ public class ValueStringIgnoreCase extends ValueString {
         return obj;
     }
 
-    protected Value getNew(String s) {
-        return ValueString.get(s);
+    protected ValueString getNew(String s) {
+        return ValueStringIgnoreCase.get(s);
     }
 
 }

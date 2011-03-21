@@ -433,7 +433,7 @@ public class IOUtils {
      * @param s the string
      * @return the input stream
      */
-    public static InputStream getInputStream(String s) {
+    public static InputStream getInputStreamFromString(String s) {
         if (s == null) {
             return null;
         }
@@ -447,7 +447,7 @@ public class IOUtils {
      * @param s the string or null
      * @return the reader
      */
-    public static Reader getReader(String s) {
+    public static Reader getReaderFromString(String s) {
         return s == null ? null : new StringReader(s);
     }
 
@@ -556,8 +556,10 @@ public class IOUtils {
      * @param original the original file name
      * @param copy the file name of the copy
      */
-    public static void copy(String original, String copy) {
-        getFileSystem(original).copy(original, copy);
+    public static void copy(String original, String copy) throws IOException {
+        InputStream in = openFileInputStream(original);
+        OutputStream out = openFileOutputStream(copy, false);
+        copyAndClose(in, out);
     }
 
     /**

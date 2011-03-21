@@ -6,6 +6,7 @@
  */
 package org.h2.test.utils;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,11 +63,6 @@ public class DebugFileSystem extends FileSystemWrapper {
     public boolean canWrite(String fileName) {
         trace(fileName, "canWrite");
         return super.canWrite(fileName);
-    }
-
-    public void copy(String source, String target) {
-        trace(source, "copy", unwrap(target));
-        super.copy(source, target);
     }
 
     public void createDirs(String fileName) {
@@ -155,9 +151,28 @@ public class DebugFileSystem extends FileSystemWrapper {
         return super.getCanonicalPath(fileName);
     }
 
-    public InputStream openFileInputStream(String fileName) throws IOException {
+    public InputStream openFileInputStream(final String fileName) throws IOException {
         trace(fileName, "openFileInputStream");
-        return super.openFileInputStream(fileName);
+        InputStream in = super.openFileInputStream(fileName);
+        if (!trace) {
+            return in;
+        }
+        return new FilterInputStream(in) {
+            public int read(byte[] b) throws IOException {
+                trace(fileName, "in.read(b)");
+                return super.read(b);
+            }
+
+            public int read(byte[] b, int off, int len) throws IOException {
+                trace(fileName, "in.read(b, " + off + ", " + len + ")");
+                return super.read(b, off, len);
+            }
+
+            public long skip(long n) throws IOException {
+                trace(fileName, "in.skip(" + n + ")");
+                return super.skip(n);
+            }
+        };
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {

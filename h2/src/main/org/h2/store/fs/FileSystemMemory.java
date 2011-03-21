@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
 import org.h2.message.DbException;
-import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -161,16 +160,6 @@ public class FileSystemMemory extends FileSystem {
 
     public boolean canWrite(String fileName) {
         return true;
-    }
-
-    public void copy(String source, String target) {
-        try {
-            OutputStream out = openFileOutputStream(target, false);
-            InputStream in = openFileInputStream(source);
-            IOUtils.copyAndClose(in, out);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, "Can not copy " + source + " to " + target);
-        }
     }
 
     public void createDirs(String fileName) {

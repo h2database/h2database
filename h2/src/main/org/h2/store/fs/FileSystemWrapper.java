@@ -33,10 +33,6 @@ public abstract class FileSystemWrapper extends FileSystem {
         return IOUtils.setReadOnly(unwrap(fileName));
     }
 
-    public void copy(String source, String target) {
-        IOUtils.copy(unwrap(source), unwrap(target));
-    }
-
     public void createDirs(String fileName) {
         IOUtils.createDirs(unwrap(fileName));
     }

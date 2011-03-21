@@ -33,10 +33,6 @@ public class FileSystemZip extends FileSystem {
         return false;
     }
 
-    public void copy(String original, String copy) {
-        throw DbException.getUnsupportedException("write");
-    }
-
     public void createDirs(String fileName) {
         // ignore
     }

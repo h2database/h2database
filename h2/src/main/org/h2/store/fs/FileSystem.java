@@ -215,14 +215,6 @@ public abstract class FileSystem {
     public abstract boolean canWrite(String fileName);
 
     /**
-     * Copy a file from one directory to another, or to another file.
-     *
-     * @param source the name of the original file
-     * @param target the file name of the copy
-     */
-    public abstract void copy(String source, String target);
-
-    /**
      * Create all required directories that are required for this file.
      *
      * @param fileName the file name (not directory name)

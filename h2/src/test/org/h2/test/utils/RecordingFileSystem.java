@@ -44,11 +44,6 @@ public class RecordingFileSystem extends FileSystemWrapper {
         RecordingFileSystem.recorder = recorder;
     }
 
-    public void copy(String source, String target) {
-        log(Recorder.COPY, unwrap(source) + ":" + unwrap(target));
-        super.copy(source, target);
-    }
-
     public void createDirs(String fileName) {
         log(Recorder.CREATE_DIRS, unwrap(fileName));
         super.createDirs(fileName);

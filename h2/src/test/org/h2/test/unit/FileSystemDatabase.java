@@ -175,17 +175,6 @@ public class FileSystemDatabase extends FileSystem {
         return true;
     }
 
-    public void copy(String source, String target) {
-        try {
-            OutputStream out = openFileOutputStream(target, false);
-            InputStream in = openFileInputStream(source);
-            IOUtils.copyAndClose(in, out);
-        } catch (IOException e) {
-            rollback();
-            throw DbException.convertIOException(e, "Can not copy " + source + " to " + target);
-        }
-    }
-
     public void createDirs(String fileName) {
         fileName = unwrap(fileName);
         try {

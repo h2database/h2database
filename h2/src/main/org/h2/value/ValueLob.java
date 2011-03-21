@@ -21,7 +21,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
-import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.SmallLRUCache;
@@ -758,7 +757,11 @@ public class ValueLob extends Value {
 
     private static void copyFileTo(DataHandler h, String sourceFileName, String targetFileName) {
         synchronized (h.getLobSyncObject()) {
-            FileSystem.getInstance(sourceFileName).copy(sourceFileName, targetFileName);
+            try {
+                IOUtils.copy(sourceFileName, targetFileName);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, null);
+            }
         }
     }
 

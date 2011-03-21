@@ -242,7 +242,7 @@ public class TestFileSystem extends TestBase {
         String[] list = fs.listFiles(fsBase);
         assertEquals(1, list.length);
         assertTrue(list[0].endsWith("test"));
-        fs.copy(fsBase + "/test", fsBase + "/test3");
+        IOUtils.copy(fsBase + "/test", fsBase + "/test3");
         fs.rename(fsBase + "/test3", fsBase + "/test2");
         assertTrue(!fs.exists(fsBase + "/test3"));
         assertTrue(fs.exists(fsBase + "/test2"));

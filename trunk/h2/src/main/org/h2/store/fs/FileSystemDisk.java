@@ -309,23 +309,6 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public void copy(String source, String target) {
-        source = translateFileName(source);
-        target = translateFileName(target);
-        OutputStream out = null;
-        InputStream in = null;
-        try {
-            in = IOUtils.openFileInputStream(source);
-            out = IOUtils.openFileOutputStream(target, false);
-            IOUtils.copy(in, out);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, "original: " + source + " copy: " + target);
-        } finally {
-            IOUtils.closeSilently(in);
-            IOUtils.closeSilently(out);
-        }
-    }
-
     public void createDirs(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);

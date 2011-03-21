@@ -15,7 +15,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.utils.Recorder;
 import org.h2.test.utils.RecordingFileSystem;
@@ -98,8 +97,8 @@ public class TestReopen extends TestBase implements Recorder {
             // System.out.println(fileName + " " + IOUtils.length(fileName));
             return;
         }
-        FileSystem.getInstance(fileName).copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
         try {
+            IOUtils.copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
             verifyCount++;
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
@@ -143,8 +142,8 @@ public class TestReopen extends TestBase implements Recorder {
             // ignore
         }
         testDatabase += "X";
-        FileSystem.getInstance(fileName).copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
         try {
+            IOUtils.copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
             ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase + ";FILE_LOCK=NO", p);

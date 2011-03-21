@@ -49,21 +49,6 @@ public class FileSystemSplit extends FileSystemWrapper {
         return result;
     }
 
-    public void copy(String source, String target) {
-        source = unwrap(source);
-        target = unwrap(target);
-        getInstance(source).copy(source, target);
-        for (int i = 1;; i++) {
-            String o = getFileName(source, i);
-            if (getInstance(o).exists(o)) {
-                String c = getFileName(target, i);
-                getInstance(o).copy(o, c);
-            } else {
-                break;
-            }
-        }
-    }
-
     public void delete(String fileName) {
         fileName = unwrap(fileName);
         for (int i = 0;; i++) {

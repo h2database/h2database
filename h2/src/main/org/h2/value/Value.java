@@ -429,7 +429,7 @@ public abstract class Value {
     }
 
     public Reader getReader() {
-        return IOUtils.getReader(getString());
+        return IOUtils.getReaderFromString(getString());
     }
 
     /**
@@ -914,10 +914,21 @@ public abstract class Value {
      *
      * @param precision the new precision
      * @return the new value
-     * @throws SQLException
      */
     public Value convertPrecision(long precision) {
         return this;
+    }
+
+    /**
+     * Trim the value to the requested precision.
+     * Unlike convertPrecision, this will always work
+     * (possibly losing precision).
+     *
+     * @param precision the maximum precision
+     * @return the new value
+     */
+    public Value trim(long precision) {
+        return convertPrecision(precision);
     }
 
     private static byte convertToByte(long x) {

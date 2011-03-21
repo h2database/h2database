@@ -87,7 +87,7 @@ public class JdbcClob extends TraceObject implements Clob
             debugCodeCall("getAsciiStream");
             checkClosed();
             String s = value.getString();
-            return IOUtils.getInputStream(s);
+            return IOUtils.getInputStreamFromString(s);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

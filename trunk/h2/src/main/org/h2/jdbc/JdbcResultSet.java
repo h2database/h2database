@@ -1117,7 +1117,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("getAsciiStream", columnIndex);
             String s = get(columnIndex).getString();
-            return s == null ? null : IOUtils.getInputStream(s);
+            return s == null ? null : IOUtils.getInputStreamFromString(s);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1135,7 +1135,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("getAsciiStream", columnLabel);
             String s = get(columnLabel).getString();
-            return IOUtils.getInputStream(s);
+            return IOUtils.getInputStreamFromString(s);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

@@ -26,6 +26,8 @@ Build
     Build Targets</a><br />
 <a href="#maven2">
     Using Maven 2</a><br />
+<a href="#using_eclipse">
+    Using Eclipse</a><br />
 <a href="#translating">
     Translating</a><br />
 <a href="#providing_patches">
@@ -165,6 +167,21 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
     &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;
 </pre>
+
+<h2 id="using_eclipse">Using Eclipse</h2>
+<p>
+To create an Eclipse project for H2, use the following steps:
+</p>
+<ul><li>Install Subversion and <a href="http://www.eclipse.org">Eclipse</a>.
+</li><li>Get the H2 source code from the Subversion repository:<br />
+    <code>svn checkout http://h2database.googlecode.com/svn/trunk h2database-read-only</code>
+</li><li>Download all dependencies (Windows):<br />
+    <code>build.bat download</code>
+</li><li>In Eclipse, create a new Java project from existing source code.
+</li><li>Select the <code>h2</code> folder, click <code>Next</code> and <code>Finish</code>.
+</li><li>To resolve <code>com.sun.javadoc</code> import statements, 
+    you may need to manually add the file <code>&lt;java.home&gt;/../lib/tools.jar</code> to the build path.
+</li></ul>
 
 <h2 id="translating">Translating</h2>
 <p>

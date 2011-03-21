@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Some time and timezone functions didn't support years before 1.
+<ul><li>CAST(x AS VARCHAR_IGNORECASE(y) / CHAR(y)) returned a VARCHAR
+    if the new precision was lower than the old precision.
+</li><li>SHUTDOWN DEFAG didn't defragment the database completely if there was a unique hash index for a memory table.
+</li><li>There were some smaller changes in the encrypting file system (work in progress).
+</li><li>Some time and timezone functions didn't support years before 1.
 </li></ul>
 
 <h2>Version 1.3.153 (2011-03-14)</h2>

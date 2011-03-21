@@ -555,10 +555,9 @@ A simple profiling tool is included in H2. To use it, the application needs to b
 <pre>
 import org.h2.util;
 ...
-profiler = new Profiler();
+Profiler profiler = new Profiler();
 profiler.startCollecting();
 // application code
-profiler.stopCollecting();
 System.out.println(profiler.getTop(3));
 </pre>
 <p>

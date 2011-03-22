@@ -78,6 +78,9 @@ public abstract class DbObjectBase implements DbObject {
      */
     public abstract void checkRename();
 
+    /**
+     * Tell the object that is was modified.
+     */
     public void setModified() {
         this.modificationId = database == null ? -1 : database.getNextModificationMetaId();
     }

@@ -522,6 +522,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support concurrent opening of databases.
 </li><li>Improved error message and diagnostics in case of network configuration problems.
 </li><li>TRUNCATE should reset the identity columns as in MySQL and MS SQL Server (and possibly other databases).
+</li><li>Adding a primary key should make the columns 'not null' unless if there is a row with null
+    (compatibility with MySQL, PostgreSQL, HSQLDB; not Derby).
+</li><li>ARRAY data type: support Integer[] and so on in Java functions (currently only Object[] is supported).
+</li><li>MySQL compatibility: LOCK TABLES a READ, b READ - see also http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html
 </li></ul>
 
 <h2>Not Planned</h2>

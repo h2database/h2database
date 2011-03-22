@@ -7,8 +7,10 @@
 package org.h2.value;
 
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import org.h2.engine.Constants;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 
 /**
@@ -55,7 +57,11 @@ public class ValueArray extends Value {
     }
 
     public long getPrecision() {
-        return 0;
+        long p = 0;
+        for (Value v : values) {
+            p += v.getPrecision();
+        }
+        return p;
     }
 
     public String getString() {
@@ -154,6 +160,26 @@ public class ValueArray extends Value {
             memory += v.getMemory() + Constants.MEMORY_POINTER;
         }
         return memory;
+    }
+
+    public Value convertPrecision(long precision, boolean force) {
+        if (!force) {
+            return this;
+        }
+        ArrayList<Value> list = New.arrayList();
+        for (Value v : values) {
+            v = v.convertPrecision(precision, true);
+            // empty byte arrays or strings have precision 0
+            // they count as precision 1 here
+            precision -= Math.max(1, v.getPrecision());
+            if (precision < 0) {
+                break;
+            }
+            list.add(v);
+        }
+        Value[] array = new Value[list.size()];
+        list.toArray(array);
+        return get(array);
     }
 
 }

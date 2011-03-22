@@ -910,25 +910,16 @@ public abstract class Value {
     }
 
     /**
-     * Convert the precision to the requested value.
+     * Convert the precision to the requested value. The precision of the
+     * returned value may be somewhat larger than requested, because values with
+     * a fixed precision are not truncated.
      *
      * @param precision the new precision
+     * @param force true if losing numeric precision is allowed
      * @return the new value
      */
-    public Value convertPrecision(long precision) {
+    public Value convertPrecision(long precision, boolean force) {
         return this;
-    }
-
-    /**
-     * Trim the value to the requested precision.
-     * Unlike convertPrecision, this will always work
-     * (possibly losing precision).
-     *
-     * @param precision the maximum precision
-     * @return the new value
-     */
-    public Value trim(long precision) {
-        return convertPrecision(precision);
     }
 
     private static byte convertToByte(long x) {

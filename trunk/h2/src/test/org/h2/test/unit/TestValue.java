@@ -21,10 +21,14 @@ import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
+import org.h2.value.ValueBytes;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
+import org.h2.value.ValueLobDb;
 import org.h2.value.ValueResultSet;
+import org.h2.value.ValueString;
 import org.h2.value.ValueUuid;
 
 /**
@@ -42,6 +46,7 @@ public class TestValue extends TestBase {
     }
 
     public void test() throws SQLException {
+        testCastTrim();
         testValueResultSet();
         testDataType();
         testUUID();
@@ -50,6 +55,63 @@ public class TestValue extends TestBase {
         testModulusDouble();
         testModulusDecimal();
         testModulusOperator();
+    }
+
+    private void testCastTrim() {
+        Value v;
+        String spaces = new String(new char[100]).replace((char) 0, ' ');
+
+        v = ValueArray.get(new Value[]{ValueString.get("hello"), ValueString.get("world")});
+        assertEquals(10, v.getPrecision());
+        assertEquals(5, v.convertPrecision(5, true).getPrecision());
+        v = ValueArray.get(new Value[]{ValueString.get(""), ValueString.get("")});
+        assertEquals(0, v.getPrecision());
+        assertEquals("('')", v.convertPrecision(1, true).toString());
+
+        v = ValueBytes.get(spaces.getBytes());
+        assertEquals(100, v.getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getBytes().length);
+        assertEquals(32, v.convertPrecision(10, false).getBytes()[9]);
+        assertEquals(10, v.convertPrecision(10, true).getPrecision());
+
+        v = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
+        assertEquals(19, v.getPrecision());
+        assertEquals("1234567890.1234567", v.convertPrecision(10, true).getString());
+        try {
+            v.convertPrecision(10, false);
+        } catch (DbException e) {
+            assertEquals(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, e.getErrorCode());
+        }
+
+        v = ValueLobDb.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
+        assertEquals(100, v.getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getString().length());
+        assertEquals("          ", v.convertPrecision(10, false).getString());
+        assertEquals(10, v.convertPrecision(10, true).getPrecision());
+
+        v = ValueLobDb.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
+        assertEquals(100, v.getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getBytes().length);
+        assertEquals(32, v.convertPrecision(10, false).getBytes()[9]);
+        assertEquals(10, v.convertPrecision(10, true).getPrecision());
+
+        ResultSet rs = new SimpleResultSet();
+        v = ValueResultSet.get(rs);
+        assertEquals(Integer.MAX_VALUE, v.getPrecision());
+        assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, false).getPrecision());
+        assertTrue(rs == v.convertPrecision(10, false).getObject());
+        assertFalse(rs == v.convertPrecision(10, true).getObject());
+        assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, true).getPrecision());
+
+        v = ValueString.get(spaces);
+        assertEquals(100, v.getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getPrecision());
+        assertEquals("          ", v.convertPrecision(10, false).getString());
+        assertEquals("          ", v.convertPrecision(10, true).getString());
+
     }
 
     private void testValueResultSet() throws SQLException {
@@ -67,7 +129,7 @@ public class TestValue extends TestBase {
         v = ValueResultSet.getCopy(rs, 2);
         assertEquals(0, v.hashCode());
         assertEquals(Integer.MAX_VALUE, v.getDisplaySize());
-        assertEquals(0, v.getPrecision());
+        assertEquals(Integer.MAX_VALUE, v.getPrecision());
         assertEquals(0, v.getScale());
         assertEquals("", v.getSQL());
         assertEquals(Value.RESULT_SET, v.getType());

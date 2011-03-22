@@ -1,4 +1,19 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+call cast_precision('Test 123', 4, false);
+> 'Test'
+> ------
+> Test
+> rows: 1
+
+call cast_precision(1234567890.123456789, 4, false);
+> exception
+
+call cast_precision(1234567890.123456789, 4, true);
+> 1234567890.1234567
+> ------------------
+> 1234567890.1234567
+> rows: 1
+
 select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x ' as char(2)) = 'x';
 > X
 > -

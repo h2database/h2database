@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StatementBuilder;
@@ -79,7 +78,7 @@ public class ValueResultSet extends Value {
     }
 
     public long getPrecision() {
-        return 0;
+        return Integer.MAX_VALUE;
     }
 
     public int getDisplaySize() {
@@ -140,6 +139,13 @@ public class ValueResultSet extends Value {
 
     public String getSQL() {
         return "";
+    }
+
+    public Value convertPrecision(long precision, boolean force) {
+        if (!force) {
+            return this;
+        }
+        return ValueResultSet.get(new SimpleResultSet());
     }
 
 }

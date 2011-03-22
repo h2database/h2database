@@ -117,4 +117,14 @@ public class ValueBytes extends Value {
         return other instanceof ValueBytes && Utils.compareNotNull(value, ((ValueBytes) other).value) == 0;
     }
 
+    public Value convertPrecision(long precision, boolean force) {
+        if (value.length <= precision) {
+            return this;
+        }
+        int len = MathUtils.convertLongToInt(precision);
+        byte[] buff = new byte[len];
+        System.arraycopy(value, 0, buff, 0, len);
+        return get(buff);
+    }
+
 }

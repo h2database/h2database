@@ -186,8 +186,12 @@ public class StringUtils {
                 // buff.append(Integer.toOctalString(0x200 | ch).substring(1));
                 } else {
                     buff.append("\\u");
+                    String hex = Integer.toHexString(ch);
                     // make sure it's four characters
-                    buff.append(Integer.toHexString(0x10000 | ch).substring(1));
+                    for (int len = hex.length(); len < 4; len++) {
+                        buff.append('0');
+                    }
+                    buff.append(hex);
                 }
             }
         }

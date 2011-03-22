@@ -95,7 +95,7 @@ public class Function extends Expression implements FunctionCall {
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
             LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRANSACTION_ID = 226;
+            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227;
 
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -297,6 +297,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("CASEWHEN", CASEWHEN, 3, Value.NULL);
         addFunctionWithNull("CONVERT", CONVERT, 1, Value.NULL);
         addFunctionWithNull("CAST", CAST, 1, Value.NULL);
+        addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE, 3, Value.NULL);
         addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NVL", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF, 2, Value.NULL);
@@ -715,7 +716,7 @@ public class Function extends Expression implements FunctionCall {
             v0 = v0.convertTo(dataType);
             Mode mode = database.getMode();
             v0 = v0.convertScale(mode.convertOnlyToSmallerScale, scale);
-            v0 = v0.convertPrecision(getPrecision());
+            v0 = v0.convertPrecision(getPrecision(), false);
             result = v0;
             break;
         }
@@ -1148,6 +1149,10 @@ public class Function extends Expression implements FunctionCall {
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);
             }
+            break;
+        }
+        case TRUNCATE_VALUE: {
+            result = v0.convertPrecision(v1.getLong(), v2.getBoolean());
             break;
         }
         default:
@@ -1678,6 +1683,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case CAST:
         case CONVERT:
+        case TRUNCATE_VALUE:
             // data type, precision and scale is already set
             t = dataType;
             p = precision;

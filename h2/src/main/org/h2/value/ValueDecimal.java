@@ -184,11 +184,14 @@ public class ValueDecimal extends Value {
         return ValueDecimal.get(bd);
     }
 
-    public Value convertPrecision(long newPrecision) {
-        if (getPrecision() <= newPrecision) {
+    public Value convertPrecision(long precision, boolean force) {
+        if (getPrecision() <= precision) {
             return this;
         }
-        throw DbException.get(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + newPrecision);
+        if (force) {
+            return get(BigDecimal.valueOf(value.doubleValue()));
+        }
+        throw DbException.get(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + precision);
     }
 
     /**

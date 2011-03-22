@@ -1351,6 +1351,10 @@ Returns the result set."
 TRANSACTION_ID()
 ","
 Returns the current transaction id for this session."
+"Functions (System)","TRUNCATE_VALUE","
+TRUNCATE_VALUE(value, precisionInt, forceBoolean)
+","
+Truncate a value to the required precision."
 "Functions (System)","USER","
 { USER | CURRENT_USER } ()
 ","

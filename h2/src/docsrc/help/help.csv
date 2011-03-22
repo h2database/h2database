@@ -3644,6 +3644,18 @@ The value is unique across database restarts (values are not re-used).
 CALL TRANSACTION_ID()
 "
 
+"Functions (System)","TRUNCATE_VALUE","
+TRUNCATE_VALUE(value, precisionInt, forceBoolean)
+","
+Truncate a value to the required precision.
+The precision of the returned value may be a bit larger than requested,
+because fixed precision values are not truncated (unlike the numeric TRUNCATE method).
+Unlike CAST, the truncating a decimal value may lose precision if the force flag is set to true.
+The method returns a value with the same data type as the first parameter.
+","
+CALL TRUNCATE_VALUE(X, 10, TRUE);
+"
+
 "Functions (System)","USER","
 { USER | CURRENT_USER } ()
 ","

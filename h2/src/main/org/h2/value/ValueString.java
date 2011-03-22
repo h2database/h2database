@@ -67,7 +67,7 @@ public class ValueString extends Value {
         return value.length() * 2 + 48;
     }
 
-    public Value convertPrecision(long precision) {
+    public Value convertPrecision(long precision, boolean force) {
         if (precision == 0 || value.length() <= precision) {
             return this;
         }
@@ -136,7 +136,7 @@ public class ValueString extends Value {
      * @param s the string
      * @return the value
      */
-    protected Value getNew(String s) {
+    protected ValueString getNew(String s) {
         return ValueString.get(s);
     }
 

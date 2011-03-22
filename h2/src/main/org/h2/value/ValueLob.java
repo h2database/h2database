@@ -799,4 +799,17 @@ public class ValueLob extends Value {
         return lob;
     }
 
+    public Value convertPrecision(long precision, boolean force) {
+        if (this.precision <= precision) {
+            return this;
+        }
+        ValueLob lob;
+        if (type == CLOB) {
+            lob = ValueLob.createClob(getReader(), precision, handler);
+        } else {
+            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+        }
+        return lob;
+    }
+
 }

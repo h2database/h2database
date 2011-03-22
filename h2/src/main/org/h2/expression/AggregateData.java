@@ -7,14 +7,18 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
 import org.h2.util.ValueHashMap;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
@@ -61,9 +65,23 @@ class AggregateData {
             // the value -1 is not supported
             distinctHashes.put(hash, 1);
             return;
-        }
-        if (aggregateType == Aggregate.COUNT_ALL) {
+        } else if (aggregateType == Aggregate.COUNT_ALL) {
             count++;
+            return;
+        } else if (aggregateType == Aggregate.HISTOGRAM) {
+            if (distinctValues == null) {
+                distinctValues = ValueHashMap.newInstance();
+            }
+            AggregateData a = distinctValues.get(v);
+            if (a == null) {
+                if (distinctValues.size() < Constants.SELECTIVITY_DISTINCT_COUNT) {
+                    a = new AggregateData(Aggregate.HISTOGRAM, dataType);
+                    distinctValues.put(v, a);
+                }
+            }
+            if (a != null) {
+                a.count++;
+            }
             return;
         }
         if (v == ValueNull.INSTANCE) {
@@ -79,6 +97,7 @@ class AggregateData {
         }
         switch (aggregateType) {
         case Aggregate.COUNT:
+        case Aggregate.HISTOGRAM:
             return;
         case Aggregate.SUM:
             if (value == null) {
@@ -229,6 +248,24 @@ class AggregateData {
             v = ValueDouble.get(m2 / (count - 1));
             break;
         }
+        case Aggregate.HISTOGRAM:
+            ValueArray[] values = new ValueArray[distinctValues.size()];
+            int i = 0;
+            for (Value dv : distinctValues.keys()) {
+                AggregateData d = distinctValues.get(dv);
+                values[i] = ValueArray.get(new Value[] {dv, ValueLong.get(d.count)});
+                i++;
+            }
+            final CompareMode compareMode = database.getCompareMode();
+            Arrays.sort(values, new Comparator<ValueArray>() {
+                public int compare(ValueArray v1, ValueArray v2) {
+                    Value a1 = v1.getList()[0];
+                    Value a2 = v2.getList()[0];
+                    return a1.compareTo(a2, compareMode);
+                }
+            });
+            v = ValueArray.get(values);
+            break;
         default:
             DbException.throwInternalError("type=" + aggregateType);
         }

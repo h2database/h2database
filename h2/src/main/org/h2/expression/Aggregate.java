@@ -111,6 +111,11 @@ public class Aggregate extends Expression {
      */
     static final int SELECTIVITY = 13;
 
+    /**
+     * The aggregate type for HISTOGRAM(expression).
+     */
+    static final int HISTOGRAM = 14;
+
     private static final HashMap<String, Integer> AGGREGATES = New.hashMap();
 
     private final int type;
@@ -158,12 +163,13 @@ public class Aggregate extends Expression {
         addAggregate("VAR", VAR_SAMP);
         addAggregate("VARIANCE", VAR_SAMP);
         addAggregate("BOOL_OR", BOOL_OR);
-        // HSQLDB compatibility, but conflicts with >EVERY(...)
+        // HSQLDB compatibility, but conflicts with x > EVERY(...)
         addAggregate("SOME", BOOL_OR);
         addAggregate("BOOL_AND", BOOL_AND);
-        // HSQLDB compatibility, but conflicts with >SOME(...)
+        // HSQLDB compatibility, but conflicts with x > SOME(...)
         addAggregate("EVERY", BOOL_AND);
         addAggregate("SELECTIVITY", SELECTIVITY);
+        addAggregate("HISTOGRAM", HISTOGRAM);
     }
 
     private static void addAggregate(String name, int type) {
@@ -367,8 +373,7 @@ public class Aggregate extends Expression {
         case GROUP_CONCAT:
             dataType = Value.STRING;
             scale = 0;
-            precision = Integer.MAX_VALUE;
-            displaySize = Integer.MAX_VALUE;
+            precision = displaySize = Integer.MAX_VALUE;
             break;
         case COUNT_ALL:
         case COUNT:
@@ -382,6 +387,11 @@ public class Aggregate extends Expression {
             scale = 0;
             precision = ValueInt.PRECISION;
             displaySize = ValueInt.DISPLAY_SIZE;
+            break;
+        case HISTOGRAM:
+            dataType = Value.ARRAY;
+            scale = 0;
+            precision = displaySize = Integer.MAX_VALUE;
             break;
         case SUM:
             if (!DataType.supportsAdd(dataType)) {
@@ -476,6 +486,9 @@ public class Aggregate extends Expression {
             break;
         case SELECTIVITY:
             text = "SELECTIVITY";
+            break;
+        case HISTOGRAM:
+            text = "HISTOGRAM";
             break;
         case SUM:
             text = "SUM";

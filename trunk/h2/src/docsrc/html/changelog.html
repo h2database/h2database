@@ -18,9 +18,18 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>CAST(x AS VARCHAR_IGNORECASE(y) / CHAR(y)) returned a VARCHAR
+<ul><li>New aggregate function HISTOGRAM to calculate the histogram.
+    The plan is to use this function is only used internally when running ANALYZE
+    to generate the histogram that is then used by the query optimizer.
+</li><li>New system function TRUNCATE_VALUE to truncate a value to the required precision.
+    This is the same as for CAST, but without changing the data type, and support for truncating decimal values.
+    (The main use case for this function is to build a histogram of the truncated values).
+    Now BINARY, BLOB, and CLOB can be truncated / cast efficiently as well.
+</li><li>The precision of an ARRAY value is now the sum of the precision of all elements,
+    and result set values have the precision Integer.MAX_VALUE.
+</li><li>CAST(x AS VARCHAR_IGNORECASE(y) / CHAR(y)) returned a VARCHAR
     if the new precision was lower than the old precision.
-</li><li>SHUTDOWN DEFAG didn't defragment the database completely if there was a unique hash index for a memory table.
+</li><li>SHUTDOWN DEFRAG didn't defragment the database completely if there was a unique hash index for a memory table.
 </li><li>There were some smaller changes in the encrypting file system (work in progress).
 </li><li>Some time and timezone functions didn't support years before 1.
 </li></ul>

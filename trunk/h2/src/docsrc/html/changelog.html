@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New aggregate function HISTOGRAM to calculate the histogram.
+<ul><li>ALTER TABLE ALTER ADD / REMOVE /ALTER COLUMN dropped some dependent objects 
+    (access rights, triggers) of views that depend on the modified table.
+</li><li>CREATE OR REPLACE VIEW dropped some dependent objects (access rights, triggers)
+    if the view already existed before.
+</li><li>New aggregate function HISTOGRAM to calculate the histogram.
     The plan is to use this function is only used internally when running ANALYZE
     to generate the histogram that is then used by the query optimizer.
 </li><li>New system function TRUNCATE_VALUE to truncate a value to the required precision.

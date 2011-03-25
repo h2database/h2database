@@ -706,7 +706,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param view the view to remove
      */
-    void removeView(TableView view) {
+    public void removeView(TableView view) {
         remove(views, view);
     }
 

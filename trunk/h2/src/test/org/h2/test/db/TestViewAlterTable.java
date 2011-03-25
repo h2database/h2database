@@ -165,6 +165,8 @@ public class TestViewAlterTable extends TestBase {
         stat.execute("create view v1 as select a as b, b as a from test");
         // child of v1
         stat.execute("create view v2 as select * from v1");
+        stat.execute("create user if not exists test_user password 'x'");
+        stat.execute("grant select on v2 to test_user");
         // sibling of v1
         stat.execute("create view v3 as select a from test");
     }
@@ -180,6 +182,10 @@ public class TestViewAlterTable extends TestBase {
         assertEquals(1, rs.getInt(1));
         assertFalse(rs.next());
 
+        rs = stat.executeQuery("select * from information_schema.rights");
+        assertTrue(rs.next());
+        assertEquals("TEST_USER", rs.getString("GRANTEE"));
+        assertEquals("V2", rs.getString("TABLE_NAME"));
         rs = stat.executeQuery("select b from test");
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
@@ -187,11 +193,12 @@ public class TestViewAlterTable extends TestBase {
 
         stat.execute("drop table test cascade");
 
-        ResultSet d = conn.getMetaData().getTables(null, null, null, null);
-        while (d.next()) {
-            if (!d.getString(2).equals("INFORMATION_SCHEMA")) {
-                fail("Should have no tables left in the database, not: " + d.getString(2) + "." + d.getString(3));
+        rs = conn.getMetaData().getTables(null, null, null, null);
+        while (rs.next()) {
+            if (!rs.getString(2).equals("INFORMATION_SCHEMA")) {
+                fail("Should have no tables left in the database, not: " + rs.getString(2) + "." + rs.getString(3));
             }
         }
+
     }
 }

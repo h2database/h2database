@@ -648,11 +648,7 @@ public class Database implements DataHandler {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.isInvalid()) {
-                        try {
-                            view.recompile(session);
-                        } catch (DbException e) {
-                            // ignore
-                        }
+                        view.recompile(session, true);
                         if (!view.isInvalid()) {
                             recompileSuccessful = true;
                         }
@@ -667,11 +663,7 @@ public class Database implements DataHandler {
             if (obj instanceof TableView) {
                 TableView view = (TableView) obj;
                 if (!view.isInvalid()) {
-                    try {
-                        view.recompile(systemSession);
-                    } catch (DbException e) {
-                        // ignore
-                    }
+                    view.recompile(systemSession, true);
                 }
             }
         }

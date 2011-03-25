@@ -40,7 +40,7 @@ public class TableView extends Table {
 
     private String querySQL;
     private ArrayList<Table> tables;
-    private final String[] columnNames;
+    private String[] columnNames;
     private Query viewQuery;
     private ViewIndex index;
     private boolean recursive;
@@ -56,34 +56,87 @@ public class TableView extends Table {
     public TableView(Schema schema, int id, String name, String querySQL, ArrayList<Parameter> params, String[] columnNames,
             Session session, boolean recursive) {
         super(schema, id, name, false, true);
+        init(querySQL, params, columnNames, session, recursive);
+    }
+
+    /**
+     * Try to replace the SQL statement of the view and re-compile this and all
+     * dependent views.
+     *
+     * @param querySQL the SQL statement
+     * @param columnNames the column names
+     * @param session the session
+     * @param recursive whether this is a recursive view
+     * @param force if errors should be ignored
+     */
+    public void replace(String querySQL, String[] columnNames, Session session, boolean recursive, boolean force) {
+        String oldQuerySQL = this.querySQL;
+        String[] oldColumnNames = this.columnNames;
+        boolean oldRecursive = this.recursive;
+        init(querySQL, null, columnNames, session, recursive);
+        DbException e = recompile(session, force);
+        if (e != null) {
+            init(oldQuerySQL, null, oldColumnNames, session, oldRecursive);
+            recompile(session, true);
+            throw e;
+        }
+    }
+
+    private void init(String querySQL, ArrayList<Parameter> params, String[] columnNames, Session session, boolean recursive) {
         this.querySQL = querySQL;
         this.columnNames = columnNames;
         this.recursive = recursive;
         index = new ViewIndex(this, querySQL, params, recursive);
+        indexCache.clear();
         initColumnsAndTables(session);
     }
 
+    private static Query compileViewQuery(Session session, String sql) {
+        Prepared p = session.prepare(sql);
+        if (!(p instanceof Query)) {
+            throw DbException.getSyntaxError(sql, 0);
+        }
+        return (Query) p;
+    }
+
     /**
-     * Re-compile the query, updating the SQL statement.
+     * Re-compile the view query and all views that depend on this object.
      *
      * @param session the session
-     * @return the query
+     * @param force if exceptions should be ignored
+     * @return the exception if re-compiling this or any dependent view failed (only when force is disabled)
      */
-    public Query recompileQuery(Session session) {
-        Prepared p = session.prepare(querySQL);
-        if (!(p instanceof Query)) {
-            throw DbException.getSyntaxError(querySQL, 0);
+    public DbException recompile(Session session, boolean force) {
+        try {
+            compileViewQuery(session, querySQL);
+        } catch (DbException e) {
+            if (!force) {
+                return e;
+            }
         }
-        Query query = (Query) p;
-        querySQL = query.getPlanSQL();
-        return query;
+        ArrayList<TableView> views = getViews();
+        if (views != null) {
+            views = New.arrayList(views);
+        }
+        indexCache.clear();
+        initColumnsAndTables(session);
+        if (views != null) {
+            for (TableView v : views) {
+                DbException e = v.recompile(session, force);
+                if (e != null && !force) {
+                    return e;
+                }
+            }
+        }
+        return force ? null : createException;
     }
 
     private void initColumnsAndTables(Session session) {
         Column[] cols;
         removeViewFromTables();
         try {
-            Query query = recompileQuery(session);
+            Query query = compileViewQuery(session, querySQL);
+            this.querySQL = query.getPlanSQL();
             tables = New.arrayList(query.getTables());
             ArrayList<Expression> expressions = query.getExpressions();
             ArrayList<Column> list = New.arrayList();
@@ -109,6 +162,7 @@ public class TableView extends Table {
             createException = null;
             viewQuery = query;
         } catch (DbException e) {
+            e.addSQL(getCreateSQL());
             createException = e;
             // if it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
@@ -158,6 +212,11 @@ public class TableView extends Table {
         return buff.toString();
     }
 
+    public String getCreateSQLForCopy(Table table, String quotedName) {
+        return getCreateSQL(false, true, quotedName);
+    }
+
+
     public String getCreateSQL() {
         return getCreateSQL(false, true);
     }
@@ -170,6 +229,10 @@ public class TableView extends Table {
      * @return the SQL statement
      */
     public String getCreateSQL(boolean orReplace, boolean force) {
+        return getCreateSQL(orReplace, force, getSQL());
+    }
+
+    private String getCreateSQL(boolean orReplace, boolean force, String quotedName) {
         StatementBuilder buff = new StatementBuilder("CREATE ");
         if (orReplace) {
             buff.append("OR REPLACE ");
@@ -178,11 +241,11 @@ public class TableView extends Table {
             buff.append("FORCE ");
         }
         buff.append("VIEW ");
-        buff.append(getSQL());
+        buff.append(quotedName);
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
-        if (columns.length > 0) {
+        if (columns != null && columns.length > 0) {
             buff.append('(');
             for (Column c : columns) {
                 buff.appendExceptFirst(", ");
@@ -291,19 +354,6 @@ public class TableView extends Table {
         return null;
     }
 
-    /**
-     * Re-compile the view query.
-     *
-     * @param session the session
-     */
-    public void recompile(Session session) {
-        for (Table t : tables) {
-            t.removeView(this);
-        }
-        tables.clear();
-        initColumnsAndTables(session);
-    }
-
     public long getMaxDataModificationId() {
         if (createException != null) {
             return Long.MAX_VALUE;
@@ -364,10 +414,10 @@ public class TableView extends Table {
         String querySQL = query.getPlanSQL();
         TableView v = new TableView(mainSchema, 0, name, querySQL, query.getParameters(), null, session,
                 false);
-        v.setTopQuery(topQuery);
         if (v.createException != null) {
             throw v.createException;
         }
+        v.setTopQuery(topQuery);
         v.setOwner(owner);
         v.setTemporary(true);
         return v;

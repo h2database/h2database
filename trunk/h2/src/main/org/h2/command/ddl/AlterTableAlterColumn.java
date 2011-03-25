@@ -7,7 +7,6 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
-import java.util.List;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -179,15 +178,23 @@ public class AlterTableAlterColumn extends SchemaCommand {
         Column[] columns = table.getColumns();
         ArrayList<Column> newColumns = New.arrayList();
         Table newTable = cloneTableStructure(columns, db, tempName, newColumns);
-        List<String> views;
         try {
-            views = checkViews(table, newTable);
+            // check if a view would become invalid
+            // (because the column to drop is referenced or so)
+            checkViews(table, newTable);
         } catch (DbException e) {
             execute("DROP TABLE " + newTable.getName(), true);
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
         }
         String tableName = table.getName();
-        execute("DROP TABLE " + table.getSQL() + " CASCADE", true);
+        ArrayList<TableView> views = table.getViews();
+        if (views != null) {
+            views = New.arrayList(views);
+            for (TableView view : views) {
+                table.removeView(view);
+            }
+        }
+        execute("DROP TABLE " + table.getSQL() + " IGNORE", true);
         db.renameSchemaObject(session, newTable, tableName);
         for (DbObject child : newTable.getChildren()) {
             if (child instanceof Sequence) {
@@ -212,8 +219,11 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 db.renameSchemaObject(session, so, name);
             }
         }
-        for (String view : views) {
-            execute(view, true);
+        if (views != null) {
+            for (TableView view : views) {
+                String sql = view.getCreateSQL(true, true);
+                execute(sql, true);
+            }
         }
     }
 
@@ -341,13 +351,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }
 
     /**
-     * Check that all views are still valid.
-     *
-     * @return the list of SQL statements to re-create views that depend on this
-     *         table
+     * Check that all views and other dependent objects.
      */
-    private List<String> checkViews(SchemaObject sourceTable, SchemaObject newTable) {
-        List<String> viewSql = new ArrayList<String>();
+    private void checkViews(SchemaObject sourceTable, SchemaObject newTable) {
         String sourceTableName = sourceTable.getName();
         String newTableName = newTable.getName();
         Database db = sourceTable.getDatabase();
@@ -356,7 +362,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         try {
             // have our new table impersonate the target table
             db.renameSchemaObject(session, newTable, sourceTableName);
-            checkViewsAreValid(sourceTable, viewSql);
+            checkViewsAreValid(sourceTable);
         } finally {
             // always put the source tables back with their proper names
             try {
@@ -365,17 +371,14 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 db.renameSchemaObject(session, sourceTable, sourceTableName);
             }
         }
-        return viewSql;
     }
 
     /**
      * Check that a table or view is still valid.
      *
      * @param tableOrView the table or view to check
-     * @param recreate the list of SQL statements to re-create views that depend
-     *            on this table
      */
-    private void checkViewsAreValid(DbObject tableOrView, List<String> recreate) {
+    private void checkViewsAreValid(DbObject tableOrView) {
         for (DbObject view : tableOrView.getChildren()) {
             if (view instanceof TableView) {
                 String sql = ((TableView) view).getQuery();
@@ -383,9 +386,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 // do not execute, not even with limit 1, because that could
                 // have side effects or take a very long time
                 session.prepare(sql);
-                recreate.add(view.getDropSQL());
-                recreate.add(view.getCreateSQL());
-                checkViewsAreValid(view, recreate);
+                checkViewsAreValid(view);
             }
         }
     }

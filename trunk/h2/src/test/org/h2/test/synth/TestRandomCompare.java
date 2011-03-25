@@ -76,6 +76,11 @@ public class TestRandomCompare extends TestBase {
         } catch (Exception e) {
             // ignore
         }
+        try {
+            execute("drop table test cascade");
+        } catch (Exception e) {
+            // ignore
+        }
         String sql = "create table test(x0 int, x1 int)";
         trace(sql + ";");
         execute(sql);

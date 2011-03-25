@@ -48,6 +48,12 @@ public class TestViewDropView extends TestBase {
     }
 
     private void testCreateForceView() throws SQLException {
+        try {
+            stat.execute("create view test_view as select * from test");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e.getErrorCode());
+        }
         stat.execute("create force view test_view as select * from test");
         stat.execute("create table test(id int)");
         stat.execute("alter view test_view recompile");
@@ -142,7 +148,7 @@ public class TestViewDropView extends TestBase {
             stat.execute("create or replace view v1 as select c from test");
             fail("Exception should be thrown - dependent views need more columns than just 'c'");
         } catch (SQLException e) {
-            assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
+            assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
         }
 
         // Make sure our old views come back ok

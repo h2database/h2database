@@ -7,14 +7,11 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
-import java.util.List;
 import org.h2.command.CommandInterface;
-import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
@@ -73,24 +70,19 @@ public class CreateView extends SchemaCommand {
         this.force = force;
     }
 
-
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        Table existingView = getSchema().findTableOrView(session, viewName);
-
-        List<DependentView> dependentViewSql = new ArrayList<DependentView>();
-
-        if (existingView != null) {
+        TableView view = null;
+        Table old = getSchema().findTableOrView(session, viewName);
+        if (old != null) {
             if (ifNotExists) {
                 return 0;
             }
-            if (orReplace && existingView.getTableType().equals(Table.VIEW)) {
-                db.renameSchemaObject(session, existingView, db.getTempTableName(session));
-                loadDependentViewSql(existingView, dependentViewSql);
-            } else {
+            if (!orReplace || !old.getTableType().equals(Table.VIEW)) {
                 throw DbException.get(ErrorCode.VIEW_ALREADY_EXISTS_1, viewName);
             }
+            view = (TableView) old;
         }
         int id = getObjectId();
         String querySQL;
@@ -104,93 +96,30 @@ public class CreateView extends SchemaCommand {
             querySQL = select.getPlanSQL();
         }
         Session sysSession = db.getSystemSession();
-        TableView view;
         try {
-            Schema schema = session.getDatabase().getSchema(session.getCurrentSchemaName());
-            sysSession.setCurrentSchema(schema);
-            view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, sysSession, false);
+            if (view == null) {
+                Schema schema = session.getDatabase().getSchema(session.getCurrentSchemaName());
+                sysSession.setCurrentSchema(schema);
+                view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, sysSession, false);
+            } else {
+                view.replace(querySQL, columnNames, sysSession, false, force);
+            }
         } finally {
             sysSession.setCurrentSchema(db.getSchema(Constants.SCHEMA_MAIN));
         }
-        view.setComment(comment);
-        try {
-            view.recompileQuery(session);
-        } catch (DbException e) {
-            // this is not strictly required - ignore exceptions, specially when using FORCE
+        if (comment != null) {
+            view.setComment(comment);
         }
-        db.addSchemaObject(session, view);
-        if (existingView != null) {
-            recreateDependentViews(db, existingView, dependentViewSql, view);
+        if (old == null) {
+            db.addSchemaObject(session, view);
+        } else {
+            db.update(session, view);
         }
         return 0;
-    }
-
-
-    private void recreateDependentViews(Database db, Table existingView, List<DependentView> dependentViewSql, TableView view) {
-        String failedView = null;
-        try {
-            // recreate the dependent views
-            for (DependentView dependentView : dependentViewSql) {
-                failedView = dependentView.viewName;
-                if (force) {
-                    execute(dependentView.createForceSql, true);
-                } else {
-                    execute(dependentView.createSql, true);
-                }
-            }
-            // Delete the original view
-            db.removeSchemaObject(session, existingView);
-
-        } catch (DbException e) {
-            db.removeSchemaObject(session, view);
-
-            // Put back the old view
-            db.renameSchemaObject(session, existingView, viewName);
-
-            // Try to put back the dependent views
-            for (DependentView dependentView : dependentViewSql) {
-                execute(dependentView.createForceSql, true);
-            }
-
-            throw DbException.get(ErrorCode.CANNOT_DROP_2, e, existingView.getName(), failedView);
-        }
-    }
-
-    private void loadDependentViewSql(DbObject tableOrView, List<DependentView> recreate) {
-        for (DbObject view : tableOrView.getChildren()) {
-            if (view instanceof TableView) {
-                recreate.add(new DependentView((TableView) view));
-                loadDependentViewSql(view, recreate);
-            }
-        }
-    }
-
-    /**
-     * Class that holds a snapshot of dependent view information. We can't just
-     * work with TableViews directly because they become invalid when we drop
-     * the parent view.
-     */
-    private static class DependentView {
-        String viewName;
-        String createSql;
-        String createForceSql;
-
-        DependentView(TableView view) {
-            this.viewName = view.getName();
-            this.createSql = view.getCreateSQL(true, false);
-            this.createForceSql = view.getCreateSQL(true, true);
-        }
-    }
-
-    private void execute(String sql, boolean ddl) {
-        Prepared command = session.prepare(sql);
-        command.update();
-        if (ddl) {
-            session.commit(true);
-        }
     }
 
     public int getType() {
         return CommandInterface.CREATE_VIEW;
     }
+
 }

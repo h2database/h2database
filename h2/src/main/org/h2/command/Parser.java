@@ -1165,6 +1165,8 @@ public class Parser {
                 readIf("CONSTRAINTS");
             } else if (readIf("RESTRICT")) {
                 command.setDropAction(ConstraintReferential.RESTRICT);
+            } else if (readIf("IGNORE")) {
+                command.setDropAction(ConstraintReferential.SET_DEFAULT);
             }
             return command;
         } else if (readIf("INDEX")) {

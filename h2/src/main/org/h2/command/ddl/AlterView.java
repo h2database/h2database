@@ -9,6 +9,7 @@ package org.h2.command.ddl;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.message.DbException;
 import org.h2.table.TableView;
 
 /**
@@ -30,7 +31,10 @@ public class AlterView extends DefineCommand {
     public int update() {
         session.commit(true);
         session.getUser().checkRight(view, Right.ALL);
-        view.recompile(session);
+        DbException e = view.recompile(session, false);
+        if (e != null) {
+            throw e;
+        }
         return 0;
     }
 

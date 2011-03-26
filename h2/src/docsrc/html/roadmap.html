@@ -475,7 +475,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Use javax.tools.JavaCompilerTool instead of com.sun.tools.javac.Main
 </li><li>If a database object was not found in the current schema, but one with the same name existed in another schema, included that in the error message.
 </li><li>Optimization to use an index for OR when using multiple keys: where (key1 = ? and key2 = ?) OR (key1 = ? and key2 = ?)
-</li><li>Support optimizing queries with both inner and outer joins, as in:
+</li><li>Issue 302: Support optimizing queries with both inner and outer joins, as in:
     select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1
     (the optimizer should swap a and b here).
     See also TestNestedJoins, tag "swapInnerJoinTables".

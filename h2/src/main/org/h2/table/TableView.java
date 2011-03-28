@@ -104,7 +104,8 @@ public class TableView extends Table {
      *
      * @param session the session
      * @param force if exceptions should be ignored
-     * @return the exception if re-compiling this or any dependent view failed (only when force is disabled)
+     * @return the exception if re-compiling this or any dependent view failed
+     *         (only when force is disabled)
      */
     public DbException recompile(Session session, boolean force) {
         try {

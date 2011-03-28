@@ -13,13 +13,15 @@ FROM tableExpression [,...] [ WHERE expression ]
 ","
 Selects data from a table or multiple tables."
 "Commands (DML)","INSERT","
-INSERT INTO tableName [ ( columnName [,...] ) ]
-{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | [ DIRECT ] [ SORTED ] select }
+INSERT INTO tableName
+{ [ ( columnName [,...] ) ]
+    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | [ DIRECT ] [ SORTED ] select } } |
+    { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Inserts a new row / new rows into a table."
 "Commands (DML)","UPDATE","
 UPDATE tableName [ [ AS ] newTableAlias ]
-SET { columnName= { DEFAULT | expression } } [,...]
+SET { columnName = { DEFAULT | expression } } [,...]
 [ WHERE expression ]
 ","
 Updates data in a table."

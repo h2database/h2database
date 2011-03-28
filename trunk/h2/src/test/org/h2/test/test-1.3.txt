@@ -1928,13 +1928,13 @@ drop table d;
 create table test(id int, c char(5), v varchar(5));
 > ok
 
-insert into test values(1, 'a', 'a');
+insert into test set id = 1, c = 'a', v = 'a';
 > update count: 1
 
-insert into test values(2, 'a ', 'a ');
+insert into test set id = 2, c = 'a ', v = 'a ';
 > update count: 1
 
-insert into test values(3, 'abcde      ', 'abcde');
+insert into test set id = 3, c = 'abcde      ', v = 'abcde';
 > update count: 1
 
 select distinct length(c) from test order by length(c);

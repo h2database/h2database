@@ -769,13 +769,7 @@ public class Parser {
         HashSet<Column> set = New.hashSet();
         if (!readIf(")")) {
             do {
-                String id = readColumnIdentifier();
-                Column column;
-                if (database.getSettings().rowId && Column.ROWID.equals(id)) {
-                    column = table.getRowIdColumn();
-                } else {
-                    column = table.getColumn(id);
-                }
+                Column column = parseColumn(table);
                 if (!set.add(column)) {
                     throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL());
                 }
@@ -783,6 +777,14 @@ public class Parser {
             } while (readIfMore());
         }
         return columns.toArray(new Column[columns.size()]);
+    }
+
+    private Column parseColumn(Table table) {
+        String id = readColumnIdentifier();
+        if (database.getSettings().rowId && Column.ROWID.equals(id)) {
+            return table.getRowIdColumn();
+        }
+        return table.getColumn(id);
     }
 
     private boolean readIfMore() {
@@ -940,13 +942,14 @@ public class Parser {
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
+        Column[] columns = null;
         if (readIf("(")) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
                 read(")");
                 return command;
             }
-            Column[] columns = parseColumnList(table);
+            columns = parseColumnList(table);
             command.setColumns(columns);
         }
         if (readIf("DIRECT")) {
@@ -975,6 +978,25 @@ public class Parser {
                 command.addRow(values.toArray(new Expression[values.size()]));
                 // the following condition will allow (..),; and (..);
             } while (readIf(",") && readIf("("));
+        } else if (readIf("SET")) {
+            if (columns != null) {
+                throw getSyntaxError();
+            }
+            ArrayList<Column> columnList = New.arrayList();
+            ArrayList<Expression> values = New.arrayList();
+            do {
+                columnList.add(parseColumn(table));
+                read("=");
+                Expression expression;
+                if (readIf("DEFAULT")) {
+                    expression = ValueExpression.getDefault();
+                } else {
+                    expression = readExpression();
+                }
+                values.add(expression);
+            } while (readIf(","));
+            command.setColumns(columnList.toArray(new Column[columnList.size()]));
+            command.addRow(values.toArray(new Expression[values.size()]));
         } else {
             command.setQuery(parseSelect());
         }
@@ -2126,7 +2148,7 @@ public class Parser {
         case Function.CAST: {
             function.setParameter(0, readExpression());
             read("AS");
-            Column type = parseColumn(null);
+            Column type = parseColumnWithType(null);
             function.setDataType(type);
             read(")");
             break;
@@ -2134,7 +2156,7 @@ public class Parser {
         case Function.CONVERT: {
             function.setParameter(0, readExpression());
             read(",");
-            Column type = parseColumn(null);
+            Column type = parseColumnWithType(null);
             function.setDataType(type);
             read(")");
             break;
@@ -2223,7 +2245,7 @@ public class Parser {
             ArrayList<Column> columns = New.arrayList();
             do {
                 String columnName = readAliasIdentifier();
-                Column column = parseColumn(columnName);
+                Column column = parseColumnWithType(columnName);
                 columns.add(column);
                 read("=");
                 function.setParameter(i, readExpression());
@@ -2584,7 +2606,7 @@ public class Parser {
                 JavaFunction func = new JavaFunction(f, args);
                 r = func;
             } else {
-                Column col = parseColumn(null);
+                Column col = parseColumnWithType(null);
                 Function function = Function.getFunction(database, "CAST");
                 function.setDataType(col);
                 function.setParameter(0, r);
@@ -3451,7 +3473,7 @@ public class Parser {
             parseAutoIncrement(column);
             column.setPrimaryKey(true);
         } else {
-            column = parseColumn(columnName);
+            column = parseColumnWithType(columnName);
         }
         if (readIf("NOT")) {
             read("NULL");
@@ -3549,7 +3571,7 @@ public class Parser {
         return null;
     }
 
-    private Column parseColumn(String columnName) {
+    private Column parseColumnWithType(String columnName) {
         String original = currentToken;
         boolean regular = false;
         if (readIf("LONG")) {

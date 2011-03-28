@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testMaxMemoryRowsDistinct();
         testDeleteTop();
         testUnicode();
         testOuterJoin();
@@ -86,6 +87,18 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testMaxMemoryRowsDistinct() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases;max_memory_rows_distinct=1");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key)");
+        stat.execute("insert into test values(1), (2)");
+        stat.execute("select * from dual where x not in (select id from test order by id)");
+        stat.execute("select * from dual where x not in (select id from test union select id from test)");
+        stat.execute("(select id from test order by id) intersect (select id from test order by id)");
+        conn.close();
     }
 
     private void testUnicode() throws SQLException {

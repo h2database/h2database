@@ -544,16 +544,14 @@ public abstract class Table extends SchemaObjectBase {
         return new SimpleRow(new Value[columns.length]);
     }
 
-    Row getNullRow() {
-        synchronized (this) {
-            if (nullRow == null) {
-                nullRow = new Row(new Value[columns.length], 1);
-                for (int i = 0; i < columns.length; i++) {
-                    nullRow.setValue(i, ValueNull.INSTANCE);
-                }
+    synchronized Row getNullRow() {
+        if (nullRow == null) {
+            nullRow = new Row(new Value[columns.length], 1);
+            for (int i = 0; i < columns.length; i++) {
+                nullRow.setValue(i, ValueNull.INSTANCE);
             }
-            return nullRow;
         }
+        return nullRow;
     }
 
     public Column[] getColumns() {

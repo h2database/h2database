@@ -63,7 +63,6 @@ public class SelectUnion extends Query {
     private Expression[] expressionArray;
     private ArrayList<SelectOrderBy> orderList;
     private SortOrder sort;
-    private boolean distinct;
     private boolean isPrepared, checkInit;
     private boolean isForUpdate;
 
@@ -157,6 +156,9 @@ public class SelectUnion extends Query {
             right.setDistinct(true);
             result.setDistinct();
         }
+        if (randomAccessResult) {
+            result.setRandomAccess();
+        }
         switch (unionType) {
         case UNION:
         case EXCEPT:
@@ -200,6 +202,7 @@ public class SelectUnion extends Query {
         case INTERSECT: {
             LocalResult temp = new LocalResult(session, expressionArray, columnCount);
             temp.setDistinct();
+            temp.setRandomAccess();
             while (l.next()) {
                 temp.addRow(convert(l.currentRow(), columnCount));
             }
@@ -299,10 +302,6 @@ public class SelectUnion extends Query {
         HashSet<Table> set = left.getTables();
         set.addAll(right.getTables());
         return set;
-    }
-
-    public void setDistinct(boolean b) {
-        distinct = b;
     }
 
     public ArrayList<Expression> getExpressions() {

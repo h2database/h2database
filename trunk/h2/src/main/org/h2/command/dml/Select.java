@@ -72,7 +72,6 @@ public class Select extends Query {
     private ArrayList<Expression> group;
     private int[] groupIndex;
     private boolean[] groupByExpression;
-    private boolean distinct;
     private HashMap<Expression, Object> currentGroup;
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
@@ -575,6 +574,10 @@ public class Select extends Query {
             result = createLocalResult(result);
             result.setDistinct();
         }
+        if (randomAccessResult) {
+            result = createLocalResult(result);
+            result.setRandomAccess();
+        }
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
         }
@@ -1066,10 +1069,6 @@ public class Select extends Query {
         }
         // buff.append("\n/* cost: " + cost + " */");
         return buff.toString();
-    }
-
-    public void setDistinct(boolean b) {
-        distinct = b;
     }
 
     public void setHaving(Expression having) {

@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>ALTER TABLE ALTER ADD / REMOVE /ALTER COLUMN dropped some dependent objects 
+<ul><li>Issue 304: The condition [NOT] IN (SELECT ...) could throw the exception "Unexpected code path" if the subquery contained ORDER BY.
+</li><li>ALTER TABLE ALTER ADD / REMOVE /ALTER COLUMN dropped some dependent objects 
     (access rights, triggers) of views that depend on the modified table.
 </li><li>CREATE OR REPLACE VIEW dropped some dependent objects (access rights, triggers)
     if the view already existed before.

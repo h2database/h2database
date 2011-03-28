@@ -51,6 +51,16 @@ public abstract class Query extends Prepared {
      */
     protected int sampleSize;
 
+    /**
+     * Whether the result must only contain distinct rows.
+     */
+    protected boolean distinct;
+
+    /**
+     * Whether the result needs to support random access.
+     */
+    protected boolean randomAccessResult;
+
     private int lastLimit;
     private long lastEvaluated;
     private LocalResult lastResult;
@@ -162,13 +172,6 @@ public abstract class Query extends Prepared {
     public abstract void addGlobalCondition(Parameter param, int columnId, int comparisonType);
 
     /**
-     * Set the distinct flag.
-     *
-     * @param b the new value
-     */
-    public abstract void setDistinct(boolean b);
-
-    /**
      * Check if this expression and all sub-expressions can fulfill a criteria.
      * If any part returns false, the result is false.
      *
@@ -188,6 +191,24 @@ public abstract class Query extends Prepared {
      * Call the before triggers on all tables.
      */
     public abstract void fireBeforeSelectTriggers();
+
+    /**
+     * Set the distinct flag.
+     *
+     * @param b the new value
+     */
+    public void setDistinct(boolean b) {
+        distinct = b;
+    }
+
+    /**
+     * Whether results need to support random access.
+     *
+     * @param b the new value
+     */
+    public void setRandomAccessResult(boolean b) {
+        randomAccessResult = b;
+    }
 
     public boolean isQuery() {
         return true;

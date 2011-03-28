@@ -412,11 +412,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         switchOffCluster();
     }
 
-    public CommandInterface prepareCommand(String sql, int fetchSize) {
-        synchronized (this) {
-            checkClosed();
-            return new CommandRemote(this, transferList, sql, fetchSize);
-        }
+    public synchronized CommandInterface prepareCommand(String sql, int fetchSize) {
+        checkClosed();
+        return new CommandRemote(this, transferList, sql, fetchSize);
     }
 
     /**

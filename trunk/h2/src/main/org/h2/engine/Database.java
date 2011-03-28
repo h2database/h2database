@@ -1159,13 +1159,11 @@ public class Database implements DataHandler {
         }
     }
 
-    private void closeFiles() {
+    private synchronized void closeFiles() {
         try {
-            synchronized (this) {
-                if (pageStore != null) {
-                    pageStore.close();
-                    pageStore = null;
-                }
+            if (pageStore != null) {
+                pageStore.close();
+                pageStore = null;
             }
         } catch (DbException e) {
             trace.error(e, "close");
@@ -1654,13 +1652,11 @@ public class Database implements DataHandler {
      * @param session the session
      * @param transaction the name of the transaction
      */
-    void prepareCommit(Session session, String transaction) {
+    synchronized void prepareCommit(Session session, String transaction) {
         if (readOnly) {
             return;
         }
-        synchronized (this) {
-            pageStore.prepareCommit(session, transaction);
-        }
+        pageStore.prepareCommit(session, transaction);
     }
 
     /**
@@ -1668,28 +1664,24 @@ public class Database implements DataHandler {
      *
      * @param session the session
      */
-    void commit(Session session) {
+    synchronized void commit(Session session) {
         if (readOnly) {
             return;
         }
-        synchronized (this) {
-            if (pageStore != null) {
-                pageStore.commit(session);
-            }
-            session.setAllCommitted();
+        if (pageStore != null) {
+            pageStore.commit(session);
         }
+        session.setAllCommitted();
     }
 
     /**
      * Flush all pending changes to the transaction log.
      */
-    public void flush() {
-        synchronized (this) {
-            if (readOnly || pageStore == null) {
-                return;
-            }
-            pageStore.flushLog();
+    public synchronized void flush() {
+        if (readOnly || pageStore == null) {
+            return;
         }
+        pageStore.flushLog();
     }
 
     public void setEventListener(DatabaseEventListener eventListener) {
@@ -1760,13 +1752,11 @@ public class Database implements DataHandler {
      * Synchronize the files with the file system. This method is called when
      * executing the SQL statement CHECKPOINT SYNC.
      */
-    public void sync() {
-        synchronized (this) {
-            if (readOnly || pageStore == null) {
-                return;
-            }
-            pageStore.sync();
+    public synchronized void sync() {
+        if (readOnly || pageStore == null) {
+            return;
         }
+        pageStore.sync();
     }
 
     public int getMaxMemoryRows() {

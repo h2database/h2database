@@ -168,12 +168,10 @@ public class Column {
      * @param row the row
      * @return the value
      */
-    Value computeValue(Session session, Row row) {
-        synchronized (this) {
-            computeTableFilter.setSession(session);
-            computeTableFilter.set(row);
-            return defaultExpression.getValue(session);
-        }
+    synchronized Value computeValue(Session session, Row row) {
+        computeTableFilter.setSession(session);
+        computeTableFilter.set(row);
+        return defaultExpression.getValue(session);
     }
 
     /**

@@ -48,7 +48,7 @@ public class TestRunscript extends TestBase implements Trigger {
         Connection conn;
         conn = getConnection("runscript");
         Statement stat = conn.createStatement();
-        stat.execute("runscript from 'classpath:org/h2/samples/newsfeed.sql'");
+        stat.execute("runscript from 'classpath:/org/h2/samples/newsfeed.sql'");
         stat.execute("select * from version");
         conn.close();
     }

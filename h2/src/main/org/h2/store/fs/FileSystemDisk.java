@@ -366,7 +366,10 @@ public class FileSystemDisk extends FileSystem {
             // if the : is in position 1, a windows file access is assumed: C:.. or D:
             if (fileName.startsWith(CLASSPATH_PREFIX)) {
                 fileName = fileName.substring(CLASSPATH_PREFIX.length());
-                InputStream in = getClass().getClassLoader().getResourceAsStream(fileName);
+                if (!fileName.startsWith("/")) {
+                    fileName = "/" + fileName;
+                }
+                InputStream in = getClass().getResourceAsStream(fileName);
                 if (in == null) {
                     throw new FileNotFoundException("resource " + fileName);
                 }

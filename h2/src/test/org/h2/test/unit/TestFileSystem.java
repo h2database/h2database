@@ -44,6 +44,7 @@ public class TestFileSystem extends TestBase {
     }
 
     public void test() throws Exception {
+        testClasspath();
         FileSystemCrypt.register();
         // DebugFileSystem.register().setTrace(true);
         // testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
@@ -80,6 +81,23 @@ public class TestFileSystem extends TestBase {
         } finally {
             IOUtils.delete(getBaseDir() + "/fs");
         }
+    }
+
+    private void testClasspath() throws IOException {
+        String resource = "org/h2/test/testSimple.in.txt";
+        InputStream in;
+        in = getClass().getResourceAsStream("/" + resource);
+        assertTrue(in != null);
+        in.close();
+        in = getClass().getClassLoader().getResourceAsStream(resource);
+        assertTrue(in != null);
+        in.close();
+        in = IOUtils.openFileInputStream("classpath:" + resource);
+        assertTrue(in != null);
+        in.close();
+        in = IOUtils.openFileInputStream("classpath:/" + resource);
+        assertTrue(in != null);
+        in.close();
     }
 
     private void testSplitDatabaseInZip() throws SQLException {

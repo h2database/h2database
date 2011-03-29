@@ -78,7 +78,11 @@ function go(file, line) {
         url += "&build=";
         url += build;
     } else {
-        var tag = 'trunk/h2/tags/version-' + getVersion(build) + '/h2';
+        if (build && build > 0) {
+            var tag = 'tags/version-' + getVersion(build) + '/h2';
+        } else {
+            var tag = 'trunk/h2';
+        }
         url = 'http://code.google.com/p/h2database/source/browse/';
         url += tag;
         url += '/src/main/';

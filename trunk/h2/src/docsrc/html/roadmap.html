@@ -46,6 +46,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility: automatically load functions from a script depending on the mode - see FunctionsMySQL.java, issue 211.
 </li><li>Test very large databases and LOBs (up to 256 GB).
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
+</li><li>Make DDL (Data Definition) operations transactional.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
 </li><li>Add a migration guide (list differences between databases).
@@ -64,7 +65,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2.
 </li><li>Drop with invalidate views (so that source code is not lost). Check what other databases do exactly.
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
-</li><li>Make DDL (Data Definition) operations transactional.
 </li><li>RANK() and DENSE_RANK(), Partition using OVER().
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
 </li><li>Access rights: finer grained access control (grant access for specific functions).

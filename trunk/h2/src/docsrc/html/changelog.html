@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Reading a resource from the classpath didn't work if there was a leading slash
+<ul><li>If the database contained many CLOB or BLOB values, then closing a connection was very slow.
+    Reason: was that when closing a connection, the temporary CLOB and BLOB values for this connection
+    were removed, but there was no index on this column.
+    For existing databases with many CLOB and BLOB values, creating the index may take a few seconds.
+</li><li>If a CLOB or BLOB was copied into the same table using INSERT INTO X ... SELECT ... FROM X,
+    and then the original row was deleted, then the copied value was also deleted.
+    This could also result in an ArrayIndexOutOfBoundsException on checkpoint or when closing the database.
+</li><li>Improved performance (up to 10%) due to changed synchronization in the page store.
+</li><li>Reading a resource from the classpath didn't work if there was a leading slash
     (classpath:/org/...). Now resources can be loaded with or without leading slash.
 </li><li>Support INSERT INTO TEST SET ID = 1, NAME = 'World' (MySQL compatibility).
 </li><li>Issue 304: The condition [NOT] IN (SELECT ...) could throw the exception "Unexpected code path" if the subquery contained ORDER BY.

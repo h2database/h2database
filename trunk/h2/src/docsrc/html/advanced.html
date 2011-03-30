@@ -24,6 +24,8 @@ Advanced
     Linked Tables</a><br />
 <a href="#recursive_queries">
     Recursive Queries</a><br />
+<a href="#updatable_views">
+    Updatable Views</a><br />    
 <a href="#transaction_isolation">
     Transaction Isolation</a><br />
 <a href="#mvcc">
@@ -172,6 +174,22 @@ is shared. To disable this, set the system property <code>h2.shareLinkedConnecti
 <p>
 The statement <a href="grammar.html#create_linked_table" class="notranslate" >CREATE LINKED TABLE</a>
 supports an optional schema name parameter.
+</p>
+
+<h2 id="updatable_views">Updatable Views</h2>
+<p>
+By default, views are not updatable. 
+To make a view updatable, use an "instead of" trigger as follows:
+</p>
+<pre>
+CREATE TRIGGER TRIGGER_NAME 
+INSTEAD OF INSERT, UPDATE, DELETE 
+ON VIEW_NAME 
+FOR EACH ROW CALL "com.acme.TriggerClassName";
+</pre>
+<p>
+Update the base table(s) within the trigger as required.
+For details, see the sample application <code>org.h2.samples.UpdatableView</code>.
 </p>
 
 <h2 id="transaction_isolation">Transaction Isolation</h2>

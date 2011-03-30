@@ -734,9 +734,10 @@ build warConsole
 <h2 id="android">Android</h2>
 <p>
 You can use this database on an Android device (using the Dalvik VM) instead of or in addition to SQLite.
-So far, only very few tests and benchmarks were run, but it seems that performance is very similar to SQLite,
+So far, only very few tests and benchmarks were run, but it seems that performance is similar to SQLite,
 except for opening and closing a database, which is not yet optimized in H2
 (H2 takes about 0.2 seconds, and SQLite about 0.02 seconds).
+Read operations seem to be a bit faster than SQLite, and write operations seem to be slower.
 So far, only very few tests have been run, and everything seems to work as expected.
 Fulltext search was not yet tested, however the native fulltext search should work.
 </p>
@@ -754,7 +755,8 @@ Reasons to use H2 instead of SQLite are:
 </li><li>Better data type and SQL support.
 </li><li>In-memory databases, read-only databases, linked tables.
 </li><li>Better compatibility with other databases which simplifies porting applications.
-</li><li>Possibly better performance.
+</li><li>Possibly better performance (so far for read operations).
+</li><li>Server mode (accessing a database on a different machine over TCP/IP).
 </li></ul>
 <p>
 Currently only the JDBC API is supported (it is planned to support the Android database API in future releases).

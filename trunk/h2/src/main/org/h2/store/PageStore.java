@@ -258,7 +258,7 @@ public class PageStore implements CacheWriter {
     /**
      * Open the file and read the header.
      */
-    public void open() {
+    public synchronized void open() {
         try {
             metaRootPageId.put(META_TABLE_ID, PAGE_ID_META_ROOT);
             if (IOUtils.exists(fileName)) {
@@ -445,7 +445,7 @@ public class PageStore implements CacheWriter {
      * @param compactMode 0 if no compacting should happen, otherwise
      * TransactionCommand.SHUTDOWN_COMPACT or TransactionCommand.SHUTDOWN_DEFRAG
      */
-    public void compact(int compactMode) {
+    public synchronized void compact(int compactMode) {
         if (!database.getSettings().pageStoreTrim) {
             return;
         }
@@ -1032,7 +1032,7 @@ public class PageStore implements CacheWriter {
         return getFreeList(getFreeListId(pageId));
     }
 
-    private synchronized PageFreeList getFreeList(int i) {
+    private PageFreeList getFreeList(int i) {
         PageFreeList list = null;
         if (i < freeLists.size()) {
             list = freeLists.get(i);
@@ -1099,7 +1099,7 @@ public class PageStore implements CacheWriter {
      *
      * @return the page id
      */
-    public int allocatePage() {
+    public synchronized int allocatePage() {
         int pos = allocatePage(null, 0);
         if (!recoveryRunning) {
             if (logMode != LOG_MODE_OFF) {
@@ -1109,7 +1109,7 @@ public class PageStore implements CacheWriter {
         return pos;
     }
 
-    private synchronized int allocatePage(BitField exclude, int first) {
+    private int allocatePage(BitField exclude, int first) {
         int page;
         // TODO could remember the first possible free list page
         for (int i = 0;; i++) {
@@ -1153,7 +1153,7 @@ public class PageStore implements CacheWriter {
      *
      * @param pageId the page id
      */
-    public void free(int pageId) {
+    public synchronized void free(int pageId) {
         free(pageId, true);
     }
 
@@ -1163,7 +1163,7 @@ public class PageStore implements CacheWriter {
      * @param pageId the page id
      * @param undo if the undo record must have been written
      */
-    synchronized void free(int pageId, boolean undo) {
+    void free(int pageId, boolean undo) {
         if (trace.isDebugEnabled()) {
             // trace.debug("free " + pageId + " " + undo);
         }
@@ -1193,7 +1193,7 @@ public class PageStore implements CacheWriter {
      *
      * @param pageId the page id
      */
-    synchronized void freeUnused(int pageId) {
+    void freeUnused(int pageId) {
         if (trace.isDebugEnabled()) {
             trace.debug("freeUnused {0}", pageId);
         }
@@ -1217,7 +1217,7 @@ public class PageStore implements CacheWriter {
      * @param pos the page id
      * @return the page
      */
-    public Data readPage(int pos) {
+    public synchronized Data readPage(int pos) {
         Data page = createData();
         readPage(pos, page);
         return page;
@@ -1229,7 +1229,7 @@ public class PageStore implements CacheWriter {
      * @param pos the page id
      * @param page the page
      */
-    synchronized void readPage(int pos, Data page) {
+    void readPage(int pos, Data page) {
         if (recordPageReads) {
             if (pos >= MIN_PAGE_COUNT && recordedPagesIndex.get(pos) == IntIntHashMap.NOT_FOUND) {
                 recordedPagesIndex.put(pos, recordedPagesList.size());
@@ -1632,7 +1632,7 @@ public class PageStore implements CacheWriter {
      *
      * @param index the index
      */
-    public void addIndex(PageIndex index) {
+    public synchronized void addIndex(PageIndex index) {
         metaObjects.put(index.getId(), index);
     }
 
@@ -1642,7 +1642,7 @@ public class PageStore implements CacheWriter {
      * @param index the index to add
      * @param session the session
      */
-    public void addMeta(PageIndex index, Session session) {
+    public synchronized void addMeta(PageIndex index, Session session) {
         int type = index instanceof PageDataIndex ? META_TYPE_DATA_INDEX : META_TYPE_BTREE_INDEX;
         IndexColumn[] columns = index.getIndexColumns();
         StatementBuilder buff = new StatementBuilder();
@@ -1684,7 +1684,7 @@ public class PageStore implements CacheWriter {
      * @param index the index to remove
      * @param session the session
      */
-    public void removeMeta(Index index, Session session) {
+    public synchronized void removeMeta(Index index, Session session) {
         if (!recoveryRunning) {
             removeMetaIndex(index, session);
             metaObjects.remove(index.getId());
@@ -1717,7 +1717,7 @@ public class PageStore implements CacheWriter {
      * @param pageId the page where the transaction was prepared
      * @param commit if the transaction should be committed
      */
-    public void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) {
+    public synchronized void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) {
         boolean old = database.isReadOnly();
         try {
             database.setReadOnly(false);
@@ -1742,7 +1742,7 @@ public class PageStore implements CacheWriter {
      * @return true if it is
      */
     public boolean isRecoveryRunning() {
-        return this.recoveryRunning;
+        return recoveryRunning;
     }
 
     private void checkOpen() {

@@ -141,13 +141,12 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     public Value link(DataHandler h, int tabId) {
         if (small == null) {
-            if (tabId != tableId) {
-                if (tableId != LobStorage.TABLE_TEMP) {
-                    return lobStorage.copyLob(type, lobId, tabId, getPrecision());
-                }
+            if (tableId == LobStorage.TABLE_TEMP) {
                 lobStorage.setTable(lobId, tabId);
                 this.tableId = tabId;
             }
+            return lobStorage.copyLob(type, lobId, tabId, getPrecision());
+
         } else if (small.length > h.getMaxLengthInplaceLob()) {
             LobStorage s = h.getLobStorage();
             Value v;

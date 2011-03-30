@@ -49,11 +49,13 @@ public class TestLob extends TestBase {
     public static void main(String... a) throws Exception {
         System.setProperty("h2.lobInDatabase", "true");
         TestBase test = TestBase.createCaller().init();
-        test.config.big = true;
+        // test.config.big = true;
         test.test();
     }
 
     public void test() throws Exception {
+        testCopyManyLobs();
+        testCopyLob();
         testConcurrentCreate();
         testLobInLargeResult();
         testUniqueIndex();
@@ -91,6 +93,39 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testCopyManyLobs() throws Exception {
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id identity, data clob) as select 1, space(10000)");
+        stat.execute("insert into test(id, data) select null, data from test");
+        stat.execute("insert into test(id, data) select null, data from test");
+        stat.execute("insert into test(id, data) select null, data from test");
+        stat.execute("insert into test(id, data) select null, data from test");
+        stat.execute("delete from test where id < 10");
+        stat.execute("shutdown compact");
+        conn.close();
+    }
+
+    private void testCopyLob() throws Exception {
+        deleteDb("lob");
+        Connection conn;
+        Statement stat;
+        ResultSet rs;
+        conn = getConnection("lob");
+        stat = conn.createStatement();
+        stat.execute("create table test(id identity, data clob) as select 1, space(10000)");
+        stat.execute("insert into test(id, data) select 2, data from test");
+        stat.execute("delete from test where id = 1");
+        conn.close();
+        conn = getConnection("lob");
+        stat = conn.createStatement();
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        assertEquals(10000, rs.getString(2).length());
+        conn.close();
     }
 
     private void testConcurrentCreate() throws Exception {

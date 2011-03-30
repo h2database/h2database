@@ -219,14 +219,6 @@ public class PageBtreeIndex extends PageIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("{0} remove {1}", getName(), row);
         }
-        if (tableData.getContainsLargeObject()) {
-            for (int i = 0, len = row.getColumnCount(); i < len; i++) {
-                Value v = row.getValue(i);
-                if (v.isLinked()) {
-                    session.unlinkAtCommit(v);
-                }
-            }
-        }
         // TODO invalidate row count
         // setChanged(session);
         if (rowCount == 1) {

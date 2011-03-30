@@ -144,9 +144,9 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             if (tableId == LobStorage.TABLE_TEMP) {
                 lobStorage.setTable(lobId, tabId);
                 this.tableId = tabId;
+            } else {
+                return lobStorage.copyLob(type, lobId, tabId, getPrecision());
             }
-            return lobStorage.copyLob(type, lobId, tabId, getPrecision());
-
         } else if (small.length > h.getMaxLengthInplaceLob()) {
             LobStorage s = h.getLobStorage();
             Value v;

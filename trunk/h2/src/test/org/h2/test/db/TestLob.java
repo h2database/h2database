@@ -110,6 +110,9 @@ public class TestLob extends TestBase {
     }
 
     private void testCopyLob() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb("lob");
         Connection conn;
         Statement stat;

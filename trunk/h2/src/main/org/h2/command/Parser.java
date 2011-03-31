@@ -843,11 +843,11 @@ public class Parser {
         } else if (readIf("COLUMNS")) {
             // for MySQL compatibility
             read("FROM");
-            String tableName = readUniqueIdentifier();
+            String tableName = readIdentifierWithSchema();
+            String schemaName = getSchema().getName();
             paramValues.add(ValueString.get(tableName));
-            String schema = Constants.SCHEMA_MAIN;
             if (readIf("FROM")) {
-                schema = readUniqueIdentifier();
+                schemaName = readUniqueIdentifier();
             }
             buff.append("C.COLUMN_NAME FIELD, " +
                     "C.TYPE_NAME || '(' || C.NUMERIC_PRECISION || ')' TYPE, " +
@@ -863,7 +863,7 @@ public class Parser {
                     "FROM INFORMATION_SCHEMA.COLUMNS C " +
                     "WHERE C.TABLE_NAME=? AND C.TABLE_SCHEMA=? " +
                     "ORDER BY C.ORDINAL_POSITION");
-            paramValues.add(ValueString.get(schema));
+            paramValues.add(ValueString.get(schemaName));
         } else if (readIf("DATABASES") || readIf("SCHEMAS")) {
             // for MySQL compatibility
             buff.append("SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA");

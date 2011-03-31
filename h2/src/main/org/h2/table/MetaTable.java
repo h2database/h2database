@@ -1334,7 +1334,7 @@ public class MetaTable extends Table {
                             // FK_NAME
                             identifier(ref.getName()),
                             // PK_NAME
-                            null,
+                            identifier(ref.getUniqueIndex().getName()),
                             // DEFERRABILITY
                             "" + DatabaseMetaData.importedKeyNotDeferrable
                     );

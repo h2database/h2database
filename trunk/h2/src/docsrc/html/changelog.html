@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>If the database contained many CLOB or BLOB values, then closing a connection was very slow.
+<ul><li>The H2 Console now detects unsupported command line options.
+    (In the future, it will be combined with the Server tool as it is a superset.)
+</li><li>MySQL compatibility: SHOW COLUMN FOR schemaName.columnName.
+</li><li>DatabaseMetaData.getCrossReference now also lists the name of the primary index (PK_NAME).
+</li><li>If the database contained many CLOB or BLOB values, then closing a connection was very slow.
     Reason: was that when closing a connection, the temporary CLOB and BLOB values for this connection
     were removed, but there was no index on this column.
     For existing databases with many CLOB and BLOB values, creating the index may take a few seconds.

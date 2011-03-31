@@ -503,6 +503,9 @@ rows are inserted. It is possible to emit update statements (except on
 rollback), however in this case multi-row unique key updates may not always
 work. Linked tables to the same database share one connection.
 
+If the connection to the source database is lost, the connection is re-opened
+(this is a workaround for MySQL that disconnects after 8 hours of inactivity by default).
+
 If a query is used instead of the original table name, the table is read only.
 Queries must be enclosed in parenthesis: ""(SELECT * FROM ORDERS)"".
 

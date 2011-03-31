@@ -126,12 +126,12 @@ public class TestTools extends TestBase {
             // start including browser
             lastUrl = "-";
             System.setProperty(SysProperties.H2_BROWSER, "call:" + TestTools.class.getName() + ".openBrowser");
-            c.runTool("-web", "-webPort", "9002", "-tool", "-browser", "-tcp", "-tcpPort", "9003", "-pg", "-pgPort", "9004", "-quiet");
+            c.runTool("-web", "-webPort", "9002", "-tool", "-browser", "-tcp", "-tcpPort", "9003", "-pg", "-pgPort", "9004");
             assertContains(lastUrl, ":9002");
             c.shutdown();
 
             // check if starting the browser works
-            c.runTool("-web", "-webPort", "9002", "-tool", "-quiet");
+            c.runTool("-web", "-webPort", "9002", "-tool");
             lastUrl = "-";
             c.actionPerformed(new ActionEvent(this, 0, "console"));
             assertContains(lastUrl, ":9002");
@@ -150,19 +150,19 @@ public class TestTools extends TestBase {
             c.actionPerformed(new ActionEvent(this, 0, "exit"));
 
             // check if the service was stopped
-            c.runTool("-webPort", "9002", "-quiet");
+            c.runTool("-webPort", "9002");
             c.shutdown();
 
             // trying to use the same port for two services should fail,
             // but also stop the first service
             try {
-                c.runTool("-web", "-webPort", "9002", "-tcp", "-tcpPort", "9002", "-quiet");
+                c.runTool("-web", "-webPort", "9002", "-tcp", "-tcpPort", "9002");
                 fail();
             } catch (SQLException e) {
                 assertEquals(ErrorCode.EXCEPTION_OPENING_PORT_2, e.getErrorCode());
             }
 
-            c.runTool("-web", "-webPort", "9002", "-quiet");
+            c.runTool("-web", "-webPort", "9002");
             c.shutdown();
 
         } finally {

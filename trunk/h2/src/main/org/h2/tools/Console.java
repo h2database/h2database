@@ -115,7 +115,9 @@ ShutdownHandler {
         boolean startDefaultServers = true;
         boolean printStatus = args != null && args.length > 0;
         String driver = null, url = null, user = null, password = null;
-
+        boolean tcpShutdown = false, tcpShutdownForce = false;
+        String tcpPassword = "";
+        String tcpShutdownServer = "";
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
@@ -132,9 +134,21 @@ ShutdownHandler {
                 user = args[++i];
             } else if ("-password".equals(arg)) {
                 password = args[++i];
-            } else if ("-web".equals(arg)) {
-                startDefaultServers = false;
-                webStart = true;
+            } else if (arg.startsWith("-web")) {
+                if ("-web".equals(arg)) {
+                    startDefaultServers = false;
+                    webStart = true;
+                } else if ("-webAllowOthers".equals(arg)) {
+                    // no parameters
+                } else if ("-webDaemon".equals(arg)) {
+                    // no parameters
+                } else if ("-webSSL".equals(arg)) {
+                    // no parameters
+                } else if ("-webPort".equals(arg)) {
+                    i++;
+                } else {
+                    throwUnsupportedOption(arg);
+                }
             } else if ("-tool".equals(arg)) {
                 startDefaultServers = false;
                 webStart = true;
@@ -143,12 +157,52 @@ ShutdownHandler {
                 startDefaultServers = false;
                 webStart = true;
                 browserStart = true;
-            } else if ("-tcp".equals(arg)) {
-                startDefaultServers = false;
-                tcpStart = true;
-            } else if ("-pg".equals(arg)) {
-                startDefaultServers = false;
-                pgStart = true;
+            } else if (arg.startsWith("-tcp")) {
+                if ("-tcp".equals(arg)) {
+                    startDefaultServers = false;
+                    tcpStart = true;
+                } else if ("-tcpAllowOthers".equals(arg)) {
+                    // no parameters
+                } else if ("-tcpDaemon".equals(arg)) {
+                    // no parameters
+                } else if ("-tcpSSL".equals(arg)) {
+                    // no parameters
+                } else if ("-tcpPort".equals(arg)) {
+                    i++;
+                } else if ("-tcpPassword".equals(arg)) {
+                    tcpPassword = args[++i];
+                } else if ("-tcpShutdown".equals(arg)) {
+                    startDefaultServers = false;
+                    tcpShutdown = true;
+                    tcpShutdownServer = args[++i];
+                } else if ("-tcpShutdownForce".equals(arg)) {
+                    tcpShutdownForce = true;
+                } else {
+                    throwUnsupportedOption(arg);
+                }
+            } else if (arg.startsWith("-pg")) {
+                if ("-pg".equals(arg)) {
+                    startDefaultServers = false;
+                    pgStart = true;
+                } else if ("-pgAllowOthers".equals(arg)) {
+                    // no parameters
+                } else if ("-pgDaemon".equals(arg)) {
+                    // no parameters
+                } else if ("-pgPort".equals(arg)) {
+                    i++;
+                } else {
+                    throwUnsupportedOption(arg);
+                }
+            } else if ("-properties".equals(arg)) {
+                i++;
+            } else if ("-trace".equals(arg)) {
+                // no parameters
+            } else if ("-ifExists".equals(arg)) {
+                // no parameters
+            } else if ("-baseDir".equals(arg)) {
+                i++;
+            } else {
+                throwUnsupportedOption(arg);
             }
         }
         if (startDefaultServers) {
@@ -157,6 +211,10 @@ ShutdownHandler {
             browserStart = true;
             tcpStart = true;
             pgStart = true;
+        }
+        if (tcpShutdown) {
+            out.println("Shutting down TCP Server at " + tcpShutdownServer);
+            Server.shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce, false);
         }
         SQLException startException = null;
         boolean webRunning = false;

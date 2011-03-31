@@ -366,10 +366,10 @@ public class TestMetaData extends TestBase {
         assertResultSetOrdered(rs, new String[][] {
                 { catalog, Constants.SCHEMA_MAIN, "PARENT", "A", catalog, Constants.SCHEMA_MAIN, "CHILD", "PA", "1",
                         "" + DatabaseMetaData.importedKeyRestrict, "" + DatabaseMetaData.importedKeyRestrict, "AB",
-                        null, "" + DatabaseMetaData.importedKeyNotDeferrable },
+                        "PRIMARY_KEY_8", "" + DatabaseMetaData.importedKeyNotDeferrable },
                 { catalog, Constants.SCHEMA_MAIN, "PARENT", "B", catalog, Constants.SCHEMA_MAIN, "CHILD", "PB", "2",
                         "" + DatabaseMetaData.importedKeyRestrict, "" + DatabaseMetaData.importedKeyRestrict, "AB",
-                        null, "" + DatabaseMetaData.importedKeyNotDeferrable } });
+                        "PRIMARY_KEY_8", "" + DatabaseMetaData.importedKeyNotDeferrable } });
     }
 
     private void testTempTable() throws SQLException {

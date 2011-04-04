@@ -81,7 +81,7 @@ public class TestValue extends TestBase {
         try {
             v.convertPrecision(10, false);
         } catch (DbException e) {
-            assertEquals(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, e.getErrorCode());
+            assertEquals(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, e.getErrorCode());
         }
 
         v = ValueLobDb.createSmallLob(Value.CLOB, spaces.getBytes(), 100);

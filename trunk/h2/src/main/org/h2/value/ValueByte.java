@@ -41,7 +41,7 @@ public class ValueByte extends Value {
 
     private static ValueByte checkRange(int x) {
         if (x < Byte.MIN_VALUE || x > Byte.MAX_VALUE) {
-            throw DbException.get(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.BYTE).name);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Integer.toString(x));
         }
         return ValueByte.get((byte) x);
     }

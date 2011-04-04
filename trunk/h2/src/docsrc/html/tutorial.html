@@ -69,14 +69,14 @@ Tutorial
 
 <h2 id="tutorial_starting_h2_console">Starting and Using the H2 Console</h2>
 <p>
-The H2 Console application lets you access a SQL database using a browser interface.
+The H2 Console application lets you access a database using a browser.
 This can be a H2 database, or another database that supports the JDBC API.
 </p>
 <img src="images/console.png" alt="Web Browser - H2 Console Server - H2 Database" />
 <p>
-This is a client / server application, so both a server and a client (a browser) are required to run it.
+This is a client/server application, so both a server and a client (a browser) are required to run it.
 </p><p>
-Depending on your platform and environment, there are multiple ways to start the application:
+Depending on your platform and environment, there are multiple ways to start the H2 Console:
 </p>
 <table class="main">
 <tr><th>OS</th><th>Start</th></tr>
@@ -89,7 +89,7 @@ Depending on your platform and environment, there are multiple ways to start the
     <img src="images/db-16.png" alt="H2 database icon" /><br />
     If you don't get the window and the system tray icon,
     then maybe Java is not installed correctly (in this case, try another way to start the application).
-    A browser window should open and point to the Login page at <code>http://localhost:8082</code>.
+    A browser window should open and point to the login page at <code>http://localhost:8082</code>.
     </td>
 </tr>
 <tr>
@@ -98,7 +98,7 @@ Depending on your platform and environment, there are multiple ways to start the
     Open a file browser, navigate to <code>h2/bin</code>, and
     double click on <code>h2.bat</code>.<br />
     A console window appears. If there is a problem, you will see an error message
-    in this window. A browser window will open and point to the Login page
+    in this window. A browser window will open and point to the login page
     (URL: <code>http://localhost:8082</code>).
     </td>
 </tr>
@@ -106,14 +106,14 @@ Depending on your platform and environment, there are multiple ways to start the
     <td>Any</td>
     <td>
     Double click on the <code>h2*.jar</code> file.
-    This only works if the <code>.jar</code> suffix is associated with java.
+    This only works if the <code>.jar</code> suffix is associated with Java.
     </td>
 </tr>
 <tr>
     <td>Any</td>
     <td>
-    Open a console window, navigate to the directory <code>h2/bin</code> and type:
-    <pre>java -cp h2*.jar org.h2.tools.Server</pre>
+    Open a console window, navigate to the directory <code>h2/bin</code>, and type:
+    <pre>java -jar h2*.jar</pre>
     </td>
 </tr>
 </table>
@@ -128,8 +128,7 @@ in the firewall.
 </p>
 <p>
 It has been reported that when using Kaspersky 7.0 with firewall, the H2 Console is very slow when
-connecting over the IP address. A workaround is to connect using localhost, however this only works
-on the local machine.
+connecting over the IP address. A workaround is to connect using 'localhost'.
 </p>
 <p>
 A small firewall is already built into the server: other computers may not connect to the server by default.
@@ -158,20 +157,20 @@ but this is usually not required as the console supports multiple concurrent con
 
 <h3>Using another Port</h3>
 <p>
-If the port is in use by another application, you may want to start the H2 Console on a different port.
-This can be done by changing the port in the file <code>.h2.server.properties</code>. This file is stored
-in the user directory (for Windows, this is usually in <code>Documents and Settings/&lt;username&gt;</code>).
-The relevant entry is webPort.
+If the default port of the H2 Console is already in use by another application,
+then a different port needs to be configured. The settings are stored in a properties file.
+For details, see <a href="#console_settings">Settings of the H2 Console</a>.
+The relevant entry is <code>webPort</code>.
 </p>
 <p>
-If no port is specified for the TCP and PG servers, they will try to listen on the default port for the given service.
+If no port is specified for the TCP and PG servers, each service will try to listen on its default port.
 If the default port is already in use, a random port is used.
 </p>
 
 <h3>Connecting to the Server using a Browser</h3>
 <p>
 If the server started successfully, you can connect to it using a web browser.
-JavaScript needs to be enabled.
+Javascript needs to be enabled.
 If you started the server on the same computer as the browser, open the URL <code>http://localhost:8082</code>.
 If you want to connect to the application from another computer, you need to provide the IP address of the server, for example:
 <code>http://192.168.0.2:8082</code>.
@@ -187,7 +186,7 @@ the amount of concurrent work is limited by the memory available to the server a
 <h3>Login</h3>
 <p>
 At the login page, you need to provide connection information to connect to a database.
-Set the JDBC driver class of your database, the JDBC URL, user name and password.
+Set the JDBC driver class of your database, the JDBC URL, user name, and password.
 If you are done, click [Connect].
 </p><p>
 You can save and reuse previously saved settings. The settings are stored in a properties file
@@ -202,37 +201,36 @@ by clicking on the message.
 
 <h3>Adding Database Drivers</h3>
 <p>
-Additional database drivers to connect to other databases (MySQL, PostgreSQL, HSQLDB,...)
-can be registered by adding the Jar file location of the driver to the environment
-variables <code>H2DRIVERS</code> or <code>CLASSPATH</code>.
-Example (Windows): to add the database driver library
+To register additional JDBC drivers (MySQL, PostgreSQL, HSQLDB,...),
+add the jar file names to the environment variables <code>H2DRIVERS</code> or <code>CLASSPATH</code>.
+Example (Windows): to add the HSQLDB JDBC driver
 <code>C:\Programs\hsqldb\lib\hsqldb.jar</code>, set the environment variable
 <code>H2DRIVERS</code> to
 <code>C:\Programs\hsqldb\lib\hsqldb.jar</code>.
 </p><p>
-Multiple drivers can be set; each entry needs to be separated with a <code>;</code> (Windows)
+Multiple drivers can be set; entries need to be separated by <code>;</code> (Windows)
 or <code>:</code> (other operating systems).
 Spaces in the path names are supported. The settings must not be quoted.
 </p>
 
 <h3>Using the H2 Console</h3>
 <p>
-The H2 Console application has three main panels: the toolbar on top, the tree on the left, and the query / result panel on the right.
-The database objects (for example, tables) are listed on the left panel.
-Type in a SQL command on the query panel and click 'Run'. The result of the command appears just below the command.
+The H2 Console application has three main panels: the toolbar on top, the tree on the left, and the query/result panel on the right.
+The database objects (for example, tables) are listed on the left.
+Type a SQL command in the query panel and click [Run]. The result appears just below the command.
 </p>
 
 <h3>Inserting Table Names or Column Names</h3>
 <p>
-The table name and column names can be inserted in the script by clicking them in the tree.
-If you click on a table while the query is empty, then <code>SELECT * FROM ...</code> is added as well.
-While typing a query, the table that was used is automatically expanded in the tree.
-For example if you type <code>SELECT * FROM TEST T WHERE T.</code> then the table TEST is automatically expanded in the tree.
+To insert table and column names into the script, click on the item in the tree.
+If you click on a table while the query is empty, then <code>SELECT * FROM ...</code> is added.
+While typing a query, the table that was used is expanded in the tree.
+For example if you type <code>SELECT * FROM TEST T WHERE T.</code> then the table TEST is expanded.
 </p>
 
 <h3>Disconnecting and Stopping the Application</h3>
 <p>
-To log out of the database, click 'Disconnect' in the toolbar panel.
+To log out of the database, click [Disconnect] in the toolbar panel.
 However, the server is still running and ready to accept new sessions.
 </p><p>
 To stop the server, right click on the system tray icon and select [Exit].
@@ -245,9 +243,9 @@ or close the console window.
 <h2 id="console_syntax">Special H2 Console Syntax</h2>
 <p>
 The H2 Console supports a few built-in commands.
-Those are interpreted within the H2 Console, that means they work with any database.
-They need to be at the beginning of a statement (before any remarks),
-otherwise they are not parsed correctly. If in doubt, add ';' before the command.
+Those are interpreted within the H2 Console, so they work with any database.
+Built-in commands need to be at the beginning of a statement (before any remarks),
+otherwise they are not parsed correctly. If in doubt, add <code>;</code> before the command.
 </p>
 <table class="main">
     <tr>
@@ -279,16 +277,16 @@ otherwise they are not parsed correctly. If in doubt, add ';' before the command
             @tables null null TEST;<br />
         </td>
         <td>
-            Call the corresponding DatabaseMetaData.get method.
+            Call the corresponding <code>DatabaseMetaData.get</code> method.
             Patterns are case sensitive (usually identifiers are uppercase).
             For information about the parameters, see the Javadoc documentation.
             Missing parameters at the end are set to null. The complete list of commands is:
             <code>
-            @attributes @best_row_identifier @catalogs @columns
-            @column_privileges @cross_references @exported_keys
-            @imported_keys @index_info  @primary_keys @procedures
-            @procedure_columns @schemas @super_tables @super_types
-            @tables @table_privileges @table_types @type_info @udts
+            @attributes, @best_row_identifier, @catalogs, @columns,
+            @column_privileges, @cross_references, @exported_keys,
+            @imported_keys, @index_info,  @primary_keys, @procedures,
+            @procedure_columns, @schemas, @super_tables, @super_types,
+            @tables, @table_privileges, @table_types, @type_info, @udts,
             @version_columns
             </code>
         </td>
@@ -387,7 +385,7 @@ otherwise they are not parsed correctly. If in doubt, add ';' before the command
             @prof_stop;
         </td>
         <td>
-            Start / stop the built-in profiling tool.
+            Start/stop the built-in profiling tool.
             The top 3 stack traces of the statement(s) between start and stop are listed
             (if there are 3).
         </td>

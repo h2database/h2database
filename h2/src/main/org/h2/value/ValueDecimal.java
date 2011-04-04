@@ -191,7 +191,7 @@ public class ValueDecimal extends Value {
         if (force) {
             return get(BigDecimal.valueOf(value.doubleValue()));
         }
-        throw DbException.get(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + precision);
+        throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(precision));
     }
 
     /**

@@ -84,8 +84,8 @@ public class ValueLong extends Value {
         return ValueLong.get(-value);
     }
 
-    private static DbException getOverflow() {
-        return DbException.get(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.LONG).name);
+    private DbException getOverflow() {
+        return DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(value));
     }
 
     public Value subtract(Value v) {

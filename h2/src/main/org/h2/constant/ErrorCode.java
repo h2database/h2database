@@ -89,14 +89,27 @@ public class ErrorCode {
     public static final int COLUMN_COUNT_DOES_NOT_MATCH = 21002;
 
     // 22: data exception
+
+    /**
+     * The error with code <code>22001</code> is thrown when
+     * trying to insert a value that is too long for the column.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, NAME VARCHAR(2));
+     * INSERT INTO TEST VALUES(1, 'Hello');
+     * </pre>
+     */
+    public static final int VALUE_TOO_LONG_2 = 22001;
+
     /**
      * The error with code <code>22003</code> is thrown when a value is out of
      * range when converting to another data type. Example:
      * <pre>
      * CALL CAST(1000000 AS TINYINT);
+     * SELECT CAST(124.34 AS DECIMAL(2, 2));
      * </pre>
      */
-    public static final int NUMERIC_VALUE_OUT_OF_RANGE = 22003;
+    public static final int NUMERIC_VALUE_OUT_OF_RANGE_1 = 22003;
 
     /**
      * The error with code <code>22012</code> is thrown when trying to divide
@@ -106,6 +119,18 @@ public class ErrorCode {
      * </pre>
      */
     public static final int DIVISION_BY_ZERO_1 = 22012;
+
+    /**
+     * The error with code <code>22018</code> is thrown when
+     * trying to convert a value to a data type where the conversion is undefined,
+     * or when an error occurred trying to convert.
+     * Example:
+     * <pre>
+     * CALL CAST(DATE '2001-01-01' AS BOOLEAN);
+     * CALL CAST('CHF 99.95' AS INT);
+     * </pre>
+     */
+    public static final int DATA_CONVERSION_ERROR_1 = 22018;
 
     /**
      * The error with code <code>22025</code> is thrown when using an invalid
@@ -128,19 +153,35 @@ public class ErrorCode {
      */
     public static final int LIKE_ESCAPE_ERROR_1 = 22025;
 
-    // 23: integrity constraint violation
-    /**
-     * The error with code <code>23000</code> is thrown when a check
-     * constraint is violated. Example:
-     * <pre>
-     * CREATE TABLE TEST(ID INT CHECK ID&gt;0);
-     * INSERT INTO TEST VALUES(0);
-     * </pre>
-     */
-    public static final int CHECK_CONSTRAINT_VIOLATED_1 = 23000;
+    // 23: constraint violation
 
     /**
-     * The error with code <code>23001</code> is thrown when trying to insert
+     * The error with code <code>23502</code> is thrown when
+     * trying to insert NULL into a column that does not allow NULL.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, NAME VARCHAR NOT NULL);
+     * INSERT INTO TEST(ID) VALUES(1);
+     * </pre>
+     */
+    public static final int NULL_NOT_ALLOWED = 23502;
+
+    /**
+     * The error with code <code>23503</code> is thrown when trying to delete
+     * or update a row when this would violate a referential constraint, because
+     * there is a child row that would become an orphan. Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT PRIMARY KEY, PARENT INT);
+     * INSERT INTO TEST VALUES(1, 1), (2, 1);
+     * ALTER TABLE TEST ADD CONSTRAINT TEST_ID_PARENT
+     *       FOREIGN KEY(PARENT) REFERENCES TEST(ID) ON DELETE RESTRICT;
+     * DELETE FROM TEST WHERE ID = 1;
+     * </pre>
+     */
+    public static final int REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1 = 23503;
+
+    /**
+     * The error with code <code>23505</code> is thrown when trying to insert
      * a row that would violate a unique index or primary key. Example:
      * <pre>
      * CREATE TABLE TEST(ID INT PRIMARY KEY);
@@ -148,33 +189,44 @@ public class ErrorCode {
      * INSERT INTO TEST VALUES(1);
      * </pre>
      */
-    public static final int DUPLICATE_KEY_1 = 23001;
+    public static final int DUPLICATE_KEY_1 = 23505;
 
     /**
-     * The error with code <code>23002</code> is thrown when trying to insert
+     * The error with code <code>23506</code> is thrown when trying to insert
      * or update a row that would violate a referential constraint, because the
      * referenced row does not exist. Example:
      * <pre>
-     * CREATE TABLE PARENT(ID INT);
+     * CREATE TABLE PARENT(ID INT PRIMARY KEY);
      * CREATE TABLE CHILD(P_ID INT REFERENCES PARENT(ID));
      * INSERT INTO CHILD VALUES(1);
      * </pre>
      */
-    public static final int REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1 = 23002;
+    public static final int REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1 = 23506;
 
     /**
-     * The error with code <code>23003</code> is thrown when trying to delete
-     * or update a row when this would violate a referential constraint, because
-     * there is a child row that would become an orphan. Example:
+     * The error with code <code>23507</code> is thrown when
+     * updating or deleting from a table with a foreign key constraint
+     * that should set the default value, but there is no default value defined.
+     * Example:
      * <pre>
-     * CREATE TABLE PARENT(ID INT);
-     * CREATE TABLE CHILD(P_ID INT REFERENCES PARENT(ID));
-     * INSERT INTO PARENT VALUES(1);
-     * INSERT INTO CHILD VALUES(1);
-     * DELETE FROM PARENT;
+     * CREATE TABLE TEST(ID INT PRIMARY KEY, PARENT INT);
+     * INSERT INTO TEST VALUES(1, 1), (2, 1);
+     * ALTER TABLE TEST ADD CONSTRAINT TEST_ID_PARENT
+     *   FOREIGN KEY(PARENT) REFERENCES TEST(ID) ON DELETE SET DEFAULT;
+     * DELETE FROM TEST WHERE ID = 1;
      * </pre>
      */
-    public static final int REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1 = 23003;
+    public static final int NO_DEFAULT_SET_1 = 23507;
+
+    /**
+     * The error with code <code>23513</code> is thrown when a check
+     * constraint is violated. Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT CHECK ID&gt;0);
+     * INSERT INTO TEST VALUES(0);
+     * </pre>
+     */
+    public static final int CHECK_CONSTRAINT_VIOLATED_1 = 23513;
 
     // 3B: savepoint exception
 
@@ -386,28 +438,6 @@ public class ErrorCode {
     public static final int HEX_STRING_WRONG_1 = 90004;
 
     /**
-     * The error with code <code>90005</code> is thrown when
-     * trying to insert a value that is too long for the column.
-     * Example:
-     * <pre>
-     * CREATE TABLE TEST(ID INT, NAME VARCHAR(2));
-     * INSERT INTO TEST VALUES(1, 'Hello');
-     * </pre>
-     */
-    public static final int VALUE_TOO_LONG_2 = 90005;
-
-    /**
-     * The error with code <code>90006</code> is thrown when
-     * trying to insert NULL into a column that does not allow NULL.
-     * Example:
-     * <pre>
-     * CREATE TABLE TEST(ID INT, NAME VARCHAR NOT NULL);
-     * INSERT INTO TEST(ID) VALUES(1);
-     * </pre>
-     */
-    public static final int NULL_NOT_ALLOWED = 90006;
-
-    /**
      * The error with code <code>90007</code> is thrown when
      * trying to call a JDBC method on an object that has been closed.
      */
@@ -574,18 +604,6 @@ public class ErrorCode {
     public static final int DATABASE_ALREADY_OPEN_1 = 90020;
 
     /**
-     * The error with code <code>90021</code> is thrown when
-     * trying to convert a value to a data type where the conversion is undefined,
-     * or when an error occurred trying to convert.
-     * Example:
-     * <pre>
-     * CALL CAST(DATE '2001-01-01' AS BOOLEAN);
-     * CALL CAST('CHF 99.95' AS INT);
-     * </pre>
-     */
-    public static final int DATA_CONVERSION_ERROR_1 = 90021;
-
-    /**
      * The error with code <code>90022</code> is thrown when
      * trying to call a unknown function.
      * Example:
@@ -740,17 +758,6 @@ public class ErrorCode {
     public static final int VIEW_ALREADY_EXISTS_1 = 90038;
 
     /**
-     * The error with code <code>90039</code> is thrown when
-     * trying to convert a decimal value to lower precision if the
-     * value is out of range for this precision.
-     * Example:
-     * <pre>
-     * SELECT * FROM TABLE(X DECIMAL(2, 2) = (123.34));
-     * </pre>
-     */
-    public static final int VALUE_TOO_LARGE_FOR_PRECISION_1 = 90039;
-
-    /**
      * The error with code <code>90040</code> is thrown when
      * a user that is not administrator tries to execute a statement
      * that requires admin privileges.
@@ -867,7 +874,7 @@ public class ErrorCode {
     public static final int WRONG_PASSWORD_FORMAT = 90050;
 
     /**
-     * The error with code <code>90051</code> is thrown when
+     * The error with code <code>57014</code> is thrown when
      * a statement was canceled using Statement.cancel() or
      * when the query timeout has been reached.
      * Examples:
@@ -876,7 +883,7 @@ public class ErrorCode {
      * stat.cancel();
      * </pre>
      */
-    public static final int STATEMENT_WAS_CANCELED = 90051;
+    public static final int STATEMENT_WAS_CANCELED = 57014;
 
     /**
      * The error with code <code>90052</code> is thrown when
@@ -930,21 +937,6 @@ public class ErrorCode {
      * </pre>
      */
     public static final int UNSUPPORTED_CIPHER = 90055;
-
-    /**
-     * The error with code <code>90056</code> is thrown when
-     * updating or deleting from a table with a foreign key constraint
-     * that should set the default value, but there is no default value defined.
-     * Example:
-     * <pre>
-     * CREATE TABLE TEST(ID INT, PARENT INT);
-     * INSERT INTO TEST VALUES(1, 1), (2, 1);
-     * ALTER TABLE TEST ADD CONSTRAINT TEST_ID_PARENT
-     *   FOREIGN KEY(PARENT) REFERENCES(ID) ON DELETE SET DEFAULT;
-     * DELETE FROM TEST WHERE ID=1;
-     * </pre>
-     */
-    public static final int NO_DEFAULT_SET_1 = 90056;
 
     /**
      * The error with code <code>90057</code> is thrown when
@@ -1540,16 +1532,6 @@ public class ErrorCode {
     public static final int VIEW_IS_INVALID_2 = 90109;
 
     /**
-     * The error with code <code>90110</code> is thrown when
-     * the result of the calculation does not fit in the given data type.
-     * Example:
-     * <pre>
-     * CALL -CAST(-128 AS TINYINT);
-     * </pre>
-     */
-    public static final int OVERFLOW_FOR_TYPE_1 = 90110;
-
-    /**
      * The error with code <code>90111</code> is thrown when
      * an exception occurred while accessing a linked table.
      */
@@ -1877,7 +1859,7 @@ public class ErrorCode {
      */
     public static final int RESULT_SET_READONLY = 90140;
 
-    // next is 90122, 90141
+    // next are 90005, 90006, 90021, 90039, 90051, 90056, 90110, 90122, 90141
 
     private ErrorCode() {
         // utility class
@@ -1893,13 +1875,13 @@ public class ErrorCode {
         case LOCK_TIMEOUT_1:
         case NULL_NOT_ALLOWED:
         case NO_DATA_AVAILABLE:
+        case NUMERIC_VALUE_OUT_OF_RANGE_1:
         case REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1:
         case REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1:
         case SYNTAX_ERROR_1:
         case SYNTAX_ERROR_2:
         case TABLE_OR_VIEW_ALREADY_EXISTS_1:
         case TABLE_OR_VIEW_NOT_FOUND_1:
-        case VALUE_TOO_LARGE_FOR_PRECISION_1:
         case VALUE_TOO_LONG_2:
             return true;
         }

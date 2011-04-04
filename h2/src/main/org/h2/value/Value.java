@@ -924,21 +924,21 @@ public abstract class Value {
 
     private static byte convertToByte(long x) {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
-            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(x));
         }
         return (byte) x;
     }
 
     private static short convertToShort(long x) {
         if (x > Short.MAX_VALUE || x < Short.MIN_VALUE) {
-            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(x));
         }
         return (short) x;
     }
 
     private static int convertToInt(long x) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
-            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(x));
         }
         return (int) x;
     }
@@ -946,14 +946,14 @@ public abstract class Value {
     private static long convertToLong(double x) {
         if (x > Long.MAX_VALUE || x < Long.MIN_VALUE) {
             // TODO document that +Infinity, -Infinity throw an exception and NaN returns 0
-            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Double.toString(x));
         }
         return Math.round(x);
     }
 
     private static long convertToLong(BigDecimal x) {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 || x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
-            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, x.toString());
         }
         return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
     }

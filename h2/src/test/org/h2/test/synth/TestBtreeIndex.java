@@ -114,7 +114,7 @@ public class TestBtreeIndex extends TestBase {
                     prepInsert.executeUpdate();
                     count++;
                 } catch (SQLException e) {
-                    if (e.getSQLState().equals("23001")) {
+                    if (e.getSQLState().equals("23505")) {
                         // ignore
                     } else {
                         TestBase.logError("error", e);

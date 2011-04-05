@@ -669,7 +669,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * [Not supported] This feature is deprecated and not supported.
      *
-     * @deprecated
+     * @deprecated this feature is deprecated.
      */
     public void setUnicodeStream(int parameterIndex, InputStream x, int length) throws SQLException {
         throw unsupported("unicodeStream");

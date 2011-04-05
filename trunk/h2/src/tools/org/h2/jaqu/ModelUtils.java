@@ -112,7 +112,7 @@ public class ModelUtils {
     /**
      * Returns a SQL type mapping for a Java class.
      *
-     * @param field the field to map
+     * @param fieldDef the field to map
      * @param strictTypeMapping throws a RuntimeException if type is unsupported
      * @return
      */

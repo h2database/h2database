@@ -90,7 +90,7 @@ public class PageStreamData extends Page {
      * Write the data to the buffer.
      *
      * @param buff the source data
-     * @param off the offset in the source buffer
+     * @param offset the offset in the source buffer
      * @param len the number of bytes to write
      * @return the number of bytes written
      */

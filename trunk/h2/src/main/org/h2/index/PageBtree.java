@@ -151,7 +151,7 @@ public abstract class PageBtree extends Page {
      *
      * @param cursor the cursor
      * @param first the row to find
-     * @param if the row should be bigger
+     * @param bigger if the row should be bigger
      */
     abstract void find(PageBtreeCursor cursor, SearchRow first, boolean bigger);
 

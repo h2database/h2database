@@ -263,7 +263,7 @@ public abstract class Query extends Prepared {
     /**
      * Execute the query, writing the result to the target result.
      *
-     * @param maxrows the maximum number of rows to return
+     * @param limit the maximum number of rows to return
      * @param target the target result (null will return the result)
      * @return the result set (if the target is not set).
      */

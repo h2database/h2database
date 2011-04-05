@@ -464,7 +464,7 @@ public class Comparison extends Condition {
      *
      * @param session the session
      * @param other the second condition
-     * @param add true for AND, false for OR
+     * @param and true for AND, false for OR
      * @return null or the third condition
      */
     Expression getAdditional(Session session, Comparison other, boolean and) {

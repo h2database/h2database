@@ -125,7 +125,7 @@ public class UndoLog {
     /**
      * Go to the right position in the file.
      *
-     * @param file the file
+     * @param filePos the position in the file
      */
     void seek(long filePos) {
         file.seek(filePos * Constants.FILE_BLOCK_SIZE);

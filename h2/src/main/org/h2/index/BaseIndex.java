@@ -107,7 +107,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param higherThan the lower limit (excluding)
      * @param last the last row, or null for no limit
      * @return the cursor
-     * @throws DbException
+     * @throws DbException always
      */
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
         throw DbException.throwInternalError();

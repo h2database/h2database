@@ -145,7 +145,6 @@ public class DataReader extends Reader {
     /**
      * Read one character from the input stream.
      *
-     * @param in the input stream
      * @return the character
      */
     private char readChar() throws IOException {

@@ -68,10 +68,9 @@ public class PageDataOverflow extends Page {
     /**
      * Create an object from the given data page.
      *
-     * @param leaf the leaf page
+     * @param store the page store
      * @param pageId the page id
      * @param data the data page
-     * @param offset the offset
      */
     private PageDataOverflow(PageStore store, int pageId, Data data) {
         this.store = store;

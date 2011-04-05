@@ -122,7 +122,7 @@ public class WebApp {
      * Process an HTTP request.
      *
      * @param file the file that was requested
-     * @param the host address
+     * @param hostAddr the host address
      * @return the name of the file to return to the client
      */
     String processRequest(String file, String hostAddr) {

@@ -184,8 +184,6 @@ public abstract class Prepared {
 
     /**
      * Prepare this statement.
-     *
-     * @throws SQLException
      */
     public void prepare() {
         // nothing to do

@@ -416,7 +416,7 @@ public class PageLog {
      * opening the database.
      *
      * @param sessionId the session id
-     * @param the data page with the prepare entry
+     * @param pageId the data page with the prepare entry
      * @param transaction the transaction name, or null to rollback
      */
     private void setPrepareCommit(int sessionId, int pageId, String transaction) {
@@ -533,7 +533,7 @@ public class PageLog {
     /**
      * Mark a transaction as committed.
      *
-     * @param session the session
+     * @param sessionId the session
      */
     void commit(int sessionId) {
         if (trace.isDebugEnabled()) {

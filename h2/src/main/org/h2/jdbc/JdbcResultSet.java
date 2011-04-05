@@ -696,7 +696,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a BigDecimal.
      *
-     * @deprecated
+     * @deprecated use {@link #getBigDecimal(String)} or {@link #getBigDecimal(int)}
      *
      * @param columnLabel the column label
      * @param scale the scale of the returned value
@@ -722,7 +722,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a BigDecimal.
      *
-     * @deprecated
+     * @deprecated use {@link #getBigDecimal(String)} or {@link #getBigDecimal(int)}
      *
      * @param columnIndex (1,2,...)
      * @param scale the scale of the returned value

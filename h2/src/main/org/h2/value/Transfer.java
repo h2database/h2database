@@ -168,7 +168,7 @@ public class Transfer {
     /**
      * Write a double.
      *
-     * @param x the value
+     * @param i the value
      * @return itself
      */
     private Transfer writeDouble(double i) throws IOException {
@@ -179,7 +179,7 @@ public class Transfer {
     /**
      * Write a float.
      *
-     * @param x the value
+     * @param i the value
      * @return itself
      */
     private Transfer writeFloat(float i) throws IOException {

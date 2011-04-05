@@ -473,7 +473,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     /**
      * Check if this session is closed and throws an exception if so.
      *
-     * @throws SQLException if the session is closed
+     * @throws DbException if the session is closed
      */
     public void checkClosed() {
         if (isClosed()) {
@@ -522,7 +522,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
      * the server and throws any exception the server sent.
      *
      * @param transfer the transfer object
-     * @throws SQLException if the server sent an exception
+     * @throws DbException if the server sent an exception
      * @throws IOException if there is a communication problem between client
      *             and server
      */

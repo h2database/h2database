@@ -394,7 +394,7 @@ public class Schema extends DbObjectBase {
      * @param session the session
      * @param name the table or view name
      * @return the table or view
-     * @throws SQLException if no such object exists
+     * @throws DbException if no such object exists
      */
     public Table getTableOrView(Session session, String name) {
         Table table = tablesAndViews.get(name);
@@ -414,7 +414,7 @@ public class Schema extends DbObjectBase {
      *
      * @param name the index name
      * @return the index
-     * @throws SQLException if no such object exists
+     * @throws DbException if no such object exists
      */
     public Index getIndex(String name) {
         Index index = indexes.get(name);
@@ -429,7 +429,7 @@ public class Schema extends DbObjectBase {
      *
      * @param name the constraint name
      * @return the constraint
-     * @throws SQLException if no such object exists
+     * @throws DbException if no such object exists
      */
     public Constraint getConstraint(String name) {
         Constraint constraint = constraints.get(name);
@@ -444,7 +444,7 @@ public class Schema extends DbObjectBase {
      *
      * @param constantName the constant name
      * @return the constant
-     * @throws SQLException if no such object exists
+     * @throws DbException if no such object exists
      */
     public Constant getConstant(String constantName) {
         Constant constant = constants.get(constantName);
@@ -459,7 +459,7 @@ public class Schema extends DbObjectBase {
      *
      * @param sequenceName the sequence name
      * @return the sequence
-     * @throws SQLException if no such object exists
+     * @throws DbException if no such object exists
      */
     public Sequence getSequence(String sequenceName) {
         Sequence sequence = sequences.get(sequenceName);

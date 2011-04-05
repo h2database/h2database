@@ -255,7 +255,7 @@ public class Engine implements SessionFactory {
      * stack trace to see if the user name was wrong or the password.
      *
      * @param correct if the user name or the password was correct
-     * @throws SQLException the exception 'wrong user or password'
+     * @throws DbException the exception 'wrong user or password'
      */
     private void validateUserAndPassword(boolean correct) {
         int min = SysProperties.DELAY_WRONG_PASSWORD_MIN;

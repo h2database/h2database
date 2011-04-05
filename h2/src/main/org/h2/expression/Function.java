@@ -1546,7 +1546,7 @@ public class Function extends Expression implements FunctionCall {
      * Check if the parameter count is correct.
      *
      * @param len the number of parameters set
-     * @throws SQLException if the parameter count is incorrect
+     * @throws DbException if the parameter count is incorrect
      */
     protected void checkParameterCount(int len) {
         int min = 0, max = Integer.MAX_VALUE;
@@ -1612,7 +1612,7 @@ public class Function extends Expression implements FunctionCall {
      * This method is called after all the parameters have been set.
      * It checks if the parameter count is correct.
      *
-     * @throws SQLException if the parameter count is incorrect.
+     * @throws DbException if the parameter count is incorrect.
      */
     public void doneWithParameters() {
         if (info.parameterCount == VAR_ARGS) {

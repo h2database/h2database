@@ -1041,7 +1041,7 @@ public abstract class Value {
      *
      * @param op the operation
      * @return never returns normally
-     * @throws the exception
+     * @throws DbException the exception
      */
     protected DbException throwUnsupportedExceptionForType(String op) {
         throw DbException.getUnsupportedException(DataType.getDataType(getType()).name + " " + op);

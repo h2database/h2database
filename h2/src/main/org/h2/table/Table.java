@@ -479,7 +479,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param session the session
      * @param col the column
-     * @throws SQLException if the column is referenced by multi-column
+     * @throws DbException if the column is referenced by multi-column
      *             constraints or indexes
      */
     public void dropSingleColumnConstraintsAndIndexes(Session session, Column col) {
@@ -577,7 +577,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param columnName the column name
      * @return the column
-     * @throws SQLException if the column was not found
+     * @throws DbException if the column was not found
      */
     public Column getColumn(String columnName) {
         Column column = columnMap.get(columnName);

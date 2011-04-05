@@ -93,7 +93,7 @@ public abstract class Command implements CommandInterface {
      * Execute an updating statement, if this is possible.
      *
      * @return the update count
-     * @throws SQLException if the command is not an updating statement
+     * @throws DbException if the command is not an updating statement
      */
     public int update() {
         throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
@@ -104,7 +104,7 @@ public abstract class Command implements CommandInterface {
      *
      * @param maxrows the maximum number of rows returned
      * @return the local result set
-     * @throws SQLException if the command is not a query
+     * @throws DbException if the command is not a query
      */
     public ResultInterface query(int maxrows) {
         throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
@@ -126,7 +126,7 @@ public abstract class Command implements CommandInterface {
     /**
      * Check if this command has been canceled, and throw an exception if yes.
      *
-     * @throws SQLException if the statement has been canceled
+     * @throws DbException if the statement has been canceled
      */
     protected void checkCanceled() {
         if (cancel) {

@@ -121,7 +121,7 @@ public class FileLock implements Runnable {
      * Lock the file if possible. A file may only be locked once.
      *
      * @param fileLockMethod the file locking method to use
-     * @throws SQLException if locking was not successful
+     * @throws DbException if locking was not successful
      */
     public synchronized void lock(int fileLockMethod) {
         this.fs = FileSystem.getInstance(fileName);
@@ -461,7 +461,7 @@ public class FileLock implements Runnable {
      *
      * @param method the method name
      * @return the method type
-     * @throws SQLException if the method name is unknown
+     * @throws DbException if the method name is unknown
      */
     public static int getFileLockMethod(String method) {
         if (method == null || method.equalsIgnoreCase("FILE")) {

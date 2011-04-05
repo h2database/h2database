@@ -894,7 +894,7 @@ public class Database implements DataHandler {
      *
      * @param name the user name
      * @return the user
-     * @throws SQLException if the user does not exist
+     * @throws DbException if the user does not exist
      */
     public User getUser(String name) {
         User user = findUser(name);
@@ -909,7 +909,7 @@ public class Database implements DataHandler {
      *
      * @param user the user
      * @return the session
-     * @throws SQLException if the database is in exclusive mode
+     * @throws DbException if the database is in exclusive mode
      */
     synchronized Session createSession(User user) {
         if (exclusiveSession != null) {
@@ -1433,7 +1433,7 @@ public class Database implements DataHandler {
      *
      * @param schemaName the name of the schema
      * @return the schema
-     * @throws SQLException no schema with that name exists
+     * @throws DbException no schema with that name exists
      */
     public Schema getSchema(String schemaName) {
         Schema schema = findSchema(schemaName);

@@ -2758,7 +2758,8 @@ public class Parser {
 
     private void read(String expected) {
         if (currentTokenQuoted || !equalsToken(expected, currentToken)) {
-            throw DbException.getSyntaxError(sqlCommand, parseIndex, expected);
+            addExpected(expected);
+            throw getSyntaxError();
         }
         read();
     }

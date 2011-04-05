@@ -205,7 +205,7 @@ public class Session extends SessionWithState {
      * Add a local temporary table to this session.
      *
      * @param table the table to add
-     * @throws SQLException if a table with this name already exists
+     * @throws DbException if a table with this name already exists
      */
     public void addLocalTempTable(Table table) {
         if (localTempTables == null) {
@@ -256,7 +256,7 @@ public class Session extends SessionWithState {
      * Add a local temporary index to this session.
      *
      * @param index the index to add
-     * @throws SQLException if a index with this name already exists
+     * @throws DbException if a index with this name already exists
      */
     public void addLocalTempTableIndex(Index index) {
         if (localTempTableIndexes == null) {
@@ -313,7 +313,7 @@ public class Session extends SessionWithState {
      * Add a local temporary constraint to this session.
      *
      * @param constraint the constraint to add
-     * @throws SQLException if a constraint with the same name already exists
+     * @throws DbException if a constraint with the same name already exists
      */
     public void addLocalTempTableConstraint(Constraint constraint) {
         if (localTempTableConstraints == null) {
@@ -880,7 +880,7 @@ public class Session extends SessionWithState {
      * Check if the current transaction is canceled by calling
      * Statement.cancel() or because a session timeout was set and expired.
      *
-     * @throws SQLException if the transaction is canceled
+     * @throws DbException if the transaction is canceled
      */
     public void checkCanceled() {
         throttle();

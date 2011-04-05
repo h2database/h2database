@@ -7,6 +7,7 @@
 package org.h2.store;
 
 import java.sql.Connection;
+import org.h2.message.DbException;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 
@@ -37,14 +38,14 @@ public interface DataHandler {
      * Check if the simulated power failure occurred.
      * This call will decrement the countdown.
      *
-     * @throws SQLException if the simulated power failure occurred
+     * @throws DbException if the simulated power failure occurred
      */
     void checkPowerOff();
 
     /**
      * Check if writing is allowed.
      *
-     * @throws SQLException if it is not allowed
+     * @throws DbException if it is not allowed
      */
     void checkWritingAllowed();
 
@@ -52,7 +53,7 @@ public interface DataHandler {
      * Free up disk space if possible.
      * This method is called if more space is needed.
      *
-     * @throws SQLException if no more space could be freed
+     * @throws DbException if no more space could be freed
      */
     void freeUpDiskSpace();
 

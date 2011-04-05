@@ -91,7 +91,7 @@ public class User extends RightOwner {
      *
      * @param table the database object
      * @param rightMask the rights required
-     * @throws SQLException if this user does not have the required rights
+     * @throws DbException if this user does not have the required rights
      */
     public void checkRight(Table table, int rightMask) {
         if (!hasRight(table, rightMask)) {
@@ -192,7 +192,7 @@ public class User extends RightOwner {
      * Check if this user has admin rights. An exception is thrown if he does
      * not have them.
      *
-     * @throws SQLException if this user is not an admin
+     * @throws DbException if this user is not an admin
      */
     public void checkAdmin() {
         if (!admin) {
@@ -240,7 +240,7 @@ public class User extends RightOwner {
      * Check that this user does not own any schema. An exception is thrown if he
      * owns one or more schemas.
      *
-     * @throws SQLException if this user owns a schema
+     * @throws DbException if this user owns a schema
      */
     public void checkOwnsNoSchemas() {
         for (Schema s : database.getAllSchemas()) {

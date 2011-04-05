@@ -263,7 +263,7 @@ public class Utils {
      *
      * @param data the byte array
      * @return the object
-     * @throws SQLException
+     * @throws DbException if serialization fails
      */
     public static Object deserialize(byte[] data) {
         try {

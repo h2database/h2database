@@ -153,7 +153,7 @@ public abstract class Prepared {
     /**
      * Check if all parameters have been set.
      *
-     * @throws SQLException if any parameter has not been set
+     * @throws DbException if any parameter has not been set
      */
     protected void checkParameters() {
         if (parameters != null) {
@@ -195,7 +195,7 @@ public abstract class Prepared {
      * Execute the statement.
      *
      * @return the update count
-     * @throws SQLException if it is a query
+     * @throws DbException if it is a query
      */
     public int update() {
         throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
@@ -206,7 +206,7 @@ public abstract class Prepared {
      *
      * @param maxrows the maximum number of rows to return
      * @return the result set
-     * @throws SQLException if it is not a query
+     * @throws DbException if it is not a query
      */
     public ResultInterface query(int maxrows) {
         throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
@@ -269,7 +269,7 @@ public abstract class Prepared {
     /**
      * Check if this statement was canceled.
      *
-     * @throws SQLException if it was canceled
+     * @throws DbException if it was canceled
      */
     public void checkCanceled() {
         session.checkCanceled();

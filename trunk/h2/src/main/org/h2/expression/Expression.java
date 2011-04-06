@@ -185,7 +185,6 @@ public abstract class Expression {
      *
      * @param session the session
      * @param filter the table filter
-     * @throws SQLException
      */
     public void createIndexConditions(Session session, TableFilter filter) {
         // default is do nothing

@@ -233,7 +233,7 @@ public class FunctionAlias extends SchemaObjectBase {
      *
      * @param args the argument list
      * @return the Java method
-     * @throws SQLException if no matching method could be found
+     * @throws DbException if no matching method could be found
      */
     public JavaMethod findJavaMethod(Expression[] args) {
         load();

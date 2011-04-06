@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(d decimal(1, 2));
+> exception
+
 call truncate_value('Test 123', 4, false);
 > 'Test'
 > ------

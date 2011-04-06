@@ -3682,6 +3682,9 @@ public class Parser {
         // MySQL compatibility
         readIf("UNSIGNED");
         int type = dataType.type;
+        if (scale > precision) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_2, Integer.toString(scale), "scale (precision = " + precision + ")");
+        }
         Column column = new Column(columnName, type, precision, scale, displaySize);
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
@@ -5194,7 +5197,6 @@ public class Parser {
      *
      * @param sql the code snippet
      * @return the expression object
-     * @throws SQLException if the code snippet could not be parsed
      */
     public Expression parseExpression(String sql) {
         parameters = New.arrayList();

@@ -130,7 +130,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param exclusive true for write locks, false for read locks
      * @param force lock even in the MVCC mode
-     * @throws SQLException if a lock timeout occurred
+     * @throws DbException if a lock timeout occurred
      */
     public abstract void lock(Session session, boolean exclusive, boolean force);
 
@@ -183,7 +183,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param session the session
      * @param row the row
-     * @throws SQLException if a constraint was violated
+     * @throws DbException if a constraint was violated
      */
     public abstract void addRow(Session session, Row row);
 
@@ -200,7 +200,7 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Check if this table supports ALTER TABLE.
      *
-     * @throws SQLException if it is not supported
+     * @throws DbException if it is not supported
      */
     public abstract void checkSupportAlter();
 

@@ -40,14 +40,14 @@ public interface DataHandler {
      *
      * @throws DbException if the simulated power failure occurred
      */
-    void checkPowerOff();
+    void checkPowerOff() throws DbException;
 
     /**
      * Check if writing is allowed.
      *
      * @throws DbException if it is not allowed
      */
-    void checkWritingAllowed();
+    void checkWritingAllowed() throws DbException;
 
     /**
      * Free up disk space if possible.
@@ -55,7 +55,7 @@ public interface DataHandler {
      *
      * @throws DbException if no more space could be freed
      */
-    void freeUpDiskSpace();
+    void freeUpDiskSpace() throws DbException;
 
     /**
      * Get the maximum length of a in-place large object

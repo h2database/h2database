@@ -64,7 +64,7 @@ import java.util.logging.Logger;
  *
  * @author Christian d'Heureuse
  *      (<a href="http://www.source-code.biz">www.source-code.biz</a>)
- * @author Thomas Mueller (ported to Java 1.4, some changes)
+ * @author Thomas Mueller
  */
 public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
 

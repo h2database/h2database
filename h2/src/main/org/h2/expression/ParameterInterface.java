@@ -6,6 +6,7 @@
  */
 package org.h2.expression;
 
+import org.h2.message.DbException;
 import org.h2.value.Value;
 
 /**
@@ -31,9 +32,9 @@ public interface ParameterInterface {
     /**
      * Check if the value is set.
      *
-     * @throws SQLException if not set.
+     * @throws DbException if not set.
      */
-    void checkSet();
+    void checkSet() throws DbException;
 
     /**
      * Is the value of a parameter set.

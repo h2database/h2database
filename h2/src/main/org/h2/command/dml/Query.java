@@ -307,7 +307,6 @@ public abstract class Query extends Prepared {
      * @param orderList the order by list
      * @param visible the number of visible columns in the select list
      * @param mustBeInResult all order by expressions must be in the select list
-     * @return the new list (expressions may be added)
      */
     static void initOrder(ArrayList<Expression> expressions, ArrayList<String> expressionSQL, ArrayList<SelectOrderBy> orderList, int visible,
             boolean mustBeInResult) {

@@ -7,7 +7,6 @@
 package org.h2.engine;
 
 import java.util.ArrayList;
-import org.h2.message.DbException;
 import org.h2.table.Table;
 
 /**
@@ -167,8 +166,6 @@ public interface DbObject {
 
     /**
      * Check if renaming is allowed. Does nothing when allowed.
-     *
-     * @throws DbException if renaming is not allowed
      */
     void checkRename();
 

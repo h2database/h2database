@@ -48,7 +48,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
 </li><li>Make DDL (Data Definition) operations transactional.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
-</li><li>Groovy Stored Procedures: http://groovy.codehaus.org/Groovy+SQL
+</li><li>Groovy Stored Procedures: http://groovy.codehaus.org/GSQL
 </li><li>Add a migration guide (list differences between databases).
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Fulltext search Lucene: analyzer configuration, mergeFactor.
@@ -524,6 +524,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>ARRAY data type: support Integer[] and so on in Java functions (currently only Object[] is supported).
 </li><li>MySQL compatibility: LOCK TABLES a READ, b READ - see also http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html
 </li><li>The HTML to PDF converter should use http://code.google.com/p/wkhtmltopdf/
+</li><li>Issue 303: automatically convert "X NOT IN(SELECT...)" to "NOT EXISTS(...)".
+</li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.name=t2.name where t1.id=t2.id.
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -6,12 +6,7 @@
  */
 package org.h2.util;
 
-//## Java 1.4 begin ##
 import java.util.LinkedHashMap;
-//## Java 1.4 end ##
-/*## Java 1.3 only begin ##
-import java.util.HashMap;
-## Java 1.3 only end ##*/
 import java.util.Map;
 
 /**
@@ -20,14 +15,7 @@ import java.util.Map;
  * @param <K> the key
  * @param <V> the value
  */
-public class SmallLRUCache<K, V>
-//## Java 1.4 begin ##
-extends LinkedHashMap<K, V>
-//## Java 1.4 end ##
-/*## Java 1.3 only begin ##
-extends HashMap
-## Java 1.3 only end ##*/
-{
+public class SmallLRUCache<K, V> extends LinkedHashMap<K, V> {
 
     private static final long serialVersionUID = 1L;
     private int size;
@@ -53,9 +41,8 @@ extends HashMap
         this.size = size;
     }
 
-//## Java 1.4 begin ##
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return size() > size;
     }
-//## Java 1.4 end ##
+
 }

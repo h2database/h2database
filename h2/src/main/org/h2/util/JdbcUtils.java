@@ -146,7 +146,6 @@ public class JdbcUtils {
             Class<?> d = Utils.loadUserClass(driver);
             if (java.sql.Driver.class.isAssignableFrom(d)) {
                 return DriverManager.getConnection(url, prop);
-                //## Java 1.4 begin ##
             } else if (javax.naming.Context.class.isAssignableFrom(d)) {
                 // JNDI context
                 try {
@@ -161,9 +160,8 @@ public class JdbcUtils {
                 } catch (Exception e) {
                     throw DbException.toSQLException(e);
                 }
-                //## Java 1.4 end ##
             } else {
-                // Don't know, but maybe it loaded a JDBC Driver
+                // don't know, but maybe it loaded a JDBC Driver
                 return DriverManager.getConnection(url, prop);
             }
         }

@@ -344,9 +344,7 @@ public class DbException extends RuntimeException {
             }
         }
         IOException io = new IOException(e.toString());
-        //## Java 1.4 begin ##
         io.initCause(e);
-        //## Java 1.4 end ##
         return io;
     }
 

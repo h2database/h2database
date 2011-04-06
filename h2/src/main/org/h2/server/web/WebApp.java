@@ -1123,12 +1123,9 @@ public class WebApp {
             }
             rs.addRow("conn.getTypeMap", "" + map);
             rs.addRow("conn.isReadOnly", "" + conn.isReadOnly());
-//## Java 1.4 begin ##
             rs.addRow("conn.getHoldability", "" + conn.getHoldability());
-//## Java 1.4 end ##
             addDatabaseMetaData(rs, meta);
             return rs;
-//## Java 1.4 begin ##
         } else if (isBuiltIn(sql, "@attributes")) {
             String[] p = split(sql);
             return meta.getAttributes(p[1], p[2], p[3], p[4]);
@@ -1138,7 +1135,6 @@ public class WebApp {
         } else if (isBuiltIn(sql, "@super_types")) {
             String[] p = split(sql);
             return meta.getSuperTypes(p[1], p[2], p[3]);
-//## Java 1.4 end ##
         } else if (isBuiltIn(sql, "@prof_stop")) {
             if (profiler != null) {
                 profiler.stopCollecting();
@@ -1309,9 +1305,7 @@ public class WebApp {
                 session.addCommand(sql);
                 if (generatedKeys) {
                     rs = null;
-//## Java 1.4 begin ##
                     rs = stat.getGeneratedKeys();
-//## Java 1.4 end ##
                 } else {
                     if (!isResultSet) {
                         buff.append("${text.result.updateCount}: " + stat.getUpdateCount());

@@ -669,7 +669,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * [Not supported] This feature is deprecated and not supported.
      *
-     * @deprecated this feature is deprecated.
+     * @deprecated
      */
     public void setUnicodeStream(int parameterIndex, InputStream x, int length) throws SQLException {
         throw unsupported("unicodeStream");
@@ -1098,9 +1098,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                             e.setNextException(next);
                             next = e;
                         }
-                        //## Java 1.4 begin ##
                         result[i] = Statement.EXECUTE_FAILED;
-                        //## Java 1.4 end ##
                         error = true;
                     }
                 }
@@ -1248,7 +1246,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      *
      * @return the meta data
      */
-//## Java 1.4 begin ##
     public ParameterMetaData getParameterMetaData() throws SQLException {
         try {
             int id = getNextId(TraceObject.PARAMETER_META_DATA);
@@ -1262,7 +1259,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-//## Java 1.4 end ##
 
     // =============================================================
 

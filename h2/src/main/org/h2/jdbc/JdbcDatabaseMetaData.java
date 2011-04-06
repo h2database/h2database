@@ -2644,24 +2644,20 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *            CLOSE_CURSORS_AT_COMMIT
      * @return true if the holdability is ResultSet.CLOSE_CURSORS_AT_COMMIT
      */
-    //## Java 1.4 begin ##
     public boolean supportsResultSetHoldability(int holdability) {
         debugCodeCall("supportsResultSetHoldability", holdability);
         return holdability == ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
-    //## Java 1.4 end ##
 
     /**
      * Gets the result set holdability.
      *
      * @return ResultSet.CLOSE_CURSORS_AT_COMMIT
      */
-    //## Java 1.4 begin ##
     public int getResultSetHoldability() {
         debugCodeCall("getResultSetHoldability");
         return ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
-    //## Java 1.4 end ##
 
     /**
      * Gets the major version of the database.
@@ -2714,12 +2710,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * @return DatabaseMetaData.sqlStateSQL99
      */
-    //## Java 1.4 begin ##
     public int getSQLStateType() {
         debugCodeCall("getSQLStateType");
         return DatabaseMetaData.sqlStateSQL99;
     }
-    //## Java 1.4 end ##
 
     /**
      * Does the database make a copy before updating.

@@ -27,9 +27,7 @@ class FileObjectMemoryData {
     private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
     private static final byte[] COMPRESSED_EMPTY_BLOCK;
 
-//## Java 1.4 begin ##
     private static final Cache<CompressItem, CompressItem> COMPRESS_LATER = new Cache<CompressItem, CompressItem>(CACHE_SIZE);
-//## Java 1.4 end ##
 
     private String name;
     private final boolean compress;
@@ -49,7 +47,6 @@ class FileObjectMemoryData {
     /**
      * This small cache compresses the data if an element leaves the cache.
      */
-//## Java 1.4 begin ##
     static class Cache<K, V> extends LinkedHashMap<K, V> {
 
         private static final long serialVersionUID = 1L;
@@ -97,7 +94,6 @@ class FileObjectMemoryData {
             return false;
         }
     }
-//## Java 1.4 end ##
 
     FileObjectMemoryData(String name, boolean compress) {
         this.name = name;
@@ -107,14 +103,12 @@ class FileObjectMemoryData {
     }
 
     private static void compressLater(byte[][] data, int page) {
-//## Java 1.4 begin ##
         CompressItem c = new CompressItem();
         c.data = data;
         c.page = page;
         synchronized (LZF) {
             COMPRESS_LATER.put(c, c);
         }
-//## Java 1.4 end ##
     }
 
     private static void expand(byte[][] data, int page) {

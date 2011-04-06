@@ -30,8 +30,6 @@ public class MathUtils {
      */
     static volatile boolean seeded;
 
-    private static boolean usePrecisionWorkaround;
-
     private static final Random RANDOM  = new Random();
 
     /**
@@ -303,24 +301,6 @@ public class MathUtils {
      */
     public static long reverseLong(long x) {
         return (reverseInt((int) (x >>> 32L)) & 0xffffffffL) ^ (((long) reverseInt((int) x)) << 32L);
-    }
-
-    /**
-     * Compatibility for BigDecimal.precision() which is not available in Java 1.4.
-     *
-     * @param x the value
-     * @return the precision
-     */
-    public static int precision(BigDecimal x) {
-        if (!usePrecisionWorkaround) {
-            try {
-                return x.precision();
-            } catch (Throwable e) {
-                // NoSuchMethodError
-                usePrecisionWorkaround = true;
-            }
-        }
-        return x.unscaledValue().abs().toString().length();
     }
 
     /**

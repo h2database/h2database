@@ -6,7 +6,6 @@
  */
 package org.h2.jdbcx;
 
-//## Java 1.4 begin ##
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,7 +22,6 @@ import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
-//## Java 1.4 end ##
 
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -38,13 +36,8 @@ import javax.sql.StatementEventListener;
  * An application developer usually does not use this interface.
  * It is used by the transaction manager internally.
  */
-public class JdbcXAConnection extends TraceObject
-//## Java 1.4 begin ##
-implements XAConnection, XAResource
-//## Java 1.4 end ##
-{
+public class JdbcXAConnection extends TraceObject implements XAConnection, XAResource {
 
-//## Java 1.4 begin ##
     private JdbcDataSourceFactory factory;
 
     // This connection is kept open as long as the XAConnection is alive
@@ -64,19 +57,16 @@ implements XAConnection, XAResource
         setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
         this.physicalConn = physicalConn;
     }
-//## Java 1.4 end ##
 
     /**
      * Get the XAResource object.
      *
      * @return itself
      */
-//## Java 1.4 begin ##
     public XAResource getXAResource() {
         debugCodeCall("getXAResource");
         return this;
     }
-//## Java 1.4 end ##
 
     /**
      * Close the physical connection.
@@ -84,7 +74,6 @@ implements XAConnection, XAResource
      *
      * @throws SQLException
      */
-//## Java 1.4 begin ##
     public void close() throws SQLException {
         debugCodeCall("close");
         PooledJdbcConnection lastHandle = handleConn;
@@ -100,7 +89,6 @@ implements XAConnection, XAResource
             }
         }
     }
-//## Java 1.4 end ##
 
     /**
      * Get a connection that is a handle to the physical connection. This method
@@ -109,7 +97,6 @@ implements XAConnection, XAResource
      *
      * @return the connection
      */
-//## Java 1.4 begin ##
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
         PooledJdbcConnection lastHandle = handleConn;
@@ -119,36 +106,30 @@ implements XAConnection, XAResource
         handleConn = new PooledJdbcConnection(physicalConn);
         return handleConn;
     }
-//## Java 1.4 end ##
 
     /**
      * Register a new listener for the connection.
      *
      * @param listener the event listener
      */
-//## Java 1.4 begin ##
     public void addConnectionEventListener(ConnectionEventListener listener) {
         debugCode("addConnectionEventListener(listener);");
         listeners.add(listener);
     }
-//## Java 1.4 end ##
 
     /**
      * Remove the event listener.
      *
      * @param listener the event listener
      */
-//## Java 1.4 begin ##
     public void removeConnectionEventListener(ConnectionEventListener listener) {
         debugCode("removeConnectionEventListener(listener);");
         listeners.remove(listener);
     }
-//## Java 1.4 end ##
 
     /**
      * INTERNAL
      */
-//## Java 1.4 begin ##
     void closedHandle() {
         debugCode("closedHandle();");
         for (ConnectionEventListener listener : New.arrayList(listeners)) {
@@ -157,19 +138,16 @@ implements XAConnection, XAResource
         }
         handleConn = null;
     }
-//## Java 1.4 end ##
 
     /**
      * Get the transaction timeout.
      *
      * @return 0
      */
-//## Java 1.4 begin ##
     public int getTransactionTimeout() {
         debugCodeCall("getTransactionTimeout");
         return 0;
     }
-//## Java 1.4 end ##
 
     /**
      * Set the transaction timeout.
@@ -177,12 +155,10 @@ implements XAConnection, XAResource
      * @param seconds ignored
      * @return false
      */
-//## Java 1.4 begin ##
     public boolean setTransactionTimeout(int seconds) {
         debugCodeCall("setTransactionTimeout", seconds);
         return false;
     }
-//## Java 1.4 end ##
 
     /**
      * Checks if this is the same XAResource.
@@ -190,12 +166,10 @@ implements XAConnection, XAResource
      * @param xares the other object
      * @return true if this is the same object
      */
-//## Java 1.4 begin ##
     public boolean isSameRM(XAResource xares) {
         debugCode("isSameRM(xares);");
         return xares == this;
     }
-//## Java 1.4 end ##
 
     /**
      * Get the list of prepared transaction branches.
@@ -206,7 +180,6 @@ implements XAConnection, XAResource
      *  @return zero or more Xid objects
      * @throws XAException
      */
-//## Java 1.4 begin ##
     public Xid[] recover(int flag) throws XAException {
         debugCodeCall("recover", quoteFlags(flag));
         checkOpen();
@@ -233,7 +206,6 @@ implements XAConnection, XAResource
             JdbcUtils.closeSilently(stat);
         }
     }
-//## Java 1.4 end ##
 
     /**
      * Prepare a transaction.
@@ -242,7 +214,6 @@ implements XAConnection, XAResource
      * @return XA_OK
      * @throws XAException
      */
-//## Java 1.4 begin ##
     public int prepare(Xid xid) throws XAException {
         if (isDebugEnabled()) {
             debugCode("prepare("+JdbcXid.toString(xid)+");");
@@ -262,7 +233,6 @@ implements XAConnection, XAResource
         }
         return XA_OK;
     }
-//## Java 1.4 end ##
 
     /**
      * Forget a transaction.
@@ -270,13 +240,11 @@ implements XAConnection, XAResource
      *
      * @param xid the transaction id
      */
-//## Java 1.4 begin ##
     public void forget(Xid xid) {
         if (isDebugEnabled()) {
             debugCode("forget("+JdbcXid.toString(xid)+");");
         }
     }
-//## Java 1.4 end ##
 
     /**
      * Roll back a transaction.
@@ -284,7 +252,6 @@ implements XAConnection, XAResource
      * @param xid the transaction id
      * @throws XAException
      */
-//## Java 1.4 begin ##
     public void rollback(Xid xid) throws XAException {
         if (isDebugEnabled()) {
             debugCode("rollback("+JdbcXid.toString(xid)+");");
@@ -306,7 +273,6 @@ implements XAConnection, XAResource
         }
         currentTransaction = null;
     }
-//## Java 1.4 end ##
 
     /**
      * End a transaction.
@@ -315,7 +281,6 @@ implements XAConnection, XAResource
      * @param flags TMSUCCESS, TMFAIL, or TMSUSPEND
      * @throws XAException
      */
-//## Java 1.4 begin ##
     public void end(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
             debugCode("end("+JdbcXid.toString(xid)+", "+quoteFlags(flags)+");");
@@ -328,7 +293,6 @@ implements XAConnection, XAResource
             throw new XAException(XAException.XAER_OUTSIDE);
         }
     }
-//## Java 1.4 end ##
 
     /**
      * Start or continue to work on a transaction.
@@ -337,7 +301,6 @@ implements XAConnection, XAResource
      * @param flags TMNOFLAGS, TMJOIN, or TMRESUME
      * @throws XAException
      */
-//## Java 1.4 begin ##
     public void start(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
             debugCode("start("+JdbcXid.toString(xid)+", "+quoteFlags(flags)+");");
@@ -359,7 +322,6 @@ implements XAConnection, XAResource
         }
         currentTransaction = xid;
     }
-//## Java 1.4 end ##
 
     /**
      * Commit a transaction.
@@ -368,7 +330,6 @@ implements XAConnection, XAResource
      * @param onePhase use a one-phase protocol if true
      * @throws XAException
      */
-//## Java 1.4 begin ##
     public void commit(Xid xid, boolean onePhase) throws XAException {
         if (isDebugEnabled()) {
             debugCode("commit("+JdbcXid.toString(xid)+", "+onePhase+");");
@@ -389,7 +350,6 @@ implements XAConnection, XAResource
         }
         currentTransaction = null;
     }
-//## Java 1.4 end ##
 
     /**
      * [Not supported] Add a statement event listener.
@@ -416,7 +376,6 @@ implements XAConnection, XAResource
     /**
      * INTERNAL
      */
-//## Java 1.4 begin ##
     public String toString() {
         return getTraceObjectName() + ": " + physicalConn;
     }
@@ -467,7 +426,6 @@ implements XAConnection, XAResource
             throw new XAException(XAException.XAER_RMERR);
         }
     }
-//## Java 1.4 end ##
 
     /**
      * A pooled connection.

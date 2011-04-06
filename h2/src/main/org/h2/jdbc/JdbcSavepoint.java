@@ -7,9 +7,7 @@
 package org.h2.jdbc;
 
 import java.sql.SQLException;
-//## Java 1.4 begin ##
 import java.sql.Savepoint;
-//## Java 1.4 end ##
 
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
@@ -22,11 +20,7 @@ import org.h2.util.StringUtils;
  * rolled back. The tasks that where done before the savepoint are not rolled
  * back in this case.
  */
-public class JdbcSavepoint extends TraceObject
-//## Java 1.4 begin ##
-implements Savepoint
-//## Java 1.4 end ##
-{
+public class JdbcSavepoint extends TraceObject implements Savepoint {
 
     private static final String SYSTEM_SAVEPOINT_PREFIX = "SYSTEM_SAVEPOINT_";
 

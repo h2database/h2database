@@ -6,7 +6,6 @@
  */
 package org.h2.fulltext;
 
-//## Java 1.4 begin ##
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -38,7 +37,6 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-//## Java 1.4 end ##
 /*## LUCENE2 begin ##
 import org.apache.lucene.index.IndexModifier;
 import org.apache.lucene.search.Hits;
@@ -64,7 +62,6 @@ public class FullTextLucene extends FullText {
      */
     protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
 
-    //## Java 1.4 begin ##
     private static final HashMap<String, IndexAccess> INDEX_ACCESS = New.hashMap();
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
@@ -72,7 +69,6 @@ public class FullTextLucene extends FullText {
     private static final String LUCENE_FIELD_QUERY = "_QUERY";
     private static final String LUCENE_FIELD_MODIFIED = "_modified";
     private static final String LUCENE_FIELD_COLUMN_PREFIX = "_";
-    //## Java 1.4 end ##
 
     /**
      * Initializes full text search functionality for this database. This adds
@@ -96,7 +92,6 @@ public class FullTextLucene extends FullText {
      *
      * @param conn the connection
      */
-    //## Java 1.4 begin ##
     public static void init(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
@@ -113,7 +108,6 @@ public class FullTextLucene extends FullText {
             throw convertException(e);
         }
     }
-    //## Java 1.4 end ##
 
     /**
      * Create a new full text index for a table and column list. Each table may
@@ -124,7 +118,6 @@ public class FullTextLucene extends FullText {
      * @param table the table name (case sensitive)
      * @param columnList the column list (null for all columns)
      */
-    //## Java 1.4 begin ##
     public static void createIndex(Connection conn, String schema, String table, String columnList) throws SQLException {
         init(conn);
         PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA
@@ -136,7 +129,6 @@ public class FullTextLucene extends FullText {
         createTrigger(conn, schema, table);
         indexExistingRows(conn, schema, table);
     }
-    //## Java 1.4 end ##
 
     /**
      * Re-creates the full text index for this database. Calling this method is
@@ -144,7 +136,6 @@ public class FullTextLucene extends FullText {
      *
      * @param conn the connection
      */
-    //## Java 1.4 begin ##
     public static void reindex(Connection conn) throws SQLException {
         init(conn);
         removeAllTriggers(conn, TRIGGER_PREFIX);
@@ -158,21 +149,18 @@ public class FullTextLucene extends FullText {
             indexExistingRows(conn, schema, table);
         }
     }
-    //## Java 1.4 end ##
 
     /**
      * Drops all full text indexes from the database.
      *
      * @param conn the connection
      */
-    //## Java 1.4 begin ##
     public static void dropAll(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
         removeAllTriggers(conn, TRIGGER_PREFIX);
         removeIndexFiles(conn);
     }
-    //## Java 1.4 end ##
 
     /**
      * Searches from the full text index for this database.
@@ -189,11 +177,9 @@ public class FullTextLucene extends FullText {
      * @param offset the offset or 0 for no offset
      * @return the result set
      */
-    //## Java 1.4 begin ##
     public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
         return search(conn, text, limit, offset, false);
     }
-    //## Java 1.4 end ##
 
     /**
      * Searches from the full text index for this database. The result contains
@@ -215,7 +201,6 @@ public class FullTextLucene extends FullText {
      * @param offset the offset or 0 for no offset
      * @return the result set
      */
-    //## Java 1.4 begin ##
     public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
         return search(conn, text, limit, offset, true);
     }
@@ -413,7 +398,7 @@ public class FullTextLucene extends FullText {
             for (int i = 0; i < limit && i + offset < max; i++) {
                 Document doc = hits.doc(i + offset);
                 float score = hits.score(i + offset);
-                ## LUCENE2 end ##*/
+            ## LUCENE2 end ##*/
             //## LUCENE3 begin ##
             // take a reference as the searcher may change
             Searcher searcher = access.searcher;
@@ -470,18 +455,12 @@ public class FullTextLucene extends FullText {
         }
         return result;
     }
-    //## Java 1.4 end ##
 
     /**
      * Trigger updates the index when a inserting, updating, or deleting a row.
      */
-    public static class FullTextTrigger
-    //## Java 1.4 begin ##
-    implements Trigger
-    //## Java 1.4 end ##
-    {
+    public static class FullTextTrigger implements Trigger {
 
-        //## Java 1.4 begin ##
         protected String schema;
         protected String table;
         protected int[] keys;
@@ -490,12 +469,10 @@ public class FullTextLucene extends FullText {
         protected int[] columnTypes;
         protected String indexPath;
         protected IndexAccess indexAccess;
-        //## Java 1.4 end ##
 
         /**
          * INTERNAL
          */
-        //## Java 1.4 begin ##
         public void init(Connection conn, String schemaName, String triggerName,
                 String tableName, boolean before, int type) throws SQLException {
             this.schema = schemaName;
@@ -556,12 +533,10 @@ public class FullTextLucene extends FullText {
             indexColumns = new int[indexList.size()];
             setColumns(indexColumns, indexList, columnList);
         }
-        //## Java 1.4 end ##
 
         /**
          * INTERNAL
          */
-        //## Java 1.4 begin ##
         public void fire(Connection conn, Object[] oldRow, Object[] newRow)
                 throws SQLException {
             if (oldRow != null) {
@@ -580,19 +555,16 @@ public class FullTextLucene extends FullText {
                 insert(newRow);
             }
         }
-        //## Java 1.4 end ##
 
         /**
          * INTERNAL
          */
-        //## Java 1.4 begin ##
         public void close() throws SQLException {
             if (indexAccess != null) {
                 removeIndexAccess(indexAccess, indexPath);
                 indexAccess = null;
             }
         }
-        //## Java 1.4 end ##
 
         /**
          * INTERNAL

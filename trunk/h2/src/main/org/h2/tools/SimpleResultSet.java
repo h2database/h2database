@@ -1683,11 +1683,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return the holdability
      */
-//## Java 1.4 begin ##
     public int getHoldability() {
         return ResultSet.HOLD_CURSORS_OVER_COMMIT;
     }
-//## Java 1.4 end ##
 
     /**
      * Returns whether this result set has been closed.

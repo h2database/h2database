@@ -639,9 +639,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                             e.setNextException(next);
                             next = e;
                         }
-                        //## Java 1.4 begin ##
                         result[i] = Statement.EXECUTE_FAILED;
-                        //## Java 1.4 end ##
                         error = true;
                     }
                 }
@@ -858,7 +856,6 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return the holdability
      */
-//## Java 1.4 begin ##
     public int getResultSetHoldability() throws SQLException {
         try {
             debugCodeCall("getResultSetHoldability");
@@ -868,7 +865,6 @@ public class JdbcStatement extends TraceObject implements Statement {
             throw logAndConvert(e);
         }
     }
-//## Java 1.4 end ##
 
     /**
      * [Not supported]

@@ -267,7 +267,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * Returns the value of the specified column as a BigDecimal.
      *
-     * @deprecated use {@link #getBigDecimal(String)} or {@link #getBigDecimal(int)}
+     * @deprecated use {@link #getBigDecimal(int)}
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param scale is ignored

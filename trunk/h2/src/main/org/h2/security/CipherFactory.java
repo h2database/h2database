@@ -79,7 +79,6 @@ public class CipherFactory {
      */
     public static Socket createSocket(InetAddress address, int port) throws IOException {
         Socket socket = null;
-//## Java 1.4 begin ##
         setKeystore();
         SSLSocketFactory f = (SSLSocketFactory) SSLSocketFactory.getDefault();
         SSLSocket secureSocket = (SSLSocket) f.createSocket();
@@ -91,7 +90,6 @@ public class CipherFactory {
             secureSocket.setEnabledCipherSuites(list);
         }
         socket = secureSocket;
-//## Java 1.4 end ##
         return socket;
     }
 
@@ -106,7 +104,6 @@ public class CipherFactory {
      */
     public static ServerSocket createServerSocket(int port, InetAddress bindAddress) throws IOException {
         ServerSocket socket = null;
-//## Java 1.4 begin ##
         setKeystore();
         ServerSocketFactory f = SSLServerSocketFactory.getDefault();
         SSLServerSocket secureSocket;
@@ -121,11 +118,9 @@ public class CipherFactory {
             secureSocket.setEnabledCipherSuites(list);
         }
         socket = secureSocket;
-//## Java 1.4 end ##
         return socket;
     }
 
-//## Java 1.4 begin ##
     private static byte[] getKeyStoreBytes(KeyStore store, String password) throws IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try {
@@ -135,15 +130,13 @@ public class CipherFactory {
         }
         return bout.toByteArray();
     }
-//## Java 1.4 end ##
 
-/**
+    /**
      * Get the keystore object using the given password.
      *
      * @param password the keystore password
      * @return the keystore
      */
-//## Java 1.4 begin ##
     public static KeyStore getKeyStore(String password) throws IOException {
         try {
             // The following source code can be re-generated

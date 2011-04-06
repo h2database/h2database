@@ -187,11 +187,9 @@ public class NetUtils {
      */
     public static boolean isLocalAddress(Socket socket) throws UnknownHostException {
         InetAddress test = socket.getInetAddress();
-        //## Java 1.4 begin ##
         if (test.isLoopbackAddress()) {
             return true;
         }
-        //## Java 1.4 end ##
         InetAddress localhost = InetAddress.getLocalHost();
         // localhost.getCanonicalHostName() is very very slow
         String host = localhost.getHostAddress();

@@ -21,11 +21,7 @@ import org.h2.value.Value;
 /**
  * Information about the parameters of a prepared statement.
  */
-public class JdbcParameterMetaData extends TraceObject
-//## Java 1.4 begin ##
-implements ParameterMetaData
-//## Java 1.4 end ##
-{
+public class JdbcParameterMetaData extends TraceObject implements ParameterMetaData {
 
     private JdbcPreparedStatement prep;
     private int paramCount;
@@ -60,7 +56,6 @@ implements ParameterMetaData
      * @param param the column index (1,2,...)
      * @return parameterModeIn
      */
-//## Java 1.4 begin ##
     public int getParameterMode(int param) throws SQLException {
         try {
             debugCodeCall("getParameterMode", param);
@@ -70,7 +65,6 @@ implements ParameterMetaData
             throw logAndConvert(e);
         }
     }
-//## Java 1.4 end ##
 
     /**
      * Returns the parameter type.

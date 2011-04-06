@@ -82,9 +82,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private CommandInterface setLockMode, getLockMode;
     private CommandInterface setQueryTimeout, getQueryTimeout;
 
-    //## Java 1.4 begin ##
     private int savepointId;
-    //## Java 1.4 end ##
     private Trace trace;
     private boolean isInternal;
     private String catalog;
@@ -890,7 +888,6 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @return the new savepoint
      */
-//## Java 1.4 begin ##
     public Savepoint setSavepoint() throws SQLException {
         try {
             int id = getNextId(TraceObject.SAVEPOINT);
@@ -907,7 +904,6 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-//## Java 1.4 end ##
 
     /**
      * Creates a new named savepoint.
@@ -915,7 +911,6 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @param name the savepoint name
      * @return the new savepoint
      */
-//## Java 1.4 begin ##
     public Savepoint setSavepoint(String name) throws SQLException {
         try {
             int id = getNextId(TraceObject.SAVEPOINT);
@@ -931,14 +926,12 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-//## Java 1.4 end ##
 
     /**
      * Rolls back to a savepoint.
      *
      * @param savepoint the savepoint
      */
-//## Java 1.4 begin ##
     public void rollback(Savepoint savepoint) throws SQLException {
         try {
             JdbcSavepoint sp = convertSavepoint(savepoint);
@@ -953,14 +946,12 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-//## Java 1.4 end ##
 
     /**
      * Releases a savepoint.
      *
      * @param savepoint the savepoint to release
      */
-//## Java 1.4 begin ##
     public void releaseSavepoint(Savepoint savepoint) throws SQLException {
         try {
             debugCode("releaseSavepoint(savepoint);");
@@ -977,7 +968,6 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         return (JdbcSavepoint) savepoint;
     }
-//## Java 1.4 end ##
 
     /**
      * Creates a prepared statement with the specified result set type,
@@ -1079,11 +1069,9 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private static void checkJavaVersion() {
         try {
-            //## Java 1.4 begin ##
             // check for existence of this class (avoiding Class . forName)
             Class<?> clazz = java.sql.Savepoint.class;
             clazz.getClass();
-            //## Java 1.4 end ##
         } catch (NoClassDefFoundError e) {
             throw DbException.get(ErrorCode.UNSUPPORTED_JAVA_VERSION);
         }
@@ -1333,12 +1321,10 @@ public class JdbcConnection extends TraceObject implements Connection {
     private static void checkHoldability(int resultSetHoldability) {
         // TODO compatibility / correctness: DBPool uses
         // ResultSet.HOLD_CURSORS_OVER_COMMIT
-        //## Java 1.4 begin ##
         if (resultSetHoldability != ResultSet.HOLD_CURSORS_OVER_COMMIT
                 && resultSetHoldability != ResultSet.CLOSE_CURSORS_AT_COMMIT) {
             throw DbException.getInvalidValueException("resultSetHoldability", resultSetHoldability);
         }
-        //## Java 1.4 end ##
     }
 
     /**

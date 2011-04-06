@@ -555,12 +555,7 @@ public class DateTimeUtils {
             if (locale == null) {
                 df = new SimpleDateFormat(format);
             } else {
-                //## Java 1.4 begin ##
                 Locale l = new Locale(locale);
-                //## Java 1.4 end ##
-                /*## Java 1.3 only begin ##
-                Locale l = new Locale(locale, "");
-                ## Java 1.3 only end ##*/
                 df = new SimpleDateFormat(format, l);
             }
             if (timeZone != null) {

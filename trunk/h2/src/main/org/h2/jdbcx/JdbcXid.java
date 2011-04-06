@@ -16,11 +16,7 @@ import org.h2.util.StringUtils;
 /**
  * An object of this class represents a transaction id.
  */
-public class JdbcXid extends TraceObject
-//## Java 1.4 begin ##
-implements Xid
-//## Java 1.4 end ##
-{
+public class JdbcXid extends TraceObject implements Xid {
 
     private static final String PREFIX = "XID";
 

@@ -432,25 +432,12 @@ public class StringUtils {
      * @return the encoded string
      */
     public static String urlEncode(String s) {
-//## Java 1.4 begin ##
         try {
             return URLEncoder.encode(s, "UTF-8");
         } catch (Exception e) {
             // UnsupportedEncodingException
             throw DbException.convert(e);
         }
-//## Java 1.4 end ##
-/*## Java 1.3 only begin ##
-/*
-        return URLEncoder.encode(s);
-*/
-//## Java 1.4 end ##
-//        byte[] utf = utf8Encode(s);
-//        StringBuilder buff = new StringBuilder(utf.length);
-//        for(int i=0; i<utf.length; i++) {
-//
-//            buff.append()
-//        }
     }
 
     /**

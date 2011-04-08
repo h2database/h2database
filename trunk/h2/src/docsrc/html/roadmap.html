@@ -29,7 +29,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <h2>Priority 1</h2>
 <ul><li>Bugfixes.
 </li><li>Test if out of disk space can corrupt a database.
-</li><li>More tests with MULTI_THREADED=1 (and MULTI_THREADED with MVCC).
+</li><li>More tests with MULTI_THREADED=1 (and MULTI_THREADED with MVCC):
+    Online backup (using the 'backup' statement).
 </li><li>Server side cursors.
 </li></ul>
 
@@ -96,6 +97,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master.
 </li><li>Test http://mysql-je.sourceforge.net/
 </li><li>H2 Console: the webclient could support more features like phpMyAdmin.
+</li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
 </li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
 </li><li>Work on the Java to C converter.
 </li><li>The HELP information schema can be directly exposed in the Console.
@@ -142,7 +144,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>File locking: writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Pure SQL triggers (example: update parent table if the child table is changed).
 </li><li>Add H2 to Gem (Ruby install system).
-</li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
 </li><li>Support linked JCR tables.
 </li><li>Native fulltext search: min word length; store word positions.
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL.
@@ -434,6 +435,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>ODBC: encrypted databases are not supported because the ;CIPHER= can not be set.
 </li><li>Support CLOB and BLOB update, specially conn.createBlob().setBinaryStream(1);
 </li><li>Optimizer: index usage when both ascending and descending indexes are available. Issue 178.
+</li><li>Issue 306: Support schema specific domains.
 </li><li>Triggers: support user defined execution order. Oracle:
     CREATE OR REPLACE TRIGGER TEST_2 BEFORE INSERT
     ON TEST FOR EACH ROW FOLLOWS TEST_1.
@@ -453,7 +455,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Common Table Expression (CTE) / recursive queries: identifier scope may be incorrect. Issue 222.
 </li><li>Common Table Expression (CTE) / recursive queries: support parameters.
 </li><li>Log long running transactions (similar to long running statements).
-</li><li>Support schema specific domains.
 </li><li>Parameter data type is data type of other operand. Issue 205.
 </li><li>Some combinations of nested join with right outer join are not supported.
 </li><li>DatabaseEventListener.openConnection(id) and closeConnection(id).
@@ -526,6 +527,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>The HTML to PDF converter should use http://code.google.com/p/wkhtmltopdf/
 </li><li>Issue 303: automatically convert "X NOT IN(SELECT...)" to "NOT EXISTS(...)".
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.name=t2.name where t1.id=t2.id.
+</li><li>Issue 283: Improve performance of H2 on Android.
+</li><li>Support INSERT INTO / UPDATE / MERGE ... RETURNING to retrieve the generated key(s).
 </li></ul>
 
 <h2>Not Planned</h2>

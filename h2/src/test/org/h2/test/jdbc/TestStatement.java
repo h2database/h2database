@@ -337,8 +337,7 @@ public class TestStatement extends TestBase {
         stat.execute("insert into test2(x) values(10), (11), (12)");
         stat.execute("merge into test1(x) key(x) values(5)");
         keys = stat.getGeneratedKeys();
-        keys.next();
-        assertEquals(0, keys.getInt(1));
+        assertFalse(keys.next());
         stat.execute("merge into test1(x) key(x) values(6)");
         keys = stat.getGeneratedKeys();
         keys.next();

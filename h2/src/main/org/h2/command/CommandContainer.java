@@ -11,6 +11,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Represents a single SQL statements.
@@ -65,6 +66,7 @@ class CommandContainer extends Command {
     public int update() {
         recompileIfRequired();
         start();
+        session.setLastIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
         int updateCount = prepared.update();
         prepared.trace(startTime, updateCount);

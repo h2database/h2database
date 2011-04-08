@@ -356,6 +356,9 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         byte[] data = rs.getBytes(1);
         assertEquals(16, data.length);
+        stat.execute("INSERT INTO TEST_UUID VALUES(random_UUID())");
+        rs = stat.getGeneratedKeys();
+        assertFalse(rs.next());
         stat.execute("DROP TABLE TEST_UUID");
     }
 
@@ -394,6 +397,10 @@ public class TestPreparedStatement extends TestBase {
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
         assertEquals(1, rs.getLong(1));
+        stat.execute("insert into test values(100)");
+        rs = stat.getGeneratedKeys();
+        rs.next();
+        assertEquals(100, rs.getLong(1));
         stat.execute("drop sequence seq");
         stat.execute("drop table test");
     }

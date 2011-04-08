@@ -26,7 +26,6 @@ import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
 
 /**
  * This class represents the statement
@@ -82,7 +81,6 @@ public class Merge extends Prepared {
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
-        session.setLastIdentity(ValueLong.get(0));
         if (list.size() > 0) {
             count = 0;
             for (int x = 0, size = list.size(); x < size; x++) {

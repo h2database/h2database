@@ -413,7 +413,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
         }
     }
 
-    private void checkClosed() throws SQLException {
+    private void checkClosed() {
         if (rs != null) {
             rs.checkClosed();
         }
@@ -422,7 +422,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
         }
     }
 
-    private void checkColumnIndex(int columnIndex) throws SQLException {
+    private void checkColumnIndex(int columnIndex) {
         checkClosed();
         if (columnIndex < 1 || columnIndex > columnCount) {
             throw DbException.getInvalidValueException("columnIndex", columnIndex);

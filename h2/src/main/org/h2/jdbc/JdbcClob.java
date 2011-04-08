@@ -260,7 +260,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 //## Java 1.6 end ##
 
-    private void checkClosed() throws SQLException {
+    private void checkClosed() {
         conn.checkClosed();
         if (value == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);

@@ -1262,7 +1262,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     // =============================================================
 
-    private void setParameter(int parameterIndex, Value value) throws SQLException {
+    private void setParameter(int parameterIndex, Value value) {
         checkClosed();
         parameterIndex--;
         ArrayList<? extends ParameterInterface> parameters = command.getParameters();
@@ -1505,7 +1505,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         return getTraceObjectName() + ": " + command;
     }
 
-    protected boolean checkClosed(boolean write) throws SQLException {
+    protected boolean checkClosed(boolean write) {
         if (super.checkClosed(write)) {
             // if the session was re-connected, re-prepare the statement
             ArrayList<? extends ParameterInterface> oldParams = command.getParameters();

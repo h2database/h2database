@@ -892,9 +892,9 @@ public class JdbcStatement extends TraceObject implements Statement {
      * The next operation is a read request.
      *
      * @return true if the session was re-connected
-     * @throws SQLException if the connection or session is closed
+     * @throws DbException if the connection or session is closed
      */
-    boolean checkClosed() throws SQLException {
+    boolean checkClosed() {
         return checkClosed(false);
     }
 
@@ -903,9 +903,9 @@ public class JdbcStatement extends TraceObject implements Statement {
      * The next operation may be a write request.
      *
      * @return true if the session was re-connected
-     * @throws SQLException if the connection or session is closed
+     * @throws DbException if the connection or session is closed
      */
-    boolean checkClosedForWrite() throws SQLException {
+    boolean checkClosedForWrite() {
         return checkClosed(true);
     }
 
@@ -915,9 +915,9 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @param write if the next operation is possibly writing
      * @return true if a reconnect was required
-     * @throws SQLException if it is closed
+     * @throws DbException if it is closed
      */
-    protected boolean checkClosed(boolean write) throws SQLException {
+    protected boolean checkClosed(boolean write) {
         if (conn == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }

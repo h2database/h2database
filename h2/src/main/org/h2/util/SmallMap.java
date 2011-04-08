@@ -79,10 +79,10 @@ public class SmallMap {
      * @param id the id of the object
      * @param ifAvailable only return it if available, otherwise return null
      * @return the object or null
-     * @throws SQLException if isAvailable is false and the object has not been
+     * @throws DbException if isAvailable is false and the object has not been
      *             found
      */
-    public Object getObject(int id, boolean ifAvailable) throws SQLException {
+    public Object getObject(int id, boolean ifAvailable) {
         if (id == cacheId) {
             return cache;
         }

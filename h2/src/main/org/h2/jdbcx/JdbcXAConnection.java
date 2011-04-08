@@ -452,7 +452,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
             return isClosed || super.isClosed();
         }
 
-        protected synchronized void checkClosed(boolean write) throws SQLException {
+        protected synchronized void checkClosed(boolean write) {
             if (isClosed) {
                 throw DbException.get(ErrorCode.OBJECT_CLOSED);
             }

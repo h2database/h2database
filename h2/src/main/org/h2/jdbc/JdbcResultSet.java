@@ -2852,7 +2852,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         return row;
     }
 
-    private int getColumnIndex(String columnLabel) throws SQLException {
+    private int getColumnIndex(String columnLabel) {
         checkClosed();
         if (columnLabel == null) {
             throw DbException.getInvalidValueException("columnLabel", null);
@@ -2912,7 +2912,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
     }
 
-    private void checkColumnIndex(int columnIndex) throws SQLException {
+    private void checkColumnIndex(int columnIndex) {
         checkClosed();
         if (columnIndex < 1 || columnIndex > columnCount) {
             throw DbException.getInvalidValueException("columnIndex", columnIndex);
@@ -2922,9 +2922,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Check if this result set is closed.
      *
-     * @throws SQLException if it is closed
+     * @throws DbException if it is closed
      */
-    void checkClosed() throws SQLException {
+    void checkClosed() {
         if (result == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -2942,7 +2942,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 
-    private Value get(int columnIndex) throws SQLException {
+    private Value get(int columnIndex) {
         checkColumnIndex(columnIndex);
         checkOnValidRow();
         Value[] list;
@@ -2959,17 +2959,17 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         return value;
     }
 
-    private Value get(String columnLabel) throws SQLException {
+    private Value get(String columnLabel) {
         int columnIndex = getColumnIndex(columnLabel);
         return get(columnIndex);
     }
 
-    private void update(String columnLabel, Value v) throws SQLException {
+    private void update(String columnLabel, Value v) {
         int columnIndex = getColumnIndex(columnLabel);
         update(columnIndex, v);
     }
 
-    private void update(int columnIndex, Value v) throws SQLException {
+    private void update(int columnIndex, Value v) {
         checkUpdatable();
         checkColumnIndex(columnIndex);
         if (insertRow != null) {
@@ -3473,12 +3473,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 
-    private Value convertToUnknownValue(Object x) throws SQLException {
+    private Value convertToUnknownValue(Object x) {
         checkClosed();
         return DataType.convertToValue(conn.getSession(), x, Value.UNKNOWN);
     }
 
-    private void checkUpdatable() throws SQLException {
+    private void checkUpdatable() {
         checkClosed();
         if (!updatable) {
             throw DbException.get(ErrorCode.RESULT_SET_READONLY);

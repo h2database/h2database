@@ -313,7 +313,7 @@ public class JdbcBlob extends TraceObject implements Blob {
         throw unsupported("LOB update");
     }
 
-    private void checkClosed() throws SQLException {
+    private void checkClosed() {
         conn.checkClosed();
         if (value == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);

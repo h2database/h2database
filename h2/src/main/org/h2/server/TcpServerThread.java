@@ -215,7 +215,7 @@ public class TcpServerThread implements Runnable {
         }
     }
 
-    private void process() throws IOException, SQLException {
+    private void process() throws IOException {
         int operation = transfer.readInt();
         switch (operation) {
         case SessionRemote.SESSION_PREPARE_READ_PARAMS:
@@ -402,7 +402,7 @@ public class TcpServerThread implements Runnable {
      * @param targetSessionId the session id
      * @param statementId the statement to cancel
      */
-    void cancelStatement(String targetSessionId, int statementId) throws SQLException {
+    void cancelStatement(String targetSessionId, int statementId) {
         if (StringUtils.equals(targetSessionId, this.sessionId)) {
             Command cmd = (Command) cache.getObject(statementId, false);
             cmd.cancel();

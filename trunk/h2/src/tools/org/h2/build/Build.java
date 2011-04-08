@@ -352,6 +352,35 @@ public class Build extends BuildBase {
     }
 
     /**
+     * Create the file h2android.jar. This only contains the embedded database,
+     * plus the H2 Andoid API. Debug information is disabled.
+     */
+    public void jarAndroid() {
+        compile(false, false, true);
+        FileList files = files("temp").
+            exclude("temp/org/h2/bnf/*").
+            exclude("temp/org/h2/build/*").
+            exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/fulltext/*").
+            exclude("temp/org/h2/jaqu/*").
+            exclude("temp/org/h2/java/*").
+            exclude("temp/org/h2/jdbcx/*").
+            exclude("temp/org/h2/jcr/*").
+            exclude("temp/org/h2/jmx/*").
+            exclude("temp/org/h2/mode/*").
+            exclude("temp/org/h2/samples/*").
+            exclude("temp/org/h2/server/*").
+            exclude("temp/org/h2/test/*").
+            exclude("temp/org/h2/tools/*").
+            exclude("*.bat").
+            exclude("*.sh").
+            exclude("*.txt");
+        files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
+        files.add(new File("temp/org/h2/tools/CompressTool.class"));
+        jar("bin/h2android" + getJarSuffix(), files, "temp");
+    }
+
+    /**
      * Create the h2client.jar. This only contains the remote JDBC
      * implementation.
      */
@@ -382,19 +411,23 @@ public class Build extends BuildBase {
     public void jarSmall() {
         compile(false, false, true);
         FileList files = files("temp").
-            exclude("temp/org/h2/bnf/*").
+            exclude("temp/android/*").
+            exclude("temp/org/h2/android/*").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
-            exclude("temp/org/h2/fulltext/*").
+            exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/java/*").
-            exclude("temp/org/h2/jdbcx/*").
             exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/jmx/*").
             exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
-            exclude("temp/org/h2/server/*").
+            exclude("temp/org/h2/server/ftp/*").
             exclude("temp/org/h2/test/*").
+            exclude("temp/org/h2/bnf/*").
+            exclude("temp/org/h2/fulltext/*").
+            exclude("temp/org/h2/jdbcx/*").
+            exclude("temp/org/h2/jmx/*").
+            exclude("temp/org/h2/server/*").
             exclude("temp/org/h2/tools/*").
             exclude("*.bat").
             exclude("*.sh").

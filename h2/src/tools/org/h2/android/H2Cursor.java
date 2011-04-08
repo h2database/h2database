@@ -6,6 +6,7 @@
  */
 package org.h2.android;
 
+import org.h2.result.ResultInterface;
 import android.content.ContentResolver;
 import android.database.AbstractWindowedCursor;
 import android.database.CharArrayBuffer;
@@ -21,13 +22,18 @@ import android.os.Bundle;
 public class H2Cursor extends AbstractWindowedCursor {
 
     private H2Database database;
+    private ResultInterface result;
 
     H2Cursor(H2Database db, H2CursorDriver driver, String editTable, H2Query query) {
         // TODO
     }
 
+    H2Cursor(ResultInterface result) {
+        this.result = result;
+    }
+
     public void close() {
-        // TODO
+        result.close();
     }
 
     public void deactivate() {
@@ -43,7 +49,7 @@ public class H2Cursor extends AbstractWindowedCursor {
     }
 
     public int getCount() {
-        return 0;
+        return result.getRowCount();
     }
 
     /**
@@ -93,7 +99,10 @@ public class H2Cursor extends AbstractWindowedCursor {
     }
 
     public boolean move(int offset) {
-        return false;
+        if (offset == 1) {
+            return result.next();
+        }
+        throw H2Database.unsupported();
     }
 
     public void copyStringToBuffer(int columnIndex, CharArrayBuffer buffer) {
@@ -137,13 +146,11 @@ public class H2Cursor extends AbstractWindowedCursor {
     }
 
     public int getInt(int columnIndex) {
-        // TODO
-        return 0;
+        return result.currentRow()[columnIndex].getInt();
     }
 
     public long getLong(int columnIndex) {
-        // TODO
-        return 0;
+        return result.currentRow()[columnIndex].getLong();
     }
 
     public int getPosition() {
@@ -157,8 +164,7 @@ public class H2Cursor extends AbstractWindowedCursor {
     }
 
     public String getString(int columnIndex) {
-        // TODO
-        return null;
+        return result.currentRow()[columnIndex].getString();
     }
 
     public boolean getWantsAllOnMoveCalls() {

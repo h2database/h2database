@@ -7,11 +7,21 @@
 package org.h2.android;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
+import org.h2.command.Prepared;
 import org.h2.engine.ConnectionInfo;
-import org.h2.engine.Engine;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Parameter;
+import org.h2.result.ResultInterface;
+import org.h2.store.PageStore;
+import org.h2.value.Value;
+import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
+import org.h2.value.ValueString;
 import android.content.ContentValues;
 import android.database.Cursor;
 
@@ -73,8 +83,10 @@ public class H2Database {
     public static final int OPEN_READWRITE = 0;
 
     private final Session session;
+    private final CursorFactory factory;
 
-    private H2Database(Session session) {
+    H2Database(Session session, CursorFactory factory) {
+        this.factory = factory;
         this.session = session;
     }
 
@@ -86,8 +98,9 @@ public class H2Database {
      */
     public static H2Database create(H2Database.CursorFactory factory) {
         ConnectionInfo ci = new ConnectionInfo("mem:");
-        Session s = Engine.getInstance().createSession(ci);
-        return new H2Database(s);
+        Database db = new Database(ci, null);
+        Session s = db.getSystemSession();
+        return new H2Database(s, factory);
     }
 
     /**
@@ -106,8 +119,10 @@ public class H2Database {
         if ((flags & CREATE_IF_NECESSARY) == 0) {
             ci.setProperty("IFEXISTS", "TRUE");
         }
-        Session s = Engine.getInstance().createSession(ci);
-        return new H2Database(s);
+        ci.setProperty("FILE_LOCK", "FS");
+        Database db = new Database(ci, null);
+        Session s = db.getSystemSession();
+        return new H2Database(s, factory);
     }
 
     /**
@@ -194,7 +209,7 @@ public class H2Database {
      * @param bindArgs the parameter values
      */
     public void execSQL(String sql, Object[] bindArgs) {
-        // TODO
+        prepare(sql, bindArgs).update();
     }
 
     /**
@@ -203,7 +218,7 @@ public class H2Database {
      * @param sql the statement
      */
     public void execSQL(String sql) {
-        // TODO
+        session.prepare(sql).update();
     }
 
     /**
@@ -232,7 +247,8 @@ public class H2Database {
      * @return the page size
      */
     public long getPageSize() {
-        return 0;
+        PageStore store = session.getDatabase().getPageStore();
+        return store == null ? 0 : store.getPageSize();
     }
 
     /**
@@ -457,7 +473,9 @@ public class H2Database {
      * @return the cursor
      */
     public Cursor rawQuery(String sql, String[] selectionArgs) {
-        return null;
+        Prepared prep = prepare(sql, selectionArgs);
+        ResultInterface result = prep.query(0);
+        return new H2Cursor(result);
     }
 
     /**
@@ -633,6 +651,38 @@ public class H2Database {
          * @return the cursor
          */
         Cursor newCursor(H2Database db, H2CursorDriver masterQuery, String editTable, H2Query query);
+    }
+
+    private Prepared prepare(String sql, Object[] args) {
+        Prepared prep = session.prepare(sql);
+        int len = args.length;
+        if (len > 0) {
+            ArrayList<Parameter> params = prep.getParameters();
+            for (int i = 0; i < len; i++) {
+                Parameter p = params.get(i);
+                p.setValue(getValue(args[i]));
+            }
+        }
+        return prep;
+    }
+
+    private Value getValue(Object o) {
+        if (o == null) {
+            return ValueNull.INSTANCE;
+        } else if (o instanceof String) {
+            return ValueString.get((String) o);
+        } else if (o instanceof Integer) {
+            return ValueInt.get((Integer) o);
+        } else if (o instanceof Long) {
+            return ValueLong.get((Integer) o);
+        }
+        return ValueString.get(o.toString());
+        // TODO
+    }
+
+    public static RuntimeException unsupported() {
+        // TODO
+        return new RuntimeException("Feature not supported");
     }
 
 }

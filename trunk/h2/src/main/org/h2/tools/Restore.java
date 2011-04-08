@@ -132,9 +132,9 @@ public class Restore extends Tool {
      * @param directory the directory name
      * @param db the database name (null for all databases)
      * @param quiet don't print progress information
-     * @throws SQLException
+     * @throws DbException if there is an IOException
      */
-    public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
+    public static void execute(String zipFileName, String directory, String db, boolean quiet) {
         InputStream in = null;
         try {
             if (!IOUtils.exists(zipFileName)) {

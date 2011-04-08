@@ -2737,7 +2737,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     // =============================================================
 
-    private void checkClosed() throws SQLException {
+    private void checkClosed() {
         conn.checkClosed();
     }
 

@@ -196,7 +196,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
         }
     }
 
-    private ParameterInterface getParameter(int param) throws SQLException {
+    private ParameterInterface getParameter(int param) {
         checkClosed();
         if (param < 1 || param > paramCount) {
             throw DbException.getInvalidValueException("param", param);
@@ -204,7 +204,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
         return parameters.get(param - 1);
     }
 
-    private void checkClosed() throws SQLException {
+    private void checkClosed() {
         prep.checkClosed();
     }
 

@@ -237,7 +237,7 @@ public class JdbcArray extends TraceObject implements Array {
         return rs;
     }
 
-    private void checkClosed() throws SQLException {
+    private void checkClosed() {
         conn.checkClosed();
         if (value == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);

@@ -1510,7 +1510,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
         return meta;
     }
 
-    private void checkIndexBounds(int parameterIndex) throws SQLException {
+    private void checkIndexBounds(int parameterIndex) {
         checkClosed();
         if (parameterIndex < 1 || parameterIndex > maxOutParameters) {
             throw DbException.getInvalidValueException("parameterIndex", parameterIndex);

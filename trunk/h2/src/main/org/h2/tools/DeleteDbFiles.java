@@ -70,9 +70,8 @@ public class DeleteDbFiles extends Tool {
      * @param dir the directory
      * @param db the database name (null for all databases)
      * @param quiet don't print progress information
-     * @throws SQLException
      */
-    public static void execute(String dir, String db, boolean quiet) throws SQLException {
+    public static void execute(String dir, String db, boolean quiet) {
         new DeleteDbFiles().process(dir, db, quiet);
     }
 
@@ -82,9 +81,8 @@ public class DeleteDbFiles extends Tool {
      * @param dir the directory
      * @param db the database name (null for all databases)
      * @param quiet don't print progress information
-     * @throws SQLException
      */
-    private void process(String dir, String db, boolean quiet) throws SQLException {
+    private void process(String dir, String db, boolean quiet) {
         ArrayList<String> files = FileLister.getDatabaseFiles(dir, db, true);
         if (files.size() == 0 && !quiet) {
             printNoDatabaseFilesFound(dir, db);

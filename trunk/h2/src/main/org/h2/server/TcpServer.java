@@ -469,7 +469,7 @@ public class TcpServer implements Service {
      * @param sessionId the session id
      * @param statementId the statement id
      */
-    void cancelStatement(String sessionId, int statementId) throws SQLException {
+    void cancelStatement(String sessionId, int statementId) {
         for (TcpServerThread c : New.arrayList(running)) {
             if (c != null) {
                 c.cancelStatement(sessionId, statementId);
@@ -484,9 +484,9 @@ public class TcpServer implements Service {
      *
      * @param db the key to test (or database name if no key is used)
      * @return the database name
-     * @throws SQLException if a key is set but doesn't match
+     * @throws DbException if a key is set but doesn't match
      */
-    public String checkKeyAndGetDatabaseName(String db) throws SQLException {
+    public String checkKeyAndGetDatabaseName(String db) {
         if (key == null) {
             return db;
         }

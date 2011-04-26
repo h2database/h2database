@@ -163,7 +163,6 @@ public class Shell extends Tool implements Runnable {
         println("help or ?      Display this help");
         println("list           Toggle result list / stack trace mode");
         println("maxwidth       Set maximum column width (default is 100)");
-        println("show           List all tables");
         println("describe       Describe a table");
         println("autocommit     Enable or disable autocommit");
         println("history        Show the last 20 statements");
@@ -229,6 +228,15 @@ public class Shell extends Tool implements Runnable {
                     String tableName = upper.substring("DESCRIBE".length()).trim();
                     if (tableName.length() == 0) {
                         println("Usage: describe [<schema name>.]<table name>");
+                        ResultSet rs = null;
+                        try {
+                            rs = stat.executeQuery(
+                                    "SELECT CAST(TABLE_SCHEMA AS VARCHAR(32)) AS \"Schema\", TABLE_NAME AS \"Table Name\" " +
+                                    "FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_SCHEMA, TABLE_NAME");
+                            printResult(rs, false);
+                        } finally {
+                            JdbcUtils.closeSilently(rs);
+                        }
                     } else {
                         String schemaName = null;
                         int dot = tableName.indexOf('.');
@@ -261,16 +269,6 @@ public class Shell extends Tool implements Runnable {
                             JdbcUtils.closeSilently(rs);
                             JdbcUtils.closeSilently(prep);
                         }
-                    }
-                } else if (upper.startsWith("SHOW")) {
-                    ResultSet rs = null;
-                    try {
-                        rs = stat.executeQuery(
-                                "SELECT CAST(TABLE_SCHEMA AS VARCHAR(32)) AS \"Schema\", TABLE_NAME AS \"Table Name\" " +
-                                "FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_SCHEMA, TABLE_NAME");
-                        printResult(rs, false);
-                    } finally {
-                        JdbcUtils.closeSilently(rs);
                     }
                 } else if (upper.startsWith("AUTOCOMMIT")) {
                     upper = upper.substring("AUTOCOMMIT".length()).trim();

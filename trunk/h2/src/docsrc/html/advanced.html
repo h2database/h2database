@@ -76,6 +76,8 @@ Advanced
     Setting the Server Bind Address</a><br />
 <a href="#file_system">
     Pluggable File System</a><br />
+<a href="#file_system_split">
+    Split File System</a><br />
 <a href="#database_upgrade">
     Database Upgrade</a><br />
 <a href="#limits_limitations">
@@ -1461,6 +1463,25 @@ To read a stream from the classpath, use the prefix <code>classpath:</code>, as 
 <code>classpath:/org/h2/samples/newsfeed.sql</code>.
 </p>
 
+<h2 id="file_system_split">Split File System</h2>
+<p>
+The file system prefix <code>split:</code> is used to split logical files into multiple physical files,
+for example so that a database can get larger than the maximum file system size of the operating system.
+If the logical file is larger than the maximum file size, then the file is split as follows:
+</p>
+<ul><li><code>&lt;fileName&gt;</code> (first block, is always created)
+</li><li><code>&lt;fileName&gt;.1.part</code> (second block)
+</li></ul>
+<p>
+More physical files (<code>*.2.part, *.3.part</code>) are automatically created / deleted if needed.
+The maximum physical file size of a block is 2^30 bytes, which is also called 1 GiB or 1 GB.
+However this can be changed if required, by specifying the block size in the file name. 
+The file name format is: <code>split:&lt;x&gt;:&lt;fileName&gt;</code> where the file size per block is 2^x. 
+For 1 MiB block sizes, use x = 20 (because 2^20 is 1 MiB). 
+The following file name means the logical file is split into 1 MiB blocks: <code>split:20:test.h2.db</code>.
+An example database URL for this case is <code>jdbc:h2:split:20:~/test</code>.
+</p>
+
 <h2 id="database_upgrade">Database Upgrade</h2>
 <p>
 In version 1.2, H2 introduced a new file store implementation which is incompatible to the one used in versions &lt; 1.2.
@@ -1500,11 +1521,11 @@ This database has the following known limitations:
     4 TB (using the default page size of 2 KB) or higher (when using a larger page size).
     When using the feature "h2.lobInDatabase" then this limit is including CLOB and BLOB data,
     otherwise this limit is excluding CLOB and BLOB data, and every CLOB or BLOB can be up to 256 GB.
-</li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32,
-the limit is 4 GB for the data. This is the limitation of the file system. The database does provide a
-workaround for this problem, it is to use the file name prefix <code>split:</code>. In that case files are split into
-files of 1 GB by default. An example database URL is:
-<code>jdbc:h2:split:~/test</code>.
+</li><li>The maximum file size for FAT or FAT32 file systems is 4 GB.
+    That means when using FAT or FAT32, the limit is 4 GB for the data. This is the limitation of the file system.
+    The database does provide a workaround for this problem, it is to use the file name prefix <code>split:</code>.
+    In that case files are split into files of 1 GB by default.
+    An example database URL is: <code>jdbc:h2:split:~/test</code>.
 </li><li>The maximum number of rows per table is 2^64.
 </li><li>Main memory requirements: The larger the database, the more main memory is required.
     With the version 1.1 storage mechanism, the minimum main memory required for a 12 GB database was around 240 MB.

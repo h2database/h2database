@@ -77,7 +77,7 @@ public class TriggerSample {
          * @param type the operation type: INSERT, UPDATE, or DELETE
          */
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
-            // Initializing trigger
+            // initialize the trigger object is necessary
         }
 
         /**

@@ -1594,12 +1594,26 @@ of the server).
 import org.h2.api.Trigger;
 ...
 public class TriggerSample implements Trigger {
+
     public void init(Connection conn, String schemaName, String triggerName,
             String tableName, boolean before, int type) {
+        // initialize the trigger object is necessary
+    }
+    
     public void fire(Connection conn,
             Object[] oldRow, Object[] newRow)
             throws SQLException {
+        // the trigger is fired
     }
+    
+    public void close() {
+        // the database is closed
+    }
+
+    public void remove() {
+        // the trigger was dropped
+    }
+    
 }
 </pre>
 <p>
@@ -1613,6 +1627,24 @@ CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE
 <p>
 The trigger can be used to veto a change by throwing a <code>SQLException</code>.
 </p>
+<p>
+As an alternative to implementing the <code>Trigger</code> interface,
+an application can extend the abstract class <code>org.h2.tools.TriggerAdapter</code>.
+This will allows to use the <code>ResultSet</code> interface within trigger implementations.
+In this case, only the <code>fire</code> method needs to be implemented:
+</p>
+<pre>
+import org.h2.tools.TriggerAdapter;
+...
+public class TriggerSample implements TriggerAdapter {
+
+    public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) 
+            throws SQLException {
+        // the trigger is fired
+    }
+
+}
+</pre>
 
 <h2 id="compacting">Compacting a Database</h2>
 <p>

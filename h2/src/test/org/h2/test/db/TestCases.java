@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testSortedSelect();
         testMaxMemoryRowsDistinct();
         testDeleteTop();
         testUnicode();
@@ -87,6 +88,16 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testSortedSelect() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stmt = conn.createStatement();
+        stmt.execute("create memory temporary table test(id int) not persistent");
+        stmt.execute("insert into test(id) direct sorted select 1");
+        stmt.execute("drop table test");
+        conn.close();
     }
 
     private void testMaxMemoryRowsDistinct() throws SQLException {

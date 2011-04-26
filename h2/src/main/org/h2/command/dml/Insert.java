@@ -12,13 +12,12 @@ import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
-import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
-import org.h2.index.PageIndex;
+import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
@@ -76,10 +75,9 @@ public class Insert extends Prepared implements ResultTarget {
     }
 
     public int update() {
-        Database db = session.getDatabase();
-        PageIndex index = null;
-        if (sortedInsertMode && db.isPersistent()) {
-            index = (PageIndex) table.getScanIndex(session);
+        Index index = null;
+        if (sortedInsertMode) {
+            index = table.getScanIndex(session);
             index.setSortedInsertMode(true);
         }
         try {

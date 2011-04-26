@@ -332,4 +332,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return true;
     }
 
+    public void setSortedInsertMode(boolean sortedInsertMode) {
+        // ignore
+    }
+
 }

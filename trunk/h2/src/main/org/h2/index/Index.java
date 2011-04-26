@@ -233,4 +233,13 @@ public interface Index extends SchemaObject {
      */
     boolean canScan();
 
+    /**
+     * Enable or disable the 'sorted insert' optimizations (rows are inserted in
+     * ascending or descending order) if applicable for this index
+     * implementation.
+     *
+     * @param sortedInsertMode the new value
+     */
+    void setSortedInsertMode(boolean sortedInsertMode);
+
 }

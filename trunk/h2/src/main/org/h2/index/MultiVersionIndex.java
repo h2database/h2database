@@ -322,4 +322,9 @@ public class MultiVersionIndex implements Index {
         return base.canScan();
     }
 
+    public void setSortedInsertMode(boolean sortedInsertMode) {
+        base.setSortedInsertMode(sortedInsertMode);
+        delta.setSortedInsertMode(sortedInsertMode);
+    }
+
 }

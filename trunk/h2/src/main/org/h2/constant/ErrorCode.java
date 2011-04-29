@@ -65,14 +65,6 @@ public class ErrorCode {
      */
     public static final int ERROR_OPENING_DATABASE_1 = 8000;
 
-    /**
-     * The error with code <code>28000</code> is thrown when
-     * there is no such user registered in the database, when
-     * the user password does not match, or when the database encryption password
-     * does not match (if database encryption is used).
-     */
-    public static final int WRONG_USER_OR_PASSWORD = 28000;
-
     // 21: cardinality violation
     /**
      * The error with code <code>21002</code> is thrown when the number of
@@ -227,6 +219,16 @@ public class ErrorCode {
      * </pre>
      */
     public static final int CHECK_CONSTRAINT_VIOLATED_1 = 23513;
+
+    // 28: invalid authorization specification
+
+    /**
+     * The error with code <code>28000</code> is thrown when
+     * there is no such user registered in the database, when
+     * the user password does not match, or when the database encryption password
+     * does not match (if database encryption is used).
+     */
+    public static final int WRONG_USER_OR_PASSWORD = 28000;
 
     // 3B: savepoint exception
 

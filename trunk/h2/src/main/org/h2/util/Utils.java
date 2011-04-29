@@ -48,29 +48,11 @@ public class Utils {
     private static final int MAX_GC = 8;
     private static long lastGC;
 
-    private static final boolean ALLOW_ALL_CLASSES;
-    private static final HashSet<String> ALLOWED_CLASS_NAMES = New.hashSet();
-    private static final String[] ALLOWED_CLASS_NAME_PREFIXES;
-
     private static final HashMap<String, byte[]> RESOURCES = New.hashMap();
 
-    static {
-        String s = SysProperties.ALLOWED_CLASSES;
-        ArrayList<String> prefixes = New.arrayList();
-        boolean allowAll = false;
-        for (String p : StringUtils.arraySplit(s, ',', true)) {
-            if (p.equals("*")) {
-                allowAll = true;
-            } else if (p.endsWith("*")) {
-                prefixes.add(p.substring(0, p.length() - 1));
-            } else {
-                ALLOWED_CLASS_NAMES.add(p);
-            }
-        }
-        ALLOW_ALL_CLASSES = allowAll;
-        ALLOWED_CLASS_NAME_PREFIXES = new String[prefixes.size()];
-        prefixes.toArray(ALLOWED_CLASS_NAME_PREFIXES);
-    }
+    private static boolean allowAllClasses;
+    private static HashSet<String> allowedClassNames;
+    private static String[] allowedClassNamePrefixes;
 
     private Utils() {
         // utility class
@@ -395,9 +377,29 @@ public class Utils {
      * @return the class object
      */
     public static Class<?> loadUserClass(String className) {
-        if (!ALLOW_ALL_CLASSES && !ALLOWED_CLASS_NAMES.contains(className)) {
+        if (allowedClassNames == null) {
+            // initialize the static fields
+            String s = SysProperties.ALLOWED_CLASSES;
+            ArrayList<String> prefixes = New.arrayList();
+            boolean allowAll = false;
+            HashSet<String> classNames = New.hashSet();
+            for (String p : StringUtils.arraySplit(s, ',', true)) {
+                if (p.equals("*")) {
+                    allowAll = true;
+                } else if (p.endsWith("*")) {
+                    prefixes.add(p.substring(0, p.length() - 1));
+                } else {
+                    classNames.add(p);
+                }
+            }
+            allowedClassNamePrefixes = new String[prefixes.size()];
+            prefixes.toArray(allowedClassNamePrefixes);
+            allowAllClasses = allowAll;
+            allowedClassNames = classNames;
+        }
+        if (!allowAllClasses && !allowedClassNames.contains(className)) {
             boolean allowed = false;
-            for (String s : ALLOWED_CLASS_NAME_PREFIXES) {
+            for (String s : allowedClassNamePrefixes) {
                 if (className.startsWith(s)) {
                     allowed = true;
                 }

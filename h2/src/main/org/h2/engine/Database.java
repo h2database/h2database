@@ -607,6 +607,16 @@ public class Database implements DataHandler {
                 setting.setIntValue(Constants.BUILD_ID);
                 addDatabaseObject(systemSession, setting);
             }
+            // mark all ids used in the page store
+            if (pageStore != null) {
+                BitField f = pageStore.getObjectIds();
+                for (int i = 0, len = f.length(); i < len; i++) {
+                    if (f.get(i) && !objectIds.get(i)) {
+                        trace.info("unused object id: " + i);
+                        objectIds.set(i);
+                    }
+                }
+            }
         }
         systemSession.commit(true);
         trace.info("opened {0}", databaseName);

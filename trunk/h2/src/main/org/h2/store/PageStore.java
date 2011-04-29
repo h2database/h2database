@@ -123,7 +123,6 @@ public class PageStore implements CacheWriter {
     private static final int MIN_PAGE_COUNT = 6;
     private static final int INCREMENT_KB = 1024;
     private static final int INCREMENT_PERCENT_MIN = 20;
-    private static final int INCREMENT_MAX_PAGES = 128;
     private static final int READ_VERSION = 3;
     private static final int WRITE_VERSION = 3;
     private static final int META_TYPE_DATA_INDEX = 0;
@@ -1135,8 +1134,9 @@ public class PageStore implements CacheWriter {
         if (increment < percent) {
             increment = (1 + (percent / increment)) * increment;
         }
-        if (increment > INCREMENT_MAX_PAGES) {
-            increment = INCREMENT_MAX_PAGES;
+        int max = database.getSettings().pageStoreMaxGrowth;
+        if (increment > max) {
+            increment = max;
         }
         increaseFileSize(increment);
     }

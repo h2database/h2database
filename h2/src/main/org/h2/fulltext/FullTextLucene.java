@@ -37,6 +37,7 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 /*## LUCENE2 begin ##
 import org.apache.lucene.index.IndexModifier;
 import org.apache.lucene.search.Hits;
@@ -60,7 +61,7 @@ public class FullTextLucene extends FullText {
     /**
      * Whether the text content should be stored in the Lucene index.
      */
-    protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
+    protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Utils.getProperty("h2.storeDocumentTextInIndex", false);
 
     private static final HashMap<String, IndexAccess> INDEX_ACCESS = New.hashMap();
     private static final String TRIGGER_PREFIX = "FTL_";

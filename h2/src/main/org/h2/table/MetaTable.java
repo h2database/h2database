@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import org.h2.command.Command;
-import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintReferential;
@@ -861,7 +860,7 @@ public class MetaTable extends Table {
                         "user.country", "user.language", "user.variant", "file.encoding"
                 };
                 for (String s : settings) {
-                    add(rows, "property." + s, SysProperties.getStringSetting(s, ""));
+                    add(rows, "property." + s, Utils.getProperty(s, ""));
                 }
             }
             add(rows, "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE");

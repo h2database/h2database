@@ -168,7 +168,7 @@ public class CacheLRU implements Cache {
                 } else {
                     // can't remove any record, because the records can not be removed
                     // hopefully this does not happen frequently, but it can happen
-                    writer.getTrace().info("Cannot remove records, cache size too small? records:" + recordCount + " memory:" + memory);
+                    writer.getTrace().info("cannot remove records, cache size too small? records:" + recordCount + " memory:" + memory);
                     break;
                 }
             }

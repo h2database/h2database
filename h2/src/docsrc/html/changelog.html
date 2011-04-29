@@ -17,13 +17,30 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 308: Statement.getGeneratedKeys() now returns an empty result set if no key was generated.
+<ul><li>The H2 JDBC client can now be used in an unsigned Applet.
+    The problem was that System.getProperty throws a SecurityException, which is now ignored.
+</li><li>The condition "in(select ...)" did not work correctly if the subquery
+    could not be converted to a "distinct" query, as in:
+    "select * from dual where x in (select x from dual group by x order by max(x))".
+</li><li>In the last release, the error code for "Wrong user name or password" was still
+    08004 instead of 28000, which resulted in the wrong error message.
+</li><li>In some cases, creating a new table or altering an existing table threw the exception:
+    Unique index or primary key violation: "PRIMARY KEY ON """".PAGE_INDEX".
+</li><li>The Shell tool no longer supports the built-in command "show", 
+    because it is a legal SQL statement for H2 and MySQL.
+    However, the "describe" command is still supported, and now lists all tables
+    if called without parameter.
+</li><li>The sorted insert mode (as in "insert into ... direct sorted select")
+    did not work for not-persisted tables in a persisted database.
+    It threw a ClassCastException.
+</li><li>Issue 308: Statement.getGeneratedKeys() now returns an empty result set if no key was generated.
 </li><li>The h2small.jar (created with build jarSmall) included the Android API. 
     This has been removed, shrinking the jar file by 21 KB.
 </li><li>When creating a table, the precision must now be at least as large as the scale.
 </li><li>Support for Java 1.3 and Java 1.4 has been removed.
 </li><li>Improved error message for syntax error: the list of expected tokens was sometimes not set correctly.
-</li><li>Files do not grow more than 128 pages. For large databases, 20% was too much. 
+</li><li>Database file growth can now be limited using the database setting PAGE_STORE_MAX_GROWTH.
+	Slower growth may slow down operation, but speed up closing database.
 </li></ul>
 
 <h2>Version 1.3.154 (2011-04-04)</h2>

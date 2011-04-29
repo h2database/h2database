@@ -32,7 +32,6 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import org.h2.constant.SysProperties;
 import org.h2.server.ShutdownHandler;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
@@ -109,7 +108,7 @@ ShutdownHandler {
      * @param args the command line arguments
      */
     public void runTool(String... args) throws SQLException {
-        isWindows = SysProperties.getStringSetting("os.name", "").startsWith("Windows");
+        isWindows = Utils.getProperty("os.name", "").startsWith("Windows");
         boolean tcpStart = false, pgStart = false, webStart = false, toolStart = false;
         boolean browserStart = false;
         boolean startDefaultServers = true;

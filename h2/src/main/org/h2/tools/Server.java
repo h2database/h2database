@@ -488,9 +488,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      */
     public static void openBrowser(String url) throws Exception {
         try {
-            String osName = SysProperties.getStringSetting("os.name", "linux").toLowerCase();
+            String osName = Utils.getProperty("os.name", "linux").toLowerCase();
             Runtime rt = Runtime.getRuntime();
-            String browser = System.getProperty(SysProperties.H2_BROWSER);
+            String browser = Utils.getProperty(SysProperties.H2_BROWSER, null);
             if (browser != null) {
                 if (browser.startsWith("call:")) {
                     browser = browser.substring("call:".length());

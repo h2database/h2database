@@ -1,4 +1,10 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from dual where x in (select x from dual group by x order by max(x));
+> X
+> -
+> 1
+> rows (ordered): 1
+
 create table test(d decimal(1, 2));
 > exception
 
@@ -1028,8 +1034,8 @@ insert into t2 select x from system_range(1, 1000);
 
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE T1.ID IN( SELECT DISTINCT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */)
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE T1.ID IN( SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */)
 > rows: 1
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
@@ -3155,8 +3161,8 @@ where exists (select 1 from test t4 where t2.id=t4.id);
 
 explain select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE ID IN( SELECT DISTINCT ID FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID)
 > rows: 1
 
 select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
@@ -3194,8 +3200,8 @@ select * from test t1 where id in(id);
 
 explain select * from test t1 where id in(select id from test);
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
 > rows: 1
 
 select * from test t1 where id in(select id from test);
@@ -6116,14 +6122,14 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN( SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */))
+> ------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */))
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;

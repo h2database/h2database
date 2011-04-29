@@ -22,6 +22,7 @@ Change Log
 </li><li>The condition "in(select ...)" did not work correctly if the subquery
     could not be converted to a "distinct" query, as in:
     "select * from dual where x in (select x from dual group by x order by max(x))".
+    Now the subquery needs to be made distinct manually if this optimization is needed.
 </li><li>In the last release, the error code for "Wrong user name or password" was still
     08004 instead of 28000, which resulted in the wrong error message.
 </li><li>In some cases, creating a new table or altering an existing table threw the exception:

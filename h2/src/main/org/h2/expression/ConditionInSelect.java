@@ -118,7 +118,6 @@ public class ConditionInSelect extends Condition {
 
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        query.setDistinct(true);
         query.setRandomAccessResult(true);
         query.prepare();
         if (query.getColumnCount() != 1) {

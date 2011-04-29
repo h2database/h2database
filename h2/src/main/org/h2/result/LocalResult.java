@@ -186,14 +186,23 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * @return true if the row exists
      */
     public boolean containsDistinct(Value[] values) {
-        if (!distinct) {
-            DbException.throwInternalError();
+        if (external != null) {
+            return external.contains(values);
         }
-        if (distinctRows != null) {
-            ValueArray array = ValueArray.get(values);
-            return distinctRows.get(array) != null;
+        if (distinctRows == null) {
+            distinctRows = ValueHashMap.newInstance();
+            for (Value[] row : rows) {
+                if (row.length > visibleColumnCount) {
+                    Value[] r2 = new Value[visibleColumnCount];
+                    System.arraycopy(row, 0, r2, 0, visibleColumnCount);
+                    row = r2;
+                }
+                ValueArray array = ValueArray.get(row);
+                distinctRows.put(array, row);
+            }
         }
-        return external.contains(values);
+        ValueArray array = ValueArray.get(values);
+        return distinctRows.get(array) != null;
     }
 
     public void reset() {

@@ -66,12 +66,12 @@ public class ErrorCode {
     public static final int ERROR_OPENING_DATABASE_1 = 8000;
 
     /**
-     * The error with code <code>8004</code> is thrown when
+     * The error with code <code>28000</code> is thrown when
      * there is no such user registered in the database, when
      * the user password does not match, or when the database encryption password
      * does not match (if database encryption is used).
      */
-    public static final int WRONG_USER_OR_PASSWORD = 8004;
+    public static final int WRONG_USER_OR_PASSWORD = 28000;
 
     // 21: cardinality violation
     /**
@@ -1904,14 +1904,11 @@ public class ErrorCode {
 
         // 08: connection exception
         case ERROR_OPENING_DATABASE_1: return "08000";
-        case WRONG_USER_OR_PASSWORD: return "08004";
 
         // 21: cardinality violation
         case COLUMN_COUNT_DOES_NOT_MATCH: return "21S02";
 
         // 42: syntax error or access rule violation
-        case SYNTAX_ERROR_1: return "42000";
-        case SYNTAX_ERROR_2: return "42001";
         case TABLE_OR_VIEW_ALREADY_EXISTS_1: return "42S01";
         case TABLE_OR_VIEW_NOT_FOUND_1: return "42S02";
         case INDEX_ALREADY_EXISTS_1: return "42S11";

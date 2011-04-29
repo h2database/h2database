@@ -106,7 +106,6 @@ public class TestShell extends TestBase {
         read("help or ?");
         read("list");
         read("maxwidth");
-        read("show");
         read("describe");
         read("autocommit");
         read("history");
@@ -141,11 +140,6 @@ public class TestShell extends TestBase {
         }
         testOut.println("create table test(id int primary key, name varchar)\n;");
         read("sql> ...>");
-        testOut.println("show public");
-        read("sql>");
-        while (read("").startsWith("INFORMATION_SCHEMA")) {
-            // ignore
-        }
         testOut.println("insert into test values(1, 'Hello');");
         read("sql>");
         testOut.println("select * from test;");
@@ -166,6 +160,10 @@ public class TestShell extends TestBase {
         read("sql> Autocommit is now true");
         testOut.println("describe");
         read("sql> Usage: describe [<schema name>.]<table name>");
+        read("Schema");
+        while (read("").startsWith("INFORMATION_SCHEMA")) {
+            // ignore
+        }
         testOut.println("describe test");
         read("sql> Column Name");
         read("ID");
@@ -189,7 +187,6 @@ public class TestShell extends TestBase {
         read("help or ?");
         read("list");
         read("maxwidth");
-        read("show");
         read("describe");
         read("autocommit");
         read("history");

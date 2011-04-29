@@ -53,7 +53,7 @@ public class TestRandomSQL extends TestBase {
         return getConnection(getDatabaseName());
     }
 
-    private void deleteDb() throws SQLException {
+    private void deleteDb() {
         String name = getDatabaseName();
         if (name.startsWith(FileSystemMemory.PREFIX)) {
             DeleteDbFiles.execute("memFS:/", name, true);

@@ -99,7 +99,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         }
     }
 
-    private static void recoverAll() throws SQLException {
+    private static void recoverAll() {
         org.h2.Driver.load();
         File[] files = new File("temp/backup").listFiles();
         Arrays.sort(files, new Comparator<File>() {

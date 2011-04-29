@@ -1874,4 +1874,17 @@ public class PageStore implements CacheWriter {
         this.lockFile = lockFile;
     }
 
+    public BitField getObjectIds() {
+        BitField f = new BitField();
+        Cursor cursor = metaIndex.find(systemSession, null, null);
+        while (cursor.next()) {
+            Row row = cursor.get();
+            int id = row.getValue(0).getInt();
+            if (id > 0) {
+                f.set(id);
+            }
+        }
+        return f;
+    }
+
 }

@@ -188,12 +188,12 @@ public class TestUpgrade extends TestBase {
         deleteDb("upgrade");
     }
 
-    public void deleteDb(String dbName) throws SQLException {
+    public void deleteDb(String dbName) {
         super.deleteDb(dbName);
         try {
             Utils.callStaticMethod("org.h2.upgrade.v1_1.tools.DeleteDbFiles.execute", getBaseDir(), dbName, true);
         } catch (Exception e) {
-            throw new SQLException(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
         IOUtils.delete(getBaseDir() + "/" + dbName + ".data.db.backup");
         IOUtils.delete(getBaseDir() + "/" + dbName + ".index.db.backup");

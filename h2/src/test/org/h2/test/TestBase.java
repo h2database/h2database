@@ -505,7 +505,7 @@ public abstract class TestBase {
      *
      * @param name the database name
      */
-    protected void deleteDb(String name) throws SQLException {
+    protected void deleteDb(String name) {
         deleteDb(getBaseDir(), name);
     }
 
@@ -515,7 +515,7 @@ public abstract class TestBase {
      * @param dir the directory where the database files are located
      * @param name the database name
      */
-    protected void deleteDb(String dir, String name) throws SQLException {
+    protected void deleteDb(String dir, String name) {
         DeleteDbFiles.execute(dir, name, true);
         // ArrayList<String> list;
         // list = FileLister.getDatabaseFiles(baseDir, name, true);

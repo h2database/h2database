@@ -9,6 +9,7 @@ package org.h2.engine;
 import java.util.HashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.util.Utils;
 
 /**
  * The base class for settings.
@@ -75,7 +76,7 @@ public class SettingsBase {
         String sysProperty = buff.toString();
         String v = settings.get(key);
         if (v == null) {
-            v = System.getProperty(sysProperty, defaultValue);
+            v = Utils.getProperty(sysProperty, defaultValue);
             settings.put(key, v);
         }
         return v;

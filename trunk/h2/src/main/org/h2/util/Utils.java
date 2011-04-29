@@ -650,4 +650,60 @@ public class Utils {
         return clazz;
     }
 
+    /**
+     * Get the system property. If the system property is not set, or if a
+     * security exception occurs, the default value is returned.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the value
+     */
+    public static String getProperty(String key, String defaultValue) {
+        try {
+            return System.getProperty(key, defaultValue);
+        } catch (SecurityException se) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Get the system property. If the system property is not set, or if a
+     * security exception occurs, the default value is returned.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the value
+     */
+    public static int getProperty(String key, int defaultValue) {
+        String s = getProperty(key, null);
+        if (s != null) {
+            try {
+                return Integer.decode(s).intValue();
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Get the system property. If the system property is not set, or if a
+     * security exception occurs, the default value is returned.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the value
+     */
+    public static boolean getProperty(String key, boolean defaultValue) {
+        String s = getProperty(key, null);
+        if (s != null) {
+            try {
+                return Boolean.valueOf(s).booleanValue();
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return defaultValue;
+    }
+
 }

@@ -115,7 +115,7 @@ public class DbUpgrade {
         String script = null;
         try {
             if (scriptInTempDir) {
-                new File(System.getProperty("java.io.tmpdir")).mkdirs();
+                new File(Utils.getProperty("java.io.tmpdir", ".")).mkdirs();
                 script = File.createTempFile("h2dbmigration", "backup.sql").getAbsolutePath();
             } else {
                 script = name + ".script.sql";

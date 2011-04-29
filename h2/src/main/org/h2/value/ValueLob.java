@@ -241,7 +241,7 @@ public class ValueLob extends Value {
     private static int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
         if ((path != null) && (path.length() == 0)) {
-            path = new File(System.getProperty("java.io.tmpdir"), SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
+            path = new File(Utils.getProperty("java.io.tmpdir", "."), SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
         }
         int newId = 0;
         int lobsPerDir = SysProperties.LOB_FILES_PER_DIRECTORY;
@@ -385,7 +385,7 @@ public class ValueLob extends Value {
         synchronized (h) {
             String path = h.getDatabasePath();
             if ((path != null) && (path.length() == 0)) {
-                path = new File(System.getProperty("java.io.tmpdir"), SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
+                path = new File(Utils.getProperty("java.io.tmpdir", "."), SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
             }
             objectId = getNewObjectId(h);
             fileName = getFileNamePrefix(path, objectId) + Constants.SUFFIX_TEMP_FILE;

@@ -1077,6 +1077,12 @@ or the SQL statement <code>SET MODE MySQL</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li></ul>
+<p>
+Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
+H2 does support case insensitive text comparison, but it needs to be set separately, 
+using <code>SET IGNORECASE TRUE</code>. 
+This affects comparison using <code>=, LIKE, REGEXP</code>.
+</p>
 
 <h3>Oracle Compatibility Mode</h3>
 <p>

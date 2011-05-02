@@ -35,14 +35,16 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li></ul>
 
 <h2>Priority 2</h2>
-<ul><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
+<ul><li>Full outer joins.
+</li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
     DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
-</li><li>Full outer joins.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
+</li><li>Window functions: RANK() and DENSE_RANK(), partition using OVER().
+    select *, count(*) over() as fullCount from ... limit 4;
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Compatibility: automatically load functions from a script depending on the mode - see FunctionsMySQL.java, issue 211.
 </li><li>Test very large databases and LOBs (up to 256 GB).
@@ -66,7 +68,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2.
 </li><li>Drop with invalidate views (so that source code is not lost). Check what other databases do exactly.
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
-</li><li>RANK() and DENSE_RANK(), Partition using OVER().
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
 </li><li>Access rights: finer grained access control (grant access for specific functions).
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
@@ -311,6 +312,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
 </li><li>Optimization for multi-column IN: use an index if possible. Example: (A, B) IN((1, 2), (2, 3)).
 </li><li>Optimization for EXISTS: convert to inner join or IN(..) if possible.
+</li><li>MySQL compatibility: multi-table delete: DELETE .. FROM .. [,...] USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
 </li><li>Functions: support hashcode(value); cryptographic and fast
 </li><li>Serialized file lock: support long running queries.
 </li><li>Network: use 127.0.0.1 if other addresses don't work.
@@ -325,7 +327,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Doclet: format fields like methods, but support sorting by name and value.
 </li><li>Doclet: shrink the html files.
 </li><li>MySQL compatibility: support SET NAMES 'latin1' - See also http://code.google.com/p/h2database/issues/detail?id=56
-</li><li>MySQL compatibility: DELETE .. FROM .. USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
 </li><li>Allow to scan index backwards starting with a value (to better support ORDER BY DESC).
 </li><li>Java Service Wrapper: try http://yajsw.sourceforge.net/
 </li><li>Batch parameter for INSERT, UPDATE, and DELETE, and commit after each batch. See also MySQL DELETE.

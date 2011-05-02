@@ -96,25 +96,31 @@ public class FileObjectSplit implements FileObject {
             FileObject[] newList = new FileObject[newFileCount];
             int max = Math.max(newFileCount, list.length);
             long remaining = newLength;
+            // delete backwards, so that truncating is somewhat transactional
+            for (int i = list.length - 1; i >= newFileCount; i--) {
+                // verify the file is writable
+                list[i].setFileLength(0);
+                list[i].close();
+                try {
+                    IOUtils.delete(list[i].getName());
+                } catch (DbException e) {
+                    throw DbException.convertToIOException(e);
+                }
+            }
             for (int i = 0; i < max; i++) {
-                long size = Math.min(remaining, maxLength);
-                remaining -= size;
+                long fileSize = Math.min(remaining, maxLength);
+                remaining -= fileSize;
                 if (i >= newFileCount) {
-                    list[i].close();
-                    try {
-                        IOUtils.delete(list[i].getName());
-                    } catch (DbException e) {
-                        throw DbException.convertToIOException(e);
-                    }
+                    // already closed and deleted
                 } else if (i >= list.length) {
                     String fileName = FileSystemSplit.getFileName(name, i);
                     FileObject o = FileSystem.getInstance(fileName).openFileObject(fileName, mode);
-                    o.setFileLength(size);
+                    o.setFileLength(fileSize);
                     newList[i] = o;
                 } else {
                     FileObject o = list[i];
-                    if (o.length() != size) {
-                        o.setFileLength(size);
+                    if (o.length() != fileSize) {
+                        o.setFileLength(fileSize);
                     }
                     newList[i] = list[i];
                 }

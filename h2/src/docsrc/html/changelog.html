@@ -17,7 +17,9 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>The H2 JDBC client can now be used in an unsigned Applet.
+<ul><li>Split file system: truncating a file now deletes the parts in reverse order,
+    so that the file list is consistent if the process is interrupted while truncating.
+</li><li>The H2 JDBC client can now be used in an unsigned Applet.
     The problem was that System.getProperty throws a SecurityException, which is now ignored.
 </li><li>The condition "in(select ...)" did not work correctly if the subquery
     could not be converted to a "distinct" query, as in:

@@ -18,7 +18,6 @@ import org.h2.util.IOUtils;
  */
 public class DataReader extends Reader {
 
-    private static final EOFException EOF = new EOFException();
     private InputStream in;
 
     /**
@@ -38,7 +37,7 @@ public class DataReader extends Reader {
     public byte readByte() throws IOException {
         int x = in.read();
         if (x < 0) {
-            throw EOF;
+            throw new FastEOFException();
         }
         return (byte) x;
     }
@@ -120,7 +119,7 @@ public class DataReader extends Reader {
     public void readFully(byte[] buff, int offset, int len) throws IOException {
         int got = IOUtils.readFully(in, buff, offset, len);
         if (got < len) {
-            throw EOF;
+            throw new FastEOFException();
         }
     }
 
@@ -172,6 +171,21 @@ public class DataReader extends Reader {
         } catch (EOFException e) {
             return i;
         }
+    }
+
+    /**
+     * Constructing such an EOF exception is fast, because the stack trace is
+     * not filled in. If used in a static context, this will also avoid
+     * classloader memory leaks.
+     */
+    static class FastEOFException extends EOFException {
+
+        private static final long serialVersionUID = 1L;
+
+        public synchronized Throwable fillInStackTrace() {
+            return null;
+        }
+
     }
 
 }

@@ -33,6 +33,7 @@ class ResultDiskBuffer implements ResultExternal {
     private final int maxBufferSize;
 
     private FileStore file;
+    private int rowCount;
 
     private final ResultDiskBuffer parent;
     private boolean closed;
@@ -122,7 +123,7 @@ class ResultDiskBuffer implements ResultExternal {
         return new ResultDiskBuffer(this);
     }
 
-    public void addRows(ArrayList<Value[]> rows) {
+    public int addRows(ArrayList<Value[]> rows) {
         if (sort != null) {
             sort.sort(rows);
         }
@@ -166,6 +167,8 @@ class ResultDiskBuffer implements ResultExternal {
         } else {
             mainTape.end = file.getFilePointer();
         }
+        rowCount += rows.size();
+        return rowCount;
     }
 
     public void done() {

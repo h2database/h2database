@@ -81,6 +81,16 @@ public class TestFuzzOptimizations extends TestBase {
         db.execute("update test0 set b = null where b = 9");
         db.execute("update test0 set c = null where c = 9");
         db.execute("insert into test1 select * from test0");
+
+        // this failed at some point
+        Prepared p = db.prepare("select * from test0 where b in(" +
+                "select a from test1 where a <? and a not in(" +
+                "select c from test1 where b <=10 and a in(" +
+                "select a from test1 where b =1 or b =2 and b not in(2))) or c <>a) " +
+                "and c in(0, 10) and c in(10, 0, 0) order by 1, 2, 3");
+        p.set(1);
+        p.execute();
+
         Random seedGenerator = new Random();
         String[] columns = new String[] { "a", "b", "c" };
         String[] values = new String[] { null, "0", "0", "1", "2", "10", "a", "?" };

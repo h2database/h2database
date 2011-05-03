@@ -28,11 +28,20 @@ public interface ResultExternal {
     Value[] next();
 
     /**
+     * Add a row to this object.
+     *
+     * @param values the row to add
+     * @return the new number of rows in this object
+     */
+    int addRow(Value[] values);
+
+    /**
      * Add a number of rows to the result.
      *
      * @param rows the list of rows to add
+     * @return the new number of rows in this object
      */
-    void addRows(ArrayList<Value[]> rows);
+    int addRows(ArrayList<Value[]> rows);
 
     /**
      * This method is called after all rows have been added.
@@ -60,14 +69,6 @@ public interface ResultExternal {
      * @return true if it exists
      */
     boolean contains(Value[] values);
-
-    /**
-     * Add a row to this object.
-     *
-     * @param values the row to add
-     * @return the new number of rows in this object
-     */
-    int addRow(Value[] values);
 
     /**
      * Create a shallow copy of this object if possible.

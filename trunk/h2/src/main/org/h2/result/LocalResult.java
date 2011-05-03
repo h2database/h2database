@@ -255,7 +255,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 Database db = session.getDatabase();
                 if (rowCount > db.getSettings().maxMemoryRowsDistinct && db.isPersistent()) {
                     external = new ResultTempTable(session, sort);
-                    external.addRows(distinctRows.values());
+                    rowCount = external.addRows(distinctRows.values());
                     distinctRows = null;
                 }
             } else {
@@ -278,7 +278,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     private void addRowsToDisk() {
-        external.addRows(rows);
+        rowCount = external.addRows(rows);
         rows.clear();
     }
 
@@ -315,7 +315,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                         }
                         rows.add(list);
                         if (rows.size() > maxMemoryRows) {
-                            external.addRows(rows);
+                            rowCount = external.addRows(rows);
                             rows.clear();
                         }
                     }
@@ -452,7 +452,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     public String toString() {
-        return "columns: " + visibleColumnCount + " rows: " + rowCount + " pos: " + rowId;
+        return super.toString() + " columns: " + visibleColumnCount + " rows: " + rowCount + " pos: " + rowId;
     }
 
     /**

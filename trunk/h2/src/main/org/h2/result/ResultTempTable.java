@@ -108,13 +108,14 @@ public class ResultTempTable implements ResultExternal {
         return (int) table.getRowCount(session);
     }
 
-    public void addRows(ArrayList<Value[]> rows) {
+    public int addRows(ArrayList<Value[]> rows) {
         if (sort != null) {
             sort.sort(rows);
         }
         for (Value[] values : rows) {
             addRow(values);
         }
+        return (int) table.getRowCount(session);
     }
 
     private synchronized void closeChild() {

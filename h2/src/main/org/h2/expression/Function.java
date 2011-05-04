@@ -95,7 +95,7 @@ public class Function extends Expression implements FunctionCall {
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
             LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227;
+            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228;
 
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -301,6 +301,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE, 3, Value.NULL);
         addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NVL", COALESCE, VAR_ARGS, Value.NULL);
+        addFunctionWithNull("NVL2", NVL2, 3, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF, 2, Value.NULL);
         addFunctionWithNull("CASE", CASE, VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
@@ -748,6 +749,17 @@ public class Function extends Expression implements FunctionCall {
                 expr = argList[2];
             } else {
                 expr = argList[1];
+            }
+            Value v = expr.getValue(session);
+            result = v.convertTo(dataType);
+            break;
+        }
+        case NVL2: {
+            Expression expr;
+            if (v0 == ValueNull.INSTANCE) {
+                expr = argList[2];
+            } else {
+               	expr = argList[1];
             }
             Value v = expr.getValue(session);
             result = v.convertTo(dataType);
@@ -1677,6 +1689,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case CASEWHEN:
+        case NVL2:
             t = Value.getHigherOrder(args[1].getType(), args[2].getType());
             p = Math.max(args[1].getPrecision(), args[2].getPrecision());
             d = Math.max(args[1].getDisplaySize(), args[2].getDisplaySize());

@@ -3337,7 +3337,7 @@ CAST(CAST('FFFF' AS BINARY) AS INT);
 "
 
 "Functions (System)","COALESCE","
-COALESCE(aValue, bValue [,...])
+{ COALESCE | NVL } (aValue, bValue [,...])
 ","
 Returns the first value that is not null.
 ","
@@ -3563,6 +3563,14 @@ NULLIF(aValue, bValue)
 Returns NULL if 'a' is equals to 'b', otherwise 'a'.
 ","
 NULLIF(A, B)
+"
+
+"Functions (System)","NVL2","
+NVL2(testValue, aValue, bValue)
+","
+If the test value is null, then 'b' is returned. Otherwise, 'a' is returned.
+","
+NVL2(X, 'not null', 'null')
 "
 
 "Functions (System)","READONLY","

@@ -17,7 +17,8 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved PostgreSQL compatibility: support for RANDOM() in addition to RAND().
+<ul><li>Improved Oracle compatibility: support for NVL2. Thanks to litailang for the patch!
+</li><li>Improved PostgreSQL compatibility: support for RANDOM() in addition to RAND().
 </li><li>There was a classloader memory leak problem because a class contained a static
     references to an exception (including stack trace).
 </li><li>Split file system: truncating a file now deletes the parts in reverse order,

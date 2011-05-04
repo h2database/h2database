@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import org.h2.api.AggregateFunction;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
@@ -66,8 +67,58 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         testValue();
+        testNvl2();
         deleteDb("functions");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testNvl2() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+
+        String createSQL = "CREATE TABLE testNvl2 (id BIGINT,txt1 varchar,txt2 varchar,num number(9,0));";
+        stat.execute(createSQL);
+        stat.execute("insert into testNvl2(id,txt1,txt2,num) values (1,'test1','test2',null)");
+        stat.execute("insert into testNvl2(id,txt1,txt2,num) values (2,null,'test4',null)");
+        stat.execute("insert into testNvl2(id,txt1,txt2,num) values (3,'test5',null,null)");
+        stat.execute("insert into testNvl2(id,txt1,txt2,num) values (4,null,null,null)");
+        stat.execute("insert into testNvl2(id,txt1,txt2,num) values (5,'2',null,1)");
+        stat.execute("insert into testNvl2(id,txt1,txt2,num) values (6,'2',null,null)");
+        stat.execute("insert into testNvl2(id,txt1,txt2,num) values (7,'test2',null,null)");
+
+        String query = "SELECT NVL2(txt1, txt1, txt2), txt1 FROM testNvl2 order by id asc";
+        ResultSet rs = stat.executeQuery(query);
+        rs.next();
+        String actual = rs.getString(1);
+        assertEquals("test1", actual);
+        rs.next();
+        actual = rs.getString(1);
+        assertEquals("test4", actual);
+        rs.next();
+        actual = rs.getString(1);
+        assertEquals("test5", actual);
+        rs.next();
+        actual = rs.getString(1);
+        assertEquals(null, actual);
+        assertEquals(rs.getMetaData().getColumnType(2), rs.getMetaData().getColumnType(1));
+        rs.close();
+
+        rs = stat.executeQuery("SELECT NVL2(num, num, txt1), num FROM testNvl2 where id in (5,6) order by id asc");
+        rs.next();
+        assertEquals(rs.getMetaData().getColumnType(2), rs.getMetaData().getColumnType(1));
+
+        try {
+            rs = stat.executeQuery("SELECT NVL2(num, num, txt1), num FROM testNvl2 where id = 7 order by id asc");
+        } catch (JdbcSQLException e) {
+            Throwable t = e.getCause();
+            if (t instanceof NumberFormatException) {
+                //
+            } else {
+                throw e;
+            }
+        }
+
+        conn.close();
     }
 
     private void testValue() throws SQLException {

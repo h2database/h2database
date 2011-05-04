@@ -469,7 +469,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>User defined aggregate: allow declaring as source code (like functions).
 </li><li>The error "table not found" is sometimes caused by using the wrong database.
     Add "(this database is empty)" to the exception message if applicable.
-</li><li>PostgreSQL compatibility: support escape with double \\.
+</li><li>MySQL + PostgreSQL compatibility: support string literal escape with \n.
+</li><li>PostgreSQL compatibility: support string literal escape with double \\.
 </li><li>Document the TCP server "management_db". Maybe include the IP address of the client.
 </li><li>Use javax.tools.JavaCompilerTool instead of com.sun.tools.javac.Main
 </li><li>If a database object was not found in the current schema, but one with the same name existed in another schema, included that in the error message.
@@ -530,6 +531,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.name=t2.name where t1.id=t2.id.
 </li><li>Issue 283: Improve performance of H2 on Android.
 </li><li>Support INSERT INTO / UPDATE / MERGE ... RETURNING to retrieve the generated key(s).
+</li><li>Column compression option - see http://groups.google.com/group/h2-database/browse_thread/thread/3e223504e52671fa/243da82244343f5d
+</li><li>PostgreSQL compatibility: ALTER TABLE ADD combined with adding a foreign key constraint, as in ALTER TABLE FOO ADD COLUMN PARENT BIGINT REFERENCES FOO(ID).
+</li><li>MS SQL Server compatibility: support @@ROWCOUNT.
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -9003,16 +9003,16 @@ select power(null, null) en, power(2, 3) e8, power(16, 0.5) e4 from test;
 SET AUTOCOMMIT FALSE;
 > ok
 
-select rand(1) e from test;
-> E
-> ------------------
-> 0.7308781907032909
+select rand(1) e, random() f from test;
+> E                  F
+> ------------------ -------------------
+> 0.7308781907032909 0.41008081149220166
 > rows: 1
 
 select rand() e from test;
 > E
 > -------------------
-> 0.41008081149220166
+> 0.20771484130971707
 > rows: 1
 
 SET AUTOCOMMIT TRUE;

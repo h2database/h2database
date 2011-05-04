@@ -2613,7 +2613,7 @@ POWER(A, B)
 "
 
 "Functions (Numeric)","RAND","
-RAND( [ int ] )
+{ RAND | RANDOM } ( [ int ] )
 ","
 Calling the function without parameter returns the next a pseudo random number.
 Calling it with an parameter seeds the session's random number generator.

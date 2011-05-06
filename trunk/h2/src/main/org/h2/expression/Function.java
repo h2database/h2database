@@ -164,6 +164,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("BITOR", BITOR, 2, Value.LONG);
         addFunction("BITXOR", BITXOR, 2, Value.LONG);
         addFunction("CEILING", CEILING, 1, Value.DOUBLE);
+        addFunction("CEIL", CEILING, 1, Value.DOUBLE);
         addFunction("COS", COS, 1, Value.DOUBLE);
         addFunction("COSH", COSH, 1, Value.DOUBLE);
         addFunction("COT", COT, 1, Value.DOUBLE);

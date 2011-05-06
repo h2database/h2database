@@ -8934,7 +8934,7 @@ select mod(null, 1) vn, mod(1, null) vn1, mod(null, null) vn2, mod(10, 2) e1 fro
 > null null null 0
 > rows: 1
 
-select ceiling(null) vn, ceiling(1) v1, ceiling(1.1) v2, ceiling(-1.1) v3, ceiling(1.9) v4, ceiling(-1.9) v5 from test;
+select ceil(null) vn, ceil(1) v1, ceiling(1.1) v2, ceil(-1.1) v3, ceiling(1.9) v4, ceiling(-1.9) v5 from test;
 > VN   V1  V2  V3   V4  V5
 > ---- --- --- ---- --- ----
 > null 1.0 2.0 -1.0 2.0 -1.0

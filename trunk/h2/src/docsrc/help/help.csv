@@ -2529,7 +2529,7 @@ MOD(A, B)
 "
 
 "Functions (Numeric)","CEILING","
-CEILING(double)
+{ CEILING | CEIL } (double)
 ","
 See also Java ""Math.ceil"".
 This method returns a double.

@@ -4520,7 +4520,7 @@ public class Parser {
         }
         Collator coll = CompareMode.getCollator(name);
         if (coll == null) {
-            throw getSyntaxError();
+            throw DbException.getInvalidValueException("collation", name);
         }
         if (readIf("STRENGTH")) {
             if (readIf("PRIMARY")) {

@@ -2534,7 +2534,7 @@ MOD(A, B)
 See also Java ""Math.ceil"".
 This method returns a double.
 ","
-LOG(A)
+CEIL(A)
 "
 
 "Functions (Numeric)","DEGREES","
@@ -2565,7 +2565,7 @@ FLOOR(A)
 "
 
 "Functions (Numeric)","LOG","
-LOG(double)
+{ LOG | LN } (double)
 ","
 See also Java ""Math.log"".
 This method returns a double.

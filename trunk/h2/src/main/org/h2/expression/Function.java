@@ -172,6 +172,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("EXP", EXP, 1, Value.DOUBLE);
         addFunction("FLOOR", FLOOR, 1, Value.DOUBLE);
         addFunction("LOG", LOG, 1, Value.DOUBLE);
+        addFunction("LN", LOG, 1, Value.DOUBLE);
         addFunction("LOG10", LOG10, 1, Value.DOUBLE);
         addFunction("MOD", MOD, 2, Value.LONG);
         addFunction("PI", PI, 0, Value.DOUBLE);

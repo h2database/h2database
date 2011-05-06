@@ -157,22 +157,23 @@ is well tested (if possible with automated test cases). The areas that are not w
 </p>
 <ul>
 <li>Platforms other than Windows XP, Linux, Mac OS X, or JVMs other than Sun 1.5 or 1.6
-</li><li>The features <code>AUTO_SERVER</code> and <code>AUTO_RECONNECT</code>
-</li><li>The file locking method 'Serialized'
-</li><li>Cluster mode, 2-phase commit, savepoints
-</li><li>24/7 operation
-</li><li>Fulltext search
-</li><li>Operations on LOBs over 2 GB
-</li><li>Some operations on databases larger than 500 MB may be slower than expected
-</li><li>The optimizer may not always select the best plan
+</li><li>The features <code>AUTO_SERVER</code> and <code>AUTO_RECONNECT</code>.
+</li><li>The file locking method 'Serialized'.
+</li><li>Cluster mode, 2-phase commit, savepoints.
+</li><li>24/7 operation.
+</li><li>Fulltext search.
+</li><li>Operations on LOBs over 2 GB.
+</li><li>Some operations on databases larger than 500 MB may be slower than expected.
+</li><li>The optimizer may not always select the best plan.
+</li><li>Using the ICU4J collator.
 </li></ul>
 <p>
 Areas considered experimental are:
 </p>
 <ul>
 <li>The PostgreSQL server
-</li><li>Multi-threading within the engine using <code>SET MULTI_THREADED=1</code>
-</li><li>Compatibility modes for other databases (only some features are implemented)
+</li><li>Multi-threading within the engine using <code>SET MULTI_THREADED=1</code>.
+</li><li>Compatibility modes for other databases (only some features are implemented).
 </li><li>The soft reference cache (<code>CACHE_TYPE=SOFT_LRU</code>). It might not improve performance,
     and out of memory issues have been reported.
 </li></ul>

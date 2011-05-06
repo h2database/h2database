@@ -6,48 +6,53 @@
  */
 package org.h2.value;
 
-import java.text.CollationKey;
 import java.text.Collator;
 import java.util.Locale;
-
-import org.h2.constant.SysProperties;
-import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
 /**
- * Instances of this class can compare strings.
- * Case sensitive and case insensitive comparison is supported,
- * and comparison using a collator.
+ * Instances of this class can compare strings. Case sensitive and case
+ * insensitive comparison is supported, and comparison using a collator.
  */
 public class CompareMode {
 
     /**
-     * This constant means there is no collator set,
-     * and the default string comparison is to be used.
+     * This constant means there is no collator set, and the default string
+     * comparison is to be used.
      */
     public static final String OFF = "OFF";
 
+    /**
+     * This constant means the default collator should be used, even if ICU4J is
+     * in the classpath.
+     */
+    public static final String DEFAULT = "DEFAULT_";
+
+    /**
+     * This constant means ICU4J should be used (this will fail if it is not in
+     * the classpath).
+     */
+    public static final String ICU4J = "ICU4J_";
+
     private static CompareMode lastUsed;
+
+    private static boolean canUseICU4J;
+
+    static {
+        try {
+            Class.forName("com.ibm.icu.text.Collator");
+            canUseICU4J = true;
+        } catch (Exception e) {
+            // ignore
+        }
+    }
 
     private final String name;
     private final int strength;
-    private final Collator collator;
-    private final SmallLRUCache<String, CollationKey> collationKeys;
 
-    private CompareMode(String name, int strength) {
+    protected CompareMode(String name, int strength) {
         this.name = name;
         this.strength = strength;
-        this.collator = CompareMode.getCollator(name);
-        int cacheSize = 0;
-        if (collator != null) {
-            this.collator.setStrength(strength);
-            cacheSize = SysProperties.COLLATOR_CACHE_SIZE;
-        }
-        if (cacheSize != 0) {
-            collationKeys = SmallLRUCache.newInstance(cacheSize);
-        } else {
-            collationKeys = null;
-        }
     }
 
     /**
@@ -68,7 +73,25 @@ public class CompareMode {
                 }
             }
         }
-        lastUsed = new CompareMode(name, strength);
+        if (name == null || name.equals(OFF)) {
+            lastUsed = new CompareMode(name, strength);
+        } else {
+            boolean useICU4J;
+            if (name.startsWith(ICU4J)) {
+                useICU4J = true;
+                name = name.substring(ICU4J.length());
+            } else if (name.startsWith(DEFAULT)) {
+                useICU4J = false;
+                name = name.substring(DEFAULT.length());
+            } else {
+                useICU4J = canUseICU4J;
+            }
+            if (useICU4J) {
+                lastUsed = new CompareModeIcu4J(name, strength);
+            } else {
+                lastUsed = new CompareModeDefault(name, strength);
+            }
+        }
         return lastUsed;
     }
 
@@ -83,9 +106,6 @@ public class CompareMode {
      * @return true if the characters are equals
      */
     public boolean equalsChars(String a, int ai, String b, int bi, boolean ignoreCase) {
-        if (collator != null) {
-            return compareString(a.substring(ai, ai + 1), b.substring(bi, bi + 1), ignoreCase) == 0;
-        }
         char ca = a.charAt(ai);
         char cb = b.charAt(bi);
         if (ignoreCase) {
@@ -105,37 +125,10 @@ public class CompareMode {
      *         smaller, and 0 if they are equal
      */
     public int compareString(String a, String b, boolean ignoreCase) {
-        if (collator == null) {
-            if (ignoreCase) {
-                return a.compareToIgnoreCase(b);
-            }
-            return a.compareTo(b);
-        }
         if (ignoreCase) {
-            // this is locale sensitive
-            a = a.toUpperCase();
-            b = b.toUpperCase();
+            return a.compareToIgnoreCase(b);
         }
-        int comp;
-        if (collationKeys != null) {
-            CollationKey aKey = getKey(a);
-            CollationKey bKey = getKey(b);
-            comp = aKey.compareTo(bKey);
-        } else {
-            comp = collator.compare(a, b);
-        }
-        return comp;
-    }
-
-    private CollationKey getKey(String a) {
-        synchronized (collationKeys) {
-            CollationKey key = collationKeys.get(a);
-            if (key == null) {
-                key = collator.getCollationKey(a);
-                collationKeys.put(a, key);
-            }
-            return key;
-        }
+        return a.compareTo(b);
     }
 
     /**
@@ -151,7 +144,15 @@ public class CompareMode {
         return name;
     }
 
-    private static boolean compareLocaleNames(Locale locale, String name) {
+    /**
+     * Compare name name of the locale with the given name. The case of the name
+     * is ignored.
+     *
+     * @param locale the locale
+     * @param name the name
+     * @return true if they match
+     */
+    static boolean compareLocaleNames(Locale locale, String name) {
         return name.equalsIgnoreCase(locale.toString()) || name.equalsIgnoreCase(getName(locale));
     }
 
@@ -163,10 +164,12 @@ public class CompareMode {
      * @return the collator
      */
     public static Collator getCollator(String name) {
-        if (name == null || name.equals(OFF)) {
-            return null;
-        }
         Collator result = null;
+        if (name.startsWith(ICU4J)) {
+            name = name.substring(ICU4J.length());
+        } else if (name.startsWith(DEFAULT)) {
+            name = name.substring(DEFAULT.length());
+        }
         if (name.length() == 2) {
             Locale locale = new Locale(name.toLowerCase(), "");
             if (compareLocaleNames(locale, name)) {

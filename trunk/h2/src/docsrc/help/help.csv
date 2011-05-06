@@ -1027,6 +1027,12 @@ Sets the collation used for comparing strings.
 This command can only be executed if there are no tables defined.
 See ""java.text.Collator"" for details about the supported collations and the STRENGTH.
 
+The ICU4J collator is used if it is in the classpath.
+It is also used if the collation name starts with ICU4J_
+(in that case, the ICU4J must be in the classpath, otherwise an exception is thrown).
+The default collator is used if the collation name starts with DEFAULT_
+(even if ICU4J is in the classpath).
+
 Admin rights are required to execute this command.
 This command commits an open transaction.
 This setting is persistent.

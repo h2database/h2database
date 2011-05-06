@@ -680,6 +680,11 @@ public class H2Database {
         // TODO
     }
 
+    /**
+     * Create a new RuntimeException that says this feature is not supported.
+     *
+     * @return the runtime exception
+     */
     public static RuntimeException unsupported() {
         // TODO
         return new RuntimeException("Feature not supported");

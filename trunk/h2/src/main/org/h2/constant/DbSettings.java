@@ -246,7 +246,7 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeUpdate = get("OPTIMIZE_UPDATE", true);
 
     /**
-     * Database setting <code>PAGE_STORE_MAX_GROWTH_RATE</code>
+     * Database setting <code>PAGE_STORE_MAX_GROWTH</code>
      * (default: Integer.MAX_VALUE).<br />
      * The maximum number of pages the file grows at any time.
      */

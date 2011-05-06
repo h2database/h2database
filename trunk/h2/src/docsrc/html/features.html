@@ -1080,8 +1080,8 @@ or the SQL statement <code>SET MODE MySQL</code>.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
-H2 does support case insensitive text comparison, but it needs to be set separately, 
-using <code>SET IGNORECASE TRUE</code>. 
+H2 does support case insensitive text comparison, but it needs to be set separately,
+using <code>SET IGNORECASE TRUE</code>.
 This affects comparison using <code>=, LIKE, REGEXP</code>.
 </p>
 
@@ -1146,7 +1146,8 @@ jdbc:h2:/data/test;AUTO_SERVER=TRUE
 Use the same URL for all connections to this database. Internally, when using this mode,
 the first connection to the database is made in embedded mode, and additionally a server
 is started internally (as a daemon thread). If the database is already open in another process,
-the server mode is used automatically.
+the server mode is used automatically. The IP address and port of the server are stored in the file
+<code>.lock.db</code>, that's why in-memory databases can't be supported.
 </p>
 <p>
 The application that opens the first connection to the database uses the embedded mode,
@@ -1613,13 +1614,13 @@ public class TriggerSample implements Trigger {
             String tableName, boolean before, int type) {
         // initialize the trigger object is necessary
     }
-    
+
     public void fire(Connection conn,
             Object[] oldRow, Object[] newRow)
             throws SQLException {
         // the trigger is fired
     }
-    
+
     public void close() {
         // the database is closed
     }
@@ -1627,7 +1628,7 @@ public class TriggerSample implements Trigger {
     public void remove() {
         // the trigger was dropped
     }
-    
+
 }
 </pre>
 <p>
@@ -1652,7 +1653,7 @@ import org.h2.tools.TriggerAdapter;
 ...
 public class TriggerSample implements TriggerAdapter {
 
-    public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) 
+    public void fire(Connection conn, ResultSet oldRow, ResultSet newRow)
             throws SQLException {
         // the trigger is fired
     }

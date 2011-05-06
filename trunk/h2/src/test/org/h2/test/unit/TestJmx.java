@@ -34,6 +34,7 @@ public class TestJmx extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @SuppressWarnings("unchecked")
     public void test() throws Exception {
         HashMap<String, MBeanAttributeInfo> attrMap;
         HashMap<String, MBeanOperationInfo> opMap;
@@ -103,8 +104,8 @@ public class TestJmx extends TestBase {
         conn = getConnection("jmx;jmx=true");
 
         name = new ObjectName("org.h2:name=JMX,*");
-        Set<ObjectName> set = mbeanServer.queryNames(name, null);
-        name = set.iterator().next();
+        Set set = mbeanServer.queryNames(name, null);
+        name = (ObjectName) set.iterator().next();
 
         assertEquals("16384", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
         mbeanServer.setAttribute(name, new Attribute("CacheSizeMax", 1));

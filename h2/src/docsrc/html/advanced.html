@@ -1475,9 +1475,9 @@ If the logical file is larger than the maximum file size, then the file is split
 <p>
 More physical files (<code>*.2.part, *.3.part</code>) are automatically created / deleted if needed.
 The maximum physical file size of a block is 2^30 bytes, which is also called 1 GiB or 1 GB.
-However this can be changed if required, by specifying the block size in the file name. 
-The file name format is: <code>split:&lt;x&gt;:&lt;fileName&gt;</code> where the file size per block is 2^x. 
-For 1 MiB block sizes, use x = 20 (because 2^20 is 1 MiB). 
+However this can be changed if required, by specifying the block size in the file name.
+The file name format is: <code>split:&lt;x&gt;:&lt;fileName&gt;</code> where the file size per block is 2^x.
+For 1 MiB block sizes, use x = 20 (because 2^20 is 1 MiB).
 The following file name means the logical file is split into 1 MiB blocks: <code>split:20:test.h2.db</code>.
 An example database URL for this case is <code>jdbc:h2:split:20:~/test</code>.
 </p>
@@ -1506,10 +1506,13 @@ prior opening a database connection.
 </p>
 <p>
 Since version 1.2.140 it is possible to let the old h2 classes (v 1.2.128) connect to the database.
-The automatic upgrade .jar file must be present, and the URL must start with <code>jdbc:h2v1_1:</code>.
+The automatic upgrade .jar file must be present, and the URL must start with <code>jdbc:h2v1_1:</code>
+(the JDBC driver class is <code>org.h2.upgrade.v1_1.Driver</code>).
 If the database should automatically connect using the old version if a database with the old format exists
 (without upgrade), and use the new version otherwise, then append <code>;NO_UPGRADE=TRUE</code>
 to the database URL.
+Please note the old driver did not process the system property <code>"h2.baseDir"</code> correctly,
+so that using this setting is not supported when upgrading.
 </p>
 
 <h2 id="limits_limitations">Limits and Limitations</h2>

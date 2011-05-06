@@ -417,6 +417,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>User defined functions: allow to store the bytecode (of just the class, or the jar file of the extension) in the database.
 </li><li>Compatibility: ResultSet.getObject() on a CLOB (TEXT) should return String for PostgreSQL and MySQL.
 </li><li>Optimizer: WHERE X=? AND Y IN(?), it always uses the index on Y. Should be cost based.
+</li><li>Common Table Expression (CTE) / recursive queries: support parameters. Issue 314.
 </li><li>Oracle compatibility: support INSERT ALL.
 </li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available.
 </li><li>Issue 179: Related subqueries in HAVING clause.
@@ -454,7 +455,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Common Table Expression (CTE) / recursive queries: avoid endless loop. Issue 218.
 </li><li>Common Table Expression (CTE) / recursive queries: support multiple named queries. Issue 220.
 </li><li>Common Table Expression (CTE) / recursive queries: identifier scope may be incorrect. Issue 222.
-</li><li>Common Table Expression (CTE) / recursive queries: support parameters.
 </li><li>Log long running transactions (similar to long running statements).
 </li><li>Parameter data type is data type of other operand. Issue 205.
 </li><li>Some combinations of nested join with right outer join are not supported.

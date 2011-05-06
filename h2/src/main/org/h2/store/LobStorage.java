@@ -175,6 +175,13 @@ public class LobStorage {
         return ValueLob.createSmallLob(type, small);
     }
 
+    /**
+     * Read a block of data from the given LOB.
+     *
+     * @param lob the lob id
+     * @param seq the block sequence number
+     * @return the block (expanded if stored compressed)
+     */
     byte[] readBlock(long lob, int seq) throws SQLException {
         synchronized (handler) {
             String sql = "SELECT COMPRESSED, DATA FROM " + LOB_MAP + " M " +

@@ -192,7 +192,7 @@ CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
 { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
     | { AS select } }
-[ ENGINE tableEngineName ] [ TRANSACTIONAL ] [ NOT PERSISTENT ]
+[ ENGINE tableEngineName ] [ NOT PERSISTENT ] [ TRANSACTIONAL ]
 ","
 Creates a new table."
 "Commands (DDL)","CREATE TRIGGER","
@@ -892,7 +892,7 @@ MOD(long, long)
 ","
 The modulo operation."
 "Functions (Numeric)","CEILING","
-CEILING(double)
+{ CEILING | CEIL } (double)
 ","
 See also Java ""Math."
 "Functions (Numeric)","DEGREES","
@@ -908,7 +908,7 @@ FLOOR(double)
 ","
 See also Java ""Math."
 "Functions (Numeric)","LOG","
-LOG(double)
+{ LOG | LN } (double)
 ","
 See also Java ""Math."
 "Functions (Numeric)","LOG10","
@@ -932,7 +932,7 @@ POWER(double, double)
 ","
 See also Java ""Math."
 "Functions (Numeric)","RAND","
-RAND( [ int ] )
+{ RAND | RANDOM } ( [ int ] )
 ","
 Calling the function without parameter returns the next a pseudo random number."
 "Functions (Numeric)","RANDOM_UUID","
@@ -1244,7 +1244,7 @@ CAST(value AS dataType)
 ","
 Converts a value to another data type."
 "Functions (System)","COALESCE","
-COALESCE(aValue, bValue [,...])
+{ COALESCE | NVL } (aValue, bValue [,...])
 ","
 Returns the first value that is not null."
 "Functions (System)","CONVERT","
@@ -1321,6 +1321,10 @@ Returns the next value of the sequence."
 NULLIF(aValue, bValue)
 ","
 Returns NULL if 'a' is equals to 'b', otherwise 'a'."
+"Functions (System)","NVL2","
+NVL2(testValue, aValue, bValue)
+","
+If the test value is null, then 'b' is returned."
 "Functions (System)","READONLY","
 READONLY()
 ","

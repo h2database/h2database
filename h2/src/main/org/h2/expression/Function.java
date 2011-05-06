@@ -761,7 +761,7 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE) {
                 expr = argList[2];
             } else {
-               	expr = argList[1];
+                expr = argList[1];
             }
             Value v = expr.getValue(session);
             result = v.convertTo(dataType);

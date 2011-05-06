@@ -795,6 +795,11 @@ A CSV file can be read using the function <code>CSVREAD</code>. Example:
 <pre>
 SELECT * FROM CSVREAD('test.csv');
 </pre>
+<p>
+Please note for performance reason, <code>CSVREAD</code> should not be used inside a join.
+Instead, import the data first (possibly into a temporary table), create the required indexes
+if necessary, and then query this table.
+</p>
 
 <h3>Importing Data from a CSV File</h3>
 <p>
@@ -1270,7 +1275,7 @@ The <code>destroy-method</code> will help prevent exceptions on hot-redeployment
 <h3>Error Code Incompatibility</h3>
 <p>
 There is an incompatibility with the Spring JdbcTemplate and H2 version 1.3.154 and newer,
-because of a change in the error code. This will cause the JdbcTemplate to not detect 
+because of a change in the error code. This will cause the JdbcTemplate to not detect
 a duplicate key condition, and so a <code>DataIntegrityViolationException</code> is thrown instead of
 <code>DuplicateKeyException</code>.
 See also <a href="https://jira.springsource.org/browse/SPR-8235">the issue SPR-8235</a>.
@@ -1285,7 +1290,7 @@ The workaround is to add the following XML file to the root of the classpath:
         http://www.springframework.org/schema/beans/spring-beans.xsd"
     &gt;
     &lt;import resource="classpath:org/springframework/jdbc/support/sql-error-codes.xml"/&gt;
-    &lt;bean id="H2" class="org.springframework.jdbc.support.SQLErrorCodes"&gt;
+    &lt;bean id = "H2" class="org.springframework.jdbc.support.SQLErrorCodes"&gt;
         &lt;property name="badSqlGrammarCodes"&gt;
             &lt;value&gt;
                 42000,42001,42101,42102,42111,42112,42121,42122,42132

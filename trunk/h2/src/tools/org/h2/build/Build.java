@@ -353,7 +353,7 @@ public class Build extends BuildBase {
 
     /**
      * Create the file h2android.jar. This only contains the embedded database,
-     * plus the H2 Andoid API. Debug information is disabled.
+     * plus the H2 Android API. Debug information is disabled.
      */
     public void jarAndroid() {
         compile(false, false, true);

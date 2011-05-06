@@ -563,7 +563,7 @@ CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
 { { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
     | { AS select } }
-[ ENGINE tableEngineName ] [ TRANSACTIONAL ] [ NOT PERSISTENT ]
+[ ENGINE tableEngineName ] [ NOT PERSISTENT ] [ TRANSACTIONAL ]
 ","
 Creates a new table.
 

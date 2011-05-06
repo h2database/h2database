@@ -29,6 +29,9 @@ import org.h2.util.New;
  */
 public class TestClassLoaderLeak extends TestBase {
 
+    /**
+     * The name of this class (used by reflection).
+     */
     static final String CLASS_NAME = TestClassLoaderLeak.class.getName();
 
     /**
@@ -71,6 +74,9 @@ public class TestClassLoaderLeak extends TestBase {
         return new WeakReference<ClassLoader>(cl);
     }
 
+    /**
+     * This method is called using reflection.
+     */
     static void runTest() throws Exception {
         Class.forName("org.h2.Driver");
         Class.forName("org.h2.upgrade.v1_1.Driver");

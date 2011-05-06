@@ -54,6 +54,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testDeadlock();
         testCopyManyLobs();
         testCopyLob();
         testConcurrentCreate();
@@ -93,6 +94,41 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    /**
+     * Test for issue 315: Java Level Deadlock on Database & Session Objects
+     */
+    private void testDeadlock() throws Exception {
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name clob)");
+        stat.execute("insert into test select x, space(10000) from system_range(1, 3)");
+        final Connection conn2 = getConnection("lob");
+        Task task = new Task() {
+
+            public void call() throws Exception {
+                Statement stat = conn2.createStatement();
+                stat.setFetchSize(1);
+                for (int i = 0; !stop; i++) {
+                    ResultSet rs = stat.executeQuery("select * from test where id > -" + i);
+                    while (rs.next()) {
+                        // ignore
+                    }
+                }
+            }
+
+        };
+        task.execute();
+        stat.execute("create table test2(id int primary key, name clob)");
+        for (int i = 0; i < 1000; i++) {
+            stat.execute("delete from test2");
+            stat.execute("insert into test2 values(1, space(10000 + " + i + "))");
+        }
+        task.get();
+        conn.close();
+        conn2.close();
     }
 
     private void testCopyManyLobs() throws Exception {

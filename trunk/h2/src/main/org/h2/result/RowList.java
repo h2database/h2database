@@ -86,6 +86,7 @@ public class RowList {
             Database db = session.getDatabase();
             String fileName = db.createTempFile();
             file = db.openFile(fileName, "rw", false);
+            file.setCheckedWriting(false);
             file.seek(FileStore.HEADER_LENGTH);
             rowBuff = Data.create(db, Constants.DEFAULT_PAGE_SIZE);
             file.seek(FileStore.HEADER_LENGTH);

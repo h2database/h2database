@@ -52,6 +52,8 @@ Change Log
 </li><li>Improved error message for syntax error: the list of expected tokens was sometimes not set correctly.
 </li><li>Database file growth can now be limited using the database setting PAGE_STORE_MAX_GROWTH.
     Slower growth may slow down operation, but speed up closing database.
+</li><li>A read only database with writeable linked tables could lead to a DATABASE_IS_READ_ONLY (90097) error.
+    This is fixed now.
 </li></ul>
 
 <h2>Version 1.3.154 (2011-04-04)</h2>

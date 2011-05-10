@@ -160,6 +160,7 @@ public class UndoLog {
                 if (file == null) {
                     String fileName = database.createTempFile();
                     file = database.openFile(fileName, "rw", false);
+                    file.setCheckedWriting(false);
                     file.setLength(FileStore.HEADER_LENGTH);
                 }
                 Data buff = Data.create(database, Constants.DEFAULT_PAGE_SIZE);
@@ -187,6 +188,7 @@ public class UndoLog {
                 if (file == null) {
                     String fileName = database.createTempFile();
                     file = database.openFile(fileName, "rw", false);
+                    file.setCheckedWriting(false);
                     file.seek(FileStore.HEADER_LENGTH);
                     rowBuff = Data.create(database, Constants.DEFAULT_PAGE_SIZE);
                     Data buff = rowBuff;

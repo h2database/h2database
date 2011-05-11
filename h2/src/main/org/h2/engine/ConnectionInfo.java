@@ -53,6 +53,7 @@ public class ConnectionInfo implements Cloneable {
      */
     public ConnectionInfo(String name) {
         this.name = name;
+        this.url = Constants.START_URL + name;
         parseName();
     }
 

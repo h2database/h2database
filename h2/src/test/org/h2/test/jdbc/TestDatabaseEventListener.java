@@ -82,7 +82,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
     }
 
     private void testInit() throws SQLException {
-        if (config.networked || config.cipher != null || config.memory) {
+        if (config.cipher != null || config.memory) {
             return;
         }
         deleteDb("databaseEventListener");

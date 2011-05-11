@@ -28,6 +28,7 @@ package org.h2.constant;
 public class ErrorCode {
 
     // 02: no data
+
     /**
      * The error with code <code>2000</code> is thrown when
      * the result set is positioned before the first or after the last row, or
@@ -47,6 +48,7 @@ public class ErrorCode {
     public static final int NO_DATA_AVAILABLE = 2000;
 
     // 07: dynamic SQL error
+
     /**
      * The error with code <code>7001</code> is thrown when
      * trying to call a function with the wrong number of parameters.
@@ -58,6 +60,7 @@ public class ErrorCode {
     public static final int INVALID_PARAMETER_COUNT_2 = 7001;
 
     // 08: connection exception
+
     /**
      * The error with code <code>8000</code> is thrown when
      * there was a problem trying to create a database lock.
@@ -66,6 +69,7 @@ public class ErrorCode {
     public static final int ERROR_OPENING_DATABASE_1 = 8000;
 
     // 21: cardinality violation
+
     /**
      * The error with code <code>21002</code> is thrown when the number of
      * columns does not match. Possible reasons are: for an INSERT or MERGE
@@ -249,6 +253,7 @@ public class ErrorCode {
     public static final int DEADLOCK_1 = 40001;
 
     // 42: syntax error or access rule violation
+
     /**
      * The error with code <code>42000</code> is thrown when
      * trying to execute an invalid SQL statement.
@@ -342,6 +347,7 @@ public class ErrorCode {
     // HZ: remote database access
 
     //
+
     /**
      * The error with code <code>50000</code> is thrown when
      * something unexpected occurs, for example an internal stack

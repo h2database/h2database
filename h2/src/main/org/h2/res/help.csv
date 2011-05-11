@@ -1270,8 +1270,7 @@ Returns the name of the database."
 "Functions (System)","DATABASE_PATH","
 DATABASE_PATH()
 ","
-Returns the directory of the database files and the database name, if it is file
-based."
+Returns the directory of the database files and the database name, if it is file based."
 "Functions (System)","FILE_READ","
 FILE_READ(fileNameString [,encodingString])
 ","

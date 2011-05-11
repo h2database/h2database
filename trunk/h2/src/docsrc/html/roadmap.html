@@ -48,6 +48,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Compatibility: automatically load functions from a script depending on the mode - see FunctionsMySQL.java, issue 211.
 </li><li>Test very large databases and LOBs (up to 256 GB).
+</li><li>Don't use temp files, specially not deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
+    Also to allow opening client / server (remote) connections when using LOBs.
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
 </li><li>Make DDL (Data Definition) operations transactional.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
@@ -57,7 +59,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Fulltext search Lucene: analyzer configuration, mergeFactor.
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer.
 </li><li>Rebuild index functionality to shrink index size and improve performance.
-</li><li>Don't use temp files, specially not deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA).
 </li><li>Test performance again with SQL Server, Oracle, DB2.
 </li><li>Test with Spatial DB in a box / JTS: http://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification.
@@ -73,7 +74,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
 </li><li>Web server classloader: override findResource / getResourceFrom.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant.
-</li><li>Comparison: pluggable sort order: natural sort (for text that contains numbers).
 </li><li>Count index range query (count(*) where id between 10 and 20).
 </li><li>Performance: update in-place.
 </li><li>Eclipse plugin.
@@ -117,9 +117,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
 </li><li>Throw an exception when the application calls getInt on a Long (optional).
 </li><li>Default date format for input and output (local date constants).
-</li><li>Support custom Collators.
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery).
 </li><li>File system that writes to two file systems (replication, replicating file system).
+</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle).
 </li><li>Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?).
@@ -226,9 +226,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
 </li><li>Javadoc: document design patterns used
+</li><li>Support custom collators, for example for natural sort (for text that contains numbers).
 </li><li>Write an article about SQLInjection (h2/src/docsrc/html/images/SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
-</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>Support OUT parameters in user-defined procedures.
 </li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 </li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;

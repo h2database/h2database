@@ -3444,8 +3444,8 @@ CALL DATABASE();
 "Functions (System)","DATABASE_PATH","
 DATABASE_PATH()
 ","
-Returns the directory of the database files and the database name, if it is file
-based. Returns NULL otherwise.
+Returns the directory of the database files and the database name, if it is file based.
+Returns NULL otherwise.
 ","
 CALL DATABASE_PATH();
 "

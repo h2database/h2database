@@ -419,6 +419,19 @@ The settings of the H2 Console are stored in a configuration file
 called <code>.h2.server.properties</code> in you user home directory.
 For Windows installations, the user home directory is usually <code>C:\Documents and Settings\[username]</code>.
 The configuration file contains the settings of the application and is automatically created when the H2 Console is first started.
+Supported settings are:
+</p>
+<ul><li><code>webAllowOthers</code>: allow other computers to connect.
+</li><li><code>webPort</code>: the port of the H2 Console
+</li><li><code>webSSL</code>: use encrypted (HTTPS) connections.
+</li></ul>
+<p>
+In addition to those settings, the properties of the last recently used connection
+are listed in the form
+<code>&lt;number&gt;=&lt;name&gt;|&lt;driver&gt;|&lt;url&gt;|&lt;user&gt;</code>
+using the escape character <code>\</code>.
+Example:
+<code>1=Generic H2 (Embedded)|org.h2.Driver|jdbc\:h2\:~/test|sa</code>
 </p>
 
 <h2 id="connecting_using_jdbc">Connecting to a Database using JDBC</h2>

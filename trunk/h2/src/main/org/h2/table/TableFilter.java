@@ -633,16 +633,18 @@ public class TableFilter implements ColumnResolver {
                 buffNested.append("\n");
                 n = n.getJoin();
             } while (n != null);
-
             buff.append("(\n");
             buff.append(StringUtils.indent(buffNested.toString(), 4, false));
-            buff.append(") ON ");
-            if (joinCondition == null) {
-                // need to have a ON expression,
-                // otherwise the nesting is unclear
-                buff.append("1=1");
-            } else {
-                buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+            buff.append(")");
+            if (isJoin) {
+                buff.append(" ON ");
+                if (joinCondition == null) {
+                    // need to have a ON expression,
+                    // otherwise the nesting is unclear
+                    buff.append("1=1");
+                } else {
+                    buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+                }
             }
             return buff.toString();
         }

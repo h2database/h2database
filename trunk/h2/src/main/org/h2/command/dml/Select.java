@@ -994,7 +994,7 @@ public class Select extends Query {
         } else {
             buff.resetCount();
             int i = 0;
-            for (TableFilter f : filters) {
+            for (TableFilter f : topFilters) {
                 buff.appendExceptFirst("\n");
                 buff.append(f.getPlanSQL(i++ > 0));
             }

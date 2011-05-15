@@ -535,6 +535,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL compatibility: ALTER TABLE ADD combined with adding a foreign key constraint, as in ALTER TABLE FOO ADD COLUMN PARENT BIGINT REFERENCES FOO(ID).
 </li><li>MS SQL Server compatibility: support @@ROWCOUNT.
 </li><li>PostgreSQL compatibility: LOG(x) is LOG10(x) and not LN(x).
+</li><li>Issue 311: Serialized lock mode: executeQuery of write operations fails.
 </li></ul>
 
 <h2>Not Planned</h2>

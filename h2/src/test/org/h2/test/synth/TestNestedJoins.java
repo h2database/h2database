@@ -257,6 +257,12 @@ public class TestNestedJoins extends TestBase {
         stat.execute("select * from test t right outer join " +
                 "(select t2.id, count(*) c from test t2 group by t2.id) x on x.id = t.id " +
                 "where t.id = 1");
+
+        // The query plan of queries with subqueries
+        // that contain nested joins was wrong
+        stat.execute("select 1 from (select 2 from ((test t1 inner join test t2 " +
+                "on t1.id=t2.id) inner join test t3 on t3.id=t1.id)) x");
+
         stat.execute("drop table test");
 
         // Issue 288

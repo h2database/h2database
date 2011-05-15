@@ -949,6 +949,11 @@ To enable this feature, append <code>;FILE_LOCK=SERIALIZED</code> to the databas
 This feature is relatively new. When using it for production, please ensure
 your use case is well tested (if possible with automated test cases).
 </p>
+<p>
+One known limitation when using this mode is: queries that write to the database will fail
+with the exception "The database is read only", if the queries are run using <code>Statement.executeQuery()</code>.
+As a workaround, use <code>Statement.execute()</code>
+</p>
 
 <h2 id="passwords">Using Passwords</h2>
 

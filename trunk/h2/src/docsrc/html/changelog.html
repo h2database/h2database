@@ -17,7 +17,10 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>DatabaseEventListener.init was called with a null url when using the server mode.
+<ul><li>The query plan of queries with subqueries that contain nested joins was wrong.
+    This could result in syntax exceptions for correct queries. Example:
+    select 1 from (select 2 from ((test t1 inner join test t2 on t1.id=t2.id) inner join test t3 on t3.id=t1.id)) x;
+</li><li>DatabaseEventListener.init was called with a null url when using the server mode.
 </li><li>Support for the function LN (an alias for LOG).
 </li><li>Support for the function CEIL (an alias for CEILING).
 </li><li>Issue 315: Access to LOBs could cause a Java level deadlock.

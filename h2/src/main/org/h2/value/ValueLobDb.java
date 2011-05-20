@@ -120,15 +120,15 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
             }
-            deleteFile(handler, fileName);
+            // synchronize on the database, to avoid concurrent temp file creation /
+            // deletion / backup
+            synchronized (handler.getLobSyncObject()) {
+                IOUtils.delete(fileName);
+            }
         }
-    }
-
-    private static synchronized void deleteFile(DataHandler handler, String fileName) {
-        // synchronize on the database, to avoid concurrent temp file creation /
-        // deletion / backup
-        synchronized (handler.getLobSyncObject()) {
-            IOUtils.delete(fileName);
+        if (lobStorage != null) {
+            lobStorage.removeLob(lobId);
+            lobStorage = null;
         }
     }
 

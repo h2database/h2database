@@ -71,6 +71,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
 </li><li>Access rights: finer grained access control (grant access for specific functions).
+</li><li>ROW_NUMBER() OVER([PARTITION BY columnName][ORDER BY columnName]).
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
 </li><li>Web server classloader: override findResource / getResourceFrom.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant.
@@ -90,7 +91,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>GCJ: what is the state now?
 </li><li>Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server. See http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html
 </li><li>Optimization: simpler log compression.
-</li><li>ROW_NUMBER() OVER([ORDER BY columnName]).
 </li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt - specially KEY_COLUMN_USAGE: http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif
 </li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero. HSQLDB: 0.0e1 / 0.0e1 is NaN.
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R).
@@ -114,7 +114,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Implement point-in-time recovery.
 </li><li>Option for SCRIPT to only process one or a set of schemas or tables, and append to a file.
 </li><li>LIKE: improved version for larger texts (currently using naive search).
-</li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
 </li><li>Throw an exception when the application calls getInt on a Long (optional).
 </li><li>Default date format for input and output (local date constants).
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery).
@@ -194,6 +193,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Better support multiple processors for in-memory databases.
 </li><li>Support N'text'
 </li><li>Support compatibility for jdbc:hsqldb:res:
+</li><li>HSQLDB compatibility: automatically convert to the next 'higher' data type.
+    Example: cast(2000000000 as int) + cast(2000000000 as int);
+    (HSQLDB: long; PostgreSQL: integer out of range)
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
@@ -255,6 +257,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object) (with test case).
 </li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular b-tree index solves the problem).
 </li><li>Oracle compatibility: support NLS_DATE_FORMAT.
+</li><li>Support for Thread.interrupt to cancel running statements.
 </li><li>Cluster: add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
 </li><li>H2 Console: support CLOB/BLOB download using a link.
 </li><li>Support flashback queries as in Oracle.
@@ -491,7 +494,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support reading LOBs.
 </li><li>Require appending DANGEROUS=TRUE when using certain dangerous settings such as
     LOG=0, LOG=1, LOCK_MODE=0, disabling FILE_LOCK,...
-</li><li>Support for Thread.interrupt to cancel running statements.
 </li><li>Support UDT (user defined types) similar to how Apache Derby supports it:
     check constraint, allow to use it in Java functions as parameters (return values already seem to work).
 </li><li>Encrypted file system (use cipher text stealing so file length doesn't need to decrypt; 4 KB header per file,
@@ -536,6 +538,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MS SQL Server compatibility: support @@ROWCOUNT.
 </li><li>PostgreSQL compatibility: LOG(x) is LOG10(x) and not LN(x).
 </li><li>Issue 311: Serialized lock mode: executeQuery of write operations fails.
+</li><li>PostgreSQL compatibility: support PgAdmin III (specially the function current_setting).
+</li><li>MySQL compatibility: support TIMESTAMPADD.
 </li></ul>
 
 <h2>Not Planned</h2>

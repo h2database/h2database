@@ -161,18 +161,6 @@ public class ScriptCommand extends ScriptBase {
                 Constant constant = (Constant) obj;
                 add(constant.getCreateSQL(), false);
             }
-            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
-                if (drop) {
-                    add(obj.getDropSQL(), false);
-                }
-                add(obj.getCreateSQL(), false);
-            }
-            for (UserAggregate agg : db.getAllAggregates()) {
-                if (drop) {
-                    add(agg.getDropSQL(), false);
-                }
-                add(agg.getCreateSQL(), false);
-            }
             ArrayList<Table> tables = db.getAllTablesAndViews(false);
             // sort by id, so that views are after tables and views on views
             // after the base views
@@ -194,6 +182,18 @@ public class ScriptCommand extends ScriptBase {
                 if (drop) {
                     add(table.getDropSQL(), false);
                 }
+            }
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
+                if (drop) {
+                    add(obj.getDropSQL(), false);
+                }
+                add(obj.getCreateSQL(), false);
+            }
+            for (UserAggregate agg : db.getAllAggregates()) {
+                if (drop) {
+                    add(agg.getDropSQL(), false);
+                }
+                add(agg.getCreateSQL(), false);
             }
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE)) {
                 Sequence sequence = (Sequence) obj;

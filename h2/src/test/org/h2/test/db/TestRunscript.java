@@ -34,6 +34,8 @@ public class TestRunscript extends TestBase implements Trigger {
     }
 
     public void test() throws Exception {
+        testDropReferencedUserDefinedFunction();
+        testDropCascade();
         testRunscriptFromClasspath();
         testCancelScript();
         testEncoding();
@@ -41,6 +43,30 @@ public class TestRunscript extends TestBase implements Trigger {
         test(false);
         test(true);
         deleteDb("runscript");
+    }
+
+    private void testDropReferencedUserDefinedFunction() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create alias decode for \"java.lang.Integer.decode\"");
+        stat.execute("create table test(x varchar, y int as decode(x))");
+        stat.execute("script simple drop to '" + getBaseDir() + "/backup.sql'");
+        stat.execute("runscript from '" + getBaseDir() + "/backup.sql'");
+        conn.close();
+    }
+
+    private void testDropCascade() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create table b(x int)");
+        stat.execute("create view a as select * from b");
+        stat.execute("script simple drop to '" + getBaseDir() + "/backup.sql'");
+        stat.execute("runscript from '" + getBaseDir() + "/backup.sql'");
+        conn.close();
     }
 
     private void testRunscriptFromClasspath() throws Exception {

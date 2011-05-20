@@ -372,6 +372,9 @@ public class FileSystemDisk extends FileSystem {
                 }
                 InputStream in = getClass().getResourceAsStream(fileName);
                 if (in == null) {
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+                }
+                if (in == null) {
                     throw new FileNotFoundException("resource " + fileName);
                 }
                 return in;

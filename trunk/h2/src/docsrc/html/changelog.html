@@ -17,7 +17,23 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>The query plan of queries with subqueries that contain nested joins was wrong.
+<ul><li>Issue 313: NullPointerException in select query with a subquery or view.
+</li><li>Native fulltext search: the characters '<', '>', and '\' are now also whitespace
+    characters. Also, the list of whitespace characters can be changed using
+    FullText.setWhitespaceChars(conn, ...)
+</li><li>When reading from the classpath (for example read_file('classpath:logo.png')),
+    now the content class loader is used if the resource can't be found otherwise.
+</li><li>The statement "script drop" create a script that couldn't be executed if
+    a table contained a reference to a user defined function.
+</li><li>Opening a database with both multi-threaded mode and lock mode 0 (disable locking)
+    was possible (but only once), even thought it does not work properly.
+    Now it is no longer allowed.
+</li><li>LOB objects are now deleted (and the empty space is reused) when the transaction is committed.
+    So far, the space wasn't re-used until the connection was closed.
+</li><li>SCRIPT DROP did not use the cascade option for table, which would cause problems
+    if a view was dropped before a table it depends on.
+    Now the cascade option is used.
+</li><li>The query plan of queries with subqueries that contain nested joins was wrong.
     This could result in syntax exceptions for correct queries. Example:
     select 1 from (select 2 from ((test t1 inner join test t2 on t1.id=t2.id) inner join test t3 on t3.id=t1.id)) x;
 </li><li>DatabaseEventListener.init was called with a null url when using the server mode.

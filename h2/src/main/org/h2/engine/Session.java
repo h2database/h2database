@@ -493,6 +493,7 @@ public class Session extends SessionWithState {
             database.flush();
             for (Value v : unlinkLobMap.values()) {
                 v.unlink();
+                v.close();
             }
             unlinkLobMap = null;
         }

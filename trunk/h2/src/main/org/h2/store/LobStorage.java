@@ -140,7 +140,7 @@ public class LobStorage {
                 prep.setInt(1, tableId);
                 ResultSet rs = prep.executeQuery();
                 while (rs.next()) {
-                    deleteLob(rs.getLong(1));
+                    removeLob(rs.getLong(1));
                 }
                 reuse(sql, prep);
             } catch (SQLException e) {
@@ -298,42 +298,54 @@ public class LobStorage {
         prepared.put(sql, prep);
     }
 
-    private void deleteLob(long lob) throws SQLException {
-        synchronized (handler) {
-            String sql = "SELECT BLOCK, HASH FROM " + LOB_MAP + " D WHERE D.LOB = ? " +
-                    "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " O " +
-                    "WHERE O.BLOCK = D.BLOCK AND O.LOB <> ?)";
-            PreparedStatement prep = prepare(sql);
-            prep.setLong(1, lob);
-            prep.setLong(2, lob);
-            ResultSet rs = prep.executeQuery();
-            ArrayList<Long> blocks = New.arrayList();
-            while (rs.next()) {
-                blocks.add(rs.getLong(1));
-                int hash = rs.getInt(2);
-                setHashCacheBlock(hash, -1);
-            }
-            reuse(sql, prep);
+    /**
+     * Delete a LOB from the database.
+     *
+     * @param lob the lob id
+     */
+    public void removeLob(long lob) {
+        try {
+            synchronized (handler) {
+                if (conn == null) {
+                    return;
+                }
+                String sql = "SELECT BLOCK, HASH FROM " + LOB_MAP + " D WHERE D.LOB = ? " +
+                        "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " O " +
+                        "WHERE O.BLOCK = D.BLOCK AND O.LOB <> ?)";
+                PreparedStatement prep = prepare(sql);
+                prep.setLong(1, lob);
+                prep.setLong(2, lob);
+                ResultSet rs = prep.executeQuery();
+                ArrayList<Long> blocks = New.arrayList();
+                while (rs.next()) {
+                    blocks.add(rs.getLong(1));
+                    int hash = rs.getInt(2);
+                    setHashCacheBlock(hash, -1);
+                }
+                reuse(sql, prep);
 
-            sql = "DELETE FROM " + LOB_MAP + " WHERE LOB = ?";
-            prep = prepare(sql);
-            prep.setLong(1, lob);
-            prep.execute();
-            reuse(sql, prep);
-
-            sql = "DELETE FROM " + LOB_DATA + " WHERE BLOCK = ?";
-            prep = prepare(sql);
-            for (long block : blocks) {
-                prep.setLong(1, block);
+                sql = "DELETE FROM " + LOB_MAP + " WHERE LOB = ?";
+                prep = prepare(sql);
+                prep.setLong(1, lob);
                 prep.execute();
-            }
-            reuse(sql, prep);
+                reuse(sql, prep);
 
-            sql = "DELETE FROM " + LOBS + " WHERE ID = ?";
-            prep = prepare(sql);
-            prep.setLong(1, lob);
-            prep.execute();
-            reuse(sql, prep);
+                sql = "DELETE FROM " + LOB_DATA + " WHERE BLOCK = ?";
+                prep = prepare(sql);
+                for (long block : blocks) {
+                    prep.setLong(1, block);
+                    prep.execute();
+                }
+                reuse(sql, prep);
+
+                sql = "DELETE FROM " + LOBS + " WHERE ID = ?";
+                prep = prepare(sql);
+                prep.setLong(1, lob);
+                prep.execute();
+                reuse(sql, prep);
+            }
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
     }
 
@@ -416,7 +428,7 @@ public class LobStorage {
                 return registerLob(type, lobId, TABLE_TEMP, length);
             } catch (IOException e) {
                 if (lobId != -1) {
-                    deleteLob(lobId);
+                    removeLob(lobId);
                 }
                 throw DbException.convertIOException(e, "adding blob");
             }

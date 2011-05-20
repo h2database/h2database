@@ -1935,9 +1935,15 @@ public class Database implements DataHandler {
     }
 
     public void setMultiThreaded(boolean multiThreaded) {
-        if (multiThreaded && multiVersion && this.multiThreaded != multiThreaded) {
-            // currently the combination of MVCC and MULTI_THREADED is not supported
-            throw DbException.get(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC & MULTI_THREADED");
+        if (multiThreaded && this.multiThreaded != multiThreaded) {
+            if (multiVersion) {
+                // currently the combination of MVCC and MULTI_THREADED is not supported
+                throw DbException.get(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC & MULTI_THREADED");
+            }
+            if (lockMode == 0) {
+                // currently the combination of LOCK_MODE=0 and MULTI_THREADED is not supported
+                throw DbException.get(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "LOCK_MODE=0 & MULTI_THREADED");
+            }
         }
         this.multiThreaded = multiThreaded;
     }

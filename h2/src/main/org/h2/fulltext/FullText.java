@@ -116,6 +116,7 @@ public class FullText {
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
                         + ".MAP(ROWID INT, WORDID INT, PRIMARY KEY(WORDID, ROWID))");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".IGNORELIST(LIST VARCHAR)");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".SETTINGS(KEY VARCHAR PRIMARY KEY, VALUE VARCHAR)");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" + FullText.class.getName() + ".createIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" + FullText.class.getName() + ".dropIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR \"" + FullText.class.getName() + ".search\"");
@@ -127,6 +128,14 @@ public class FullText {
         while (rs.next()) {
             String commaSeparatedList = rs.getString(1);
             setIgnoreList(setting, commaSeparatedList);
+        }
+        rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".SETTINGS");
+        while (rs.next()) {
+            String key = rs.getString(1);
+            if ("whitespaceChars".equals(key)) {
+                String value = rs.getString(2);
+                setting.setWhitespaceChars(value);
+            }
         }
         rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".WORDS");
         HashMap<String, Integer> map = setting.getWordList();
@@ -317,6 +326,28 @@ public class FullText {
             stat.execute("TRUNCATE TABLE " + SCHEMA + ".IGNORELIST");
             PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA + ".IGNORELIST VALUES(?)");
             prep.setString(1, commaSeparatedList);
+            prep.execute();
+        } catch (DbException e) {
+            throw DbException.toSQLException(e);
+        }
+    }
+
+    /**
+     * Change the whitespace characters. The whitespace characters are used to
+     * separate words. If indexes already exist at the time this list is
+     * changed, reindex must be called.
+     *
+     * @param conn the connection
+     * @param whitespaceChars the list of characters
+     */
+    public static void setWhitespaceChars(Connection conn, String whitespaceChars) throws SQLException {
+        try {
+            init(conn);
+            FullTextSettings setting = FullTextSettings.getInstance(conn);
+            setting.setWhitespaceChars(whitespaceChars);
+            PreparedStatement prep = conn.prepareStatement("MERGE INTO " + SCHEMA + ".SETTINGS VALUES(?, ?)");
+            prep.setString(1, "whitespaceChars");
+            prep.setString(2, whitespaceChars);
             prep.execute();
         } catch (DbException e) {
             throw DbException.toSQLException(e);
@@ -639,7 +670,8 @@ public class FullText {
         StreamTokenizer tokenizer = new StreamTokenizer(reader);
         tokenizer.resetSyntax();
         tokenizer.wordChars(' ' + 1, 255);
-        for (char ch : " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]".toCharArray()) {
+        char[] whitespaceChars = setting.getWhitespaceChars().toCharArray();
+        for (char ch : whitespaceChars) {
             tokenizer.whitespaceChars(ch, ch);
         }
         try {
@@ -668,7 +700,8 @@ public class FullText {
      * @param text the text
      */
     protected static void addWords(FullTextSettings setting, HashSet<String> set, String text) {
-        StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
+        String whitespaceChars = setting.getWhitespaceChars();
+        StringTokenizer tokenizer = new StringTokenizer(text, whitespaceChars);
         while (tokenizer.hasMoreTokens()) {
             String word = tokenizer.nextToken();
             word = setting.convertWord(word);

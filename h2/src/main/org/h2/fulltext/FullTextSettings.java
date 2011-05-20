@@ -52,6 +52,11 @@ public class FullTextSettings {
     protected SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache = new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
 
     /**
+     * The whitespace characters.
+     */
+    protected String whitespaceChars = " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]<>\\";
+
+    /**
      * Create a new instance.
      */
     protected FullTextSettings() {
@@ -208,6 +213,14 @@ public class FullTextSettings {
      */
     protected static void closeAll() {
         SETTINGS.clear();
+    }
+
+    protected void setWhitespaceChars(String whitespaceChars) {
+        this.whitespaceChars = whitespaceChars;
+    }
+
+    protected String getWhitespaceChars() {
+        return whitespaceChars;
     }
 
 }

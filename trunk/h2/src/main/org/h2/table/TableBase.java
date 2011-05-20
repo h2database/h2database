@@ -36,7 +36,7 @@ public abstract class TableBase extends Table {
     }
 
     public String getDropSQL() {
-        return "DROP TABLE IF EXISTS " + getSQL();
+        return "DROP TABLE IF EXISTS " + getSQL() + " CASCADE";
     }
 
     public String getCreateSQL() {

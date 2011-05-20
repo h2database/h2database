@@ -30,6 +30,7 @@ public class TestView extends TestBase {
     }
 
     public void test() throws SQLException {
+        testEmptyColumn();
         testChangeSchemaSearchPath();
         testParameterizedView();
         testCache();
@@ -39,6 +40,16 @@ public class TestView extends TestBase {
         testUnionReconnect();
         testManyViews();
         deleteDb("view");
+    }
+
+    private void testEmptyColumn() throws SQLException {
+        deleteDb("view");
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(a int, b int)");
+        stat.execute("create view test_view as select a, b from test");
+        stat.execute("select * from test_view where a between 1 and 2 and b = 2");
+        conn.close();
     }
 
     private void testChangeSchemaSearchPath() throws SQLException {

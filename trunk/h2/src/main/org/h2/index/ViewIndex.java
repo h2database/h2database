@@ -22,6 +22,7 @@ import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
+import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -264,11 +265,10 @@ public class ViewIndex extends BaseIndex {
             }
         }
         int len = paramIndex.size();
-        columns = new Column[len];
+        ArrayList<Column> columnList = New.arrayList();
         for (int i = 0; i < len;) {
             int idx = paramIndex.get(i);
-            Column col = table.getColumn(idx);
-            columns[i] = col;
+            columnList.add(table.getColumn(idx));
             int mask = masks[idx];
             if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
                 Parameter param = new Parameter(firstIndexParam + i);
@@ -287,6 +287,8 @@ public class ViewIndex extends BaseIndex {
                 }
             }
         }
+        columns = new Column[columnList.size()];
+        columnList.toArray(columns);
         String sql = q.getPlanSQL();
         q = (Query) session.prepare(sql, true);
         return q;

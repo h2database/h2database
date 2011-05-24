@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -596,10 +597,20 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         stat.execute("CREATE ALIAS ARRAY FOR \"" + getClass().getName() + ".getArray\"");
         rs = stat.executeQuery("CALL ARRAY()");
-        assertEquals(2, rs.getMetaData().getColumnCount());
+        assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
-        assertEquals(0, rs.getInt(1));
-        assertEquals("Hello", rs.getString(2));
+        Array a = rs.getArray(1);
+        Object[] array = (Object[]) a.getArray();
+        assertEquals(2, array.length);
+        assertEquals(0, ((Integer) array[0]).intValue());
+        assertEquals("Hello", (String) array[1]);
+        ResultSet rs2 = a.getResultSet();
+        rs2.next();
+        assertEquals(1, rs2.getInt(1));
+        assertEquals(0, rs2.getInt(2));
+        rs2.next();
+        assertEquals(2, rs2.getInt(1));
+        assertEquals("Hello", rs2.getString(2));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS ROOT FOR \"" + getClass().getName() + ".root\"");

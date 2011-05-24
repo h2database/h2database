@@ -12,11 +12,9 @@ import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueResultSet;
 
 /**
@@ -35,7 +33,7 @@ public class Call extends Prepared {
     public ResultInterface queryMeta() {
         int expressionType = expression.getType();
         LocalResult result;
-        if (expressionType == Value.RESULT_SET || expressionType == Value.ARRAY) {
+        if (expressionType == Value.RESULT_SET) {
             Expression[] expr = expression.getExpressionColumns(session);
             result = new LocalResult(session, expr, expr.length);
         } else {
@@ -50,7 +48,6 @@ public class Call extends Prepared {
         int type = v.getType();
         switch(type) {
         case Value.RESULT_SET:
-        case Value.ARRAY:
             // this will throw an exception
             // methods returning a result set may not be called like this.
             return super.update();
@@ -65,20 +62,9 @@ public class Call extends Prepared {
     public ResultInterface query(int maxrows) {
         setCurrentRowNumber(1);
         Value v = expression.getValue(session);
-        switch (v.getType()) {
-        case Value.RESULT_SET:
+        if (v.getType() == Value.RESULT_SET) {
             ResultSet rs = ((ValueResultSet) v).getResultSet();
             return LocalResult.read(session, rs, maxrows);
-        case Value.ARRAY:
-            Value[] list = ((ValueArray) v).getList();
-            Expression[] expr = expression.getExpressionColumns(session);
-            if (expr.length != list.length) {
-                throw DbException.throwInternalError();
-            }
-            LocalResult result = new LocalResult(session, expr, expr.length);
-            result.addRow(list);
-            result.done();
-            return result;
         }
         LocalResult result = new LocalResult(session, expressions, 1);
         Value[] row = { v };

@@ -92,6 +92,7 @@ public class Session extends SessionWithState {
     private volatile long cancelAt;
     private boolean closed;
     private long sessionStart = System.currentTimeMillis();
+    private long transactionStart;
     private long currentCommandStart;
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
@@ -454,6 +455,7 @@ public class Session extends SessionWithState {
     public void commit(boolean ddl) {
         checkCommitRollback();
         currentTransactionName = null;
+        transactionStart = 0;
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible
             // (create/drop table and so on)
@@ -1068,6 +1070,13 @@ public class Session extends SessionWithState {
 
     public long getSessionStart() {
         return sessionStart;
+    }
+
+    public long getTransactionStart() {
+        if (transactionStart == 0) {
+            transactionStart = System.currentTimeMillis();
+        }
+        return transactionStart;
     }
 
     public Table[] getLocks() {

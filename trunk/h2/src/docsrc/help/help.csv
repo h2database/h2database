@@ -3109,6 +3109,7 @@ CALL XMLTEXT('test')
 { CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }
 ","
 Returns the current date.
+This method always returns the same value within a transaction.
 ","
 CURRENT_DATE()
 "
@@ -3117,6 +3118,7 @@ CURRENT_DATE()
 { CURRENT_TIME [ () ] | CURTIME() }
 ","
 Returns the current time.
+This method always returns the same value within a transaction.
 ","
 CURRENT_TIME()
 "
@@ -3126,6 +3128,7 @@ CURRENT_TIME()
 ","
 Returns the current timestamp.
 The precision parameter for nanoseconds precision is optional.
+This method always returns the same value within a transaction.
 ","
 CURRENT_TIMESTAMP()
 "

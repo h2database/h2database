@@ -1,3 +1,5 @@
+select count(distinct now()) c from system_range(1, 100), system_range(1, 1000);
+> 1;
 select {fn TIMESTAMPADD(SQL_TSI_DAY, 1, {ts '2011-10-20 20:30:40.001'})};
 > 2011-10-21 20:30:40.001;
 select {fn TIMESTAMPADD(SQL_TSI_SECOND, 1, cast('2011-10-20 20:30:40.001' as timestamp))};

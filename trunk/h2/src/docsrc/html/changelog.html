@@ -17,15 +17,16 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>The statement CALL no longer converts an ARRAY return value to a list of values.
-	Now an ARRAY is returned.
+<ul><li>CURRENT_TIMESTAMP() and so on now return the same value within a transaction.
+</li><li>The statement CALL no longer converts an ARRAY return value to a list of values.
+    Now an ARRAY is returned.
 </li><li>VALUES is now supported as a standalone command and as a table source:
     SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
 </li><li>TIMESTAMPADD is now an alias for DATEADD.
     Most SQL_TSI_ constants are now supported for for TIMESTAMPADD and TIMESTAMPDIFF
-    (all except SQL_TSI_QUARTER and SQL_TSI_FRAC_SECOND). 
+    (all except SQL_TSI_QUARTER and SQL_TSI_FRAC_SECOND).
 </li><li>Issue 313: NullPointerException in select query with a subquery or view.
-</li><li>Native fulltext search: the characters '<', '>', and '\' are now also whitespace
+</li><li>Native fulltext search: the characters '&lt;', '&gt;', and '\' are now also whitespace
     characters. Also, the list of whitespace characters can be changed using
     FullText.setWhitespaceChars(conn, ...)
 </li><li>When reading from the classpath (for example read_file('classpath:logo.png')),
@@ -79,7 +80,7 @@ Change Log
 </li><li>Improved error message for syntax error: the list of expected tokens was sometimes not set correctly.
 </li><li>Database file growth can now be limited using the database setting PAGE_STORE_MAX_GROWTH.
     Slower growth may slow down operation, but speed up closing database.
-</li><li>A read only database with writeable linked tables could lead to a DATABASE_IS_READ_ONLY (90097) error.
+</li><li>A read only database with writable linked tables could lead to a DATABASE_IS_READ_ONLY (90097) error.
     This is fixed now.
 </li></ul>
 

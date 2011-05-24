@@ -677,18 +677,23 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0.getDateNoCopy()));
             break;
         case CURDATE:
-        case CURRENT_DATE:
+        case CURRENT_DATE: {
+            long now = session.getTransactionStart();
             // need to normalize
-            result = ValueDate.get(new Date(System.currentTimeMillis()));
+            result = ValueDate.get(new Date(now));
             break;
+        }
         case CURTIME:
-        case CURRENT_TIME:
+        case CURRENT_TIME: {
+            long now = session.getTransactionStart();
             // need to normalize
-            result = ValueTime.get(new Time(System.currentTimeMillis()));
+            result = ValueTime.get(new Time(now));
             break;
+        }
         case NOW:
         case CURRENT_TIMESTAMP: {
-            ValueTimestamp vt = ValueTimestamp.getNoCopy(new Timestamp(System.currentTimeMillis()));
+            long now = session.getTransactionStart();
+            ValueTimestamp vt = ValueTimestamp.getNoCopy(new Timestamp(now));
             if (v0 != null) {
                 Mode mode = database.getMode();
                 vt = (ValueTimestamp) vt.convertScale(mode.convertOnlyToSmallerScale, v0.getInt());

@@ -655,11 +655,15 @@ factor [ { { + | - } factor } [...] ]
 ","
 A value or a numeric sum."
 "Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) } [ [ AS ] newTableAlias ]
+{ [ schemaName. ] tableName | ( select ) | valuesExpression } [ [ AS ] newTableAlias ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
     JOIN tableExpression [ ON expression ] ]
 ","
 Joins a table."
+"Other Grammar","Values Expression","
+VALUES { ( expression [,...] ) } [,...]
+","
+A list of rows that can be used like a table."
 "Other Grammar","Term","
 value
     | columnName
@@ -1148,7 +1152,7 @@ Returns the current time."
 ","
 Returns the current timestamp."
 "Functions (Time and Date)","DATEADD","
-DATEADD(unitString, addInt, timestamp)
+{ DATEADD| TIMESTAMPADD } (unitString, addInt, timestamp)
 ","
 Adds units to a timestamp."
 "Functions (Time and Date)","DATEDIFF","

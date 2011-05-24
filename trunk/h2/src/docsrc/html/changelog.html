@@ -17,7 +17,14 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 313: NullPointerException in select query with a subquery or view.
+<ul><li>The statement CALL no longer converts an ARRAY return value to a list of values.
+	Now an ARRAY is returned.
+</li><li>VALUES is now supported as a standalone command and as a table source:
+    SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
+</li><li>TIMESTAMPADD is now an alias for DATEADD.
+    Most SQL_TSI_ constants are now supported for for TIMESTAMPADD and TIMESTAMPDIFF
+    (all except SQL_TSI_QUARTER and SQL_TSI_FRAC_SECOND). 
+</li><li>Issue 313: NullPointerException in select query with a subquery or view.
 </li><li>Native fulltext search: the characters '<', '>', and '\' are now also whitespace
     characters. Also, the list of whitespace characters can be changed using
     FullText.setWhitespaceChars(conn, ...)

@@ -3884,7 +3884,7 @@ public class Parser {
         ArrayList<Expression> list = New.arrayList();
         list.add(new Wildcard(null, null));
         command.setExpressions(list);
-       command.addTableFilter(filter, true);
+        command.addTableFilter(filter, true);
         command.init();
         return command;
     }

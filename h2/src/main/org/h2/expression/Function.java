@@ -115,26 +115,33 @@ public class Function extends Expression implements FunctionCall {
 
     static {
         // DATE_PART
+        DATE_PART.put("SQL_TSI_YEAR", Calendar.YEAR);
         DATE_PART.put("YEAR", Calendar.YEAR);
         DATE_PART.put("YYYY", Calendar.YEAR);
         DATE_PART.put("YY", Calendar.YEAR);
+        DATE_PART.put("SQL_TSI_MONTH", Calendar.MONTH);
         DATE_PART.put("MONTH", Calendar.MONTH);
         DATE_PART.put("MM", Calendar.MONTH);
         DATE_PART.put("M", Calendar.MONTH);
+        DATE_PART.put("SQL_TSI_WEEK", Calendar.WEEK_OF_YEAR);
         DATE_PART.put("WW", Calendar.WEEK_OF_YEAR);
         DATE_PART.put("WK", Calendar.WEEK_OF_YEAR);
         DATE_PART.put("DAY", Calendar.DAY_OF_MONTH);
         DATE_PART.put("DD", Calendar.DAY_OF_MONTH);
         DATE_PART.put("D", Calendar.DAY_OF_MONTH);
+        DATE_PART.put("SQL_TSI_DAY", Calendar.DAY_OF_MONTH);
         DATE_PART.put("DAYOFYEAR", Calendar.DAY_OF_YEAR);
         DATE_PART.put("DAY_OF_YEAR", Calendar.DAY_OF_YEAR);
         DATE_PART.put("DY", Calendar.DAY_OF_YEAR);
         DATE_PART.put("DOY", Calendar.DAY_OF_YEAR);
+        DATE_PART.put("SQL_TSI_HOUR", Calendar.HOUR_OF_DAY);
         DATE_PART.put("HOUR", Calendar.HOUR_OF_DAY);
         DATE_PART.put("HH", Calendar.HOUR_OF_DAY);
+        DATE_PART.put("SQL_TSI_MINUTE", Calendar.MINUTE);
         DATE_PART.put("MINUTE", Calendar.MINUTE);
         DATE_PART.put("MI", Calendar.MINUTE);
         DATE_PART.put("N", Calendar.MINUTE);
+        DATE_PART.put("SQL_TSI_SECOND", Calendar.SECOND);
         DATE_PART.put("SECOND", Calendar.SECOND);
         DATE_PART.put("SS", Calendar.SECOND);
         DATE_PART.put("S", Calendar.SECOND);
@@ -258,6 +265,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunctionNotDeterministic("NOW", NOW, VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATEADD", DATE_ADD, 3, Value.TIMESTAMP);
+        addFunction("TIMESTAMPADD", DATE_ADD, 3, Value.LONG);
         addFunction("DATEDIFF", DATE_DIFF, 3, Value.LONG);
         addFunction("TIMESTAMPDIFF", DATE_DIFF, 3, Value.LONG);
         addFunction("DAYNAME", DAY_NAME, 1, Value.STRING);

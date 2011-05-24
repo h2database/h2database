@@ -1,3 +1,7 @@
+select {fn TIMESTAMPADD(SQL_TSI_DAY, 1, {ts '2011-10-20 20:30:40.001'})};
+> 2011-10-21 20:30:40.001;
+select {fn TIMESTAMPADD(SQL_TSI_SECOND, 1, cast('2011-10-20 20:30:40.001' as timestamp))};
+> 2011-10-20 20:30:41.001;
 select cast(128 as binary);
 > 00000080;
 select cast(65535 as binary);

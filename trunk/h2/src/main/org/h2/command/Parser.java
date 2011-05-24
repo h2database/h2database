@@ -426,7 +426,7 @@ public class Parser {
             case 'v':
             case 'V':
                 if (readIf("VALUES")) {
-                    c = parseCall();
+                    c = parseValues();
                 }
                 break;
             case 'w':
@@ -1037,6 +1037,8 @@ public class Parser {
                 }
                 return top;
             }
+        } else if (readIf("VALUES")) {
+            table = parseValuesTable().getTable();
         } else {
             String tableName = readIdentifierWithSchema(null);
             Schema schema = getSchema();
@@ -2169,6 +2171,7 @@ public class Parser {
             read(")");
             break;
         }
+        case Function.DATE_ADD:
         case Function.DATE_DIFF: {
             if (Function.isDatePart(currentToken)) {
                 function.setParameter(0, ValueExpression.get(ValueString.get(currentToken)));
@@ -3872,6 +3875,91 @@ public class Parser {
         }
         command.setGranteeName(readUniqueIdentifier());
         return command;
+    }
+
+    private Select parseValues() {
+        Select command = new Select(session);
+        currentSelect = command;
+        TableFilter filter = parseValuesTable();
+        ArrayList<Expression> list = New.arrayList();
+        list.add(new Wildcard(null, null));
+        command.setExpressions(list);
+       command.addTableFilter(filter, true);
+        command.init();
+        return command;
+    }
+
+    private TableFilter parseValuesTable() {
+        Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
+        TableFunction tf = (TableFunction) Function.getFunction(database, "TABLE");
+        ArrayList<Column> columns = New.arrayList();
+        ArrayList<ArrayList<Expression>> rows = New.arrayList();
+        do {
+            int i = 0;
+            ArrayList<Expression> row = New.arrayList();
+            boolean multiColumn = readIf("(");
+            do {
+                Expression expr = readExpression();
+                expr = expr.optimize(session);
+                int type = expr.getType();
+                long prec;
+                int scale, displaySize;
+                Column column;
+                String columnName = "C" + (i + 1);
+                if (rows.size() == 0) {
+                    if (type == Value.UNKNOWN) {
+                        type = Value.STRING;
+                    }
+                    DataType dt = DataType.getDataType(type);
+                    prec = dt.defaultPrecision;
+                    scale = dt.defaultScale;
+                    displaySize = dt.defaultDisplaySize;
+                    column = new Column(columnName, type, prec, scale, displaySize);
+                    columns.add(column);
+                }
+                prec = expr.getPrecision();
+                scale = expr.getScale();
+                displaySize = expr.getDisplaySize();
+                Column c = columns.get(i);
+                type = Value.getHigherOrder(c.getType(), type);
+                prec = Math.max(c.getPrecision(), prec);
+                scale = Math.max(c.getScale(), scale);
+                displaySize = Math.max(c.getDisplaySize(), displaySize);
+                column = new Column(columnName, type, prec, scale, displaySize);
+                columns.set(i, column);
+                row.add(expr);
+                i++;
+            } while (multiColumn && readIf(","));
+            if (multiColumn) {
+                read(")");
+            }
+            rows.add(row);
+        } while (readIf(","));
+        int columnCount = columns.size();
+        int rowCount = rows.size();
+        for (int i = 0; i < rowCount; i++) {
+            if (rows.get(i).size() != columnCount) {
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH, "row " + (i + 1));
+            }
+        }
+        for (int i = 0; i < columnCount; i++) {
+            Column c = columns.get(i);
+            if (c.getType() == Value.UNKNOWN) {
+                c = new Column(c.getName(), Value.STRING, 0, 0, 0);
+                columns.set(i, c);
+            }
+            Expression[] array = new Expression[rowCount];
+            for (int j = 0; j < rowCount; j++) {
+                array[j] = rows.get(j).get(i);
+            }
+            ExpressionList list = new ExpressionList(array);
+            tf.setParameter(i, list);
+        }
+        tf.setColumns(columns);
+        tf.doneWithParameters();
+        Table table = new FunctionTable(mainSchema, session, tf, tf);
+        TableFilter filter = new TableFilter(session, table, null, rightsChecked, currentSelect);
+        return filter;
     }
 
     private Call parseCall() {

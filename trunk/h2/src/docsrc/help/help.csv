@@ -1916,7 +1916,7 @@ ID + 20
 "
 
 "Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) } [ [ AS ] newTableAlias ]
+{ [ schemaName. ] tableName | ( select ) | valuesExpression } [ [ AS ] newTableAlias ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
     JOIN tableExpression [ ON expression ] ]
 ","
@@ -1925,6 +1925,15 @@ A natural join is an inner join, where the condition is automatically on the
 columns with the same name.
 ","
 TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
+"
+
+"Other Grammar","Values Expression","
+VALUES { ( expression [,...] ) } [,...]
+","
+A list of rows that can be used like a table.
+The column list of the resulting table is C1, C2, and so on.
+","
+SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
 "
 
 "Other Grammar","Term","
@@ -3122,7 +3131,7 @@ CURRENT_TIMESTAMP()
 "
 
 "Functions (Time and Date)","DATEADD","
-DATEADD(unitString, addInt, timestamp)
+{ DATEADD| TIMESTAMPADD } (unitString, addInt, timestamp)
 ","
 Adds units to a timestamp. The string indicates the unit.
 Use negative values to subtract units.
@@ -3139,7 +3148,6 @@ Returns the the number of crossed unit boundaries between two timestamps.
 This method returns a long.
 The string indicates the unit.
 The same units as in the EXTRACT function are supported.
-TIMESTAMPDIFF is supported for MySQL compatibility.
 ","
 DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
 "

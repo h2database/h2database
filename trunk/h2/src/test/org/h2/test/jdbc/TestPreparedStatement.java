@@ -44,6 +44,7 @@ public class TestPreparedStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testValues(conn);
         testToString(conn);
         testExecuteUpdateCall(conn);
         testPrepareExecute(conn);
@@ -77,6 +78,34 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
         deleteDb("preparedStatement");
+    }
+
+    private void testValues(Connection conn) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement("values(?, ?)");
+        prep.setInt(1, 1);
+        prep.setString(2, "Hello");
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+
+        prep = conn.prepareStatement("select * from values(?, ?), (2, 'World!')");
+        prep.setInt(1, 1);
+        prep.setString(2, "Hello");
+        rs = prep.executeQuery();
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        assertEquals("World!", rs.getString(2));
+
+        prep = conn.prepareStatement("values 1, 2");
+        rs = prep.executeQuery();
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
     }
 
     private void testToString(Connection conn) throws SQLException {

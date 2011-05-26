@@ -143,7 +143,7 @@ encrypted using AES-128 and XTEA encryption algorithms
 </li><li>Support for multi-dimensional indexes
 </li><li>CSV (comma separated values) file support
 </li><li>Support for linked tables, and a built-in virtual 'range' table
-</li><li><code>EXPLAIN PLAN</code> support, sophisticated trace options
+</li><li>Supports the <code>EXPLAIN PLAN</code> statement; sophisticated trace options
 </li><li>Database closing can be delayed or disabled to improve the performance
 </li><li>Web-based Console application (translated to many languages) with autocomplete
 </li><li>The database can generate SQL script files
@@ -156,15 +156,22 @@ encrypted using AES-128 and XTEA encryption algorithms
 </li></ul>
 
 <h2 id="comparison">Comparison to Other Database Engines</h2>
-
+<p>
+This comparison is based on
+H2 1.3,
+<a href="http://db.apache.org/derby">Apache Derby version 10.8</a>,
+<a href="http://hsqldb.org">HSQLDB 2.2</a>,
+<a href="http://mysql.com">MySQL 5.5</a>,
+<a href="http://www.postgresql.org">PostgreSQL 9.0</a>.
+</p>
 <table class="main">
 <tr>
 <th>Feature</th>
 <th>H2</th>
-<th><a href="http://db.apache.org/derby">Derby</a></th>
-<th><a href="http://hsqldb.org">HSQLDB</a></th>
-<th><a href="http://mysql.com">MySQL</a></th>
-<th><a href="http://www.postgresql.org">PostgreSQL</a></th>
+<th>Derby</th>
+<th>HSQLDB</th>
+<th>MySQL</th>
+<th>PostgreSQL</th>
 </tr><tr>
 <td>Pure Java</td>
 <td class="compareY">Yes</td>
@@ -197,7 +204,7 @@ encrypted using AES-128 and XTEA encryption algorithms
 </tr><tr>
 <td>Explain Plan</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes *12</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
@@ -237,7 +244,7 @@ encrypted using AES-128 and XTEA encryption algorithms
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
-<td>User-Defined Datatypes</td>
+<td>Domains (User-Defined Types)</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareY">Yes</td>
@@ -288,14 +295,14 @@ encrypted using AES-128 and XTEA encryption algorithms
 </tr><tr>
 <td>Sequences</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareY">Yes</td>
 </tr><tr>
 <td>Limit and Offset</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes *13</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
@@ -323,7 +330,7 @@ encrypted using AES-128 and XTEA encryption algorithms
 </tr><tr>
 <td>Case Insensitive Columns</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes *14</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes *6</td>
@@ -361,8 +368,11 @@ encrypted using AES-128 and XTEA encryption algorithms
 *8 Derby doesn't support standard compliant information schema tables.<br />
 *9 When using MVCC (multi version concurrency).<br />
 *10 Derby and HSQLDB
-    <a href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation#Electronic_codebook_.28ECB.29">don't hide hide data patterns well</a>.<br />
-*11 The MULTI_THREADED option is not enabled by default, and not yet supported when using MVCC.
+    <a href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation#Electronic_codebook_.28ECB.29">don't hide data patterns well</a>.<br />
+*11 The MULTI_THREADED option is not enabled by default, and not yet supported when using MVCC.<br />
+*12 Derby doesn't support the <code>EXPLAIN</code> statement, but it supports runtime statistics and retrieving statement execution plans.<br />
+*13 Derby doesn't support the syntax <code>LIMIT .. [OFFSET ..]</code>, however it supports <code>FETCH FIRST .. ROW[S] ONLY</code>.<br />
+*14 Using collations.
 </p>
 
 <h3>DaffodilDb and One$Db</h3>

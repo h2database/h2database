@@ -40,6 +40,7 @@ public class TestFullText extends TestBase {
     }
 
     public void test() throws Exception {
+        testAutoAnalyze();
         testNativeFeatures();
         testTransaction(false);
         testCreateDrop();
@@ -71,6 +72,28 @@ public class TestFullText extends TestBase {
         FullText.closeAll();
         deleteDb("fullText");
         deleteDb("fullTextReopen");
+    }
+
+    private void testAutoAnalyze() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("fullTextNative");
+        Connection conn;
+        Statement stat;
+
+        conn = getConnection("fullTextNative");
+        stat = conn.createStatement();
+        stat.execute("create alias if not exists ft_init for \"org.h2.fulltext.FullText.init\"");
+        stat.execute("call ft_init()");
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("call ft_create_index('PUBLIC', 'TEST', 'NAME')");
+        conn.close();
+
+        conn = getConnection("fullTextNative");
+        stat = conn.createStatement();
+        stat.execute("insert into test select x, 'x' from system_range(1, 3000)");
+        conn.close();
     }
 
     private void testNativeFeatures() throws SQLException {

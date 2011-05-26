@@ -101,8 +101,14 @@ public class Analyze extends DefineCommand {
             db.update(session, table);
         } else {
             Session s = db.getSystemSession();
-            db.update(s, table);
-            s.commit(true);
+            if (s != session) {
+                // if the current session is the system session
+                // (which is the case if we are within a trigger)
+                // then we can't update the statistics because
+                // that would unlock all locked objects
+                db.update(s, table);
+                s.commit(true);
+            }
         }
     }
 

@@ -1595,10 +1595,10 @@ public class Database implements DataHandler {
      * @param session the session
      * @return a unique name
      */
-    public synchronized String getTempTableName(Session session) {
+    public synchronized String getTempTableName(String baseName, Session session) {
         String tempName;
         do {
-            tempName = "TEMP_TABLE_" + session.getId() + "_" + nextTempTableId++;
+            tempName = baseName + "_COPY_" + session.getId() + "_" + nextTempTableId++;
         } while (mainSchema.findTableOrView(session, tempName) != null);
         return tempName;
     }

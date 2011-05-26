@@ -17,7 +17,14 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>CURRENT_TIMESTAMP() and so on now return the same value within a transaction.
+<ul><li>When altering a table with triggers, new triggers are created 
+    and initialized with a table name that ends with tableName_COPY_x_y.
+    The plan is that this will not be required in future versions.
+</li><li>If some of the file system operations failed, System.gc() was called in a loop.
+    Now it is called once at most.
+</li><li>Triggers (including the fulltext search) could throw the exception
+    'Unexpected code path' in Session.log.
+</li><li>CURRENT_TIMESTAMP() and so on now return the same value within a transaction.
 </li><li>The statement CALL no longer converts an ARRAY return value to a list of values.
     Now an ARRAY is returned.
 </li><li>VALUES is now supported as a standalone command and as a table source:

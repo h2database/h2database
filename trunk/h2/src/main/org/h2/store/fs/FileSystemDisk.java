@@ -107,7 +107,7 @@ public class FileSystemDisk extends FileSystem {
     }
 
     private static void wait(int i) {
-        if (i > 8) {
+        if (i == 8) {
             System.gc();
         }
         try {

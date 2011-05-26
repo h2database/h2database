@@ -174,7 +174,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
             throw DbException.getUnsupportedException("TEMP TABLE");
         }
         Database db = session.getDatabase();
-        String tempName = db.getTempTableName(session);
+        String baseName = table.getName();
+        String tempName = db.getTempTableName(baseName, session);
         Column[] columns = table.getColumns();
         ArrayList<Column> newColumns = New.arrayList();
         Table newTable = cloneTableStructure(columns, db, tempName, newColumns);
@@ -358,7 +359,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String newTableName = newTable.getName();
         Database db = sourceTable.getDatabase();
         // save the real table under a temporary name
-        db.renameSchemaObject(session, sourceTable, db.getTempTableName(session));
+        db.renameSchemaObject(session, sourceTable, db.getTempTableName(sourceTableName, session));
         try {
             // have our new table impersonate the target table
             db.renameSchemaObject(session, newTable, sourceTableName);

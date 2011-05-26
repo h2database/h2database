@@ -3920,6 +3920,9 @@ public class Parser {
                 prec = expr.getPrecision();
                 scale = expr.getScale();
                 displaySize = expr.getDisplaySize();
+                if (i >= columns.size()) {
+                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                }
                 Column c = columns.get(i);
                 type = Value.getHigherOrder(c.getType(), type);
                 prec = Math.max(c.getPrecision(), prec);
@@ -3939,7 +3942,7 @@ public class Parser {
         int rowCount = rows.size();
         for (int i = 0; i < rowCount; i++) {
             if (rows.get(i).size() != columnCount) {
-                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH, "row " + (i + 1));
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
         for (int i = 0; i < columnCount; i++) {

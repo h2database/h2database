@@ -1,0 +1,370 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- 
+Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+Performance
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>Performance</h1>
+<a href="#performance_comparison">
+    Performance Comparison</a><br />
+<a href="#application_profiling">
+    Application Profiling</a><br />
+<a href="#database_performance_tuning">
+    Performance Tuning</a><br />
+
+<br /><a name="performance_comparison"></a>
+<h2>Performance Comparison</h2>
+<p>
+In most cases H2 is a lot faster than all other
+(open source and not open source) database engines. 
+Please note this is mostly a single connection benchmark run on one computer.
+</p>
+
+<h3>Embedded</h3>
+<table border="1" class="bar">
+<tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>Derby</th></tr>
+<tr><td>Simple: Init</td><td>ms</td><td>375</td><td>578</td><td>2797</td></tr>
+<tr><td>Simple: Query (random)</td><td>ms</td><td>250</td><td>344</td><td>1563</td></tr>
+<tr><td>Simple: Query (sequential)</td><td>ms</td><td>171</td><td>250</td><td>1469</td></tr>
+<tr><td>Simple: Update (random)</td><td>ms</td><td>641</td><td>1609</td><td>19265</td></tr>
+<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>172</td><td>516</td><td>6797</td></tr>
+<tr><td>Simple: Memory Usage</td><td>MB</td><td>14</td><td>12</td><td>12</td></tr>
+<tr><td>BenchA: Init</td><td>ms</td><td>391</td><td>500</td><td>3750</td></tr>
+<tr><td>BenchA: Transactions</td><td>ms</td><td>5468</td><td>2468</td><td>16250</td></tr>
+<tr><td>BenchA: Memory Usage</td><td>MB</td><td>14</td><td>15</td><td>9</td></tr>
+<tr><td>BenchB: Init</td><td>ms</td><td>1281</td><td>2391</td><td>14938</td></tr>
+<tr><td>BenchB: Transactions</td><td>ms</td><td>2094</td><td>1140</td><td>3828</td></tr>
+<tr><td>BenchB: Memory Usage</td><td>MB</td><td>16</td><td>11</td><td>9</td></tr>
+<tr><td>BenchC: Init</td><td>ms</td><td>984</td><td>547</td><td>5250</td></tr>
+<tr><td>BenchC: Transactions</td><td>ms</td><td>2860</td><td>58219</td><td>11204</td></tr>
+<tr><td>BenchC: Memory Usage</td><td>MB</td><td>19</td><td>19</td><td>9</td></tr>
+<tr><td>Executed Statements</td><td>#</td><td>594255</td><td>594255</td><td>594255</td></tr>
+<tr><td>Total Time</td><td>ms</td><td>14687</td><td>68562</td><td>87111</td></tr>
+<tr><td>Statement per Second</td><td>#</td><td>40461</td><td>8667</td><td>6821</td></tr>
+</table>
+
+<h3>Client-Server</h3>
+<table border="1" class="bar">
+<tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>Derby</th><th>PostgreSQL</th><th>MySQL</th></tr>
+<tr><td>Simple: Init</td><td>ms</td><td>3047</td><td>2547</td><td>6907</td><td>4234</td><td>3594</td></tr>
+<tr><td>Simple: Query (random)</td><td>ms</td><td>3547</td><td>2641</td><td>8781</td><td>5375</td><td>3140</td></tr>
+<tr><td>Simple: Query (sequential)</td><td>ms</td><td>3390</td><td>2531</td><td>8859</td><td>4906</td><td>3016</td></tr>
+<tr><td>Simple: Update (random)</td><td>ms</td><td>3235</td><td>3531</td><td>22344</td><td>5828</td><td>5187</td></tr>
+<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>1421</td><td>1235</td><td>8219</td><td>2484</td><td>1829</td></tr>
+<tr><td>Simple: Memory Usage</td><td>MB</td><td>15</td><td>10</td><td>15</td><td>0</td><td>0</td></tr>
+<tr><td>BenchA: Init</td><td>ms</td><td>2687</td><td>2343</td><td>6000</td><td>4000</td><td>4000</td></tr>
+<tr><td>BenchA: Transactions</td><td>ms</td><td>12938</td><td>9579</td><td>26610</td><td>16250</td><td>10782</td></tr>
+<tr><td>BenchA: Memory Usage</td><td>MB</td><td>15</td><td>16</td><td>10</td><td>0</td><td>0</td></tr>
+<tr><td>BenchB: Init</td><td>ms</td><td>9641</td><td>10094</td><td>28282</td><td>17468</td><td>11344</td></tr>
+<tr><td>BenchB: Transactions</td><td>ms</td><td>3984</td><td>3312</td><td>6671</td><td>7797</td><td>3375</td></tr>
+<tr><td>BenchB: Memory Usage</td><td>MB</td><td>16</td><td>13</td><td>8</td><td>0</td><td>0</td></tr>
+<tr><td>BenchC: Init</td><td>ms</td><td>2031</td><td>1516</td><td>7391</td><td>2297</td><td>3406</td></tr>
+<tr><td>BenchC: Transactions</td><td>ms</td><td>9750</td><td>58734</td><td>20937</td><td>11172</td><td>7469</td></tr>
+<tr><td>BenchC: Memory Usage</td><td>MB</td><td>20</td><td>15</td><td>14</td><td>0</td><td>0</td></tr>
+<tr><td>Executed Statements</td><td>#</td><td>594255</td><td>594255</td><td>594255</td><td>594255</td><td>594255</td></tr>
+<tr><td>Total Time</td><td>ms</td><td>55671</td><td>98063</td><td>151001</td><td>81811</td><td>57142</td></tr>
+<tr><td>Statement per Second</td><td>#</td><td>10674</td><td>6059</td><td>3935</td><td>7263</td><td>10399</td></tr>
+</table>
+
+<h3>Benchmark Results and Comments</h3>
+
+<h4>H2</h4>
+<p>
+Version 1.0 (2007-09-15) was used for the test.
+For simpler operations, the performance of H2 is about the same as for HSQLDB.
+For more complex queries, the query optimizer is very important.
+However H2 is not very fast in every case, certain kind of queries may still be slow.
+One situation where is H2 is slow is large result sets, because they are buffered to
+disk if more than a certain number of records are returned.
+The advantage of buffering is, there is no limit on the result set size.
+The open/close time is almost fixed, because of the file locking protocol: The engine waits
+20 ms after opening a database to ensure the database files are not opened by another process.
+</p>
+
+<h4>HSQLDB</h4>
+<p>
+Version 1.8.0.8 was used for the test.
+Cached tables are used in this test (hsqldb.default_table_type=cached),
+and the write delay is 1 second (SET WRITE_DELAY 1).
+HSQLDB is fast when using simple operations.
+HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer.
+One query where HSQLDB is slow is a two-table join:
+<pre>
+SELECT COUNT(DISTINCT S_I_ID) FROM ORDER_LINE, STOCK
+WHERE OL_W_ID=? AND OL_D_ID=? AND OL_O_ID&lt;? AND OL_O_ID>=?
+AND S_W_ID=? AND S_I_ID=OL_I_ID AND S_QUANTITY&lt;?
+</pre>
+The PolePosition benchmark also shows that the query optimizer does not do a very good job for some queries.
+A disadvantage in HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases.
+The reason is, a backup of the database is created whenever the database is opened or closed.
+</p>
+
+<h4>Derby</h4>
+<p>
+Version 10.3.1.4 was used for the test. Derby is clearly the slowest embedded database in this test.
+This seems to be a structural problem, because all operations are really slow. 
+It will not be easy for the developers of Derby to improve the performance to a reasonable level.
+A few problems have been identified: Leaving autocommit on is a problem for Derby. 
+If it is switched off during the whole test, the results are about 20% better for Derby.
+</p>
+
+<h4>PostgreSQL</h4>
+<p>
+Version 8.1.4 was used for the test.
+The following options where changed in postgresql.conf:
+fsync = off, commit_delay = 1000.
+PostgreSQL is run in server mode. It looks like the base performance is slower than
+MySQL, the reason could be the network layer.
+The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
+</p>
+
+<h4>MySQL</h4>
+<p>
+Version 5.0.22 was used for the test.
+MySQL was run with the InnoDB backend.
+The setting innodb_flush_log_at_trx_commit
+(found in the my.ini file) was set to 0. Otherwise (and by default), MySQL is really slow
+(around 140 statements per second in this test) because it tries to flush the data to disk for each commit.
+For small transactions (when autocommit is on) this is really slow.
+But many use cases use small or relatively small transactions.
+Too bad this setting is not listed in the configuration wizard,
+and it always overwritten when using the wizard.
+You need to change this setting manually in the file my.ini, and then restart the service.
+The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
+</p>
+
+<h4>Firebird</h4>
+<p>
+Firebird 1.5 (default installation) was tested, but the results are not published currently.
+It is possible to run the performance test with the Firebird database,
+and any information on how to configure Firebird for higher performance are welcome.
+</p>
+
+<h4>Why Oracle / MS SQL Server / DB2 are Not Listed</h4>
+<p>
+The license of these databases does not allow to publish benchmark results.
+This doesn't mean that they are fast. They are in fact quite slow,
+and need a lot of memory. But you will need to test this yourself.
+SQLite was not tested because the JDBC driver doesn't support transactions.
+</p>
+
+<h3>About this Benchmark</h3>
+
+<h4>Number of Connections</h4>
+<p>
+This is mostly a single-connection benchmark. 
+BenchB uses multiple connections, the other tests one connection.
+</p>
+
+<h4>Real-World Tests</h4>
+<p>
+Good benchmarks emulate real-world use cases. This benchmark includes 3 test cases:
+A simple test case with one table and many small updates / deletes.
+BenchA is similar to the TPC-A test, but single connection / single threaded (see also: www.tpc.org).
+BenchB is similar to the TPC-B test, using multiple connections (one thread per connection).
+BenchC is similar to the TPC-C test, but single connection / single threaded.
+</p>
+
+<h4>Comparing Embedded with Server Databases</h4>
+<p>
+This is mainly a benchmark for embedded databases (where the application runs in the same
+virtual machine than the database engine). However MySQL and PostgreSQL are not Java
+databases and cannot be embedded into a Java application.
+For the Java databases, both embedded and server modes are tested.
+</p>
+
+<h4>Test Platform</h4>
+<p>
+This test is run on Windows XP with the virus scanner switched off.
+The VM used is Sun JDK 1.5.
+</p>
+
+<h4>Multiple Runs</h4>
+<p>
+When a Java benchmark is run first, the code is not fully compiled and
+therefore runs slower than when running multiple times. A benchmark
+should always run the same test multiple times and ignore the first run(s).
+This benchmark runs three times, the last run counts.
+</p>
+
+<h4>Memory Usage</h4>
+<p>
+It is not enough to measure the time taken, the memory usage is important as well.
+Performance can be improved in databases by using a bigger in-memory cache,
+but there is only a limited amount of memory available on the system.
+HSQLDB tables are kept fully in memory by default, this benchmark
+uses 'disk based' tables for all databases.
+Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL
+and MySQL, because they run in a different process than the test. This benchmark currently
+does not print memory usage of those databases.
+</p>
+
+<h4>Delayed Operations</h4>
+<p>
+Some databases delay some operations (for example flushing the buffers)
+until after the benchmark is run. This benchmark waits between
+each database tested, and each database runs in a different process (sequentially).
+</p>
+
+<h4>Transaction Commit / Durability</h4>
+<p>
+Durability means transaction committed to the database will not be lost.
+Some databases (for example MySQL) try to enforce this by default by calling fsync() to flush the buffers, but
+most hard drives don't actually flush all data. Calling fsync() slows down transaction commit a lot,
+but doesn't always make data durable. When comparing the results, it is important to
+think about the effect. Many database suggest to 'batch' operations when possible.
+This benchmark switches off autocommit when loading the data, and calls commit after each 1000
+inserts. However many applications need 'short' transactions at runtime (a commit after each update).
+This benchmark commits after each update / delete in the simple benchmark, and after each
+business transaction in the other benchmarks. For databases that support delayed commits, 
+a delay of one second is used.
+</p>
+
+<h4>Using Prepared Statements</h4>
+<p>
+Wherever possible, the test cases use prepared statements.
+</p>
+
+<h4>Currently Not Tested: Startup Time</h4>
+<p>
+The startup time of a database engine is important as well for embedded use.
+This time is not measured currently.
+Also, not tested is the time used to create a database and open an existing database.
+Here, one (wrapper) connection is opened at the start,
+and for each step a new connection is opened and then closed.
+That means the Open/Close time listed is for opening a connection
+if the database is already in use.
+</p>
+
+<h3>PolePosition Benchmark</h3>
+<p>
+The PolePosition is an open source benchmark. The algorithms are all quite simple.
+It was developed / sponsored by db4o.
+</p>
+<table border="1" class="bar">
+<tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>MySQL</th></tr>
+<tr><td>Melbourne write</td><td>ms</td><td>369</td><td>249</td><td>2022</td></tr>
+<tr><td>Melbourne read</td><td>ms</td><td>47</td><td>49</td><td>93</td></tr>
+<tr><td>Melbourne read_hot</td><td>ms</td><td>24</td><td>43</td><td>95</td></tr>
+<tr><td>Melbourne delete</td><td>ms</td><td>147</td><td>133</td><td>176</td></tr>
+<tr><td>Sepang write</td><td>ms</td><td>965</td><td>1201</td><td>3213</td></tr>
+<tr><td>Sepang read</td><td>ms</td><td>765</td><td>948</td><td>3455</td></tr>
+<tr><td>Sepang read_hot</td><td>ms</td><td>789</td><td>859</td><td>3563</td></tr>
+<tr><td>Sepang delete</td><td>ms</td><td>1384</td><td>1596</td><td>6214</td></tr>
+<tr><td>Bahrain write</td><td>ms</td><td>1186</td><td>1387</td><td>6904</td></tr>
+<tr><td>Bahrain query_indexed_string</td><td>ms</td><td>336</td><td>170</td><td>693</td></tr>
+<tr><td>Bahrain query_string</td><td>ms</td><td>18064</td><td>39703</td><td>41243</td></tr>
+<tr><td>Bahrain query_indexed_int</td><td>ms</td><td>104</td><td>134</td><td>678</td></tr>
+<tr><td>Bahrain update</td><td>ms</td><td>191</td><td>87</td><td>159</td></tr>
+<tr><td>Bahrain delete</td><td>ms</td><td>1215</td><td>729</td><td>6812</td></tr>
+<tr><td>Imola retrieve</td><td>ms</td><td>198</td><td>194</td><td>4036</td></tr>
+<tr><td>Barcelona write</td><td>ms</td><td>413</td><td>832</td><td>3191</td></tr>
+<tr><td>Barcelona read</td><td>ms</td><td>119</td><td>160</td><td>1177</td></tr>
+<tr><td>Barcelona query</td><td>ms</td><td>20</td><td>5169</td><td>101</td></tr>
+<tr><td>Barcelona delete</td><td>ms</td><td>388</td><td>319</td><td>3287</td></tr>
+<tr><td>Total</td><td>ms</td><td>26724</td><td>53962</td><td>87112</td></tr>
+</table>
+
+<br /><a name="application_profiling"></a>
+<h2>Application Profiling</h2>
+
+<h3>Analyze First</h3>    
+<p>
+Before trying to optimize the performance, it is important to know where the time is actually spent. 
+The same is true for memory problems.
+Premature or 'blind' optimization should be avoided, as it is not an efficient way to solve the problem.
+There are various ways to analyze the application. In some situations it is possible to 
+compare two implementations and use System.currentTimeMillis() to find out which one is faster.
+But this does not work for complex applications with many modules, and for memory problems. 
+A very good tool to measure both the memory and the CPU is the 
+<a href="http://www.yourkit.com">YourKit Java Profiler</a>. This tool is also used
+to optimize the performance and memory footprint of this database engine.
+</p>
+
+<br /><a name="database_performance_tuning"></a>
+<h2>Database Performance Tuning</h2>
+
+<h3>Virus Scanners</h3>
+<p>
+Some virus scanners scan files every time they are accessed.
+It is very important for performance that database files are not scanned for viruses.
+The database engine does never interprets the data stored in the files as programs,
+that means even if somebody would store a virus in a database file, this would
+be harmless (when the virus does not run, it cannot spread).
+Some virus scanners allow excluding file endings. Make sure files ending with .db are not scanned.
+</p>
+
+<h3>Using the Trace Options</h3>
+<p>
+If the main performance hot spots are in the database engine, in many cases the performance
+can be optimized by creating additional indexes, or changing the schema. Sometimes the 
+application does not directly generate the SQL statements, for example if an O/R mapping tool
+is used. To view the SQL statements and JDBC API calls, you can use the trace options.
+For more information, see <a href="features.html#trace_options">Using the Trace Options</a>.
+</p>
+
+<h3>Index Usage</h3>
+<p>
+This database uses indexes to improve the performance of SELECT, UPDATE and DELETE statements.
+If a column is used in the WHERE clause of a query, and if an index exists on this column,
+then the index can be used. Multi-column indexes are used if all or the first columns of the index are used.
+Both equality lookup and range scans are supported.
+Indexes are not used to order result sets: The results are sorted in memory if required.
+Indexes are created automatically for primary key and unique constraints.
+Indexes are also created for foreign key constraints, if required.
+For other columns, indexes need to be created manually using the CREATE INDEX statement.
+</p>
+
+<h3>Optimizer</h3>
+<p>
+This database uses a cost based optimizer. For simple and queries and queries with medium complexity
+(less than 7 tables in the join), the expected cost (running time) of all possible plans is calculated,
+and the plan with the lowest cost is used. For more complex queries, the algorithm first tries
+all possible combinations for the first few tables, and the remaining tables added using a greedy algorithm
+(this works well for most joins). Afterwards a genetic algorithm is used to test at most 2000 distinct plans.
+Only left-deep plans are evaluated.
+</p>
+
+<h3>Expression Optimization</h3>
+<p>
+After the statement is parsed, all expressions are simplified automatically if possible. Operations
+are evaluated only once if all parameters are constant. Functions are also optimized, but only
+if the function is constant (always returns the same result for the same parameter values).
+If the WHERE clause is always false, then the table is not accessed at all.
+</p>
+
+<h3>COUNT(*) Optimization</h3>
+<p>
+If the query only counts all rows of a table, then the data is not accessed.
+However, this is only possible if no WHERE clause is used, that means it only works for
+queries of the form SELECT COUNT(*) FROM table.
+</p>
+
+<h3>Updating Optimizer Statistics / Column Selectivity</h3>
+<p>
+When executing a query, at most one index per joined table can be used.
+If the same table is joined multiple times, for each join only one index is used.
+Example: for the query SELECT * FROM TEST T1, TEST T2 WHERE T1.NAME='A' AND T2.ID=T1.ID,
+two index can be used, in this case the index on NAME for T1 and the index on ID for T2.
+</p><p>
+If a table has multiple indexes, sometimes more than one index could be used.
+Example: if there is a table TEST(ID, NAME, FIRSTNAME) and an index on each column,
+then two indexes could be used for the query SELECT * FROM TEST WHERE NAME='A' AND FIRSTNAME='B',
+the index on NAME or the index on FIRSTNAME. It is not possible to use both indexes at the same time.
+Which index is used depends on the selectivity of the column. The selectivity describes the 'uniqueness' of
+values in a column. A selectivity of 100 means each value appears only once, and a selectivity of 1 means
+the same value appears in many or most rows. For the query above, the index on NAME should be used
+if the table contains more distinct names than first names.
+</p><p>
+The SQL statement ANALYZE can be used to automatically estimate the selectivity of the columns in the tables.
+This command should be run from time to time to improve the query plans generated by the optimizer.
+</p>
+
+</div></td></tr></table></body></html>

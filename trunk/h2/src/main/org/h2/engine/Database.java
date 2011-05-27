@@ -1592,6 +1592,7 @@ public class Database implements DataHandler {
     /**
      * Get a unique temporary table name.
      *
+     * @param baseName the prefix of the returned name
      * @param session the session
      * @return a unique name
      */

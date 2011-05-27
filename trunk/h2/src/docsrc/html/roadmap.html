@@ -100,6 +100,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console: the webclient could support more features like phpMyAdmin.
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
 </li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
+</li><li>Count on a column that can not be null could be optimized to COUNT(*).
+    Important because some ORM tool don't support COUNT(*).
 </li><li>Work on the Java to C converter.
 </li><li>The HELP information schema can be directly exposed in the Console.
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server.
@@ -130,7 +132,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Add GUI to build a custom version (embedded, fulltext,...) using build flags.
 </li><li>http://rubyforge.org/projects/hypersonic/
 </li><li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app).
-</li><li>Count on a column that can not be null could be optimized to COUNT(*).
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility).
 </li><li>Backup tool should work with other databases as well.
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs.

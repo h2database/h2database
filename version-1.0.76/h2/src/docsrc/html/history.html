@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,,
+and under the Eclipse Public License, Version 1.0
+(http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+History
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>History and Roadmap</h1>
+<a href="#changelog">
+    Change Log</a><br />
+<a href="#roadmap">
+    Roadmap</a><br />
+<a href="#history">
+    History of this Database Engine</a><br />
+<a href="#why_java">
+    Why Java</a><br />
+<a href="#supporters">
+    Supporters</a><br />
+    
+<br /><a name="changelog"></a>
+<h2>Change Log</h2>
+<p>
+The up-to-date change log is available at
+<a href="http://www.h2database.com/html/changelog.html">
+http://www.h2database.com/html/changelog.html
+</a>
+</p>
+
+<br /><a name="roadmap"></a>
+<h2>Roadmap</h2>
+<p>
+The current roadmap is available at
+<a href="http://www.h2database.com/html/roadmap.html">
+http://www.h2database.com/html/roadmap.html
+</a>
+</p>
+
+<br /><a name="history"></a>
+<h2>History of this Database Engine</h2>
+<p>
+The development of H2 was started in May 2004,
+but it was first published on December 14th 2005.
+The author of H2, Thomas Mueller, is also the original developer of Hypersonic SQL.
+In 2001, he joined PointBase Inc. where he created PointBase Micro.
+At that point, he had to discontinue Hypersonic SQL, but then the HSQLDB Group was formed
+to continued to work on the Hypersonic SQL codebase.
+The name H2 stands for Hypersonic 2; however H2 does not share any code with
+Hypersonic SQL or HSQLDB. H2 is built from scratch.
+</p>
+
+<br /><a name="why_java"></a>
+<h2>Why Java</h2>
+<p>
+A few reasons using a Java database are:
+</p>
+<ul>
+<li>Very simple to integrate in Java applications
+</li><li>Support for many different platforms
+</li><li>More secure than native applications (no buffer overflows)
+</li><li>User defined functions (or triggers) run very fast
+</li><li>Unicode support
+</li></ul>
+<p>
+Some people think that Java is still too slow for low level operations,
+but this is not the case (not any more). In general, the code can be written a lot faster
+than using C or C++. Like that, it is possible to concentrate on improving the algorithms
+(that make the application faster) rather than porting the code and dealing with low
+level stuff (such as memory management or dealing with threads).
+Garbage collection is now probably faster than manual memory management.
+</p><p>
+A lot of features are already built in (for example Unicode, network libraries).
+It is very easy to write secure code because buffer overflows can not occur.
+Some features such as the reflection mechanism can be used for randomized testing.
+</p><p>
+Java is also future proof: A lot of companies support Java,
+and it is now open source.
+</p><p>
+This software does not rely on many Java libraries or other software, to
+increase the portability and ease of use, and for performance reasons. For example,
+the encryption algorithms and many library functions are implemented in the database
+instead of using the existing libraries. Libraries that are not available in open source
+Java implementations (such as Swing) are not used or only used for specific features.
+</p>
+
+<br /><a name="supporters"></a>
+<h2>Supporters</h2>
+<p>
+Many thanks for those who helped by finding and reporting bugs, gave valuable feedback,
+spread the word and have translated this project. Also many thanks to the donors who contributed
+via PayPal:
+</p>
+<ul>
+<li>Ashwin Jayaprakash, USA
+</li><li>Florent Ramiere, France
+</li><li>Jun Iyama, Japan
+</li><li>Antonio Casqueiro, Portugal
+</li><li>Oliver Computing LLC, USA
+</li><li>Harpal Grover Consulting Inc., USA
+</li><li>Elisabetta Berlini, Italy
+</li><li>William Gilbert, USA
+</li><li>Antonio Dieguez, Chile
+</li><li><a href="http://ontologyworks.com/">Ontology Works, USA</a>
+</li><li>lumber-mill.co.jp, Japan
+</li><li>Pete Haidinyak, USA
+</li></ul>
+
+</div></td></tr></table><!-- analytics --></body></html>

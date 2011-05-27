@@ -17,6 +17,10 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.155 (2011-05-27)</h2>
 <ul><li>When altering a table with triggers, new triggers are created
     and initialized with a table name that ends with tableName_COPY_x_y.
     The plan is that this will not be required in future versions.
@@ -793,167 +797,6 @@ Change Log
 </li><li>JdbcConnectionPool: the default connection timeout is now 30 seconds (it used to be 5 minutes).
 </li><li>LOB storage: LOBs added with "h2.lobInDatabase" enabled couldn't
     be read later with this option disabled.
-</li></ul>
-
-<h2>Version 1.2.136 (2010-05-24)</h2>
-<ul><li>When using ORDER BY and there are both ascending and descending indexes, the database used
-    the first index even when the second one could be used for sorting.
-</li><li>Conditions of the form columnName IS NULL now use an index. To disable this feature,
-    set the system property h2.optimizeIsNull to false.
-</li><li>H2 Console: when the settings were not stored yet (for example when running for the first time),
-    the last recently used settings were not stored. A workaround was to create the file
-    ".h2.server.properties" manually in the current user home directory, with the contents:
-    webAllowOthers=false, webPort=8082, webSSL=false,
-    0=Generic H2 (Embedded)|org.h2.Driver|jdbc\:h2\:~/test|sa
-    (where a comma is a newline).
-</li><li>The source code is now switched to Java 6 (JDK 1.6) by default.
-    Java 5 (JDK 1.5) is still supported, and the jar file is still compiled for Java 5.
-</li><li>The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
-    This is for compatibility with Microsoft Excel.
-</li><li>When opening an existing database, the cache size is set to at most
-    half the amount of memory available for the virtual machine
-    (Runtime.getRuntime().maxMemory()), even if the cache size setting stored in the database
-    is larger. Setting the cache size in the database URL or explicitly using SET CACHE_SIZE
-    overrides this value (even if larger than the physical memory).
-</li><li>INFORMATION_SCHEMA.SETTINGS: the cache size is now returned in KB.
-</li><li>New system property h2.selectForUpdateMvcc, the default is false (the feature is disabled).
-    When enabled, SELECT ... FOR UPDATE only locks the selected rows in the MVCC mode.
-    Aggregate or GROUP BY queries are not allowed in this case.
-</li><li>Profiler: improved message if there was no stack trace.
-</li><li>The H2 Console can now be used within another application, in a frame or iframe. Issue 197.
-</li><li>Recover tool: the statistics section now includes page type counts again.
-</li><li>Queries with multiple IN(...) conditions sometimes return the wrong results when there was a multi-column index for the column.
-</li><li>Queries with IN(..., NULL) did sometimes return the wrong results when there was a index for the column.
-</li><li>DECIMAL: faster precision and memory usage calculations.
-</li><li>A new class org.h2.tools.TriggerAdapter allows to use the ResultSet interface within trigger implementations.
-</li><li>A subselect which used an index could lead to wrong results. Fixed.
-</li><li>Creating a cached temporary non persistent table with a primary key threw a NullPointerException.
-</li></ul>
-
-<h2>Version 1.2.135 (2010-05-08)</h2>
-<ul><li>Temporary files were not deleted when using large transactions, disabling autocommit,
-    and closing the session without committing.
-</li><li>Queries using multiple IN(..) conditions on the same table could cause repeated rows in the result set.
-</li><li>Translation: Lubomir Grajciar translated the H2 Console as well as all error message to Slovensky. Thanks a lot!
-</li><li>There was a possible Java level deadlock when opening an uninitialized database and using
-    a file system that also opened a database.
-</li><li>When killing the process while the database was writing a checkpoint, while it was closing,
-    or while running recovery (while removing temporary tables from a previous run), the database could become corrupt.
-    A new test case has been implemented to ensure such problems can not occur in the future.
-</li><li>File system: new method FileSystem.setReadOnly.
-</li><li>The page size for new databases can now be set in the database URL using ;PAGE_SIZE=512.
-    Currently this feature is only used to simplify testing.
-</li><li>New system property h2.functionsInSchema (default is false).
-    If enabled, the SCRIPT statement always includes the schema name in the CREATE ALIAS statement
-    (even if the schema is PUBLIC). This is not backward compatible with H2 versions 1.2.134 and older.
-</li><li>Functions: it is no longer required to add a space after a comma in the parameter list.
-    Example: CREATE ALIAS PARSE_INT FOR "java.lang.Integer.parseInt(java.lang.String,int)"
-</li><li>Functions now reside within a schema, similar to sequences.
-    If you do create such functions in schemas other than PUBLIC, then the database
-    can not be opened with older versions of H2.
-</li><li>Cluster: after a cluster node failed, the second cluster node can now be re-created
-    and started without having to stop the first cluster node, and without having to stop
-    running applications. To do that, append ;AUTO_RECONNECT=TRUE to the database URL.
-</li><li>Auto-reconnect: if another connection uses the database in exclusive mode
-    then this connection will try to re-connect until the exclusive mode ends.
-    This is important when using the cluster mode.
-</li><li>SET EXCLUSIVE now supports 0 (disable), 1 (enable), and 2 (enable and close all other connections).
-</li><li>Installing the H2 as a service should now work on Windows 7.
-    The batch files now explicitly set the directory using pushd "%~dp0".
-</li><li>Temporary tables can now be 'cached', that means indexes of temporary tables
-    can be persisted. This enables very large temporary tables (both local and global).
-</li><li>The CreateCluster tool now sets the source database in exclusive mode
-    before copying data to the new database.
-</li><li>The H2 Console now stream results one statement / result set at a time (using chunked transfer encoding).
-    To disable, set the system property h2.consoleStream to false.
-    This feature is not supported when using a servlet container.
-</li><li>The H2 Console did not call the CreateCluster tool with the correctly escaped parameters.
-</li><li>Improved PostgreSQL compatibility for ALTER TABLE ALTER COLUMN.
-</li><li>Commas at the end of INSERT ... VALUES (), (), are now supported.
-</li><li>The H2 Console "Start Browser" button now works even when the IP
-    address changes while the tool runs (for example, because a wireless connection
-    breaks, or when enabling / disabling the network connection).
-</li><li>When casting from float or double to BigDecimal, the result was
-    sometimes unexpected, because "new BigDecimal(double val)" was used.
-    Now "BigDecimal.valueOf(double val)" and "new BigDecimal(Float.toString(f))" are used.
-    But it is still not recommended to use float or double for currency values
-    (see data type documentation).
-</li><li>Global temporary tables are now deleted when closing the database.
-    Before, they were deleted when opening the database the next time.
-</li><li>UNIQUE was not listed as a keyword.
-</li><li>Improved error message when an non-SQL-exception occurred in a user
-    defined function. The method name and parameters are included in the error message.
-</li><li>For some queries, the exception did not include the SQL statement. Example:
-    select x from system_range(1, 2) group by 'a'.
-</li><li>The Shell tool will execute SQL statements passed as using the command line
-    parameter -sql.
-</li><li>If InetAddress.getLocalHost() fails, the database should now throw an exception.
-</li><li>New columns INFORMATION_SCHEMA.INDEXES.INDEX_CLASS and
-    INFORMATION_SCHEMA.TABLES.TABLE_CLASS.
-</li><li>INFORMATION_SCHEMA.INDEXES.SQL now contains the CREATE INDEX statement
-    instead of just the fully qualified index name.
-</li></ul>
-
-<h2>Version 1.2.134 (2010-04-23)</h2>
-<ul><li>New system property h2.analyzeAuto (default 0 meaning disabled) to
-    automatically run ANALYZE after that many changes to a table.
-    For details, see the Javadoc of this system property.
-    The plan is to set this property to 2000 in version 1.3.x.
-</li><li>JdbcXAConnection.start() does not support TMJOIN. Issue 189.
-</li><li>MySQL compatibility: TIMESTAMPDIFF is now an alias for DATEDIFF.
-</li><li>MERGE did not respect foreign key and check constraints.
-</li><li>ALTER TABLE ALTER COLUMN: changing the data type of a column
-    no longer makes it nullable.
-</li><li>When using AUTO_SERVER=TRUE, the server is now started as a daemon thread.
-    This was a problem when using Tomcat and a connection pool.
-</li><li>Servers can now be started as a daemon thread using the command line options
-    -tcpDaemon, -pgDaemon, and -webDaemon.
-</li><li>H2 Console: the built-in commands are now documented.
-</li><li>REPLACE: if any parameter is null, the result is null.
-</li><li>Queries with DISTINCT and ORDER BY will now use the index on ORDER BY if possible.
-    This is specially important for queries used inside IN(SELECT ...).
-</li><li>The new statement EXPLAIN ANALYZE executes the statement,
-    and displays the query plan with the actual row scan count for each table.
-</li><li>H2 Console: the auto-complete feature didn't quote column names
-    that need quoting. Issue 186.
-</li><li>The experimental LOB storage mechanism now supports all features of the
-    old one. To use it, set the system property "h2.lobInDatabase" to "true".
-    If you have used this feature in version 1.2.133, you need to export
-    and re-import the database using SCRIPT / RUNSCRIPT.
-</li><li>The functions isBeforeFirst() and isAfterLast() were not compliant to the
-    JDBC spec. If the ResultSet contains no rows, they must return false. Fixed.
-</li><li>Filesystem parameters like "split:" didn't work in server mode with baseDir set.
-</li><li>If baseDir is set, and a database name is given which points to a directory outside
-    the baseDir (eg. "../dbname"), an exception is thrown.
-</li></ul>
-
-<h2>Version 1.2.133 (2010-04-10)</h2>
-<ul><li>A new experimental LOB storage mechanism is available.
-    When enabled, CLOB and BLOB data is stored in hidden tables in the database.
-    To use it, set the system property "h2.lobInDatabase" to "true".
-    Compression is not yet implemented. Duplicate objects are only stored once.
-    Usually writing is slower, but reading is faster (mainly because of caching).
-</li><li>The Shell tool threw a NumberFormatException on a empty statement.
-</li><li>The h2small-*.jar did not support "drop all objects delete files".
-    Now it is supported (the DeleteDbFiles tool is now included).
-</li><li>Operations that don't fit in memory are now faster.
-    Temporary file handling was changed.
-</li><li>The default maximum log stream size is now 2 MB. This is a good value
-    according to some performance tests.
-</li><li>New system property "h2.syncMethod" to configure what method to call when
-    closing the database, on checkpoint, and on CHECKPOINT SYNC. The default is "sync" which
-    calls RandomAccessFile.getFD().sync().
-</li><li>ROWNUM could not be used for pagination. The follow query returned no rows:
-    select x from (select *, rownum as r from system_range(1, 3)) where r=2;
-</li><li>Workaround for a java.sql.Date issue: years above 9999 are not formatted correctly.
-    When calling ResultSet.getString() on a date value, an alternative formatting algorithm is used.
-</li><li>Prepared statements with nested subqueries did not always return the correct result. Example:
-    select ?, ?, (select count(*) from test t, (select id from test where 0=?) t2 where t2.id=t.id) from test
-</li><li>When using MULTI_THREADED=TRUE, the exception following exception could be thrown:
-    "object already exists: TABLES"
-</li><li>Comparison of integer columns against float numbers was not always correct. Issue 182.
-</li><li>H2 Console: Editing the result of a multi-line queries failed. Issue 183.
-</li><li>H2 Console: if the settings file (.h2.properties) can't be accessed, the exception is now ignored.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

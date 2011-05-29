@@ -634,10 +634,13 @@ Quoted names are case sensitive, and can contain spaces."
 "Other Grammar","Referential Constraint","
 FOREIGN KEY ( columnName [,...] )
 REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
-[ ON DELETE { CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL } } ]
-[ ON UPDATE { CASCADE | SET { DEFAULT | NULL } } ]
+[ ON DELETE referentialAction ] [ ON UPDATE referentialAction ]
 ","
 Defines a referential constraint."
+"Other Grammar","Referential Action","
+CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL }
+","
+The action CASCADE will cause conflicting rows in the referencing (child) table to be deleted or updated."
 "Other Grammar","Script Compression","
 COMPRESSION { DEFLATE | LZF | ZIP | GZIP }
 ","

@@ -204,8 +204,11 @@ public class CreateTable extends SchemaCommand {
                 precision = dt.defaultPrecision;
             }
             int scale = expr.getScale();
-            if (scale > 0 && (dt.defaultScale == 0 || dt.defaultScale > scale)) {
+            if (scale > 0 && (dt.defaultScale == 0 || (dt.defaultScale > scale && dt.defaultScale < precision))) {
                 scale = dt.defaultScale;
+            }
+            if (scale > precision) {
+                precision = scale;
             }
             Column col = new Column(name, type, precision, scale, displaySize);
             addColumn(col);

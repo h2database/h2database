@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
@@ -36,6 +37,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testConvertType();
         testSortedSelect();
         testMaxMemoryRowsDistinct();
         testDeleteTop();
@@ -90,13 +92,25 @@ public class TestCases extends TestBase {
         deleteDb("cases");
     }
 
+    private void testConvertType() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test as select cast(0 as dec(10, 2)) x");
+        ResultSetMetaData meta = stat.executeQuery("select * from test").getMetaData();
+        assertEquals(2, meta.getPrecision(1));
+        assertEquals(2, meta.getScale(1));
+        stat.execute("alter table test add column y int");
+        conn.close();
+    }
+
     private void testSortedSelect() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
-        Statement stmt = conn.createStatement();
-        stmt.execute("create memory temporary table test(id int) not persistent");
-        stmt.execute("insert into test(id) direct sorted select 1");
-        stmt.execute("drop table test");
+        Statement stat = conn.createStatement();
+        stat.execute("create memory temporary table test(id int) not persistent");
+        stat.execute("insert into test(id) direct sorted select 1");
+        stat.execute("drop table test");
         conn.close();
     }
 

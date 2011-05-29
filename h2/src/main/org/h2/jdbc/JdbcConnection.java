@@ -120,7 +120,9 @@ public class JdbcConnection extends TraceObject implements Connection {
                         + ", " + quote(user) + ", \"\");");
             }
             this.url = ci.getURL();
-            openStackTrace = new Exception("Stack Trace");
+            if (SysProperties.runFinalize) {
+                openStackTrace = new Exception("Stack Trace");
+            }
         } catch (Exception e) {
             throw logAndConvert(e);
         }

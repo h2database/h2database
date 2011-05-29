@@ -1865,18 +1865,27 @@ inside an identifier.
 "Other Grammar","Referential Constraint","
 FOREIGN KEY ( columnName [,...] )
 REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
-[ ON DELETE { CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL } } ]
-[ ON UPDATE { CASCADE | SET { DEFAULT | NULL } } ]
+[ ON DELETE referentialAction ] [ ON UPDATE referentialAction ]
 ","
-Defines a referential constraint. If the table name is not specified, then the
-same table is referenced. RESTRICT is the default action.
-As this database does not support deferred checking,
-RESTRICT and NO ACTION will both throw an exception if the constraint is violated.
+Defines a referential constraint.
+If the table name is not specified, then the same table is referenced.
+RESTRICT is the default action.
 If the referenced columns are not specified, then the primary key columns are used.
 The required indexes are automatically created if required.
 Some tables may not be referenced, such as metadata tables.
 ","
 FOREIGN KEY(ID) REFERENCES TEST(ID)
+"
+
+"Other Grammar","Referential Action","
+CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL }
+","
+The action CASCADE will cause conflicting rows in the referencing (child) table to be deleted or updated.
+RESTRICT is the default action.
+As this database does not support deferred checking, RESTRICT and NO ACTION will both throw an exception if the constraint is violated.
+The action SET DEFAULT will set the column in the referencing (child) table to the default value, while SET NULL will set it to NULL.
+","
+FOREIGN KEY(ID) REFERENCES TEST(ID) ON UPDATE CASCADE
 "
 
 "Other Grammar","Script Compression","

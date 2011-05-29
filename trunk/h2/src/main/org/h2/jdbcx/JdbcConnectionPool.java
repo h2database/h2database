@@ -245,7 +245,9 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
         } else {
             closeConnection(pc);
         }
-        notifyAll();
+        if (activeConnections >= maxConnections - 1) {
+            notifyAll();
+        }
     }
 
     private void closeConnection(PooledConnection pc) {

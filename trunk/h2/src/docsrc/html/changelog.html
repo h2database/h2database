@@ -17,7 +17,12 @@ Change Log
 
 <h1>Change Log</h1>
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>The built-in connection pool is now a bit faster, specially if the system property
+    "h2.runFinalize" is set to "false".
+</li><li>The scale was not set correctly in some cases when using 
+    CREATE TABLE AS SELECT if there was no explicit column definition.
+</li><li>When trying to connect to a server using TCP/IP failed, it will retry at most
+    until the timeout. Before, it was the timeout multiplied with the retry count.
 </li></ul>
 
 <h2>Version 1.3.155 (2011-05-27)</h2>

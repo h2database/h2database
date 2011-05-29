@@ -436,7 +436,9 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
 
         public PooledJdbcConnection(JdbcConnection conn) {
             super(conn);
-            openStackTrace = new Exception("Stack Trace");
+            if (SysProperties.runFinalize) {
+                openStackTrace = new Exception("Stack Trace");
+            }
         }
 
         public synchronized void close() throws SQLException {

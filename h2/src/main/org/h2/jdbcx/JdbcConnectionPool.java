@@ -23,13 +23,13 @@ package org.h2.jdbcx;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Stack;
-
+import java.util.ArrayList;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.PooledConnection;
+import org.h2.util.New;
 
 //## Java 1.6 begin ##
 import org.h2.message.DbException;
@@ -72,7 +72,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
     private static final int DEFAULT_MAX_CONNECTIONS = 10;
 
     private final ConnectionPoolDataSource dataSource;
-    private final Stack<PooledConnection> recycledConnections = new Stack<PooledConnection>();
+    private final ArrayList<PooledConnection> recycledConnections = New.arrayList();
     private PrintWriter logWriter;
     private int maxConnections = DEFAULT_MAX_CONNECTIONS;
     private int timeout = DEFAULT_TIMEOUT;
@@ -170,8 +170,9 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
             return;
         }
         isDisposed = true;
-        while (!recycledConnections.isEmpty()) {
-            closeConnection(recycledConnections.pop());
+        ArrayList<PooledConnection> list = recycledConnections;
+        for (int i = 0, size = list.size(); i < size; i++) {
+            closeConnection(list.get(i));
         }
     }
 
@@ -217,8 +218,8 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
             throw new IllegalStateException("Connection pool has been disposed.");
         }
         PooledConnection pc;
-        if (!recycledConnections.empty()) {
-            pc = recycledConnections.pop();
+        if (!recycledConnections.isEmpty()) {
+            pc = recycledConnections.remove(recycledConnections.size() - 1);
         } else {
             pc = dataSource.getPooledConnection();
         }
@@ -241,7 +242,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
         }
         activeConnections--;
         if (!isDisposed && activeConnections < maxConnections) {
-            recycledConnections.push(pc);
+            recycledConnections.add(pc);
         } else {
             closeConnection(pc);
         }

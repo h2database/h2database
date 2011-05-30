@@ -370,10 +370,8 @@ public class Session extends SessionWithState {
         this.lockTimeout = lockTimeout;
     }
 
-    public CommandInterface prepareCommand(String sql, int fetchSize) {
-        synchronized (database) {
-            return prepareLocal(sql);
-        }
+    public synchronized CommandInterface prepareCommand(String sql, int fetchSize) {
+        return prepareLocal(sql);
     }
 
     /**

@@ -491,7 +491,7 @@ public class FullText {
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BINARY:
-            return "'" + StringUtils.convertBytesToString((byte[]) data) + "'";
+            return "'" + StringUtils.convertBytesToHex((byte[]) data) + "'";
         case Types.CLOB:
         case Types.JAVA_OBJECT:
         case Types.OTHER:

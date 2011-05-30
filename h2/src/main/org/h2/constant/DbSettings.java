@@ -40,7 +40,7 @@ public class DbSettings extends SettingsBase {
     public final boolean aliasColumnName = get("ALIAS_COLUMN_NAME", false);
 
     /**
-     * Database setting <code>ANALYZE_AUTO</code> (default: 0).<br />
+     * Database setting <code>ANALYZE_AUTO</code> (default: 2000).<br />
      * After changing this many rows, ANALYZE is automatically run for a table.
      * Automatically running ANALYZE is disabled if set to 0. If set to 1000,
      * then ANALYZE will run against each user table after about 1000 changes to
@@ -95,7 +95,7 @@ public class DbSettings extends SettingsBase {
     public final boolean defragAlways = get("DEFRAG_ALWAYS", false);
 
     /**
-     * Database setting <code>DROP_RESTRICT</code> (default: false).<br />
+     * Database setting <code>DROP_RESTRICT</code> (default: true).<br />
      * Whether the default action for DROP TABLE and DROP VIEW is RESTRICT. For
      * most databases, the default action is RESTRICT, but for compatibility
      * with older versions of H2 the default action is currently CASCADE. This will
@@ -120,7 +120,7 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>FUNCTIONS_IN_SCHEMA</code> (default:
-     * false).<br />
+     * true).<br />
      * If set, all functions are stored in a schema. Specially, the SCRIPT statement
      * will always include the schema name in the CREATE ALIAS statement.
      * This is not backward compatible with H2 versions 1.2.134 and older.
@@ -135,7 +135,7 @@ public class DbSettings extends SettingsBase {
     public final int largeResultBufferSize = get("LARGE_RESULT_BUFFER_SIZE", 4 * 1024);
 
     /**
-     * Database setting <code>LARGE_TRANSACTIONS</code> (default: false).<br />
+     * Database setting <code>LARGE_TRANSACTIONS</code> (default: true).<br />
      * Support very large transactions
      */
     public final boolean largeTransactions = get("LARGE_TRANSACTIONS", Constants.VERSION_MINOR >= 3);
@@ -155,7 +155,7 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>MAX_MEMORY_ROWS_DISTINCT</code> (default:
-     * Integer.MAX_VALUE).<br />
+     * 10000).<br />
      * The maximum number of rows kept in-memory for SELECT DISTINCT queries. If
      * more than this number of rows are in a result set, a temporary table is
      * used.
@@ -171,7 +171,7 @@ public class DbSettings extends SettingsBase {
     public int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
 
     /**
-     * Database setting <code>NESTED_JOINS</code> (default: false).<br />
+     * Database setting <code>NESTED_JOINS</code> (default: true).<br />
      * Whether nested joins should be supported.
      */
     public final boolean nestedJoins = get("NESTED_JOINS", Constants.VERSION_MINOR >= 3);
@@ -199,7 +199,7 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>OPTIMIZE_INSERT_FROM_SELECT</code>
-     * (default: false).<br />
+     * (default: true).<br />
      * Insert into table from query directly bypassing temporary disk storage.
      * This also applies to create table as select.
      */
@@ -213,7 +213,7 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeInList = get("OPTIMIZE_IN_LIST", true);
 
     /**
-     * Database setting <code>OPTIMIZE_IN_SELECT</code> (default: false).<br />
+     * Database setting <code>OPTIMIZE_IN_SELECT</code> (default: true).<br />
      * Optimize IN(SELECT ...) comparisons. This includes
      * optimization for SELECT, DELETE, and UPDATE.
      */
@@ -226,7 +226,7 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeIsNull = get("OPTIMIZE_IS_NULL", true);
 
     /**
-     * Database setting <code>OPTIMIZE_OR</code> (default: false).<br />
+     * Database setting <code>OPTIMIZE_OR</code> (default: true).<br />
      * Convert (C=? OR C=?) to (C IN(?, ?)).
      */
     public final boolean optimizeOr = get("OPTIMIZE_OR", Constants.VERSION_MINOR >= 3);
@@ -266,7 +266,7 @@ public class DbSettings extends SettingsBase {
     public final boolean pageStoreTrim = get("PAGE_STORE_TRIM", true);
 
     /**
-     * Database setting <code>QUERY_CACHE_SIZE</code> (default: 0).<br />
+     * Database setting <code>QUERY_CACHE_SIZE</code> (default: 8).<br />
      * The size of the query cache. Each session has it's own cache with the
      * given size. The cache is only used if the SQL statement and all
      * parameters match. Only the last returned result per query is cached. Only
@@ -291,15 +291,14 @@ public class DbSettings extends SettingsBase {
     public final int reconnectCheckDelay = get("RECONNECT_CHECK_DELAY", 200);
 
     /**
-     * Database setting <code>ROWID</code>
-     * (default: false for version 1.2, true for version 1.3).<br />
+     * Database setting <code>ROWID</code> (default: true).<br />
      * If set, each table has a pseudo-column _ROWID_.
      */
     public final boolean rowId = get("ROWID", Constants.VERSION_MINOR >= 3);
 
     /**
      * Database setting <code>SELECT_FOR_UPDATE_MVCC</code>
-     * (default: false).<br />
+     * (default: true).<br />
      * If set, SELECT .. FOR UPDATE queries lock only the selected rows when
      * using MVCC.
      */

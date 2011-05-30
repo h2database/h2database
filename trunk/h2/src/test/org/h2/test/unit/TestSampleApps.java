@@ -87,6 +87,12 @@ public class TestSampleApps extends TestBase {
                 "create the zip file...\n" +
                 "open the database from the zip file...",
                 org.h2.samples.ReadOnlyDatabaseInZip.class);
+        testApp(
+                "a: 1/Hello!\n" +
+                "b: 1/Hallo!\n" +
+                "1/A/Hello!\n" +
+                "1/B/Hallo!",
+                org.h2.samples.RowAccessRights.class);
 
         // tools
         testApp("Allows changing the database file encryption password or algorithm*",

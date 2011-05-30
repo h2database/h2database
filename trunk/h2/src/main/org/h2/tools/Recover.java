@@ -1095,9 +1095,9 @@ public class Recover extends Tool implements DataHandler {
                             byte[] passwordHash = SHA256.getHashWithSalt(userPasswordHash, salt);
                             StringBuilder buff = new StringBuilder();
                             buff.append("SALT '").
-                                append(StringUtils.convertBytesToString(salt)).
+                                append(StringUtils.convertBytesToHex(salt)).
                                 append("' HASH '").
-                                append(StringUtils.convertBytesToString(passwordHash)).
+                                append(StringUtils.convertBytesToHex(passwordHash)).
                                 append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(), saltIndex, replacement.length);

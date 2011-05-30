@@ -192,7 +192,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             } else {
                 buff = IOUtils.readBytesAndClose(getInputStream(), len);
             }
-            return StringUtils.convertBytesToString(buff);
+            return StringUtils.convertBytesToHex(buff);
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }
@@ -302,7 +302,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             return StringUtils.quoteStringSQL(s);
         }
         byte[] buff = getBytes();
-        s = StringUtils.convertBytesToString(buff);
+        s = StringUtils.convertBytesToHex(buff);
         return "X'" + s + "'";
     }
 

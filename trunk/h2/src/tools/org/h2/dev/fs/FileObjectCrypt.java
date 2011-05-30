@@ -44,7 +44,7 @@ public class FileObjectCrypt implements FileObject {
         boolean newFile = file.length() < HEADER_LENGTH + BLOCK_SIZE;
         byte[] filePasswordHash;
         if (algorithm.endsWith("-hash")) {
-            filePasswordHash = StringUtils.convertStringToBytes(password);
+            filePasswordHash = StringUtils.convertHexToBytes(password);
             algorithm = algorithm.substring(0, algorithm.length() - "-hash".length());
         } else {
             filePasswordHash = SHA256.getKeyPasswordHash("file", password.toCharArray());

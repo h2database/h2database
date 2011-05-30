@@ -937,7 +937,7 @@ public class StringUtils {
      * @param s the hex encoded string
      * @return the byte array
      */
-    public static byte[] convertStringToBytes(String s) {
+    public static byte[] convertHexToBytes(String s) {
         int len = s.length();
         if (len % 2 != 0) {
             throw DbException.get(ErrorCode.HEX_STRING_ODD_1, s);
@@ -969,8 +969,8 @@ public class StringUtils {
      * @param value the byte array
      * @return the hex encoded string
      */
-    public static String convertBytesToString(byte[] value) {
-        return convertBytesToString(value, value.length);
+    public static String convertBytesToHex(byte[] value) {
+        return convertBytesToHex(value, value.length);
     }
 
     /**
@@ -980,7 +980,7 @@ public class StringUtils {
      * @param len the number of bytes to encode
      * @return the hex encoded string
      */
-    public static String convertBytesToString(byte[] value, int len) {
+    public static String convertBytesToHex(byte[] value, int len) {
         char[] buff = new char[len + len];
         char[] hex = HEX;
         for (int i = 0; i < len; i++) {
@@ -1008,7 +1008,5 @@ public class StringUtils {
         }
         return true;
     }
-
-
 
 }

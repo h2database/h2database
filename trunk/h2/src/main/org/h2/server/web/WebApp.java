@@ -1263,7 +1263,7 @@ public class WebApp {
             } else if (isBuiltIn(sql, "@password_hash")) {
                 sql = sql.substring("@password_hash".length()).trim();
                 String[] p = split(sql);
-                return StringUtils.convertBytesToString(SHA256.getKeyPasswordHash(p[0], p[1].toCharArray()));
+                return StringUtils.convertBytesToHex(SHA256.getKeyPasswordHash(p[0], p[1].toCharArray()));
             } else if (isBuiltIn(sql, "@prof_start")) {
                 if (profiler != null) {
                     profiler.stopCollecting();

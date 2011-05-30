@@ -552,7 +552,7 @@ public class ValueLob extends Value {
             } else {
                 buff = IOUtils.readBytesAndClose(getInputStream(), len);
             }
-            return StringUtils.convertBytesToString(buff);
+            return StringUtils.convertBytesToHex(buff);
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }
@@ -646,7 +646,7 @@ public class ValueLob extends Value {
             return StringUtils.quoteStringSQL(s);
         }
         byte[] buff = getBytes();
-        s = StringUtils.convertBytesToString(buff);
+        s = StringUtils.convertBytesToHex(buff);
         return "X'" + s + "'";
     }
 

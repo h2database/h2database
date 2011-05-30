@@ -264,6 +264,7 @@ public class Aggregate extends Expression {
     public Value getValue(Session session) {
         if (select.isQuickAggregateQuery()) {
             switch (type) {
+            case COUNT:
             case COUNT_ALL:
                 Table table = select.getTopTableFilter().getTable();
                 return ValueLong.get(table.getRowCount(session));
@@ -546,6 +547,8 @@ public class Aggregate extends Expression {
     public boolean isEverything(ExpressionVisitor visitor) {
         if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
             switch (type) {
+            case COUNT:
+                return on.getNullable() == Column.NOT_NULLABLE && visitor.getTable().canGetRowCount();
             case COUNT_ALL:
                 return visitor.getTable().canGetRowCount();
             case MIN:

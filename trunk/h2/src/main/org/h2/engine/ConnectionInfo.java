@@ -286,7 +286,7 @@ public class ConnectionInfo implements Cloneable {
 
     private static byte[] hashPassword(boolean passwordHash, String userName, char[] password) {
         if (passwordHash) {
-            return StringUtils.convertStringToBytes(new String(password));
+            return StringUtils.convertHexToBytes(new String(password));
         }
         if (userName.length() == 0 && password.length == 0 && SysProperties.EMPTY_PASSWORD) {
             return new byte[0];

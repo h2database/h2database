@@ -363,7 +363,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         String[] servers = StringUtils.arraySplit(server, ',', true);
         int len = servers.length;
         transferList.clear();
-        sessionId = StringUtils.convertBytesToString(MathUtils.secureRandomBytes(32));
+        sessionId = StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
         // TODO cluster: support more than 2 connections
         boolean switchOffCluster = false;
         try {

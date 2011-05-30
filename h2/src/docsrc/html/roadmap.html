@@ -24,6 +24,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Version 1.4.x: Planned Changes</h2>
 <ul><li>Build the jar file for Java 6 by default (JDBC API 4.1).
+</li><li>Remove the old connection pool logic (system property "h2.fastConnectionPool").
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -100,8 +101,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console: the webclient could support more features like phpMyAdmin.
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
 </li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
-</li><li>Count on a column that can not be null could be optimized to COUNT(*).
-    Important because some ORM tool don't support COUNT(*).
 </li><li>Work on the Java to C converter.
 </li><li>The HELP information schema can be directly exposed in the Console.
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server.

@@ -152,7 +152,7 @@ public class TestCsv extends TestBase {
     private void testPseudoBom() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // UTF-8 "BOM" / marker
-        out.write(StringUtils.convertStringToBytes("ef" + "bb" + "bf"));
+        out.write(StringUtils.convertHexToBytes("ef" + "bb" + "bf"));
         out.write("\"ID\", \"NAME\"\n1, Hello".getBytes("UTF-8"));
         byte[] buff = out.toByteArray();
         Reader r = new InputStreamReader(new ByteArrayInputStream(buff), "UTF-8");

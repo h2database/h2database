@@ -295,7 +295,7 @@ public class FileLock implements Runnable {
 
     private void setUniqueId() {
         byte[] bytes = MathUtils.secureRandomBytes(RANDOM_BYTES);
-        String random = StringUtils.convertBytesToString(bytes);
+        String random = StringUtils.convertBytesToHex(bytes);
         uniqueId = Long.toHexString(System.currentTimeMillis()) + random;
         properties.setProperty("id", uniqueId);
     }

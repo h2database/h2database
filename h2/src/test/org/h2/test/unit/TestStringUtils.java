@@ -41,18 +41,18 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testHex() {
-        assertEquals("face", StringUtils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertStringToBytes("face"));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertStringToBytes("fAcE"));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertStringToBytes("FaCe"));
+        assertEquals("face", StringUtils.convertBytesToHex(new byte[] { (byte) 0xfa, (byte) 0xce }));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("face"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("fAcE"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("FaCe"));
         try {
-            StringUtils.convertStringToBytes("120");
+            StringUtils.convertHexToBytes("120");
             fail();
         } catch (DbException e) {
             assertKnownException(DbException.toSQLException(e));
         }
         try {
-            StringUtils.convertStringToBytes("fast");
+            StringUtils.convertHexToBytes("fast");
             fail();
         } catch (DbException e) {
             assertKnownException(DbException.toSQLException(e));

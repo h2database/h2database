@@ -83,7 +83,7 @@ public class ValueBytes extends Value {
     }
 
     public String getString() {
-        return StringUtils.convertBytesToString(value);
+        return StringUtils.convertBytesToHex(value);
     }
 
     public long getPrecision() {

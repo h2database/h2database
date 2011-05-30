@@ -283,7 +283,7 @@ public abstract class FileSystem {
         if (newRandom || tempRandom == null) {
             byte[] prefix = new byte[8];
             MathUtils.randomBytes(prefix);
-            tempRandom = StringUtils.convertBytesToString(prefix) + ".";
+            tempRandom = StringUtils.convertBytesToHex(prefix) + ".";
         }
         return tempRandom + tempSequence++;
     }

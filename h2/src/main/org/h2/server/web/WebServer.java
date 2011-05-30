@@ -198,7 +198,7 @@ public class WebServer implements Service {
 
     private static String generateSessionId() {
         byte[] buff = MathUtils.secureRandomBytes(16);
-        return StringUtils.convertBytesToString(buff);
+        return StringUtils.convertBytesToHex(buff);
     }
 
     /**

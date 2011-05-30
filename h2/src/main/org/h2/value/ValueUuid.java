@@ -64,7 +64,7 @@ public class ValueUuid extends Value {
      */
     public static ValueUuid get(byte[] binary) {
         if (binary.length < 16) {
-            return get(StringUtils.convertBytesToString(binary));
+            return get(StringUtils.convertBytesToHex(binary));
         }
         long high = Utils.readLong(binary, 0);
         long low = Utils.readLong(binary, 8);

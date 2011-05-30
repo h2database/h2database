@@ -2472,7 +2472,7 @@ public class Parser {
                         r = ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
                     } else if (equalsToken("X", name)) {
                         read();
-                        byte[] buffer = StringUtils.convertStringToBytes(currentValue.getString());
+                        byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
                         r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
                     } else if (equalsToken("E", name)) {
                         String text = currentValue.getString();

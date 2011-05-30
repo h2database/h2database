@@ -33,8 +33,8 @@ public class JdbcXid extends TraceObject implements Xid {
                 throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
             }
             formatId = Integer.parseInt(tokenizer.nextToken());
-            branchQualifier = StringUtils.convertStringToBytes(tokenizer.nextToken());
-            globalTransactionId = StringUtils.convertStringToBytes(tokenizer.nextToken());
+            branchQualifier = StringUtils.convertHexToBytes(tokenizer.nextToken());
+            globalTransactionId = StringUtils.convertHexToBytes(tokenizer.nextToken());
         } catch (RuntimeException e) {
             throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
         }
@@ -48,9 +48,9 @@ public class JdbcXid extends TraceObject implements Xid {
         buff.append('_').
             append(xid.getFormatId()).
             append('_').
-            append(StringUtils.convertBytesToString(xid.getBranchQualifier())).
+            append(StringUtils.convertBytesToHex(xid.getBranchQualifier())).
             append('_').
-            append(StringUtils.convertBytesToString(xid.getGlobalTransactionId()));
+            append(StringUtils.convertBytesToHex(xid.getGlobalTransactionId()));
         return buff.toString();
     }
 

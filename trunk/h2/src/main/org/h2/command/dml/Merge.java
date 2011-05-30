@@ -277,4 +277,8 @@ public class Merge extends Prepared {
         return CommandInterface.MERGE;
     }
 
+    public boolean isCacheable() {
+        return true;
+    }
+
 }

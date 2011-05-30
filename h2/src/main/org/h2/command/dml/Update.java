@@ -185,4 +185,8 @@ public class Update extends Prepared {
         return CommandInterface.UPDATE;
     }
 
+    public boolean isCacheable() {
+        return true;
+    }
+
 }

@@ -136,4 +136,8 @@ public class TransactionCommand extends Prepared {
         return type;
     }
 
+    public boolean isCacheable() {
+        return true;
+    }
+
 }

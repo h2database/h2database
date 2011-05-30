@@ -146,4 +146,8 @@ public class Delete extends Prepared {
         this.limitExpr = limit;
     }
 
+    public boolean isCacheable() {
+        return true;
+    }
+
 }

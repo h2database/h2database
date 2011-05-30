@@ -265,4 +265,8 @@ public class Insert extends Prepared implements ResultTarget {
         this.insertFromSelect = value;
     }
 
+    public boolean isCacheable() {
+        return true;
+    }
+
 }

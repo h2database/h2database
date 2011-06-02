@@ -13,6 +13,7 @@ import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -24,6 +25,7 @@ import org.h2.store.DataHandler;
 import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -1066,6 +1068,13 @@ public abstract class Value {
      */
     public Value copyToTemp() {
         return this;
+    }
+
+    public ResultSet getResultSet() {
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("X", DataType.convertTypeToSQLType(getType()), MathUtils.convertLongToInt(getPrecision()), getScale());
+        rs.addRow(getObject());
+        return rs;
     }
 
     /**

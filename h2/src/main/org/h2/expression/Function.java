@@ -303,7 +303,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT, 0, Value.BOOLEAN);
         addFunctionNotDeterministic("READONLY", READONLY, 0, Value.BOOLEAN);
         addFunction("DATABASE_PATH", DATABASE_PATH, 0, Value.STRING);
-        addFunction("LOCK_TIMEOUT", LOCK_TIMEOUT, 0, Value.INT);
+        addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT, 0, Value.INT);
         addFunctionWithNull("IFNULL", IFNULL, 2, Value.NULL);
         addFunctionWithNull("CASEWHEN", CASEWHEN, 3, Value.NULL);
         addFunctionWithNull("CONVERT", CONVERT, 1, Value.NULL);
@@ -325,12 +325,12 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("SCHEMA", SCHEMA, 0, Value.STRING);
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID, 0, Value.INT);
         addFunction("ARRAY_LENGTH", ARRAY_LENGTH, 1, Value.INT);
-        addFunction("LINK_SCHEMA", LINK_SCHEMA, 6, Value.RESULT_SET);
+        addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA, 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
         addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
-        addFunction("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
+        addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
         addFunction("SET", SET, 2, Value.NULL, false, false, false);
-        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, true, false);
+        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
 
         // TableFunction

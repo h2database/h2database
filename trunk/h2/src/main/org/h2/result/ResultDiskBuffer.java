@@ -8,7 +8,6 @@ package org.h2.result;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -250,13 +249,6 @@ class ResultDiskBuffer implements ResultExternal {
         Value[] va = a.buffer.get(0);
         Value[] vb = b.buffer.get(0);
         return sort.compare(va, vb);
-    }
-
-    protected void finalize() {
-        if (!SysProperties.runFinalize) {
-            return;
-        }
-        close();
     }
 
     private synchronized void closeChild() {

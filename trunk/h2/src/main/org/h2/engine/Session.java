@@ -71,7 +71,6 @@ public class Session extends SessionWithState {
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Integer> savepoints;
-    private Exception openStackTrace = new Exception();
     private HashMap<String, Table> localTempTables;
     private HashMap<String, Index> localTempTableIndexes;
     private HashMap<String, Constraint> localTempTableConstraints;
@@ -338,15 +337,6 @@ public class Session extends SessionWithState {
             synchronized (database) {
                 constraint.removeChildrenAndResources(this);
             }
-        }
-    }
-
-    protected void finalize() {
-        if (!SysProperties.runFinalize) {
-            return;
-        }
-        if (!closed) {
-            throw new RuntimeException("Not closed", openStackTrace);
         }
     }
 

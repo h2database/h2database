@@ -44,6 +44,7 @@ public class TestPreparedStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testCallTablePrepared(conn);
         testValues(conn);
         testToString(conn);
         testExecuteUpdateCall(conn);
@@ -78,6 +79,12 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
         deleteDb("preparedStatement");
+    }
+
+    private void testCallTablePrepared(Connection conn) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement("call table(x int = (1))");
+        prep.executeQuery();
+        prep.executeQuery();
     }
 
     private void testValues(Connection conn) throws SQLException {

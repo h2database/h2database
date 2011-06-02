@@ -15,7 +15,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.value.Value;
-import org.h2.value.ValueResultSet;
 
 /**
  * This class represents the statement
@@ -23,6 +22,7 @@ import org.h2.value.ValueResultSet;
  */
 public class Call extends Prepared {
 
+    private boolean isResultSet;
     private Expression expression;
     private Expression[] expressions;
 
@@ -31,9 +31,8 @@ public class Call extends Prepared {
     }
 
     public ResultInterface queryMeta() {
-        int expressionType = expression.getType();
         LocalResult result;
-        if (expressionType == Value.RESULT_SET) {
+        if (isResultSet) {
             Expression[] expr = expression.getExpressionColumns(session);
             result = new LocalResult(session, expr, expr.length);
         } else {
@@ -62,8 +61,9 @@ public class Call extends Prepared {
     public ResultInterface query(int maxrows) {
         setCurrentRowNumber(1);
         Value v = expression.getValue(session);
-        if (v.getType() == Value.RESULT_SET) {
-            ResultSet rs = ((ValueResultSet) v).getResultSet();
+        if (isResultSet) {
+            v = v.convertTo(Value.RESULT_SET);
+            ResultSet rs = v.getResultSet();
             return LocalResult.read(session, rs, maxrows);
         }
         LocalResult result = new LocalResult(session, expressions, 1);
@@ -76,6 +76,10 @@ public class Call extends Prepared {
     public void prepare() {
         expression = expression.optimize(session);
         expressions = new Expression[] { expression };
+        isResultSet = expression.getType() == Value.RESULT_SET;
+        if (isResultSet) {
+            prepareAlways = true;
+        }
     }
 
     public void setExpression(Expression expression) {
@@ -97,6 +101,10 @@ public class Call extends Prepared {
 
     public int getType() {
         return CommandInterface.CALL;
+    }
+
+    public boolean isCacheable() {
+        return !isResultSet;
     }
 
 }

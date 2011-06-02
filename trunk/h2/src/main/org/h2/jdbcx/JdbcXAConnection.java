@@ -18,13 +18,11 @@ import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 
 import org.h2.message.DbException;
-import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 
 //## Java 1.6 begin ##
@@ -40,11 +38,11 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
 
     private JdbcDataSourceFactory factory;
 
-    // This connection is kept open as long as the XAConnection is alive
+    // this connection is kept open as long as the XAConnection is alive
     private JdbcConnection physicalConn;
 
-    // This connection is replaced whenever getConnection is called
-    private volatile PooledJdbcConnection handleConn;
+    // this connection is replaced whenever getConnection is called
+    private volatile Connection handleConn;
     private ArrayList<ConnectionEventListener> listeners = New.arrayList();
     private Xid currentTransaction;
 
@@ -76,7 +74,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      */
     public void close() throws SQLException {
         debugCodeCall("close");
-        PooledJdbcConnection lastHandle = handleConn;
+        Connection lastHandle = handleConn;
         if (lastHandle != null) {
             listeners.clear();
             lastHandle.close();
@@ -99,10 +97,12 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      */
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
-        PooledJdbcConnection lastHandle = handleConn;
+        Connection lastHandle = handleConn;
         if (lastHandle != null) {
             lastHandle.close();
         }
+        // this will ensure the rollback command is cached
+        physicalConn.rollback();
         handleConn = new PooledJdbcConnection(physicalConn);
         return handleConn;
     }
@@ -132,8 +132,11 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      */
     void closedHandle() {
         debugCode("closedHandle();");
-        for (ConnectionEventListener listener : New.arrayList(listeners)) {
-            ConnectionEvent event = new ConnectionEvent(this);
+        ConnectionEvent event = new ConnectionEvent(this);
+        // go backward so that a listener can remove itself
+        // (otherwise we need to clone the list)
+        for (int i = listeners.size() - 1; i >= 0; i--) {
+            ConnectionEventListener listener = listeners.get(i);
             listener.connectionClosed(event);
         }
         handleConn = null;
@@ -436,9 +439,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
 
         public PooledJdbcConnection(JdbcConnection conn) {
             super(conn);
-            if (SysProperties.runFinalize) {
-                openStackTrace = new Exception("Stack Trace");
-            }
         }
 
         public synchronized void close() throws SQLException {
@@ -459,24 +459,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
                 throw DbException.get(ErrorCode.OBJECT_CLOSED);
             }
             super.checkClosed(write);
-        }
-
-        protected void finalize() {
-            // don't call super.finalize because
-            // this should print its own stack trace,
-            // and would close the connection
-            if (!SysProperties.runFinalize) {
-                return;
-            }
-            Trace trace = getTrace();
-            try {
-                if (!isClosed()) {
-                    trace.error(openStackTrace, "pooled connection not closed");
-                    JdbcXAConnection.this.close();
-                }
-            } catch (SQLException e) {
-                trace.debug(e, "finalize");
-            }
         }
 
     }

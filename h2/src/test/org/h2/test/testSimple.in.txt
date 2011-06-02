@@ -1,3 +1,8 @@
+create table a(x int);
+create table b(x int);
+select count(*) from (select b.x from a left join b);
+> 0;
+drop table a, b;
 select count(distinct now()) c from system_range(1, 100), system_range(1, 1000);
 > 1;
 select {fn TIMESTAMPADD(SQL_TSI_DAY, 1, {ts '2011-10-20 20:30:40.001'})};

@@ -8,7 +8,6 @@ package org.h2.store;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.tools.CompressTool;
@@ -134,13 +133,6 @@ public class FileStoreInputStream extends InputStream {
                 store = null;
             }
         }
-    }
-
-    protected void finalize() {
-        if (!SysProperties.runFinalize) {
-            return;
-        }
-        close();
     }
 
     public int read() throws IOException {

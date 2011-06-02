@@ -16,9 +16,24 @@ Change Log
 <!-- } -->
 
 <h1>Change Log</h1>
+
 <h2>Next Version (unreleased)</h2>
-<ul><li>The built-in connection pool is now a bit faster, specially if the system property
-    "h2.runFinalize" is set to "false".
+<ul><li>This database no longer uses finalize() except for temporary files.
+    The system property "h2.runFinalize" is no longer supported.
+    Unclosed connections are still detected, but the opening stack trace is now collected
+    only if connections are not closed repeatedly (starting with the second unclosed connection).
+    To detect unclosed connections, a PhantomReference is used.
+</li><li>Issue 322: Left joins didn't work when used as subquery in the form clause.
+</li><li>A prepared statement if type CALL that returned a result set could
+    throw a NullPointerExecption if executed multiple times.
+</li><li>The following built-in functions were marked as deterministic and therefore
+    not re-executed when using in a prepared statement:
+    LOCK_TIMEOUT, LINK_SCHEMA, CANCEL_SESSION, FILE_READ.
+</li><li>Count on a column that can not be null is now optimized to COUNT(*).
+    Thanks a lot to Ross Judson for providing a patch and test case!
+</li><li>The following prepared statements are now cached as well:
+    insert, update, delete, call, merge, and transactional commands.
+</li><li>The built-in connection pool is now a bit faster.
 </li><li>The scale was not set correctly in some cases when using
     CREATE TABLE AS SELECT if there was no explicit column definition.
 </li><li>When trying to connect to a server using TCP/IP failed, it will retry at most

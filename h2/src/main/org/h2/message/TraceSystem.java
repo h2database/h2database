@@ -15,7 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.IOUtils;
@@ -337,13 +336,6 @@ public class TraceSystem implements TraceWriter {
     public void close() {
         closeWriter();
         closed = true;
-    }
-
-    protected void finalize() {
-        if (!SysProperties.runFinalize) {
-            return;
-        }
-        close();
     }
 
     public void setName(String name) {

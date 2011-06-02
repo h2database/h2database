@@ -34,6 +34,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.util.CloseWatcher;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -65,10 +66,7 @@ import java.util.concurrent.Executor;
  */
 public class JdbcConnection extends TraceObject implements Connection {
 
-    /**
-     * The stack trace of when the connection was created.
-     */
-    protected Exception openStackTrace;
+    private static boolean keepOpenStackTrace;
 
     private String url;
     private String user;
@@ -84,10 +82,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private int savepointId;
     private Trace trace;
-    private boolean isInternal;
     private String catalog;
     private Statement executingStatement;
     private CompareMode compareMode = CompareMode.getInstance(null, 0);
+    private CloseWatcher watcher;
 
     /**
      * INTERNAL
@@ -120,9 +118,8 @@ public class JdbcConnection extends TraceObject implements Connection {
                         + ", " + quote(user) + ", \"\");");
             }
             this.url = ci.getURL();
-            if (SysProperties.runFinalize) {
-                openStackTrace = new Exception("Stack Trace");
-            }
+            closeOld();
+            watcher = CloseWatcher.register(this, session, keepOpenStackTrace);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -138,19 +135,45 @@ public class JdbcConnection extends TraceObject implements Connection {
         setTrace(trace, TraceObject.CONNECTION, id);
         this.user = clone.user;
         this.url = clone.url;
+        this.catalog = clone.catalog;
+        this.commit = clone.commit;
+        this.getGeneratedKeys = clone.getGeneratedKeys;
+        this.getLockMode = clone.getLockMode;
+        this.getQueryTimeout = clone.getQueryTimeout;
+        this.getReadOnly = clone.getReadOnly;
+        this.rollback = clone.rollback;
     }
 
     /**
      * INTERNAL
      */
     public JdbcConnection(SessionInterface session, String user, String url) {
-        isInternal = true;
         this.session = session;
         trace = session.getTrace();
         int id = getNextId(TraceObject.CONNECTION);
         setTrace(trace, TraceObject.CONNECTION, id);
         this.user = user;
         this.url = url;
+    }
+
+    private void closeOld() {
+        while (true) {
+            CloseWatcher w = CloseWatcher.pollUnclosed();
+            if (w == null) {
+                break;
+            }
+            try {
+                w.getCloseable().close();
+            } catch (Exception e) {
+                trace.error(e, "closing session");
+            }
+            // there was an unclosed object -
+            // keep the stack trace from now on
+            keepOpenStackTrace = true;
+            String s = w.getOpenStackTrace();
+            Exception ex = DbException.get(ErrorCode.TRACE_CONNECTION_NOT_CLOSED);
+            trace.error(ex, s);
+        }
     }
 
     /**
@@ -303,10 +326,10 @@ public class JdbcConnection extends TraceObject implements Connection {
     public synchronized void close() throws SQLException {
         try {
             debugCodeCall("close");
-            openStackTrace = null;
             if (session == null) {
                 return;
             }
+            CloseWatcher.unregister(watcher);
             session.cancel();
             if (executingStatement != null) {
                 try {
@@ -1390,24 +1413,6 @@ public class JdbcConnection extends TraceObject implements Connection {
     String getUser() {
         checkClosed();
         return user;
-    }
-
-    protected void finalize() {
-        if (!SysProperties.runFinalize) {
-            return;
-        }
-        if (isInternal) {
-            return;
-        }
-        if (session != null && openStackTrace != null) {
-            Exception ex = DbException.get(ErrorCode.TRACE_CONNECTION_NOT_CLOSED);
-            trace.error(openStackTrace, ex.getMessage());
-            try {
-                close();
-            } catch (SQLException e) {
-                trace.debug(e, "finalize");
-            }
-        }
     }
 
     private void rollbackInternal() {

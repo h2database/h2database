@@ -6,6 +6,7 @@
  */
 package org.h2.engine;
 
+import java.io.Closeable;
 import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
@@ -13,7 +14,7 @@ import org.h2.store.DataHandler;
 /**
  * A local or remote session. A session represents a database connection.
  */
-public interface SessionInterface {
+public interface SessionInterface extends Closeable {
 
     /**
      * Parse a command and prepare it for execution.

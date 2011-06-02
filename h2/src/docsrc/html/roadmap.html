@@ -71,6 +71,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Drop with invalidate views (so that source code is not lost). Check what other databases do exactly.
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
+</li><li>Support GRANT SELECT, UPDATE ON [schemaName.] *.
 </li><li>Access rights: finer grained access control (grant access for specific functions).
 </li><li>ROW_NUMBER() OVER([PARTITION BY columnName][ORDER BY columnName]).
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
@@ -85,6 +86,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files.
 </li><li>iReport to support H2.
 </li><li>Include SMPT (mail) client (alert on cluster failure, low disk space,...).
+</li><li>Option for SCRIPT to only process one or a set of schemas or tables, and append to a file.
 </li><li>JSON parser and functions.
 </li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare).
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements.
@@ -113,7 +115,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Max memory rows / max undo log size: use block count / row size not row count.
 </li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2).
 </li><li>Implement point-in-time recovery.
-</li><li>Option for SCRIPT to only process one or a set of schemas or tables, and append to a file.
 </li><li>LIKE: improved version for larger texts (currently using naive search).
 </li><li>Throw an exception when the application calls getInt on a Long (optional).
 </li><li>Default date format for input and output (local date constants).
@@ -156,7 +157,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support updatable views with join on primary keys (to extend a table).
 </li><li>Public interface for functions (not public static).
 </li><li>Support reading the transaction log.
-</li><li>Support GRANT SELECT, UPDATE ON *.
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index.
 </li><li>Compatibility with Derby and PostgreSQL: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1). Issue 221.

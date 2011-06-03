@@ -258,6 +258,10 @@ class ResultDiskBuffer implements ResultExternal {
         }
     }
 
+    protected void finalize() {
+        close();
+    }
+
     public synchronized void close() {
         if (closed) {
             return;

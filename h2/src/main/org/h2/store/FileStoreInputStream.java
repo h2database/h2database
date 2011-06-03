@@ -135,6 +135,10 @@ public class FileStoreInputStream extends InputStream {
         }
     }
 
+    protected void finalize() {
+        close();
+    }
+
     public int read() throws IOException {
         fillBuffer();
         if (endOfFile) {

@@ -13,7 +13,8 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 
 /**
- * Test that count(column) is converted to count(*) if the column is not nullable.
+ * Test that count(column) is converted to count(*) if the column is not
+ * nullable.
  */
 public class TestSelectCountNonNullColumn extends TestBase {
 

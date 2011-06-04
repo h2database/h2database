@@ -564,9 +564,9 @@ DATE 'yyyy-MM-dd'
 ","
 A date literal."
 "Other Grammar","Decimal","
-[ + | - ] number [ . number ]
+[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
 ","
-Number with fixed precision and scale."
+A decimal number with fixed precision and scale."
 "Other Grammar","Digit","
 0-9
 ","
@@ -575,10 +575,6 @@ A digit."
 $$anythingExceptTwoDollarSigns$$
 ","
 A string starts and ends with two dollar signs."
-"Other Grammar","Double","
-[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
-","
-A floating point number with high precision."
 "Other Grammar","Expression","
 andCondition [ { OR andCondition } [...] ]
 ","
@@ -619,6 +615,10 @@ NULL is a value without data type and means 'unknown value'."
 digit [...]
 ","
 The maximum length of the number depends on the data type used."
+"Other Grammar","Numeric","
+int | long | decimal | hexNumber
+","
+The data type of a number is always the lowest possible for the given value."
 "Other Grammar","Operand","
 summand [ { || summand } [...] ]
 ","
@@ -690,10 +690,9 @@ TIMESTAMP 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
 ","
 A timestamp literal."
 "Other Grammar","Value","
-string | dollarQuotedString | hexNumber | int | long | decimal | double
-    | date | time | timestamp | boolean | bytes | array | null
+string | dollarQuotedString | numeric | date | time | timestamp | boolean | bytes | array | null
 ","
-A value of any data type, or null."
+A literal value of any data type, or null."
 "Data Types","INT Type","
 INT | INTEGER | MEDIUMINT | INT4 | SIGNED
 ","
@@ -781,7 +780,7 @@ ARRAY
 ","
 An array of values."
 "Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT ] { int | long | decimal | double } )
+AVG ( [ DISTINCT ] { numeric } )
 ","
 The average (mean) value."
 "Functions (Aggregate)","BOOL_AND","
@@ -811,7 +810,7 @@ MIN(value)
 ","
 The lowest value."
 "Functions (Aggregate)","SUM","
-SUM( [ DISTINCT ] { int | long | decimal | double } )
+SUM( [ DISTINCT ] { numeric } )
 ","
 The sum of all values."
 "Functions (Aggregate)","SELECTIVITY","
@@ -819,67 +818,67 @@ SELECTIVITY(value)
 ","
 Estimates the selectivity (0-100) of a value."
 "Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT ] double )
+STDDEV_POP( [ DISTINCT ] numeric )
 ","
 The population standard deviation."
 "Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT ] double )
+STDDEV_SAMP( [ DISTINCT ] numeric )
 ","
 The sample standard deviation."
 "Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT ] double )
+VAR_POP( [ DISTINCT ] numeric )
 ","
 The population variance (square of the population standard deviation)."
 "Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT ] double )
+VAR_SAMP( [ DISTINCT ] numeric )
 ","
 The sample variance (square of the sample standard deviation)."
 "Functions (Numeric)","ABS","
-ABS ( { int | long | decimal | double } )
+ABS ( { numeric } )
 ","
 See also Java ""Math."
 "Functions (Numeric)","ACOS","
-ACOS(double)
+ACOS(numeric)
 ","
 Calculate the arc cosine."
 "Functions (Numeric)","ASIN","
-ASIN(double)
+ASIN(numeric)
 ","
 Calculate the arc sine."
 "Functions (Numeric)","ATAN","
-ATAN(double)
+ATAN(numeric)
 ","
 Calculate the arc tangent."
 "Functions (Numeric)","COS","
-COS(double)
+COS(numeric)
 ","
 Calculate the trigonometric cosine."
 "Functions (Numeric)","COSH","
-COSH(double)
+COSH(numeric)
 ","
 Calculate the hyperbolic cosine."
 "Functions (Numeric)","COT","
-COT(double)
+COT(numeric)
 ","
 Calculate the trigonometric cotangent (""1/TAN(ANGLE)"")."
 "Functions (Numeric)","SIN","
-SIN(double)
+SIN(numeric)
 ","
 Calculate the trigonometric sine."
 "Functions (Numeric)","SINH","
-SINH(double)
+SINH(numeric)
 ","
 Calculate the hyperbolic sine."
 "Functions (Numeric)","TAN","
-TAN(double)
+TAN(numeric)
 ","
 Calculate the trigonometric tangent."
 "Functions (Numeric)","TANH","
-TANH(double)
+TANH(numeric)
 ","
 Calculate the hyperbolic tangent."
 "Functions (Numeric)","ATAN2","
-ATAN2(double, double)
+ATAN2(numeric, numeric)
 ","
 Calculate the angle when converting the rectangular coordinates to polar coordinates."
 "Functions (Numeric)","BITAND","
@@ -899,35 +898,35 @@ MOD(long, long)
 ","
 The modulo operation."
 "Functions (Numeric)","CEILING","
-{ CEILING | CEIL } (double)
+{ CEILING | CEIL } (numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","DEGREES","
-DEGREES(double)
+DEGREES(numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","EXP","
-EXP(double)
+EXP(numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","FLOOR","
-FLOOR(double)
+FLOOR(numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","LOG","
-{ LOG | LN } (double)
+{ LOG | LN } (numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","LOG10","
-LOG10(double)
+LOG10(numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","RADIANS","
-RADIANS(double)
+RADIANS(numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","SQRT","
-SQRT(double)
+SQRT(numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","PI","
@@ -935,7 +934,7 @@ PI()
 ","
 See also Java ""Math."
 "Functions (Numeric)","POWER","
-POWER(double, double)
+POWER(numeric, numeric)
 ","
 See also Java ""Math."
 "Functions (Numeric)","RAND","
@@ -947,11 +946,11 @@ RANDOM_UUID()
 ","
 Returns a new UUID with 122 pseudo random bits."
 "Functions (Numeric)","ROUND","
-ROUND(double, digitsInt)
+ROUND(numeric, digitsInt)
 ","
 Rounds to a number of digits."
 "Functions (Numeric)","ROUNDMAGIC","
-ROUNDMAGIC(double)
+ROUNDMAGIC(numeric)
 ","
 This function rounds numbers in a good way, but it is slow."
 "Functions (Numeric)","SECURE_RAND","
@@ -959,7 +958,7 @@ SECURE_RAND(int)
 ","
 Generates a number of cryptographically secure random numbers."
 "Functions (Numeric)","SIGN","
-SIGN ( { int | long | decimal | double } )
+SIGN ( { numeric } )
 ","
 Returns -1 if the value is smaller 0, 0 if zero, and otherwise 1."
 "Functions (Numeric)","ENCRYPT","
@@ -975,7 +974,7 @@ HASH(algorithmString, dataBytes, iterationInt)
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations."
 "Functions (Numeric)","TRUNCATE","
-TRUNCATE(double, digitsInt)
+TRUNCATE(numeric, digitsInt)
 ","
 Truncates to a number of digits (to the next value closer to 0)."
 "Functions (Numeric)","COMPRESS","

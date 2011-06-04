@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>This database no longer uses finalize() except for temporary files.
+<ul><li>Read-only databases: some queries (such as distinct queries)
+    tried to create temporary tables, which failed for read only databases.
+</li><li>This database no longer uses finalize() except for temporary files.
     The system property "h2.runFinalize" is no longer supported.
     Unclosed connections are still detected, but the opening stack trace is now collected
     only if connections are not closed repeatedly (starting with the second unclosed connection).

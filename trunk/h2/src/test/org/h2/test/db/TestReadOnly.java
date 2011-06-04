@@ -36,6 +36,7 @@ public class TestReadOnly extends TestBase {
         if (config.memory) {
             return;
         }
+        testReadOnlyTempTableResult();
         testReadOnlyConnect();
         testReadOnlyDbCreate();
         if (!config.googleAppEngine) {
@@ -43,6 +44,18 @@ public class TestReadOnly extends TestBase {
         }
         testReadOnlyFiles(false);
         deleteDb("readonly");
+    }
+
+    private void testReadOnlyTempTableResult() throws SQLException {
+        deleteDb("readonly");
+        Connection conn = getConnection("readonly");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT) AS SELECT X FROM SYSTEM_RANGE(1, 20)");
+        conn.close();
+        conn = getConnection("readonly;ACCESS_MODE_DATA=r;MAX_MEMORY_ROWS_DISTINCT=10");
+        stat = conn.createStatement();
+        stat.execute("SELECT DISTINCT ID FROM TEST");
+        conn.close();
     }
 
     private void testReadOnlyDbCreate() throws SQLException {

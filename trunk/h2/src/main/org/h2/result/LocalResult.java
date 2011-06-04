@@ -253,7 +253,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
                 Database db = session.getDatabase();
-                if (rowCount > db.getSettings().maxMemoryRowsDistinct && db.isPersistent()) {
+                if (rowCount > db.getSettings().maxMemoryRowsDistinct && db.isPersistent() && !db.isReadOnly()) {
                     external = new ResultTempTable(session, sort);
                     rowCount = external.addRows(distinctRows.values());
                     distinctRows = null;
@@ -268,7 +268,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (rows.size() > maxMemoryRows && session.getDatabase().isPersistent()) {
             if (external == null) {
                 if (randomAccess) {
-                    external = new ResultTempTable(session, sort);
+                    Database db = session.getDatabase();
+                    if (!db.isReadOnly()) {
+                        external = new ResultTempTable(session, sort);
+                    }
                 } else {
                     external = new ResultDiskBuffer(session, sort, values.length);
                 }
@@ -308,7 +311,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
                         }
                         if (external == null) {
                             if (randomAccess) {
-                                external = new ResultTempTable(session, sort);
+                                Database db = session.getDatabase();
+                                if (!db.isReadOnly()) {
+                                    external = new ResultTempTable(session, sort);
+                                }
                             } else {
                                 external = new ResultDiskBuffer(session, sort, list.length);
                             }

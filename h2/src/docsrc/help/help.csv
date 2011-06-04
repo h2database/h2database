@@ -1712,11 +1712,18 @@ DATE '2004-12-31'
 "
 
 "Other Grammar","Decimal","
-[ + | - ] number [ . number ]
+[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
 ","
-Number with fixed precision and scale.
+A decimal number with fixed precision and scale.
+Internally, ""java.lang.BigDecimal"" is used.
+To ensure the floating point representation is used, use CAST(X AS DOUBLE).
+There are some special decimal values: to represent positive infinity, use ""POWER(0, -1)"";
+for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE))"";
+for ""NaN"" (not a number), use ""SQRT(-1)"".
 ","
--1600.05
+SELECT -1600.05
+SELECT CAST(0 AS DOUBLE)
+SELECT -1.4e-10
 "
 
 "Other Grammar","Digit","
@@ -1735,20 +1742,6 @@ within the text. A whitespace is required before the first set of dollar signs.
 No escaping is required within the text.
 ","
 $$John's car$$
-"
-
-"Other Grammar","Double","
-[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
-","
-A floating point number with high precision.
-The limitations are the same as for the Java data type Double.
-To ensure the floating point representation is used, use CAST.
-There are some special values: to represent positive infinity, use ""POWER(0, -1)"";
-for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE))"";
-for ""NaN"" (not a number), use ""SQRT(-1)"".
-","
--1.4e-10
-CAST(0 AS DOUBLE)
 "
 
 "Other Grammar","Expression","
@@ -1832,6 +1825,17 @@ digit [...]
 The maximum length of the number depends on the data type used.
 ","
 100
+"
+
+"Other Grammar","Numeric","
+int | long | decimal | hexNumber
+","
+The data type of a number is always the lowest possible for the given value.
+If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
+","
+SELECT -1600.05
+SELECT CAST(0 AS DOUBLE)
+SELECT -1.4e-10
 "
 
 "Other Grammar","Operand","
@@ -1983,10 +1987,9 @@ TIMESTAMP '2005-12-31 23:59:59'
 "
 
 "Other Grammar","Value","
-string | dollarQuotedString | hexNumber | int | long | decimal | double
-    | date | time | timestamp | boolean | bytes | array | null
+string | dollarQuotedString | numeric | date | time | timestamp | boolean | bytes | array | null
 ","
-A value of any data type, or null.
+A literal value of any data type, or null.
 ","
 10
 "
@@ -2242,7 +2245,7 @@ ARRAY
 "
 
 "Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT ] { int | long | decimal | double } )
+AVG ( [ DISTINCT ] { numeric } )
 ","
 The average (mean) value.
 If no rows are selected, the result is NULL.
@@ -2320,7 +2323,7 @@ MIN(NAME)
 "
 
 "Functions (Aggregate)","SUM","
-SUM( [ DISTINCT ] { int | long | decimal | double } )
+SUM( [ DISTINCT ] { numeric } )
 ","
 The sum of all values.
 If no rows are selected, the result is NULL.
@@ -2343,7 +2346,7 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
 "
 
 "Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT ] double )
+STDDEV_POP( [ DISTINCT ] numeric )
 ","
 The population standard deviation.
 This method returns a double.
@@ -2354,7 +2357,7 @@ STDDEV_POP(X)
 "
 
 "Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT ] double )
+STDDEV_SAMP( [ DISTINCT ] numeric )
 ","
 The sample standard deviation.
 This method returns a double.
@@ -2365,7 +2368,7 @@ STDDEV(X)
 "
 
 "Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT ] double )
+VAR_POP( [ DISTINCT ] numeric )
 ","
 The population variance (square of the population standard deviation).
 This method returns a double.
@@ -2376,7 +2379,7 @@ VAR_POP(X)
 "
 
 "Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT ] double )
+VAR_SAMP( [ DISTINCT ] numeric )
 ","
 The sample variance (square of the sample standard deviation).
 This method returns a double.
@@ -2387,7 +2390,7 @@ VAR_SAMP(X)
 "
 
 "Functions (Numeric)","ABS","
-ABS ( { int | long | decimal | double } )
+ABS ( { numeric } )
 ","
 See also Java ""Math.abs"".
 Please note that ""Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE"" and ""Math.abs(Long.MIN_VALUE) == Long.MIN_VALUE"".
@@ -2397,7 +2400,7 @@ ABS(ID)
 "
 
 "Functions (Numeric)","ACOS","
-ACOS(double)
+ACOS(numeric)
 ","
 Calculate the arc cosine.
 See also Java ""Math.acos"".
@@ -2407,7 +2410,7 @@ ACOS(D)
 "
 
 "Functions (Numeric)","ASIN","
-ASIN(double)
+ASIN(numeric)
 ","
 Calculate the arc sine.
 See also Java ""Math.asin"".
@@ -2417,7 +2420,7 @@ ASIN(D)
 "
 
 "Functions (Numeric)","ATAN","
-ATAN(double)
+ATAN(numeric)
 ","
 Calculate the arc tangent.
 See also Java ""Math.atan"".
@@ -2427,7 +2430,7 @@ ATAN(D)
 "
 
 "Functions (Numeric)","COS","
-COS(double)
+COS(numeric)
 ","
 Calculate the trigonometric cosine.
 See also Java ""Math.cos"".
@@ -2437,7 +2440,7 @@ COS(ANGLE)
 "
 
 "Functions (Numeric)","COSH","
-COSH(double)
+COSH(numeric)
 ","
 Calculate the hyperbolic cosine.
 See also Java ""Math.cosh"".
@@ -2447,7 +2450,7 @@ COSH(X)
 "
 
 "Functions (Numeric)","COT","
-COT(double)
+COT(numeric)
 ","
 Calculate the trigonometric cotangent (""1/TAN(ANGLE)"").
 See also Java ""Math.*"" functions.
@@ -2457,7 +2460,7 @@ COT(ANGLE)
 "
 
 "Functions (Numeric)","SIN","
-SIN(double)
+SIN(numeric)
 ","
 Calculate the trigonometric sine.
 See also Java ""Math.sin"".
@@ -2467,7 +2470,7 @@ SIN(ANGLE)
 "
 
 "Functions (Numeric)","SINH","
-SINH(double)
+SINH(numeric)
 ","
 Calculate the hyperbolic sine.
 See also Java ""Math.sinh"".
@@ -2477,7 +2480,7 @@ SINH(ANGLE)
 "
 
 "Functions (Numeric)","TAN","
-TAN(double)
+TAN(numeric)
 ","
 Calculate the trigonometric tangent.
 See also Java ""Math.tan"".
@@ -2487,7 +2490,7 @@ TAN(ANGLE)
 "
 
 "Functions (Numeric)","TANH","
-TANH(double)
+TANH(numeric)
 ","
 Calculate the hyperbolic tangent.
 See also Java ""Math.tanh"".
@@ -2497,7 +2500,7 @@ TANH(X)
 "
 
 "Functions (Numeric)","ATAN2","
-ATAN2(double, double)
+ATAN2(numeric, numeric)
 ","
 Calculate the angle when converting the rectangular coordinates to polar coordinates.
 See also Java ""Math.atan2"".
@@ -2547,7 +2550,7 @@ MOD(A, B)
 "
 
 "Functions (Numeric)","CEILING","
-{ CEILING | CEIL } (double)
+{ CEILING | CEIL } (numeric)
 ","
 See also Java ""Math.ceil"".
 This method returns a double.
@@ -2556,7 +2559,7 @@ CEIL(A)
 "
 
 "Functions (Numeric)","DEGREES","
-DEGREES(double)
+DEGREES(numeric)
 ","
 See also Java ""Math.toDegrees"".
 This method returns a double.
@@ -2565,7 +2568,7 @@ DEGREES(A)
 "
 
 "Functions (Numeric)","EXP","
-EXP(double)
+EXP(numeric)
 ","
 See also Java ""Math.exp"".
 This method returns a double.
@@ -2574,7 +2577,7 @@ EXP(A)
 "
 
 "Functions (Numeric)","FLOOR","
-FLOOR(double)
+FLOOR(numeric)
 ","
 See also Java ""Math.floor"".
 This method returns a double.
@@ -2583,7 +2586,7 @@ FLOOR(A)
 "
 
 "Functions (Numeric)","LOG","
-{ LOG | LN } (double)
+{ LOG | LN } (numeric)
 ","
 See also Java ""Math.log"".
 This method returns a double.
@@ -2592,7 +2595,7 @@ LOG(A)
 "
 
 "Functions (Numeric)","LOG10","
-LOG10(double)
+LOG10(numeric)
 ","
 See also Java ""Math.log10"" (in Java 5).
 This method returns a double.
@@ -2601,7 +2604,7 @@ LOG10(A)
 "
 
 "Functions (Numeric)","RADIANS","
-RADIANS(double)
+RADIANS(numeric)
 ","
 See also Java ""Math.toRadians"".
 This method returns a double.
@@ -2610,7 +2613,7 @@ RADIANS(A)
 "
 
 "Functions (Numeric)","SQRT","
-SQRT(double)
+SQRT(numeric)
 ","
 See also Java ""Math.sqrt"".
 This method returns a double.
@@ -2628,7 +2631,7 @@ PI()
 "
 
 "Functions (Numeric)","POWER","
-POWER(double, double)
+POWER(numeric, numeric)
 ","
 See also Java ""Math.pow"".
 This method returns a double.
@@ -2655,7 +2658,7 @@ RANDOM_UUID()
 "
 
 "Functions (Numeric)","ROUND","
-ROUND(double, digitsInt)
+ROUND(numeric, digitsInt)
 ","
 Rounds to a number of digits.
 This method returns a double.
@@ -2664,7 +2667,7 @@ ROUND(VALUE, 2)
 "
 
 "Functions (Numeric)","ROUNDMAGIC","
-ROUNDMAGIC(double)
+ROUNDMAGIC(numeric)
 ","
 This function rounds numbers in a good way, but it is slow.
 It has a special handling for numbers around 0.
@@ -2686,7 +2689,7 @@ CALL SECURE_RAND(16)
 "
 
 "Functions (Numeric)","SIGN","
-SIGN ( { int | long | decimal | double } )
+SIGN ( { numeric } )
 ","
 Returns -1 if the value is smaller 0, 0 if zero, and otherwise 1.
 ","
@@ -2727,7 +2730,7 @@ CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
 "
 
 "Functions (Numeric)","TRUNCATE","
-TRUNCATE(double, digitsInt)
+TRUNCATE(numeric, digitsInt)
 ","
 Truncates to a number of digits (to the next value closer to 0).
 This method returns a double.

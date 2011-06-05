@@ -616,9 +616,9 @@ digit [...]
 ","
 The maximum length of the number depends on the data type used."
 "Other Grammar","Numeric","
-int | long | decimal | hexNumber
+decimal | int | long | hexNumber
 ","
-The data type of a number is always the lowest possible for the given value."
+The data type of a numeric value is always the lowest possible for the given value."
 "Other Grammar","Operand","
 summand [ { || summand } [...] ]
 ","

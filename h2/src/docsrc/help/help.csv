@@ -1828,9 +1828,9 @@ The maximum length of the number depends on the data type used.
 "
 
 "Other Grammar","Numeric","
-int | long | decimal | hexNumber
+decimal | int | long | hexNumber
 ","
-The data type of a number is always the lowest possible for the given value.
+The data type of a numeric value is always the lowest possible for the given value.
 If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
 ","
 SELECT -1600.05

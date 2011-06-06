@@ -1184,8 +1184,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("---- Schema ----");
         Collections.sort(schema);
         for (MetaRecord m : schema) {
-            int t = m.getObjectType();
-            if (t != DbObject.INDEX && t != DbObject.CONSTRAINT) {
+            if (!isSchemaObjectTypeDelayed(m)) {
                 // create, but not referential integrity constraints and so on
                 // because they could fail on duplicate keys
                 String sql = m.getSQL();
@@ -1234,13 +1233,21 @@ public class Recover extends Tool implements DataHandler {
             writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " + LobStorage.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {
-            int t = m.getObjectType();
-            if (t == DbObject.INDEX || t == DbObject.CONSTRAINT) {
-                // create indexes and constraints
+            if (isSchemaObjectTypeDelayed(m)) {
                 String sql = m.getSQL();
                 writer.println(sql + ";");
             }
         }
+    }
+
+    private boolean isSchemaObjectTypeDelayed(MetaRecord m) {
+        switch (m.getObjectType()) {
+        case DbObject.INDEX:
+        case DbObject.CONSTRAINT:
+        case DbObject.TRIGGER:
+            return true;
+        }
+        return false;
     }
 
     private void createTemporaryTable(PrintWriter writer) {

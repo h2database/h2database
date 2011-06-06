@@ -45,6 +45,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
     private volatile Connection handleConn;
     private ArrayList<ConnectionEventListener> listeners = New.arrayList();
     private Xid currentTransaction;
+    private boolean prepared;
 
     static {
         org.h2.Driver.load();
@@ -200,6 +201,9 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
             rs.close();
             Xid[] result = new Xid[list.size()];
             list.toArray(result);
+            if (list.size() > 0) {
+                prepared = true;
+            }
             return result;
         } catch (SQLException e) {
             XAException xa = new XAException(XAException.XAER_RMERR);
@@ -229,6 +233,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
         try {
             stat = physicalConn.createStatement();
             stat.execute("PREPARE COMMIT " + JdbcXid.toString(xid));
+            prepared = true;
         } catch (SQLException e) {
             throw convertException(e);
         } finally {
@@ -247,6 +252,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
         if (isDebugEnabled()) {
             debugCode("forget("+JdbcXid.toString(xid)+");");
         }
+        prepared = false;
     }
 
     /**
@@ -262,14 +268,15 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
         try {
             physicalConn.rollback();
             physicalConn.setAutoCommit(true);
-            Statement stat = null;
-            try {
-                stat = physicalConn.createStatement();
-                stat.execute("ROLLBACK TRANSACTION " + JdbcXid.toString(xid));
-            } catch (SQLException e) {
-                // ignore (not a two phase commit)
-            } finally {
-                JdbcUtils.closeSilently(stat);
+            if (prepared) {
+                Statement stat = null;
+                try {
+                    stat = physicalConn.createStatement();
+                    stat.execute("ROLLBACK TRANSACTION " + JdbcXid.toString(xid));
+                } finally {
+                    JdbcUtils.closeSilently(stat);
+                }
+                prepared = false;
             }
         } catch (SQLException e) {
             throw convertException(e);
@@ -295,6 +302,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
         if (!currentTransaction.equals(xid)) {
             throw new XAException(XAException.XAER_OUTSIDE);
         }
+        prepared = false;
     }
 
     /**
@@ -324,6 +332,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
             throw convertException(e);
         }
         currentTransaction = xid;
+        prepared = false;
     }
 
     /**
@@ -344,6 +353,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
             } else {
                 stat = physicalConn.createStatement();
                 stat.execute("COMMIT TRANSACTION " + JdbcXid.toString(xid));
+                prepared = false;
             }
             physicalConn.setAutoCommit(true);
         } catch (SQLException e) {
